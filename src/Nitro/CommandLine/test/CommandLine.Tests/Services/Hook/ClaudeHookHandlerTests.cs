@@ -596,6 +596,27 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
 
     public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
         => inner.ListAsync(cancellationToken);
+
+    public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
+        string agentName, CancellationToken cancellationToken)
+        => inner.FindLiveClaimedByAgentNameAsync(agentName, cancellationToken);
+
+    public Task<bool> TryClaimPingCooldownAsync(
+        AgentSessionRecord session,
+        string attemptId,
+        DateTimeOffset now,
+        TimeSpan cooldown,
+        CancellationToken cancellationToken)
+        => inner.TryClaimPingCooldownAsync(session, attemptId, now, cooldown, cancellationToken);
+
+    public Task WritePingResultAsync(
+        string harness,
+        string sessionId,
+        string attemptId,
+        string result,
+        string? detail,
+        CancellationToken cancellationToken)
+        => inner.WritePingResultAsync(harness, sessionId, attemptId, result, detail, cancellationToken);
 }
 
 /// <summary>

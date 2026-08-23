@@ -24,6 +24,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
               --body-file <body-file>         A file to read the message body from. Exactly one of --body or --body-file is required
               --role <role>                   The agent's role, free text, normalized lowercase (defaults to empty)
               --actor <actor>                 The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --no-ping                       Skip the best-effort wake ping to recipients with a live claimed session
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
 
@@ -168,6 +169,39 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("test-agent", root.GetProperty("from").GetString());
         Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
+    }
+
+    [Fact]
+    public async Task JsonOutput_Should_ReturnCleanJsonAndRecordSpawnFailed_When_TheNotifierLaunchFails()
+    {
+        // arrange: two recipients with live claimed codex-thread sessions,
+        // one notifier spawn failure mode among several the plan requires
+        // broadcast to stay clean under.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-test");
+        SetupPingWorkerLauncher(new FailingPingWorkerLauncher());
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", "host-broadcast-test");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert: the notifier's spawn failure never touches mail's own
+        // exit code or stdout - a single clean JSON result, nothing else.
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        Assert.Equal(
+            ["bob", "zeta"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
+
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Equal("spawn-failed", pingResult);
     }
 
     [Fact]

@@ -1,4 +1,7 @@
+using System.Diagnostics;
+using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
@@ -80,6 +83,49 @@ public abstract class MailCommandTestBase : CommandTestBase
             TestContext.Current.CancellationToken);
 
     /// <summary>
+    /// Seeds an alive, explicitly-claimed <c>codex-thread</c> session for
+    /// <paramref name="agentName"/> directly against the workspace database,
+    /// on the host id <see cref="SetupInstanceId"/> was pointed at (a test
+    /// calling this must call that first, so the notifier's own host
+    /// resolution matches this row). Used to exercise auto-ping through the
+    /// CLI without a live harness process.
+    /// </summary>
+    private protected async Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
+    {
+        using var process = Process.GetCurrentProcess();
+        var pid = process.Id;
+
+        // A genuine DateTimeOffset, not a bare DateTime: TryClaimPingCooldownAsync
+        // matches proc_start with a raw SQL string equality against the exact
+        // text a DateTimeOffset-typed Dapper parameter serializes, which is
+        // not byte-identical to how Microsoft.Data.Sqlite serializes a bare
+        // DateTime value.
+        var procStart = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                'codex', 'session-1', $agentName, 'explicit', $host, $pid, $procStart,
+                '/work', '/work/.nitro/agents', 'codex-thread', $threadId, $now, $now
+            );
+            """;
+        command.Parameters.AddWithValue("$agentName", agentName);
+        command.Parameters.AddWithValue("$host", host);
+        command.Parameters.AddWithValue("$pid", pid);
+        command.Parameters.AddWithValue("$procStart", procStart);
+        command.Parameters.AddWithValue("$threadId", threadId);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
     /// Runs a scalar query against the workspace database and returns the
     /// first column of the first row as a string.
     /// </summary>
@@ -104,4 +150,13 @@ public abstract class MailCommandTestBase : CommandTestBase
         await base.DisposeAsync();
         _tempRoot.Delete(recursive: true);
     }
+}
+
+/// <summary>
+/// Reports every launch as failed, without spawning anything - proves the
+/// notifier's spawn-failure recording without a real detached process.
+/// </summary>
+internal sealed class FailingPingWorkerLauncher : IPingWorkerLauncher
+{
+    public bool TryLaunch(LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs) => false;
 }

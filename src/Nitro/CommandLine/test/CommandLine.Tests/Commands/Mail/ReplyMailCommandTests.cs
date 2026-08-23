@@ -25,6 +25,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
               --body <body>            The message body. Exactly one of --body or --body-file is required
               --body-file <body-file>  A file to read the message body from. Exactly one of --body or --body-file is required
               --actor <actor>          The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --no-ping                Skip the best-effort wake ping to recipients with a live claimed session
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 

@@ -71,6 +71,12 @@ internal sealed record AgentSessionRecord
     /// </summary>
     public string? LastPingAttempt { get; init; }
 
+    /// <summary>
+    /// One of <c>ok</c>, <c>spawn-failed</c>, <c>endpoint-gone</c>,
+    /// <c>timeout</c>, <c>capacity-dropped</c>, <c>error</c>, or
+    /// <c>unsupported</c> (an endpoint kind the notifier has no transport
+    /// for). Null before any ping attempt.
+    /// </summary>
     public string? LastPingResult { get; init; }
 
     /// <summary>

@@ -549,6 +549,217 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Equal(0, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
     }
 
+    // ---------- FindLiveClaimedByAgentNameAsync ----------
+
+    [Fact]
+    public async Task FindLiveClaimedByAgentNameAsync_Should_ReturnOnlyCurrentHostLiveSessionsClaimedByTheActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        var mine = AliveGeneration("session-mine");
+        await _sessions.StartAsync(
+            mine, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(mine, "pascal", forceRebind: false, cancellationToken);
+
+        var someoneElse = AliveGeneration("session-someone-else");
+        await _sessions.StartAsync(
+            someoneElse, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(someoneElse, "codex", forceRebind: false, cancellationToken);
+
+        var remote = AliveGeneration("session-remote") with { Host = RemoteHost };
+        await _sessions.StartAsync(
+            remote, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "pascal", cancellationToken);
+
+        var dead = DeadGeneration("session-dead");
+        await _sessions.StartAsync(
+            dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "pascal", cancellationToken);
+
+        // act
+        var live = await _sessions.FindLiveClaimedByAgentNameAsync("pascal", cancellationToken);
+
+        // assert: the remote row (never pinged from here) and the dead
+        // current-host row (reaped on read) are both excluded, as is
+        // codex's own session.
+        var row = Assert.Single(live);
+        Assert.Equal("session-mine", row.SessionId);
+    }
+
+    // ---------- TryClaimPingCooldownAsync ----------
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_Claim_When_NoPriorAttempt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+
+        // act
+        var claimed = await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-1", now, TimeSpan.FromSeconds(60), cancellationToken);
+
+        // assert
+        Assert.True(claimed);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal("attempt-1", row!.LastPingAttempt);
+        Assert.Null(row.LastPingResult);
+        Assert.Equal(now, row.LastPingAt);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_ReturnFalse_When_StillWithinCooldown()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        var first = _timeProvider.GetUtcNow();
+        await _sessions.TryClaimPingCooldownAsync(session, "attempt-1", first, TimeSpan.FromSeconds(60), cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromSeconds(30));
+
+        // act
+        var claimed = await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-2", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
+
+        // assert: coalesced - the row still carries the first attempt.
+        Assert.False(claimed);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal("attempt-1", row!.LastPingAttempt);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_ReturnTrue_When_CooldownElapsed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        var first = _timeProvider.GetUtcNow();
+        await _sessions.TryClaimPingCooldownAsync(session, "attempt-1", first, TimeSpan.FromSeconds(60), cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromSeconds(61));
+
+        // act
+        var claimed = await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-2", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
+
+        // assert
+        Assert.True(claimed);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal("attempt-2", row!.LastPingAttempt);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_ReturnFalse_When_GenerationNoLongerMatches()
+    {
+        // arrange: the session ended (or rebound to a new generation)
+        // between resolution and the cooldown claim.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        await _sessions.EndAsync(generation, cancellationToken);
+
+        // act
+        var claimed = await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-1", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_HaveExactlyOneWinner_When_ConcurrentClaimsRaceTheSameSession()
+    {
+        // arrange: separate connections racing the same session row - the
+        // notifier's required "cooldown holds across concurrent processes"
+        // test.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+
+        // act
+        var results = await Task.WhenAll(Enumerable.Range(1, 5).Select(i =>
+            _sessions.TryClaimPingCooldownAsync(
+                session, $"attempt-{i}", now, TimeSpan.FromSeconds(60), cancellationToken)));
+
+        // assert
+        Assert.Equal(1, results.Count(claimed => claimed));
+    }
+
+    // ---------- WritePingResultAsync ----------
+
+    [Fact]
+    public async Task WritePingResultAsync_Should_Write_When_AttemptIdMatches()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-1", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
+
+        // act
+        await _sessions.WritePingResultAsync(
+            Harness, "session-1", "attempt-1", AgentPingResult.Ok, null, cancellationToken);
+
+        // assert
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+    }
+
+    [Fact]
+    public async Task WritePingResultAsync_Should_BeANoOp_When_AttemptIdIsStale()
+    {
+        // arrange: an out-of-order completion from an older attempt must
+        // never overwrite a newer attempt's result.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var session = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-1", _timeProvider.GetUtcNow(), TimeSpan.Zero, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromSeconds(1));
+        await _sessions.TryClaimPingCooldownAsync(
+            session, "attempt-2", _timeProvider.GetUtcNow(), TimeSpan.Zero, cancellationToken);
+
+        // act: attempt-1's late completion arrives after attempt-2 already
+        // claimed the row.
+        await _sessions.WritePingResultAsync(
+            Harness, "session-1", "attempt-1", AgentPingResult.Timeout, null, cancellationToken);
+
+        // assert
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Null(row!.LastPingResult);
+        Assert.Equal("attempt-2", row.LastPingAttempt);
+    }
+
     // ---------- helpers ----------
 
     /// <summary>

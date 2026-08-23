@@ -33,17 +33,19 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init      Initialize an agent workspace in the current directory.
-              doctor    Check the agent workspace's schema and session presence for problems.
-              tasks     Create and manage tasks for coding agents.
-              mail      Send and receive mail between coding agents.
-              memory    Save and recall durable agent memory.
-              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami    Print the resolved actor identity and whether it is registered in this workspace.
-              list      List registered agents.
-              session   Manage this workspace's live harness session presence.
-              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks     Install, inspect, and remove Nitro's Claude Code hook entries.
+              init          Initialize an agent workspace in the current directory.
+              doctor        Check the agent workspace's schema and session presence for problems.
+              tasks         Create and manage tasks for coding agents.
+              mail          Send and receive mail between coding agents.
+              memory        Save and recall durable agent memory.
+              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami        Print the resolved actor identity and whether it is registered in this workspace.
+              list          List registered agents.
+              session       Manage this workspace's live harness session presence.
+              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
+              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
+              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
@@ -67,17 +69,19 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init      Initialize an agent workspace in the current directory.
-              doctor    Check the agent workspace's schema and session presence for problems.
-              tasks     Create and manage tasks for coding agents.
-              mail      Send and receive mail between coding agents.
-              memory    Save and recall durable agent memory.
-              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami    Print the resolved actor identity and whether it is registered in this workspace.
-              list      List registered agents.
-              session   Manage this workspace's live harness session presence.
-              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks     Install, inspect, and remove Nitro's Claude Code hook entries.
+              init          Initialize an agent workspace in the current directory.
+              doctor        Check the agent workspace's schema and session presence for problems.
+              tasks         Create and manage tasks for coding agents.
+              mail          Send and receive mail between coding agents.
+              memory        Save and recall durable agent memory.
+              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami        Print the resolved actor identity and whether it is registered in this workspace.
+              list          List registered agents.
+              session       Manage this workspace's live harness session presence.
+              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
+              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
+              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
@@ -104,17 +108,19 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init      Initialize an agent workspace in the current directory.
-              doctor    Check the agent workspace's schema and session presence for problems.
-              tasks     Create and manage tasks for coding agents.
-              mail      Send and receive mail between coding agents.
-              memory    Save and recall durable agent memory.
-              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami    Print the resolved actor identity and whether it is registered in this workspace.
-              list      List registered agents.
-              session   Manage this workspace's live harness session presence.
-              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks     Install, inspect, and remove Nitro's Claude Code hook entries.
+              init          Initialize an agent workspace in the current directory.
+              doctor        Check the agent workspace's schema and session presence for problems.
+              tasks         Create and manage tasks for coding agents.
+              mail          Send and receive mail between coding agents.
+              memory        Save and recall durable agent memory.
+              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami        Print the resolved actor identity and whether it is registered in this workspace.
+              list          List registered agents.
+              session       Manage this workspace's live harness session presence.
+              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
+              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
+              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
@@ -141,17 +147,19 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init      Initialize an agent workspace in the current directory.
-              doctor    Check the agent workspace's schema and session presence for problems.
-              tasks     Create and manage tasks for coding agents.
-              mail      Send and receive mail between coding agents.
-              memory    Save and recall durable agent memory.
-              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami    Print the resolved actor identity and whether it is registered in this workspace.
-              list      List registered agents.
-              session   Manage this workspace's live harness session presence.
-              hook      Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks     Install, inspect, and remove Nitro's Claude Code hook entries.
+              init          Initialize an agent workspace in the current directory.
+              doctor        Check the agent workspace's schema and session presence for problems.
+              tasks         Create and manage tasks for coding agents.
+              mail          Send and receive mail between coding agents.
+              memory        Save and recall durable agent memory.
+              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami        Print the resolved actor identity and whether it is registered in this workspace.
+              list          List registered agents.
+              session       Manage this workspace's live harness session presence.
+              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
+              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
+              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 

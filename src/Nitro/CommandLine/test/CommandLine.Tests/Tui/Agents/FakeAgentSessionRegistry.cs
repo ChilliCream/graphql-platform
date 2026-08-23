@@ -48,4 +48,25 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
 
     public Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
+        string agentName, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<bool> TryClaimPingCooldownAsync(
+        AgentSessionRecord session,
+        string attemptId,
+        DateTimeOffset now,
+        TimeSpan cooldown,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task WritePingResultAsync(
+        string harness,
+        string sessionId,
+        string attemptId,
+        string result,
+        string? detail,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 }

@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -17,6 +18,7 @@ internal sealed class ReplyMailCommand : Command
         Options.Add(Opt<MailBodyOption>.Instance);
         Options.Add(Opt<MailBodyFileOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
+        Options.Add(Opt<MailNoPingOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         MailBody.AddValidator(this);
@@ -35,17 +37,32 @@ internal sealed class ReplyMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
+        var notifier = services.GetRequiredService<INotifier>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var messageId = parseResult.GetRequiredValue(Opt<MailMessageIdArgument>.Instance);
+        var noPing = parseResult.GetValue(Opt<MailNoPingOption>.Instance);
         var actor = MailActor.Resolve(
             parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
 
         var body = await MailBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
 
         var message = await store.ReplyMessageAsync(messageId, actor, body, cancellationToken);
+
+        if (!noPing)
+        {
+            try
+            {
+                await notifier.NotifyAsync(
+                    message.Recipients.Select(recipient => recipient.Name).ToArray(), cancellationToken);
+            }
+            catch
+            {
+                // A failed ping is a non-event.
+            }
+        }
 
         if (!console.IsHumanReadable)
         {

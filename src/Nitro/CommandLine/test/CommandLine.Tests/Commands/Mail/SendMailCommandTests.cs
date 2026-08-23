@@ -27,6 +27,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
               --body-file <body-file>         A file to read the message body from. Exactly one of --body or --body-file is required
               --cc <cc>                       A recipient to carbon-copy; can be used multiple times
               --actor <actor>                 The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --no-ping                       Skip the best-effort wake ping to recipients with a live claimed session
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
 

@@ -3,9 +3,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// <summary>
 /// A row of <c>ping_leases</c>: one of the four fixed concurrency slots a
 /// ping child holds while running. Acquisition is an atomic
-/// insert-or-steal-expired claim; release deletes by (slot, attempt_id). No
-/// command reads or writes this type yet; it exists so the notifier service
-/// landing in a later bead has a column-matched row type to build on.
+/// insert-or-steal-expired claim; release deletes by (slot, attempt_id). See
+/// <see cref="IPingLeaseStore"/>.
 /// </summary>
 internal sealed record PingLeaseRecord
 {

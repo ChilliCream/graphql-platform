@@ -48,9 +48,18 @@ internal sealed class ListSessionCommand : Command
                 ? $"  claimed by {agentName} ({view.Session.BindingKind})"
                 : "  unclaimed";
 
+            // Distinguishes "no endpoint to ping at all" (endpoint_kind
+            // 'none') from "an endpoint the notifier has no transport for"
+            // (last_ping_result 'unsupported', e.g. claude-peer) from an
+            // ordinary ping outcome: the same diagnostic signal `doctor`
+            // surfaces.
+            var ping = view.Session.LastPingResult is { Length: > 0 } lastPingResult
+                ? $"  last ping {lastPingResult}"
+                : "";
+
             console.WriteLine(
                 $"{view.Session.Harness}  {view.Session.SessionId}  {view.State}{claim}"
-                + $"  last beat {TaskDates.Format(view.Session.LastBeatAt)}");
+                + $"  last beat {TaskDates.Format(view.Session.LastBeatAt)}{ping}");
         }
 
         return ExitCodes.Success;
@@ -70,7 +79,10 @@ internal sealed class ListSessionCommand : Command
         view.Session.EndpointKind,
         view.Session.EndpointAddr,
         view.Session.StartedAt,
-        view.Session.LastBeatAt);
+        view.Session.LastBeatAt,
+        view.Session.LastPingAt,
+        view.Session.LastPingResult,
+        view.Session.LastPingDetail);
 
     public sealed record SessionRowResult(
         string Harness,
@@ -86,5 +98,8 @@ internal sealed class ListSessionCommand : Command
         string EndpointKind,
         string EndpointAddr,
         DateTimeOffset StartedAt,
-        DateTimeOffset LastBeatAt);
+        DateTimeOffset LastBeatAt,
+        DateTimeOffset? LastPingAt,
+        string? LastPingResult,
+        string? LastPingDetail);
 }

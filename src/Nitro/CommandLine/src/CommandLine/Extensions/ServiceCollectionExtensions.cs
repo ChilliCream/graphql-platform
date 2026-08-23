@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -41,6 +42,10 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexAncestorSessionResolver, CodexAncestorSessionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
+        services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
+        services.TryAddSingleton<IPingWorkerLauncher, PingWorkerLauncher>();
+        services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
+        services.TryAddSingleton<INotifier, Notifier>();
         services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();

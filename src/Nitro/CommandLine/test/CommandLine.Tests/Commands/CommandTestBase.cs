@@ -42,6 +42,7 @@ public abstract class CommandTestBase
     private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -115,6 +116,16 @@ public abstract class CommandTestBase
     private protected void SetupGlobalConfigDirectory(string directory)
     {
         _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Replaces the real detached-process ping worker launcher with the
+    /// given fake, so tests exercising auto-ping through the CLI (mail
+    /// send/reply/broadcast) never spawn a real OS process.
+    /// </summary>
+    private protected void SetupPingWorkerLauncher(Services.Notify.IPingWorkerLauncher launcher)
+    {
+        _pingWorkerLauncherOverride = launcher;
     }
 
     protected void SetupNoAuthentication()
@@ -297,6 +308,11 @@ public abstract class CommandTestBase
         if (_globalConfigDirectoryProviderOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
+        if (_pingWorkerLauncherOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_pingWorkerLauncherOverride));
         }
 
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));

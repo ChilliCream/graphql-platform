@@ -108,4 +108,46 @@ internal interface IAgentSessionRegistry
     /// with its computed <see cref="AgentSessionState"/>.
     /// </summary>
     Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reaps dead current-instance rows, then returns every surviving row
+    /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
+    /// rows are never returned: a ping fired from here cannot reach a
+    /// session another Nitro instance owns). Used by the notifier and
+    /// <c>nitro agent ping</c> to resolve which sessions to fire at.
+    /// </summary>
+    Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
+        string agentName, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomically claims the per-session ping cooldown for
+    /// <paramref name="session"/>'s exact generation: succeeds, stamping
+    /// <paramref name="attemptId"/> as the new pending attempt and clearing
+    /// any previous result, only when no prior attempt was claimed within
+    /// <paramref name="cooldown"/> of <paramref name="now"/>. Returns false
+    /// (a no-op) when the cooldown is still active or the generation no
+    /// longer matches a row - both cases mean the caller must not act.
+    /// </summary>
+    Task<bool> TryClaimPingCooldownAsync(
+        AgentSessionRecord session,
+        string attemptId,
+        DateTimeOffset now,
+        TimeSpan cooldown,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Writes a ping outcome for <paramref name="sessionId"/>, conditioned
+    /// on <paramref name="attemptId"/> still being the row's current
+    /// <c>last_ping_attempt</c>: an out-of-order or superseded completion
+    /// (the row rebound to a new generation, or a newer attempt already
+    /// claimed the cooldown) affects zero rows instead of overwriting a
+    /// newer result.
+    /// </summary>
+    Task WritePingResultAsync(
+        string harness,
+        string sessionId,
+        string attemptId,
+        string result,
+        string? detail,
+        CancellationToken cancellationToken);
 }

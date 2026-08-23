@@ -57,7 +57,14 @@ public abstract class AgentCommandTestBase : CommandTestBase
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
         var pid = process.Id;
-        var procStart = process.StartTime.ToUniversalTime();
+
+        // A genuine DateTimeOffset, not a bare DateTime: registry methods
+        // that predicate on the full generation (e.g.
+        // TryClaimPingCooldownAsync) match proc_start with a raw SQL string
+        // equality against the exact text a DateTimeOffset-typed Dapper
+        // parameter serializes, which is not byte-identical to how
+        // Microsoft.Data.Sqlite serializes a bare DateTime value.
+        var procStart = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);

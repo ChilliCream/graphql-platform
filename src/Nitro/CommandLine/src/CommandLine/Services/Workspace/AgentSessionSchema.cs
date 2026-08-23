@@ -8,9 +8,11 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// at-most-once-per-channel notification ledger, cascading with its owning
 /// session); and <c>ping_leases</c> (the fixed four-slot concurrency cap on
 /// outstanding ping children). Statements are idempotent so applying them to
-/// an existing database is non-destructive; no code in this bead populates
-/// these tables yet (session claim/list/status, the hook adapters, and
-/// reaping are a later bead) - this is schema and migration only.
+/// an existing database is non-destructive. <c>last_ping_result</c> carries
+/// <c>unsupported</c> for an endpoint kind the notifier has no transport
+/// for (<c>claude-peer</c>, currently): a distinct diagnostic from
+/// <c>endpoint_kind = 'none'</c>, which means the session simply has no
+/// endpoint to attempt at all.
 /// </summary>
 internal static class AgentSessionSchema
 {
@@ -33,7 +35,7 @@ internal static class AgentSessionSchema
             block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
             last_ping_at TEXT NULL,
             last_ping_attempt TEXT NULL,
-            last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error') OR last_ping_result IS NULL),
+            last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
             last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
             -- Table-level CHECK constraints must follow every column
             -- definition (SQLite rejects one interleaved between columns),

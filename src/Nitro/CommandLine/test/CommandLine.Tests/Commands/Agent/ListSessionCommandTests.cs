@@ -139,6 +139,40 @@ public sealed class ListSessionCommandTests : AgentCommandTestBase
     }
 
     [Fact]
+    public async Task UnsupportedEndpoint_IsDistinctFromNoEndpoint()
+    {
+        // arrange: claude-peer is a real, recorded endpoint the notifier
+        // simply has no transport for, distinct diagnostic signal from
+        // `unreachable` (endpoint_kind 'none', nothing to attempt at all).
+        await InitWorkspaceAsync();
+        await InsertUnsupportedPingResultSessionAsync(FixedHost, "session-unsupported");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "session", "list");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.Contains("last ping unsupported", line);
+    }
+
+    [Fact]
+    public async Task UnsupportedEndpoint_SurfacesInJsonOutput()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await InsertUnsupportedPingResultSessionAsync(FixedHost, "session-unsupported");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "session", "list");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var row = document.RootElement.GetProperty("items").EnumerateArray().Single();
+        Assert.Equal("unsupported", row.GetProperty("lastPingResult").GetString());
+    }
+
+    [Fact]
     public async Task NoWorkspace_ReturnsError()
     {
         // act
@@ -179,6 +213,29 @@ public sealed class ListSessionCommandTests : AgentCommandTestBase
         command.Parameters.AddWithValue("$procStart", procStart);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
 
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Inserts a live, unclaimed <c>claude-peer</c> session and immediately
+    /// stamps its <c>last_ping_result</c> - the notifier's own write, done
+    /// directly here since building it requires the full Notifier pipeline
+    /// this command test does not otherwise exercise.
+    /// </summary>
+    private async Task InsertUnsupportedPingResultSessionAsync(string host, string sessionId)
+    {
+        // Explicitly qualified: the local overload above hides every base
+        // class overload of this name, including the one that accepts
+        // endpointKind/endpointAddr.
+        await base.InsertAliveSessionRowAsync(
+            host, sessionId, agentName: null, bindingKind: "none",
+            endpointKind: "claude-peer", endpointAddr: "peer-a");
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agent_sessions SET last_ping_result = 'unsupported' WHERE session_id = $sessionId;";
+        command.Parameters.AddWithValue("$sessionId", sessionId);
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 

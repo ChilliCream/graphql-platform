@@ -1,0 +1,222 @@
+using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
+using Microsoft.Extensions.Time.Testing;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
+
+/// <summary>
+/// Exercises <see cref="PingSessionExecutor"/> end to end against a real
+/// workspace database and mail store: digest construction from unread mail,
+/// the codex-thread transport call, the hard-timeout path, result-write
+/// conditioning, and lease release on every exit - the notifier's required
+/// "a codex-thread ping wakes a live thread end to end" test.
+/// </summary>
+public sealed class PingSessionExecutorTests : IDisposable
+{
+    private const string Harness = AgentSessionHarness.Codex;
+    private const string SessionId = "session-1";
+    private const string Actor = "codex-worker";
+    private const string ThreadId = "thread-1";
+
+    private readonly DirectoryInfo _tempRoot;
+    private readonly string _workspaceDirectory;
+    private readonly TestFileSystem _fileSystem;
+    private readonly FakeTimeProvider _timeProvider;
+    private readonly AgentDatabase _database;
+    private readonly AgentRegistry _agentRegistry;
+    private readonly AgentSessionRegistry _sessions;
+    private readonly MailStore _mail;
+    private readonly PingLeaseStore _leases;
+    private readonly FakeCodexQueueClient _queueClient;
+    private readonly AgentSessionGeneration _generation;
+
+    public PingSessionExecutorTests()
+    {
+        _tempRoot = Directory.CreateTempSubdirectory("nitro-ping-session-executor-tests");
+        _workspaceDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
+        Directory.CreateDirectory(_workspaceDirectory);
+        _fileSystem = new TestFileSystem(_tempRoot.FullName);
+        _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+        _database = new AgentDatabase();
+        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
+        _sessions = new AgentSessionRegistry(
+            _fileSystem,
+            _timeProvider,
+            _database,
+            _agentRegistry,
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(null));
+        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
+        _leases = new PingLeaseStore(_fileSystem, _database);
+        _queueClient = new FakeCodexQueueClient();
+        _generation = new AgentSessionGeneration(Harness, SessionId, "host-1", 1, DateTimeOffset.UnixEpoch);
+    }
+
+    public void Dispose() => _tempRoot.Delete(recursive: true);
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_QueueTheDigestAndRecordOk_When_UnreadMailExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        var message = await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, outcome);
+        var call = Assert.Single(_queueClient.Calls);
+        Assert.Equal(ThreadId, call.ThreadId);
+        Assert.Contains(message.Id, call.Message);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+    }
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_ReleaseTheLease_When_ItCompletes()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        var slot = await _leases.TryAcquireAsync(attemptId, now, TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        await executor.ExecuteCodexThreadAsync(Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+
+        // assert: the slot is free again, so a fresh attempt reclaims the
+        // exact same slot number.
+        var reacquired = await _leases.TryAcquireAsync("attempt-next", now, TimeSpan.FromSeconds(30), cancellationToken);
+        Assert.Equal(slot, reacquired);
+    }
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_RecordError_When_TheTransportCallFails()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _queueClient.NextResult = false;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Error, outcome);
+    }
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_RecordOkWithoutCallingTheTransport_When_NoUnreadMailExists()
+    {
+        // arrange: the message that triggered this ping was already read by
+        // the time the attempt ran - a benign race, not a failure.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, outcome);
+        Assert.Empty(_queueClient.Calls);
+    }
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_RecordTimeout_When_TheTransportCallOutlivesTheHardTimeout()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = new PingSessionExecutor(
+            _mail, new NeverCompletingCodexQueueClient(), _sessions, _leases, hardTimeout: TimeSpan.FromMilliseconds(50));
+
+        // act
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Timeout, outcome);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(AgentPingResult.Timeout, row!.LastPingResult);
+    }
+
+    private PingSessionExecutor CreateExecutor()
+        => new(_mail, _queueClient, _sessions, _leases, hardTimeout: TimeSpan.FromSeconds(5));
+
+    private async Task InitializeSessionAsync(CancellationToken cancellationToken)
+    {
+        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+        }
+
+        await _sessions.StartAsync(
+            _generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, ThreadId,
+            envActor: Actor, cancellationToken);
+    }
+
+    /// <summary>
+    /// Claims the cooldown to obtain a fresh attempt id conditioning the
+    /// eventual result write, mirroring what the notifier does before
+    /// spawning (or, here, directly invoking) the executor.
+    /// </summary>
+    private async Task<string> ClaimAttemptAsync(CancellationToken cancellationToken)
+    {
+        var session = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        var attemptId = $"attempt-{Guid.NewGuid():N}";
+        await _sessions.TryClaimPingCooldownAsync(
+            session!, attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
+        return attemptId;
+    }
+}
+
+/// <summary>
+/// Never returns, so a caller racing it against its own timeout always
+/// observes the timeout side of that race.
+/// </summary>
+internal sealed class NeverCompletingCodexQueueClient : ICodexQueueClient
+{
+    public async Task<bool> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
+    {
+        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        return true;
+    }
+}
