@@ -232,6 +232,84 @@ public sealed class ClaudeHookExecutorTests
     }
 
     [Fact]
+    public async Task RunAsync_Should_WriteNeutral_When_SchemaVersionMismatches()
+    {
+        // arrange: the workspace database is stamped with a schema version
+        // newer than AgentDatabase.CurrentVersion, so the handler's own
+        // connection attempt throws ExitException; the executor's fail-open
+        // envelope must still resolve to neutral instead of surfacing it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-executor-version-tests");
+
+        try
+        {
+            var workspaceRoot = tempRoot.FullName;
+            var workspaceDirectory = AgentWorkspace.GetDirectory(workspaceRoot);
+            Directory.CreateDirectory(workspaceDirectory);
+            var fileSystem = new TestFileSystem(workspaceRoot);
+            var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+            var database = new AgentDatabase();
+            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
+            var sessions = new AgentSessionRegistry(
+                fileSystem,
+                timeProvider,
+                database,
+                agentRegistry,
+                new FixedInstanceIdProvider("host-1"),
+                new FixedGlobalConfigDirectoryProvider(workspaceRoot),
+                new ProcessInfoProvider(),
+                new FixedAncestorSessionResolver(null));
+            var ledger = new SessionDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var environmentVariables = new FixedEnvironmentVariableProvider();
+            var handler = new ClaudeHookHandler(
+                fileSystem,
+                timeProvider,
+                sessions,
+                ledger,
+                mail,
+                environmentVariables,
+                new ProcessInfoProvider(),
+                new FixedAncestorSessionResolver(null),
+                new FixedInstanceIdProvider("host-1"),
+                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+
+            await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
+            {
+            }
+
+            await using (var versionConnection = new SqliteConnection(
+                $"Data Source={AgentWorkspace.GetDatabasePath(workspaceDirectory)};Pooling=False"))
+            {
+                await versionConnection.OpenAsync(cancellationToken);
+                await using var versionCommand = versionConnection.CreateCommand();
+                versionCommand.CommandText = $"PRAGMA user_version = {AgentDatabase.CurrentVersion + 1};";
+                await versionCommand.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            var input = new StringReader(
+                $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(workspaceRoot)}}}""");
+            var output = new StringWriter();
+
+            // act
+            var exitCode = await ClaudeHookExecutor.RunAsync(
+                environmentVariables,
+                input,
+                output,
+                (p, ct) => handler.HandleSessionStartAsync(p, dryRun: true, ct),
+                cancellationToken);
+
+            // assert
+            Assert.Equal(0, exitCode);
+            Assert.Equal("{}", output.ToString().Trim());
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task RunAsync_Should_WriteHookSpecificOutput_When_HandlerReturnsAdditionalContext()
     {
         // arrange
