@@ -392,7 +392,7 @@ public sealed class ClaudeHookExecutorTests
     [InlineData("stop.json", "5b1c9a3e-4b2f-4a3c-9e3a-2f6b0c1d9e21", "/work/repo", false)]
     [InlineData("stop-reentrant.json", "5b1c9a3e-4b2f-4a3c-9e3a-2f6b0c1d9e21", "/work/repo", true)]
     [InlineData("session-end.json", "5b1c9a3e-4b2f-4a3c-9e3a-2f6b0c1d9e21", "/work/repo", false)]
-    public async Task RunAsync_Should_ParseTheCapturedFixture_Into_TheExpectedPayload(
+    public async Task RunAsync_Should_ParseTheFixture_Into_TheExpectedPayload(
         string fixtureFile, string expectedSessionId, string expectedCwd, bool expectedStopHookActive)
     {
         // arrange
