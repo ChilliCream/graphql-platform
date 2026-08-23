@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { NAV_LINKS, LearnSubnavLinkList } from "@/src/components/learn/LearnSubnav";
+import { NAV_LINKS, LearnSubnavLinkList } from "@/src/components/learn/LearnSubnavLinkList";
 
 /**
  * Client-only piece of `LearnSubnav`: reads the pathname and `product` query
