@@ -160,3 +160,18 @@ internal sealed class FailingPingWorkerLauncher : IPingWorkerLauncher
 {
     public bool TryLaunch(LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs) => false;
 }
+
+/// <summary>
+/// Records every launch it is asked to perform, without spawning anything -
+/// proves a suppressed notify path never reaches the launcher at all.
+/// </summary>
+internal sealed class RecordingPingWorkerLauncher : IPingWorkerLauncher
+{
+    public List<IReadOnlyList<string>> Calls { get; } = [];
+
+    public bool TryLaunch(LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs)
+    {
+        Calls.Add(workerArgs);
+        return false;
+    }
+}

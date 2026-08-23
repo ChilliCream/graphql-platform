@@ -149,6 +149,38 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task JsonOutput_Should_ReturnCleanJsonAndRecordSpawnFailed_When_TheNotifierLaunchFails()
+    {
+        // arrange: a recipient with a live claimed codex-thread session, one
+        // notifier spawn failure mode among several the plan requires reply
+        // to stay clean under.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-reply-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("alice", "thread-alice", "host-reply-test");
+        var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
+        SetupPingWorkerLauncher(new FailingPingWorkerLauncher());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+
+        // assert: the notifier's spawn failure never touches mail's own
+        // exit code or stdout - a single clean JSON result, nothing else.
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        Assert.Equal(["alice"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
+
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Equal("spawn-failed", pingResult);
+    }
+
+    [Fact]
     public async Task BodyAndBodyFileBothMissing_ReturnsParseError()
     {
         // arrange

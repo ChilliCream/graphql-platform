@@ -350,6 +350,60 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task NoPing_Should_SkipTheNotifier_And_NeverInvokeTheLauncher()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-send-noping-test");
+        var launcher = new RecordingPingWorkerLauncher();
+        SetupPingWorkerLauncher(launcher);
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", "host-send-noping-test");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--no-ping", "--subject", "Status", "--body", "All good.");
+
+        // assert: --no-ping suppresses the notifier entirely, so the
+        // launcher is never invoked and the session row is left untouched.
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(launcher.Calls);
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Null(pingResult);
+    }
+
+    [Fact]
+    public async Task JsonOutput_Should_ReturnCleanJsonAndRecordSpawnFailed_When_TheNotifierLaunchFails()
+    {
+        // arrange: a recipient with a live claimed codex-thread session, one
+        // notifier spawn failure mode among several the plan requires send
+        // to stay clean under.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-send-test");
+        SetupPingWorkerLauncher(new FailingPingWorkerLauncher());
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", "host-send-test");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+
+        // assert: the notifier's spawn failure never touches mail's own
+        // exit code or stdout - a single clean JSON result, nothing else.
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
+
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Equal("spawn-failed", pingResult);
+    }
+
+    [Fact]
     public async Task NoWorkspace_ReturnsError()
     {
         // act
