@@ -48,7 +48,15 @@ internal enum MailDiscardTarget
 /// picker (p) narrows <see cref="MailMailbox.Workspace"/> to messages one
 /// agent sent or received, in either direction; it is refused with a toast
 /// outside Workspace, the same way the mutating gestures are refused inside
-/// it, since the filter has no meaning for any other mailbox.
+/// it, since the filter has no meaning for any other mailbox. The list pane
+/// itself renders as a table (<see cref="MailTable"/>): a heading row above
+/// thread rollup rows by default (<see cref="MailListMode.Threads"/>,
+/// <see cref="MailKeyMap"/>'s Shift+V toggling to the pre-epic flat
+/// per-message rows and back), with za/zo/zc/zR/zM folding a thread's
+/// messages into indented rows beneath it (see <see cref="OpenFoldPrefix"/>).
+/// <see cref="MailState"/> defaults to <see cref="MailMailbox.Workspace"/>,
+/// per the epic's user ruling, so this mode opens read-only until the
+/// actor jumps elsewhere.
 /// </summary>
 internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -73,9 +81,12 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// The fraction of the frame width the list pane occupies; the detail
-    /// pane takes the remainder.
+    /// pane takes the remainder. Widened from the pre-epic 2/5 split so the
+    /// table's From/To/Subject/Preview/Age columns (see <see cref="MailTable"/>)
+    /// have room to breathe at the epic's target of a typical 200+ column
+    /// terminal, per the epic's layout-rethink ruling.
     /// </summary>
-    private const int ListWidthNumerator = 2;
+    private const int ListWidthNumerator = 3;
     private const int ListWidthDenominator = 5;
 
     /// <summary>
@@ -91,6 +102,24 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private const string AgentFilterRequiresWorkspaceMessage =
         "Agent filter only applies to Workspace. Press Shift+W for Workspace.";
+
+    /// <summary>
+    /// The toast shown when a fold gesture (z-prefix) is requested while
+    /// <see cref="MailState.ListMode"/> is <see cref="MailListMode.Flat"/>,
+    /// where there is nothing to fold.
+    /// </summary>
+    private const string FoldRequiresThreadsMessage =
+        "Fold only applies to threaded view. Press Shift+V for threaded view.";
+
+    /// <summary>
+    /// The <see cref="CapturingHints"/> shown while the fold prefix (z) is
+    /// pending its second key.
+    /// </summary>
+    private static readonly KeyHint[] FoldPrefixHints =
+    [
+        new("a/o/c", "toggle/open/close thread"),
+        new("R/M", "unfold/fold all")
+    ];
 
     /// <summary>
     /// The footer hints <see cref="SuppressedGlobalHints"/> hides while
@@ -128,6 +157,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private ConfirmDialog? _discardDialog;
     private MailDiscardTarget _discardTarget;
     private QuickPicker? _agentPicker;
+    private bool _foldPrefixPending;
 
     public MailMode(IMailStore store, string actor, IAgentRegistry agentRegistry, TimeProvider? timeProvider = null)
     {
@@ -159,7 +189,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         || _composeForm is not null
         || _replyForm is not null
         || _discardDialog is not null
-        || _agentPicker is not null;
+        || _agentPicker is not null
+        || _foldPrefixPending;
 
     /// <inheritdoc />
     public IReadOnlyList<KeyHint> CapturingHints
@@ -168,6 +199,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         : _composeForm is not null ? MailComposeForm.Hints
         : _replyForm is not null ? MailReplyForm.Hints
         : _agentPicker is not null ? QuickPicker.Hints
+        : _foldPrefixPending ? FoldPrefixHints
         : [];
 
     /// <summary>
@@ -226,6 +258,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.SelectAllMailRequested => SelectMailbox(MailMailbox.All),
         TuiMessage.SelectWorkspaceMailRequested => SelectMailbox(MailMailbox.Workspace),
         TuiMessage.AgentFilterPickerRequested => OpenAgentFilterPicker(),
+        TuiMessage.ToggleListModeRequested => ToggleListMode(),
+        TuiMessage.FoldPrefixRequested => OpenFoldPrefix(),
         _ => []
     };
 
@@ -260,6 +294,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         if (_agentPicker is not null)
         {
             return HandleAgentPickerKey(info);
+        }
+
+        if (_foldPrefixPending)
+        {
+            return HandleFoldPrefixKey(info);
         }
 
         return [];
@@ -314,9 +353,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     {
         if (_state.Focus == MailFocus.List)
         {
-            if (_state.Messages.Count > 0)
+            if (_state.Rows.Count > 0)
             {
-                _state.SelectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.Messages.Count - 1);
+                _state.SelectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.Rows.Count - 1);
             }
         }
         else if (delta > 0)
@@ -335,9 +374,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     {
         if (_state.Focus == MailFocus.List)
         {
-            if (_state.Messages.Count > 0)
+            if (_state.Rows.Count > 0)
             {
-                _state.SelectedRow = edge == EdgeTarget.Top ? 0 : _state.Messages.Count - 1;
+                _state.SelectedRow = edge == EdgeTarget.Top ? 0 : _state.Rows.Count - 1;
             }
         }
         else if (edge == EdgeTarget.Top)
@@ -776,6 +815,109 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         return opened ? [] : [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
     }
 
+    /// <summary>
+    /// Toggles <see cref="MailState.ListMode"/> between
+    /// <see cref="MailListMode.Threads"/> and <see cref="MailListMode.Flat"/>
+    /// (Shift+V). Unlike every other mailbox/filter switch, this never
+    /// reaches the store: <see cref="MailState.ToggleListMode"/> rebuilds
+    /// <see cref="MailState.Rows"/> from data already loaded.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> ToggleListMode()
+    {
+        _state.ToggleListMode();
+        _detailView.ResetScroll();
+        return [];
+    }
+
+    /// <summary>
+    /// Enters the fold-prefix (z) capture state, refused with a toast when
+    /// <see cref="MailState.ListMode"/> is <see cref="MailListMode.Flat"/>,
+    /// where there is nothing to fold. The next raw key is routed to
+    /// <see cref="HandleFoldPrefixKey"/> instead of the normal semantic
+    /// dispatch, the same capturing mechanism the archive/compose/reply
+    /// overlays use.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenFoldPrefix()
+    {
+        if (_state.ListMode != MailListMode.Threads)
+        {
+            return [new TuiMessage.ShowToast(FoldRequiresThreadsMessage, ToastStyle.Warn)];
+        }
+
+        _foldPrefixPending = true;
+        return [];
+    }
+
+    /// <summary>
+    /// Resolves the key following a fold prefix: a (toggle), o (open/expand),
+    /// c (close/collapse) act on the thread under the cursor (see
+    /// <see cref="CurrentRowThreadId"/>); Shift+R/Shift+M unfold/fold every
+    /// thread and need no selection. Any other key, including Escape, cancels
+    /// the prefix with no action - mirroring vim's own za/zo/zc/zR/zM, there
+    /// is no error toast for an unrecognized second key.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> HandleFoldPrefixKey(ConsoleKeyInfo info)
+    {
+        _foldPrefixPending = false;
+
+        switch (info.KeyChar)
+        {
+            case 'a':
+                if (CurrentRowThreadId() is { } toggleId)
+                {
+                    _state.ToggleThreadFold(toggleId);
+                }
+
+                break;
+
+            case 'o':
+                if (CurrentRowThreadId() is { } openId)
+                {
+                    _state.ExpandThread(openId);
+                }
+
+                break;
+
+            case 'c':
+                if (CurrentRowThreadId() is { } closeId)
+                {
+                    _state.CollapseThread(closeId);
+                }
+
+                break;
+
+            case 'R':
+                _state.ExpandAllThreads();
+                break;
+
+            case 'M':
+                _state.CollapseAllThreads();
+                break;
+        }
+
+        return [];
+    }
+
+    /// <summary>
+    /// The thread id the fold prefix's second key acts on: the selected
+    /// row's own thread id for a thread row, or its parent thread's id for
+    /// an expanded child message row; null when nothing is selected.
+    /// </summary>
+    private string? CurrentRowThreadId()
+    {
+        if (_state.SelectedRow < 0 || _state.SelectedRow >= _state.Rows.Count)
+        {
+            return null;
+        }
+
+        return _state.Rows[_state.SelectedRow] switch
+        {
+            MailListRow.Thread t => t.Summary.ThreadId,
+            MailListRow.MessageRow m => m.Message.ThreadId,
+            _ => null
+        };
+    }
+
     private IReadOnlyList<TuiMessage> CopySelectedId()
     {
         var id = _state.SelectedMessage?.Id;
@@ -794,7 +936,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         var now = _timeProvider.GetUtcNow();
 
         var lines = RenderListLines(contentWidth, interiorHeight, focused, now);
-        var panel = BuildListPanel(HeaderName(_state), _state.Messages.Count, lines, focused);
+        var count = _state.ListMode == MailListMode.Threads ? _state.Threads.Count : _state.Messages.Count;
+        var panel = BuildListPanel(HeaderName(_state), count, lines, focused);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
@@ -845,10 +988,14 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _clientsByName);
 
     /// <summary>
-    /// Renders the list's visible rows: the scrolled message badges,
-    /// padded with blank lines so the panel reports a stable line count,
-    /// with "N more above/below" indicators reserving their own rows once
-    /// the messages no longer fit <paramref name="interiorHeight"/>.
+    /// Renders the list's visible rows: a fixed heading row (see
+    /// <see cref="MailTable.RenderHeading"/>) followed by the scrolled
+    /// thread/message rows, padded with blank lines so the panel reports a
+    /// stable line count, with "N more above/below" indicators reserving
+    /// their own rows once the rows no longer fit <paramref name="interiorHeight"/>.
+    /// Column widths (<see cref="MailTable.ComputeColumns"/>) are computed
+    /// once per render from <paramref name="contentWidth"/> so the heading
+    /// and every row line up.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(
         int contentWidth, int interiorHeight, bool focused, DateTimeOffset now)
@@ -858,13 +1005,22 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [];
         }
 
-        var messages = _state.Messages;
+        var columns = MailTable.ComputeColumns(contentWidth, _state.ListMode == MailListMode.Threads);
+        var heading = MailTable.RenderHeading(columns);
+
+        if (interiorHeight == 1)
+        {
+            return [heading];
+        }
+
+        var bodyHeight = interiorHeight - 1;
+        var rows = _state.Rows;
         var reservedRows = 0;
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
         {
-            var windowHeight = Math.Max(0, interiorHeight - reservedRows);
-            _listViewport.Update(messages.Count, windowHeight);
+            var windowHeight = Math.Max(0, bodyHeight - reservedRows);
+            _listViewport.Update(rows.Count, windowHeight);
             _listViewport.EnsureVisible(_state.SelectedRow);
 
             var needed = (_listViewport.HiddenAbove > 0 ? 1 : 0) + (_listViewport.HiddenBelow > 0 ? 1 : 0);
@@ -878,7 +1034,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         }
 
         var (start, visibleCount) = _listViewport.Slice();
-        var lines = new List<string>(interiorHeight);
+        var lines = new List<string>(interiorHeight) { heading };
 
         if (_listViewport.HiddenAbove > 0)
         {
@@ -887,9 +1043,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
         for (var i = 0; i < visibleCount; i++)
         {
-            var message = messages[start + i];
-            var selected = focused && start + i == _state.SelectedRow;
-            lines.Add(MailMessageBadge.Render(message, _state.Actor, now, selected, contentWidth));
+            var index = start + i;
+            var selected = focused && index == _state.SelectedRow;
+            lines.Add(RenderRow(rows[index], selected, now, columns));
         }
 
         if (_listViewport.HiddenBelow > 0)
@@ -905,6 +1061,24 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         return lines;
     }
 
+    /// <summary>
+    /// Renders one <see cref="MailListRow"/> via <see cref="MailTable"/>,
+    /// resolving the unread-to-me highlight per row type: a thread row asks
+    /// <see cref="MailState.IsThreadUnreadToMe"/> (which knows how to read
+    /// Workspace's unscoped rollups safely); a message row asks
+    /// <see cref="MailRecipientView.IsUnread"/> directly, correct in every
+    /// mailbox since a message's own embedded recipients carry the actor's
+    /// real read state wherever it is queried from.
+    /// </summary>
+    private string RenderRow(MailListRow row, bool selected, DateTimeOffset now, MailTable.Columns columns) => row switch
+    {
+        MailListRow.Thread t => MailTable.RenderThreadRow(
+            t.Summary, t.Expanded, _state.IsThreadUnreadToMe(t.Summary), selected, _state.Actor, now, columns),
+        MailListRow.MessageRow m => MailTable.RenderMessageRow(
+            m.Message, m.ThreadChild, MailRecipientView.IsUnread(m.Message, _state.Actor), selected, _state.Actor, now, columns),
+        _ => string.Empty
+    };
+
     private static string FormatIndicator(int hiddenCount, string direction) => $"  {hiddenCount} more {direction}";
 
     private static string FilterName(MailListFilter filter) => filter switch
@@ -916,13 +1090,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// The list pane's header name: the read-state filter's name within
-    /// <see cref="MailMailbox.Inbox"/>, where it applies; the mailbox's own
-    /// display name suffixed with the selected agent within
-    /// <see cref="MailMailbox.Workspace"/> when <see cref="MailState.AgentFilter"/>
-    /// is set, the third of Workspace's mode indicators alongside
-    /// <see cref="HeaderName"/>'s own text and <see cref="ResolveListBorderToken"/>'s
-    /// border accent (see the class doc); or the plain mailbox display name
-    /// otherwise.
+    /// <see cref="MailMailbox.Inbox"/>, in both <see cref="MailListMode.Flat"/>
+    /// and <see cref="MailListMode.Threads"/> - so cycling f/F (<see cref="MailState.CycleFilterAsync"/>)
+    /// is always visible, even for <see cref="MailListFilter.Archived"/> in
+    /// Threads mode, where <see cref="MailState.Filter"/>'s doc comment notes
+    /// there is no row-level effect yet; the mailbox's own display name
+    /// suffixed with the selected agent within <see cref="MailMailbox.Workspace"/>
+    /// when <see cref="MailState.AgentFilter"/> is set, the third of
+    /// Workspace's mode indicators alongside <see cref="HeaderName"/>'s own
+    /// text and <see cref="ResolveListBorderToken"/>'s border accent (see the
+    /// class doc); or the plain mailbox display name otherwise.
     /// </summary>
     private static string HeaderName(MailState state)
     {

@@ -194,6 +194,21 @@ internal abstract record TuiMessage
     public sealed record AgentFilterPickerRequested : TuiMessage;
 
     /// <summary>
+    /// The mail board's list pane should toggle between
+    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailListMode.Threads"/>
+    /// and <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailListMode.Flat"/>
+    /// (Shift+V).
+    /// </summary>
+    public sealed record ToggleListModeRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's list pane should enter its fold-prefix capture
+    /// state (the vim <c>z</c> prefix): the next raw key resolves one of
+    /// za/zo/zc/zR/zM, or is dropped when it matches none of them.
+    /// </summary>
+    public sealed record FoldPrefixRequested : TuiMessage;
+
+    /// <summary>
     /// The active mode's own inline search input should gain focus.
     /// </summary>
     public sealed record SearchRequested : TuiMessage;

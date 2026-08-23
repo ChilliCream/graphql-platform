@@ -69,4 +69,47 @@ internal sealed class MailDataLoader(IMailStore store)
         string threadId,
         CancellationToken cancellationToken)
         => store.GetThreadMessagesAsync(threadId, cancellationToken);
+
+    /// <summary>
+    /// Loads the actor's inbox thread rollups (the "Inbox" mailbox scope in
+    /// <see cref="MailListMode.Threads"/>), newest activity first. Unlike
+    /// <see cref="LoadInboxAsync"/>, this carries no <see cref="MailListFilter"/>:
+    /// the store exposes no filtered thread query, so Threads mode within
+    /// Inbox always shows the full inbox thread set (see <see cref="MailState"/>).
+    /// </summary>
+    public Task<IReadOnlyList<MailThreadSummary>> LoadInboxThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken)
+        => store.QueryInboxThreadsAsync(actor, cancellationToken);
+
+    /// <summary>
+    /// Loads thread rollups for every thread the actor sent a message in
+    /// (the "Sent" mailbox scope in <see cref="MailListMode.Threads"/>),
+    /// newest activity first.
+    /// </summary>
+    public Task<IReadOnlyList<MailThreadSummary>> LoadSentThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken)
+        => store.QuerySentThreadsAsync(actor, cancellationToken);
+
+    /// <summary>
+    /// Loads thread rollups for every thread the actor sent or received a
+    /// message in (the "All" mailbox scope in <see cref="MailListMode.Threads"/>),
+    /// newest activity first.
+    /// </summary>
+    public Task<IReadOnlyList<MailThreadSummary>> LoadAllThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken)
+        => store.QueryThreadsAsync(actor, cancellationToken);
+
+    /// <summary>
+    /// Loads thread rollups for every thread in the workspace (the
+    /// "Workspace" mailbox scope in <see cref="MailListMode.Threads"/>),
+    /// newest activity first, narrowed to threads <paramref name="agent"/>
+    /// sent or received a message in when given.
+    /// </summary>
+    public Task<IReadOnlyList<MailThreadSummary>> LoadWorkspaceThreadsAsync(
+        string? agent,
+        CancellationToken cancellationToken)
+        => store.QueryWorkspaceThreadsAsync(agent, cancellationToken);
 }

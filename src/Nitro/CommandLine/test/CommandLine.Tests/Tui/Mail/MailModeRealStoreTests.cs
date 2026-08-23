@@ -81,6 +81,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
 
         var mode = CreateMode("alice");
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
         // act
         mode.Handle(new TuiMessage.OpenSelected());
@@ -105,6 +106,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
 
         var mode = CreateMode("alice");
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ArchiveRequested());
 
         // act
@@ -137,6 +139,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
 
         var mode = CreateMode("alice");
         mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, "ghost");
         mode.HandleRawKey(Key(ConsoleKey.Tab));

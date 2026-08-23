@@ -612,6 +612,108 @@ public sealed class MailStoreTests : IAsyncDisposable
         var summary = Assert.Single(threads);
         Assert.Equal(thread.ThreadId, summary.ThreadId);
         Assert.Equal(1, summary.UnreadCount);
+        Assert.Equal(1, summary.MessageCount);
+        Assert.Equal("claude", summary.LastSender);
+        Assert.Equal(["bob"], summary.LastRecipients);
+        Assert.Equal("body", summary.BodyPreview);
+    }
+
+    [Fact]
+    public async Task QueryInboxThreadsAsync_Should_ReturnOnlyThreadsAddressedToActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var addressedToBob = await SendAsync("claude", "for bob", ["bob"], null, cancellationToken);
+        await SendAsync("bob", "sent by bob to carol", ["carol"], null, cancellationToken);
+
+        // act
+        var threads = await _store.QueryInboxThreadsAsync("bob", cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(addressedToBob.ThreadId, summary.ThreadId);
+        Assert.Equal(1, summary.UnreadCount);
+    }
+
+    [Fact]
+    public async Task QuerySentThreadsAsync_Should_ReturnOnlyThreadsActorSentInto()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var sentByBob = await SendAsync("bob", "from bob", ["carol"], null, cancellationToken);
+        await SendAsync("carol", "for bob only", ["bob"], null, cancellationToken);
+
+        // act
+        var threads = await _store.QuerySentThreadsAsync("bob", cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(sentByBob.ThreadId, summary.ThreadId);
+        Assert.Equal(0, summary.UnreadCount);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceThreadsAsync_Should_IncludeThreadsBetweenThirdPartyAgents()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var thirdParty = await SendAsync("bob", "between third parties", ["carol"], null, cancellationToken);
+
+        // act
+        var threads = await _store.QueryWorkspaceThreadsAsync(null, cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(thirdParty.ThreadId, summary.ThreadId);
+        Assert.Null(summary.UnreadCount);
+    }
+
+    [Fact]
+    public async Task QueryWorkspaceThreadsAsync_Should_NeverExposeActorUnreadState_When_NarrowedToAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("claude", "for bob", ["bob"], null, cancellationToken);
+
+        // act
+        var threads = await _store.QueryWorkspaceThreadsAsync("bob", cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Null(summary.UnreadCount);
+    }
+
+    [Fact]
+    public async Task ThreadRollup_Should_CollapseWhitespaceAndTruncate_InBodyPreview()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var longBody = string.Concat(Enumerable.Repeat("word ", 40)) + "\n\ttrailing\r\nnewlines   here";
+        await SendAsync("claude", "long body", ["bob"], null, cancellationToken, body: longBody);
+
+        // act
+        var threads = await _store.QueryThreadsAsync("bob", cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.DoesNotContain('\n', summary.BodyPreview);
+        Assert.DoesNotContain('\r', summary.BodyPreview);
+        Assert.DoesNotContain("  ", summary.BodyPreview);
+        Assert.True(summary.BodyPreview.Length <= MailThreadSummary.BodyPreviewMaxLength + 1);
+        Assert.EndsWith("…", summary.BodyPreview);
     }
 
     [Fact]

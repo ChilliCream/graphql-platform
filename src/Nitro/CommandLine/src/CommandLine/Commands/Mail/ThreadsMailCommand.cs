@@ -90,7 +90,7 @@ internal sealed class ThreadsMailCommand : Command
             Subject = thread.Subject,
             Participants = participants,
             MessageCount = thread.MessageCount,
-            UnreadCount = thread.UnreadCount,
+            UnreadCount = thread.UnreadCount ?? 0,
             LastActivityAt = thread.LastMessageAt,
             Now = now
         }.Format();

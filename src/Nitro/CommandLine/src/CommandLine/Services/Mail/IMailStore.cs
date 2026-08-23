@@ -136,10 +136,48 @@ internal interface IMailStore
     /// <summary>
     /// Returns every thread the given agent sent or received a message in,
     /// as sent or unarchived-received counts as participation, ordered by
-    /// the thread's last message, newest first.
+    /// the thread's last message, newest first. This is the "All" mailbox
+    /// scope; <see cref="MailThreadSummary.UnreadCount"/> is the actor's
+    /// unread count.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QueryThreadsAsync(
         string actor,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns every thread with at least one message addressed to the
+    /// given actor as a to or cc recipient (the "Inbox" mailbox scope),
+    /// ordered by the thread's last message, newest first.
+    /// <see cref="MailThreadSummary.UnreadCount"/> is the actor's unread
+    /// count.
+    /// </summary>
+    Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns every thread with at least one message the given actor sent
+    /// (the "Sent" mailbox scope), ordered by the thread's last message,
+    /// newest first. <see cref="MailThreadSummary.UnreadCount"/> is the
+    /// actor's unread count, which can be non-zero when other agents replied
+    /// in a thread the actor started.
+    /// </summary>
+    Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
+        string actor,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns every thread in the workspace (the "Workspace" mailbox
+    /// scope), across every agent, ordered by the thread's last message,
+    /// newest first. When <paramref name="agent"/> is given, narrows to
+    /// threads that agent sent or received a message in; null returns every
+    /// thread. Unlike every other thread query, this is not actor-scoped:
+    /// <see cref="MailThreadSummary.UnreadCount"/> is always null, even when
+    /// <paramref name="agent"/> is given, so a workspace rollup never
+    /// exposes another agent's read state.
+    /// </summary>
+    Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
+        string? agent,
         CancellationToken cancellationToken);
 
     /// <summary>

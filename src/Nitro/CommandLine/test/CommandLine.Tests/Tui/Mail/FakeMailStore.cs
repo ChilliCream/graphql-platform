@@ -7,14 +7,17 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 /// An in-memory <see cref="IMailStore"/> exercising the query and write
 /// surface the mail board model consumes: <see cref="QueryInboxAsync"/>,
 /// <see cref="QuerySentAsync"/>, <see cref="QueryWorkspaceMessagesAsync"/>,
-/// <see cref="GetThreadMessagesAsync"/>, <see cref="MarkReadAsync"/>,
+/// <see cref="GetThreadMessagesAsync"/>, the four thread-rollup queries
+/// (<see cref="QueryThreadsAsync"/>, <see cref="QueryInboxThreadsAsync"/>,
+/// <see cref="QuerySentThreadsAsync"/>, <see cref="QueryWorkspaceThreadsAsync"/>,
+/// built by the shared <see cref="BuildThreadSummaries"/>), <see cref="MarkReadAsync"/>,
 /// <see cref="MarkUnreadAsync"/>, <see cref="ArchiveAsync"/>,
 /// <see cref="SendMessageAsync"/>, and <see cref="ReplyMessageAsync"/>.
 /// The recipient-matching writes reuse the production
 /// <see cref="MailRecipientView"/> helper the same way the query surface
 /// does, so mode-level tests against this fake do not independently prove
-/// the real store's SQL-level recipient and reply-recipient semantics;
-/// <c>MailModeRealStoreTests</c> covers those against a real
+/// the real store's SQL-level recipient, reply-recipient, and thread-rollup
+/// semantics; <c>MailModeRealStoreTests</c> covers those against a real
 /// <see cref="Services.Mail.MailStore"/>. Every other member throws
 /// <see cref="NotSupportedException"/>.
 /// </summary>
@@ -196,7 +199,75 @@ internal sealed class FakeMailStore : IMailStore
     private string NextId() => $"m-fake-{_nextId++}";
 
     public Task<IReadOnlyList<MailThreadSummary>> QueryThreadsAsync(string actor, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult(BuildThreadSummaries(
+            m => m.Sender == actor || MailRecipientView.FindRecipient(m, actor) is not null, actor));
+
+    public Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(string actor, CancellationToken cancellationToken)
+        => Task.FromResult(BuildThreadSummaries(m => MailRecipientView.FindRecipient(m, actor) is not null, actor));
+
+    public Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(string actor, CancellationToken cancellationToken)
+        => Task.FromResult(BuildThreadSummaries(m => m.Sender == actor, actor));
+
+    public Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(string? agent, CancellationToken cancellationToken)
+        => Task.FromResult(BuildThreadSummaries(
+            agent is null ? _ => true : m => m.Sender == agent || MailRecipientView.FindRecipient(m, agent) is not null,
+            unreadActor: null));
+
+    /// <summary>
+    /// Mirrors <c>MailStore.BuildThreadSummariesAsync</c> in-memory: groups
+    /// every message matching <paramref name="threadFilter"/> by thread,
+    /// takes the thread's last message for <see cref="MailThreadSummary.LastSender"/>,
+    /// <see cref="MailThreadSummary.LastRecipients"/>, and
+    /// <see cref="MailThreadSummary.BodyPreview"/>, the root message
+    /// (oldest) for <see cref="MailThreadSummary.Subject"/>, and computes
+    /// <see cref="MailThreadSummary.UnreadCount"/> only when
+    /// <paramref name="unreadActor"/> is given - never for another agent's
+    /// actor, matching the real store's Workspace-never-actor-scoped rule.
+    /// </summary>
+    private IReadOnlyList<MailThreadSummary> BuildThreadSummaries(Func<MailMessage, bool> threadFilter, string? unreadActor)
+    {
+        var threadIds = Messages.Where(threadFilter).Select(m => m.ThreadId).Distinct().ToList();
+
+        var summaries = new List<MailThreadSummary>();
+
+        foreach (var threadId in threadIds)
+        {
+            var threadMessages = Messages
+                .Where(m => m.ThreadId == threadId)
+                .OrderBy(m => m.CreatedAt)
+                .ThenBy(m => m.Id, StringComparer.Ordinal)
+                .ToList();
+
+            if (threadMessages.Count == 0)
+            {
+                continue;
+            }
+
+            var root = threadMessages[0];
+            var last = threadMessages[^1];
+
+            var unreadCount = unreadActor is null
+                ? (int?)null
+                : threadMessages.Count(m => MailRecipientView.IsUnread(m, unreadActor));
+
+            summaries.Add(new MailThreadSummary
+            {
+                ThreadId = threadId,
+                Subject = root.Subject,
+                MessageCount = threadMessages.Count,
+                LastMessageAt = last.CreatedAt,
+                LastSender = last.Sender,
+                LastRecipients = last.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name).ToArray(),
+                BodyPreview = last.Body,
+                UnreadCount = unreadCount
+            });
+        }
+
+        return summaries
+            .OrderByDescending(s => s.LastMessageAt)
+            .ThenByDescending(s => s.ThreadId, StringComparer.Ordinal)
+            .ToList();
+    }
 
     public Task<IReadOnlyList<MailMessage>> SearchAsync(string actor, string text, CancellationToken cancellationToken)
         => throw new NotSupportedException();

@@ -10,10 +10,13 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// focus the detail pane, Tab to switch panes, u to toggle read/unread, a
 /// to archive, r to reply, c to compose, Shift+R to refresh, y to copy the
 /// selected message id, f to cycle the list filter, p to open the Workspace
-/// agent filter picker, t to toggle the detail pane's thread view,
-/// Shift+I/Shift+S/Shift+L/Shift+W to jump directly to the
-/// Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to request quit, and
-/// Escape to leave the mode.
+/// agent filter picker, t to toggle the detail pane's thread view, Shift+V
+/// to toggle the list pane between threaded and flat rows, z as a fold
+/// prefix (za/zo/zc toggle/open/close a thread, zR/zM unfold/fold every
+/// thread - the vim binding docs/research-mail-clients-tui.md's "concrete
+/// suggestion" section names directly), Shift+I/Shift+S/Shift+L/Shift+W to
+/// jump directly to the Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to
+/// request quit, and Escape to leave the mode.
 /// </summary>
 /// <remarks>
 /// This is a standalone table rather than an extension of the task
@@ -138,6 +141,14 @@ internal static class MailKeyMap
             new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't'),
             () => new TuiMessage.ToggleMaximize(),
             new KeyHint("t", "thread")),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.V, ConsoleModifiers.Shift, 'V'),
+            () => new TuiMessage.ToggleListModeRequested(),
+            new KeyHint("V", "flat/threads")),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.Z, ConsoleModifiers.None, 'z'),
+            () => new TuiMessage.FoldPrefixRequested(),
+            new KeyHint("za/zo/zc/zR/zM", "fold")),
         new KeyBinding(
             new KeyChord(ConsoleKey.P, ConsoleModifiers.None, 'p'),
             () => new TuiMessage.AgentFilterPickerRequested(),

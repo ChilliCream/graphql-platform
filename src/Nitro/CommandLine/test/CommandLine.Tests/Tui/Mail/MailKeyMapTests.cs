@@ -312,4 +312,50 @@ public sealed class MailKeyMapTests
         Assert.False(eResolved);
         Assert.False(xResolved);
     }
+
+    [Fact]
+    public void CreateDefault_Should_MapShiftT_ToToggleListModeRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var shiftV = new KeyChord(ConsoleKey.V, ConsoleModifiers.Shift, 'V');
+
+        // act
+        var resolved = keyMap.TryResolve(shiftV, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.ToggleListModeRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_MapZ_ToFoldPrefixRequested()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var z = new KeyChord(ConsoleKey.Z, ConsoleModifiers.None, 'z');
+
+        // act
+        var resolved = keyMap.TryResolve(z, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.FoldPrefixRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_KeepLowercaseT_Bound_ToToggleMaximize()
+    {
+        // arrange: lowercase t (detail pane thread toggle) and Shift+V (list
+        // mode toggle) are deliberately separate gestures.
+        var keyMap = MailKeyMap.CreateDefault();
+        var t = new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't');
+
+        // act
+        var resolved = keyMap.TryResolve(t, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.ToggleMaximize>(message);
+    }
 }
