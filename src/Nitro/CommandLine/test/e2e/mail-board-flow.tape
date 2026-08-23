@@ -10,29 +10,43 @@
 #
 # The mail board TUI (raw-key event loop, full-screen alternate-screen
 # rendering) cannot be exercised by the in-process test tier; this is the
-# VHS tier's job. Drives row selection (Down) to the fixture's oldest inbox
-# message, opens its detail pane (Enter, also marking it read), then toggles
-# the thread view ('t') to reveal its reply -- unread styling, the detail
-# pane, and the thread toggle. From there it jumps mailboxes with the direct
-# Shift+letter chords (MailKeyMap): Shift+S to Sent, showing both of
-# e2e-agent's own sent messages with their "To " peer values; Shift+W to
-# Workspace, showing every agent's mail including one message between two
-# other agents that never involves e2e-agent at all, plus the first of
-# Workspace's two redundant read-only mode indicators (its list header
-# names the mailbox; the second, the list border's distinct accent, is
-# color-only and out of reach of this text tier); Shift+I back
-# to Inbox, the flow's final state. Together these cover the Sent mailbox,
-# the Peer column's "To " prefix, the relationship glyph, and the Workspace
-# observer mode -- the mail e2e tape bead's scope (not exhaustive
-# per-command coverage, that is the unit tier's job).
+# VHS tier's job. Since perles-net-nql.2 the list pane is a table: a heading
+# row (From/To/Age, plus a message-count column in the threaded default)
+# above thread-rollup rows, newest activity first, collapsed by default; the
+# board opens on the Workspace mailbox rather than Inbox, and a message (or
+# thread containing one) unread AND addressed to the actor renders with the
+# unread-to-me marker ('●') wherever it appears, including Workspace. Drives:
+# row selection (Down x2) onto the fixture's "Retro notes" thread, whose last
+# message is the actor's own reply -- the detail pane already shows the
+# whole thread for a selected thread row (no 't' needed, unlike a selected
+# flat message row); 'z' 'o' (MailKeyMap's fold prefix) expands that thread
+# row in the LIST pane itself, revealing its two messages indented beneath
+# it with the distinct thread-membership glyph ('└'), separate from the
+# fold toggle ('▸'/'▾') on the parent row. Shift+V (MailKeyMap.ToggleListModeRequested)
+# swaps the list pane from threaded rows to the pre-epic flat per-message
+# stream (kept, not deleted); Shift+S then jumps to Sent, still in flat mode
+# (list mode is an axis independent of mailbox), showing both of e2e-agent's
+# own sent messages; Shift+I jumps back to Inbox, the flow's final state.
+# Together these cover the epic's five call-outs (Workspace default, the
+# heading row, expanding a thread, the unread-to-me highlight, and the
+# Shift+V flat-mode toggle -- Shift+T was reassigned to Shift+V during
+# nql.2's review since Shift+T collides with the Tasks tab mnemonic and
+# lowercase t is already the detail pane's own thread toggle, see
+# perles-net-nql.2 comment 56) alongside the Sent/Inbox mailbox jumps the
+# mail e2e tape bead (perles-net-wi3.4) established -- not exhaustive
+# per-command coverage, that is the unit tier's job.
 #
 # fixtures/mail-seed.sql gives e2e-agent three inbox messages (it is a `to`
-# recipient of each): m-fix002 (bob, already read, newest by created_at),
+# recipient of each): m-fix002 (bob, already read, newest by created_at,
+# also cc'd to alice so its relationship glyph is the broadcast 'T'),
 # m-fix001 (alice, unread), m-fix003 (alice, unread, the root of a thread
-# whose reply, m-fix004, is e2e-agent's own and so never appears in the
-# inbox list itself, only via the thread toggle). e2e-agent also sent
-# m-fix005, an unreplied thread root reachable only through Sent; alice sent
-# m-fix006 to bob, reachable only through Workspace. Every seeded
+# whose reply, m-fix004, is e2e-agent's own). As a thread rollup, m-fix003's
+# row reports its THREAD's last message (m-fix004): sender e2e-agent (the
+# from-me glyph 'F'), recipient alice, while still carrying the unread-to-me
+# marker because m-fix003 itself, still unread, is part of the same thread
+# (collapsed rows roll up unread with any-message semantics). e2e-agent also
+# sent m-fix005, an unreplied thread root reachable only through Sent; alice
+# sent m-fix006 to bob, reachable only through Workspace. Every seeded
 # `created_at` is far enough in the past that MailAges' age column always
 # renders as a fixed "yyyy-MM-dd" string, independent of the wall-clock date
 # a recording actually runs on, so this flow needs no SCRUBS entry (unlike
@@ -40,7 +54,12 @@
 #
 # Fixed geometry (Width/Height below) is the stability lever for this
 # full-screen layout, same as board-flow.tape: changing it requires
-# `--update` of this flow's golden.
+# `--update` of this flow's golden. At this geometry the list pane's fixed
+# columns (prefix/From/To/Age/count) already claim the full pane width, so
+# Subject/Preview render at zero width and the count column's heading and
+# per-row values wrap onto their own line beneath each row -- the table's
+# own documented degradation at a narrower-than-200-col pane (see MailTable's
+# ComputeColumns), not a bug in this tape.
 # Produces mail-board-flow.gif + mail-board-flow.txt.
 
 Output mail-board-flow.gif
@@ -72,61 +91,59 @@ Type `nitro agent` Enter
 # first Wait+Screen).
 Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
 
-# ']': TabSwitchKeys moves to the Mail tab. List pane titled "Inbox (3)",
-# selection on the first row (m-fix002, bob, newest, already read).
+# ']': TabSwitchKeys moves to the Mail tab. MailState defaults to the
+# Workspace mailbox (perles-net-nql.2), so the list pane opens titled
+# "Workspace (5)" -- five thread rollups across every agent's mail -- with
+# the heading row (From/To/Age; the count column's own "#" heading wraps
+# beneath it at this width, see this tape's header comment) above them, and
+# selection on the newest thread (m-fix002, bob, its cc to alice giving it
+# the broadcast 'T' relationship glyph).
 Type "]"
-Wait+Screen@30s /Inbox \(3\)/
+Wait+Screen@30s /Workspace \(5\)/
+Wait+Screen@30s /From\s+To\s+Age/
+Wait+Screen@30s />\s+▸\s+T\s+bob/
 
-# Down, Down: onto the third row (m-fix003, alice, unread, its sole
-# recipient -- the thread root). The unread marker ('*') and the '+' direct
-# relationship glyph sit directly before the peer name regardless of the
-# row's exact selection/subject rendering, so the wait anchors on
-# marker+glyph+peer rather than the (width-truncatable) subject.
+# Down, Down: onto the "Retro notes" thread row (m-fix003 + e2e-agent's own
+# reply m-fix004). As a rollup its From/glyph report the THREAD's last
+# message (e2e-agent, the from-me 'F' glyph) while the unread-to-me marker
+# ('●') still lights up the row, because m-fix003 itself is unread to
+# e2e-agent (any-message rollup semantics) -- Workspace's own read-only mode
+# never suppresses this marker, since it is always the actor's own state.
+# The detail pane already renders the whole thread for a selected thread
+# row (the epic's default, no 't' needed here unlike a flat message row).
 Down
 Down
-Wait+Screen@30s /> \* \+ alice /
+Wait+Screen@30s />\s+▸\s+●\s+F\s+e2e-agent/
+Wait+Screen@30s /Thread: Retro notes/
 
-# Enter: focus the detail pane for the selected message (also marks it read
-# for e2e-agent).
-Enter
-Wait+Screen@30s /From: alice/
+# 'z' 'o': MailKeyMap's fold prefix, then open -- expands the selected
+# thread row in the LIST pane itself. The parent row's fold glyph flips
+# from collapsed ('▸') to expanded ('▾'); its two messages appear indented
+# beneath it with the distinct thread-membership glyph ('└', never the
+# relationship glyph), m-fix003 still carrying the unread-to-me marker and
+# m-fix004 (e2e-agent's own reply) not.
+Type "z"
+Type "o"
+Wait+Screen@30s />\s+▾\s+●\s+F\s+e2e-agent/
+Wait+Screen@30s /●\s+└\s+alice/
+Wait+Screen@30s /└\s+e2e-agent\s+alice/
 
-# 't': toggle the detail pane from the single message to its whole thread,
-# revealing e2e-agent's own reply (m-fix004), which is never listed in the
-# inbox itself.
-Type "t"
-Wait+Screen@30s /Thanks, looks good to me\./
+# Shift+V: MailKeyMap.ToggleListModeRequested swaps the list pane from
+# threaded rollups to the pre-epic flat per-message stream (kept, not
+# deleted, per the epic's non-goals) -- "Workspace (6)", one row per
+# message rather than per thread, selection preserved on m-fix004 (the
+# thread row's own last message).
+Type "V"
+Wait+Screen@30s /Workspace \(6\)/
 
-# Shift+S: direct jump to the Sent mailbox. List pane titled "Sent (2)",
-# selection on the first row (m-fix004, the newest of e2e-agent's own sent
-# messages -- otherwise reachable only via the thread toggle above). Its
-# Peer column reads "To alice" (the FromActorGlyph 'F' plus the "To "-
-# prefixed recipient); the second row, m-fix005 (an unreplied thread root
-# with no other way into the TUI), reads "To bob".
+# Shift+S: direct jump to Sent. List mode is an axis independent of
+# mailbox, so Sent renders flat too: "Sent (2)", e2e-agent's own two sent
+# messages (m-fix004 to alice, m-fix005 to bob), both carrying the from-me
+# glyph.
 Type "S"
 Wait+Screen@30s /Sent \(2\)/
-Wait+Screen@30s /F To alice/
-Wait+Screen@30s /F To bob/
-
-# Shift+W: direct jump to the Workspace mailbox. List pane titled
-# "Workspace (6)", the whole workspace's mail across every agent, including
-# m-fix006 (alice to bob), which never involves e2e-agent -- its Peer column
-# reads the bare sender name "alice" with a blank relationship glyph, since
-# e2e-agent is neither its sender nor a recipient. The list pane's header
-# naming the mailbox is the FIRST of MailMode's two redundant read-only mode
-# indicators (see MailMode's class doc); the second, the list border's
-# distinct accent (ResolveListBorderToken), is color-only and cannot be
-# expressed in this text-golden tier.
-Type "W"
-Wait+Screen@30s /Workspace \(6\)/
-Wait+Screen@30s /alice Deploy win/
-
-# Workspace's read-only default suppresses the u/a/r/c footer hints
-# (MailLifecycleActions.IsReadOnly via MailMode.SuppressedGlobalHints),
-# pulling 'f filter' into the fixed-width footer in their place -- the
-# text-observable read-only signal this tape asserts in place of the
-# color-only border accent above.
-Wait+Screen@30s /f filter/
+Wait+Screen@30s /F\s+e2e-agent\s+alice/
+Wait+Screen@30s /F\s+e2e-agent\s+bob/
 
 # Shift+I: direct jump back to Inbox. Final state for the golden.
 Type "I"
