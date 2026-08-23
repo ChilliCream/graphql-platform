@@ -50,16 +50,17 @@ public sealed class ClaudeHookDigestFormatterTests
     [Fact]
     public void Format_Should_NeverItemizeBeyondTheEnvelope_And_MustNotExceedTheByteCap()
     {
-        // arrange: every entry uses the maximum-length charset-valid sender
-        // name (128 chars) so a handful of entries already forces the byte
-        // ceiling.
-        var longName = new string('a', 128);
-        var entries = Enumerable.Range(0, 30)
-            .Select(i => ($"m-{i}", longName))
+        // arrange: entries sized so the itemized text alone lands within
+        // trailer-length of the cap - a case where a break condition that
+        // does not reserve room for the "and N more" trailer renders one
+        // entry too many and pushes the total past MaxByteLength.
+        const int totalUnreadCount = 90;
+        var entries = Enumerable.Range(0, totalUnreadCount)
+            .Select(i => ($"m-{i}", new string('a', 10)))
             .ToArray();
 
         // act
-        var text = ClaudeHookDigestFormatter.Format(30, entries);
+        var text = ClaudeHookDigestFormatter.Format(totalUnreadCount, entries);
 
         // assert
         Assert.True(
