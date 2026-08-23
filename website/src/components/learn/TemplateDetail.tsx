@@ -23,7 +23,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
 
   return (
     <>
-      <header className="py-10 sm:py-12">
+      <header className="py-8 sm:py-10">
         <div className="mb-8">
           <ArticleBreadcrumb
             items={[
@@ -112,7 +112,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
       </div>
 
       {related.length > 0 && (
-        <section className="border-cc-card-border border-t py-10 sm:py-12">
+        <section className="border-cc-card-border border-t py-8 sm:py-10">
           <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">More from Learn</h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {leadRelated ? <LearnFeatureCard item={leadRelated} /> : null}

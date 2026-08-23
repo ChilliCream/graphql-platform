@@ -24,7 +24,7 @@ export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
     return null;
   }
   return (
-    <section className="border-cc-card-border border-t py-10 sm:py-12">
+    <section className="border-cc-card-border border-t py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Watch</h2>
         <ArrowLink href="/learn/browse?type=video">Browse videos</ArrowLink>

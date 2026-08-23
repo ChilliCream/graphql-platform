@@ -105,7 +105,7 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
 
   return (
     <>
-      <header className="py-10 sm:py-12">
+      <header className="py-8 sm:py-10">
         <div className="mb-8">
           <ArticleBreadcrumb
             items={[
@@ -148,7 +148,7 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
       </div>
 
       {related.length > 0 && (
-        <section className="border-cc-card-border border-t py-10 sm:py-12">
+        <section className="border-cc-card-border border-t py-8 sm:py-10">
           <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">More to watch</h2>
           <div className="mt-8">
             <CardGrid cols={3} step="progressive" itemsStretch>

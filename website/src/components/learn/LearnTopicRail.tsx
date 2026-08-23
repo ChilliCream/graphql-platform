@@ -63,7 +63,7 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: 
   const leadRight = leadSide === "right";
 
   return (
-    <section className="py-10 sm:py-12">
+    <section className="py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{heading}</h2>
         <ArrowLink href={moreHref}>More {heading}</ArrowLink>
@@ -72,7 +72,8 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: 
         <div className={leadRight ? "lg:order-2" : undefined}>
           <RailFeature post={lead} />
         </div>
-        <div className={`flex flex-col ${leadRight ? "lg:order-1" : ""}`}>
+        {/* At lg+ the rows column matches the lead's height; rows grow evenly and center their content so the hairlines span the rail instead of leaving dead space at its bottom (website-kbx.1). */}
+        <div className={`flex flex-col lg:[&>a]:flex-1 lg:[&>a]:content-center ${leadRight ? "lg:order-1" : ""}`}>
           {rest.map((post) => (
             <LearnListRow
               key={post.stem}

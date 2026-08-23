@@ -11,6 +11,12 @@ interface LearnFeaturedStoryProps {
   readonly priority?: boolean;
   /** Viewport-to-image-width hint for the call site's column; defaults to the landing band's center column. */
   readonly sizes?: string;
+  /**
+   * Fills the parent column's height at xl, the hero image absorbing the
+   * extra so the meta line sits on the band's shared bottom baseline
+   * (website-kbx.1). Only for stretched grid cells like the editorial band.
+   */
+  readonly stretch?: boolean;
 }
 
 /**
@@ -25,13 +31,18 @@ export function LearnFeaturedStory({
   post,
   priority = false,
   sizes = "(max-width: 1279px) 100vw, 38vw",
+  stretch = false,
 }: LearnFeaturedStoryProps) {
   const { featuredImage } = post;
 
   return (
-    <Link href={post.href} className="group/featured flex flex-col no-underline">
+    <Link href={post.href} className={`group/featured flex flex-col no-underline ${stretch ? "xl:h-full" : ""}`}>
       {featuredImage ? (
-        <div className="aspect-video overflow-hidden rounded-2xl">
+        <div
+          className={`aspect-video overflow-hidden rounded-2xl ${
+            stretch ? "xl:aspect-auto xl:min-h-0 xl:grow xl:basis-0" : ""
+          }`}
+        >
           <Picture
             src={featuredImage}
             alt=""

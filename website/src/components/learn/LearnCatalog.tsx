@@ -255,7 +255,7 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
   const showFeatureRow = activeFilterCount === 0 && featuredCount > 0;
 
   return (
-    <section className="py-10 sm:py-12">
+    <section className="py-8 sm:py-10">
       <LearnFacetBar
         contentType={contentType}
         onContentTypeChange={setContentType}

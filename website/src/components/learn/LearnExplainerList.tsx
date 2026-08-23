@@ -27,7 +27,7 @@ export function LearnExplainerList({ articles }: LearnExplainerListProps) {
     return null;
   }
   return (
-    <section className="py-10 sm:py-12">
+    <section className="py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Explainers</h2>
       </div>
