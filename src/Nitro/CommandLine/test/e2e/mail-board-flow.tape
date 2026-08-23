@@ -32,9 +32,19 @@
 # Shift+V flat-mode toggle -- Shift+T was reassigned to Shift+V during
 # nql.2's review since Shift+T collides with the Tasks tab mnemonic and
 # lowercase t is already the detail pane's own thread toggle, see
-# perles-net-nql.2 comment 56) alongside the Sent/Inbox mailbox jumps the
-# mail e2e tape bead (perles-net-wi3.4) established -- not exhaustive
-# per-command coverage, that is the unit tier's job.
+# perles-net-nql.2 comment 56) alongside three signals wi3.4/m0f established
+# that nql.3's original re-record dropped (perles-net-02r): a non-participant
+# row (m-fix006, alice to bob, blank relationship glyph since e2e-agent is
+# neither its sender nor a recipient) already visible in the initial
+# Workspace landing; Workspace's read-only footer signal (the 'f filter'
+# string MailMode.SuppressedGlobalHints pulls into the fixed-width footer in
+# place of the u/a/r/c hints); and the detail pane's own 't' thread toggle,
+# exercised here on a flat-mode message row after Shift+V (a thread row
+# already shows its whole thread by default, so 't' has nothing to add
+# there -- this is the one place in the flow a flat row is selected) --
+# alongside the Sent/Inbox mailbox jumps the mail e2e tape bead
+# (perles-net-wi3.4) established -- not exhaustive per-command coverage,
+# that is the unit tier's job.
 #
 # fixtures/mail-seed.sql gives e2e-agent three inbox messages (it is a `to`
 # recipient of each): m-fix002 (bob, already read, newest by created_at,
@@ -103,6 +113,22 @@ Wait+Screen@30s /Workspace \(5\)/
 Wait+Screen@30s /From\s+To\s+Age/
 Wait+Screen@30s />\s+▸\s+T\s+bob/
 
+# m-fix006 (alice to bob, the fixture's non-participant message) is already
+# on screen as the fifth row: a blank relationship glyph, since e2e-agent is
+# neither its sender nor a recipient (wi3.4's original assertion, dropped by
+# nql.3's re-record).
+Wait+Screen@30s /▸\s+alice\s+bob/
+
+# Workspace's read-only default suppresses the u/a/r/c footer hints
+# (MailLifecycleActions.IsReadOnly via MailMode.SuppressedGlobalHints),
+# pulling 'f filter' into the fixed-width footer in their place -- the
+# text-observable read-only signal wi3.4 established and nql.3's re-record
+# dropped (perles-net-02r); the list header naming the mailbox above is the
+# other of MailMode's two redundant read-only indicators, the list border's
+# distinct accent (ResolveListBorderToken) is color-only and out of reach of
+# this text tier.
+Wait+Screen@30s /f filter/
+
 # Down, Down: onto the "Retro notes" thread row (m-fix003 + e2e-agent's own
 # reply m-fix004). As a rollup its From/glyph report the THREAD's last
 # message (e2e-agent, the from-me 'F' glyph) while the unread-to-me marker
@@ -135,6 +161,17 @@ Wait+Screen@30s /└\s+e2e-agent\s+alice/
 # thread row's own last message).
 Type "V"
 Wait+Screen@30s /Workspace \(6\)/
+
+# 't': the detail pane's own thread toggle (MailKeyMap), restored here on a
+# flat-mode message row (wi3.4's original coverage, dropped by nql.3's
+# re-record; a selected thread row already shows its whole thread by
+# default, so this is the flow's one flat-row detail toggle). Selection
+# after the flat switch above stayed on m-fix004 (the thread's last message,
+# e2e-agent's own reply), whose Message-mode detail pane shows only its own
+# body; 't' switches to Thread mode, revealing the root message
+# (m-fix003, alice's "Notes are attached...") the Message view did not show.
+Type "t"
+Wait+Screen@30s /Notes are attached, take a look\./
 
 # Shift+S: direct jump to Sent. List mode is an axis independent of
 # mailbox, so Sent renders flat too: "Sent (2)", e2e-agent's own two sent
