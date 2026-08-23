@@ -93,10 +93,12 @@ Wait+Screen@30s /> ✓ \[F\] P3 acme-c3d Add dark mode toggle/
 Left
 Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
 
-# ']': TabSwitchKeys moves to the next tab (Mail), whose inbox comes from
-# the same fixture's mail-seed.sql (see mail-board-flow.tape).
+# ']': TabSwitchKeys moves to the next tab (Mail), whose data comes from
+# the same fixture's mail-seed.sql (see mail-board-flow.tape). MailState
+# defaults to the Workspace mailbox (perles-net-nql.2), so the list pane
+# opens titled "Workspace (5)", not Inbox.
 Type "]"
-Wait+Screen@30s /Inbox \(3\)/
+Wait+Screen@30s /Workspace \(5\)/
 
 # '[': back to the Tasks tab. The board's mode stack was never touched while
 # Mail was active, so the selection is exactly where it was left ("In
