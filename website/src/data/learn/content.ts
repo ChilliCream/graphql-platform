@@ -714,6 +714,9 @@ const graphqlObservabilityVideo: VideoItem = {
   title: "GraphQL Observability with Elastic and OpenTelemetry",
   tagline: "Michael Staib instruments a Hot Chocolate server with OpenTelemetry and traces it through Elastic.",
   products: ["hot-chocolate"],
+  // Subject is observability, not the server itself; `products` alone would
+  // only place it in GraphQL & Federation (see src/data/learn/hubs.ts).
+  hubs: ["tooling-observability"],
   level: "intermediate",
   url: "https://www.youtube.com/watch?v=nCLSfJMihsg",
   duration: "51:49",
@@ -779,6 +782,9 @@ const openTelemetryForServicesVideo: VideoItem = {
   slug: "opentelemetry-for-services",
   title: "Open Telemetry for All Your Services (and More!)",
   tagline: "Michael Staib wires up OpenTelemetry across your services for unified tracing in Hot Chocolate.",
+  // Subject is observability, not the server itself; `products` alone would
+  // only place it in GraphQL & Federation (see src/data/learn/hubs.ts).
+  hubs: ["tooling-observability"],
   description:
     "In this episode, we're diving into how you can leverage the new Connections API in Hot Chocolate to add aggregations to your GraphQL connections, giving your users easy access to insights like totals, counts, and more, right alongside their data.\n\nSo buckle up, and let's jump in!\n\nCourses: https://courses.chillicream.com/youtube/DtISlxOBmPQ\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.1",
   products: ["hot-chocolate"],

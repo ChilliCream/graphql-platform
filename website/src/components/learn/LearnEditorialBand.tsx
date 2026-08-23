@@ -1,4 +1,5 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
+import { hubHrefForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { kickerForBlogPost } from "./editorial";
 import { LearnFeaturedStory } from "./LearnFeaturedStory";
@@ -40,6 +41,7 @@ export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, ta
                 href={post.href}
                 title={post.title}
                 kicker={kickerForBlogPost(post)}
+                kickerHref={hubHrefForPost(post)}
                 featuredImage={post.featuredImage}
                 product={post.products[0] ?? null}
                 author={post.author}

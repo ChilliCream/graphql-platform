@@ -11,6 +11,7 @@ import type { LearnContentType, ProductKey } from "./facets";
 import type { LanguageKey, TopologyKey } from "./facets";
 import type { ClientKey } from "./facets";
 import type { UseCaseKey } from "./facets";
+import type { HubKey } from "./hubs";
 
 /** Third-party technologies a template ships with, shown as brand logos on its card. */
 export type StackKey =
@@ -52,6 +53,13 @@ interface LearnItemBase {
   readonly products: readonly ProductKey[];
   readonly updatedRelative: string;
   readonly externalUrl?: string;
+  /**
+   * Explicit topic-hub override/addition (`src/data/learn/hubs.ts`), for
+   * content whose real subject a `products` tag alone cannot express, e.g. an
+   * OpenTelemetry video tagged only `hot-chocolate`. Most items omit this and
+   * are inferred from `products` alone.
+   */
+  readonly hubs?: readonly HubKey[];
 }
 
 export interface TemplateItem extends LearnItemBase {

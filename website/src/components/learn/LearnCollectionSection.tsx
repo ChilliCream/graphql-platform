@@ -15,6 +15,8 @@ interface CollectionSubLink {
 interface LearnCollectionSectionProps {
   readonly items: readonly LearnItemSummary[];
   readonly subLinks: readonly CollectionSubLink[];
+  /** Target for the "Browse the catalog" link; defaults to the unfiltered catalog. A topic hub page passes its own pre-filtered `/learn/browse` href. */
+  readonly browseHref?: string;
   /**
    * Explainer/comparison articles folded in here as `LearnListRow`s when
    * there are fewer than 3 (learn-harmonization.md section 2.5.4, D1):
@@ -32,7 +34,12 @@ interface LearnCollectionSectionProps {
  * learn-harmonization.md section 2.5.3: full-bleed card background, no
  * `border-t` seam, and a horizontal `LearnFeatureCard` leading the grid.
  */
-export function LearnCollectionSection({ items, subLinks, foldedExplainers = [] }: LearnCollectionSectionProps) {
+export function LearnCollectionSection({
+  items,
+  subLinks,
+  browseHref = "/learn/browse",
+  foldedExplainers = [],
+}: LearnCollectionSectionProps) {
   if (items.length === 0) {
     return null;
   }
@@ -47,7 +54,7 @@ export function LearnCollectionSection({ items, subLinks, foldedExplainers = [] 
       <div className="max-w-8xl mx-auto px-5 sm:px-12">
         <div className="mb-8 flex items-center justify-between gap-4">
           <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Start building</h2>
-          <ArrowLink href="/learn/browse">Browse the catalog</ArrowLink>
+          <ArrowLink href={browseHref}>Browse the catalog</ArrowLink>
         </div>
         {lead ? (
           <div className="mb-6">

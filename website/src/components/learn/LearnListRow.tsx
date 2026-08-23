@@ -10,6 +10,8 @@ interface LearnListRowProps {
   readonly title: string;
   /** Kicker text (post category, falling back to the primary topic label). */
   readonly kicker: string;
+  /** Link target for the kicker (its hub page, `src/data/learn/hubs.ts`); omit to render the kicker as plain text. */
+  readonly kickerHref?: string;
   readonly featuredImage: string | null;
   /** Thumbnail fallback icon when there is no `featuredImage`; `null` renders a plain square. */
   readonly product: ProductKey | null;
@@ -25,17 +27,22 @@ interface LearnListRowProps {
 
 /**
  * Compact article list row (learn-editorial.md section 14.1, amended by
- * learn-harmonization.md D3/D7): the whole row is one link, no card surface.
- * Rows carry their own bottom-border divider (rather than a `divide-y`
- * container) so the same row renders correctly whether its list is one
- * column or the two-column ramp the editorial band uses (learn-editorial.md
- * section 15.1); the established precedent for this is `LearnExplainerList`'s
+ * learn-harmonization.md D3/D7 and website-kbx.3): the title is a stretched
+ * link covering the row, so clicking anywhere except the kicker opens
+ * `href`; the kicker is its own link to `kickerHref` when the caller
+ * supplies one (its topic hub), stacked above the stretched link so it
+ * stays independently clickable, or plain text otherwise. Rows carry their
+ * own bottom-border divider (rather than a `divide-y` container) so the
+ * same row renders correctly whether its list is one column or the
+ * two-column ramp the editorial band uses (learn-editorial.md section
+ * 15.1); the established precedent for this is `LearnExplainerList`'s
  * per-row `border-b`.
  */
 export function LearnListRow({
   href,
   title,
   kicker,
+  kickerHref,
   featuredImage,
   product,
   author,
@@ -49,9 +56,8 @@ export function LearnListRow({
   const showThumb = !compact || featuredImage !== null;
 
   return (
-    <Link
-      href={href}
-      className={`group/row border-cc-card-border grid items-start gap-4 border-b py-5 no-underline ${
+    <div
+      className={`group/row border-cc-card-border relative grid items-start gap-4 border-b py-5 ${
         showThumb ? "grid-cols-[auto_1fr]" : "grid-cols-1"
       }`}
     >
@@ -70,10 +76,23 @@ export function LearnListRow({
         )
       ) : null}
       <span className="flex flex-col gap-1.5">
-        <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{kicker}</span>
-        <span className="font-heading text-h6 text-cc-heading group-hover/row:text-cc-accent line-clamp-2 font-semibold transition-colors">
+        {kickerHref ? (
+          <Link
+            href={kickerHref}
+            className="text-cc-ink-dim hover:text-cc-accent relative z-10 w-fit font-mono text-xs tracking-wider uppercase no-underline transition-colors"
+          >
+            {kicker}
+          </Link>
+        ) : (
+          <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{kicker}</span>
+        )}
+        <Link
+          href={href}
+          className="font-heading text-h6 text-cc-heading group-hover/row:text-cc-accent static line-clamp-2 font-semibold no-underline transition-colors"
+        >
           {title}
-        </span>
+          <span className="absolute inset-0" aria-hidden="true" />
+        </Link>
         <span className="text-cc-ink-dim text-sm">
           {author ? (
             <>
@@ -84,6 +103,6 @@ export function LearnListRow({
           )}
         </span>
       </span>
-    </Link>
+    </div>
   );
 }

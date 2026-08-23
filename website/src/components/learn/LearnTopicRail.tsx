@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLink } from "@/src/components/ArrowLink";
+import { hubHrefForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { Picture } from "@/src/design-system/Picture";
 import { formatDate } from "@/src/helpers/formatDate";
@@ -80,6 +81,9 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left" }: 
               href={post.href}
               title={post.title}
               kicker={rowKicker(post)}
+              // Only link the kicker when it shows the post's category: the
+              // date fallback (no category) must never read as a link.
+              kickerHref={post.category ? hubHrefForPost(post) : undefined}
               featuredImage={post.featuredImage}
               product={post.products[0] ?? null}
               author={post.author}

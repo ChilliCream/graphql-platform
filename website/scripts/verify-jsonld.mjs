@@ -18,6 +18,7 @@ const REQUIRED_PROPS = {
   Organization: ["@id", "name", "url"],
   WebSite: ["@id", "name", "url"],
   WebPage: ["@id", "url", "name"],
+  CollectionPage: ["@id", "url", "name"],
   BreadcrumbList: ["itemListElement"],
   ItemList: ["itemListElement"],
   Article: ["headline", "datePublished", "publisher"],
@@ -51,6 +52,26 @@ const ROUTES = [
     path: "/learn/templates/fusion-3-service-federation",
     type: "template page",
     expect: ["BreadcrumbList", "SoftwareSourceCode"],
+  },
+  {
+    path: "/learn/topics/graphql-federation",
+    type: "topic hub (GraphQL & Federation)",
+    expect: ["BreadcrumbList", "CollectionPage", "ItemList"],
+  },
+  {
+    path: "/learn/topics/messaging",
+    type: "topic hub (Messaging)",
+    expect: ["BreadcrumbList", "CollectionPage", "ItemList"],
+  },
+  {
+    path: "/learn/topics/tooling-observability",
+    type: "topic hub (Tooling & Observability)",
+    expect: ["BreadcrumbList", "CollectionPage", "ItemList"],
+  },
+  {
+    path: "/learn/topics/agents",
+    type: "topic hub (Agents)",
+    expect: ["BreadcrumbList", "CollectionPage", "ItemList"],
   },
 ];
 

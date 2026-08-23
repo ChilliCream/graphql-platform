@@ -1,17 +1,19 @@
 import Link from "next/link";
-import type { ProductKey } from "@/src/data/learn/facets";
+import { HUBS, hubHref } from "@/src/data/learn/hubs";
 
 export interface SubnavLink {
   readonly label: string;
   readonly href: string;
-  /** Set on the three promoted product links; their active state matches the `product` query param on `/learn/browse` instead of a plain route prefix. */
-  readonly product?: ProductKey;
 }
 
+/**
+ * The four topic hubs (website-kbx.3, per the 2026-08-23 user ruling)
+ * replace the old Hot Chocolate / Fusion / Nitro product links as the
+ * promoted subnav set; products remain a `/learn/browse` facet, reachable
+ * through Browse and each row's topic kicker, not a subnav link.
+ */
 export const NAV_LINKS: readonly SubnavLink[] = [
-  { label: "Hot Chocolate", href: "/learn/browse?product=hot-chocolate", product: "hot-chocolate" },
-  { label: "Fusion", href: "/learn/browse?product=fusion", product: "fusion" },
-  { label: "Nitro", href: "/learn/browse?product=nitro", product: "nitro" },
+  ...HUBS.map((hub) => ({ label: hub.label, href: hubHref(hub.key) })),
   { label: "Articles", href: "/learn/articles" },
   { label: "Browse", href: "/learn/browse" },
 ];

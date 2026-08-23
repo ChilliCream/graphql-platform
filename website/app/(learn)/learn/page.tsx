@@ -102,7 +102,14 @@ function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRai
     .filter((video): video is VideoItem & { youtubeId: string } => Boolean(video.youtubeId))
     .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
     .slice(0, 4)
-    .map(({ slug, title, youtubeId, duration, products }) => ({ slug, title, youtubeId, duration, products }));
+    .map(({ slug, title, youtubeId, duration, products, hubs }) => ({
+      slug,
+      title,
+      youtubeId,
+      duration,
+      products,
+      hubs,
+    }));
 }
 
 export default function LearnPage() {
