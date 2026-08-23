@@ -833,7 +833,7 @@ const fullstackWorkshop: WorkshopItem = {
     "A two-day, hands-on workshop building a distributed web shop with Hot Chocolate, Relay, Fusion, and .NET Aspire.",
   products: ["hot-chocolate", "fusion"],
   level: "advanced",
-  externalUrl: "/blog/2024-04-01-fullstack-workshop",
+  externalUrl: "/learn/articles/fullstack-workshop",
   updatedRelative: "over 2 years ago",
 };
 
