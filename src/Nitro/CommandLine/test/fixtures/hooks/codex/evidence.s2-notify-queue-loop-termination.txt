@@ -1,0 +1,141 @@
+Live evidence for perles-net-k3j.2 (spike S2+S4), captured 2026-08-23 against
+codex-cli 0.149.0. Scratch `notify` program set in ~/.codex/config.toml
+during the spike, restored byte-identical afterward (verified by diff and
+sha256sum in the findings comment).
+
+Setup: notify program is a dedup ledger keyed on a SIMULATED mailbox
+message-id (env NITRO_SPIKE_SIM_MSG_ID, default "SIM-MSG-1", constant across
+turns of the same run), modeling the plan's real per-message-id
+session_deliveries ledger. On each notify invocation it parses `thread-id`
+from the payload, and if SIM-MSG-1 has not yet been "delivered" it claims it
+(writes a ledger file) and runs `codex queue --thread <thread-id> --message
+"Digest: 1 unread message SIM-MSG-1. Reply with exactly:
+DIGEST_DELIVERED_SIM-MSG-1 (do not call tools)."`; otherwise it logs a skip
+and does nothing.
+
+=== Turn 1: fresh `codex exec` ===
+
+Command: codex exec --json --skip-git-repo-check -o t1-out.txt "Say exactly:
+TURN_ONE. Do not call any tools." (cwd = scratch run2 dir)
+
+Stream: {"type":"thread.started","thread_id":"01a02e55-0354-7942-9279-84923a395f9c"}
+... {"item":{"type":"agent_message","text":"TURN_ONE"}} ... turn.completed.
+Process EXIT=0 (codex exec always fully exits after its one turn; confirmed
+by `ps aux` showing no surviving process for the thread and by bash seeing
+the exit code before notify's own log entries were even inspected).
+
+notify-msgid.log:
+  === notify-capture-msgid invoked at 2026-08-23T13:15:22,522658708+02:00 pid=1712385 (call #1) ===
+  thread-id=01a02e55-0354-7942-9279-84923a395f9c
+  LEDGER(msgid): SIM-MSG-1 not yet delivered -- claiming and queueing (call #1)
+  QUEUE rc=0 out=Queued message 01a02e55-1411-7501-9205-9e155258a045 for thread 01a02e55-0354-7942-9279-84923a395f9c.
+  === notify-capture-msgid exiting at 2026-08-23T13:15:22,823306110+02:00 (call #1) ===
+
+Wall time inside the notify handler for the queue call: ~301ms
+(13:15:22.522 receipt -> 13:15:22.823 exit). This happened AFTER the codex
+exec process that produced turn 1 had already exited (task_complete was
+written to the rollout before notify fired; the exec process's own exit
+code was already observable by the shell). So "queue from inside notify
+against the just-completed thread" does NOT re-enter a still-live process
+for the codex-exec harness: there is no live process left to re-enter by the
+time notify runs. `codex queue` instead writes into a durable, cross-process
+SQLite table (~/.codex/queue_1.sqlite, table queued_items, PK id, columns
+thread_id/payload_json/queue_order/created_at_ms/updated_at_ms), decoupled
+from any running process:
+
+  sqlite3 -readonly ~/.codex/queue_1.sqlite \
+    "SELECT id, thread_id FROM queued_items WHERE thread_id='01a02e55-0354-7942-9279-84923a395f9c';"
+  -> 01a02e55-1411-7501-9205-9e155258a045|01a02e55-0354-7942-9279-84923a395f9c
+
+=== Turn 2: resume the SAME thread with a new prompt (models "queued turn start") ===
+
+Command: codex exec --json --skip-git-repo-check -o t2-out.txt resume
+01a02e55-0354-7942-9279-84923a395f9c "Say exactly: TURN_TWO."
+
+Stream:
+  {"type":"thread.started","thread_id":"01a02e55-0354-7942-9279-84923a395f9c"}
+  {"type":"turn.started"}
+  {"item":{"type":"agent_message","text":"DIGEST_DELIVERED_SIM-MSG-1"}}
+  {"item":{"type":"agent_message","text":"TURN_TWO"}}
+  {"type":"turn.completed", ...}
+
+Rollout transcript for this turn (single turn_id
+01a02e55-163f-7f90-ba1c-17d0bc5ccf49) shows the queued digest delivered as
+its OWN user-message item, injected BEFORE the new resume prompt, both
+processed within the SAME turn:
+
+  EVENT task_started 01a02e55-163f-7f90-ba1c-17d0bc5ccf49
+  user | Digest: 1 unread message SIM-MSG-1. Reply with exactly: DIGEST_DELIVERED_SIM-MSG-1 (do not call tools).
+  assistant | DIGEST_DELIVERED_SIM-MSG-1
+  user | Say exactly: TURN_TWO.
+  assistant | TURN_TWO
+  EVENT task_complete 01a02e55-163f-7f90-ba1c-17d0bc5ccf49
+
+Key finding: a queued message does NOT start its own separate turn. It is
+prepended as an extra user-message item ahead of whatever the next actual
+turn's prompt is, and that combined turn produces exactly one
+agent-turn-complete notify firing (one turn_id, one notify call). There is
+no way observed in this spike to make `codex exec resume <thread>` drain the
+queue with NO new prompt at all: `codex exec resume <thread>` with no prompt
+argument and no stdin errors "No prompt provided via stdin." (exit 1) rather
+than silently flushing the queue. Draining the queue requires something
+external to supply the next real turn (a resume with a prompt, or, for a
+persistent/interactive session, its own next natural input) -- consistent
+with the plan's "next turn boundary" framing (mail-notify-plan.md:323), not
+an instantaneous same-process re-entry.
+
+=== Turn 2's completion re-fires notify: loop-guard proof ===
+
+notify-msgid.log (continued):
+  === notify-capture-msgid invoked at 2026-08-23T13:15:28,809579332+02:00 pid=1713940 (call #2) ===
+  thread-id=01a02e55-0354-7942-9279-84923a395f9c
+  LEDGER(msgid): SIM-MSG-1 already delivered at 2026-08-23T13:15:22,533512746+02:00 -- NOT queueing (loop guard fired, call #2)
+  === notify-capture-msgid exiting at 2026-08-23T13:15:28,825449190+02:00 (call #2) ===
+
+Confirmed: turn 2's completion DID re-fire notify (call #2, same thread-id).
+The ledger found SIM-MSG-1 already delivered and skipped queueing. The
+queue table for this thread is empty after turn 2:
+
+  sqlite3 -readonly ~/.codex/queue_1.sqlite \
+    "SELECT id, thread_id FROM queued_items WHERE thread_id='01a02e55-0354-7942-9279-84923a395f9c';"
+  -> (no rows)
+
+This is the single captured end-to-end trace demonstrating no infinite
+notify loop when a dedup guard (keyed on the delivered mail message-id, not
+on turn-id) skips already-delivered messages: two notify firings, one queue
+call, zero queue calls on the second firing, loop terminates.
+
+=== Separate run: what happens WITHOUT a message-id-scoped guard ===
+
+An earlier run (separate scratch handler keyed on (thread-id, turn-id)
+instead of message-id -- i.e. NOT modeling the real ledger) queued a new
+marker on every notify firing (each turn has a unique turn-id), which would
+grow unbounded if something kept auto-resuming the thread. This confirms the
+loop's termination in production depends entirely on the ledger being keyed
+by delivered mail message-id (as the plan specifies for session_deliveries),
+not by turn/session identity; a turn-id-keyed guard does not terminate the
+loop by itself. Log (notify.log), thread 01a02e51-c257-75c3-b242-b56199a18839:
+
+  call #1 turn-id=01a02e51-c2d5-7931-9b5b-b7da941a16dc -> queued
+  call #2 turn-id=01a02e53-e701-7cd3-bc87-32a25069a781 -> queued (different turn-id, guard did not fire)
+
+=== Foreign-notify chaining timing (turn 1's handler) ===
+
+The turn-1 handler execed a fake pre-existing "foreign" notify script after
+its own work, preserving argv (matching the plan's wrapper design: "ours
+execs it after our work, preserving argv/stdin/cwd/exit code"):
+
+  notify.log: chaining to foreign notify at 2026-08-23T13:11:50,363526290+02:00
+  foreign-notify.log: === foreign-notify invoked at 2026-08-23T13:11:50,368560355+02:00 pid=1692227 ===
+    argc=1
+    arg: {"type":"agent-turn-complete","thread-id":"01a02e51-c257-75c3-b242-b56199a18839", ...}
+  foreign-notify.log: === foreign-notify exiting at 2026-08-23T13:11:50,371438320+02:00 ===
+  notify.log: foreign notify done at 2026-08-23T13:11:50,377499413+02:00 rc=0
+  notify.log: === notify-capture exiting at 2026-08-23T13:11:50,379503503+02:00 with rc=0 ===
+
+Sequential, not concurrent: our own work (receipt + queue call, ~355ms,
+dominated by the `codex queue` subprocess spawn/round-trip) completed before
+the foreign program ran (~3ms). Total wrapper wall time end-to-end (receipt
+to exit) was ~375ms, well inside a 10s hook-style timeout budget. The
+foreign program received the exact same single JSON argv[1] payload the
+wrapper itself received (argv preserved).

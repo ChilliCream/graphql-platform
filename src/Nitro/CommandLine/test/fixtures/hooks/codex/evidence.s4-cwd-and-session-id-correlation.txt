@@ -1,0 +1,88 @@
+Live evidence for perles-net-k3j.2 (S4), captured 2026-08-23 against
+codex-cli 0.149.0.
+
+Question: does notify's `cwd` resolve the workspace, and does `thread-id`
+match the `session_start` session id?
+
+=== cwd resolution ===
+
+`codex exec` was invoked with cwd =
+/tmp/claude-1000/.../scratchpad/k3j2/run1 (a scratch workspace directory).
+The captured notify payload's `cwd` field is exactly that directory:
+
+  payload.notify.agent-turn-complete.json: "cwd":
+  "/tmp/claude-1000/-home-pascal-perles-net/5c8d83e3-54d9-4e9d-a620-a533a0cd4f3d/scratchpad/k3j2/run1"
+
+Confirmed: `cwd` in the notify payload is the process's actual working
+directory at invocation time, i.e. it resolves the workspace the same way
+Claude's SessionStart/hook payloads do. Not exercised: `-C`/`--cd` or
+`--add-dir` overrides, or a symlinked/relative workspace path.
+
+=== thread-id vs session_start session id ===
+
+A direct live SessionStart-hook correlation could not be captured this
+spike: adding a second hooks.json SessionStart hook-group (co-existing with
+the pre-existing herdr entry, following S1's documented pattern of multiple
+hook groups per event) never acquired the silent one-run trust delay that
+perles-net-k3j.1's spike observed for a brand-new event registration --
+across 4 codex exec invocations (2 different cwd, including one from an
+already-`trust_level = "trusted"` project) spanning warm-up + real runs, no
+new `[hooks.state]` entry was ever written to config.toml for the added
+hook, and the hook script never fired (its capture file was never created).
+This is recorded as NOT DETERMINED this spike (see "what could not be
+determined" below); hooks.json was restored byte-identical regardless (see
+findings comment).
+
+Correlation was instead established through the on-disk rollout transcript,
+which is Codex's own durable record of session identity and is written
+independent of any hook:
+
+  Notify payload (run1, turn 1): "thread-id":
+  "01a02e51-c257-75c3-b242-b56199a18839"
+
+  Rollout file located by that exact id:
+  ~/.codex/sessions/2026/08/23/rollout-2026-08-23T13-11-45-01a02e51-c257-75c3-b242-b56199a18839.jsonl
+
+  First record in that file:
+  {"type":"session_meta","payload":{"session_id":"01a02e51-c257-75c3-b242-b56199a18839","id":"01a02e51-c257-75c3-b242-b56199a18839", ...}}
+
+  Also matches the `codex exec --json` stream's own ground truth:
+  {"type":"thread.started","thread_id":"01a02e51-c257-75c3-b242-b56199a18839"}
+
+perles-net-k3j.1's SessionStart fixture (payload.session-start.json) shows
+the hook's session-identity field is literally named `session_id`
+(`"session_id": "01a02e46-9486-7ef3-9af5-282ebecc6329"`), the same field
+name the rollout's session_meta payload uses. Since the rollout filename,
+session_meta.payload.session_id, the `codex exec --json` stream's
+thread_id, and the notify payload's thread-id are all the identical value
+for the same session in every run captured this spike (5 separate live
+sessions, 2 of them multi-turn via resume), thread-id and session_id are the
+same identifier under two different field names across two different
+mechanisms (notify vs hooks.json), not independently-assigned values that
+merely happen to correlate. This satisfies S4's question via an equally
+strong evidentiary path (Codex's own durable session record) even though
+the live SessionStart-hook capture itself did not fire.
+
+=== Session-id / thread-id format ===
+
+All 6 distinct thread-ids observed this spike (S2 exercises) and in S1's
+fixtures are 36-character canonical UUID strings whose version nibble
+(first hex digit of the 3rd group) is consistently `7`:
+
+  01a02e51-c257-75c3-... 01a02e51-c2d5-7931-... 01a02e53-e701-7cd3-...
+  01a02e55-0354-7942-... 01a02e57-0c41-7f20-... 01a02e57-97d7-72a2-...
+  01a02e58-4c91-72a0-... (S2, this spike)
+  01a02e46-9486-7ef3-... (S1 fixture, perles-net-k3j.1)
+
+-> UUIDv7 (time-ordered: the leading 48 bits are a millisecond Unix
+timestamp, which is why successive ids captured seconds apart sort
+lexically increasing, e.g. 01a02e51 < 01a02e53 < 01a02e55 < 01a02e57 <
+01a02e58 across this session). UUIDv7 carries 74 bits of randomness
+(62 random bits + monotonic-within-millisecond counter bits depending on
+implementation), so the plan's composite-key rationale ("effectively-unique
+ids") holds for Codex thread/session ids: collision probability across any
+realistic number of sessions on one machine is negligible, same class of
+guarantee as Claude's session ids. Not verified: the exact bit layout
+(random vs counter) of Codex's specific UUIDv7 generator, and turn-ids use
+the same UUIDv7 shape but were not separately analyzed for uniqueness
+properties since S2/S4 only asked about session/thread ids.
