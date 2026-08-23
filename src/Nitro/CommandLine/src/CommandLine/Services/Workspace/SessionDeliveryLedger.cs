@@ -1,4 +1,4 @@
-using Dapper;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -31,16 +31,21 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
             // means this (harness, session_id, message_id, channel) was
             // already reserved, by this call's own session or an earlier
             // one, so the message is excluded rather than reserved twice.
-            var rowsAffected = await connection.ExecuteAsync(
-                new CommandDefinition(
-                    """
-                    INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                    VALUES (@harness, @sessionId, @messageId, @channel, @deliveredAt)
-                    ON CONFLICT DO NOTHING;
-                    """,
-                    new { harness, sessionId, messageId, channel, deliveredAt },
-                    transaction,
-                    cancellationToken: cancellationToken));
+            await using var command = connection.CreateCommand();
+            command.Transaction = (SqliteTransaction)transaction;
+            command.CommandText =
+                """
+                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
+                VALUES (@harness, @sessionId, @messageId, @channel, @deliveredAt)
+                ON CONFLICT DO NOTHING;
+                """;
+            command.Parameters.AddWithValue("@harness", harness);
+            command.Parameters.AddWithValue("@sessionId", sessionId);
+            command.Parameters.AddWithValue("@messageId", messageId);
+            command.Parameters.AddWithValue("@channel", channel);
+            command.Parameters.AddWithValue("@deliveredAt", deliveredAt);
+
+            var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
             if (rowsAffected > 0)
             {

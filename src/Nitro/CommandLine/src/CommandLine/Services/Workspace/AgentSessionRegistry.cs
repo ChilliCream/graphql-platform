@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using Dapper;
@@ -336,19 +337,17 @@ internal sealed class AgentSessionRegistry(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                new
-                {
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
-                    host = generation.Host
-                },
-                cancellationToken: cancellationToken));
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@pid", generation.Pid);
+        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return rowsAffected > 0;
     }
@@ -358,42 +357,43 @@ internal sealed class AgentSessionRegistry(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
-            new CommandDefinition(
-                $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
-                + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                new
-                {
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
-                    host = generation.Host
-                },
-                cancellationToken: cancellationToken));
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@pid", generation.Pid);
+        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("@host", generation.Host);
 
-        return row?.ToRecord();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return AgentSessionRow.ReadFrom(reader).ToRecord();
     }
 
     public async Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agent_sessions SET block_budget_used = 0 "
-                + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                new
-                {
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
-                    host = generation.Host
-                },
-                cancellationToken: cancellationToken));
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET block_budget_used = 0 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@pid", generation.Pid);
+        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     public async Task<int?> IncrementBlockBudgetAsync(
@@ -402,21 +402,19 @@ internal sealed class AgentSessionRegistry(
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agent_sessions SET block_budget_used = block_budget_used + 1 "
-                + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                new
-                {
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
-                    host = generation.Host
-                },
-                transaction,
-                cancellationToken: cancellationToken));
+        await using var updateCommand = connection.CreateCommand();
+        updateCommand.Transaction = (SqliteTransaction)transaction;
+        updateCommand.CommandText =
+            "UPDATE agent_sessions SET block_budget_used = block_budget_used + 1 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        updateCommand.Parameters.AddWithValue("@harness", generation.Harness);
+        updateCommand.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        updateCommand.Parameters.AddWithValue("@pid", generation.Pid);
+        updateCommand.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        updateCommand.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await updateCommand.ExecuteNonQueryAsync(cancellationToken);
 
         if (rowsAffected == 0)
         {
@@ -424,21 +422,19 @@ internal sealed class AgentSessionRegistry(
             return null;
         }
 
-        var updated = await connection.ExecuteScalarAsync<int>(
-            new CommandDefinition(
-                "SELECT block_budget_used FROM agent_sessions "
-                + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                new
-                {
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
-                    host = generation.Host
-                },
-                transaction,
-                cancellationToken: cancellationToken));
+        await using var selectCommand = connection.CreateCommand();
+        selectCommand.Transaction = (SqliteTransaction)transaction;
+        selectCommand.CommandText =
+            "SELECT block_budget_used FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        selectCommand.Parameters.AddWithValue("@harness", generation.Harness);
+        selectCommand.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        selectCommand.Parameters.AddWithValue("@pid", generation.Pid);
+        selectCommand.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        selectCommand.Parameters.AddWithValue("@host", generation.Host);
+
+        var updated = (int)(long)(await selectCommand.ExecuteScalarAsync(cancellationToken))!;
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -573,6 +569,43 @@ internal sealed class AgentSessionRegistry(
         public string? LastPingAttempt { get; init; }
         public string? LastPingResult { get; init; }
         public string? LastPingDetail { get; init; }
+
+        /// <summary>
+        /// Maps a row from a <see cref="AgentSessionRecord.Columns"/> query
+        /// by column name, for the raw ADO.NET reads Dapper.AOT cannot
+        /// intercept (a runtime-assembled <c>CommandDefinition</c>).
+        /// </summary>
+        public static AgentSessionRow ReadFrom(DbDataReader reader) => new()
+        {
+            Harness = reader.GetString(reader.GetOrdinal("Harness")),
+            SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+            AgentName = reader.IsDBNull(reader.GetOrdinal("AgentName"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("AgentName")),
+            BindingKind = reader.GetString(reader.GetOrdinal("BindingKind")),
+            Host = reader.GetString(reader.GetOrdinal("Host")),
+            Pid = reader.GetInt32(reader.GetOrdinal("Pid")),
+            ProcStart = reader.GetString(reader.GetOrdinal("ProcStart")),
+            Cwd = reader.GetString(reader.GetOrdinal("Cwd")),
+            WorkspacePath = reader.GetString(reader.GetOrdinal("WorkspacePath")),
+            EndpointKind = reader.GetString(reader.GetOrdinal("EndpointKind")),
+            EndpointAddr = reader.GetString(reader.GetOrdinal("EndpointAddr")),
+            StartedAt = reader.GetString(reader.GetOrdinal("StartedAt")),
+            LastBeatAt = reader.GetString(reader.GetOrdinal("LastBeatAt")),
+            BlockBudgetUsed = reader.GetInt32(reader.GetOrdinal("BlockBudgetUsed")),
+            LastPingAt = reader.IsDBNull(reader.GetOrdinal("LastPingAt"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("LastPingAt")),
+            LastPingAttempt = reader.IsDBNull(reader.GetOrdinal("LastPingAttempt"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("LastPingAttempt")),
+            LastPingResult = reader.IsDBNull(reader.GetOrdinal("LastPingResult"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("LastPingResult")),
+            LastPingDetail = reader.IsDBNull(reader.GetOrdinal("LastPingDetail"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("LastPingDetail"))
+        };
 
         public AgentSessionRecord ToRecord() => new()
         {
