@@ -630,14 +630,78 @@ public sealed class MailStoreTests : IAsyncDisposable
         await SendAsync("bob", "sent by bob to carol", ["carol"], null, cancellationToken);
 
         // act
-        var threads = await _store.QueryInboxThreadsAsync("bob", cancellationToken);
+        var threads = await _store.QueryInboxThreadsAsync("bob", includeArchived: false, cancellationToken);
 
         // assert
         var summary = Assert.Single(threads);
         Assert.Equal(addressedToBob.ThreadId, summary.ThreadId);
         Assert.Equal(1, summary.UnreadCount);
+        Assert.Equal(0, summary.ArchivedCount);
         Assert.Equal(1, summary.MessageCount);
         Assert.Equal("body", summary.BodyPreview);
+    }
+
+    [Fact]
+    public async Task QueryInboxThreadsAsync_Should_ExcludeThread_When_OnlyMessageToActorIsArchived()
+    {
+        // arrange: bob's only message in this thread is archived for him, so
+        // the default (includeArchived: false) query excludes the thread,
+        // matching BuildInboxQuery's message-level semantics.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var message = await SendAsync("claude", "for bob", ["bob"], null, cancellationToken);
+        await _store.ArchiveAsync([message.Id], "bob", cancellationToken);
+
+        // act
+        var threads = await _store.QueryInboxThreadsAsync("bob", includeArchived: false, cancellationToken);
+
+        // assert
+        Assert.Empty(threads);
+    }
+
+    [Fact]
+    public async Task QueryInboxThreadsAsync_Should_IncludeArchivedThread_When_IncludeArchivedTrue()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var message = await SendAsync("claude", "for bob", ["bob"], null, cancellationToken);
+        await _store.ArchiveAsync([message.Id], "bob", cancellationToken);
+
+        // act
+        var threads = await _store.QueryInboxThreadsAsync("bob", includeArchived: true, cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(message.ThreadId, summary.ThreadId);
+        Assert.Equal(1, summary.ArchivedCount);
+    }
+
+    [Fact]
+    public async Task QueryInboxThreadsAsync_Should_IncludeThread_When_SomeButNotAllMessagesToActorAreArchived()
+    {
+        // arrange: bob is addressed by two separate messages in the same
+        // thread (claude replying into his own first message, still to
+        // bob), only one archived - the default query keeps the thread (it
+        // is not the case that "only" his messages are archived) and
+        // ArchivedCount reports 1.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var first = await SendAsync("claude", "for bob", ["bob"], null, cancellationToken);
+        var reply = await _store.ReplyMessageAsync(first.Id, "claude", "following up", cancellationToken);
+        await _store.ArchiveAsync([first.Id], "bob", cancellationToken);
+
+        // act
+        var threads = await _store.QueryInboxThreadsAsync("bob", includeArchived: false, cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(reply.ThreadId, summary.ThreadId);
+        Assert.Equal(2, summary.MessageCount);
+        Assert.Equal(1, summary.ArchivedCount);
     }
 
     [Fact]

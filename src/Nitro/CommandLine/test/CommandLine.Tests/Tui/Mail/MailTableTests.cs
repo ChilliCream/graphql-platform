@@ -28,7 +28,8 @@ public sealed class MailTableTests
             LastSender = lastSender,
             LastRecipients = lastRecipients ?? ["alice"],
             BodyPreview = bodyPreview,
-            UnreadCount = unreadCount
+            UnreadCount = unreadCount,
+            ArchivedCount = null
         };
 
     private static void AssertRendersWithoutError(string markup)

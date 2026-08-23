@@ -48,4 +48,15 @@ internal sealed record MailThreadSummary
     /// never carry an actor's read state, including another agent's.
     /// </summary>
     public required int? UnreadCount { get; init; }
+
+    /// <summary>
+    /// How many messages in the thread are archived for the queried actor,
+    /// or null when the rollup is not scoped to an actor, mirroring
+    /// <see cref="UnreadCount"/>'s null rule. A thread with a positive
+    /// <see cref="ArchivedCount"/> is the thread-level mirror of a single
+    /// message's own archived-for-actor recipient state: the mail board's
+    /// inbox thread loader narrows to exactly these threads for its
+    /// "Archived" filter.
+    /// </summary>
+    public required int? ArchivedCount { get; init; }
 }

@@ -135,10 +135,10 @@ internal interface IMailStore
 
     /// <summary>
     /// Returns every thread the given agent sent or received a message in,
-    /// as sent or unarchived-received counts as participation, ordered by
-    /// the thread's last message, newest first. This is the "All" mailbox
-    /// scope; <see cref="MailThreadSummary.UnreadCount"/> is the actor's
-    /// unread count.
+    /// as sent or received (archived or not) counts as participation,
+    /// ordered by the thread's last message, newest first. This is the
+    /// "All" mailbox scope; <see cref="MailThreadSummary.UnreadCount"/> is
+    /// the actor's unread count.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QueryThreadsAsync(
         string actor,
@@ -147,12 +147,20 @@ internal interface IMailStore
     /// <summary>
     /// Returns every thread with at least one message addressed to the
     /// given actor as a to or cc recipient (the "Inbox" mailbox scope),
-    /// ordered by the thread's last message, newest first.
-    /// <see cref="MailThreadSummary.UnreadCount"/> is the actor's unread
-    /// count.
+    /// ordered by the thread's last message, newest first. By default
+    /// (<paramref name="includeArchived"/> false), excludes threads whose
+    /// only messages to the actor are archived, mirroring
+    /// <see cref="MailInboxFilter.IncludeArchived"/>'s message-level
+    /// semantics in <see cref="QueryInboxAsync"/>; passing
+    /// <paramref name="includeArchived"/> true includes those threads too,
+    /// the same "include, don't require" sense <see cref="MailInboxFilter.IncludeArchived"/>
+    /// has for messages. <see cref="MailThreadSummary.UnreadCount"/> and
+    /// <see cref="MailThreadSummary.ArchivedCount"/> are the actor's own
+    /// counts.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
         string actor,
+        bool includeArchived,
         CancellationToken cancellationToken);
 
     /// <summary>

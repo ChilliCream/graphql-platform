@@ -44,17 +44,21 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     /// <summary>
     /// The read-state filter applied to <see cref="Messages"/> within
     /// <see cref="MailMailbox.Inbox"/>. Carried but not applied to any other
-    /// <see cref="Mailbox"/>. The store exposes no filtered thread query, so
-    /// <see cref="Threads"/> within Inbox is narrowed for <see cref="Filter"/>
-    /// only client-side, in <see cref="LoadThreadsAsync"/>: <see cref="MailListFilter.Unread"/>
-    /// hides threads whose <see cref="MailThreadSummary.UnreadCount"/> (already
-    /// actor-scoped for Inbox rollups) is zero, so f/F is visible in
-    /// <see cref="MailListMode.Threads"/> too, not just Flat. <see cref="MailListFilter.Archived"/>
-    /// has no such client-side narrowing yet - archived thread rollups need a
-    /// dedicated store query <see cref="LoadThreadsAsync"/> does not have
-    /// (tracked as a follow-up) - so it still shows the full inbox thread
-    /// set; the list pane's header naming the filter regardless keeps f/F
-    /// visible there too, even without the row-level effect.
+    /// <see cref="Mailbox"/>. <see cref="Threads"/> within Inbox is narrowed
+    /// for <see cref="Filter"/> too, so f/F is visible in
+    /// <see cref="MailListMode.Threads"/> as well as Flat, though not
+    /// identically for every value: <see cref="MailListFilter.Inbox"/>
+    /// itself already excludes threads whose only messages to the actor are
+    /// archived, the store's default (see <see cref="MailDataLoader.LoadInboxThreadsAsync"/>).
+    /// <see cref="MailListFilter.Unread"/> additionally hides threads whose
+    /// <see cref="MailThreadSummary.UnreadCount"/> (already actor-scoped for
+    /// Inbox rollups) is zero, applied client-side in
+    /// <see cref="LoadThreadsAsync"/> since the store exposes no unread-only
+    /// thread query. <see cref="MailListFilter.Archived"/> is powered by the
+    /// store's own includeArchived knob, then narrowed further, client-side,
+    /// to threads carrying at least one archived-for-actor message
+    /// (<see cref="MailThreadSummary.ArchivedCount"/>) - see
+    /// <see cref="MailDataLoader.LoadInboxThreadsAsync"/>.
     /// </summary>
     public MailListFilter Filter { get; private set; } = MailListFilter.Inbox;
 
@@ -405,7 +409,7 @@ internal sealed class MailState(string actor, MailDataLoader loader)
         Threads = await LoadThreadsAsync(cancellationToken).ConfigureAwait(false);
 
         _workspaceUnreadToMeThreadIds = Mailbox == MailMailbox.Workspace
-            ? (await loader.LoadInboxThreadsAsync(Actor, cancellationToken).ConfigureAwait(false))
+            ? (await loader.LoadInboxThreadsAsync(Actor, MailListFilter.Inbox, cancellationToken).ConfigureAwait(false))
                 .Where(t => (t.UnreadCount ?? 0) > 0)
                 .Select(t => t.ThreadId)
                 .ToHashSet(StringComparer.Ordinal)
@@ -601,10 +605,13 @@ internal sealed class MailState(string actor, MailDataLoader loader)
 
     /// <summary>
     /// Routes to the thread-rollup load method for <see cref="Mailbox"/>,
-    /// mirroring <see cref="LoadMessagesAsync"/> except that the store itself
-    /// exposes no filtered thread query: within Inbox, <see cref="Filter"/>
-    /// is instead applied client-side afterward - see <see cref="Filter"/>
-    /// for which values that covers.
+    /// mirroring <see cref="LoadMessagesAsync"/>. Within Inbox,
+    /// <see cref="Filter"/> is passed through to <see cref="MailDataLoader.LoadInboxThreadsAsync"/>
+    /// (which covers <see cref="MailListFilter.Inbox"/> and
+    /// <see cref="MailListFilter.Archived"/>), plus one further client-side
+    /// narrowing this method still owns for <see cref="MailListFilter.Unread"/>,
+    /// since the store exposes no unread-only thread query - see
+    /// <see cref="Filter"/> for the full breakdown.
     /// </summary>
     private async Task<IReadOnlyList<MailThreadSummary>> LoadThreadsAsync(CancellationToken cancellationToken)
     {
@@ -620,7 +627,7 @@ internal sealed class MailState(string actor, MailDataLoader loader)
                 return await loader.LoadWorkspaceThreadsAsync(AgentFilter, cancellationToken).ConfigureAwait(false);
 
             default:
-                var threads = await loader.LoadInboxThreadsAsync(Actor, cancellationToken).ConfigureAwait(false);
+                var threads = await loader.LoadInboxThreadsAsync(Actor, Filter, cancellationToken).ConfigureAwait(false);
                 return Filter == MailListFilter.Unread
                     ? threads.Where(t => (t.UnreadCount ?? 0) > 0).ToList()
                     : threads;

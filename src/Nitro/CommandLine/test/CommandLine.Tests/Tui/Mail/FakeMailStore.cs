@@ -202,8 +202,12 @@ internal sealed class FakeMailStore : IMailStore
         => Task.FromResult(BuildThreadSummaries(
             m => m.Sender == actor || MailRecipientView.FindRecipient(m, actor) is not null, actor));
 
-    public Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(string actor, CancellationToken cancellationToken)
-        => Task.FromResult(BuildThreadSummaries(m => MailRecipientView.FindRecipient(m, actor) is not null, actor));
+    public Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
+        string actor, bool includeArchived, CancellationToken cancellationToken)
+        => Task.FromResult(BuildThreadSummaries(
+            m => MailRecipientView.FindRecipient(m, actor) is not null
+                && (includeArchived || !MailRecipientView.IsArchived(m, actor)),
+            actor));
 
     public Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(string actor, CancellationToken cancellationToken)
         => Task.FromResult(BuildThreadSummaries(m => m.Sender == actor, actor));
@@ -220,7 +224,8 @@ internal sealed class FakeMailStore : IMailStore
     /// <see cref="MailThreadSummary.LastRecipients"/>, and
     /// <see cref="MailThreadSummary.BodyPreview"/>, the root message
     /// (oldest) for <see cref="MailThreadSummary.Subject"/>, and computes
-    /// <see cref="MailThreadSummary.UnreadCount"/> only when
+    /// <see cref="MailThreadSummary.UnreadCount"/> and
+    /// <see cref="MailThreadSummary.ArchivedCount"/> only when
     /// <paramref name="unreadActor"/> is given - never for another agent's
     /// actor, matching the real store's Workspace-never-actor-scoped rule.
     /// </summary>
@@ -250,6 +255,10 @@ internal sealed class FakeMailStore : IMailStore
                 ? (int?)null
                 : threadMessages.Count(m => MailRecipientView.IsUnread(m, unreadActor));
 
+            var archivedCount = unreadActor is null
+                ? (int?)null
+                : threadMessages.Count(m => MailRecipientView.IsArchived(m, unreadActor));
+
             summaries.Add(new MailThreadSummary
             {
                 ThreadId = threadId,
@@ -259,7 +268,8 @@ internal sealed class FakeMailStore : IMailStore
                 LastSender = last.Sender,
                 LastRecipients = last.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name).ToArray(),
                 BodyPreview = last.Body,
-                UnreadCount = unreadCount
+                UnreadCount = unreadCount,
+                ArchivedCount = archivedCount
             });
         }
 
