@@ -64,9 +64,16 @@ internal sealed class Notifier(
                 // Every endpoint kind other than codex-thread and none is
                 // recorded, not attempted: the notifier has no transport
                 // for it (claude-peer today; a future kind would land here
-                // too until it gets its own handler).
-                await sessionRegistry.TryClaimPingCooldownAsync(
-                    session, attemptId, now, TimeSpan.Zero, cancellationToken);
+                // too until it gets its own handler). Unsupported attempts
+                // coalesce under the same per-session cooldown as codex-thread.
+                var unsupportedCooldownClaimed = await sessionRegistry.TryClaimPingCooldownAsync(
+                    session, attemptId, now, PingPolicy.Cooldown, cancellationToken);
+
+                if (!unsupportedCooldownClaimed)
+                {
+                    return;
+                }
+
                 await sessionRegistry.WritePingResultAsync(
                     session.Harness, session.SessionId, attemptId,
                     AgentPingResult.Unsupported, null, cancellationToken);

@@ -107,7 +107,16 @@ internal sealed class PingAgentCommand : Command
 
         if (session.EndpointKind != AgentSessionEndpointKind.CodexThread)
         {
-            await sessionRegistry.TryClaimPingCooldownAsync(session, attemptId, now, TimeSpan.Zero, cancellationToken);
+            // Unsupported attempts coalesce under the same per-session
+            // cooldown as codex-thread.
+            var unsupportedCooldownClaimed = await sessionRegistry.TryClaimPingCooldownAsync(
+                session, attemptId, now, PingPolicy.Cooldown, cancellationToken);
+
+            if (!unsupportedCooldownClaimed)
+            {
+                return "skipped-cooldown";
+            }
+
             await sessionRegistry.WritePingResultAsync(
                 session.Harness, session.SessionId, attemptId, AgentPingResult.Unsupported, null, cancellationToken);
             return AgentPingResult.Unsupported;

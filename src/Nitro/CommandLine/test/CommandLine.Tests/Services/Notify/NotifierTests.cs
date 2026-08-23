@@ -177,6 +177,26 @@ public sealed class NotifierTests : IDisposable
     }
 
     [Fact]
+    public async Task NotifyAsync_Should_CoalesceUnsupported_When_CalledTwiceWithinTheCooldown()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var generation = await SeedClaimedSessionAsync(
+            AgentSessionEndpointKind.ClaudePeer, "peer-a", cancellationToken);
+
+        // act
+        await _notifier.NotifyAsync([Actor], cancellationToken);
+        var firstAttempt = (await _sessions.FindByGenerationAsync(generation, cancellationToken))!.LastPingAttempt;
+        _timeProvider.Advance(TimeSpan.FromSeconds(1));
+        await _notifier.NotifyAsync([Actor], cancellationToken);
+
+        // assert: the second call landed inside the 60s cooldown, so it
+        // never claimed a fresh attempt id.
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal(firstAttempt, row!.LastPingAttempt);
+    }
+
+    [Fact]
     public async Task NotifyAsync_Should_NeverThrow_When_NoWorkspaceExists()
     {
         // arrange: InitializeWorkspaceAsync was never called - resolving the
