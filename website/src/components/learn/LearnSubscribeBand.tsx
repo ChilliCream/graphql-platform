@@ -16,13 +16,18 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
  * Phase 1 (no newsletter provider; strategy section 1.3): "Subscribe via
  * RSS" links the feed directly. No fake email form: a form without a
  * backend is worse than a link.
+ *
+ * Padding uses the section-shell token (learn-harmonization.md section 2.1):
+ * the previous `py-16 sm:py-20` combined with the Watch section's own
+ * bottom padding to a measured 129px gap, over the page's 96px cap.
  */
 export function LearnSubscribeBand() {
   return (
     <div id="subscribe" className="scroll-mt-32">
-      <Band skin="card" layout="centered" className="py-16 sm:py-20">
+      <Band skin="card" layout="centered" className="py-10 sm:py-12">
         <SectionHeading
           align="center"
+          size="sm"
           title="Keep up with GraphQL in .NET"
           description="Subscribe via RSS or YouTube, or keep exploring the catalog and the docs."
         />

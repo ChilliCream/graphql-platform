@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnVideoDetail } from "@/src/components/learn/LearnVideoDetail";
+import { youTubePosterFallback, youTubePosterKey } from "@/src/components/YouTubePoster";
 import { getOptimizedImage } from "@/src/image-optimization/manifest";
 import { productLabel } from "@/src/data/learn/facets";
 import { LEARN_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
@@ -23,9 +24,9 @@ export const dynamicParams = false;
  * and keep linking straight to YouTube via `learnItemHref`.
  */
 function findVideo(slug: string): (VideoItem & { readonly youtubeId: string }) | undefined {
-  return VIDEO_ITEMS.find((video) => video.slug === slug && video.youtubeId) as
-    | (VideoItem & { readonly youtubeId: string })
-    | undefined;
+  return VIDEO_ITEMS.find(
+    (video): video is VideoItem & { readonly youtubeId: string } => video.slug === slug && Boolean(video.youtubeId),
+  );
 }
 
 export function generateStaticParams(): { slug: string }[] {
@@ -34,9 +35,8 @@ export function generateStaticParams(): { slug: string }[] {
 
 /** Self-hosted optimized poster when built, else the external `hqdefault` thumbnail (matches `YouTubePoster`'s resolution). */
 function posterUrl(youtubeId: string): string {
-  const remote = `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`;
-  const opt = getOptimizedImage(remote);
-  return toAbsoluteUrl(opt?.fallbackSrc ?? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`);
+  const opt = getOptimizedImage(youTubePosterKey(youtubeId));
+  return toAbsoluteUrl(opt?.fallbackSrc ?? youTubePosterFallback(youtubeId));
 }
 
 /** `"51:49"` / `"1:02:15"` mm:ss or h:mm:ss duration to ISO 8601 (`PT51M49S`). */

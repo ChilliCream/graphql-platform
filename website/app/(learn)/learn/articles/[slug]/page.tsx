@@ -145,8 +145,8 @@ export default async function ArticlePage({ params }: PageProps) {
           isBlogArticle ? (
             <SimilarPosts posts={similarPosts} />
           ) : related.length > 0 ? (
-            <section className="border-cc-card-border mt-12 border-t pt-10 print:hidden">
-              <h2 className="text-cc-heading m-0 mb-6 text-2xl font-semibold">Related</h2>
+            <section className="border-cc-card-border mt-10 border-t pt-10 sm:mt-12 sm:pt-12 print:hidden">
+              <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 m-0 mb-6 font-semibold">Related</h2>
               <CardGrid cols={3} itemsStretch>
                 {related.map((item) => (
                   <LearnCard key={item.slug} item={item} />

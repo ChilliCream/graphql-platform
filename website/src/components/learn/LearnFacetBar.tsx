@@ -2,9 +2,13 @@ import type { FilterAxisDef, LearnContentType, ProductKey } from "@/src/data/lea
 import { CONTENT_TYPE_OPTIONS, PRODUCT_OPTIONS } from "@/src/data/learn/facets";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { SearchIcon } from "@/src/icons/Search";
-import { CONTENT_TYPE_META } from "./contentTypeMeta";
 
 export type ContentTypeSelection = LearnContentType | "all";
+
+// One active-pill recipe for every content-type facet (learn-harmonization.md
+// section 2.3/D4): color no longer varies by type, matching the product-mix
+// pills' existing accent treatment below.
+const ACTIVE_TYPE_PILL_CLASSES = "border-cc-accent/40 bg-cc-accent/15 text-cc-accent";
 
 interface LearnFacetBarProps {
   readonly contentType: ContentTypeSelection;
@@ -22,6 +26,8 @@ interface LearnFacetBarProps {
   readonly onQueryChange: (value: string) => void;
   readonly activeFilterCount: number;
   readonly onClearAll: () => void;
+  /** Visible result count, rendered inline at the right end of the type-pill row (learn-harmonization.md D22). */
+  readonly resultCount: number;
 }
 
 /**
@@ -44,6 +50,7 @@ export function LearnFacetBar({
   onQueryChange,
   activeFilterCount,
   onClearAll,
+  resultCount,
 }: LearnFacetBarProps) {
   return (
     <div className="space-y-5">
@@ -55,18 +62,18 @@ export function LearnFacetBar({
             onClick={() => onContentTypeChange("all")}
             activeClassName="border-cc-card-border-hover bg-cc-hover text-cc-heading"
           />
-          {CONTENT_TYPE_OPTIONS.map((option) => {
-            const meta = CONTENT_TYPE_META[option.key];
-            return (
-              <TypePill
-                key={option.key}
-                active={contentType === option.key}
-                label={`${option.label} (${typeCount(option.key)})`}
-                onClick={() => onContentTypeChange(option.key)}
-                activeClassName={meta.activePill}
-              />
-            );
-          })}
+          {CONTENT_TYPE_OPTIONS.map((option) => (
+            <TypePill
+              key={option.key}
+              active={contentType === option.key}
+              label={`${option.label} (${typeCount(option.key)})`}
+              onClick={() => onContentTypeChange(option.key)}
+              activeClassName={ACTIVE_TYPE_PILL_CLASSES}
+            />
+          ))}
+          <span className="text-cc-ink-dim ml-1 font-mono text-[0.6875rem] tracking-wider uppercase">
+            {resultCount} {resultCount === 1 ? "result" : "results"}
+          </span>
         </div>
         <div className="relative lg:w-72 lg:shrink-0">
           <SearchIcon className="text-cc-ink-dim pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 fill-current" />
@@ -109,7 +116,7 @@ export function LearnFacetBar({
                 {active && <CheckGlyph className="text-cc-surface size-3" />}
               </span>
               {option.label}
-              <span className="font-mono text-[0.65rem] opacity-70">{count}</span>
+              <span className="font-mono text-[0.6875rem] opacity-70">{count}</span>
             </button>
           );
         })}
@@ -122,7 +129,7 @@ export function LearnFacetBar({
             <div className="border-cc-card-border grid gap-6 border-t p-4 sm:grid-cols-2 lg:grid-cols-4">
               {axes.map((axis) => (
                 <fieldset key={axis.key}>
-                  <legend className="text-cc-ink-dim font-mono text-[0.65rem] font-semibold tracking-[0.18em] uppercase">
+                  <legend className="text-cc-ink-dim font-mono text-[0.6875rem] font-semibold tracking-[0.18em] uppercase">
                     {axis.label}
                   </legend>
                   <div className="mt-3 space-y-0.5">
@@ -157,7 +164,7 @@ export function LearnFacetBar({
                           >
                             {option.label}
                           </span>
-                          <span className="text-cc-ink-dim font-mono text-[0.65rem]">{count}</span>
+                          <span className="text-cc-ink-dim font-mono text-[0.6875rem]">{count}</span>
                         </button>
                       );
                     })}
@@ -172,7 +179,7 @@ export function LearnFacetBar({
           <button
             type="button"
             onClick={onClearAll}
-            className="text-cc-accent hover:text-cc-accent-hover ml-auto cursor-pointer font-mono text-[0.65rem] tracking-[0.15em] uppercase"
+            className="text-cc-accent hover:text-cc-accent-hover ml-auto cursor-pointer font-mono text-[0.6875rem] tracking-[0.15em] uppercase"
           >
             ✕ Clear all
           </button>

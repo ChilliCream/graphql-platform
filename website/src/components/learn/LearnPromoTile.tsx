@@ -22,11 +22,12 @@ interface LearnPromoTileCtaProps {
 type LearnPromoTileProps = LearnPromoTileImageProps | LearnPromoTileCtaProps;
 
 /**
- * Curated right-rail unit (learn-editorial.md section 14.3), two variants:
- * a dark image tile with a bottom scrim, and a solid-accent CTA banner. The
- * CTA banner is the only solid-accent surface in the learn system, reserved
- * for one curated action per page. Content is passed as props; the component
- * never picks its own content.
+ * Curated right-rail unit (learn-editorial.md section 14.3, amended by
+ * learn-harmonization.md D3), two variants: a dark image tile with a bottom
+ * scrim, and a solid-accent CTA banner. The CTA banner is the only
+ * solid-accent surface in the learn system, reserved for one curated action
+ * per page. Content is passed as props; the component never picks its own
+ * content.
  */
 export function LearnPromoTile(props: LearnPromoTileProps) {
   if (props.variant === "cta") {
@@ -48,7 +49,7 @@ export function LearnPromoTile(props: LearnPromoTileProps) {
   return (
     <Link
       href={props.href}
-      className="group/promo border-cc-ink-faint relative block aspect-[4/3] overflow-hidden rounded-2xl border no-underline"
+      className="group/promo relative block aspect-[4/3] overflow-hidden rounded-2xl no-underline"
     >
       <Picture
         src={props.image}
@@ -58,7 +59,7 @@ export function LearnPromoTile(props: LearnPromoTileProps) {
       />
       <span
         aria-hidden="true"
-        className="from-cc-surface via-cc-surface/95 absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t to-transparent"
+        className="from-cc-surface/95 absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t to-transparent"
       />
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-6">
         <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{props.kicker}</span>

@@ -19,6 +19,7 @@ import type { LearnItemSummary } from "@/src/data/learn/types";
 import { LearnCard } from "./LearnCard";
 import { LearnEmptyState } from "./LearnEmptyState";
 import { LearnFacetBar, type ContentTypeSelection } from "./LearnFacetBar";
+import { LearnFeatureCard } from "./LearnFeatureCard";
 
 // Faceted /learn catalog: content type is the primary (single-select) facet,
 // product mix is always-visible, and the template-only axes (topology, use
@@ -95,9 +96,16 @@ const matchesQuery = (item: LearnItemSummary, query: string): boolean => {
 
 interface LearnCatalogProps {
   readonly items: readonly LearnItemSummary[];
+  /**
+   * Count of leading items (already sorted featured-first by the caller)
+   * that render as `LearnFeatureCard` tiles in the default unfiltered view
+   * (learn-harmonization.md section 2.6.2, D8). The grid collapses to
+   * uniform `LearnCard`s once a filter or search query is active.
+   */
+  readonly featuredCount?: number;
 }
 
-export function LearnCatalog({ items }: LearnCatalogProps) {
+export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -244,9 +252,10 @@ export function LearnCatalog({ items }: LearnCatalogProps) {
     (query.trim() ? 1 : 0);
 
   const typeHasAnyItems = contentType === "all" || items.some((item) => item.type === contentType);
+  const showFeatureRow = activeFilterCount === 0 && featuredCount > 0;
 
   return (
-    <section className="py-14 sm:py-20">
+    <section className="py-10 sm:py-12">
       <LearnFacetBar
         contentType={contentType}
         onContentTypeChange={setContentType}
@@ -262,6 +271,7 @@ export function LearnCatalog({ items }: LearnCatalogProps) {
         onQueryChange={setQuery}
         activeFilterCount={activeFilterCount}
         onClearAll={clearAll}
+        resultCount={visibleItems.length}
       />
 
       <div className="mt-8 min-h-[24rem]">
@@ -273,16 +283,17 @@ export function LearnCatalog({ items }: LearnCatalogProps) {
             onAction={clearAll}
           />
         ) : visibleItems.length > 0 ? (
-          <>
-            <p className="text-cc-ink-dim text-caption mb-4">
-              {visibleItems.length} {visibleItems.length === 1 ? "result" : "results"}
-            </p>
-            <CardGrid cols={4} step="progressive" itemsStretch>
-              {visibleItems.map((item) => (
+          <CardGrid cols={4} step="progressive" itemsStretch>
+            {visibleItems.map((item, index) =>
+              showFeatureRow && index < featuredCount ? (
+                <div key={`${item.type}-${item.slug}`} className="sm:col-span-2">
+                  <LearnFeatureCard item={item} />
+                </div>
+              ) : (
                 <LearnCard key={`${item.type}-${item.slug}`} item={item} />
-              ))}
-            </CardGrid>
-          </>
+              ),
+            )}
+          </CardGrid>
         ) : (
           <LearnEmptyState
             heading="Nothing matches"

@@ -1,10 +1,10 @@
 import { LearnCollectionSection } from "@/src/components/learn/LearnCollectionSection";
 import { LearnEditorialBand } from "@/src/components/learn/LearnEditorialBand";
-import { LearnExplainerList } from "@/src/components/learn/LearnExplainerList";
+import { EXPLAINER_LIST_MIN_ITEMS, LearnExplainerList } from "@/src/components/learn/LearnExplainerList";
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
 import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
-import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost } from "@/src/components/learn/editorial";
+import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost, type Topic } from "@/src/components/learn/editorial";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary } from "@/src/data/learn/types";
@@ -88,6 +88,7 @@ export default function LearnPage() {
   const topicPostPool = allPosts.filter((post) => !bandStems.has(post.stem));
   const tags = popularTags(allPosts);
   const explainerArticles = [...listArticlesByKind("explainer"), ...listArticlesByKind("comparison")];
+  const explainerSectionRenders = explainerArticles.length >= EXPLAINER_LIST_MIN_ITEMS;
 
   const featuredTemplate = findFeaturedTemplate();
   const featuredTemplateSummary = TEMPLATE_SUMMARIES.find((t) => t.slug === featuredTemplate.slug);
@@ -104,6 +105,23 @@ export default function LearnPage() {
 
   const consumedStems = new Set<string>();
   const structuredData = buildStructuredData(collectionItems);
+
+  // Rails that actually render, so the lead-side alternation (A-B-A, D7) is
+  // computed over rendered rails, not every entry in TOPICS.
+  const topicRails: { readonly topic: Topic; readonly posts: readonly BlogPostSummary[] }[] = [];
+  for (const topic of TOPICS) {
+    const topicPosts = topicPostPool.filter(
+      (post) => !consumedStems.has(post.stem) && topicsForBlogPost(post).includes(topic.key),
+    );
+    const shown = selectTopicPosts(topicPosts);
+    if (shown.length === 0) {
+      continue;
+    }
+    for (const post of shown) {
+      consumedStems.add(post.stem);
+    }
+    topicRails.push({ topic, posts: shown });
+  }
 
   return (
     <>
@@ -128,19 +146,15 @@ export default function LearnPage() {
           tags={tags}
         />
       ) : null}
-      {TOPICS.map((topic) => {
-        const topicPosts = topicPostPool.filter(
-          (post) => !consumedStems.has(post.stem) && topicsForBlogPost(post).includes(topic.key),
-        );
-        const shown = selectTopicPosts(topicPosts);
-        if (shown.length === 0) {
-          return null;
-        }
-        for (const post of shown) {
-          consumedStems.add(post.stem);
-        }
-        return <LearnTopicRail key={topic.key} heading={topic.label} moreHref={topicBrowseHref(topic)} posts={shown} />;
-      })}
+      {topicRails.map(({ topic, posts }, index) => (
+        <LearnTopicRail
+          key={topic.key}
+          heading={topic.label}
+          moreHref={topicBrowseHref(topic)}
+          posts={posts}
+          leadSide={index % 2 === 0 ? "left" : "right"}
+        />
+      ))}
       <LearnCollectionSection
         items={collectionItems}
         subLinks={[
@@ -149,8 +163,9 @@ export default function LearnPage() {
           { label: "Examples", href: "/learn/browse?type=example" },
           { label: "Workshops", href: "/learn/browse?type=workshop" },
         ]}
+        foldedExplainer={!explainerSectionRenders ? (explainerArticles[0] ?? null) : null}
       />
-      <LearnExplainerList articles={explainerArticles} />
+      {explainerSectionRenders ? <LearnExplainerList articles={explainerArticles} /> : null}
       <LearnVideoSection videos={VIDEO_ITEMS} />
       <LearnSubscribeBand />
     </>

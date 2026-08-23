@@ -1,4 +1,3 @@
-import { CardGrid } from "@/src/components/CardGrid";
 import { CopyCommand } from "@/src/components/CopyCommand";
 import { clientLabel, languageLabel, productLabel, topologyLabel, useCaseLabel } from "@/src/data/learn/facets";
 import type { LearnItemSummary, TemplateItem } from "@/src/data/learn/types";
@@ -8,7 +7,9 @@ import { Tag } from "@/src/design-system/Tag";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { ArticleBreadcrumb } from "./ArticleLayout";
 import { ContentTypeBadge } from "./ContentTypeBadge";
+import { Detail } from "./Detail";
 import { LearnCard } from "./LearnCard";
+import { LearnFeatureCard } from "./LearnFeatureCard";
 import { stackLabel } from "./stackIcons";
 import { TemplateStackArt } from "./TemplateStackArt";
 
@@ -18,9 +19,11 @@ interface TemplateDetailProps {
 }
 
 export function TemplateDetail({ template, related }: TemplateDetailProps) {
+  const [leadRelated, ...restRelated] = related;
+
   return (
     <>
-      <header className="py-10 sm:py-16">
+      <header className="py-10 sm:py-12">
         <div className="mb-8">
           <ArticleBreadcrumb
             items={[
@@ -30,14 +33,14 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
             ]}
           />
         </div>
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
+        <div className="grid items-center gap-10 lg:grid-cols-[1fr_minmax(0,28rem)]">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <ContentTypeBadge type="template" />
               <Tag>{topologyLabel(template.topology)}</Tag>
               {template.agentReady && <Tag className="border-cc-warning/40 text-cc-warning">Agent-ready</Tag>}
             </div>
-            <h1 className="font-heading text-cc-heading text-h3 sm:text-h2 mt-6 font-semibold tracking-[-0.02em] text-balance">
+            <h1 className="font-heading text-cc-heading text-h3 mt-6 font-semibold tracking-[-0.02em] text-balance">
               {template.title}
             </h1>
             <p className="text-cc-prose mt-5 max-w-2xl text-lg leading-relaxed">{template.tagline}</p>
@@ -49,7 +52,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
               {template.demoUrl && <OutlineButton href={template.demoUrl}>Live demo</OutlineButton>}
             </div>
           </div>
-          <div className="border-cc-card-border overflow-hidden rounded-2xl border">
+          <div className="overflow-hidden rounded-2xl">
             <div className="aspect-[16/10]">
               <TemplateStackArt products={template.products} drinkBase={88} />
             </div>
@@ -57,7 +60,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
         </div>
       </header>
 
-      <div className="border-cc-card-border grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+      <div className="border-cc-card-border grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,46rem)_19rem] lg:justify-between lg:gap-16">
         <article className="min-w-0">
           {template.body.map((section) => (
             <section key={section.heading} className="mb-14 last:mb-0">
@@ -85,7 +88,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
               <div className="mt-4 space-y-3">
                 {template.cli.map((command) => (
                   <div key={command.key}>
-                    <p className="text-cc-ink-dim mb-1.5 font-mono text-[0.65rem] tracking-wider uppercase">
+                    <p className="text-cc-ink-dim mb-1.5 font-mono text-[0.6875rem] tracking-wider uppercase">
                       {command.label}
                     </p>
                     <CopyCommand command={command.code} size="sm" className="bg-cc-code-bg" />
@@ -108,25 +111,21 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
         </aside>
       </div>
 
-      <section className="border-cc-card-border border-t py-16 sm:py-24">
-        <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold">More from Learn</h2>
-        <div className="mt-8">
-          <CardGrid cols={3} step="progressive" itemsStretch>
-            {related.map((item) => (
-              <LearnCard key={item.slug} item={item} />
-            ))}
-          </CardGrid>
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="border-cc-card-border border-t py-10 sm:py-12">
+          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">More from Learn</h2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            {leadRelated ? <LearnFeatureCard item={leadRelated} /> : null}
+            {restRelated.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
+                {restRelated.map((item) => (
+                  <LearnCard key={item.slug} item={item} />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+      )}
     </>
-  );
-}
-
-function Detail({ label, value }: { readonly label: string; readonly value: string }) {
-  return (
-    <div>
-      <dt className="text-cc-ink-dim font-mono text-[0.65rem] tracking-wider uppercase">{label}</dt>
-      <dd className="text-cc-heading mt-1">{value}</dd>
-    </div>
   );
 }

@@ -9,6 +9,7 @@ import { Tag } from "@/src/design-system/Tag";
 import { formatDate } from "@/src/helpers/formatDate";
 import { ArticleBreadcrumb } from "./ArticleLayout";
 import { ContentTypeBadge } from "./ContentTypeBadge";
+import { Detail } from "./Detail";
 import { topicLabelForProduct } from "./editorial";
 import { LearnCard } from "./LearnCard";
 import { LearnVideoPlayer } from "./LearnVideoPlayer";
@@ -72,28 +73,18 @@ function Facts({ video }: { readonly video: VideoItem }) {
   );
 }
 
-function Detail({
-  label,
-  value,
-  className = "",
-}: {
-  readonly label: string;
-  readonly value: string;
-  readonly className?: string;
-}) {
-  return (
-    <div>
-      <dt className="text-cc-ink-dim font-mono text-[0.65rem] tracking-wider uppercase">{label}</dt>
-      <dd className={`text-cc-heading mt-1 ${className}`.trim()}>{value}</dd>
-    </div>
-  );
-}
-
 /**
- * Video detail page composition (learn-editorial.md section 20): header,
- * click-to-load embed, description, example-code download, facts list, and
- * a related-videos rail. The page loads data and picks related items; this
- * component only renders the props it's given.
+ * Video detail page composition (learn-editorial.md section 20, amended by
+ * learn-harmonization.md D2/D9): header, click-to-load embed, description,
+ * example-code download, facts list, and a related-videos rail. The page
+ * loads data and picks related items; this component only renders the props
+ * it's given.
+ *
+ * Each piece (player, example card, description, facts) renders once;
+ * explicit grid placement (not a duplicated `lg:hidden` / `hidden lg:block`
+ * pair) puts them in reading order on small screens (player, example,
+ * description, facts) and into a player+description column beside a sticky
+ * example+facts column at `lg` (hnm.1 review, website-8s5.3 comment 2).
  */
 export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
   const paragraphs = video.description ? paragraphsOf(video.description) : [];
@@ -114,7 +105,7 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
 
   return (
     <>
-      <header className="py-10 sm:py-16">
+      <header className="py-10 sm:py-12">
         <div className="mb-8">
           <ArticleBreadcrumb
             items={[
@@ -129,46 +120,36 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
           <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{topic}</span>
           {video.level && <Tag className="capitalize">{video.level}</Tag>}
         </div>
-        <h1 className="font-heading text-cc-heading text-h3 sm:text-h2 mt-6 font-semibold tracking-[-0.02em] text-balance">
+        <h1 className="font-heading text-cc-heading text-h3 mt-6 font-semibold tracking-[-0.02em] text-balance">
           {video.title}
         </h1>
         {metaLine && <p className="text-cc-ink-dim mt-3 text-sm">{metaLine}</p>}
         <p className="text-cc-prose mt-5 max-w-2xl text-lg leading-relaxed">{video.tagline}</p>
       </header>
 
-      <div className="border-cc-card-border grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
-        {/* Mobile/tablet (below lg): player, example card, description, facts. */}
-        <div className="lg:hidden">
+      <div className="border-cc-card-border grid gap-10 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-16 lg:gap-y-10">
+        <div className="order-1 min-w-0 lg:order-none lg:col-start-1 lg:row-start-1">
           <LearnVideoPlayer videoId={video.youtubeId} title={video.title} />
-          {video.exampleUrl && (
-            <div className="mt-10">
-              <ExampleCard exampleUrl={video.exampleUrl} />
-            </div>
-          )}
-          {description && <div className="mt-10">{description}</div>}
-          <div className="mt-10">
-            <Facts video={video} />
+        </div>
+        {video.exampleUrl && (
+          <div className="order-2 lg:sticky lg:top-28 lg:order-none lg:col-start-2 lg:row-start-1">
+            <ExampleCard exampleUrl={video.exampleUrl} />
           </div>
-        </div>
-
-        {/* Desktop (lg+): fluid left column (player, description), sticky 19rem aside (example card, facts). */}
-        <div className="hidden min-w-0 lg:block">
-          <LearnVideoPlayer videoId={video.youtubeId} title={video.title} />
-          {description && <div className="mt-10">{description}</div>}
-        </div>
-        <aside className="hidden lg:sticky lg:top-28 lg:block">
-          {video.exampleUrl && (
-            <div className="mb-6">
-              <ExampleCard exampleUrl={video.exampleUrl} />
-            </div>
-          )}
+        )}
+        {description && (
+          <div className="order-3 min-w-0 lg:order-none lg:col-start-1 lg:row-start-2">{description}</div>
+        )}
+        {/* Facts sits beside the player (row 1) when there's no example card to lead the aside, otherwise below it (row 2), matching the original stacked-aside order. */}
+        <div
+          className={`order-4 lg:sticky lg:top-28 lg:order-none lg:col-start-2 ${video.exampleUrl ? "lg:row-start-2" : "lg:row-start-1"}`}
+        >
           <Facts video={video} />
-        </aside>
+        </div>
       </div>
 
       {related.length > 0 && (
-        <section className="border-cc-card-border border-t py-16 sm:py-24">
-          <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold">More to watch</h2>
+        <section className="border-cc-card-border border-t py-10 sm:py-12">
+          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">More to watch</h2>
           <div className="mt-8">
             <CardGrid cols={3} step="progressive" itemsStretch>
               {related.map((item) => (

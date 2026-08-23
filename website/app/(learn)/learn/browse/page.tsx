@@ -79,7 +79,7 @@ export default function LearnBrowsePage() {
         teaser="Templates, videos, tutorials, examples, and workshops for building with Hot Chocolate, Fusion, and the rest of the platform."
       />
       <Suspense fallback={<CatalogFallback />}>
-        <LearnCatalog items={ORDERED_SUMMARIES} />
+        <LearnCatalog items={ORDERED_SUMMARIES} featuredCount={FEATURED_TEMPLATE_SLUGS.size} />
       </Suspense>
       <LearnClosing />
     </>
@@ -88,7 +88,7 @@ export default function LearnBrowsePage() {
 
 function CatalogFallback() {
   return (
-    <div className="py-14 sm:py-20" aria-hidden="true">
+    <div className="py-10 sm:py-12" aria-hidden="true">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2.5">
           {Array.from({ length: 6 }).map((_, index) => (

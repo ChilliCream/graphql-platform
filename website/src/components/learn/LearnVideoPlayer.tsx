@@ -11,7 +11,7 @@ interface LearnVideoPlayerProps {
 
 /**
  * Click-to-load YouTube embed for the video detail page, framed with the
- * learn imagery treatment (`rounded-2xl` border, `border-cc-ink-faint`)
+ * learn imagery treatment (`rounded-2xl` border, `border-cc-card-border`)
  * instead of `YouTubeVideo`'s article-chrome frame. Reuses `VideoFacade` for
  * the click-to-load behavior and `YouTubePoster` for poster resolution.
  */
@@ -21,7 +21,7 @@ export function LearnVideoPlayer({ videoId, title }: LearnVideoPlayerProps) {
   }
 
   return (
-    <div className="border-cc-ink-faint overflow-hidden rounded-2xl border">
+    <div className="border-cc-card-border overflow-hidden rounded-2xl border">
       <VideoFacade videoId={videoId} playlabel={`Play ${title}`}>
         <YouTubePoster videoId={videoId} />
       </VideoFacade>

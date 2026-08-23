@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 type Align = "left" | "center";
-type Size = "md" | "lg";
+type Size = "sm" | "md" | "lg";
 
 interface SectionHeadingProps {
   readonly eyebrow?: string;
@@ -15,11 +15,13 @@ interface SectionHeadingProps {
 }
 
 const TITLE_SIZE: Record<Size, string> = {
+  sm: "text-h5 sm:text-h4",
   md: "text-h4 sm:text-h3",
   lg: "text-h3 sm:text-h2",
 };
 
 const DESCRIPTION_SIZE: Record<Size, string> = {
+  sm: "text-base",
   md: "text-base",
   lg: "text-base sm:text-lg",
 };
@@ -51,11 +53,7 @@ export function SectionHeading({
         {title}
       </h2>
       {description && (
-        <p
-          className={`text-cc-ink mt-4 max-w-3xl text-pretty ${DESCRIPTION_SIZE[size]} ${
-            centered ? "mx-auto" : ""
-          }`}
-        >
+        <p className={`text-cc-ink mt-4 max-w-3xl text-pretty ${DESCRIPTION_SIZE[size]} ${centered ? "mx-auto" : ""}`}>
           {description}
         </p>
       )}

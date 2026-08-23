@@ -6,7 +6,6 @@ import { BlogTags } from "@/src/components/BlogTags";
 import { TableOfContents, type HeadingItem } from "@/src/components/TableOfContents";
 import type { LearnContentType } from "@/src/data/learn/facets";
 import { Picture } from "@/src/design-system/Picture";
-import { Typography } from "@/src/design-system/Typography";
 import { ContentTypeBadge } from "./ContentTypeBadge";
 
 export interface ArticleBreadcrumbItem {
@@ -45,8 +44,13 @@ interface ArticleLayoutProps {
 
 /**
  * Presentational article reading shell shared by blog posts, comparisons,
- * and explainers (learn-editorial.md section 4.1). Takes plain props only:
- * no blog imports, no filesystem reads.
+ * and explainers (learn-editorial.md section 4.1, amended by
+ * learn-harmonization.md D5/D6). Takes plain props only: no blog imports, no
+ * filesystem reads.
+ *
+ * The shell stays `max-w-5xl` (hero image and header included), but running
+ * prose is capped at `max-w-[46rem]` (~80ch): the shell's full 1024px was
+ * measuring 123 to 139ch, well past the 45 to 90ch readable band.
  */
 export function ArticleLayout({
   breadcrumb,
@@ -85,8 +89,12 @@ export function ArticleLayout({
               className="mt-6 mb-6 aspect-video w-full rounded-lg object-cover"
             />
           ) : null}
-          <Typography variant="h1">{title}</Typography>
-          {standfirst ? <p className="text-cc-ink-dim my-4 text-lg leading-relaxed">{standfirst}</p> : null}
+          <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
+            {title}
+          </h1>
+          {standfirst ? (
+            <p className="text-cc-ink-dim my-4 max-w-[46rem] text-lg leading-relaxed">{standfirst}</p>
+          ) : null}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <BlogMetadata
               author={meta.author}
@@ -98,7 +106,7 @@ export function ArticleLayout({
             <BlogShareBar url={shareUrl} title={title} />
           </div>
           <BlogTags tags={tags ? [...tags] : undefined} />
-          {children}
+          <div className="max-w-[46rem]">{children}</div>
           {related}
         </article>
       </main>

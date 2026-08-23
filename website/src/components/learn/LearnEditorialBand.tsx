@@ -24,23 +24,26 @@ interface LearnEditorialBandProps {
 }
 
 /**
- * Landing editorial band (learn-editorial.md section 15.1): the three-column
- * Latest / Featured / rail grid, replacing the shipped `LearnFeatureHero` +
- * `LearnLatestSection` pair. `xl` and up locks the featured story to its
- * 600px floor via `minmax(37.5rem,1fr)`, compressing the side columns first;
+ * Landing editorial band (learn-editorial.md section 15.1, amended by
+ * learn-harmonization.md section 2.5.1): the three-column Latest / Featured /
+ * rail grid, replacing the shipped `LearnFeatureHero` + `LearnLatestSection`
+ * pair. `xl` and up locks the featured story to its 600px floor via
+ * `minmax(37.5rem,1fr)`, compressing the side columns first; `2xl` grows both
+ * side columns further instead of giving all extra width to the center;
  * `lg` drops to a two-column Featured/rail row with Latest as a full-width
  * two-column list below; below `lg` everything stacks, Featured first.
  */
 export function LearnEditorialBand({ latestPosts, featuredPost, railPromo, tags }: LearnEditorialBandProps) {
   return (
     <div className="pt-8 sm:pt-10">
-      <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)] xl:gap-x-0 xl:gap-y-0">
+      <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)] xl:gap-x-0 xl:gap-y-0 2xl:grid-cols-[minmax(16rem,24rem)_minmax(37.5rem,1fr)_minmax(16rem,24rem)]">
         <div className="order-2 lg:order-3 lg:col-span-2 xl:order-1 xl:col-span-1 xl:pr-8">
           <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Latest</h2>
           <div className="mt-2 grid grid-cols-1 gap-x-10 sm:grid-cols-2 xl:grid-cols-1">
             {latestPosts.map((post) => (
               <LearnListRow
                 key={post.stem}
+                density="compact"
                 href={post.href}
                 title={post.title}
                 kicker={kickerForBlogPost(post)}

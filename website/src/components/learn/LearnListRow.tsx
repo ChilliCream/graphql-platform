@@ -15,40 +15,63 @@ interface LearnListRowProps {
   readonly product: ProductKey | null;
   readonly author: string | null;
   readonly date: string;
+  /**
+   * `compact` drops the thumbnail to 48px (or omits it when there is no
+   * `featuredImage`) for narrow columns, e.g. the editorial band's rail and a
+   * topic rail's secondary items (learn-harmonization.md section 2.5.1/2.5.2).
+   */
+  readonly density?: "default" | "compact";
 }
 
 /**
- * Compact article list row (learn-editorial.md section 14.1): the whole row
- * is one link, no card surface. Rows carry their own bottom-border divider
- * (rather than a `divide-y` container) so the same row renders correctly
- * whether its list is one column or the two-column ramp the editorial band
- * uses (learn-editorial.md section 15.1); the established precedent for this
- * is `LearnExplainerList`'s per-row `border-b`.
+ * Compact article list row (learn-editorial.md section 14.1, amended by
+ * learn-harmonization.md D3/D7): the whole row is one link, no card surface.
+ * Rows carry their own bottom-border divider (rather than a `divide-y`
+ * container) so the same row renders correctly whether its list is one
+ * column or the two-column ramp the editorial band uses (learn-editorial.md
+ * section 15.1); the established precedent for this is `LearnExplainerList`'s
+ * per-row `border-b`.
  */
-export function LearnListRow({ href, title, kicker, featuredImage, product, author, date }: LearnListRowProps) {
+export function LearnListRow({
+  href,
+  title,
+  kicker,
+  featuredImage,
+  product,
+  author,
+  date,
+  density = "default",
+}: LearnListRowProps) {
   const art = product ? PRODUCT_ART[product] : null;
   const dateLabel = formatDate(date, { month: "short", day: "numeric", year: "numeric" });
+  const compact = density === "compact";
+  const thumbSize = compact ? "size-12" : "size-20";
+  const showThumb = !compact || featuredImage !== null;
 
   return (
     <Link
       href={href}
-      className="group/row border-cc-ink-faint grid grid-cols-[auto_1fr] items-start gap-4 border-b py-4 no-underline"
+      className={`group/row border-cc-card-border grid items-start gap-4 border-b py-5 no-underline ${
+        showThumb ? "grid-cols-[auto_1fr]" : "grid-cols-1"
+      }`}
     >
-      {featuredImage ? (
-        <Picture
-          src={featuredImage}
-          alt=""
-          sizes="80px"
-          className="border-cc-ink-faint size-20 shrink-0 rounded-lg border object-cover"
-        />
-      ) : (
-        <span className="bg-cc-white/4 border-cc-ink-faint flex size-20 shrink-0 items-center justify-center rounded-lg border">
-          {art ? <DrinkIcon Icon={art.Drink} name={art.drinkName} base={40} /> : null}
-        </span>
-      )}
+      {showThumb ? (
+        featuredImage ? (
+          <Picture
+            src={featuredImage}
+            alt=""
+            sizes={compact ? "48px" : "80px"}
+            className={`${thumbSize} shrink-0 rounded-lg object-cover`}
+          />
+        ) : (
+          <span className={`bg-cc-white/4 flex ${thumbSize} shrink-0 items-center justify-center rounded-lg`}>
+            {art ? <DrinkIcon Icon={art.Drink} name={art.drinkName} base={compact ? 24 : 40} /> : null}
+          </span>
+        )
+      ) : null}
       <span className="flex flex-col gap-1.5">
         <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{kicker}</span>
-        <span className="text-cc-heading group-hover/row:text-cc-accent line-clamp-2 leading-snug font-medium transition-colors">
+        <span className="font-heading text-h6 text-cc-heading group-hover/row:text-cc-accent line-clamp-2 font-semibold transition-colors">
           {title}
         </span>
         <span className="text-cc-ink-dim text-sm">

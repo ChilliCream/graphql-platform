@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 import { DrinkIcon } from "@/src/components/DrinkIcon";
 import type { LearnItemSummary } from "@/src/data/learn/types";
+import { Tag } from "@/src/design-system/Tag";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { ContentTypeBadge } from "./ContentTypeBadge";
-import { CONTENT_TYPE_META } from "./contentTypeMeta";
 import { learnItemHref } from "./learnItemHref";
 import { PRODUCT_ART } from "./productArt";
 import { STACK_ICONS } from "./stackIcons";
@@ -37,27 +37,27 @@ function HeaderMeta({ item }: LearnCardProps) {
     if (!item.agentReady) {
       return null;
     }
-    return (
-      <span className="bg-cc-warning text-cc-surface rounded-full px-3 py-1 font-mono text-[0.65rem] font-semibold tracking-wider uppercase">
-        Agent-ready
-      </span>
-    );
+    // Outline Tag is the canonical Agent-ready skin (learn-harmonization.md
+    // D10); the solid warning pill this replaced was the only solid-warning
+    // surface in the system and read as a different flag than the one on
+    // TemplateDetail.
+    return <Tag className="border-cc-warning/40 text-cc-warning">Agent-ready</Tag>;
   }
   const meta = item.type === "video" ? item.duration : item.level;
   if (!meta) {
     return null;
   }
-  return <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-wider uppercase">{meta}</span>;
+  return <span className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">{meta}</span>;
 }
 
 /**
  * Unified card for every /learn content type: template, video, tutorial,
- * example, and workshop. The accent (badge, hover border, CTA color) is the
- * only place color varies; everything else stays neutral so a mixed grid
- * reads as one family.
+ * example, and workshop. Per learn-harmonization.md section 2.3/D4, color no
+ * longer varies by type: the badge, hover border, and footer icons are
+ * neutral at rest, and only the accent CTA and the icons' hover state carry
+ * color.
  */
 export function LearnCard({ item }: LearnCardProps) {
-  const meta = CONTENT_TYPE_META[item.type];
   const href = learnItemHref(item);
   const external = !href.startsWith("/");
 
@@ -67,10 +67,13 @@ export function LearnCard({ item }: LearnCardProps) {
         <ContentTypeBadge type={item.type} />
         <HeaderMeta item={item} />
       </div>
-      <h3 className="font-heading text-cc-heading text-h6 mt-5 font-semibold">{item.title}</h3>
+      <h3 className="font-heading text-cc-heading text-h6 mt-3 font-semibold">{item.title}</h3>
       <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">{item.tagline}</p>
-      <div className="border-cc-card-border mt-auto flex items-center justify-between gap-3 border-t pt-4">
-        <span className="flex items-end gap-2" aria-hidden="true">
+      <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+        <span
+          className="flex items-end gap-2 grayscale transition-[filter] duration-200 group-hover:grayscale-0"
+          aria-hidden="true"
+        >
           <span className="flex items-end gap-1.5">
             {item.products.map((product) => {
               const art = PRODUCT_ART[product];
@@ -85,7 +88,7 @@ export function LearnCard({ item }: LearnCardProps) {
                   <span
                     key={key}
                     title={label}
-                    className="flex size-7 items-center justify-center rounded-lg bg-[#f5f0ea]"
+                    className="bg-cc-white/8 flex size-7 items-center justify-center rounded-lg"
                   >
                     <Icon className="size-4" />
                   </span>
@@ -95,7 +98,7 @@ export function LearnCard({ item }: LearnCardProps) {
           )}
         </span>
         <span className="text-cc-accent inline-flex shrink-0 items-center gap-2 text-sm font-medium">
-          {meta.ctaLabel}
+          Open
           {external ? (
             <ExternalArrowIcon className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           ) : (
@@ -106,8 +109,9 @@ export function LearnCard({ item }: LearnCardProps) {
     </>
   );
 
-  const className = `border-cc-card-border bg-cc-card-bg group flex h-full flex-col rounded-2xl border p-6 no-underline backdrop-blur-sm transition-[border-color,transform] duration-200 hover:-translate-y-1 ${meta.hoverBorder}`;
-  const ariaLabel = `${meta.ctaLabel}: ${item.title}`;
+  const className =
+    "border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover group flex h-full flex-col rounded-2xl border p-6 no-underline backdrop-blur-sm transition-[border-color,transform] duration-200 hover:-translate-y-1";
+  const ariaLabel = `Open: ${item.title}`;
 
   if (external) {
     return (
