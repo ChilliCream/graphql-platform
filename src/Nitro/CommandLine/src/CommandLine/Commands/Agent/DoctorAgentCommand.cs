@@ -77,7 +77,7 @@ internal sealed class DoctorAgentCommand : Command
                 """
                 SELECT harness AS Harness, session_id AS SessionId, agent_name AS AgentName,
                        binding_kind AS BindingKind, host AS Host, pid AS Pid, proc_start AS ProcStart,
-                       workspace_path AS WorkspacePath
+                       workspace_path AS WorkspacePath, last_ping_result AS LastPingResult
                 FROM agent_sessions
                 ORDER BY harness, session_id;
                 """))
@@ -111,7 +111,7 @@ internal sealed class DoctorAgentCommand : Command
                     """
                     SELECT harness AS Harness, session_id AS SessionId, agent_name AS AgentName,
                            binding_kind AS BindingKind, host AS Host, pid AS Pid, proc_start AS ProcStart,
-                           workspace_path AS WorkspacePath
+                           workspace_path AS WorkspacePath, last_ping_result AS LastPingResult
                     FROM agent_sessions
                     WHERE host != @currentInstanceId
                     ORDER BY harness, session_id;
@@ -207,11 +207,16 @@ internal sealed class DoctorAgentCommand : Command
 
     private static AgentSessionDoctorRow ToDoctorRow(SessionDoctorRow row) => new(
         row.Harness, row.SessionId, row.AgentName, row.BindingKind, row.Host, row.Pid,
-        ParseProcStart(row.ProcStart), row.WorkspacePath);
+        ParseProcStart(row.ProcStart), row.WorkspacePath, row.LastPingResult);
 
+    // Distinguishes "no endpoint to ping at all" (no last_ping_result ever
+    // written) from "an endpoint the notifier has no transport for"
+    // (last_ping_result 'unsupported', e.g. claude-peer) from an ordinary
+    // ping outcome, the same diagnostic signal `session list` surfaces.
     private static string DescribeRow(AgentSessionDoctorRow row)
         => $"{row.Harness} {row.SessionId} host={row.Host} pid={row.Pid}"
-            + (row.AgentName is { Length: > 0 } ? $" claimed-by={row.AgentName}" : "");
+            + (row.AgentName is { Length: > 0 } ? $" claimed-by={row.AgentName}" : "")
+            + (row.LastPingResult is { Length: > 0 } lastPingResult ? $" last-ping={lastPingResult}" : "");
 
     /// <summary>
     /// Deletes each mixed-instance row through the same full-generation
@@ -318,6 +323,7 @@ internal sealed class DoctorAgentCommand : Command
         public required int Pid { get; init; }
         public required string ProcStart { get; init; }
         public required string WorkspacePath { get; init; }
+        public string? LastPingResult { get; init; }
     }
 
     public sealed record AgentSessionDoctorRow(
@@ -328,7 +334,8 @@ internal sealed class DoctorAgentCommand : Command
         string Host,
         int Pid,
         DateTimeOffset ProcStart,
-        string WorkspacePath);
+        string WorkspacePath,
+        string? LastPingResult);
 
     public sealed record AgentDoctorResult(
         string WorkspacePath,

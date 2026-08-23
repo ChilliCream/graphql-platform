@@ -154,7 +154,34 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("WARN Unclaimed sessions (informational, no action needed):", result.StdOut);
         Assert.Contains("session-1", result.StdOut);
+        Assert.DoesNotContain("last-ping=", result.StdOut);
         Assert.DoesNotContain("WARN Dead-generation", result.StdOut);
+    }
+
+    [Fact]
+    public async Task UnclaimedSession_WithLastPingResult_SurfacesIt_DistinguishingUnsupportedFromNone()
+    {
+        // arrange: one session the notifier has already pinged (an ordinary
+        // outcome) and one with no transport for its endpoint kind
+        // (last_ping_result 'unsupported', e.g. claude-peer), mirroring the
+        // distinction `agent session list` surfaces.
+        await InitWorkspaceAsync();
+        await InsertSessionRowAsync(
+            FixedHost, "session-pinged", agentName: null, bindingKind: "none",
+            pid: CurrentAlivePid(), lastPingResult: "ok");
+        await InsertSessionRowAsync(
+            FixedHost, "session-unsupported", agentName: null, bindingKind: "none",
+            pid: CurrentAlivePid(), lastPingResult: "unsupported");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("session-pinged", result.StdOut);
+        Assert.Contains("last-ping=ok", result.StdOut);
+        Assert.Contains("session-unsupported", result.StdOut);
+        Assert.Contains("last-ping=unsupported", result.StdOut);
     }
 
     [Fact]
@@ -266,7 +293,8 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
     private const int DeadPid = 999_999;
 
     private async Task InsertSessionRowAsync(
-        string host, string sessionId, string? agentName, string bindingKind, int pid)
+        string host, string sessionId, string? agentName, string bindingKind, int pid,
+        string? lastPingResult = null)
     {
         var procStart = pid == CurrentAlivePid()
             ? Process.GetCurrentProcess().StartTime.ToUniversalTime()
@@ -279,10 +307,11 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
             """
             INSERT INTO agent_sessions (
                 harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                last_ping_result
             ) VALUES (
                 'claude-code', $sessionId, $agentName, $bindingKind, $host, $pid, $procStart,
-                '/work', '/work/.nitro/agents', 'none', '', $now, $now
+                '/work', '/work/.nitro/agents', 'none', '', $now, $now, $lastPingResult
             );
             """;
         command.Parameters.AddWithValue("$sessionId", sessionId);
@@ -292,6 +321,7 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         command.Parameters.AddWithValue("$pid", pid);
         command.Parameters.AddWithValue("$procStart", procStart);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
