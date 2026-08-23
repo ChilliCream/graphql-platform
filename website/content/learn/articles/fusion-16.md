@@ -234,7 +234,7 @@ builder
     .ModifyOptions(o => o.EnableSemanticIntrospection = false);
 ```
 
-By default, Fusion indexes the schema with BM25, so there is nothing else to wire up. If you want the full story, including how `__search` and `__definitions` work in practice, the [Semantic Introspection](./2026-04-22-semantic-introspection.md) post goes much deeper. And if you want to see the agent side of it, including the skill prompt that teaches an agent how to use semantic introspection effectively, take a look at the [GraphQL skill prompt](https://github.com/PascalSenn/apidays-singapore/blob/main/case-study/prompt-graphql-skill.md).
+By default, Fusion indexes the schema with BM25, so there is nothing else to wire up. If you want the full story, including how `__search` and `__definitions` work in practice, the [Semantic Introspection](./semantic-introspection.md) post goes much deeper. And if you want to see the agent side of it, including the skill prompt that teaches an agent how to use semantic introspection effectively, take a look at the [GraphQL skill prompt](https://github.com/PascalSenn/apidays-singapore/blob/main/case-study/prompt-graphql-skill.md).
 
 # Adapters and Connectors
 

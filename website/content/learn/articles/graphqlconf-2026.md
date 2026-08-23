@@ -24,7 +24,7 @@ GraphQL is, on paper, an ideal foundation for agents. The schema describes exact
 
 Semantic introspection is a way to work around this problem. Instead of handing an agent an entire schema and hoping it figures things out, semantic introspection gives it a more reliable way to explore a graph, understand the meaning behind types and fields, and pull in only the context it needs.
 
-The goal is simple: any agent should be able to work with any GraphQL endpoint without a pile of custom glue code. If you want the deeper version, we wrote about it earlier this year in [Semantic Introspection](./2026-04-22-semantic-introspection.md).
+The goal is simple: any agent should be able to work with any GraphQL endpoint without a pile of custom glue code. If you want the deeper version, we wrote about it earlier this year in [Semantic Introspection](./semantic-introspection.md).
 
 # Closing the loop for coding agents
 
@@ -82,7 +82,7 @@ Agents are starting to change how APIs are used and built. Federation now has a 
 
 That is what made the week feel so energizing. GraphQL does not feel like something being handed down by one company or one team. It feels like something a lot of people are building together.
 
-If you want to follow along, watch for the GraphQLConf recordings, read our deep dive on [Semantic Introspection](./2026-04-22-semantic-introspection.md) and if you want to try GraphQL Federation yourself, give [Fusion](../../docs/fusion/getting-started.md) a go!
+If you want to follow along, watch for the GraphQLConf recordings, read our deep dive on [Semantic Introspection](./semantic-introspection.md) and if you want to try GraphQL Federation yourself, give [Fusion](../../docs/fusion/getting-started.md) a go!
 
 And if you want to talk GraphQL with people who think about it a little too much, our [Slack](https://slack.chillicream.com) is always open.
 
