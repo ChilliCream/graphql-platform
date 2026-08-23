@@ -4,15 +4,6 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 internal sealed class ProcessInfoProvider : IProcessInfoProvider
 {
-    /// <summary>
-    /// Tolerance for comparing a freshly read process start time against one
-    /// persisted and reparsed from the database. Both derive from the same
-    /// OS clock, but the storage round trip (formatting, then
-    /// <see cref="DateTimeOffset.Parse(string)"/>) can shift the value by a
-    /// small fraction of a second.
-    /// </summary>
-    private static readonly TimeSpan StartTimeTolerance = TimeSpan.FromSeconds(2);
-
     public DateTimeOffset? GetStartTime(int pid)
     {
         try
@@ -37,6 +28,12 @@ internal sealed class ProcessInfoProvider : IProcessInfoProvider
     {
         var actualStart = GetStartTime(pid);
 
-        return actualStart is not null && (actualStart.Value - expectedStart).Duration() <= StartTimeTolerance;
+        // Exact equality, matching every agent_sessions predicate: the
+        // round trip through SQLite TEXT storage and DateTimeOffset.Parse
+        // is lossless (Microsoft.Data.Sqlite formats with an explicit
+        // offset, verified empirically), so a fuzzy tolerance here would
+        // only widen the pid-reuse window proc_start exists to close,
+        // without correcting for anything that actually loses precision.
+        return actualStart == expectedStart;
     }
 }
