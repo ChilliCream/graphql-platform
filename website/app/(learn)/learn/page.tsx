@@ -7,7 +7,6 @@ import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost, type Topic } from "@/src/components/learn/editorial";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
-import { resolveYouTubePoster } from "@/src/components/YouTubePoster";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { listArticlesByKind } from "@/src/helpers/articles";
@@ -105,12 +104,12 @@ function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRai
     .filter((video): video is VideoItem & { youtubeId: string } => Boolean(video.youtubeId))
     .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
     .slice(0, 4)
-    .map(({ slug, title, youtubeId, duration, products, hubs }) => ({
+    .map(({ slug, title, youtubeId, duration, poster, products, hubs }) => ({
       slug,
       title,
       youtubeId,
       duration,
-      poster: resolveYouTubePoster(youtubeId),
+      poster,
       products,
       hubs,
     }));
