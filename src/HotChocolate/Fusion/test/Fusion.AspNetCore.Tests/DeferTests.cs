@@ -1160,6 +1160,144 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Defer_Anchored_Under_Second_Root_Node_Should_Report_Correct_ParentNode()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query t {
+                products { id name }
+                users {
+                    __typename
+                    ... @defer { id name }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Both root fetch nodes target `$`, but only node 2 resolves `users`, the field
+        // the deferred fragment is anchored under. The snapshot's incremental plan must
+        // report parentNodeId: 2, not the first root node.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Anchored_Under_Third_Root_Node_Should_Report_Correct_ParentNode()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                orders: [Order!]!
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                total: Float!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query t {
+                products { id name }
+                users { id name }
+                orders {
+                    __typename
+                    ... @defer { id total }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The deferred fragment is anchored under `orders`, resolved by the third root
+        // fetch node. The snapshot's incremental plan must report that node as its parent.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
     public async Task Defer_Should_Return_Patches_When_Path_Crosses_Intermediate_Lists()
     {
         // arrange

@@ -53,6 +53,27 @@ public readonly struct CompactPathSegment
     }
 
     /// <summary>
+    /// Returns a copy of this segment whose paths are backed by freshly allocated
+    /// arrays, so they stay valid after the original backing buffers are reused.
+    /// </summary>
+    internal CompactPathSegment Detach()
+    {
+        if (_count == 0)
+        {
+            return default;
+        }
+
+        var paths = new CompactPath[_count];
+
+        for (var i = 0; i < _count; i++)
+        {
+            paths[i] = _array![_offset + i].Detach();
+        }
+
+        return new CompactPathSegment(paths, 0, _count);
+    }
+
+    /// <summary>
     /// Returns an enumerator that iterates through the paths.
     /// </summary>
     public Enumerator GetEnumerator() => new(_array, _offset, _count);
