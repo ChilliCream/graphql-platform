@@ -80,7 +80,17 @@ $ pgrep -af codex (excerpt)
 $ readlink /proc/40274/exe    -> .../releases/0.147.0-x86_64-unknown-linux-musl/bin/codex
 $ readlink /proc/2477627/exe  -> .../releases/0.149.1-x86_64-unknown-linux-musl/bin/codex
 $ readlink -f ~/.local/bin/codex -> .../releases/0.149.1-...   (PATH binary != version of older RUNNING sessions)
-regex on exe path: /releases/(\d+\.\d+\.\d+(?:-[0-9A-Za-z.\-]+)?)-
+regex on exe path (arch-anchored, CORRECTED after review):
+  /releases/(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)*?)-(?:x86_64|aarch64|arm64|i686)-
+The earlier form /releases/(\d+\.\d+\.\d+(?:-[0-9A-Za-z.\-]+)?)- over-captures on arm
+targets: .../releases/0.149.1-aarch64-apple-darwin/... yields '0.149.1-aarch64-apple'.
+It only worked here because x86_64 contains an underscore. Verified against
+x86_64-unknown-linux-musl, aarch64-apple-darwin, and 0.150.0-alpha.1-aarch64-apple-darwin
+(prerelease): new regex yields 0.149.1 / 0.149.1 / 0.150.0-alpha.1.
+
+Preference order: rollout session_meta.cli_version is the PRIMARY version source once a
+session row is identified; the exe-path regex is the fallback for a live process whose
+session row is not (yet) known.
 ```
 
 ### Session rollout file carries the exact version
@@ -130,9 +140,13 @@ npm metadata must never be used as the version source.
 ### Loader mechanics (static read of npm-loader.js)
 
 npm-loader.js resolves `@github/copilot-${platform}-${arch}` and spawnSync's that
-binary with stdio inherit; falls back to `node index.js` if unresolvable. So a live
-copilot ancestor's /proc/<pid>/exe is expected to be the platform binary path
-(NOT node), but this was not live-verified (gap: no CLI session running).
+binary with stdio inherit; if unresolvable it falls back to an IN-PROCESS
+`await import('./index.js')`, in which case the ancestor's /proc/<pid>/exe is plain
+`node` and an exe-path match on the platform binary fails. Ancestor rule
+(CORRECTED after review): match EITHER exe path under `@github/copilot*/copilot`
+OR a cmdline whose script path ends in `@github/copilot/npm-loader.js` or
+`@github/copilot/index.js` (path-anchored, never a bare name grep). Neither form
+was live-verified (gap: no CLI session running).
 The exe path does NOT encode the version (in-place updates).
 
 ### Session state carries the exact version
@@ -161,13 +175,57 @@ regex on FIRST line only: ^GitHub Copilot CLI (\d+\.\d+\.\d+)\.$   (note trailin
 
 ## Cross-harness process-start facts
 
-- /proc/<pid>/stat field 22 = start time in clock ticks since boot; CLK_TCK 100 here.
+- /proc/<pid>/stat parsing rule (CORRECTED after review): take the remainder after the
+  LAST closing paren, then ppid = 2nd field and start ticks = 20th field of that
+  remainder. Bare whole-line field numbers (ppid=4, starttime=22) are unsafe because
+  comm can contain spaces and parens, and the ancestry walk traverses arbitrary
+  processes. Verified on this host:
+  `sed 's/.*) //' /proc/2476039/stat | awk '{print $2, $20}'` -> `21903 44925761`.
+- Start ticks are clock ticks since boot; CLK_TCK 100 here.
 - Compare RAW TICKS for same-boot identity checks (string equality suffices, Claude
   stores it as the string "44925761"). Convert to wall clock only for display:
   btime (from /proc/stat) + ticks/CLK_TCK.
-- ppid is stat field 4; walk terminates at pid 1 (or 0).
+- Walk terminates at pid 1 (or 0).
 - /proc/<pid>/environ of a same-user process is readable (verified, 76 vars), but
   shows the env that process RECEIVED, not what it passes to children.
+
+## Negative cases
+
+### No ancestor (CAPTURED)
+
+Ancestry walk from a plain interactive shell (PID 18019, launched by the terminal,
+no harness anywhere in the chain), using the last-paren stat rule:
+
+```
+PID 18019 exe=/usr/bin/zsh                     cmd=/usr/bin/zsh
+PID 18017 exe=/usr/bin/dash                    cmd=/bin/sh -c /usr/bin/zsh
+PID 17575 exe=/snap/ghostty/820/bin/ghostty    cmd=ghostty --gtk-single-instance=true
+PID 9300  (systemd --user, walk terminates)
+env markers in that shell matching ^(CLAUDECODE|CLAUDE_|CODEX_|COPILOT_): 0
+```
+
+No harness exe and no env markers: the only correct outcome is 'unidentified'.
+
+### Multiple matching rows (CAPTURED)
+
+See the ambiguity evidence above: 5 live Claude session rows share cwd
+/home/pascal/code/hc3/.work/hc2/website, and 3+ same-day Codex rollouts share cwd
+/home/pascal/perles-net. cwd is never a selector.
+
+### Changed PID generation / PID reuse (STATED RULE, arithmetic verified)
+
+Guard is raw start-tick equality of the last-paren stat remainder's 20th field
+against the stored value (Claude ships procStart; Codex/Copilot rows must record
+ticks at hook time). A reused PID gets a new start tick, so equality fails. The
+tick-to-wallclock arithmetic was verified live (section above); an actual PID-reuse
+event was not induced.
+
+### Inaccessible PID namespace (STATED RULE, not observed)
+
+In a container or PID-namespaced sandbox /proc/$CLAUDE_PID is absent while
+CLAUDECODE=1 is present: trust the env-carried session id but mark process binding
+unverified. Codex/Copilot children get no identity env, so identification there
+must fail explicitly. No container run was performed in this spike.
 
 ## Not verified (honesty list)
 
