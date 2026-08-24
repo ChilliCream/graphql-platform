@@ -52,6 +52,14 @@ internal sealed class DoctorAgentCommand : Command
         var claudeHooksSidecarStore = services.GetRequiredService<IClaudeHooksSidecarStore>();
         var copilotHooksInstaller = services.GetRequiredService<ICopilotHooksInstallerService>();
         var copilotHooksSidecarStore = services.GetRequiredService<ICopilotHooksSidecarStore>();
+        var codexHooksInstaller = services.GetRequiredService<ICodexHooksInstallerService>();
+        var codexHooksSidecarStore = services.GetRequiredService<ICodexHooksSidecarStore>();
+        var claudeAncestorResolver = services.GetRequiredService<IClaudeAncestorSessionResolver>();
+        var codexAncestorResolver = services.GetRequiredService<ICodexAncestorSessionResolver>();
+        var copilotAncestorResolver = services.GetRequiredService<ICopilotAncestorSessionResolver>();
+        var claudeVersionResolver = services.GetRequiredService<IClaudeHarnessVersionResolver>();
+        var codexVersionResolver = services.GetRequiredService<ICodexHarnessVersionResolver>();
+        var copilotVersionResolver = services.GetRequiredService<ICopilotHarnessVersionResolver>();
         var agentRegistry = services.GetRequiredService<IAgentRegistry>();
         var sessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
         var mailStore = services.GetRequiredService<IMailStore>();
@@ -93,7 +101,8 @@ internal sealed class DoctorAgentCommand : Command
                 """
                 SELECT harness AS Harness, session_id AS SessionId, agent_name AS AgentName,
                        binding_kind AS BindingKind, host AS Host, pid AS Pid, proc_start AS ProcStart,
-                       workspace_path AS WorkspacePath, last_ping_result AS LastPingResult
+                       workspace_path AS WorkspacePath, last_ping_result AS LastPingResult,
+                       process_scope AS ProcessScope
                 FROM agent_sessions
                 ORDER BY harness, session_id;
                 """))
@@ -104,9 +113,14 @@ internal sealed class DoctorAgentCommand : Command
                 .Select(ToDoctorRow)
                 .ToArray();
 
+            // Observe (not the raw IsAlive check) so a row this reader
+            // cannot verify (typically a different PID namespace than the
+            // row's writer recorded) is never reported as dead-pending-reap:
+            // ReapAsync will never delete such a row either.
             deadGenerationSessions = rows
                 .Where(row => row.Host == currentInstanceId
-                    && !processInfoProvider.IsAlive(row.Pid, ParseProcStart(row.ProcStart)))
+                    && processInfoProvider.Observe(row.Pid, ParseProcStart(row.ProcStart), row.ProcessScope)
+                        == ProcessObservationResult.Dead)
                 .Select(ToDoctorRow)
                 .ToArray();
 
@@ -127,7 +141,8 @@ internal sealed class DoctorAgentCommand : Command
                     """
                     SELECT harness AS Harness, session_id AS SessionId, agent_name AS AgentName,
                            binding_kind AS BindingKind, host AS Host, pid AS Pid, proc_start AS ProcStart,
-                           workspace_path AS WorkspacePath, last_ping_result AS LastPingResult
+                           workspace_path AS WorkspacePath, last_ping_result AS LastPingResult,
+                           process_scope AS ProcessScope
                     FROM agent_sessions
                     WHERE host != @currentInstanceId
                     ORDER BY harness, session_id;
@@ -150,10 +165,37 @@ internal sealed class DoctorAgentCommand : Command
             claudeHooksInstaller, claudeHooksSidecarStore, HookInstallScopes.Project, cancellationToken);
         var copilotHooks = await DoctorHooksCheck.CheckCopilotAsync(
             copilotHooksInstaller, copilotHooksSidecarStore, cancellationToken);
+        var codexHooks = await DoctorHooksCheck.CheckCodexAsync(
+            codexHooksInstaller, codexHooksSidecarStore, cancellationToken);
 
         var hooksConsistent = (claudeUserHooks?.Consistent ?? true)
             && (claudeProjectHooks?.Consistent ?? true)
-            && (copilotHooks?.Consistent ?? true);
+            && (copilotHooks?.Consistent ?? true)
+            && (codexHooks?.Consistent ?? true);
+
+        // The end-to-end participant chain (ancestor, hooks, live session
+        // row, binding, role, endpoint, heartbeat, process-scope
+        // observability) needs the agent_sessions table, so it is gated on
+        // schemaCurrent the same as the session checks above.
+        IReadOnlyList<HarnessParticipantDoctorResult> participants = [];
+
+        if (schemaCurrent)
+        {
+            participants =
+            [
+                await DoctorParticipantCheck.CheckClaudeAsync(
+                    claudeAncestorResolver, claudeVersionResolver, sessionRegistry, processInfoProvider,
+                    timeProvider, currentInstanceId!, claudeProjectHooks ?? claudeUserHooks, cancellationToken),
+                await DoctorParticipantCheck.CheckCodexAsync(
+                    codexAncestorResolver, codexVersionResolver, sessionRegistry, processInfoProvider,
+                    timeProvider, currentInstanceId!, codexHooks, cancellationToken),
+                await DoctorParticipantCheck.CheckCopilotAsync(
+                    copilotAncestorResolver, copilotVersionResolver, sessionRegistry, processInfoProvider,
+                    timeProvider, currentInstanceId!, copilotHooks, cancellationToken)
+            ];
+        }
+
+        var participantsHealthy = participants.All(p => p.Healthy);
 
         ClaudeProbeResult? probe = null;
 
@@ -170,7 +212,7 @@ internal sealed class DoctorAgentCommand : Command
         }
 
         var healthy = schemaCurrent && mixedInstanceSessions.Count == 0 && hooksConsistent
-            && (probe is null || probe.Success);
+            && participantsHealthy && (probe is null || probe.Success);
 
         if (!console.IsHumanReadable)
         {
@@ -187,6 +229,8 @@ internal sealed class DoctorAgentCommand : Command
                 claudeUserHooks,
                 claudeProjectHooks,
                 copilotHooks,
+                codexHooks,
+                participants,
                 probe,
                 healthy)));
 
@@ -204,6 +248,7 @@ internal sealed class DoctorAgentCommand : Command
         WriteHooksCheck(console, "Claude hooks (user)", claudeUserHooks);
         WriteHooksCheck(console, "Claude hooks (project)", claudeProjectHooks);
         WriteHooksCheck(console, "Copilot hooks", copilotHooks);
+        WriteHooksCheck(console, "Codex hooks", codexHooks);
 
         if (!schemaCurrent)
         {
@@ -254,6 +299,12 @@ internal sealed class DoctorAgentCommand : Command
             }
         }
 
+        foreach (var participant in participants)
+        {
+            console.WriteLine();
+            WriteParticipantCheck(console, participant);
+        }
+
         if (probe is not null)
         {
             console.WriteLine();
@@ -288,12 +339,53 @@ internal sealed class DoctorAgentCommand : Command
         WriteCheck(console, name, result.Consistent, result.Issues);
     }
 
+    /// <summary>
+    /// Prints one harness's end-to-end participant diagnosis. A harness
+    /// with no detected ancestor is not run under right now, so it is noted
+    /// and skipped rather than reported as a failure.
+    /// </summary>
+    private static void WriteParticipantCheck(INitroConsole console, HarnessParticipantDoctorResult result)
+    {
+        if (!result.AncestorDetected)
+        {
+            console.WriteLine($"- {result.Harness}: no ancestor process detected here, skipped.");
+            return;
+        }
+
+        if (result.Healthy)
+        {
+            console.OkLine($"{result.Harness} participant");
+        }
+        else
+        {
+            console.WriteLine($"FAIL {result.Harness} participant:");
+        }
+
+        foreach (var note in result.Remediation)
+        {
+            console.WriteLine($"  {note}");
+        }
+
+        if (result.SessionRowFound)
+        {
+            console.WriteLine(
+                $"  Session: {result.SessionId} bound={result.AgentName ?? "(none)"} "
+                + $"role={result.Role ?? "(none)"} endpoint={result.EndpointKind} "
+                + $"last-ping={result.LastPingResult ?? "(none)"}");
+            console.WriteLine(
+                $"  Version: recorded={result.RecordedHarnessVersion ?? "(none)"} "
+                + $"live={result.LiveHarnessVersion ?? "(unknown)"}, last heard "
+                + $"{result.LastHeardSeconds:0}s ago, process-scope "
+                + $"observable={result.ProcessScopeObservable}");
+        }
+    }
+
     private static DateTimeOffset ParseProcStart(string procStart)
         => DateTimeOffset.Parse(procStart, CultureInfo.InvariantCulture);
 
     private static AgentSessionDoctorRow ToDoctorRow(SessionDoctorRow row) => new(
         row.Harness, row.SessionId, row.AgentName, row.BindingKind, row.Host, row.Pid,
-        ParseProcStart(row.ProcStart), row.WorkspacePath, row.LastPingResult);
+        ParseProcStart(row.ProcStart), row.WorkspacePath, row.LastPingResult, row.ProcessScope);
 
     // Distinguishes "no endpoint to ping at all" (no last_ping_result ever
     // written) from "an endpoint the notifier has no transport for"
@@ -410,6 +502,7 @@ internal sealed class DoctorAgentCommand : Command
         public required string ProcStart { get; init; }
         public required string WorkspacePath { get; init; }
         public string? LastPingResult { get; init; }
+        public required string ProcessScope { get; init; }
     }
 
     public sealed record AgentSessionDoctorRow(
@@ -421,7 +514,8 @@ internal sealed class DoctorAgentCommand : Command
         int Pid,
         DateTimeOffset ProcStart,
         string WorkspacePath,
-        string? LastPingResult);
+        string? LastPingResult,
+        string ProcessScope);
 
     public sealed record AgentDoctorResult(
         string WorkspacePath,
@@ -436,8 +530,39 @@ internal sealed class DoctorAgentCommand : Command
         HookHarnessDoctorResult? ClaudeUserHooks,
         HookHarnessDoctorResult? ClaudeProjectHooks,
         HookHarnessDoctorResult? CopilotHooks,
+        HookHarnessDoctorResult? CodexHooks,
+        IReadOnlyList<HarnessParticipantDoctorResult> Participants,
         ClaudeProbeResult? Probe,
         bool Healthy);
+
+    /// <summary>
+    /// One harness's end-to-end participant diagnosis, as
+    /// <see cref="DoctorParticipantCheck"/> returns it. <see cref="Healthy"/>
+    /// is false only for a genuinely actionable problem (hooks missing or
+    /// outdated, no session row despite installed hooks, an ambiguous match,
+    /// or an unobservable process); an unbound or roleless session that is
+    /// otherwise fine is reported in <see cref="Remediation"/> without
+    /// failing health.
+    /// </summary>
+    public sealed record HarnessParticipantDoctorResult(
+        string Harness,
+        bool AncestorDetected,
+        int? AncestorPid,
+        HookHarnessDoctorResult? Hooks,
+        bool SessionRowFound,
+        bool SessionAmbiguous,
+        string? SessionId,
+        string? AgentName,
+        string? BindingKind,
+        string? Role,
+        string? EndpointKind,
+        string? LastPingResult,
+        string? RecordedHarnessVersion,
+        string? LiveHarnessVersion,
+        bool? ProcessScopeObservable,
+        double? LastHeardSeconds,
+        bool Healthy,
+        IReadOnlyList<string> Remediation);
 
     /// <summary>
     /// One managed hook event's <see cref="HookStatusOutcome"/>, by

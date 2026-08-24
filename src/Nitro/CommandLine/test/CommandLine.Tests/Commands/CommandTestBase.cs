@@ -54,8 +54,10 @@ public abstract class CommandTestBase
     private ICopilotAncestorSessionResolver _copilotAncestorSessionResolverOverride =
         new FixedCopilotAncestorSessionResolver(null);
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
+    private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
+    private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -161,6 +163,17 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
+    /// Points Codex CLI config resolution at fixed paths instead of the
+    /// real machine's <c>CODEX_HOME</c>, so tests that exercise <c>agent
+    /// doctor</c>'s unconditional Codex hooks check never read whatever
+    /// happens to be installed on the machine running the test.
+    /// </summary>
+    private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
+    {
+        _codexPathResolverOverride = new FixedCodexPathResolver(hooksJsonPath, configTomlPath);
+    }
+
+    /// <summary>
     /// Replaces the real detached-process ping worker launcher with the
     /// given fake, so tests exercising auto-ping through the CLI (mail
     /// send/reply/broadcast) never spawn a real OS process.
@@ -178,6 +191,15 @@ public abstract class CommandTestBase
     private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
     {
         _codexQueueClientOverride = client;
+    }
+
+    /// <summary>
+    /// Replaces the real Claude peer-socket client with a fake, so command
+    /// tests never connect to a live Claude Code session.
+    /// </summary>
+    private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
+    {
+        _claudePeerClientOverride = client;
     }
 
     protected void SetupNoAuthentication()
@@ -371,6 +393,11 @@ public abstract class CommandTestBase
             services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
         }
 
+        if (_codexPathResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_codexPathResolverOverride));
+        }
+
         if (_pingWorkerLauncherOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_pingWorkerLauncherOverride));
@@ -379,6 +406,11 @@ public abstract class CommandTestBase
         if (_codexQueueClientOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_codexQueueClientOverride));
+        }
+
+        if (_claudePeerClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudePeerClientOverride));
         }
 
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
@@ -608,6 +640,14 @@ internal sealed class FixedClaudeSettingsPathResolver(string userScopePath, stri
 {
     public string Resolve(string scope)
         => scope == Services.Hook.HookInstallScopes.Project ? projectScopePath : userScopePath;
+}
+
+internal sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath)
+    : Services.Hook.ICodexPathResolver
+{
+    public string ResolveHooksJson() => hooksJsonPath;
+
+    public string ResolveConfigToml() => configTomlPath;
 }
 
 internal sealed class InteractiveCommand(
