@@ -161,20 +161,22 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   reading-measure direction outright, articles must use the same width
   every other learn page gives its content. `ArticleLayout` no longer caps
   running prose at any `max-w-*` value; breadcrumb through `Related`
-  (including the hero, title, and body) render at the full `1fr` main
-  column of the shared `[1fr_20rem]` grid (1120px-1280px at `2xl` and
-  above depending on viewport, 1280px binding once the `max-w-8xl` clamp
-  is reached at 1696px and wider; see learn-editorial.md section 4.3 for
-  the full range). D5's
+  (title and body included) render at the full `1fr` main column of the
+  shared `[1fr_20rem]` grid (1120px-1280px at `2xl` and above depending on
+  viewport, 1280px binding once the `max-w-8xl` clamp is reached at 1696px
+  and wider; see learn-editorial.md section 4.3 for the full range). D5's
   original premise, that unbounded prose is a defect to fix with a measure
   cap, no longer holds for `ArticleLayout`: the fix here is the opposite
-  direction, remove the cap kbx.15 installed. The hero keeps a `max-h-[26rem]`
-  height cap as the one deliberate exception (kbx.7's regression risk), but
-  it is a height cap, not a prose-measure cap, and does not reintroduce a
-  reading-column width. See learn-editorial.md section 4.1's kbx.18
-  amendment for the measured before/after. TemplateDetail is still
-  untouched (out of kbx.18's file scope too) and still carries D5's
-  `max-w-[46rem]` / `lg:grid-cols-[minmax(0,46rem)_19rem]` figures.
+  direction, remove the cap kbx.15 installed. The hero is the one deliberate
+  exception (kbx.7's regression risk) and does not follow the full-width
+  ruling: it keeps kbx.7's original `max-w-3xl` width cap rather than
+  spanning the main column, since a `max-h-[26rem]` + `object-cover`
+  full-width treatment tried during kbx.18 review cropped roughly 11 of 27
+  article heroes and was reverted pending a design call. See
+  learn-editorial.md section 4.1's kbx.18 amendment for the measured
+  before/after. TemplateDetail is still untouched (out of kbx.18's file
+  scope too) and still carries D5's `max-w-[46rem]` /
+  `lg:grid-cols-[minmax(0,46rem)_19rem]` figures.
 
 ### D6 (high): heading hierarchy inversion across the hub
 
@@ -625,14 +627,16 @@ six equal hairline-topped bands.
 ### 2.7 Per-section layout prescriptions: reading pages
 
 1. **`/learn/articles/[slug]`** (`ArticleLayout.tsx`): no article shell or
-   reading-column cap; breadcrumb through `Related` (hero included) render
+   reading-column cap; breadcrumb through `Related` (hero excepted) render
    at the full `1fr` main column of the shared `[1fr_20rem]` grid
    (website-kbx.18, superseding kbx.15's `max-w-2xl` reading column, this
    D5 line's `max-w-[46rem]` figure, and both their breakout claims; the
-   kbx.7 cross-reference below still governs the hero, now via a
-   `max-h-[26rem]` height cap instead of a width cap); the title takes the
-   page-h1 recipe (D6); related items render at card weight or in even
-   counts (D16). Language chips render through `Tag` (D14).
+   kbx.7 cross-reference below still governs the hero, which keeps its
+   original `max-w-3xl` width cap rather than joining the full-width
+   ruling, pending a design call on a `max-h-[26rem]` + `object-cover`
+   full-width treatment that was found to crop article art); the title
+   takes the page-h1 recipe (D6); related items render at card weight or in
+   even counts (D16). Language chips render through `Tag` (D14).
 2. **`/learn/templates/[slug]`** (`TemplateDetail.tsx`): header
    `py-10 sm:py-12` with the art column capped at
    `lg:grid-cols-[1fr_minmax(0,28rem)]` (D17); body grid

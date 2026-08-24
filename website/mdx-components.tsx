@@ -34,7 +34,7 @@ const components: MDXComponents = {
   h5: (props) => <DocHeading variant="h5" {...props} />,
   h6: (props) => <DocHeading variant="h6" {...props} />,
 
-  p: (props) => <Typography variant="body" {...props} />,
+  p: (props) => <Typography variant="body" data-prose="" {...props} />,
   strong: (props) => <Typography variant="strong" {...props} />,
   em: (props) => <Typography variant="em" {...props} />,
   del: (props) => <Typography variant="del" {...props} />,
@@ -45,7 +45,7 @@ const components: MDXComponents = {
 
   ul: (props) => <List {...props} />,
   ol: (props) => <List ordered {...props} />,
-  li: ListItem,
+  li: (props) => <ListItem data-prose="" {...props} />,
 
   blockquote: ({ children, ...props }) => {
     const alert = detectAdmonition(children);

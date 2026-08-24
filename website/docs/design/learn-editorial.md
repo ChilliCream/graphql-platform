@@ -314,25 +314,18 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
    `priority`. Optional; explainers typically omit it.
 
    **Amended by website-kbx.7 (2026-08-24), width numbers superseded by
-   website-kbx.15 (2026-08-24), treatment superseded again by
-   website-kbx.18 (2026-08-24):** kbx.18 removed the reading-column width
-   cap entirely (see the amendment after item 9), so the hero can no longer
-   share a `max-w-[…]` wrapper with the rest of the header, and kbx.7's
-   original complaint, that an uncapped hero reads as oversized next to the
-   text, is live again since the hero would otherwise stretch to the full
-   ~1280px main column. The fix keeps kbx.7's principle (cap the hero, not
-   the prose) but switches the mechanism from a width cap to a height cap:
-   the hero now renders at the full main-column width (`w-full`) with
-   `max-h-[26rem]` (416px) and `object-cover`, so it is visually capped
-   without reintroducing any width constraint. 26rem approximates the
-   rendered height of kbx.7's original 736px-wide 16:9 hero
-   (736 × 9/16 ≈ 414px), so the hero's on-page footprint is unchanged even
-   though its width now matches the header and body. `aspect-video` is kept
-   alongside `max-h-[26rem]` so narrow viewports (where the 16:9 height is
-   already under the cap) still scale the image proportionally; only wide
-   viewports hit the height cap and crop via `object-cover`. Small screens
-   are unaffected either way, since the hero was already effectively
-   full-width there.
+   website-kbx.15 (2026-08-24), kbx.18's height-cap treatment reverted
+   pending a design call (2026-08-24):** kbx.18 removed the reading-column
+   width cap for the header and body, but a `max-h-[26rem]` + `object-cover`
+   height-cap treatment for the hero was found to crop roughly 11 of the 27
+   article heroes (title text or focal subjects cut off, in both directions
+   depending on where the source art places them), regressing the same
+   "must compose, not regress" requirement website-kbx.7 was filed under.
+   Until Pascal picks a per-image or re-cropped resolution, the hero keeps
+   kbx.7's original `max-w-3xl` width cap instead of spanning the full main
+   column: it does not match the header/body width, but no hero art is
+   cropped. See the kbx.18 amendment after item 9 for the ruling on the
+   header/body width and the open crop question.
 
 4. **Title**: `Typography variant="h1"` (`src/design-system/Typography.tsx`),
    unchanged from the blog page.
@@ -476,15 +469,18 @@ wider viewport, not because the main column itself changes width; between
 instead scales with viewport width (see section 4.3 for the full range).
 All three articles measured identically
 at a given viewport, confirming the width comes from the shared grid, not
-per-article content. Hero: measured `1344×416` at 1440 and `1280×416` at
-1920/2560, confirming `max-h-[26rem]` (416px) holds the height cap while
-the width tracks the main column exactly as item 3's amendment describes.
+per-article content. Hero: retains kbx.7's `max-w-3xl` width cap (item 3's
+amendment above) rather than tracking the main column, since the
+`max-h-[26rem]` + `object-cover` full-width treatment tried during kbx.18
+review cropped roughly 11 of 27 article heroes and was reverted pending a
+design call.
 
-The hero's `max-h-[26rem]` cap (item 3's amendment above) is a deliberate
-exception to this ruling, not an oversight: the ruling is about the reading
-measure, not about every element filling the column uncapped, and a
-full-bleed, uncropped hero at 1280px tall-by-aspect-ratio is exactly the
-regression website-kbx.7 was filed to fix.
+The hero's width cap (item 3's amendment above) is a deliberate exception
+to this ruling, not an oversight: the ruling is about the reading measure,
+not about every element filling the column uncapped, and an uncropped hero
+that does not match the header/body width is preferable to a cropped one
+until website-kbx.7's "must compose, not regress" requirement is satisfied
+by a follow-up design decision.
 
 ### 4.2 Page chrome around the shell
 
@@ -522,8 +518,10 @@ All from the `@theme` scale in `app/globals.css`; no ad-hoc sizes:
   `max-w-[46rem]` (~80ch) figure and kbx.15's `max-w-2xl` (~73.5ch) figure
   both. Body paragraphs and list items scale up for the wider measure,
   `text-lg leading-8` (18px/32px) instead of the shared prose default's
-  `text-base leading-7` (16px/28px), applied via descendant selectors on
-  the body wrapper so only `ArticleLayout` is affected; wide elements
+  `text-base leading-7` (16px/28px), applied via `data-prose`-qualified
+  selectors on the body wrapper so only MDX prose paragraphs and list items
+  scale; components embedded in article MDX (`FeatureComparison`,
+  `ComparisonVerdict`/`CheckList`) keep their own type sizes. Wide elements
   (comparison tables, code) scroll horizontally inside their own wrapper
   when they exceed the (now much wider) column, and no component
   implements a breakout today since none is needed.

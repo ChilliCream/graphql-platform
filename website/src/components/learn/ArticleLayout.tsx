@@ -54,12 +54,9 @@ interface ArticleLayoutProps {
  * (website-kbx.18, superseding the `max-w-5xl` shell / `max-w-2xl` reading
  * column of website-kbx.15 and the `max-w-5xl` header / `max-w-[46rem]`
  * prose split of website-kbx.7 and learn-harmonization.md D5). The hero
- * image is the one deliberate exception: it renders at the full column
- * width but keeps a `max-h-[26rem]` cap with `object-cover` so it does not
- * regress into the oversized full-bleed banner website-kbx.7 was filed
- * against; 26rem approximates the rendered height of kbx.7's original
- * 736px-wide 16:9 hero (736 * 9/16 ≈ 414px), so the hero's footprint stays
- * put even though its width now matches the rest of the column. See
+ * image is the one deliberate exception: pending Pascal's design call on the
+ * kbx.18 crop review, it keeps a `max-w-3xl` width cap (the kbx.7 treatment)
+ * instead of spanning the full column, so no hero art is cropped. See
  * learn-editorial.md section 4.1's kbx.18 amendment for the rationale.
  */
 export function ArticleLayout({
@@ -95,8 +92,8 @@ export function ArticleLayout({
               src={heroImageSrc}
               alt=""
               priority
-              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1535px) calc(100vw - 6rem), min(calc(100vw - 6rem - 20rem), 80rem)"
-              className="mt-6 mb-6 aspect-video max-h-[26rem] w-full rounded-lg object-cover"
+              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1535px) calc(100vw - 6rem), min(calc(100vw - 6rem - 20rem), 48rem)"
+              className="mt-6 mb-6 aspect-video w-full max-w-3xl rounded-lg"
             />
           ) : null}
           <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
@@ -114,7 +111,9 @@ export function ArticleLayout({
             <BlogShareBar url={shareUrl} title={title} />
           </div>
           <BlogTags tags={tags ? [...tags] : undefined} />
-          <div className="[&_li]:text-lg [&_li]:leading-8 [&_p]:text-lg [&_p]:leading-8">{children}</div>
+          <div className="[&_li[data-prose]]:text-lg [&_li[data-prose]]:leading-8 [&_p[data-prose]]:text-lg [&_p[data-prose]]:leading-8">
+            {children}
+          </div>
           {related}
         </article>
       </main>
