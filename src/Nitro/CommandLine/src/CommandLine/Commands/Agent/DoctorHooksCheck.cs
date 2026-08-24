@@ -29,7 +29,9 @@ internal static class DoctorHooksCheck
         return Evaluate(
             status.SettingsPath,
             status.Events,
-            eventName => entries.TryGetValue(eventName, out var entry) ? entry.Command : null);
+            eventName => entries.TryGetValue(eventName, out var entry) ? entry.Command : null,
+            "nitro agent hooks claude install",
+            "nitro agent hooks claude uninstall");
     }
 
     public static async Task<DoctorAgentCommand.HookHarnessDoctorResult?> CheckCopilotAsync(
@@ -44,13 +46,17 @@ internal static class DoctorHooksCheck
         return Evaluate(
             status.HooksJsonPath,
             status.HooksEvents,
-            eventName => entries.TryGetValue(eventName, out var entry) ? entry.Command : null);
+            eventName => entries.TryGetValue(eventName, out var entry) ? entry.Command : null,
+            "nitro agent hooks copilot install",
+            "nitro agent hooks copilot uninstall");
     }
 
     private static DoctorAgentCommand.HookHarnessDoctorResult? Evaluate(
         string path,
         IReadOnlyList<HookStatusEventResult> events,
-        Func<string, string?> sidecarCommand)
+        Func<string, string?> sidecarCommand,
+        string installCommand,
+        string uninstallCommand)
     {
         var anyPresent = events.Any(e => e.Outcome != HookStatusOutcome.Missing);
         var anySidecarRecord = events.Any(e => sidecarCommand(e.Event) is not null);
@@ -73,7 +79,7 @@ internal static class DoctorHooksCheck
                 {
                     issues.Add(
                         $"'{eventResult.Event}': the sidecar records an installed entry, but it is "
-                        + "no longer present in the config (removed outside `hooks uninstall`?).");
+                        + $"no longer present in the config (removed outside `{uninstallCommand}`?).");
                 }
 
                 continue;
@@ -94,8 +100,7 @@ internal static class DoctorHooksCheck
 
             if (eventResult.Outcome == HookStatusOutcome.Outdated)
             {
-                issues.Add(
-                    $"'{eventResult.Event}': outdated; rerun `nitro agent hooks claude install` to refresh it.");
+                issues.Add($"'{eventResult.Event}': outdated; rerun `{installCommand}` to refresh it.");
             }
         }
 

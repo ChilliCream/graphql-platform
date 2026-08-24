@@ -87,10 +87,13 @@ public sealed class DoctorHooksCheckTests : IDisposable
 
         // assert: every managed event is outdated, but each is still fully
         // explained by the sidecar (no separate "no sidecar record" or
-        // "hand-edited" issue alongside it).
+        // "hand-edited" issue alongside it), and the remediation names the
+        // claude group, not the deprecated bare verb or another harness.
         Assert.NotNull(result);
         Assert.False(result.Consistent);
-        Assert.All(result.Issues, issue => Assert.Contains("outdated", issue));
+        Assert.All(
+            result.Issues,
+            issue => Assert.Contains("rerun `nitro agent hooks claude install` to refresh it", issue));
         Assert.Equal(result.Events.Count, result.Issues.Count);
     }
 
@@ -146,6 +149,31 @@ public sealed class DoctorHooksCheckTests : IDisposable
         Assert.Empty(result.Issues);
     }
 
+    [Fact]
+    public async Task CheckCopilotAsync_Should_ReportOutdated_When_TheLaunchDescriptorChangedSinceInstall()
+    {
+        // arrange: installed once under one descriptor, then the resolver
+        // that would run today reports a different one, the same drift
+        // `hooks copilot status` calls Outdated, without ever touching the
+        // sidecar.
+        var ct = TestContext.Current.CancellationToken;
+        var (installer, sidecarStore) = CreateCopilotServices(Descriptor);
+        await installer.InstallAsync(ct);
+        var (installerToday, _) = CreateCopilotServices(OtherDescriptor);
+
+        // act
+        var result = await DoctorHooksCheck.CheckCopilotAsync(installerToday, sidecarStore, ct);
+
+        // assert: every managed event is outdated, and the remediation names
+        // the copilot group, not claude or the deprecated bare verb.
+        Assert.NotNull(result);
+        Assert.False(result.Consistent);
+        Assert.All(
+            result.Issues,
+            issue => Assert.Contains("rerun `nitro agent hooks copilot install` to refresh it", issue));
+        Assert.Equal(result.Events.Count, result.Issues.Count);
+    }
+
     private (ClaudeHooksInstallerService Installer, IClaudeHooksSidecarStore SidecarStore) CreateClaudeServices(
         LaunchDescriptor? descriptor = null)
     {
@@ -160,13 +188,14 @@ public sealed class DoctorHooksCheckTests : IDisposable
         return (installer, sidecarStore);
     }
 
-    private (CopilotHooksInstallerService Installer, ICopilotHooksSidecarStore SidecarStore) CreateCopilotServices()
+    private (CopilotHooksInstallerService Installer, ICopilotHooksSidecarStore SidecarStore) CreateCopilotServices(
+        LaunchDescriptor? descriptor = null)
     {
         var sidecarStore = new CopilotHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory));
         var installer = new CopilotHooksInstallerService(
             _fileSystem,
             new FixedCopilotPathResolver(_hooksJsonPath),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(descriptor ?? Descriptor),
             sidecarStore,
             _timeProvider);
 
