@@ -199,8 +199,9 @@ internal sealed class RegisterAgentCommand : Command
         if (candidates.Count == 0)
         {
             throw new ExitException(
-                $"No {harness} session found for pid {pid} on this host. It may have ended, been "
-                + "reaped, or never started.");
+                $"No {harness} session found for pid {pid} on this host. If hooks were never "
+                + $"installed, run `nitro agent hooks {harness} install` and start a new {harness} "
+                + "session; otherwise it may have ended or been reaped.");
         }
 
         if (candidates.Count > 1)

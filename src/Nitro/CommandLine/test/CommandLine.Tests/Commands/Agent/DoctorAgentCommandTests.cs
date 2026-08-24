@@ -29,6 +29,13 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         SetupClaudeSettingsPathResolver(
             userScopePath: Path.Combine(WorkingDirectory, "..", "claude-home", ".claude", "settings.json"),
             projectScopePath: Path.Combine(WorkingDirectory, ".claude", "settings.json"));
+
+        // Doctor now checks Codex hooks unconditionally too; without this
+        // override it reads whatever happens to be at the real CODEX_HOME
+        // on the machine running the test, not this fixture's sandbox.
+        SetupCodexPathResolver(
+            hooksJsonPath: Path.Combine(WorkingDirectory, "..", "codex-home", ".codex", "hooks.json"),
+            configTomlPath: Path.Combine(WorkingDirectory, "..", "codex-home", ".codex", "config.toml"));
     }
 
     [Fact]
@@ -89,6 +96,12 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
 
             ✓ Schema version
             ✓ Mixed-instance sessions
+
+            - claude-code: no ancestor process detected here, skipped.
+
+            - codex: no ancestor process detected here, skipped.
+
+            - copilot: no ancestor process detected here, skipped.
             """);
     }
 
@@ -116,11 +129,18 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         Assert.Equal(0, root.GetProperty("mixedInstanceSessionsCleaned").GetInt32());
 
         // no harness has ever been installed and no probe was requested in
-        // this workspace: all four are absent findings, not empty ones.
+        // this workspace: all findings are absent, not empty.
         Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("claudeUserHooks").ValueKind);
         Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("claudeProjectHooks").ValueKind);
         Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("copilotHooks").ValueKind);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("codexHooks").ValueKind);
         Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("probe").ValueKind);
+
+        // one entry per harness, none with a detected ancestor in this
+        // fixture (the ancestor resolvers default to none found).
+        var participants = root.GetProperty("participants").EnumerateArray().ToArray();
+        Assert.Equal(3, participants.Length);
+        Assert.All(participants, p => Assert.False(p.GetProperty("ancestorDetected").GetBoolean()));
     }
 
     [Fact]
@@ -302,6 +322,281 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         Assert.Equal("1", remainingLocal);
     }
 
+    // ---------- Participant checks ----------
+
+    [Fact]
+    public async Task Participant_Claude_ReportsMissingHooks_When_AncestorDetectedButHooksNeverInstalled()
+    {
+        // arrange: an ancestor is detected, but this fixture's sandbox
+        // settings.json was never installed to.
+        await InitWorkspaceAsync();
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL claude-code participant:", result.StdOut);
+        Assert.Contains(
+            "Hooks were never installed for claude-code. Run `nitro agent hooks claude install`, "
+            + "then start a new claude-code session.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsSessionNotYetFired_When_HooksInstalledButNoRowExists()
+    {
+        // arrange: hooks genuinely installed (through the real installer,
+        // against this fixture's sandbox path), but no SessionStart ever
+        // wrote a row for this process.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL claude-code participant:", result.StdOut);
+        Assert.Contains(
+            "Hooks are installed, but no claude-code session row was found for this process.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsUnboundSession_WithoutFailingHealth()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+        await InsertSessionRowAsync(
+            FixedHost, "session-claude", agentName: null, bindingKind: "none", pid: CurrentAlivePid());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("✓ claude-code participant", result.StdOut);
+        Assert.Contains(
+            "This session is not yet bound to an agent identity. Run `nitro agent register` to bind it.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsBlankRole_WithoutFailingHealth()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+        await InsertSessionRowAsync(
+            FixedHost, "session-claude", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("✓ claude-code participant", result.StdOut);
+        Assert.Contains(
+            "This session has no role yet. Run `nitro agent register --role <role>` to promote it.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsHealthySession_WithRoleAndEndpoint_JsonOutput()
+    {
+        // arrange: the successful Claude path - bound, roled, an endpoint,
+        // and a recorded harness version, nothing left to remediate.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+        await InsertSessionRowAsync(
+            FixedHost, "session-claude", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            lastPingResult: "ok", role: "orchestrator", harnessVersion: "2.1.0", endpointKind: "claude-peer",
+            endpointAddr: "peer-1");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var participant = document.RootElement.GetProperty("participants").EnumerateArray()
+            .Single(p => p.GetProperty("harness").GetString() == "claude-code");
+        Assert.True(participant.GetProperty("healthy").GetBoolean());
+        Assert.True(participant.GetProperty("sessionRowFound").GetBoolean());
+        Assert.Equal("pascal", participant.GetProperty("agentName").GetString());
+        Assert.Equal("orchestrator", participant.GetProperty("role").GetString());
+        Assert.Equal("ok", participant.GetProperty("lastPingResult").GetString());
+        Assert.Empty(participant.GetProperty("remediation").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsUnobservableProcessScope()
+    {
+        // arrange: the row's recorded process_scope disagrees with this
+        // reader's own, so the row's process cannot be verified.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+        await InsertSessionRowAsync(
+            FixedHost, "session-claude", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            role: "orchestrator", processScope: "a-different-process-scope-than-this-reader-has");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL claude-code participant:", result.StdOut);
+        Assert.Contains("This reader cannot verify the claude-code session's process", result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsStaleHeartbeat_AsInformationalOnly()
+    {
+        // arrange: a heartbeat from an hour ago - reported, but never a
+        // failure on its own.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+        await InsertSessionRowAsync(
+            FixedHost, "session-claude", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            role: "orchestrator", lastBeatAt: FakeTime.GetUtcNow().AddHours(-1));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var participant = document.RootElement.GetProperty("participants").EnumerateArray()
+            .Single(p => p.GetProperty("harness").GetString() == "claude-code");
+        Assert.True(participant.GetProperty("healthy").GetBoolean());
+        Assert.True(participant.GetProperty("lastHeardSeconds").GetDouble() > 3000);
+    }
+
+    [Fact]
+    public async Task Participant_Claude_ReportsMissingVersionSignal_WithoutFailingHealth()
+    {
+        // arrange: an otherwise healthy session that never had a harness
+        // version captured (harness_version defaults to blank).
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "user");
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(CurrentAlivePid(), "session-claude", WorkingDirectory, "claude"));
+        await InsertSessionRowAsync(
+            FixedHost, "session-claude", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            role: "orchestrator");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("✓ claude-code participant", result.StdOut);
+        Assert.Contains("No claude-code version was recorded for this session.", result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Codex_ReportsHealthySession_ResolvedByProcess_JsonOutput()
+    {
+        // arrange: Codex exposes no session id directly, so doctor resolves
+        // the row by (host, pid, proc-start) the same way register does.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(codex: new CodexAncestorSession(CurrentAlivePid()));
+        await InsertSessionRowAsync(
+            FixedHost, "session-codex", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            harness: "codex", role: "orchestrator");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert: hooks were never installed here, so overall health still
+        // fails, but the codex participant's own session resolution is
+        // exactly what a healthy match looks like.
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var participant = document.RootElement.GetProperty("participants").EnumerateArray()
+            .Single(p => p.GetProperty("harness").GetString() == "codex");
+        Assert.True(participant.GetProperty("sessionRowFound").GetBoolean());
+        Assert.False(participant.GetProperty("sessionAmbiguous").GetBoolean());
+        Assert.Equal("session-codex", participant.GetProperty("sessionId").GetString());
+        Assert.Equal("orchestrator", participant.GetProperty("role").GetString());
+    }
+
+    [Fact]
+    public async Task Participant_Codex_ReportsAmbiguousSessions()
+    {
+        // arrange: two rows share this exact (host, pid, proc-start) -
+        // doctor cannot pick one to diagnose.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        SetupAncestorSessionResolvers(codex: new CodexAncestorSession(CurrentAlivePid()));
+        await InsertSessionRowAsync(
+            FixedHost, "session-codex-1", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            harness: "codex", role: "orchestrator");
+        await InsertSessionRowAsync(
+            FixedHost, "session-codex-2", agentName: "zeta", bindingKind: "explicit", pid: CurrentAlivePid(),
+            harness: "codex", role: "backend");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL codex participant:", result.StdOut);
+        Assert.Contains(
+            "Found more than one codex session for this process; this reader cannot pick one to "
+            + "diagnose.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task Participant_Copilot_ReportsHealthySession_ResolvedByProcess_JsonOutput()
+    {
+        // arrange: Copilot resolves the same way Codex does, by process.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        SetupAncestorSessionResolvers(copilot: new CopilotAncestorSession(CurrentAlivePid()));
+        await InsertSessionRowAsync(
+            FixedHost, "session-copilot", agentName: "pascal", bindingKind: "explicit", pid: CurrentAlivePid(),
+            harness: "copilot", role: "orchestrator");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var participant = document.RootElement.GetProperty("participants").EnumerateArray()
+            .Single(p => p.GetProperty("harness").GetString() == "copilot");
+        Assert.True(participant.GetProperty("sessionRowFound").GetBoolean());
+        Assert.Equal("session-copilot", participant.GetProperty("sessionId").GetString());
+        Assert.Equal("orchestrator", participant.GetProperty("role").GetString());
+    }
+
     [Fact]
     public async Task CleanFlag_NoMixedInstanceRows_IsNoOp()
     {
@@ -319,6 +614,12 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
 
             ✓ Schema version
             ✓ Mixed-instance sessions
+
+            - claude-code: no ancestor process detected here, skipped.
+
+            - codex: no ancestor process detected here, skipped.
+
+            - copilot: no ancestor process detected here, skipped.
             """);
     }
 
@@ -337,7 +638,9 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
 
     private async Task InsertSessionRowAsync(
         string host, string sessionId, string? agentName, string bindingKind, int pid,
-        string? lastPingResult = null)
+        string? lastPingResult = null, string harness = "claude-code", string role = "",
+        string harnessVersion = "", string processScope = "", string endpointKind = "none",
+        string endpointAddr = "", DateTimeOffset? lastBeatAt = null)
     {
         var procStart = pid == CurrentAlivePid()
             ? Process.GetCurrentProcess().StartTime.ToUniversalTime()
@@ -351,20 +654,28 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
             INSERT INTO agent_sessions (
                 harness, session_id, agent_name, binding_kind, host, pid, proc_start,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                last_ping_result
+                last_ping_result, role, harness_version, process_scope
             ) VALUES (
-                'claude-code', $sessionId, $agentName, $bindingKind, $host, $pid, $procStart,
-                '/work', '/work/.nitro/agents', 'none', '', $now, $now, $lastPingResult
+                $harness, $sessionId, $agentName, $bindingKind, $host, $pid, $procStart,
+                '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $lastBeatAt,
+                $lastPingResult, $role, $harnessVersion, $processScope
             );
             """;
+        command.Parameters.AddWithValue("$harness", harness);
+        command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
         command.Parameters.AddWithValue("$sessionId", sessionId);
         command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
         command.Parameters.AddWithValue("$bindingKind", bindingKind);
         command.Parameters.AddWithValue("$host", host);
         command.Parameters.AddWithValue("$pid", pid);
         command.Parameters.AddWithValue("$procStart", procStart);
+        command.Parameters.AddWithValue("$endpointKind", endpointKind);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$lastBeatAt", lastBeatAt ?? DateTimeOffset.UtcNow);
         command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
+        command.Parameters.AddWithValue("$processScope", processScope);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }

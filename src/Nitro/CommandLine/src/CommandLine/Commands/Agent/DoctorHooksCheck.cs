@@ -34,6 +34,23 @@ internal static class DoctorHooksCheck
             "nitro agent hooks claude uninstall");
     }
 
+    public static async Task<DoctorAgentCommand.HookHarnessDoctorResult?> CheckCodexAsync(
+        ICodexHooksInstallerService installer,
+        ICodexHooksSidecarStore sidecarStore,
+        CancellationToken cancellationToken)
+    {
+        var status = await installer.StatusAsync(cancellationToken);
+        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        var entries = sidecar.HooksEntriesFor(status.HooksJsonPath);
+
+        return Evaluate(
+            status.HooksJsonPath,
+            status.HooksEvents,
+            eventName => entries.TryGetValue(eventName, out var entry) ? entry.Command : null,
+            "nitro agent hooks codex install",
+            "nitro agent hooks codex uninstall");
+    }
+
     public static async Task<DoctorAgentCommand.HookHarnessDoctorResult?> CheckCopilotAsync(
         ICopilotHooksInstallerService installer,
         ICopilotHooksSidecarStore sidecarStore,

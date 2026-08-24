@@ -413,6 +413,26 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
     }
 
     [Fact]
+    public async Task ReturnsError_When_TheAncestorsProcessMatchesMoreThanOneSession()
+    {
+        // arrange: two codex rows share this exact (host, pid, proc-start) -
+        // register cannot pick one to bind.
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        await InsertSessionRowAsync("codex", "codex-session-1");
+        await InsertSessionRowAsync("codex", "codex-session-2");
+        SetupAncestorSessionResolvers(codex: new CodexAncestorSession(process.Id));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            $"Found 2 ambiguous codex sessions for pid {process.Id} on this host.", result.StdErr);
+    }
+
+    [Fact]
     public async Task JsonOutput_IncludesHarnessSessionVersionAndRole()
     {
         // arrange

@@ -281,8 +281,9 @@ internal sealed class AgentSessionRegistry(
         {
             throw new ExitException(
                 $"No session found for '{generation.Harness}' session '{generation.SessionId}' "
-                + $"at pid {generation.Pid} on this host. It may have ended, been reaped, "
-                + "or never started.");
+                + $"at pid {generation.Pid} on this host. If hooks were never installed, run "
+                + $"`nitro agent hooks {HooksInstallCommandName(generation.Harness)} install` and "
+                + "start a new session; otherwise it may have ended or been reaped.");
         }
 
         RequireObservableProcessScope(generation, row.ProcessScope);
@@ -880,6 +881,18 @@ internal sealed class AgentSessionRegistry(
                 + "that started it).");
         }
     }
+
+    /// <summary>
+    /// Maps an <see cref="AgentSessionHarness"/> value to the harness name
+    /// its <c>hooks</c> subcommand group uses, which differs from the
+    /// harness value only for Claude Code (<c>claude-code</c> installs under
+    /// <c>claude</c>).
+    /// </summary>
+    private static string HooksInstallCommandName(string harness) => harness switch
+    {
+        AgentSessionHarness.ClaudeCode => "claude",
+        _ => harness
+    };
 
     /// <summary>
     /// Demotes an endpoint to <c>none</c> when its kind is already
