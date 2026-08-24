@@ -26,16 +26,21 @@ interface LearnTopicRailProps {
   readonly moreLabel?: string;
 }
 
-/** The rail's first post, rendered larger than its `LearnListRow` siblings (learn-harmonization.md D7). */
+/**
+ * The rail's first post, rendered larger than its `LearnListRow` siblings
+ * (learn-harmonization.md D7). The image sits in a single grid column
+ * (website-kbx.28) at a fixed 16:9 box, so it can never grow wider than one
+ * column or crop artwork that is itself authored at 16:9.
+ */
 function RailFeature({ post }: { readonly post: BlogPostSummary }) {
   return (
     <Link href={post.href} className="group/rail flex flex-col no-underline">
       {post.featuredImage ? (
-        <div className="h-40 overflow-hidden rounded-2xl">
+        <div className="aspect-video overflow-hidden rounded-2xl">
           <Picture
             src={post.featuredImage}
             alt=""
-            sizes="(max-width: 1023px) 100vw, 50vw"
+            sizes="(max-width: 1023px) 100vw, 33vw"
             className="h-full w-full object-cover"
           />
         </div>
@@ -53,10 +58,12 @@ function RailFeature({ post }: { readonly post: BlogPostSummary }) {
 /**
  * One rail per topic with 3 or more posts remaining after the editorial
  * band's dedupe (learn-editorial.md section 15.2, amended by
- * learn-harmonization.md section 2.5.2/D7): a header row, one lead-story
- * feature, and up to 3 compact `LearnListRow`s in the other column. Catalog
- * items no longer appear inside topic sections; they are reachable through
- * the section's "More" link and the collection band.
+ * learn-harmonization.md section 2.5.2/D7, restructured to 3 columns by
+ * website-kbx.28): a header row, one lead-story feature occupying one of 3
+ * grid columns, and up to 3 compact `LearnListRow`s stacked in the
+ * remaining 2 columns. Catalog items no longer appear inside topic
+ * sections; they are reachable through the section's "More" link and the
+ * collection band.
  */
 export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left", moreLabel }: LearnTopicRailProps) {
   if (posts.length === 0) {
@@ -71,11 +78,11 @@ export function LearnTopicRail({ heading, moreHref, posts, leadSide = "left", mo
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{heading}</h2>
         <ArrowLink href={moreHref}>{moreLabel ?? `More ${heading}`}</ArrowLink>
       </div>
-      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-3">
         <div className={leadRight ? "lg:order-2" : undefined}>
           <RailFeature post={lead} />
         </div>
-        <div className={`flex flex-col lg:self-start ${leadRight ? "lg:order-1" : ""}`}>
+        <div className={`flex flex-col lg:col-span-2 lg:self-start ${leadRight ? "lg:order-1" : ""}`}>
           {rest.map((post) => (
             <LearnListRow
               key={post.stem}

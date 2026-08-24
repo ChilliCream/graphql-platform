@@ -1145,6 +1145,23 @@ collection band). A topic section renders only when it still has 3 or more
 posts after the band dedupe; otherwise it is omitted, per the strategy's
 no-empty-rails rule.
 
+**Amended by website-kbx.28 (2026-08-24), shape A:** the lead-feature grid
+(learn-harmonization.md D7/2.5.2) moves from `lg:grid-cols-2` to
+`lg:grid-cols-3`. The lead (`RailFeature`) occupies one column: its image is
+a fixed `aspect-video` (16:9) box rather than a fixed-height crop, so it
+never grows wider than that one column and never crops artwork that is
+itself authored at 16:9 (the shipped `h-40` box let the image stretch to
+half the container's width at wide viewports while holding height fixed,
+over-cropping 16:9 source art). The remaining up to 3 `LearnListRow`s
+(`density="compact"`) fill the other two columns as a single `lg:col-span-2`
+stack, not a second row of cards, so the two visual columns (lead vs. rows)
+stay balanced without needing to split an odd row count across two card
+columns. Shape B (uniform N-up cards, lead distinction dropped) was
+rejected: it would discard the kbx.20 hierarchy work (section h2 > rail
+lead `text-h5` > row `text-h6`) for no stated benefit. Below `lg` the grid
+collapses to one column, lead first. Applies to every `LearnTopicRail`
+instance, including future topic hub page usage.
+
 ### 15.3 Collection, explainers, videos
 
 "Start building" (`LearnCollectionSection`), "Explainers"
