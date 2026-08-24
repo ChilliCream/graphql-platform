@@ -54,11 +54,11 @@ interface ArticleLayoutProps {
  * (website-kbx.18, superseding the `max-w-5xl` shell / `max-w-2xl` reading
  * column of website-kbx.15 and the `max-w-5xl` header / `max-w-[46rem]`
  * prose split of website-kbx.7 and learn-harmonization.md D5). The hero
- * image is the one deliberate exception: pending Pascal's design call on the
- * kbx.18 crop review, it keeps a `max-w-3xl` width cap with the kbx.7
- * `object-cover` treatment (16:9 frame, no height-cap crop) instead of
- * spanning the full column. See learn-editorial.md section 4.1's kbx.18
- * amendment for the rationale.
+ * image now matches: website-kbx.22 removes the `max-w-3xl` width cap so it
+ * spans the same full main column, capped at `max-h-[26rem]` with
+ * `object-cover` to keep the page usable at that width. See
+ * learn-editorial.md section 4.1's kbx.22 amendment for the rationale and
+ * its accepted crop consequence.
  */
 export function ArticleLayout({
   breadcrumb,
@@ -93,8 +93,8 @@ export function ArticleLayout({
               src={heroImageSrc}
               alt=""
               priority
-              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1535px) min(calc(100vw - 6rem), 48rem), min(calc(100vw - 6rem - 20rem), 48rem)"
-              className="mt-6 mb-6 aspect-video w-full max-w-3xl rounded-lg object-cover"
+              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1535px) min(calc(100vw - 6rem), 100rem), min(calc(100vw - 26rem), 80rem)"
+              className="mt-6 mb-6 aspect-video max-h-[26rem] w-full rounded-lg object-cover"
             />
           ) : null}
           <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
