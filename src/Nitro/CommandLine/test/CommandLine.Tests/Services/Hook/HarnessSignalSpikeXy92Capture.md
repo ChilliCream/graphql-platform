@@ -43,6 +43,8 @@ $ cat ~/.claude/sessions/2476039.json
 
 ```
 $ awk '{print $22}' /proc/2476039/stat   -> 44925761   (equals procStart, raw string equality)
+  (historical probe; use the corrected last-paren parse rule in the cross-harness stat
+   section below, whole-line field numbers are unsafe)
 $ grep btime /proc/stat                  -> btime 1787125930
 $ getconf CLK_TCK                        -> 100
 btime + 44925761/100 = 1787575187.61; sessions json startedAt = 1787575189.062 (1.5 s app-startup delta, expected)
