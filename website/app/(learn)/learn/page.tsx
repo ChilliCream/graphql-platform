@@ -7,6 +7,7 @@ import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost, type Topic } from "@/src/components/learn/editorial";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
+import { resolveYouTubePoster } from "@/src/components/YouTubePoster";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { listArticlesByKind } from "@/src/helpers/articles";
@@ -95,7 +96,9 @@ function selectLatestVideos(videos: readonly VideoItem[]): readonly VideoItem[] 
  * Rail's "Latest videos" block (website-kbx.2): only videos with a
  * `youtubeId` qualify, since the rail links to the internal
  * `/learn/videos/<slug>` page, not out to YouTube; newest `publishedAt`
- * first, capped at 4.
+ * first, capped at 4. Resolves each row's self-hosted optimized poster here,
+ * at the page's server boundary (website-kbx.4), so `LearnLatestVideos`
+ * itself stays free of the `node:fs`-based image manifest.
  */
 function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRailItem[] {
   return videos
@@ -107,6 +110,7 @@ function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRai
       title,
       youtubeId,
       duration,
+      poster: resolveYouTubePoster(youtubeId),
       products,
       hubs,
     }));

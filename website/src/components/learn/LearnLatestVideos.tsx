@@ -11,6 +11,8 @@ export interface LatestVideoRailItem {
   /** Present because callers only pass videos with a native embed, i.e. an internal /learn/videos/<slug> page. */
   readonly youtubeId: string;
   readonly duration?: string;
+  /** Self-hosted optimized poster src, resolved by the caller (a server component, via `resolveYouTubePoster`); falls back to the external `hqdefault` thumbnail when absent. */
+  readonly poster?: string;
   readonly products: readonly ProductKey[];
   /** Explicit hub override, when set on the source `VideoItem` (`src/data/learn/hubs.ts`). */
   readonly hubs?: readonly HubKey[];
@@ -26,10 +28,12 @@ interface LearnLatestVideosProps {
  * website-kbx.2), replacing the rejected image promo tile. Each row is a
  * 16:9 YouTube poster thumbnail (a duration badge overlays it only when the
  * video has one) plus a kicker and 2-line title, linking to the video's
- * internal /learn/videos/<slug> page. Uses the pure `youTubePosterUrl.ts`
- * builders rather than the `YouTubePoster` component, matching `LearnCard`'s
- * `VideoThumb`: a plain fallback poster keeps this row free of the
- * optimized-image manifest's `node:fs` import.
+ * internal /learn/videos/<slug> page. This component itself stays free of
+ * the optimized-image manifest's `node:fs` import (matching `LearnCard`'s
+ * `VideoThumb`): a server-rendering caller resolves each row's self-hosted
+ * poster ahead of time via `resolveYouTubePoster` and passes it in
+ * `LatestVideoRailItem.poster`; rows without one fall back to the pure
+ * `youTubePosterUrl.ts` external thumbnail.
  */
 export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
   if (videos.length === 0) {
@@ -50,7 +54,7 @@ export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
               <div className="bg-cc-white/4 relative aspect-video overflow-hidden rounded-lg sm:w-44 sm:shrink-0 lg:w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={youTubePosterFallback(video.youtubeId)}
+                  src={video.poster ?? youTubePosterFallback(video.youtubeId)}
                   alt=""
                   loading="lazy"
                   decoding="async"

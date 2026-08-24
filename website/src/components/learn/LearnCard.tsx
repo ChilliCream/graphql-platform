@@ -13,6 +13,13 @@ import { STACK_ICONS } from "./stackIcons";
 
 interface LearnCardProps {
   readonly item: LearnItemSummary;
+  /**
+   * Self-hosted optimized poster src for a video item, resolved by the
+   * caller (a server component, via `resolveYouTubePoster`). Falls back to
+   * the external `hqdefault` thumbnail when omitted, e.g. in development or
+   * when this card renders from a client component.
+   */
+  readonly poster?: string;
 }
 
 /** Diagonal arrow-out-of-box glyph for items that open in a new tab. */
@@ -64,15 +71,26 @@ function HeaderMeta({ item }: LearnCardProps) {
  * `YouTubePoster` component itself, since `LearnCard` is also imported by
  * `LearnCatalog`, a client component: `YouTubePoster` pulls in the
  * `node:fs`-based optimized-image manifest, which cannot enter a browser
- * bundle. Overlays the duration only when the video has one (7 of the 9
+ * bundle. A server-rendering caller resolves the self-hosted optimized
+ * poster ahead of time and passes it as `poster`; without one (development,
+ * or a client-rendered card) this falls back to the external `hqdefault`
+ * thumbnail. Overlays the duration only when the video has one (7 of the 9
  * seeded videos don't, so most cards render no chip at all).
  */
-function VideoThumb({ videoId, duration }: { readonly videoId: string; readonly duration?: string }) {
+function VideoThumb({
+  videoId,
+  duration,
+  poster,
+}: {
+  readonly videoId: string;
+  readonly duration?: string;
+  readonly poster?: string;
+}) {
   return (
     <div className="bg-cc-white/4 relative mb-4 aspect-video overflow-hidden rounded-lg">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={youTubePosterFallback(videoId)}
+        src={poster ?? youTubePosterFallback(videoId)}
         alt=""
         loading="lazy"
         decoding="async"
@@ -94,7 +112,7 @@ function VideoThumb({ videoId, duration }: { readonly videoId: string; readonly 
  * neutral at rest, and only the accent CTA and the icons' hover state carry
  * color.
  */
-export function LearnCard({ item }: LearnCardProps) {
+export function LearnCard({ item, poster }: LearnCardProps) {
   const href = learnItemHref(item);
   const external = !href.startsWith("/");
   const hasThumbnail = item.type === "video" && Boolean(item.youtubeId);
@@ -102,7 +120,7 @@ export function LearnCard({ item }: LearnCardProps) {
   const inner = (
     <>
       {hasThumbnail && item.type === "video" && item.youtubeId && (
-        <VideoThumb videoId={item.youtubeId} duration={item.duration} />
+        <VideoThumb videoId={item.youtubeId} duration={item.duration} poster={poster} />
       )}
       <div className="flex items-start justify-between gap-3">
         <ContentTypeBadge type={item.type} />

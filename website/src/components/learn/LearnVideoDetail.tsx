@@ -47,7 +47,7 @@ function ExampleCard({ exampleUrl }: { readonly exampleUrl: string }) {
     <div className="border-cc-card-border bg-cc-card-bg rounded-2xl border p-5 backdrop-blur-sm">
       <p className="text-cc-heading font-heading text-lg font-semibold">Example code</p>
       <p className="text-cc-prose mt-2 text-sm leading-relaxed">The complete project built in this video.</p>
-      <SolidButton href={exampleUrl} className="mt-4 w-full">
+      <SolidButton href={exampleUrl} download className="mt-4 w-full">
         Download example
       </SolidButton>
       <p className="text-cc-ink-dim mt-3 text-sm">Free download, no signup</p>

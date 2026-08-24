@@ -11,6 +11,17 @@ export { YOUTUBE_ID_RE, youTubePosterFallback, youTubePosterKey };
 const POSTER_SIZES = "(min-width: 768px) 768px, 100vw";
 const POSTER_CLASS = "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]";
 
+/**
+ * Self-hosted optimized poster URL for a video id, resolved from the same
+ * manifest {@link YouTubePoster} uses. `undefined` when the build hasn't
+ * generated one (development, or the id isn't in the manifest): callers fall
+ * back to {@link youTubePosterFallback}. Server-only (imports the
+ * `node:fs`-based manifest); do not import this from a client component.
+ */
+export function resolveYouTubePoster(videoId: string): string | undefined {
+  return getOptimizedImage(youTubePosterKey(videoId))?.fallbackSrc ?? undefined;
+}
+
 interface YouTubePosterProps {
   /** 11-character YouTube video id, already validated against {@link YOUTUBE_ID_RE}. */
   readonly videoId: string;
