@@ -162,7 +162,10 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   every other learn page gives its content. `ArticleLayout` no longer caps
   running prose at any `max-w-*` value; breadcrumb through `Related`
   (including the hero, title, and body) render at the full `1fr` main
-  column of the shared `[1fr_20rem]` grid (1280px at `2xl` and above). D5's
+  column of the shared `[1fr_20rem]` grid (1120px-1280px at `2xl` and
+  above depending on viewport, 1280px binding once the `max-w-8xl` clamp
+  is reached at 1696px and wider; see learn-editorial.md section 4.3 for
+  the full range). D5's
   original premise, that unbounded prose is a defect to fix with a measure
   cap, no longer holds for `ArticleLayout`: the fix here is the opposite
   direction, remove the cap kbx.15 installed. The hero keeps a `max-h-[26rem]`
@@ -540,16 +543,16 @@ chromatic families per viewport to 2 (ink plus accent-on-hover).
 One rank scale across the hub. All headings `font-heading font-semibold`
 unless noted.
 
-| Rank                    | Recipe                                  | Applies to                                                                                                                                                            |
-| ----------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page h1                 | `text-h3` (44px), no `sm:text-h2` step  | `LearnMasthead` h1, `TemplateDetail` h1, article h1                                                                                                                   |
-| Featured story headline | `text-h4 sm:text-h3` (cap 44px)         | `LearnFeaturedStory` h2; the `xl:text-h2` step is dropped so no index headline exceeds a page h1                                                                      |
-| Section h2              | `text-h5 sm:text-h4` (cap 32px)         | All landing sections (current), TemplateDetail content sections (current), **and** "More from Learn" and the subscribe band (both currently one step too big, D6/D18) |
-| Row/card title          | `text-h6` (18px)                        | `LearnCard` h3 (current) **and** `LearnListRow` titles (currently unsized 16px body): one voice for one content class                                                 |
-| Body                    | 16px / `leading-7`, full column width   | Prose spans the `1fr` main column, no measure cap (D5, superseded by website-kbx.18)                                                                                  |
-| Meta                    | `text-caption` (14px) `text-cc-ink-dim` | Author lines, descriptions in rows                                                                                                                                    |
-| Kicker                  | `font-mono text-xs uppercase` (12px)    | The only mono label voice besides the badge                                                                                                                           |
-| Badge                   | `text-[0.6875rem]` (11px)               | `ContentTypeBadge`, facet legends/counts, TemplateDetail `dt` labels, `LearnCard` meta: every current `text-[0.6rem]` and `text-[0.65rem]`                            |
+| Rank                    | Recipe                                  | Applies to                                                                                                                                                             |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page h1                 | `text-h3` (44px), no `sm:text-h2` step  | `LearnMasthead` h1, `TemplateDetail` h1, article h1                                                                                                                    |
+| Featured story headline | `text-h4 sm:text-h3` (cap 44px)         | `LearnFeaturedStory` h2; the `xl:text-h2` step is dropped so no index headline exceeds a page h1                                                                       |
+| Section h2              | `text-h5 sm:text-h4` (cap 32px)         | All landing sections (current), TemplateDetail content sections (current), **and** "More from Learn" and the subscribe band (both currently one step too big, D6/D18)  |
+| Row/card title          | `text-h6` (18px)                        | `LearnCard` h3 (current) **and** `LearnListRow` titles (currently unsized 16px body): one voice for one content class                                                  |
+| Body                    | 18px / `leading-8`, full column width   | Prose spans the `1fr` main column, no measure cap; size bumped from the shared 16px/`leading-7` prose default for the wider measure (D5, superseded by website-kbx.18) |
+| Meta                    | `text-caption` (14px) `text-cc-ink-dim` | Author lines, descriptions in rows                                                                                                                                     |
+| Kicker                  | `font-mono text-xs uppercase` (12px)    | The only mono label voice besides the badge                                                                                                                            |
+| Badge                   | `text-[0.6875rem]` (11px)               | `ContentTypeBadge`, facet legends/counts, TemplateDetail `dt` labels, `LearnCard` meta: every current `text-[0.6rem]` and `text-[0.65rem]`                             |
 
 Article pages: the title renders in the heading voice at the page-h1 rank
 (`font-heading text-h3 font-semibold`), via a display variant in

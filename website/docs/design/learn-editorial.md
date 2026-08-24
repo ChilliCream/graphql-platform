@@ -468,9 +468,13 @@ learn-editorial.md section 12 gives for every other `/learn` page). Below
 `2xl` (1440) there is no TOC rail, so the main column is the full container
 width (1440 − 96px shell padding = 1344px); at `2xl` and above (1920, 2560)
 the `20rem` (320px) TOC rail takes a fixed slice out of the `max-w-8xl`
-container, so the main column holds steady at 1280px, and the indent grows
-because the container centers inside the wider viewport, not because the
-main column itself changes width. All three articles measured identically
+container. At these two sampled viewports, both past the 1696px point
+where the container hits its 1600px clamp, the main column holds steady
+at 1280px, and the indent grows because the container centers inside the
+wider viewport, not because the main column itself changes width; between
+1536px and 1696px, where the clamp has not yet bound, the main column
+instead scales with viewport width (see section 4.3 for the full range).
+All three articles measured identically
 at a given viewport, confirming the width comes from the shared grid, not
 per-article content. Hero: measured `1344×416` at 1440 and `1280×416` at
 1920/2560, confirming `max-h-[26rem]` (416px) holds the height cap while
@@ -509,12 +513,19 @@ All from the `@theme` scale in `app/globals.css`; no ad-hoc sizes:
   breadcrumbs, and kind chips: mono caption voice
   (`font-mono text-xs uppercase tracking-wider`).
 - Measure: no width cap; breadcrumb through `Related` render at the full
-  `1fr` main column width (1280px at `2xl` and above, up to 1344px below
-  it), per the section 4.1 kbx.18 amendment, superseding D5's
+  `1fr` main column width (below `2xl` the main column equals the
+  container, viewport minus 96px shell padding, up to 1439px just under
+  1536px; at `2xl` and above it is the container minus the 320px rail,
+  1120px at a 1536px viewport rising to 1280px once the 1600px `max-w-8xl`
+  clamp binds at viewports of 1696px and wider), per the section 4.1
+  kbx.18 amendment, superseding D5's
   `max-w-[46rem]` (~80ch) figure and kbx.15's `max-w-2xl` (~73.5ch) figure
-  both. The existing prose line-height (`leading-7`) is unchanged; wide
-  elements (comparison tables, code) scroll horizontally inside their own
-  wrapper when they exceed the (now much wider) column, and no component
+  both. Body paragraphs and list items scale up for the wider measure,
+  `text-lg leading-8` (18px/32px) instead of the shared prose default's
+  `text-base leading-7` (16px/28px), applied via descendant selectors on
+  the body wrapper so only `ArticleLayout` is affected; wide elements
+  (comparison tables, code) scroll horizontally inside their own wrapper
+  when they exceed the (now much wider) column, and no component
   implements a breakout today since none is needed.
 
 ### 4.4 Behavior under each blog ruling

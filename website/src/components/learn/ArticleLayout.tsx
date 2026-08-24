@@ -114,7 +114,7 @@ export function ArticleLayout({
             <BlogShareBar url={shareUrl} title={title} />
           </div>
           <BlogTags tags={tags ? [...tags] : undefined} />
-          <div>{children}</div>
+          <div className="[&_li]:text-lg [&_li]:leading-8 [&_p]:text-lg [&_p]:leading-8">{children}</div>
           {related}
         </article>
       </main>
