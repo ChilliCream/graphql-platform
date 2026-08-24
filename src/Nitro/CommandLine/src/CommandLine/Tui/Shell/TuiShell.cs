@@ -30,6 +30,7 @@ internal sealed class TuiShell
     private const string TabStripSeparator = " ";
 
     private static readonly TimeSpan QuitGateDrainBound = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan QuitGateGrace = TimeSpan.FromSeconds(1);
 
     private readonly IReadOnlyList<TuiTab> _tabs;
     private readonly TuiTab _tasksTab;
@@ -40,6 +41,7 @@ internal sealed class TuiShell
     private readonly IMailStore? _mailStore;
     private readonly string? _actor;
     private readonly IReadOnlyList<TuiQuitGate> _quitGates;
+    private readonly TimeSpan _quitGateDrainBound;
 
     private int _activeTabIndex;
     private bool _quitGateResolved;
@@ -68,7 +70,8 @@ internal sealed class TuiShell
         ITaskStore? store = null,
         string? actor = null,
         IMailStore? mailStore = null,
-        IReadOnlyList<TuiQuitGate>? quitGates = null)
+        IReadOnlyList<TuiQuitGate>? quitGates = null,
+        TimeSpan? quitGateDrainBound = null)
         : this(
             [new TuiTab(
                 string.Empty,
@@ -83,7 +86,8 @@ internal sealed class TuiShell
             store,
             actor,
             mailStore,
-            quitGates)
+            quitGates,
+            quitGateDrainBound)
     {
     }
 
@@ -116,7 +120,8 @@ internal sealed class TuiShell
         ITaskStore? store = null,
         string? actor = null,
         IMailStore? mailStore = null,
-        IReadOnlyList<TuiQuitGate>? quitGates = null)
+        IReadOnlyList<TuiQuitGate>? quitGates = null,
+        TimeSpan? quitGateDrainBound = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
 
@@ -140,6 +145,7 @@ internal sealed class TuiShell
         _mailStore = mailStore;
         _actor = actor;
         _quitGates = quitGates ?? [];
+        _quitGateDrainBound = quitGateDrainBound ?? QuitGateDrainBound;
         _width = initialWidth;
         _height = initialHeight;
 
@@ -158,6 +164,14 @@ internal sealed class TuiShell
     /// <see cref="TuiApplication"/> event loop in response.
     /// </summary>
     public event Action? QuitConfirmed;
+
+    /// <summary>
+    /// Raised when a second quit confirmation, shown because a registered
+    /// <see cref="TuiQuitGate"/> reported unresolved work, is itself cancelled. A
+    /// feature that registered a gate is expected to resume its own effect queue's
+    /// submissions in response, since the TUI stays live.
+    /// </summary>
+    public event Action? QuitCancelled;
 
     private TuiTab ActiveTab => _tabs[_activeTabIndex];
 
@@ -697,7 +711,13 @@ internal sealed class TuiShell
 
             case TuiMessage.CancelQuit:
                 _confirmDialog = null;
-                _quitGateResolved = false;
+
+                if (_quitGateResolved)
+                {
+                    _quitGateResolved = false;
+                    QuitCancelled?.Invoke();
+                }
+
                 return true;
 
             case TuiMessage.ShowToast showToast:
@@ -796,7 +816,23 @@ internal sealed class TuiShell
 
         foreach (var gate in _quitGates)
         {
-            var report = gate(QuitGateDrainBound, CancellationToken.None).GetAwaiter().GetResult();
+            TuiQuitGateReport report;
+
+            try
+            {
+                report = gate(_quitGateDrainBound, CancellationToken.None)
+                    .WaitAsync(_quitGateDrainBound + QuitGateGrace)
+                    .GetAwaiter().GetResult();
+            }
+            catch (TimeoutException)
+            {
+                // The gate itself failed to answer within its own bound plus a grace
+                // period. This reports the gate's silence; it does not guess whether
+                // the feature's commit boundary resolved.
+                outcomeUnknownCount++;
+                continue;
+            }
+
             pendingCount += report.PendingCount;
             outcomeUnknownCount += report.OutcomeUnknownCount;
             operationIds.AddRange(report.DiscoverableOperationIds);

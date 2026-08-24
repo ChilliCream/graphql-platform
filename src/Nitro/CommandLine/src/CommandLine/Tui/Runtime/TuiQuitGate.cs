@@ -32,7 +32,9 @@ internal readonly record struct TuiQuitGateReport(
 /// could still resolve into a lost result. Ctrl+C and host cancellation bypass this
 /// gate entirely and stay noninteractive: whatever remains in flight stays
 /// discoverable through the owning <see cref="TuiEffectQueue{TResult}"/>'s own
-/// <c>PendingOperationIds</c> instead.
+/// <c>PendingOperationIds</c> instead. A feature that registers a gate must subscribe
+/// to <c>TuiShell.QuitCancelled</c> and call its queue's <c>ResumeAccepting</c>, since a
+/// cancelled second confirmation returns the user to a live TUI.
 /// </summary>
 /// <param name="drainBound">The bounded wait for in-flight effects to resolve.</param>
 /// <param name="cancellationToken">Cancels the wait early; the drain itself is best-effort.</param>

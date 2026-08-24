@@ -62,16 +62,12 @@ internal sealed class TuiEffectQueue<TResult>
 
         var assignedId = TuiOperationId.New();
         operationId = assignedId;
-        var runTask = RunEffectAsync(assignedId, dedupeKey, effect, cancellationToken);
+        var runTask = Task.Run(
+            () => RunEffectAsync(assignedId, dedupeKey, effect, cancellationToken), CancellationToken.None);
 
         // The in-flight entry is inserted here, strictly before the continuation
-        // below is attached, and removed only by that continuation. An effect that
-        // completes synchronously (for example a test stub returning
-        // Task.FromResult) would otherwise have already run its own cleanup before
-        // this line even executes, since an async method runs synchronously up to
-        // its first real suspension: attaching the removal as a continuation instead
-        // of doing it inline in RunEffectAsync makes the insert always happen before
-        // the remove, however fast the effect finishes.
+        // below is attached, and removed only by that continuation, regardless of
+        // how fast the Task.Run body above finishes.
         _inFlight[assignedId] = runTask;
         runTask.ContinueWith(
             delegate
@@ -165,6 +161,11 @@ internal sealed class TuiEffectQueue<TResult>
     /// it drains what is already in flight. Idempotent.
     /// </summary>
     public void StopAccepting() => _accepting = false;
+
+    /// <summary>
+    /// Reverses <see cref="StopAccepting"/> after a cancelled quit; idempotent.
+    /// </summary>
+    public void ResumeAccepting() => _accepting = true;
 
     /// <summary>
     /// The number of effects submitted but not yet completed.

@@ -66,6 +66,54 @@ public sealed class TuiEffectQueueTests
     }
 
     [Fact]
+    public async Task TrySubmit_Should_ReturnImmediately_When_EffectBlocksSynchronouslyBeforeFirstAwait()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var queue = new TuiEffectQueue<string>();
+        using var gate = new ManualResetEventSlim(false);
+        var stopwatch = Stopwatch.StartNew();
+
+        Task<string> BlockingEffect(TuiOperationId id, CancellationToken ct)
+        {
+            gate.Wait(TestTimeout);
+            return Task.FromResult("done");
+        }
+
+        // act
+        var submitted = queue.TrySubmit("slot", BlockingEffect, testToken, out var operationId);
+        var elapsed = stopwatch.Elapsed;
+
+        // assert
+        Assert.True(submitted);
+        Assert.NotEqual(default, operationId);
+        Assert.True(elapsed < TimeSpan.FromMilliseconds(500), $"TrySubmit blocked for {elapsed}.");
+        Assert.Equal(1, queue.PendingCount);
+
+        gate.Set();
+        await WaitUntilAsync(() => queue.PendingCount == 0, testToken);
+    }
+
+    [Fact]
+    public void TrySubmit_Should_ReturnTrue_When_ResumedAfterStopAccepting()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var queue = new TuiEffectQueue<string>();
+        queue.StopAccepting();
+        var rejected = queue.TrySubmit("compose", (_, _) => Task.FromResult("done"), testToken, out _);
+
+        // act
+        queue.ResumeAccepting();
+        var submitted = queue.TrySubmit("compose", (_, _) => Task.FromResult("done"), testToken, out var operationId);
+
+        // assert
+        Assert.False(rejected);
+        Assert.True(submitted);
+        Assert.NotEqual(default, operationId);
+    }
+
+    [Fact]
     public async Task TrySubmit_Should_AllowResubmission_When_PriorEffectUnderSameKeyCompleted()
     {
         // arrange
