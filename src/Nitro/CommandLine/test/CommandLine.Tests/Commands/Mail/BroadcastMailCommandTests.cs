@@ -135,7 +135,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            No live agent with role 'backend' to broadcast to.
+            No live agent with role 'backend' to broadcast to (older sessions must re-register).
             """);
     }
 
@@ -158,7 +158,59 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            No live agent with role 'orchestrator' to broadcast to.
+            No live agent with role 'orchestrator' to broadcast to (older sessions must re-register).
+            """);
+    }
+
+    [Fact]
+    public async Task RoleFilter_FallsBackToTheDurableRole_When_TheLiveSessionsOwnRoleIsBlank()
+    {
+        // arrange: a session bound before role-aware registration (xy9.5)
+        // never had its own role written, so discovery falls back to the
+        // durable identity's role for it - but a closed identity with the
+        // same durable role and no live session at all still is not found.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-fallback-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync(
+            "agent", "register", "--actor", "zeta", "--role", "orchestrator");
+        await SeedAliveSessionAsync(
+            "session-zeta", "zeta", role: "", host: "host-broadcast-fallback-test");
+        await ExecuteCommandAsync(
+            "agent", "register", "--actor", "closed-orchestrator", "--role", "orchestrator");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertSuccess($"✓ Sent '{id}' to zeta.");
+    }
+
+    [Fact]
+    public async Task RoleFilter_ExcludesAnImplicitIdentity_EvenWhenItsLiveSessionHasTheRole()
+    {
+        // arrange: an implicit identity (never registered itself) whose live
+        // session was directly given a matching role - still excluded,
+        // mirroring the plain broadcast's exclusion of implicit rows.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-implicit-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await CreateRegistry().EnsureImplicitAsync("ghost", cancellationToken);
+        await SeedAliveSessionAsync("session-ghost", "ghost", "backend", "host-broadcast-implicit-test");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "backend",
+            "--subject", "hi", "--body", "hello");
+
+        // assert
+        result.AssertError(
+            """
+            No live agent with role 'backend' to broadcast to (older sessions must re-register).
             """);
     }
 
@@ -211,7 +263,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // assert
         backendResult.AssertError(
             """
-            No live agent with role 'backend' to broadcast to.
+            No live agent with role 'backend' to broadcast to (older sessions must re-register).
             """);
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'orchestrator broadcast'");
         orchestratorResult.AssertSuccess($"✓ Sent '{id}' to zeta.");
@@ -237,18 +289,20 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            No live agent with role 'orchestrator' to broadcast to.
+            No live agent with role 'orchestrator' to broadcast to (older sessions must re-register).
             """);
     }
 
     [Fact]
-    public async Task RoleFilter_SessionEndingBetweenDiscoveryAndSend_StillDeliversDurably()
+    public async Task MailRoleRecipients_ResolvedRecipient_StillDeliversDurably_When_TheSessionEndsBeforeSend()
     {
-        // arrange: resolve the role-targeted recipient exactly the way
-        // BroadcastMailCommand does, then end the session before the durable
-        // send actually runs - discovery only feeds durable actor names into
-        // the same async send path every mail command uses, so the send must
-        // not depend on the row still existing.
+        // arrange: this pins MailRoleRecipients composed directly with
+        // IMailStore.SendMessageAsync, not BroadcastMailCommand's own wiring
+        // (its resolve-then-send has no interleaving point to race). Resolve
+        // the role-targeted recipient, then end the session before the
+        // durable send actually runs - discovery only feeds durable actor
+        // names into the same async send path every mail command uses, so
+        // the send must not depend on the row still existing.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");

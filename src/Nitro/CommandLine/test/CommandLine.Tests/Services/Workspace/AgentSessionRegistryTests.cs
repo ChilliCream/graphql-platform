@@ -1037,7 +1037,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var claimed = AliveGeneration("session-claimed");
         await _sessions.StartAsync(
-            claimed, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            claimed, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.ClaudePeer, "peer-1",
             envActor: null, cancellationToken);
         await _sessions.ClaimAsync(claimed, "pascal", forceRebind: false, cancellationToken);
 
@@ -1052,6 +1052,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // assert
         var claimedParticipant = Assert.Single(participants, p => p.Session.SessionId == "session-claimed");
         Assert.Equal("pascal", claimedParticipant.Agent?.Name);
+        Assert.Equal(AgentSessionState.Online, claimedParticipant.State);
 
         var unclaimedParticipant = Assert.Single(participants, p => p.Session.SessionId == "session-unclaimed");
         Assert.Null(unclaimedParticipant.Agent);

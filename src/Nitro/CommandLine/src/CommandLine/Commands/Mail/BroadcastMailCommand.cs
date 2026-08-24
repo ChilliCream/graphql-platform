@@ -61,7 +61,7 @@ internal sealed class BroadcastMailCommand : Command
             throw new ExitException(
                 role is null
                     ? "No other registered agent to broadcast to."
-                    : $"No live agent with role '{role}' to broadcast to.");
+                    : $"No live agent with role '{role}' to broadcast to (older sessions must re-register).");
         }
 
         var body = await MailBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
