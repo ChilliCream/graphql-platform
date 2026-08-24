@@ -567,6 +567,28 @@ internal sealed class AgentSessionRegistry(
         return rowsAffected > 0;
     }
 
+    public async Task<bool> RecordHarnessVersionAsync(
+        AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET harness_version = @harnessVersion "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        command.Parameters.AddWithValue("@harnessVersion", harnessVersion);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@pid", generation.Pid);
+        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
     /// <summary>
     /// Reaps dead current-instance rows, then returns one
     /// <see cref="AgentSessionParticipant"/> per surviving row, joining the

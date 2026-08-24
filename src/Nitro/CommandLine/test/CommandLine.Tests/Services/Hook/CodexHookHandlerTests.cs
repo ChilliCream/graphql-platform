@@ -72,6 +72,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         _environmentVariables,
         new ProcessInfoProvider(),
         new FixedCodexAncestorSessionResolver(null),
+        new FixedCodexHarnessVersionResolver(),
         new FixedInstanceIdProvider("host-1"),
         new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
         _queueClient);
@@ -155,7 +156,61 @@ public sealed class CodexHookHandlerTests : IDisposable
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
 
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_RecordHarnessVersion_When_TheResolverReturnsOne()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var handler = new CodexHookHandler(
+            _fileSystem,
+            _timeProvider,
+            _sessions,
+            _ledger,
+            _mail,
+            _environmentVariables,
+            new ProcessInfoProvider(),
+            new FixedCodexAncestorSessionResolver(null),
+            new FixedCodexHarnessVersionResolver("0.101.0"),
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
+            _queueClient);
+
+        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal("0.101.0", row!.HarnessVersion);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
+    {
+        // A metadata resolution failure (no rollout file, no resolvable exe
+        // path) must never block session creation.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal("", row!.HarnessVersion);
+    }
+
     // ---------- UserPromptSubmit ----------
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        Assert.True(after > before);
+    }
 
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_SessionIsUnclaimed()
@@ -229,6 +284,21 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     // ---------- Notify (the idle-turn gate) ----------
+
+    [Fact]
+    public async Task HandleNotifyAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+
+        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        Assert.True(after > before);
+    }
 
     [Fact]
     public async Task HandleNotifyAsync_Should_ReturnNeutral_When_TypeIsNotAgentTurnComplete()

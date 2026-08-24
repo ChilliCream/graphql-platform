@@ -66,6 +66,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _environmentVariables,
             new ProcessInfoProvider(),
             new FixedAncestorSessionResolver(null),
+            new FixedClaudeHarnessVersionResolver(),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
     }
@@ -81,6 +82,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         _environmentVariables,
         new ProcessInfoProvider(),
         new FixedAncestorSessionResolver(null),
+        new FixedClaudeHarnessVersionResolver(),
         new FixedInstanceIdProvider("host-1"),
         new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -164,7 +166,69 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
     }
 
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_RecordHarnessVersion_When_TheResolverReturnsOne()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var handler = new ClaudeHookHandler(
+            _fileSystem,
+            _timeProvider,
+            _sessions,
+            _ledger,
+            _mail,
+            _environmentVariables,
+            new ProcessInfoProvider(),
+            new FixedAncestorSessionResolver(null),
+            new FixedClaudeHarnessVersionResolver("2.1.241"),
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
+        // act
+        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal("2.1.241", row!.HarnessVersion);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
+    {
+        // arrange: a metadata resolution failure (no session file, a
+        // reused pid, or a malformed file) must never block session
+        // creation.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal("", row!.HarnessVersion);
+    }
+
     // ---------- UserPromptSubmit ----------
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        Assert.True(after > before);
+    }
 
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_SessionIsUnclaimed()
@@ -272,6 +336,24 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     // ---------- Stop ----------
+
+    [Fact]
+    public async Task HandleStopAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        Assert.True(after > before);
+    }
 
     [Fact]
     public async Task HandleStopAsync_Should_ReturnNeutral_When_StopHookActiveIsTrue()
@@ -410,6 +492,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _environmentVariables,
             new ProcessInfoProvider(),
             new FixedAncestorSessionResolver(null),
+            new FixedClaudeHarnessVersionResolver(),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -446,6 +529,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _environmentVariables,
             new ProcessInfoProvider(),
             new FixedAncestorSessionResolver(null),
+            new FixedClaudeHarnessVersionResolver(),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -552,6 +636,21 @@ internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? sessio
     public ClaudeAncestorSession? Resolve() => session;
 }
 
+internal sealed class FixedClaudeHarnessVersionResolver(string version = "") : IClaudeHarnessVersionResolver
+{
+    public string Resolve(int pid) => version;
+}
+
+internal sealed class FixedCodexHarnessVersionResolver(string version = "") : ICodexHarnessVersionResolver
+{
+    public string Resolve(string sessionId, int ancestorPid) => version;
+}
+
+internal sealed class FixedCopilotHarnessVersionResolver(string version = "") : ICopilotHarnessVersionResolver
+{
+    public string Resolve(string sessionId, int ancestorPid) => version;
+}
+
 /// <summary>
 /// Wraps a real <see cref="IAgentSessionRegistry"/>, delegating every member
 /// except <see cref="IncrementBlockBudgetAsync"/>, which always reports no
@@ -599,6 +698,10 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
 
     public Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => inner.TouchAsync(generation, cancellationToken);
+
+    public Task<bool> RecordHarnessVersionAsync(
+        AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
+        => inner.RecordHarnessVersionAsync(generation, harnessVersion, cancellationToken);
 
     public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken)

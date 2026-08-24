@@ -188,6 +188,7 @@ public sealed class ClaudeHookExecutorTests
                 environmentVariables,
                 new ProcessInfoProvider(),
                 new FixedAncestorSessionResolver(null),
+                new FixedClaudeHarnessVersionResolver(),
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
 
@@ -277,6 +278,7 @@ public sealed class ClaudeHookExecutorTests
                 environmentVariables,
                 new ProcessInfoProvider(),
                 new FixedAncestorSessionResolver(null),
+                new FixedClaudeHarnessVersionResolver(),
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
 

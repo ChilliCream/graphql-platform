@@ -12,6 +12,7 @@ internal sealed class CodexHookHandler(
     IEnvironmentVariableProvider environmentVariables,
     IProcessInfoProvider processInfoProvider,
     ICodexAncestorSessionResolver ancestorResolver,
+    ICodexHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     ICodexQueueClient queueClient) : ICodexHookHandler
@@ -55,6 +56,13 @@ internal sealed class CodexHookHandler(
             envActor,
             cancellationToken);
 
+        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.SessionId, resolved.Generation.Pid);
+
+        if (harnessVersion.Length > 0)
+        {
+            await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
+        }
+
         return CodexHookOutcome.Neutral;
     }
 
@@ -67,6 +75,8 @@ internal sealed class CodexHookHandler(
         {
             return CodexHookOutcome.Neutral;
         }
+
+        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
@@ -114,6 +124,8 @@ internal sealed class CodexHookHandler(
         {
             return CodexNotifyOutcome.Neutral;
         }
+
+        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 

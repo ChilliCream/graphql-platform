@@ -125,6 +125,15 @@ internal interface IAgentSessionRegistry
     Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Records <paramref name="harnessVersion"/> for the row matching
+    /// <paramref name="generation"/> exactly, without changing any other
+    /// column. A generation that matches no row (already ended or
+    /// superseded) is a no-op. Returns whether a row was actually updated.
+    /// </summary>
+    Task<bool> RecordHarnessVersionAsync(
+        AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Reaps dead current-instance rows, then returns every surviving row
     /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
     /// rows are never returned: a ping fired from here cannot reach a

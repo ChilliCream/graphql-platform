@@ -69,6 +69,7 @@ public sealed class CopilotHookHandlerTests : IDisposable
         _environmentVariables,
         new ProcessInfoProvider(),
         new FixedCopilotAncestorSessionResolver(null),
+        new FixedCopilotHarnessVersionResolver(),
         new FixedInstanceIdProvider("host-1"),
         new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -199,7 +200,60 @@ public sealed class CopilotHookHandlerTests : IDisposable
         Assert.Equal(CopilotHookOutcome.Neutral, outcome);
     }
 
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_RecordHarnessVersion_When_TheResolverReturnsOne()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var handler = new CopilotHookHandler(
+            _fileSystem,
+            _timeProvider,
+            _sessions,
+            _ledger,
+            _mail,
+            _environmentVariables,
+            new ProcessInfoProvider(),
+            new FixedCopilotAncestorSessionResolver(null),
+            new FixedCopilotHarnessVersionResolver("1.0.80"),
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
+        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal("1.0.80", row!.HarnessVersion);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
+    {
+        // A metadata resolution failure (no session-state file, no
+        // resolvable exe version output) must never block session creation.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal("", row!.HarnessVersion);
+    }
+
     // ---------- UserPromptSubmit ----------
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        Assert.True(after > before);
+    }
 
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_AlwaysReturnNeutral_EvenWhenUnreadMailExists()
@@ -213,6 +267,20 @@ public sealed class CopilotHookHandlerTests : IDisposable
         await SendMailAsync("bob", "alice", cancellationToken);
 
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        Assert.Equal(CopilotHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_SessionIdIsMissing()
+    {
+        // Fail-open on a malformed payload: no generation resolves, so
+        // there is nothing to heartbeat.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var payload = new CopilotHookPayload { SessionId = null, Cwd = _workspaceRoot };
+
+        var outcome = await _handler.HandleUserPromptSubmitAsync(payload, dryRun: true, cancellationToken);
 
         Assert.Equal(CopilotHookOutcome.Neutral, outcome);
     }

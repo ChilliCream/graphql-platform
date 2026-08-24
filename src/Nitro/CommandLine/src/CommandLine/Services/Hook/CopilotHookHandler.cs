@@ -12,6 +12,7 @@ internal sealed class CopilotHookHandler(
     IEnvironmentVariableProvider environmentVariables,
     IProcessInfoProvider processInfoProvider,
     ICopilotAncestorSessionResolver ancestorResolver,
+    ICopilotHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : ICopilotHookHandler
 {
@@ -44,6 +45,13 @@ internal sealed class CopilotHookHandler(
             envActor,
             cancellationToken);
 
+        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.SessionId, resolved.Generation.Pid);
+
+        if (harnessVersion.Length > 0)
+        {
+            await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
+        }
+
         if (record.BindingKind == AgentSessionBindingKind.None || record.AgentName is null)
         {
             return CopilotHookOutcome.Neutral;
@@ -59,9 +67,21 @@ internal sealed class CopilotHookHandler(
         return digest is null ? CopilotHookOutcome.Neutral : new CopilotHookOutcome { AdditionalContext = digest };
     }
 
-    public Task<CopilotHookOutcome> HandleUserPromptSubmitAsync(
+    public async Task<CopilotHookOutcome> HandleUserPromptSubmitAsync(
         CopilotHookPayload payload, bool dryRun, CancellationToken cancellationToken)
-        => Task.FromResult(CopilotHookOutcome.Neutral);
+    {
+        // No digest capability rides here (S5's live-verified finding: only
+        // sessionStart can carry additionalContext for Copilot), but a
+        // resolved generation is still a heartbeat-eligible lifecycle event.
+        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+
+        if (resolved is not null)
+        {
+            await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+        }
+
+        return CopilotHookOutcome.Neutral;
+    }
 
     public async Task<CopilotHookOutcome> HandleSessionEndAsync(
         CopilotHookPayload payload, bool dryRun, CancellationToken cancellationToken)

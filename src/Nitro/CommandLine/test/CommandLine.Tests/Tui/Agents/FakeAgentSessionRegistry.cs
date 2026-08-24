@@ -42,6 +42,10 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
     public Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<bool> RecordHarnessVersionAsync(
+        AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<AgentSessionRecord?> FindByGenerationAsync(
         AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();

@@ -12,6 +12,7 @@ internal sealed class ClaudeHookHandler(
     IEnvironmentVariableProvider environmentVariables,
     IProcessInfoProvider processInfoProvider,
     IClaudeAncestorSessionResolver ancestorResolver,
+    IClaudeHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
 {
@@ -58,6 +59,13 @@ internal sealed class ClaudeHookHandler(
             envActor,
             cancellationToken);
 
+        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.Pid);
+
+        if (harnessVersion.Length > 0)
+        {
+            await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
+        }
+
         return ClaudeHookOutcome.Neutral;
     }
 
@@ -70,6 +78,8 @@ internal sealed class ClaudeHookHandler(
         {
             return ClaudeHookOutcome.Neutral;
         }
+
+        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
@@ -99,6 +109,8 @@ internal sealed class ClaudeHookHandler(
         {
             return ClaudeHookOutcome.Neutral;
         }
+
+        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
