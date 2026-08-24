@@ -35,7 +35,7 @@ export default function ArticlesIndex() {
           post={featured}
           priority
           layout="split"
-          sizes="(max-width: 1023px) 100vw, (max-width: 1663px) 45vw, 720px"
+          sizes="(max-width: 1023px) 100vw, (max-width: 1695px) 45vw, 720px"
         />
       ) : null}
       <div className="mt-8 sm:mt-10">

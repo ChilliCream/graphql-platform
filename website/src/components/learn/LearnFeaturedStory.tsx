@@ -11,14 +11,7 @@ interface LearnFeaturedStoryProps {
   readonly priority?: boolean;
   /** Viewport-to-image-width hint for the call site's column; defaults to the landing band's center column. */
   readonly sizes?: string;
-  /**
-   * "stacked" (default): image above title, full column width, used in the
-   * three-column editorial band. "split": image and title/dek/meta run
-   * side by side from `lg` up, image width capped to a fraction of the
-   * column and to a fixed height, so the story's title and kicker stay
-   * above the fold next to it instead of being pushed down by a tall
-   * image; used on the articles index. Both stack image-over-text below `lg`.
-   */
+  /** "stacked" (default) renders the image above the text at all widths; "split" places the image beside the title/dek/meta from `lg` up and stacks below `lg`. */
   readonly layout?: "stacked" | "split";
 }
 
