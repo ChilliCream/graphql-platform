@@ -80,8 +80,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             foreach (var field in objectTypeDefinition.Fields)
             {
                 alwaysProjected ??= [];
-                if (field.GetFeatures().TryGet(out ProjectionFeature? feature)
-                    && feature.AlwaysProjected)
+                if (field.Flags.HasFlag(CoreFieldFlags.AlwaysProjected))
                 {
                     alwaysProjected.Add(field.Name);
                 }
