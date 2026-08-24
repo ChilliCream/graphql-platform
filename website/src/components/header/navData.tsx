@@ -18,7 +18,6 @@ import {
 } from "@/src/icons/NavIcons";
 
 export const TOOLS = {
-  blog: "/blog",
   github: "https://github.com/ChilliCream/graphql-platform",
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
