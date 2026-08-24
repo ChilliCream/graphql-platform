@@ -194,16 +194,7 @@ export default function LearnPage() {
           leadSide={index % 2 === 0 ? "left" : "right"}
         />
       ))}
-      <LearnCollectionSection
-        items={collectionItems}
-        subLinks={[
-          { label: "Templates", href: "/learn/browse?type=template" },
-          { label: "Tutorials", href: "/learn/browse?type=tutorial" },
-          { label: "Examples", href: "/learn/browse?type=example" },
-          { label: "Workshops", href: "/learn/browse?type=workshop" },
-        ]}
-        foldedExplainers={!explainerSectionRenders ? explainerArticles : []}
-      />
+      <LearnCollectionSection items={collectionItems} subLinks={[]} />
       {explainerSectionRenders ? <LearnExplainerList articles={explainerArticles} /> : null}
       <LearnVideoSection videos={selectLatestVideos(VIDEO_ITEMS.filter((v) => !railVideoSlugs.has(v.slug)))} />
       <LearnSubscribeBand />

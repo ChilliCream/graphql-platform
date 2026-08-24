@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 import { DrinkIcon } from "@/src/components/DrinkIcon";
 import { youTubePosterFallback } from "@/src/components/youTubePosterUrl";
+import { productLabel } from "@/src/data/learn/facets";
 import type { LearnItemSummary } from "@/src/data/learn/types";
-import { Tag } from "@/src/design-system/Tag";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 import { ContentTypeBadge } from "./ContentTypeBadge";
 import { topicLabelForProduct } from "./editorial";
@@ -35,15 +35,10 @@ function ExternalArrowIcon(props: ComponentPropsWithoutRef<"svg">) {
 }
 
 function HeaderMeta({ item }: LearnCardProps) {
+  // The Agent-ready flag still lives on the item (TemplateDetail shows it),
+  // but the card itself no longer surfaces a badge for it (website-kbx.21).
   if (item.type === "template") {
-    if (!item.agentReady) {
-      return null;
-    }
-    // Outline Tag is the canonical Agent-ready skin (learn-harmonization.md
-    // D10); the solid warning pill this replaced was the only solid-warning
-    // surface in the system and read as a different flag than the one on
-    // TemplateDetail.
-    return <Tag className="border-cc-warning/40 text-cc-warning">Agent-ready</Tag>;
+    return null;
   }
   // A video with a youtubeId already states its duration as an overlay on
   // its thumbnail (VideoThumb); the header meta slot is only the duration's
@@ -125,14 +120,22 @@ export function LearnCard({ item }: LearnCardProps) {
       ) : null}
       <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">{item.tagline}</p>
       <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-        <span
-          className="flex items-end gap-2 grayscale transition-[filter] duration-200 group-hover:grayscale-0"
-          aria-hidden="true"
-        >
+        <span className="flex items-end gap-2 grayscale transition-[filter] duration-200 group-hover:grayscale-0">
           <span className="flex items-end gap-1.5">
             {item.products.map((product) => {
               const art = PRODUCT_ART[product];
-              return <DrinkIcon key={product} Icon={art.Drink} name={art.drinkName} base={28} />;
+              const label = productLabel(product);
+              return (
+                <span
+                  key={product}
+                  tabIndex={0}
+                  title={label}
+                  aria-label={label}
+                  className="focus-visible:outline-cc-accent rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  <DrinkIcon Icon={art.Drink} name={art.drinkName} base={28} />
+                </span>
+              );
             })}
           </span>
           {item.type === "template" && item.stack.length > 0 && (
@@ -142,8 +145,10 @@ export function LearnCard({ item }: LearnCardProps) {
                 return (
                   <span
                     key={key}
+                    tabIndex={0}
                     title={label}
-                    className="bg-cc-white/8 flex size-7 items-center justify-center rounded-lg"
+                    aria-label={label}
+                    className="bg-cc-white/8 focus-visible:outline-cc-accent flex size-7 items-center justify-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   >
                     <Icon className="size-4" />
                   </span>

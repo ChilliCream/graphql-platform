@@ -4,7 +4,6 @@ import { CardGrid } from "@/src/components/CardGrid";
 import type { ArticleSummary } from "@/src/helpers/articles";
 import type { LearnItemSummary } from "@/src/data/learn/types";
 import { LearnCard } from "./LearnCard";
-import { LearnFeatureCard } from "./LearnFeatureCard";
 import { LearnListRow } from "./LearnListRow";
 
 interface CollectionSubLink {
@@ -32,7 +31,8 @@ interface LearnCollectionSectionProps {
  * `/learn/browse` built from the catalog's own card and grid, plus
  * type-scoped sub-links into the browse surface. Tinted per
  * learn-harmonization.md section 2.5.3: full-bleed card background, no
- * `border-t` seam, and a horizontal `LearnFeatureCard` leading the grid.
+ * `border-t` seam, and a uniform `LearnCard` grid (website-kbx.21: the
+ * former full-width lead card made the section too heavy).
  */
 export function LearnCollectionSection({
   items,
@@ -43,7 +43,6 @@ export function LearnCollectionSection({
   if (items.length === 0) {
     return null;
   }
-  const [lead, ...rest] = items;
 
   return (
     // Breaks out of the `(learn)` layout's `max-w-8xl` gutter so the tint
@@ -59,13 +58,8 @@ export function LearnCollectionSection({
           <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Start building</h2>
           <ArrowLink href={browseHref}>Browse the catalog</ArrowLink>
         </div>
-        {lead ? (
-          <div className="mb-6">
-            <LearnFeatureCard item={lead} />
-          </div>
-        ) : null}
         <CardGrid cols={3} step="progressive" itemsStretch>
-          {rest.map((item) => (
+          {items.map((item) => (
             <LearnCard key={`${item.type}-${item.slug}`} item={item} />
           ))}
         </CardGrid>
