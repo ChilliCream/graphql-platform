@@ -286,7 +286,7 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
           <CardGrid cols={4} step="progressive" itemsStretch>
             {visibleItems.map((item, index) =>
               showFeatureRow && index < featuredCount ? (
-                <div key={`${item.type}-${item.slug}`} className="sm:col-span-2">
+                <div key={`${item.type}-${item.slug}`} className="h-full sm:col-span-2">
                   <LearnFeatureCard item={item} />
                 </div>
               ) : (

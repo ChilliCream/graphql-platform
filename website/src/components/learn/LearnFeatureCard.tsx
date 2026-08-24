@@ -33,7 +33,7 @@ export function LearnFeatureCard({ item }: LearnFeatureCardProps) {
     </>
   );
   const className =
-    "border-cc-card-border hover:border-cc-card-border-hover group grid overflow-hidden rounded-2xl border no-underline transition-[border-color,transform] duration-200 hover:-translate-y-1 sm:grid-cols-2";
+    "border-cc-card-border hover:border-cc-card-border-hover group grid h-full overflow-hidden rounded-2xl border no-underline transition-[border-color,transform] duration-200 hover:-translate-y-1 sm:grid-cols-2";
 
   if (external) {
     return (
