@@ -615,8 +615,6 @@ internal class SchemaComposition(
 
     /// <summary>
     /// Maps every source schema resource to the gateways whose composed schema depends on it.
-    /// A resource that hosts a source schema on behalf of a schema anchor counts as a source
-    /// schema resource.
     /// </summary>
     internal static Dictionary<IResourceWithEndpoints, List<IResourceWithEndpoints>> BuildSourceToGatewayMap(
         IReadOnlyList<IResourceWithEndpoints> compositionResources,
@@ -628,8 +626,7 @@ internal class SchemaComposition(
         {
             foreach (var referencedResource in GetReferencedResources(gateway, appModel))
             {
-                if (!referencedResource.HasGraphQLSchema()
-                    && !referencedResource.Annotations.OfType<GraphQLSourceSchemaHostAnnotation>().Any())
+                if (!referencedResource.HasGraphQLSchema())
                 {
                     continue;
                 }
@@ -1327,15 +1324,16 @@ internal class SchemaComposition(
     {
         try
         {
-            var projectPath = GetProjectPath(resource);
-            if (projectPath == null)
+            var sourceSchemaDirectory = GetSourceSchemaDirectory(resource);
+            if (sourceSchemaDirectory == null)
             {
-                logger.LogWarning("Could not determine project path for {ResourceName}", resource.Name);
+                logger.LogWarning(
+                    "Could not determine the source schema directory for {ResourceName}",
+                    resource.Name);
                 return null;
             }
 
-            var projectDirectory = IOPath.GetDirectoryName(projectPath);
-            var settingsFile = IOPath.Combine(projectDirectory!, settingsFileName);
+            var settingsFile = IOPath.Combine(sourceSchemaDirectory, settingsFileName);
 
             if (!File.Exists(settingsFile))
             {
@@ -1487,16 +1485,16 @@ internal class SchemaComposition(
     {
         try
         {
-            // Get the project directory from the resource metadata
-            var projectPath = GetProjectPath(resource);
-            if (projectPath == null)
+            var sourceSchemaDirectory = GetSourceSchemaDirectory(resource);
+            if (sourceSchemaDirectory == null)
             {
-                logger.LogWarning("Could not determine project path for {ResourceName}", resource.Name);
+                logger.LogWarning(
+                    "Could not determine the source schema directory for {ResourceName}",
+                    resource.Name);
                 return null;
             }
 
-            var projectDirectory = IOPath.GetDirectoryName(projectPath);
-            var schemaFile = IOPath.Combine(projectDirectory!, fileName ?? "schema.graphql");
+            var schemaFile = IOPath.Combine(sourceSchemaDirectory, fileName ?? "schema.graphql");
 
             if (!File.Exists(schemaFile))
             {
@@ -1529,6 +1527,23 @@ internal class SchemaComposition(
             logger.LogError(ex, "Failed to read schema file for {ResourceName}", resource.Name);
             return null;
         }
+    }
+
+    /// <summary>
+    /// Gets the directory that holds the schema settings and schema files of a resource: the
+    /// declared source schema directory, or the project directory of the resource.
+    /// </summary>
+    private string? GetSourceSchemaDirectory(IResourceWithEndpoints resource)
+    {
+        if (resource.Annotations.OfType<GraphQLSourceSchemaDirectoryAnnotation>().FirstOrDefault()
+            is { } directoryAnnotation)
+        {
+            return directoryAnnotation.Directory;
+        }
+
+        return GetProjectPath(resource) is { } projectPath
+            ? IOPath.GetDirectoryName(projectPath)
+            : null;
     }
 
     [SuppressMessage(

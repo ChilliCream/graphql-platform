@@ -9,8 +9,6 @@ namespace HotChocolate.Fusion.Aspire;
 
 public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDisposable
 {
-    private static readonly TimeSpan s_waitTimeout = TimeSpan.FromSeconds(30);
-
     private readonly DirectoryInfo _appDirectory =
         Directory.CreateTempSubdirectory("fusion-js-app-tests-");
 
@@ -84,13 +82,10 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
         Assert.Equal("http", endpoint.Name);
         Assert.Equal(5734, endpoint.Port);
-        // the JavaScript overload attaches the source schema annotation to the schema anchor
-        // instead of the app
-        Assert.Empty(app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
     }
 
     [Fact]
-    public async Task WithGraphQLHttpEndpoint_Should_AttachSchemaAnchor_When_GatewayStarts()
+    public async Task WithGraphQLHttpEndpoint_Should_AnnotateAppForComposition_When_GatewayComposesApp()
     {
         // arrange
         WriteSchemaSettings(
@@ -114,37 +109,33 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var app = builder
             .AddJavaScriptApp("shop", _appDirectory.FullName)
             .WithGraphQLHttpEndpoint();
-        var gateway = builder
+        builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
             .WithReference(app);
-        await using var scope = await PublishBeforeStartAsync(builder);
 
         // act
-        var (anchor, exception) = await ActivateAnchorAsync(builder, gateway.Resource, app.Resource, scope);
+        await using var scope = await PublishBeforeStartAsync(builder);
 
         // assert
-        var annotation = Assert.Single(anchor.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
-        Assert.Equal(
-            IOPath.Combine(_appDirectory.FullName, "package.json"),
-            anchor.Annotations.OfType<IProjectMetadata>().Single().ProjectPath);
+        var annotation = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        var directory = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaDirectoryAnnotation>());
+        Assert.Equal(_appDirectory.FullName, directory.Directory);
         $"""
          GraphQLPath: {annotation.GraphQLPath}
          SchemaPath: {annotation.SchemaPath}
+         EndpointName: {annotation.EndpointName}
+         Location: {annotation.Location}
          EndpointPort: {app.Resource.Annotations.OfType<EndpointAnnotation>().Single().Port}
-         SharesAppEndpoints: {anchor.Annotations.OfType<EndpointAnnotation>().SequenceEqual(
-             app.Resource.Annotations.OfType<EndpointAnnotation>())}
-         GatewayReferencesAnchor: {gateway.Resource.Annotations.OfType<ResourceRelationshipAnnotation>().Any(
-             relationship => ReferenceEquals(relationship.Resource, anchor))}
-         Error: {exception.Message}
          """.MatchInlineSnapshot(
             """
             GraphQLPath: /graphql
             SchemaPath: /graphql/schema.graphql
+            EndpointName: http
+            Location: SchemaEndpoint
             EndpointPort: 6123
-            SharesAppEndpoints: True
-            GatewayReferencesAnchor: True
-            Error: The source schema resource 'shop' required by 'gateway' did not become healthy.
             """);
     }
 
@@ -155,17 +146,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         WriteSchemaSettings(
             """
             {
-              "name": "Shop",
-              "transports": {
-                "http": {
-                  "url": "{{SHOP_URL}}/api/graphql"
-                }
-              },
-              "environments": {
-                "Aspire": {
-                  "SHOP_URL": "http://localhost:5734"
-                }
-              }
+              "name": "Shop"
             }
             """);
         var builder = DistributedApplication.CreateBuilder();
@@ -176,20 +157,20 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
                 path: "/api/graphql",
                 schemaPath: "/api/schema.graphql",
                 sourceSchemaName: "Shop");
-        var gateway = builder
+        builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
             .WithReference(app);
-        await using var scope = await PublishBeforeStartAsync(builder);
 
         // act
-        var (anchor, _) = await ActivateAnchorAsync(builder, gateway.Resource, app.Resource, scope);
+        await using var scope = await PublishBeforeStartAsync(builder);
 
         // assert
         // the endpoint the app declares itself stays untouched
         var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
         Assert.Equal(4321, endpoint.Port);
-        var annotation = Assert.Single(anchor.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        var annotation = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
         $"""
          GraphQLPath: {annotation.GraphQLPath}
          SchemaPath: {annotation.SchemaPath}
@@ -218,17 +199,17 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var app = builder
             .AddJavaScriptApp("shop", _appDirectory.FullName)
             .WithGraphQLHttpEndpoint(path: "/api/graphql", schemaPath: null);
-        var gateway = builder
+        builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
             .WithReference(app);
-        await using var scope = await PublishBeforeStartAsync(builder);
 
         // act
-        var (anchor, _) = await ActivateAnchorAsync(builder, gateway.Resource, app.Resource, scope);
+        await using var scope = await PublishBeforeStartAsync(builder);
 
         // assert
-        var annotation = Assert.Single(anchor.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        var annotation = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
         Assert.Null(annotation.SchemaPath);
         Assert.Equal("/api/graphql", annotation.GraphQLPath);
     }
@@ -247,28 +228,50 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var app = builder
             .AddJavaScriptApp("shop", _appDirectory.FullName)
             .WithGraphQLHttpEndpoint();
-        var gateway = builder
+        builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
             .WithReference(app);
-        await using var scope = await PublishBeforeStartAsync(builder);
 
         // act
-        var (anchor, _) = await ActivateAnchorAsync(builder, gateway.Resource, app.Resource, scope);
+        await using var scope = await PublishBeforeStartAsync(builder);
 
         // assert
-        var annotation = Assert.Single(anchor.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
         var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
-        $"""
-         GraphQLPath: {annotation.GraphQLPath}
-         SchemaPath: {annotation.SchemaPath}
-         EndpointPort: {endpoint.Port?.ToString() ?? "none"}
-         """.MatchInlineSnapshot(
+        Assert.Null(endpoint.Port);
+    }
+
+    [Fact]
+    public async Task WithGraphQLHttpEndpoint_Should_NotPinEndpointPort_When_SettingsUrlOmitsPort()
+    {
+        // arrange
+        // a URL without a port must not pin the endpoint to the scheme default port.
+        WriteSchemaSettings(
             """
-            GraphQLPath: /graphql
-            SchemaPath: /graphql/schema.graphql
-            EndpointPort: none
+            {
+              "name": "Shop",
+              "transports": {
+                "http": {
+                  "url": "http://localhost/graphql"
+                }
+              }
+            }
             """);
+        var builder = DistributedApplication.CreateBuilder();
+        var app = builder
+            .AddJavaScriptApp("shop", _appDirectory.FullName)
+            .WithGraphQLHttpEndpoint();
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition()
+            .WithReference(app);
+
+        // act
+        await using var scope = await PublishBeforeStartAsync(builder);
+
+        // assert
+        var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
+        Assert.Null(endpoint.Port);
     }
 
     [Fact]
@@ -280,16 +283,13 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var app = builder
             .AddJavaScriptApp("shop", _appDirectory.FullName)
             .WithGraphQLHttpEndpoint();
-        var gateway = builder
+        builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
             .WithReference(app);
 
         // act
         await using var scope = await PublishBeforeStartAsync(builder);
-        await builder.Eventing.PublishAsync(
-            new BeforeResourceStartedEvent(gateway.Resource, scope.Services),
-            TestContext.Current.CancellationToken);
 
         // assert
         var warning = Assert.Single(
@@ -299,7 +299,9 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
             "Skipping GraphQL schema composition for shop: "
             + $"{IOPath.Combine(_appDirectory.FullName, "schema-settings.json")} not found.",
             warning.Message);
-        Assert.False(scope.Model.Resources.TryGetByName("shop-schema", out _));
+        Assert.Empty(app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        // the endpoint is declared regardless, so the app itself keeps running
+        Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
     }
 
     [Fact]
@@ -333,7 +335,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         // assert
         var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
         Assert.Null(endpoint.Port);
-        Assert.False(scope.Model.Resources.TryGetByName("shop-schema", out _));
+        Assert.Single(app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
     }
 
     [Fact]
@@ -381,19 +383,19 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
             .AddJavaScriptApp("shop", _appDirectory.FullName)
             .WithHttpEndpoint(port: 4321, name: "web")
             .WithGraphQLHttpEndpoint();
-        var gateway = builder
+        builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
             .WithReference(app);
-        await using var scope = await PublishBeforeStartAsync(builder);
 
         // act
-        var (anchor, _) = await ActivateAnchorAsync(builder, gateway.Resource, app.Resource, scope);
+        await using var scope = await PublishBeforeStartAsync(builder);
 
         // assert
         var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
         Assert.Equal("web", endpoint.Name);
-        var annotation = Assert.Single(anchor.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        var annotation = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
         Assert.Equal("web", annotation.EndpointName);
     }
 
@@ -412,7 +414,6 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var loggerFactory = new RecordingLoggerFactory();
         var host = builder.Build();
         var model = host.Services.GetRequiredService<DistributedApplicationModel>();
-        var notifications = host.Services.GetRequiredService<ResourceNotificationService>();
         var services = new FallbackServiceProvider(
             new ServiceCollection()
                 .AddSingleton<ILoggerFactory>(loggerFactory)
@@ -423,36 +424,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
             new BeforeStartEvent(services, model),
             TestContext.Current.CancellationToken);
 
-        return new EventScope(host, model, notifications, services, loggerFactory);
-    }
-
-    /// <summary>
-    /// Drives the anchor activation that runs when a gateway is about to start. Aspire only
-    /// completes its health wait under a running orchestrator, so the app is failed instead,
-    /// which activates the anchor and then fails the wait with a deterministic error.
-    /// </summary>
-    private static async Task<(ProjectResource Anchor, DistributedApplicationException Exception)>
-        ActivateAnchorAsync(
-            IDistributedApplicationBuilder builder,
-            IResource gateway,
-            IResource app,
-            EventScope scope)
-    {
-        await scope.Notifications.PublishUpdateAsync(
-            app,
-            snapshot => snapshot with { State = KnownResourceStates.FailedToStart });
-
-        var exception = await Assert.ThrowsAsync<DistributedApplicationException>(
-            () => builder.Eventing
-                .PublishAsync(
-                    new BeforeResourceStartedEvent(gateway, scope.Services),
-                    TestContext.Current.CancellationToken)
-                .WaitAsync(s_waitTimeout, TestContext.Current.CancellationToken));
-
-        var anchor = Assert.IsType<ProjectResource>(
-            scope.Model.Resources.Single(resource => resource.Name == $"{app.Name}-schema"));
-
-        return (anchor, exception);
+        return new EventScope(host, model, services, loggerFactory);
     }
 
     private void WriteSchemaSettings(string json)
@@ -469,7 +441,6 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
     private sealed record EventScope(
         DistributedApplication Host,
         DistributedApplicationModel Model,
-        ResourceNotificationService Notifications,
         IServiceProvider Services,
         RecordingLoggerFactory LoggerFactory) : IAsyncDisposable
     {
