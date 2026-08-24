@@ -229,7 +229,11 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/learn", label: "Learn" },
 ];
 
-export const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({
-  href: i.href,
-  label: i.label,
-}));
+/** The drawer renders no dropdown groups, so Help (desktop: Services popout) is appended as its own item. */
+export const MOBILE_ITEMS = [
+  ...NAV_ITEMS.map((i) => ({
+    href: i.href,
+    label: i.label,
+  })),
+  { href: "/help", label: "Help" },
+];
