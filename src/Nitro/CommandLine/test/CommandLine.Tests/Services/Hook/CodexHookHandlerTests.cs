@@ -80,17 +80,38 @@ public sealed class CodexHookHandlerTests : IDisposable
     // ---------- SessionStart ----------
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_CreateUnclaimedRow_When_NoEnvActorIsSet()
+    public async Task HandleSessionStartAsync_Should_BindTheRowToAGeneratedActor_When_NoEnvActorIsSet()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
+        // assert: never left unbound - a deterministic, harness-namespaced
+        // actor keeps the live session mail-addressable, role untouched.
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Equal(AgentSessionBindingKind.None, row.BindingKind);
+        Assert.Equal($"codex-{SessionId}", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.Equal("", row.Role);
+        Assert.NotNull(await _agentRegistry.GetAsync($"codex-{SessionId}", cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_BindTheSameGeneratedActor_When_CalledAgainForTheSameSession()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal($"codex-{SessionId}", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
     }
 
     [Fact]
@@ -213,7 +234,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_SessionIsUnclaimed()
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheGeneratedActor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -317,7 +338,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleNotifyAsync_Should_ReturnNeutral_When_SessionIsUnclaimed()
+    public async Task HandleNotifyAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheGeneratedActor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);

@@ -62,6 +62,10 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<AgentSessionRecord?> FindBySessionIdAsync(
+        string harness, string host, string sessionId, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<AgentSessionRecord?> FindByGenerationAsync(
         AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();

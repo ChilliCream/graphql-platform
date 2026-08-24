@@ -76,17 +76,38 @@ public sealed class CopilotHookHandlerTests : IDisposable
     // ---------- SessionStart ----------
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_CreateUnclaimedRow_When_NoEnvActorIsSet()
+    public async Task HandleSessionStartAsync_Should_BindTheRowToAGeneratedActor_When_NoEnvActorIsSet()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
+        // assert: never left unbound - a deterministic, harness-namespaced
+        // actor keeps the live session mail-addressable, role untouched. No
+        // digest rides along since nobody has mailed the generated actor yet.
         Assert.Equal(CopilotHookOutcome.Neutral, outcome);
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Equal(AgentSessionBindingKind.None, row.BindingKind);
+        Assert.Equal($"copilot-{SessionId}", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.Equal("", row.Role);
+        Assert.NotNull(await _agentRegistry.GetAsync($"copilot-{SessionId}", cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_BindTheSameGeneratedActor_When_CalledAgainForTheSameSession()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal($"copilot-{SessionId}", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
     }
 
     [Fact]
@@ -139,10 +160,10 @@ public sealed class CopilotHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_NoEnvActorIsSet()
+    public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheGeneratedActor()
     {
-        // Nothing to claim against yet, so no digest is attempted even
-        // though mail may exist for some other actor.
+        // The row still binds to its generated actor, but nobody has sent
+        // that actor any mail, so no digest rides along.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 

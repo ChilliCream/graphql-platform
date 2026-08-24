@@ -396,6 +396,34 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
     }
 
     [Fact]
+    public async Task Claude_BootstrapsAndBindsTheSession_When_SessionStartNeverFired()
+    {
+        // arrange: an ancestor is detected but no SessionStart hook ever
+        // created a row for it (hooks not installed, or a race) - register
+        // must bootstrap and bind it in one call instead of requiring a
+        // separate SessionStart first.
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(process.Id, "claude-session-1", WorkingDirectory, "peer-a"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "orchestrator");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Registered 'test-agent' as 'orchestrator', bound to claude-code session 'claude-session-1'.
+            """);
+        Assert.Equal(
+            "test-agent",
+            await QueryScalarAsync("SELECT agent_name FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+        Assert.Equal(
+            "explicit",
+            await QueryScalarAsync("SELECT binding_kind FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+    }
+
+    [Fact]
     public async Task ReturnsError_When_NoSessionRowExistsForTheAncestor()
     {
         // arrange: the missing-row case through the CLI - an ancestor was
@@ -522,6 +550,82 @@ public sealed class RegisterAgentCommandDetectClientTests
 
         // assert
         Assert.Null(client);
+    }
+
+    private sealed class FakeEnvironmentVariableProvider(IReadOnlyDictionary<string, string> variables)
+        : IEnvironmentVariableProvider
+    {
+        public string? GetEnvironmentVariable(string name)
+            => variables.GetValueOrDefault(name);
+    }
+}
+
+/// <summary>
+/// Exercises <see cref="RegisterAgentCommand.ResolveCodexEnvSessionId"/>
+/// directly, the same way <see cref="RegisterAgentCommandDetectClientTests"/>
+/// exercises <see cref="RegisterAgentCommand.DetectClient"/>: a hand-rolled
+/// <see cref="IEnvironmentVariableProvider"/>, since the mocked provider the
+/// CLI-level tests share only stubs names under a "NITRO_" prefix.
+/// </summary>
+public sealed class RegisterAgentCommandResolveCodexEnvSessionIdTests
+{
+    [Fact]
+    public void ResolveCodexEnvSessionId_Should_ReturnCodexSessionId_When_Set()
+    {
+        // arrange
+        var environmentVariables = new FakeEnvironmentVariableProvider(
+            new Dictionary<string, string> { ["CODEX_SESSION_ID"] = "session-1" });
+
+        // act
+        var sessionId = RegisterAgentCommand.ResolveCodexEnvSessionId(environmentVariables);
+
+        // assert
+        Assert.Equal("session-1", sessionId);
+    }
+
+    [Fact]
+    public void ResolveCodexEnvSessionId_Should_FallBackToCodexThreadId_When_CodexSessionIdIsNotSet()
+    {
+        // arrange
+        var environmentVariables = new FakeEnvironmentVariableProvider(
+            new Dictionary<string, string> { ["CODEX_THREAD_ID"] = "thread-1" });
+
+        // act
+        var sessionId = RegisterAgentCommand.ResolveCodexEnvSessionId(environmentVariables);
+
+        // assert
+        Assert.Equal("thread-1", sessionId);
+    }
+
+    [Fact]
+    public void ResolveCodexEnvSessionId_Should_PreferCodexSessionId_When_BothAreSet()
+    {
+        // arrange
+        var environmentVariables = new FakeEnvironmentVariableProvider(
+            new Dictionary<string, string>
+            {
+                ["CODEX_SESSION_ID"] = "session-1",
+                ["CODEX_THREAD_ID"] = "thread-1"
+            });
+
+        // act
+        var sessionId = RegisterAgentCommand.ResolveCodexEnvSessionId(environmentVariables);
+
+        // assert
+        Assert.Equal("session-1", sessionId);
+    }
+
+    [Fact]
+    public void ResolveCodexEnvSessionId_Should_ReturnNull_When_NeitherIsSet()
+    {
+        // arrange
+        var environmentVariables = new FakeEnvironmentVariableProvider(new Dictionary<string, string>());
+
+        // act
+        var sessionId = RegisterAgentCommand.ResolveCodexEnvSessionId(environmentVariables);
+
+        // assert
+        Assert.Null(sessionId);
     }
 
     private sealed class FakeEnvironmentVariableProvider(IReadOnlyDictionary<string, string> variables)

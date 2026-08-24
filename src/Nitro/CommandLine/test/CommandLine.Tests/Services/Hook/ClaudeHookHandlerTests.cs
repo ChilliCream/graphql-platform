@@ -89,7 +89,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     // ---------- SessionStart ----------
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_CreateUnclaimedRow_When_NoEnvActorIsSet()
+    public async Task HandleSessionStartAsync_Should_BindTheRowToAGeneratedActor_When_NoEnvActorIsSet()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -98,11 +98,34 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // act
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        // assert
+        // assert: never left unbound - a deterministic, harness-namespaced
+        // actor keeps the live session mail-addressable, role untouched.
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Equal(AgentSessionBindingKind.None, row.BindingKind);
+        Assert.Equal("claude-session-1", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.Equal("", row.Role);
+        Assert.NotNull(await _agentRegistry.GetAsync("claude-session-1", cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_BindTheSameGeneratedActor_When_CalledAgainForTheSameSession()
+    {
+        // arrange: stability across a duplicate SessionStart for the exact
+        // same (harness, session id).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // act
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal("claude-session-1", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
     }
 
     [Fact]
@@ -231,9 +254,10 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_SessionIsUnclaimed()
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheGeneratedActor()
     {
-        // arrange
+        // arrange: SessionStart bound the row to its generated actor, but
+        // nobody has sent that actor any mail yet.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
@@ -718,6 +742,10 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
     public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
         string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
         => inner.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
+
+    public Task<AgentSessionRecord?> FindBySessionIdAsync(
+        string harness, string host, string sessionId, CancellationToken cancellationToken)
+        => inner.FindBySessionIdAsync(harness, host, sessionId, cancellationToken);
 
     public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken)

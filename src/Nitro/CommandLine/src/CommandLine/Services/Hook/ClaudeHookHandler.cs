@@ -43,7 +43,12 @@ internal sealed class ClaudeHookHandler(
             return ClaudeHookOutcome.Neutral;
         }
 
-        var envActor = MailActor.TryResolve(null, environmentVariables);
+        // No explicit actor (NITRO_MAIL_ACTOR/NITRO_TASK_ACTOR) configured: a
+        // deterministic, harness-namespaced actor generated from the full
+        // session id keeps this live session mail-addressable rather than
+        // settling as an unbound presence row.
+        var envActor = MailActor.TryResolve(null, environmentVariables)
+            ?? AgentSessionActorNaming.Generate(resolved.Generation.Harness, resolved.Generation.SessionId);
 
         var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
             && EndpointAddress.IsValid(name)

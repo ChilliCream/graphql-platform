@@ -61,6 +61,7 @@ internal sealed class RegisterAgentCommand : Command
             copilotAncestorResolver,
             instanceIdProvider,
             globalConfigDirectoryProvider,
+            environmentVariableProvider,
             sessions,
             cancellationToken);
 
@@ -112,15 +113,21 @@ internal sealed class RegisterAgentCommand : Command
     /// <summary>
     /// Resolves this process's own live harness session across Claude Code,
     /// Codex, and Copilot, in that order: Claude's ancestor session file
-    /// gives its session id directly; Codex and Copilot give only an
-    /// ancestor pid, so the session already recorded for that exact
-    /// (host, pid, process-start) is looked up instead. Returns null when no
-    /// harness ancestor is found at all (register then falls back to
-    /// identity-only registration). Throws <see cref="ExitException"/> when
-    /// an ancestor IS found but its process is no longer running, its
+    /// gives its session id directly, and a row missing for it is bootstrapped
+    /// on the spot (the SessionStart hook may never have fired for it); Codex
+    /// and Copilot give only an ancestor pid, so the session already recorded
+    /// for that exact (host, pid, process-start) is looked up instead. When
+    /// no Codex ancestor pid can be walked (a sandboxed invocation, whose
+    /// <c>/proc</c> ancestry does not reach the real Codex process), the
+    /// authoritative <c>CODEX_SESSION_ID</c>/<c>CODEX_THREAD_ID</c> launch
+    /// environment resolves the session by id instead. Returns null when no
+    /// harness context is found at all (register then falls back to
+    /// identity-only registration). Throws <see cref="ExitException"/> when a
+    /// harness context IS found but its process is no longer running, its
     /// session cannot be resolved to exactly one row, or this process's own
     /// workspace disagrees with the session's: a detected harness context
-    /// that fails to resolve is a real problem, not a silent fallback.
+    /// that fails to resolve is a real problem, never a silent fallback to
+    /// identity-only success.
     /// </summary>
     private static async Task<AgentSessionGeneration?> TryResolveGenerationAsync(
         IFileSystem fileSystem,
@@ -130,16 +137,20 @@ internal sealed class RegisterAgentCommand : Command
         ICopilotAncestorSessionResolver copilotAncestorResolver,
         INitroInstanceIdProvider instanceIdProvider,
         IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
+        IEnvironmentVariableProvider environmentVariableProvider,
         IAgentSessionRegistry sessions,
         CancellationToken cancellationToken)
     {
         var claudeAncestor = claudeAncestorResolver.Resolve();
         var codexAncestor = claudeAncestor is null ? codexAncestorResolver.Resolve() : null;
-        var copilotAncestor = claudeAncestor is null && codexAncestor is null
+        var codexSessionId = claudeAncestor is null && codexAncestor is null
+            ? ResolveCodexEnvSessionId(environmentVariableProvider)
+            : null;
+        var copilotAncestor = claudeAncestor is null && codexAncestor is null && codexSessionId is null
             ? copilotAncestorResolver.Resolve()
             : null;
 
-        if (claudeAncestor is null && codexAncestor is null && copilotAncestor is null)
+        if (claudeAncestor is null && codexAncestor is null && codexSessionId is null && copilotAncestor is null)
         {
             return null;
         }
@@ -161,8 +172,26 @@ internal sealed class RegisterAgentCommand : Command
 
             RequireMatchingWorkspace(cwdWorkspacePath, ancestorWorkspacePath);
 
-            return new AgentSessionGeneration(
+            var generation = new AgentSessionGeneration(
                 AgentSessionHarness.ClaudeCode, claudeAncestor.SessionId, host, claudeAncestor.Pid, procStart);
+
+            // A current Claude Code session whose SessionStart hook never
+            // fired (hooks not installed, or a race with this very command)
+            // has no row yet: bootstrap it the same way SessionStart itself
+            // would, so this one register call still creates and binds it
+            // instead of requiring a separate SessionStart first.
+            if (await sessions.FindByGenerationAsync(generation, cancellationToken) is null)
+            {
+                var (endpointKind, endpointAddr) = EndpointAddress.IsValid(claudeAncestor.Name)
+                    ? (AgentSessionEndpointKind.ClaudePeer, claudeAncestor.Name)
+                    : (AgentSessionEndpointKind.None, string.Empty);
+
+                await sessions.StartAsync(
+                    generation, claudeAncestor.Cwd, ancestorWorkspacePath, endpointKind, endpointAddr,
+                    envActor: null, cancellationToken);
+            }
+
+            return generation;
         }
 
         if (codexAncestor is not null)
@@ -172,9 +201,50 @@ internal sealed class RegisterAgentCommand : Command
                 processInfoProvider, sessions, cancellationToken);
         }
 
+        if (codexSessionId is not null)
+        {
+            return await ResolveBySessionIdAsync(
+                AgentSessionHarness.Codex, codexSessionId, host, cwdWorkspacePath, sessions, cancellationToken);
+        }
+
         return await ResolveByProcessAsync(
             AgentSessionHarness.Copilot, copilotAncestor!.Pid, host, cwdWorkspacePath,
             processInfoProvider, sessions, cancellationToken);
+    }
+
+    /// <summary>
+    /// Resolves the authoritative Codex session id from its launch
+    /// environment (<c>CODEX_SESSION_ID</c>, falling back to
+    /// <c>CODEX_THREAD_ID</c>), for a sandboxed Codex invocation whose
+    /// <c>/proc</c> ancestry cannot be walked to find the real Codex process.
+    /// Returns null when neither is set.
+    /// </summary>
+    internal static string? ResolveCodexEnvSessionId(IEnvironmentVariableProvider environmentVariables)
+        => environmentVariables.GetEnvironmentVariable("CODEX_SESSION_ID")
+            ?? environmentVariables.GetEnvironmentVariable("CODEX_THREAD_ID");
+
+    /// <summary>
+    /// Resolves a harness's own live session by its session id alone (no
+    /// process identity to walk to), reading the (pid, proc_start) an
+    /// earlier, authoritative SessionStart already recorded for it.
+    /// </summary>
+    private static async Task<AgentSessionGeneration> ResolveBySessionIdAsync(
+        string harness,
+        string sessionId,
+        string host,
+        string cwdWorkspacePath,
+        IAgentSessionRegistry sessions,
+        CancellationToken cancellationToken)
+    {
+        var row = await sessions.FindBySessionIdAsync(harness, host, sessionId, cancellationToken)
+            ?? throw new ExitException(
+                $"No {harness} session found for session id '{sessionId}' on this host. If hooks were "
+                + $"never installed, run `nitro agent hooks {harness} install` and start a new {harness} "
+                + "session; otherwise it may have ended or been reaped.");
+
+        RequireMatchingWorkspace(cwdWorkspacePath, row.WorkspacePath);
+
+        return new AgentSessionGeneration(harness, sessionId, host, row.Pid, row.ProcStart);
     }
 
     /// <summary>

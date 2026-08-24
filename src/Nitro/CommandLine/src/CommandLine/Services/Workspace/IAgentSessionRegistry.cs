@@ -175,6 +175,18 @@ internal interface IAgentSessionRegistry
         string harness, string host, int pid, string procStart, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns the row matching <paramref name="harness"/>, <paramref
+    /// name="host"/>, and <paramref name="sessionId"/> exactly, ignoring
+    /// process identity entirely. For resolving a session's own recorded
+    /// (pid, proc_start) from its session id alone, when the caller has no
+    /// live process identity to walk to (an authoritative session id from
+    /// the harness's own launch environment, for example, rather than a
+    /// <c>/proc</c> ancestor walk). Null when no row matches.
+    /// </summary>
+    Task<AgentSessionRecord?> FindBySessionIdAsync(
+        string harness, string host, string sessionId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Reaps dead current-instance rows, then returns every surviving row
     /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
     /// rows are never returned: a ping fired from here cannot reach a

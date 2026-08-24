@@ -707,6 +707,68 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Empty(candidates);
     }
 
+    // ---------- FindBySessionIdAsync ----------
+
+    [Fact]
+    public async Task FindBySessionIdAsync_Should_ReturnTheRow_When_ItExists()
+    {
+        // arrange: the authoritative-session-id lookup a sandboxed caller
+        // with no live process identity to walk to relies on - it must find
+        // the row by (harness, host, session_id) alone.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1") with { Harness = AgentSessionHarness.Codex };
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-1",
+            envActor: null, cancellationToken);
+
+        // act
+        var row = await _sessions.FindBySessionIdAsync(
+            AgentSessionHarness.Codex, CurrentHost, "session-1", cancellationToken);
+
+        // assert
+        Assert.NotNull(row);
+        Assert.Equal(generation.Pid, row.Pid);
+        Assert.Equal(generation.ProcStart, row.ProcStart);
+    }
+
+    [Fact]
+    public async Task FindBySessionIdAsync_Should_ReturnNull_When_NoRowMatches()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var row = await _sessions.FindBySessionIdAsync(
+            AgentSessionHarness.Codex, CurrentHost, "session-missing", cancellationToken);
+
+        // assert
+        Assert.Null(row);
+    }
+
+    [Fact]
+    public async Task FindBySessionIdAsync_Should_ReturnNull_When_TheRowBelongsToADifferentHost()
+    {
+        // arrange: a session id recorded on a different Nitro instance must
+        // never be resolved as if it belonged to this one.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var remoteGeneration = AliveGeneration("session-1")
+            with
+        { Harness = AgentSessionHarness.Codex, Host = RemoteHost };
+        await _sessions.StartAsync(
+            remoteGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-1",
+            envActor: null, cancellationToken);
+
+        // act
+        var row = await _sessions.FindBySessionIdAsync(
+            AgentSessionHarness.Codex, CurrentHost, "session-1", cancellationToken);
+
+        // assert
+        Assert.Null(row);
+    }
+
     // ---------- EndAsync ----------
 
     [Fact]

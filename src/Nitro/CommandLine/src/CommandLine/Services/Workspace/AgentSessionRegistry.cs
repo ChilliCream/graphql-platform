@@ -358,6 +358,19 @@ internal sealed class AgentSessionRegistry(
         return rows.Select(r => r.ToRecord()).ToList();
     }
 
+    public async Task<AgentSessionRecord?> FindBySessionIdAsync(
+        string harness, string host, string sessionId, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND host = @host AND session_id = @sessionId",
+            new { harness, host, sessionId, cancellationToken });
+
+        return row?.ToRecord();
+    }
+
     /// <summary>
     /// The claim state machine <see cref="ClaimAsync"/> and <see
     /// cref="RegisterAsync"/> both apply: none binds, env promotes to

@@ -38,7 +38,12 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        var envActor = MailActor.TryResolve(null, environmentVariables);
+        // No explicit actor (NITRO_MAIL_ACTOR/NITRO_TASK_ACTOR) configured: a
+        // deterministic, harness-namespaced actor generated from the full
+        // session id keeps this live session mail-addressable rather than
+        // settling as an unbound presence row.
+        var envActor = MailActor.TryResolve(null, environmentVariables)
+            ?? AgentSessionActorNaming.Generate(resolved.Generation.Harness, resolved.Generation.SessionId);
 
         // The Codex endpoint address is the thread id itself (== session id,
         // spike S4), unlike Claude's ancestor-derived peer name: Codex has no
