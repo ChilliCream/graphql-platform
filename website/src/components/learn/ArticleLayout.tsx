@@ -48,9 +48,12 @@ interface ArticleLayoutProps {
  * learn-harmonization.md D5/D6). Takes plain props only: no blog imports, no
  * filesystem reads.
  *
- * The shell stays `max-w-5xl` (hero image and header included), but running
- * prose is capped at `max-w-[46rem]` (~80ch): the shell's full 1024px was
- * measuring 123 to 139ch, well past the 45 to 90ch readable band.
+ * The shell stays `max-w-5xl` (header included), but running prose and the
+ * hero image are both capped at `max-w-[46rem]` (~80ch): the shell's full
+ * 1024px was measuring 123 to 139ch, well past the 45 to 90ch readable
+ * band, and a hero breaking out to the full shell width read as oversized
+ * on widescreen relative to that measure (website-kbx.7, amending
+ * learn-harmonization.md D5's breakout for the hero specifically).
  */
 export function ArticleLayout({
   breadcrumb,
@@ -85,8 +88,8 @@ export function ArticleLayout({
               src={heroImageSrc}
               alt=""
               priority
-              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 1024px"
-              className="mt-6 mb-6 aspect-video w-full rounded-lg object-cover"
+              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 46rem"
+              className="mt-6 mb-6 aspect-video w-full max-w-[46rem] rounded-lg object-cover"
             />
           ) : null}
           <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">

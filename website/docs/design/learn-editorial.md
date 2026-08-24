@@ -305,8 +305,22 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
    section 6.1, plus for evergreen articles an "Updated {date}" line in the
    same mono voice. Blog posts omit this row.
 3. **Hero image**: `Picture`, `aspect-video rounded-lg object-cover`,
-   `priority`, exactly the current blog treatment. Optional; explainers
-   typically omit it.
+   `priority`. Optional; explainers typically omit it.
+
+   **Amended by website-kbx.7 (2026-08-24):** the hero no longer breaks out
+   to the full `max-w-5xl` shell width (superseding
+   learn-harmonization.md D5's breakout rule for the hero specifically; D5
+   still governs code blocks and other figures). On widescreen the
+   full-width hero read as oversized next to the `max-w-[46rem]` prose it
+   introduces, and the fix is a treatment change, not a shrink: the hero is
+   now capped at that same `max-w-[46rem]` text-column measure, so it reads
+   as part of the same reading column as the standfirst and body rather
+   than a wider banner above them. `aspect-video` (16:9) is kept, which
+   bounds the rendered height at any viewport (414px at the 736px cap) and
+   keeps the ratio stable, so there is no layout shift. Small screens are
+   unchanged: the hero was already effectively full-width there, well
+   under the 46rem cap.
+
 4. **Title**: `Typography variant="h1"` (`src/design-system/Typography.tsx`),
    unchanged from the blog page.
 5. **Standfirst** (optional): `text-cc-ink-dim text-lg leading-relaxed`,
