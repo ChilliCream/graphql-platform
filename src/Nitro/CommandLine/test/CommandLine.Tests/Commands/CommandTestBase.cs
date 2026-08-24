@@ -42,6 +42,17 @@ public abstract class CommandTestBase
     private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    // Default to no ancestor found for every command test, not just ones
+    // that call SetupAncestorSessionResolvers explicitly: `agent register`
+    // walks the real Claude Code, Codex, and Copilot ancestor process tree,
+    // which the test host cannot control (and, running nested inside a live
+    // Claude Code session, cannot even predict deterministically).
+    private IClaudeAncestorSessionResolver _claudeAncestorSessionResolverOverride =
+        new FixedClaudeAncestorSessionResolver(null);
+    private ICodexAncestorSessionResolver _codexAncestorSessionResolverOverride =
+        new FixedCodexAncestorSessionResolver(null);
+    private ICopilotAncestorSessionResolver _copilotAncestorSessionResolverOverride =
+        new FixedCopilotAncestorSessionResolver(null);
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
@@ -118,6 +129,23 @@ public abstract class CommandTestBase
     private protected void SetupGlobalConfigDirectory(string directory)
     {
         _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Points the Claude Code, Codex, and Copilot ancestor-session walk at
+    /// fixed results instead of the real process tree the test host runs
+    /// under, which (running nested inside a live Claude Code session) it
+    /// cannot control or predict deterministically. All three default to no
+    /// ancestor found when not given.
+    /// </summary>
+    private protected void SetupAncestorSessionResolvers(
+        ClaudeAncestorSession? claude = null,
+        CodexAncestorSession? codex = null,
+        CopilotAncestorSession? copilot = null)
+    {
+        _claudeAncestorSessionResolverOverride = new FixedClaudeAncestorSessionResolver(claude);
+        _codexAncestorSessionResolverOverride = new FixedCodexAncestorSessionResolver(codex);
+        _copilotAncestorSessionResolverOverride = new FixedCopilotAncestorSessionResolver(copilot);
     }
 
     /// <summary>
@@ -333,6 +361,10 @@ public abstract class CommandTestBase
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
         }
+
+        services.Replace(ServiceDescriptor.Singleton(_claudeAncestorSessionResolverOverride));
+        services.Replace(ServiceDescriptor.Singleton(_codexAncestorSessionResolverOverride));
+        services.Replace(ServiceDescriptor.Singleton(_copilotAncestorSessionResolverOverride));
 
         if (_claudeSettingsPathResolverOverride is not null)
         {
@@ -607,4 +639,22 @@ internal sealed class InteractiveCommand(
     {
         return await executeAsync(cancellationToken);
     }
+}
+
+internal sealed class FixedClaudeAncestorSessionResolver(ClaudeAncestorSession? session)
+    : IClaudeAncestorSessionResolver
+{
+    public ClaudeAncestorSession? Resolve() => session;
+}
+
+internal sealed class FixedCodexAncestorSessionResolver(CodexAncestorSession? session)
+    : ICodexAncestorSessionResolver
+{
+    public CodexAncestorSession? Resolve() => session;
+}
+
+internal sealed class FixedCopilotAncestorSessionResolver(CopilotAncestorSession? session)
+    : ICopilotAncestorSessionResolver
+{
+    public CopilotAncestorSession? Resolve() => session;
 }
