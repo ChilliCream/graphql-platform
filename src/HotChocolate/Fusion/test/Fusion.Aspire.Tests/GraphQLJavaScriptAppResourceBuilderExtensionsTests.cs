@@ -399,6 +399,67 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         Assert.Equal("web", annotation.EndpointName);
     }
 
+    [Fact]
+    public async Task WithGraphQLHttpEndpoint_Should_TargetNamedEndpoint_When_EndpointNameIsProvided()
+    {
+        // arrange
+        WriteSchemaSettings(
+            """
+            {
+              "name": "Shop"
+            }
+            """);
+        var builder = DistributedApplication.CreateBuilder();
+        var app = builder
+            .AddJavaScriptApp("shop", _appDirectory.FullName)
+            .WithHttpEndpoint(port: 1111, name: "admin")
+            .WithHttpEndpoint(port: 2222, name: "api")
+            .WithGraphQLHttpEndpoint(endpointName: "api");
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition()
+            .WithReference(app);
+
+        // act
+        await using var scope = await PublishBeforeStartAsync(builder);
+
+        // assert
+        var annotation = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        Assert.Equal("api", annotation.EndpointName);
+        Assert.Equal(2, app.Resource.Annotations.OfType<EndpointAnnotation>().Count());
+    }
+
+    [Fact]
+    public async Task WithGraphQLHttpEndpoint_Should_DeclareNamedEndpoint_When_EndpointNameHasNoEndpoint()
+    {
+        // arrange
+        WriteSchemaSettings(
+            """
+            {
+              "name": "Shop"
+            }
+            """);
+        var builder = DistributedApplication.CreateBuilder();
+        var app = builder
+            .AddJavaScriptApp("shop", _appDirectory.FullName)
+            .WithGraphQLHttpEndpoint(endpointName: "api");
+        builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition()
+            .WithReference(app);
+
+        // act
+        await using var scope = await PublishBeforeStartAsync(builder);
+
+        // assert
+        var endpoint = Assert.Single(app.Resource.Annotations.OfType<EndpointAnnotation>());
+        Assert.Equal("api", endpoint.Name);
+        var annotation = Assert.Single(
+            app.Resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>());
+        Assert.Equal("api", annotation.EndpointName);
+    }
+
     /// <summary>
     /// Builds the distributed application without starting it and publishes
     /// <see cref="BeforeStartEvent"/>, so the built-in Aspire subscriptions and the extension

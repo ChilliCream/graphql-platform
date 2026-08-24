@@ -21,6 +21,11 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
     /// composition reads the <c>schema-settings.json</c> next to the app's <c>package.json</c>
     /// and downloads the schema from the running app.
     /// </summary>
+    /// <remarks>
+    /// When the app does not declare the target endpoint, one is declared and the app receives
+    /// the port to bind through the <c>PORT</c> environment variable. An app that reads a
+    /// different variable declares its endpoint itself with <c>WithHttpEndpoint</c>.
+    /// </remarks>
     /// <param name="builder">The resource builder</param>
     /// <param name="path">
     /// The path of the GraphQL endpoint that the app serves. It must start with '/'.
@@ -30,9 +35,9 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
     /// <c>null</c> unless the source schema uses Apollo Federation, which serves its schema
     /// through the GraphQL endpoint at <paramref name="path"/> and ignores this path.
     /// </param>
-    /// <param name="portEnvironmentVariable">
-    /// The name of the environment variable that passes the port to bind to the app (defaults
-    /// to "PORT"). It only applies when the app does not already declare an HTTP endpoint.
+    /// <param name="endpointName">
+    /// The endpoint name to use. When omitted, the first HTTP endpoint that the app declares,
+    /// or the endpoint that is declared here, is used.
     /// </param>
     /// <param name="sourceSchemaName">
     /// An optional source schema name assertion. When specified, it must exactly match the
@@ -44,7 +49,7 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
         this IResourceBuilder<JavaScriptAppResource> builder,
         string path = "/graphql",
         string? schemaPath = "/graphql/schema.graphql",
-        string portEnvironmentVariable = "PORT",
+        string? endpointName = null,
         string? sourceSchemaName = null)
     {
         if (!path.StartsWith('/'))
@@ -94,26 +99,32 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
             }
 
             // A GraphQL source schema needs an HTTP endpoint. Declare one unless the app
-            // already has one, and tell the app where to bind through the given environment
-            // variable. BeforeStartEvent completes before the orchestrator reads the model,
-            // so the endpoint behaves like one declared in code.
-            if (!app.Annotations.OfType<EndpointAnnotation>()
-                .Any(endpoint => endpoint.UriScheme is "http" or "https"))
+            // already declares the target endpoint, and tell the app where to bind through
+            // the PORT environment variable. BeforeStartEvent completes before the
+            // orchestrator reads the model, so the endpoint behaves like one declared in
+            // code.
+            var targetEndpointExists = endpointName is null
+                ? app.Annotations.OfType<EndpointAnnotation>()
+                    .Any(endpoint => endpoint.UriScheme is "http" or "https")
+                : app.Annotations.OfType<EndpointAnnotation>()
+                    .Any(endpoint => endpoint.Name == endpointName);
+
+            if (!targetEndpointExists)
             {
                 builder.WithHttpEndpoint(
+                    name: endpointName,
                     port: environmentUrl is { IsLoopback: true, IsDefaultPort: false }
                         ? environmentUrl.Port
                         : null,
-                    env: portEnvironmentVariable);
+                    env: "PORT");
             }
 
-            // The app may declare its HTTP endpoint under a custom name, and the source
-            // schema annotation must target that endpoint. The URL callback runs when the
-            // endpoints of the app are allocated.
-            var endpointName = app.Annotations.OfType<EndpointAnnotation>()
-                .First(endpoint => endpoint.UriScheme is "http" or "https")
-                .Name;
-            builder.WithUrlForEndpoint(endpointName, url => url.Url += path);
+            // The URL callback runs when the endpoints of the app are allocated.
+            var resolvedEndpointName = endpointName
+                ?? app.Annotations.OfType<EndpointAnnotation>()
+                    .First(endpoint => endpoint.UriScheme is "http" or "https")
+                    .Name;
+            builder.WithUrlForEndpoint(resolvedEndpointName, url => url.Url += path);
 
             if (!settingsFound)
             {
@@ -131,7 +142,7 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
                 new GraphQLSourceSchemaAnnotation
                 {
                     SourceSchemaName = sourceSchemaName,
-                    EndpointName = endpointName,
+                    EndpointName = resolvedEndpointName,
                     SchemaPath = schemaPath,
                     GraphQLPath = path,
                     Location = SourceSchemaLocationType.SchemaEndpoint
