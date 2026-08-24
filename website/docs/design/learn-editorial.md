@@ -884,6 +884,11 @@ open editorial composition, not a boxed panel: the v1 hero's card chrome
 (`bg-cc-white/2.5` panel, border, hover translate) is dropped so the story
 reads bigger than everything, not "same card, larger".
 
+`LearnFeaturedStory` takes a `layout` prop (kbx.14 amendment): `stacked`
+(default) is used by the landing and topic-hub editorial band center
+column; `split` is used by the articles index page 1 lead so the title
+stays above the fold at 1440 and up.
+
 - Stacked: image (`aspect-video rounded-2xl border border-cc-ink-faint
 object-cover`, `priority` on the landing), then kicker row (`Eyebrow`
   "Featured" in accent plus the category chip in the established mono chip
@@ -892,6 +897,12 @@ text-balance text-h4 sm:text-h3 xl:text-h2`, then dek `text-cc-ink-dim
 text-lg line-clamp-3`, then one byline row (avatar `Picture` 30px, author,
   "·", full date). The v1 hero printed the date twice (meta row and byline);
   v2 prints it once, in the byline only.
+- Split (kbx.14): below `lg` identical to stacked; from `lg` up the whole
+  link becomes `lg:flex-row lg:items-center lg:gap-10`, image capped to
+  `lg:w-[45%] lg:h-[22rem] lg:aspect-auto lg:shrink-0`, text column
+  `lg:min-w-0 lg:flex-1` with the kicker row's `mt-6` dropped (`lg:mt-0`).
+  Mirrors the kbx.7 detail-page hero-cap principle expressed as a
+  side-by-side split.
 - Whole composition one `Link`; hover shifts the headline to
   `text-cc-accent`. No translate, no border brightening (there is no
   border).
