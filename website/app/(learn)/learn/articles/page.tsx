@@ -30,7 +30,14 @@ export default function ArticlesIndex() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
       <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]} />
       <Typography variant="h1">Articles</Typography>
-      {featured ? <LearnFeaturedStory post={featured} priority sizes="(max-width: 1663px) 100vw, 1600px" /> : null}
+      {featured ? (
+        <LearnFeaturedStory
+          post={featured}
+          priority
+          layout="split"
+          sizes="(max-width: 1023px) 100vw, (max-width: 1663px) 45vw, 720px"
+        />
+      ) : null}
       <div className="mt-8 sm:mt-10">
         <LearnArticleRows posts={rest} />
       </div>

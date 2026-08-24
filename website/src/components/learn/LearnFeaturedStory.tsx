@@ -11,6 +11,15 @@ interface LearnFeaturedStoryProps {
   readonly priority?: boolean;
   /** Viewport-to-image-width hint for the call site's column; defaults to the landing band's center column. */
   readonly sizes?: string;
+  /**
+   * "stacked" (default): image above title, full column width, used in the
+   * three-column editorial band. "split": image and title/dek/meta run
+   * side by side from `lg` up, image width capped to a fraction of the
+   * column and to a fixed height, so the story's title and kicker stay
+   * above the fold next to it instead of being pushed down by a tall
+   * image; used on the articles index. Both stack image-over-text below `lg`.
+   */
+  readonly layout?: "stacked" | "split";
 }
 
 /**
@@ -25,13 +34,22 @@ export function LearnFeaturedStory({
   post,
   priority = false,
   sizes = "(max-width: 1279px) 100vw, 38vw",
+  layout = "stacked",
 }: LearnFeaturedStoryProps) {
   const { featuredImage } = post;
+  const isSplit = layout === "split";
 
   return (
-    <Link href={post.href} className="group/featured flex flex-col no-underline">
+    <Link
+      href={post.href}
+      className={`group/featured flex flex-col no-underline ${isSplit ? "lg:flex-row lg:items-center lg:gap-10" : ""}`}
+    >
       {featuredImage ? (
-        <div className="aspect-video overflow-hidden rounded-2xl">
+        <div
+          className={`aspect-video overflow-hidden rounded-2xl ${
+            isSplit ? "lg:aspect-auto lg:h-[22rem] lg:w-[45%] lg:shrink-0" : ""
+          }`}
+        >
           <Picture
             src={featuredImage}
             alt=""
@@ -41,34 +59,36 @@ export function LearnFeaturedStory({
           />
         </div>
       ) : null}
-      <div className={`flex flex-wrap items-center gap-3 ${featuredImage ? "mt-6" : ""}`}>
-        <Eyebrow as="span" color="accent">
-          Featured
-        </Eyebrow>
-        {post.category ? <Tag>{post.category}</Tag> : null}
-      </div>
-      <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 group-hover/featured:text-cc-accent mt-5 font-semibold text-balance transition-colors">
-        {post.title}
-      </h2>
-      {post.description ? <p className="text-cc-ink-dim mt-4 line-clamp-3 text-lg">{post.description}</p> : null}
-      <div className="text-cc-ink-dim mt-8 flex items-center gap-3 text-sm">
-        {post.author ? (
-          <>
-            {post.authorImageUrl ? (
-              <Picture
-                src={post.authorImageUrl}
-                alt=""
-                width={30}
-                height={30}
-                sizes="30px"
-                className="h-[30px] w-[30px] rounded-full object-cover"
-              />
-            ) : null}
-            <span>{post.author}</span>
-            <span aria-hidden="true">·</span>
-          </>
-        ) : null}
-        <span>{formatDate(post.date, { month: "short", day: "numeric", year: "numeric" })}</span>
+      <div className={isSplit ? "lg:min-w-0 lg:flex-1" : undefined}>
+        <div className={`flex flex-wrap items-center gap-3 ${featuredImage ? "mt-6" : ""} ${isSplit ? "lg:mt-0" : ""}`}>
+          <Eyebrow as="span" color="accent">
+            Featured
+          </Eyebrow>
+          {post.category ? <Tag>{post.category}</Tag> : null}
+        </div>
+        <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 group-hover/featured:text-cc-accent mt-5 font-semibold text-balance transition-colors">
+          {post.title}
+        </h2>
+        {post.description ? <p className="text-cc-ink-dim mt-4 line-clamp-3 text-lg">{post.description}</p> : null}
+        <div className="text-cc-ink-dim mt-8 flex items-center gap-3 text-sm">
+          {post.author ? (
+            <>
+              {post.authorImageUrl ? (
+                <Picture
+                  src={post.authorImageUrl}
+                  alt=""
+                  width={30}
+                  height={30}
+                  sizes="30px"
+                  className="h-[30px] w-[30px] rounded-full object-cover"
+                />
+              ) : null}
+              <span>{post.author}</span>
+              <span aria-hidden="true">·</span>
+            </>
+          ) : null}
+          <span>{formatDate(post.date, { month: "short", day: "numeric", year: "numeric" })}</span>
+        </div>
       </div>
     </Link>
   );
