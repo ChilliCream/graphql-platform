@@ -50,7 +50,7 @@ internal sealed class ListSessionCommand : Command
 
             // Distinguishes "no endpoint to ping at all" (endpoint_kind
             // 'none') from "an endpoint the notifier has no transport for"
-            // (last_ping_result 'unsupported', e.g. claude-peer) from an
+            // (last_ping_result 'unsupported', e.g. copilot-extension) from an
             // ordinary ping outcome: the same diagnostic signal `doctor`
             // surfaces.
             var ping = view.Session.LastPingResult is { Length: > 0 } lastPingResult

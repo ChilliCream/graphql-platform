@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Exercises <see cref="Notifier"/> against a real workspace database: the
 /// claude-peer/none/codex-thread branch, the cooldown/lease decision before
 /// any spawn, spawn-failure recording, and never throwing - the required
-/// notifier tests for capacity-dropped, unsupported-vs-none distinctness,
+/// notifier tests for capacity-dropped, supported-vs-none distinctness,
 /// and clean behavior under every spawn-failure mode.
 /// </summary>
 public sealed class NotifierTests : IDisposable
@@ -55,7 +55,7 @@ public sealed class NotifierTests : IDisposable
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
     [Fact]
-    public async Task NotifyAsync_Should_RecordUnsupported_And_NeverSpawn_When_EndpointIsClaudePeer()
+    public async Task NotifyAsync_Should_SpawnTheWorker_When_EndpointIsClaudePeer()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -65,8 +65,29 @@ public sealed class NotifierTests : IDisposable
         // act
         await _notifier.NotifyAsync([Actor], cancellationToken);
 
-        // assert: distinct from `none` - a real endpoint the notifier simply
-        // has no transport for, not the absence of one.
+        // assert
+        var call = Assert.Single(_launcher.Calls);
+        Assert.Contains("--endpoint-kind", call.WorkerArgs);
+        Assert.Contains(AgentSessionEndpointKind.ClaudePeer, call.WorkerArgs);
+        Assert.Contains("--pid", call.WorkerArgs);
+
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.NotNull(row!.LastPingAttempt);
+        Assert.Null(row.LastPingResult);
+    }
+
+    [Fact]
+    public async Task NotifyAsync_Should_RecordUnsupported_And_NeverSpawn_When_EndpointHasNoTransport()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var generation = await SeedClaimedSessionAsync(
+            AgentSessionEndpointKind.CopilotExtension, "copilot-a", cancellationToken);
+
+        // act
+        await _notifier.NotifyAsync([Actor], cancellationToken);
+
+        // assert
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
         Assert.Equal(AgentPingResult.Unsupported, row!.LastPingResult);
         Assert.Empty(_launcher.Calls);
@@ -108,6 +129,7 @@ public sealed class NotifierTests : IDisposable
         Assert.Contains(generation.SessionId, call.WorkerArgs);
         Assert.Contains("thread-1", call.WorkerArgs);
         Assert.Contains(Actor, call.WorkerArgs);
+        Assert.Contains(AgentSessionEndpointKind.CodexThread, call.WorkerArgs);
         Assert.Contains("--deadline", call.WorkerArgs);
 
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
@@ -183,7 +205,7 @@ public sealed class NotifierTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.ClaudePeer, "peer-a", cancellationToken);
+            AgentSessionEndpointKind.CopilotExtension, "copilot-a", cancellationToken);
 
         // act
         await _notifier.NotifyAsync([Actor], cancellationToken);
@@ -224,7 +246,10 @@ public sealed class NotifierTests : IDisposable
         var pid = Environment.ProcessId;
         var procStart = new ProcessInfoProvider().GetStartTime(pid)!.Value;
 
-        var generation = new AgentSessionGeneration(AgentSessionHarness.Codex, "session-1", "host-1", pid, procStart);
+        var harness = endpointKind == AgentSessionEndpointKind.ClaudePeer
+            ? AgentSessionHarness.ClaudeCode
+            : AgentSessionHarness.Codex;
+        var generation = new AgentSessionGeneration(harness, "session-1", "host-1", pid, procStart);
 
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", endpointKind, endpointAddr,

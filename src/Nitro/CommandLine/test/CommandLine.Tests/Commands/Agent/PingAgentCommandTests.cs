@@ -79,25 +79,32 @@ public sealed class PingAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task ClaudePeerSession_RecordsUnsupported()
+    public async Task ClaudePeerSession_SendsTheDigestAndRecordsOk()
     {
-        // arrange: a real, recorded endpoint the notifier has no transport
-        // for - resolved and recorded entirely in-process, no transport
-        // call, so this is safe to run through the full CLI pipeline.
+        // arrange
+        var peerClient = new FakeClaudePeerClient();
+        SetupClaudePeerClient(peerClient);
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await InsertAliveSessionRowAsync(
             FixedHost, "session-1", agentName: "bob", endpointKind: "claude-peer", endpointAddr: "peer-a");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.", "--no-ping");
+        var messageId = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
 
         // act
         var result = await ExecuteCommandAsync("agent", "ping", "bob");
 
         // assert
-        result.AssertSuccess("claude-code  session-1  claude-peer  unsupported");
+        result.AssertSuccess("claude-code  session-1  claude-peer  ok");
+
+        var call = Assert.Single(peerClient.Calls);
+        Assert.Equal("session-1", call.SessionId);
+        Assert.Contains(messageId!, call.Message);
 
         var stored = await QueryScalarAsync(
             "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
-        Assert.Equal("unsupported", stored);
+        Assert.Equal("ok", stored);
     }
 
     [Fact]

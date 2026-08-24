@@ -59,13 +59,12 @@ internal sealed class Notifier(
             var now = timeProvider.GetUtcNow();
             var attemptId = MemoryId.New(now);
 
-            if (session.EndpointKind != AgentSessionEndpointKind.CodexThread)
+            if (session.EndpointKind is not AgentSessionEndpointKind.CodexThread
+                and not AgentSessionEndpointKind.ClaudePeer)
             {
-                // Every endpoint kind other than codex-thread and none is
-                // recorded, not attempted: the notifier has no transport
-                // for it (claude-peer today; a future kind would land here
-                // too until it gets its own handler). Unsupported attempts
-                // coalesce under the same per-session cooldown as codex-thread.
+                // An endpoint kind with no transport is recorded, not
+                // attempted. Unsupported attempts coalesce under the same
+                // per-session cooldown as supported transports.
                 var unsupportedCooldownClaimed = await sessionRegistry.TryClaimPingCooldownAsync(
                     session, attemptId, now, PingPolicy.Cooldown, cancellationToken);
 
@@ -115,7 +114,9 @@ internal sealed class Notifier(
                 "--harness", session.Harness,
                 "--session-id", session.SessionId,
                 "--actor", actor,
+                "--endpoint-kind", session.EndpointKind,
                 "--endpoint-addr", session.EndpointAddr,
+                "--pid", session.Pid.ToString(CultureInfo.InvariantCulture),
                 "--attempt", attemptId,
                 "--slot", slot.Value.ToString(CultureInfo.InvariantCulture),
                 "--deadline", deadline.ToString("o", CultureInfo.InvariantCulture)

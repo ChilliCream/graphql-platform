@@ -32,6 +32,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     private readonly MailStore _mail;
     private readonly PingLeaseStore _leases;
     private readonly FakeCodexQueueClient _queueClient;
+    private readonly FakeClaudePeerClient _claudePeerClient;
     private readonly AgentSessionGeneration _generation;
 
     public PingSessionExecutorTests()
@@ -55,6 +56,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
         _leases = new PingLeaseStore(_fileSystem, _database);
         _queueClient = new FakeCodexQueueClient();
+        _claudePeerClient = new FakeClaudePeerClient();
         _generation = new AgentSessionGeneration(Harness, SessionId, "host-1", 1, DateTimeOffset.UnixEpoch);
     }
 
@@ -161,6 +163,34 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     [Fact]
+    public async Task ExecuteClaudePeerAsync_Should_SendTheDigestAndRecordOk_When_UnreadMailExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        var message = await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteClaudePeerAsync(
+            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, outcome);
+        var call = Assert.Single(_claudePeerClient.Calls);
+        Assert.Equal(42, call.Pid);
+        Assert.Equal(SessionId, call.SessionId);
+        Assert.Contains(message.Id, call.Message);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+    }
+
+    [Fact]
     public async Task ExecuteCodexThreadAsync_Should_RecordOkWithoutCallingTheTransport_When_NoUnreadMailExists()
     {
         // arrange: the message that triggered this ping was already read by
@@ -194,7 +224,12 @@ public sealed class PingSessionExecutorTests : IDisposable
         var slot = await _leases.TryAcquireAsync(
             attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
         var executor = new PingSessionExecutor(
-            _mail, new NeverCompletingCodexQueueClient(), _sessions, _leases, _timeProvider);
+            _mail,
+            new NeverCompletingCodexQueueClient(),
+            _claudePeerClient,
+            _sessions,
+            _leases,
+            _timeProvider);
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
@@ -235,7 +270,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     private PingSessionExecutor CreateExecutor()
-        => new(_mail, _queueClient, _sessions, _leases, _timeProvider);
+        => new(_mail, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider);
 
     /// <summary>
     /// A deadline generous enough that a test's own real-time transport work
@@ -280,5 +315,24 @@ internal sealed class NeverCompletingCodexQueueClient : ICodexQueueClient
     {
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         return CodexQueueResult.Ok;
+    }
+}
+
+internal sealed record FakeClaudePeerCall(int Pid, string SessionId, string Message);
+
+internal sealed class FakeClaudePeerClient : IClaudePeerClient
+{
+    public List<FakeClaudePeerCall> Calls { get; } = [];
+
+    public ClaudePeerSendResult NextResult { get; set; } = ClaudePeerSendResult.Ok;
+
+    public Task<ClaudePeerSendResult> SendAsync(
+        int pid,
+        string sessionId,
+        string message,
+        CancellationToken cancellationToken)
+    {
+        Calls.Add(new FakeClaudePeerCall(pid, sessionId, message));
+        return Task.FromResult(NextResult);
     }
 }

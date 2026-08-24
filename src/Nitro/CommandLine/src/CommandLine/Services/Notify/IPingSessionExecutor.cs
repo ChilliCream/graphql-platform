@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Performs one already-leased <c>codex-thread</c> ping attempt: builds the
+/// Performs one already-leased ping attempt: builds the
 /// machine-generated digest envelope for the bound actor's unread mail,
 /// fires it at the endpoint bounded by the caller's absolute deadline,
 /// writes the outcome, and always releases the lease slot, however the
@@ -27,6 +27,16 @@ internal interface IPingSessionExecutor
         string sessionId,
         string actorName,
         string endpointAddr,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken);
+
+    Task<string> ExecuteClaudePeerAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        int pid,
         string attemptId,
         int slot,
         DateTimeOffset deadline,

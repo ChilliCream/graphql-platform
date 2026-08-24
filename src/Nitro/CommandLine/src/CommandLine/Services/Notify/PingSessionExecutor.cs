@@ -7,11 +7,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal sealed class PingSessionExecutor(
     IMailStore mailStore,
     ICodexQueueClient queueClient,
+    IClaudePeerClient claudePeerClient,
     IAgentSessionRegistry sessionRegistry,
     IPingLeaseStore leaseStore,
     TimeProvider timeProvider) : IPingSessionExecutor
 {
-    public async Task<string> ExecuteCodexThreadAsync(
+    public Task<string> ExecuteCodexThreadAsync(
         string harness,
         string sessionId,
         string actorName,
@@ -19,6 +20,45 @@ internal sealed class PingSessionExecutor(
         string attemptId,
         int slot,
         DateTimeOffset deadline,
+        CancellationToken cancellationToken)
+        => ExecuteAsync(
+            harness,
+            sessionId,
+            actorName,
+            attemptId,
+            slot,
+            deadline,
+            async (digest, token) => MapQueueResult(await queueClient.QueueAsync(endpointAddr, digest, token)),
+            cancellationToken);
+
+    public Task<string> ExecuteClaudePeerAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        int pid,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken)
+        => ExecuteAsync(
+            harness,
+            sessionId,
+            actorName,
+            attemptId,
+            slot,
+            deadline,
+            async (digest, token) => MapClaudePeerResult(
+                await claudePeerClient.SendAsync(pid, sessionId, digest, token)),
+            cancellationToken);
+
+    private async Task<string> ExecuteAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        Func<string, CancellationToken, Task<string>> sendAsync,
         CancellationToken cancellationToken)
     {
         var remaining = ClampRemaining(deadline);
@@ -65,18 +105,18 @@ internal sealed class PingSessionExecutor(
                 return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Ok, null);
             }
 
-            CodexQueueResult queueResult;
+            string transportResult;
 
             try
             {
-                queueResult = await queueClient.QueueAsync(endpointAddr, digest, linkedSource.Token);
+                transportResult = await sendAsync(digest, linkedSource.Token);
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
                 return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
             }
 
-            return await WriteResultAsync(harness, sessionId, attemptId, MapQueueResult(queueResult), null);
+            return await WriteResultAsync(harness, sessionId, attemptId, transportResult, null);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -154,6 +194,14 @@ internal sealed class PingSessionExecutor(
     {
         CodexQueueResult.Ok => AgentPingResult.Ok,
         CodexQueueResult.EndpointGone => AgentPingResult.EndpointGone,
+        _ => AgentPingResult.Error
+    };
+
+    private static string MapClaudePeerResult(ClaudePeerSendResult result) => result switch
+    {
+        ClaudePeerSendResult.Ok => AgentPingResult.Ok,
+        ClaudePeerSendResult.Unsupported => AgentPingResult.Unsupported,
+        ClaudePeerSendResult.EndpointGone => AgentPingResult.EndpointGone,
         _ => AgentPingResult.Error
     };
 

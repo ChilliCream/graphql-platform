@@ -57,6 +57,7 @@ public abstract class CommandTestBase
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
+    private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -190,6 +191,15 @@ public abstract class CommandTestBase
     private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
     {
         _codexQueueClientOverride = client;
+    }
+
+    /// <summary>
+    /// Replaces the real Claude peer-socket client with a fake, so command
+    /// tests never connect to a live Claude Code session.
+    /// </summary>
+    private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
+    {
+        _claudePeerClientOverride = client;
     }
 
     protected void SetupNoAuthentication()
@@ -396,6 +406,11 @@ public abstract class CommandTestBase
         if (_codexQueueClientOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_codexQueueClientOverride));
+        }
+
+        if (_claudePeerClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudePeerClientOverride));
         }
 
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));

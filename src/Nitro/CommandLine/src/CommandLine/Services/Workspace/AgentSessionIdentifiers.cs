@@ -49,7 +49,7 @@ internal static class AgentPingResult
 
     /// <summary>
     /// The endpoint is recorded but the notifier has no transport for its
-    /// kind (<c>claude-peer</c>, currently). Distinct from
+    /// kind. Distinct from
     /// <see cref="AgentSessionEndpointKind.None"/>, which means there is no
     /// endpoint to attempt at all.
     /// </summary>

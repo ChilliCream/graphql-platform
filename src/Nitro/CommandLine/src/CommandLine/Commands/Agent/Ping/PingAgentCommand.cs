@@ -82,7 +82,7 @@ internal sealed class PingAgentCommand : Command
     /// <summary>
     /// Applies the cooldown/lease decision, then either records the
     /// outcome directly (no endpoint, unsupported endpoint kind, cooldown
-    /// still active, capacity dropped) or executes the codex-thread
+    /// still active, capacity dropped) or executes the endpoint
     /// transport call in-process via <see cref="IPingSessionExecutor"/>.
     /// Returns a short label for CLI display; every branch that reaches
     /// <see cref="IAgentSessionRegistry.WritePingResultAsync"/> already
@@ -105,10 +105,11 @@ internal sealed class PingAgentCommand : Command
         var now = timeProvider.GetUtcNow();
         var attemptId = MemoryId.New(now);
 
-        if (session.EndpointKind != AgentSessionEndpointKind.CodexThread)
+        if (session.EndpointKind is not AgentSessionEndpointKind.CodexThread
+            and not AgentSessionEndpointKind.ClaudePeer)
         {
             // Unsupported attempts coalesce under the same per-session
-            // cooldown as codex-thread.
+            // cooldown as supported transports.
             var unsupportedCooldownClaimed = await sessionRegistry.TryClaimPingCooldownAsync(
                 session, attemptId, now, PingPolicy.Cooldown, cancellationToken);
 
@@ -138,6 +139,13 @@ internal sealed class PingAgentCommand : Command
                 session.Harness, session.SessionId, attemptId,
                 AgentPingResult.CapacityDropped, null, cancellationToken);
             return AgentPingResult.CapacityDropped;
+        }
+
+        if (session.EndpointKind == AgentSessionEndpointKind.ClaudePeer)
+        {
+            return await executor.ExecuteClaudePeerAsync(
+                session.Harness, session.SessionId, actor, session.Pid, attemptId, slot.Value,
+                now + PingPolicy.HardTimeout, cancellationToken);
         }
 
         return await executor.ExecuteCodexThreadAsync(

@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
 
@@ -64,6 +65,8 @@ internal sealed class DoctorAgentCommand : Command
         var sessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
         var mailStore = services.GetRequiredService<IMailStore>();
         var deliveryLedger = services.GetRequiredService<ISessionDeliveryLedger>();
+        var pingSessionExecutor = services.GetRequiredService<IPingSessionExecutor>();
+        var pingLeaseStore = services.GetRequiredService<IPingLeaseStore>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
@@ -207,7 +210,14 @@ internal sealed class DoctorAgentCommand : Command
                     "`--probe claude` requires the current schema; run `nitro agent init` first.");
             }
 
-            probe = await new ClaudeRoundTripProbe(agentRegistry, sessionRegistry, mailStore, deliveryLedger, timeProvider)
+            probe = await new ClaudeRoundTripProbe(
+                agentRegistry,
+                sessionRegistry,
+                mailStore,
+                deliveryLedger,
+                pingSessionExecutor,
+                pingLeaseStore,
+                timeProvider)
                 .RunAsync(cancellationToken);
         }
 
@@ -389,7 +399,7 @@ internal sealed class DoctorAgentCommand : Command
 
     // Distinguishes "no endpoint to ping at all" (no last_ping_result ever
     // written) from "an endpoint the notifier has no transport for"
-    // (last_ping_result 'unsupported', e.g. claude-peer) from an ordinary
+    // (last_ping_result 'unsupported', e.g. copilot-extension) from an ordinary
     // ping outcome, the same diagnostic signal `session list` surfaces.
     private static string DescribeRow(AgentSessionDoctorRow row)
         => $"{row.Harness} {row.SessionId} host={row.Host} pid={row.Pid}"

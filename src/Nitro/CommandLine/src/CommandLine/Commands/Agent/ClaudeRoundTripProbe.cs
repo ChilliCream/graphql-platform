@@ -21,6 +21,8 @@ internal sealed class ClaudeRoundTripProbe(
     IAgentSessionRegistry sessionRegistry,
     IMailStore mailStore,
     ISessionDeliveryLedger ledger,
+    IPingSessionExecutor pingSessionExecutor,
+    IPingLeaseStore leaseStore,
     TimeProvider timeProvider)
 {
     /// <summary>
@@ -67,7 +69,8 @@ internal sealed class ClaudeRoundTripProbe(
                 generation.Harness, generation.SessionId, [message.Id],
                 AgentSessionChannel.Gate, now, cancellationToken);
 
-            var pingResult = await PingAsync(session, generation, cancellationToken);
+            var pingResult = await PingAsync(
+                session, generation, scratchActor, cancellationToken);
 
             // Cleans up the scratch actor's own mailbox: the probe message
             // is real mail (it went through the same SendMessageAsync path
@@ -101,15 +104,17 @@ internal sealed class ClaudeRoundTripProbe(
 
     /// <summary>
     /// Fires the same best-effort ping <c>nitro agent ping</c> does for a
-    /// single session, minus the lease machinery a <c>codex-thread</c>
-    /// attempt would need (this probe's session is always
-    /// <c>claude-code</c>, so that branch never applies). Its outcome is
-    /// informational only - never part of <see cref="ClaudeProbeResult.Success"/> -
+    /// single Claude session, including its cooldown and lease machinery.
+    /// Its outcome is informational only - never part of
+    /// <see cref="ClaudeProbeResult.Success"/> -
     /// because the delivery ledger claim, not the ping, is the round trip
     /// this probe's binding ruling requires.
     /// </summary>
     private async Task<string> PingAsync(
-        AgentSessionRecord session, AgentSessionGeneration generation, CancellationToken cancellationToken)
+        AgentSessionRecord session,
+        AgentSessionGeneration generation,
+        string actor,
+        CancellationToken cancellationToken)
     {
         if (session.EndpointKind == AgentSessionEndpointKind.None)
         {
@@ -129,23 +134,34 @@ internal sealed class ClaudeRoundTripProbe(
                 return "skipped-cooldown";
             }
 
-            if (session.EndpointKind != AgentSessionEndpointKind.CodexThread)
+            if (session.EndpointKind != AgentSessionEndpointKind.ClaudePeer)
             {
-                // Every claude-peer endpoint lands here: there is no socket
-                // transport yet (spike perles-net-k3j.19 is on hold), so the
-                // notifier itself has no transport for this endpoint kind -
-                // reported as 'unsupported', matching `agent ping`'s own
-                // behavior for any non-codex-thread endpoint, never a failure.
                 await sessionRegistry.WritePingResultAsync(
                     generation.Harness, generation.SessionId, attemptId,
                     AgentPingResult.Unsupported, null, cancellationToken);
                 return AgentPingResult.Unsupported;
             }
 
-            // A live codex-thread transport call needs IPingSessionExecutor;
-            // out of scope for `--probe claude` (this session is never
-            // codex-thread), kept only so this switch stays exhaustive.
-            return "not-attempted";
+            var slot = await leaseStore.TryAcquireAsync(
+                attemptId, now, PingPolicy.LeaseDuration, cancellationToken);
+
+            if (slot is null)
+            {
+                await sessionRegistry.WritePingResultAsync(
+                    generation.Harness, generation.SessionId, attemptId,
+                    AgentPingResult.CapacityDropped, null, cancellationToken);
+                return AgentPingResult.CapacityDropped;
+            }
+
+            return await pingSessionExecutor.ExecuteClaudePeerAsync(
+                generation.Harness,
+                generation.SessionId,
+                actor,
+                generation.Pid,
+                attemptId,
+                slot.Value,
+                now + PingPolicy.HardTimeout,
+                cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

@@ -1,7 +1,9 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -28,6 +30,8 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
     private readonly AgentRegistry _agentRegistry;
     private readonly MailStore _mail;
     private readonly SessionDeliveryLedger _ledger;
+    private readonly PingLeaseStore _leases;
+    private readonly FakeClaudePeerClient _peerClient;
 
     public ClaudeRoundTripProbeTests()
     {
@@ -40,6 +44,8 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
         _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
         _ledger = new SessionDeliveryLedger(_fileSystem, _database);
+        _leases = new PingLeaseStore(_fileSystem, _database);
+        _peerClient = new FakeClaudePeerClient();
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -54,23 +60,23 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var sessions = CreateSessionRegistry(new ClaudeAncestorSession(
             CurrentAlivePid(), "claude-session-1", _tempRoot.FullName, "peer-a"));
-        var probe = new ClaudeRoundTripProbe(_agentRegistry, sessions, _mail, _ledger, _timeProvider);
+        var probe = CreateProbe(sessions);
 
         // act
         var result = await probe.RunAsync(cancellationToken);
 
         // assert: both delivery-ledger channels claimed the same message,
-        // the probe as a whole succeeded, and the ping (unsupported: no
-        // socket transport exists for claude-peer) is reported but never
-        // part of that success.
+        // the probe as a whole succeeded, and the successful peer ping is
+        // reported but never part of that success.
         Assert.True(result.DigestLedgerClaimed);
         Assert.True(result.GateLedgerClaimed);
         Assert.True(result.Success);
         Assert.Equal(AgentSessionEndpointKind.ClaudePeer, result.EndpointKind);
-        Assert.Equal(AgentPingResult.Unsupported, result.PingResult);
+        Assert.Equal(AgentPingResult.Ok, result.PingResult);
         Assert.Equal(AgentSessionHarness.ClaudeCode, result.Harness);
         Assert.Equal("claude-session-1", result.SessionId);
         Assert.StartsWith("doctor-probe-", result.ScratchActor);
+        Assert.Single(_peerClient.Calls);
 
         // the scratch claim is torn down: no row survives the probe.
         Assert.Equal(0, await CountSessionRowsAsync(cancellationToken));
@@ -89,7 +95,7 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var sessions = CreateSessionRegistry(new ClaudeAncestorSession(
             CurrentAlivePid(), "claude-session-1", _tempRoot.FullName, "not a valid peer name"));
-        var probe = new ClaudeRoundTripProbe(_agentRegistry, sessions, _mail, _ledger, _timeProvider);
+        var probe = CreateProbe(sessions);
 
         // act
         var result = await probe.RunAsync(cancellationToken);
@@ -107,7 +113,7 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var sessions = CreateSessionRegistry(ancestor: null);
-        var probe = new ClaudeRoundTripProbe(_agentRegistry, sessions, _mail, _ledger, _timeProvider);
+        var probe = CreateProbe(sessions);
 
         // act & assert: the same actionable message SelfClaimAsync gives
         // `agent session claim`, never a raw stack trace.
@@ -127,7 +133,7 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
         var ancestor = new ClaudeAncestorSession(CurrentAlivePid(), "claude-session-1", _tempRoot.FullName, "peer-a");
         var sessions = CreateSessionRegistry(ancestor);
         await sessions.SelfClaimAsync("real-orchestrator", forceRebind: false, cancellationToken);
-        var probe = new ClaudeRoundTripProbe(_agentRegistry, sessions, _mail, _ledger, _timeProvider);
+        var probe = CreateProbe(sessions);
 
         // act & assert
         var exception = await Assert.ThrowsAsync<ExitException>(() => probe.RunAsync(cancellationToken));
@@ -149,6 +155,26 @@ public sealed class ClaudeRoundTripProbeTests : IDisposable
         new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
         new ProcessInfoProvider(),
         new FixedAncestorSessionResolver(ancestor));
+
+    private ClaudeRoundTripProbe CreateProbe(AgentSessionRegistry sessions)
+    {
+        var executor = new PingSessionExecutor(
+            _mail,
+            new FakeCodexQueueClient(),
+            _peerClient,
+            sessions,
+            _leases,
+            _timeProvider);
+
+        return new ClaudeRoundTripProbe(
+            _agentRegistry,
+            sessions,
+            _mail,
+            _ledger,
+            executor,
+            _leases,
+            _timeProvider);
+    }
 
     private static int CurrentAlivePid() => Environment.ProcessId;
 
