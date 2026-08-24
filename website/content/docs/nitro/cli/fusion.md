@@ -417,7 +417,7 @@ For examples of node resolution, shareable runtime type routing, and tag exclusi
 
 Create the `schema-settings.json` file that a source schema needs for composition. The settings file is written next to the schema file it belongs to, under the name composition looks for, so `nitro fusion compose` picks it up without further configuration.
 
-Running the command against an existing settings file updates the values you pass and preserves every other setting in the file, which makes it safe to re-run from a pipeline. The one exception is `--kind`, which owns the settings described under [Source schema kinds](#source-schema-kinds).
+Running the command against an existing settings file updates the values you pass and preserves every other setting in the file, which makes it safe to re-run from a pipeline.
 
 ```shell
 nitro fusion source-schema init [options]
@@ -425,38 +425,57 @@ nitro fusion source-schema init [options]
 
 ## Options
 
-| Option                                  | Env            | Description                                                                                   |
-| --------------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
-| `--name <name>`                         |                | Name that identifies the source schema in the composite schema. Required for a new file.      |
-| `-f, --source-schema-file <path>`       |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to. |
-| `--settings-file <path>`                |                | Write the settings to this path instead of deriving it from the schema file.                  |
-| `--url <url>`                           |                | URL the gateway uses to reach the source schema. Required for a new file.                     |
-| `--dev-url <url>`                       |                | URL a local development environment uses to reach the source schema.                          |
-| `--client-name <name>`                  |                | Name of the HTTP client the gateway uses to reach the source schema.                          |
-| `--api-id <id>`                         | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                              |
-| `--kind <kind>`                         |                | `generic`, `hot-chocolate`, or `apollo-federation`. See below.                                |
-| `--apollo-federation-version <version>` |                | `1.0` or `2.0`. Requires `--kind apollo-federation`.                                          |
-| `-w, --working-directory <path>`        |                | Working directory for the command.                                                            |
+| Option                            | Env            | Description                                                                                               |
+| --------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
+| `--name <name>`                   |                | Name that identifies the source schema in the composite schema. Required for a new file.                  |
+| `-f, --source-schema-file <path>` |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to.             |
+| `--settings-file <path>`          |                | Write the settings to this path instead of deriving it from the schema file.                              |
+| `--url <url>`                     |                | URL the gateway uses to reach the source schema. Required for a new file.                                 |
+| `--dev-url <url>`                 |                | URL a local development environment uses to reach the source schema.                                      |
+| `--client-name <name>`            |                | Name of the HTTP client the gateway uses to reach the source schema.                                      |
+| `--api-id <id>`                   | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                                          |
+| `--schema-type <type>`            |                | `graphql-federation`, `apollo-federation-1`, or `apollo-federation-2`.                                    |
+| `--variable-batching <bool>`      |                | Whether the source schema supports variable batching. Defaults to `false` for a new file.                 |
+| `--request-batching <bool>`       |                | Whether the source schema supports request batching. Defaults to `false` for a new file.                  |
+| `--alias-batching <bool>`         |                | Whether the source schema supports alias batching. Defaults to `true` for a new file.                     |
+| `--batching-format <format>...`   |                | One or more response media types supported for batching, such as `application/jsonl`.                     |
+| `-w, --working-directory <path>`  |                | Working directory for the command.                                                                        |
 
 `--name` and `--url` are only required when the settings file does not exist yet, since an existing file already carries both. On an interactive terminal the command asks for whichever of the two you did not pass. Everywhere else, including CI, omitting one fails rather than guessing a value.
 
+New settings default to GraphQL Federation. An interactive terminal asks for the schema type and preselects GraphQL Federation. It also asks whether variable, request, and alias batching are supported. Existing settings keep their schema type unless `--schema-type` is passed.
+
 Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which composition resolves against the [`environments`](../../fusion/cli.md#environments) section of the settings file.
 
-## Source schema kinds
+## Source schema types
 
-`--kind` describes the server behind the source schema, which decides what the file declares beyond the name and transport URL.
+`--schema-type` describes the specification implemented by the source schema.
 
-| Kind                | What it declares                                                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `generic`           | Nothing beyond the name and transport. Use this when the server's transport capabilities are unknown.                                      |
-| `hot-chocolate`     | The batching capabilities and error behavior a Hot Chocolate server implements, matching what `dotnet run -- schema export` writes.        |
-| `apollo-federation` | `extensions.chillicream.apolloFederationSupport.version`, which selects Apollo Federation v1 or v2 directive semantics during composition. |
+| Type                  | What it declares                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `graphql-federation`  | GraphQL Federation semantics from the Composite Schemas Specification. This is the default used by Fusion.                  |
+| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.                            |
+| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.                            |
 
-`--kind` owns these settings: passing it removes the settings belonging to the other kinds, so switching a source schema from one kind to another leaves no stale markers behind. Omit `--kind` to leave them untouched.
+Selecting an Apollo Federation type writes the corresponding `1.0` or `2.0` marker. Selecting `graphql-federation` removes that marker. Schema-type changes do not modify transport capabilities.
 
-`--apollo-federation-version` defaults to `2.0` for a source schema that is not yet marked as an Apollo Federation subgraph. For one that already is, the version already in the file is kept unless you pass a new one.
+## Batching capabilities
 
-> A source schema marked `apollo-federation` that composition fetches over HTTP (via `--source-schema-url` on `nitro fusion compose`) is retrieved through Apollo Federation's `_service` field. A source schema read from a local file is read as it is on disk, and the marker only affects directive semantics.
+New settings declare the following batching capabilities:
+
+```json
+{
+  "variableBatching": false,
+  "requestBatching": false,
+  "aliasBatching": true
+}
+```
+
+Pass the corresponding batching option with `true` or `false` to override a value. Pass one or more media types to `--batching-format` to write the `formats` array. When updating an existing file, omitted batching options preserve their current values.
+
+In interactive mode, pressing Enter accepts `false` for variable batching, `false` for request batching, and `true` for alias batching. Batching response formats can only be configured explicitly with `--batching-format`.
+
+> A source schema configured with an Apollo Federation type that composition fetches over HTTP (via `--source-schema-url` on `nitro fusion compose`) is retrieved through Apollo Federation's `_service` field. A source schema read from a local file is read as it is on disk, and the marker only affects directive semantics.
 
 ## Where the file is written
 
@@ -484,7 +503,14 @@ This writes `./products/schema-settings.json`:
   "name": "products",
   "transports": {
     "http": {
-      "url": "https://products.example.com/graphql"
+      "url": "https://products.example.com/graphql",
+      "capabilities": {
+        "batching": {
+          "variableBatching": false,
+          "requestBatching": false,
+          "aliasBatching": true
+        }
+      }
     }
   }
 }
@@ -497,8 +523,7 @@ nitro fusion source-schema init \
   --name "reviews" \
   --source-schema-file ./reviews/schema.graphqls \
   --url "https://reviews.example.com/graphql" \
-  --kind apollo-federation \
-  --apollo-federation-version 2.0
+  --schema-type apollo-federation-2
 ```
 
 Point an existing settings file at a new URL without touching its other settings:
