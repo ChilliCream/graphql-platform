@@ -12,8 +12,20 @@ internal static class ProcStat
     /// kernel reports, for comparison against a value another process
     /// recorded, or null when the file is unavailable or malformed.
     /// </summary>
-    public static string? ReadStartTicks(int pid)
+    public static string? ReadStartTicks(int pid) => ReadStartTicks(pid, out _);
+
+    /// <summary>
+    /// Same as <see cref="ReadStartTicks(int)"/>, additionally reporting
+    /// through <paramref name="permissionDenied"/> whether the null result
+    /// came from an access failure reading <c>/proc/&lt;pid&gt;/stat</c>
+    /// rather than the pid simply having no such file (no process, or the
+    /// content did not parse): a caller that must distinguish "cannot tell"
+    /// from "provably gone" needs this, a plain lookup does not.
+    /// </summary>
+    public static string? ReadStartTicks(int pid, out bool permissionDenied)
     {
+        permissionDenied = false;
+
         try
         {
             var content = File.ReadAllText($"/proc/{pid}/stat");
@@ -41,6 +53,7 @@ internal static class ProcStat
         }
         catch (UnauthorizedAccessException)
         {
+            permissionDenied = true;
             return null;
         }
     }

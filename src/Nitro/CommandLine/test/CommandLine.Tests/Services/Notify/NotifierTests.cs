@@ -244,7 +244,7 @@ public sealed class NotifierTests : IDisposable
         // reaped out from under the test before it ever reached the
         // endpoint-kind branch.
         var pid = Environment.ProcessId;
-        var procStart = new ProcessInfoProvider().GetStartTime(pid)!.Value;
+        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
 
         var harness = endpointKind == AgentSessionEndpointKind.ClaudePeer
             ? AgentSessionHarness.ClaudeCode

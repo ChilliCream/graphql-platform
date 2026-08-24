@@ -30,7 +30,7 @@ internal static class DoctorParticipantCheck
             return NoAncestorDetected(AgentSessionHarness.ClaudeCode, hooks);
         }
 
-        var procStart = processInfoProvider.GetStartTime(ancestor.Pid);
+        var procStart = processInfoProvider.GetStartTicks(ancestor.Pid);
 
         if (procStart is null)
         {
@@ -41,7 +41,7 @@ internal static class DoctorParticipantCheck
 
         var session = await sessions.FindByGenerationAsync(
             new AgentSessionGeneration(
-                AgentSessionHarness.ClaudeCode, ancestor.SessionId, host, ancestor.Pid, procStart.Value),
+                AgentSessionHarness.ClaudeCode, ancestor.SessionId, host, ancestor.Pid, procStart),
             cancellationToken);
 
         return Compose(
@@ -103,14 +103,14 @@ internal static class DoctorParticipantCheck
         Func<string, int, string> resolveLiveVersion,
         CancellationToken cancellationToken)
     {
-        var procStart = processInfoProvider.GetStartTime(pid);
+        var procStart = processInfoProvider.GetStartTicks(pid);
 
         if (procStart is null)
         {
             return ProcessGone(harness, pid, hooks);
         }
 
-        var candidates = await sessions.FindByProcessAsync(harness, host, pid, procStart.Value, cancellationToken);
+        var candidates = await sessions.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
 
         if (candidates.Count > 1)
         {
@@ -208,7 +208,8 @@ internal static class DoctorParticipantCheck
                 ProcessScopeObservable: null, LastHeardSeconds: null, healthy, remediation);
         }
 
-        var observable = processInfoProvider.Observe(session.Pid, session.ProcStart, session.ProcessScope)
+        var observable = processInfoProvider.Observe(
+                session.Pid, session.ProcStart, session.ProcStartLegacy, session.ProcessScope)
             != ProcessObservationResult.Unobservable;
 
         if (!observable)

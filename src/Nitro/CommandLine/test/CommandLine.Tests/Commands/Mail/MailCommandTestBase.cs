@@ -133,12 +133,10 @@ public abstract class MailCommandTestBase : CommandTestBase
         using var process = Process.GetCurrentProcess();
         var pid = process.Id;
 
-        // A genuine DateTimeOffset, not a bare DateTime: TryClaimPingCooldownAsync
-        // matches proc_start with a raw SQL string equality against the exact
-        // text a DateTimeOffset-typed Dapper parameter serializes, which is
-        // not byte-identical to how Microsoft.Data.Sqlite serializes a bare
-        // DateTime value.
-        var procStart = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+        // The real /proc-reported start ticks for this pid:
+        // TryClaimPingCooldownAsync matches proc_start with raw string
+        // equality against exactly this value.
+        var procStart = ProcStat.ReadStartTicks(pid)!;
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);

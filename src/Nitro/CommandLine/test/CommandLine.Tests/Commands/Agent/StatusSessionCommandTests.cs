@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -128,7 +129,7 @@ public sealed class StatusSessionCommandTests : AgentCommandTestBase
     {
         using var process = Process.GetCurrentProcess();
         var pid = process.Id;
-        var procStart = process.StartTime.ToUniversalTime();
+        var procStart = ProcStat.ReadStartTicks(pid)!;
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);

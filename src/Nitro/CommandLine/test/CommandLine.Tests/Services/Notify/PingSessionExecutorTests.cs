@@ -57,7 +57,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         _leases = new PingLeaseStore(_fileSystem, _database);
         _queueClient = new FakeCodexQueueClient();
         _claudePeerClient = new FakeClaudePeerClient();
-        _generation = new AgentSessionGeneration(Harness, SessionId, "host-1", 1, DateTimeOffset.UnixEpoch);
+        _generation = new AgentSessionGeneration(Harness, SessionId, "host-1", 1, "0");
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);

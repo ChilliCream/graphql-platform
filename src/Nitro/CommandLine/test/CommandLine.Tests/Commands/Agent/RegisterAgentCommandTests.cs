@@ -459,7 +459,7 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
     private async Task InsertSessionRowAsync(string harness, string sessionId)
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
-        var procStart = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+        var procStart = ProcStat.ReadStartTicks(process.Id)!;
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);

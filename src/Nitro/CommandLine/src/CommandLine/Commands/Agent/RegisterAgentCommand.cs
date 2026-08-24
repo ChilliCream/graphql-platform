@@ -152,7 +152,7 @@ internal sealed class RegisterAgentCommand : Command
 
         if (claudeAncestor is not null)
         {
-            var procStart = processInfoProvider.GetStartTime(claudeAncestor.Pid)
+            var procStart = processInfoProvider.GetStartTicks(claudeAncestor.Pid)
                 ?? throw new ExitException(
                     $"Process {claudeAncestor.Pid} for the detected Claude Code session is no longer running.");
 
@@ -191,7 +191,7 @@ internal sealed class RegisterAgentCommand : Command
         IAgentSessionRegistry sessions,
         CancellationToken cancellationToken)
     {
-        var procStart = processInfoProvider.GetStartTime(pid)
+        var procStart = processInfoProvider.GetStartTicks(pid)
             ?? throw new ExitException($"Process {pid} for the detected {harness} session is no longer running.");
 
         var candidates = await sessions.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);

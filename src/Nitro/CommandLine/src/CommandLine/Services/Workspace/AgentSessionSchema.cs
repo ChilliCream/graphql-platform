@@ -16,7 +16,14 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// endpoint to attempt at all. <c>agent_sessions</c> also carries the
 /// mutable participant <c>role</c>, the exact <c>harness_version</c>, and
 /// the <c>process_scope</c> that distinguishes PID/boot namespace
-/// visibility, added in v5.
+/// visibility, added in v5. v6 adds <c>proc_start_legacy</c>: <c>proc_start</c>
+/// switched from a DateTimeOffset compared with a wall-clock tolerance to a
+/// raw kernel start-tick string compared by exact equality, and a row a
+/// v5-to-v6 migration carries forward cannot be converted to ticks (the
+/// writing host's boot time is unknown here), so it is marked
+/// <c>proc_start_legacy = 1</c> and read with the old wall-clock rule until
+/// its own next SessionStart rewrites it with fresh ticks and clears the
+/// marker.
 /// </summary>
 internal static class AgentSessionSchema
 {
@@ -53,6 +60,7 @@ internal static class AgentSessionSchema
             role TEXT NOT NULL DEFAULT '',
             harness_version TEXT NOT NULL DEFAULT '',
             process_scope TEXT NOT NULL DEFAULT '',
+            proc_start_legacy INTEGER NOT NULL DEFAULT 0 CHECK (proc_start_legacy IN (0, 1)),
             -- Table-level CHECK constraints must follow every column
             -- definition (SQLite rejects one interleaved between columns),
             -- so both cross-column checks live here instead of next to the

@@ -106,6 +106,11 @@ internal sealed class AgentSessionRegistry(
             // fresh SessionStart, rebinding exactly as the missing-row case
             // above does, and reset the delivery ledger and counters.
             //
+            // proc_start_legacy resets to 0 unconditionally here: a fresh
+            // SessionStart always carries a freshly observed generation, so
+            // its proc_start is always raw ticks, never the legacy format a
+            // schema migration may have left the OLD generation carrying.
+            //
             // Both statements below predicate on the OLD generation
             // (`existing`), not just (harness, session_id): a reader that
             // observed this same old generation is the only writer allowed
@@ -124,6 +129,7 @@ internal sealed class AgentSessionRegistry(
                     host = @host,
                     pid = @pid,
                     proc_start = @procStart,
+                    proc_start_legacy = 0,
                     cwd = @cwd,
                     workspace_path = @workspacePath,
                     endpoint_kind = @endpointKind,
@@ -340,7 +346,7 @@ internal sealed class AgentSessionRegistry(
     }
 
     public async Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken)
+        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -457,7 +463,7 @@ internal sealed class AgentSessionRegistry(
                 + "Self-claim is zero-config on Linux with Claude Code only; other harnesses and "
                 + "platforms need a session row created by `nitro agent hook` first.");
 
-        var procStart = processInfoProvider.GetStartTime(ancestorSession.Pid)
+        var procStart = processInfoProvider.GetStartTicks(ancestorSession.Pid)
             ?? throw new ExitException(
                 $"Process {ancestorSession.Pid} for the detected Claude Code session is no longer running.");
 
@@ -624,7 +630,7 @@ internal sealed class AgentSessionRegistry(
             // process scope is reaped: unobservable (a different PID
             // namespace than the writer recorded, or a permission failure)
             // is left untouched, the same as alive.
-            if (processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcessScope)
+            if (processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcStartLegacy, record.ProcessScope)
                 != ProcessObservationResult.Dead)
             {
                 continue;
@@ -682,7 +688,7 @@ internal sealed class AgentSessionRegistry(
     private string ComputeState(AgentSessionRecord record, string host)
         => record.Host != host
             ? AgentSessionState.Remote
-            : processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcessScope)
+            : processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcStartLegacy, record.ProcessScope)
                 == ProcessObservationResult.Unobservable
                 ? AgentSessionState.Unobservable
                 : record.EndpointKind == AgentSessionEndpointKind.None
@@ -860,20 +866,18 @@ internal sealed class AgentSessionRegistry(
     private static bool IsSameGeneration(AgentSessionRow existing, AgentSessionGeneration generation)
         => existing.Pid == generation.Pid
             && existing.Host == generation.Host
-            && DateTimeOffset.Parse(existing.ProcStart, CultureInfo.InvariantCulture) == generation.ProcStart;
+            && existing.ProcStart == generation.ProcStart;
 
     /// <summary>
-    /// Throws when this process's own observable scope and <paramref
-    /// name="recordedProcessScope"/> are both known and disagree: a positive
+    /// Throws when <see cref="IProcessInfoProvider.CanObserveScope"/> is
+    /// false for <paramref name="recordedProcessScope"/>: a positive
     /// mismatch means this process cannot trust that <paramref
     /// name="generation"/>'s pid refers to the same process the row's writer
     /// observed. Either scope being unknown is not treated as a mismatch.
     /// </summary>
     private void RequireObservableProcessScope(AgentSessionGeneration generation, string recordedProcessScope)
     {
-        var readerScope = processInfoProvider.GetProcessScope();
-
-        if (readerScope.Length > 0 && recordedProcessScope.Length > 0 && readerScope != recordedProcessScope)
+        if (!processInfoProvider.CanObserveScope(recordedProcessScope))
         {
             throw new ExitException(
                 $"Cannot verify this process against the '{generation.Harness}' session "
@@ -945,6 +949,7 @@ internal sealed class AgentSessionRegistry(
         public required string Role { get; init; }
         public required string HarnessVersion { get; init; }
         public required string ProcessScope { get; init; }
+        public required bool ProcStartLegacy { get; init; }
 
         /// <summary>
         /// Maps a row from a <see cref="AgentSessionRecord.Columns"/> query
@@ -983,7 +988,8 @@ internal sealed class AgentSessionRegistry(
                 : reader.GetString(reader.GetOrdinal("LastPingDetail")),
             Role = reader.GetString(reader.GetOrdinal("Role")),
             HarnessVersion = reader.GetString(reader.GetOrdinal("HarnessVersion")),
-            ProcessScope = reader.GetString(reader.GetOrdinal("ProcessScope"))
+            ProcessScope = reader.GetString(reader.GetOrdinal("ProcessScope")),
+            ProcStartLegacy = reader.GetBoolean(reader.GetOrdinal("ProcStartLegacy"))
         };
 
         public AgentSessionRecord ToRecord() => new()
@@ -994,7 +1000,7 @@ internal sealed class AgentSessionRegistry(
             BindingKind = BindingKind,
             Host = Host,
             Pid = Pid,
-            ProcStart = DateTimeOffset.Parse(ProcStart, CultureInfo.InvariantCulture),
+            ProcStart = ProcStart,
             Cwd = Cwd,
             WorkspacePath = WorkspacePath,
             EndpointKind = EndpointKind,
@@ -1008,7 +1014,8 @@ internal sealed class AgentSessionRegistry(
             LastPingDetail = LastPingDetail,
             Role = Role,
             HarnessVersion = HarnessVersion,
-            ProcessScope = ProcessScope
+            ProcessScope = ProcessScope,
+            ProcStartLegacy = ProcStartLegacy
         };
     }
 }

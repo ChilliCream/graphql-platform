@@ -84,6 +84,16 @@ internal sealed class ListSessionCommand : Command
         view.Session.LastPingResult,
         view.Session.LastPingDetail);
 
+    /// <summary>
+    /// The public shape of <c>agent session list --output json</c>. Schema
+    /// v6 breaking change: <see cref="ProcStart"/> is now the process's raw
+    /// kernel start-tick count as a digit string (see <see
+    /// cref="ChilliCream.Nitro.CommandLine.Services.Workspace.ProcStat.ReadStartTicks(int)"/>),
+    /// not a DateTimeOffset. A consumer that parsed it as a timestamp must
+    /// stop doing so; it carries no wall-clock meaning and is only
+    /// meaningful compared for exact equality against another value from
+    /// the same field.
+    /// </summary>
     public sealed record SessionRowResult(
         string Harness,
         string SessionId,
@@ -92,7 +102,7 @@ internal sealed class ListSessionCommand : Command
         string State,
         string Host,
         int Pid,
-        DateTimeOffset ProcStart,
+        string ProcStart,
         string Cwd,
         string WorkspacePath,
         string EndpointKind,

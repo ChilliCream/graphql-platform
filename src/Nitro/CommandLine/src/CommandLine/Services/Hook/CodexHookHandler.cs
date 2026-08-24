@@ -228,17 +228,17 @@ internal sealed class CodexHookHandler(
         }
 
         int pid;
-        DateTimeOffset procStart;
+        string procStart;
 
         if (dryRun)
         {
             // Pid 1, not 0: the agent_sessions schema's `pid > 0` CHECK
             // rejects zero. Any fixed positive pid is exactly as safe a
-            // sentinel here, since pairing it with the epoch proc_start below
-            // is what actually makes collision with a real session's
-            // generation impossible.
+            // sentinel here, since pairing it with the "0" proc_start below
+            // (no live process ever reports 0 start ticks) is what actually
+            // makes collision with a real session's generation impossible.
             pid = 1;
-            procStart = DateTimeOffset.UnixEpoch;
+            procStart = "0";
         }
         else
         {
@@ -249,7 +249,7 @@ internal sealed class CodexHookHandler(
                 return null;
             }
 
-            var resolvedStart = processInfoProvider.GetStartTime(ancestor.Pid);
+            var resolvedStart = processInfoProvider.GetStartTicks(ancestor.Pid);
 
             if (resolvedStart is null)
             {
@@ -257,7 +257,7 @@ internal sealed class CodexHookHandler(
             }
 
             pid = ancestor.Pid;
-            procStart = resolvedStart.Value;
+            procStart = resolvedStart;
         }
 
         var host = await instanceIdProvider.GetIdAsync(

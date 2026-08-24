@@ -354,7 +354,7 @@ public sealed class CopilotHookHandlerTests : IDisposable
         SessionId,
         "host-1",
         Pid: 1,
-        DateTimeOffset.UnixEpoch);
+        "0");
 }
 
 internal sealed class FixedCopilotAncestorSessionResolver(CopilotAncestorSession? session)

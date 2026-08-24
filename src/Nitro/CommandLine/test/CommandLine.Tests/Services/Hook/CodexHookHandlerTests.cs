@@ -440,7 +440,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         SessionId,
         "host-1",
         Pid: 1,
-        DateTimeOffset.UnixEpoch);
+        "0");
 }
 
 internal sealed class FixedCodexAncestorSessionResolver(CodexAncestorSession? session) : ICodexAncestorSessionResolver

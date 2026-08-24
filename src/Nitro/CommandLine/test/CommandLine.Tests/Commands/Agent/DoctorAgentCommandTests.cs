@@ -643,8 +643,8 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         string endpointAddr = "", DateTimeOffset? lastBeatAt = null)
     {
         var procStart = pid == CurrentAlivePid()
-            ? Process.GetCurrentProcess().StartTime.ToUniversalTime()
-            : DateTimeOffset.UtcNow;
+            ? ProcStat.ReadStartTicks(pid)!
+            : "999999999";
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);

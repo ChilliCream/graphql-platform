@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
@@ -633,7 +634,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
 
         // act
         var candidates = await _sessions.FindByProcessAsync(
-            AgentSessionHarness.Codex, CurrentHost, 4242, DateTimeOffset.UnixEpoch, cancellationToken);
+            AgentSessionHarness.Codex, CurrentHost, 4242, "0", cancellationToken);
 
         // assert
         Assert.Empty(candidates);
@@ -697,7 +698,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.StartAsync(
             staleGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-old",
             envActor: null, cancellationToken);
-        var currentProcStart = _timeProvider.GetUtcNow().AddMinutes(10);
+        const string currentProcStart = "123456789";
 
         // act: the same pid, but a different, current process start time.
         var candidates = await _sessions.FindByProcessAsync(
@@ -832,7 +833,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         var aliveGeneration = deadGeneration with
         {
             Pid = CurrentAlivePid(),
-            ProcStart = new ProcessInfoProvider().GetStartTime(CurrentAlivePid())!.Value
+            ProcStart = new ProcessInfoProvider().GetStartTicks(CurrentAlivePid())!
         };
         await _sessions.StartAsync(
             aliveGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -844,6 +845,65 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // assert
         Assert.Empty(reaped);
         Assert.Equal(1, await CountSessionRowsAsync(aliveGeneration, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_DeleteRow_When_PidIsReused_WithDifferentTicks_DespiteIdenticalWallClockStart()
+    {
+        // arrange: the exact hazard raw ticks exist to close - a reused pid
+        // whose new process happens to start within the same wall-clock
+        // instant as the generation it replaced must still be classified
+        // dead, because the non-legacy comparison is exact-ticks-string
+        // equality with no tolerance at all.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var writerProvider = new ProcessInfoProvider(startTicksReader: _ => "1000000");
+        var writer = NewRegistry(writerProvider);
+        const int reusedPid = 555_555;
+        var generation = new AgentSessionGeneration(
+            Harness, "session-1", CurrentHost, reusedPid, writerProvider.GetStartTicks(reusedPid)!);
+        await writer.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act: a different process now occupies the same pid, reporting
+        // different real kernel start ticks.
+        var readerProvider = new ProcessInfoProvider(startTicksReader: _ => "2000000");
+        var reader = NewRegistry(readerProvider);
+        var reaped = await reader.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Single(reaped);
+        Assert.Equal(0, await CountSessionRowsAsync(generation, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_NotDeleteRow_When_TicksMatchExactly_AcrossTwoIndependentReaders()
+    {
+        // arrange: two independent ProcessInfoProvider instances reading the
+        // SAME real kernel ticks for the same live pid - proving the
+        // non-legacy comparison is immune to the cross-process boot-time-
+        // estimate drift that could previously misclassify a live process as
+        // dead, since it never reads wall-clock time at all.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var writerProvider = new ProcessInfoProvider(startTicksReader: _ => "1000000");
+        var writer = NewRegistry(writerProvider);
+        const int pid = 555_556;
+        var generation = new AgentSessionGeneration(
+            Harness, "session-1", CurrentHost, pid, writerProvider.GetStartTicks(pid)!);
+        await writer.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        var readerProvider = new ProcessInfoProvider(startTicksReader: _ => "1000000");
+        var reader = NewRegistry(readerProvider);
+        var reaped = await reader.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(generation, cancellationToken));
     }
 
     [Fact]
@@ -883,6 +943,57 @@ public sealed class AgentSessionRegistryTests : IDisposable
             AgentSessionState.Unreachable, views.Single(v => v.Session.SessionId == "session-unreachable").State);
         Assert.Equal(AgentSessionState.Remote, views.Single(v => v.Session.SessionId == "session-remote").State);
         Assert.DoesNotContain(views, v => v.Session.SessionId == "session-dead");
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_NotDeleteALegacyRow_When_ItsWallClockStartStillMatchesWithinTolerance()
+    {
+        // arrange: a row a v5-to-v6 migration marked legacy (proc_start is
+        // still the pre-v6 DateTimeOffset text) must be read with the old
+        // wall-clock-with-tolerance rule, not compared as raw ticks - this
+        // process's own live pid and current wall-clock start time, inserted
+        // directly since StartAsync only ever writes fresh (non-legacy) rows.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var pid = CurrentAlivePid();
+        var wallClockStart = Process.GetCurrentProcess().StartTime.ToUniversalTime().ToString("O");
+        await InsertLegacySessionRowAsync("session-legacy-alive", pid, wallClockStart, cancellationToken);
+
+        // act
+        var reaped = await _sessions.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(
+            1,
+            await CountSessionRowsAsync(
+                new AgentSessionGeneration(Harness, "session-legacy-alive", CurrentHost, pid, wallClockStart),
+                cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_DeleteALegacyRow_When_ItsWallClockStartIsOffByMoreThanTolerance()
+    {
+        // arrange: the legacy tolerance window still closes the pid-reuse
+        // hazard it always did - a legacy row whose recorded wall-clock
+        // start no longer matches within tolerance is still provably dead.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var pid = CurrentAlivePid();
+        var nearMissStart = Process.GetCurrentProcess().StartTime.ToUniversalTime()
+            .AddSeconds(5).ToString("O");
+        await InsertLegacySessionRowAsync("session-legacy-dead", pid, nearMissStart, cancellationToken);
+
+        // act
+        var reaped = await _sessions.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Single(reaped);
+        Assert.Equal(
+            0,
+            await CountSessionRowsAsync(
+                new AgentSessionGeneration(Harness, "session-legacy-dead", CurrentHost, pid, nearMissStart),
+                cancellationToken));
     }
 
     [Fact]
@@ -1433,12 +1544,19 @@ public sealed class AgentSessionRegistryTests : IDisposable
     /// </summary>
     private const int DeadPid = 999_999;
 
+    /// <summary>
+    /// An arbitrary raw-ticks-format string: since <see cref="DeadPid"/>
+    /// resolves to no running process, <see cref="ProcessInfoProvider"/>
+    /// reports it dead regardless of what this value is.
+    /// </summary>
+    private const string DeadProcStart = "999999999";
+
     private AgentSessionGeneration AliveGeneration(string sessionId) => new(
         Harness, sessionId, CurrentHost, CurrentAlivePid(),
-        new ProcessInfoProvider().GetStartTime(CurrentAlivePid())!.Value);
+        new ProcessInfoProvider().GetStartTicks(CurrentAlivePid())!);
 
     private AgentSessionGeneration DeadGeneration(string sessionId) => new(
-        Harness, sessionId, CurrentHost, DeadPid, _timeProvider.GetUtcNow());
+        Harness, sessionId, CurrentHost, DeadPid, DeadProcStart);
 
     /// <summary>
     /// A registry instance identical to <see cref="_sessions"/> except for
@@ -1509,6 +1627,41 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Inserts an <c>agent_sessions</c> row directly with
+    /// <c>proc_start_legacy = 1</c>, standing in for a row a v5-to-v6
+    /// migration carried forward: <see cref="AgentSessionRegistry.StartAsync"/>
+    /// only ever writes fresh (non-legacy) rows, so this bypasses it to
+    /// reach the legacy state a migration alone produces.
+    /// </summary>
+    private async Task InsertLegacySessionRowAsync(
+        string sessionId, int pid, string procStart, CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                proc_start_legacy
+            ) VALUES (
+                $harness, $sessionId, NULL, 'none', $host, $pid, $procStart,
+                '/work', '/work/.nitro/agents', 'none', '', $now, $now, 1
+            );
+            """;
+        command.Parameters.AddWithValue("$harness", Harness);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$host", CurrentHost);
+        command.Parameters.AddWithValue("$pid", pid);
+        command.Parameters.AddWithValue("$procStart", procStart);
+        command.Parameters.AddWithValue("$now", now);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     private async Task<long> CountDeliveriesAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
         await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
@@ -1563,25 +1716,32 @@ internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? sessio
 /// </summary>
 internal sealed class FakeProcessInfoProvider : IProcessInfoProvider
 {
-    private readonly Dictionary<int, DateTimeOffset> _aliveStartTimes = [];
+    private readonly Dictionary<int, string> _aliveStartTicks = [];
     private readonly Dictionary<int, string> _observations = [];
 
     public string ProcessScope { get; set; } = "";
 
-    public void SetAlive(int pid, DateTimeOffset startTime) => _aliveStartTimes[pid] = startTime;
+    public void SetAlive(int pid, string startTicks) => _aliveStartTicks[pid] = startTicks;
 
     public void SetObservation(int pid, string observation) => _observations[pid] = observation;
 
-    public DateTimeOffset? GetStartTime(int pid)
-        => _aliveStartTimes.TryGetValue(pid, out var start) ? start : null;
+    public string? GetStartTicks(int pid)
+        => _aliveStartTicks.TryGetValue(pid, out var start) ? start : null;
 
-    public bool IsAlive(int pid, DateTimeOffset expectedStart)
-        => _aliveStartTimes.TryGetValue(pid, out var start) && start == expectedStart;
+    public bool IsAlive(int pid, string expectedStartTicks)
+        => _aliveStartTicks.TryGetValue(pid, out var start) && start == expectedStartTicks;
 
     public string GetProcessScope() => ProcessScope;
 
-    public string Observe(int pid, DateTimeOffset expectedStart, string recordedProcessScope)
+    public bool CanObserveScope(string recordedProcessScope)
+    {
+        var readerScope = GetProcessScope();
+
+        return !(readerScope.Length > 0 && recordedProcessScope.Length > 0 && readerScope != recordedProcessScope);
+    }
+
+    public string Observe(int pid, string expectedProcStart, bool legacy, string recordedProcessScope)
         => _observations.TryGetValue(pid, out var observation)
             ? observation
-            : IsAlive(pid, expectedStart) ? ProcessObservationResult.Alive : ProcessObservationResult.Dead;
+            : IsAlive(pid, expectedProcStart) ? ProcessObservationResult.Alive : ProcessObservationResult.Dead;
 }

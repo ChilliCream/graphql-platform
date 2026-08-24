@@ -23,7 +23,7 @@ internal sealed record AgentSessionRecord
         + "block_budget_used AS BlockBudgetUsed, last_ping_at AS LastPingAt, "
         + "last_ping_attempt AS LastPingAttempt, last_ping_result AS LastPingResult, "
         + "last_ping_detail AS LastPingDetail, role AS Role, harness_version AS HarnessVersion, "
-        + "process_scope AS ProcessScope";
+        + "process_scope AS ProcessScope, proc_start_legacy AS ProcStartLegacy";
 
     public required string Harness { get; init; }
     public required string SessionId { get; init; }
@@ -46,10 +46,14 @@ internal sealed record AgentSessionRecord
     public required int Pid { get; init; }
 
     /// <summary>
-    /// The process's absolute start time (.NET <c>Process.StartTime</c>),
-    /// immune to reboot pid collisions.
+    /// The process's raw kernel start-tick count (see
+    /// <see cref="ProcStat.ReadStartTicks(int)"/>), immune to reboot pid
+    /// collisions, compared by exact string equality. When
+    /// <see cref="ProcStartLegacy"/> is true, this instead carries the
+    /// pre-v6 DateTimeOffset text a migration left in place until this
+    /// row's next SessionStart rewrites it.
     /// </summary>
-    public required DateTimeOffset ProcStart { get; init; }
+    public required string ProcStart { get; init; }
 
     public required string Cwd { get; init; }
     public required string WorkspacePath { get; init; }
@@ -106,4 +110,16 @@ internal sealed record AgentSessionRecord
     /// environment that exposes no such signal.
     /// </summary>
     public required string ProcessScope { get; init; }
+
+    /// <summary>
+    /// True when this row's <see cref="ProcStart"/> is still the pre-v6
+    /// DateTimeOffset text a schema migration left in place rather than raw
+    /// kernel start ticks, set explicitly by that migration and cleared to
+    /// false the next time a SessionStart rewrites the row with a freshly
+    /// observed generation. Callers checking liveness (<see
+    /// cref="IProcessInfoProvider.Observe"/>) must pass this through so a
+    /// legacy row falls back to the pre-migration wall-clock comparison
+    /// instead of being compared as raw ticks.
+    /// </summary>
+    public required bool ProcStartLegacy { get; init; }
 }

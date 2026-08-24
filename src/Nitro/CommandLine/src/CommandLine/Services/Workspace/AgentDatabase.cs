@@ -19,22 +19,28 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
     /// rather than rejected: v2 (before the agents table gained its role and
     /// implicit columns), v3 (after those columns and the client column,
-    /// before the v4 <see cref="AgentSessionSchema"/> tables), and v4
-    /// (before <c>agent_sessions</c> gained its v5 role, harness_version, and
-    /// process_scope columns). A v3 database's agents table already carries
-    /// every column <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading
-    /// it only means applying the new v4 tables and bumping the stamped
-    /// version. A v4 database's <c>agent_sessions</c> table already carries
-    /// every column except the three
-    /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> adds.
+    /// before the v4 <see cref="AgentSessionSchema"/> tables), v4 (before
+    /// <c>agent_sessions</c> gained its v5 role, harness_version, and
+    /// process_scope columns), and v5 (before <c>agent_sessions</c> gained
+    /// its v6 <c>proc_start_legacy</c> column). A v3 database's agents table
+    /// already carries every column <see cref="UpgradeAgentsTableAsync"/>
+    /// adds, so upgrading it only means applying the new v4 tables and
+    /// bumping the stamped version. A v4 database's <c>agent_sessions</c>
+    /// table already carries every column except the three
+    /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> adds. A v5
+    /// database's <c>agent_sessions</c> table already carries every column
+    /// except <c>proc_start_legacy</c>, which
+    /// <see cref="UpgradeAgentSessionsProcStartLegacyColumnAsync"/> adds,
+    /// marking every existing row legacy since none of them can carry raw
+    /// start ticks yet.
     /// </summary>
-    private static readonly int[] UpgradableVersions = [2, 3, 4];
+    private static readonly int[] UpgradableVersions = [2, 3, 4, 5];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -126,6 +132,11 @@ internal sealed class AgentDatabase
         // bead adds.
         await UpgradeAgentSessionsMetadataColumnsAsync(connection, transaction);
 
+        // Same unconditional, column-checked shape again: every existing v5
+        // database predates proc_start_legacy, so this is what actually
+        // carries out the v5-to-v6 migration this bead adds.
+        await UpgradeAgentSessionsProcStartLegacyColumnAsync(connection, transaction);
+
         await connection.ExecuteAsync(
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
 
@@ -208,6 +219,38 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
+    /// Adds the <c>agent_sessions</c> table's v6 <c>proc_start_legacy</c>
+    /// column when the database on hand's table predates it, then marks
+    /// EVERY row already in the table legacy: a table missing this column
+    /// predates raw start ticks entirely, so every <c>proc_start</c> value
+    /// it already holds is the pre-v6 DateTimeOffset text, not ticks, and
+    /// must be read with the legacy wall-clock liveness rule until each
+    /// row's own next SessionStart rewrites it fresh. Safe to run against a
+    /// table that already carries the column (a no-op).
+    /// </summary>
+    private static async Task UpgradeAgentSessionsProcStartLegacyColumnAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+    {
+        var columns = (await connection.QueryAsync<string>(
+                "SELECT name FROM pragma_table_info('agent_sessions');", transaction: transaction))
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (columns.Contains("proc_start_legacy"))
+        {
+            return;
+        }
+
+        await connection.ExecuteAsync(
+            "ALTER TABLE agent_sessions ADD COLUMN proc_start_legacy "
+            + "INTEGER NOT NULL DEFAULT 0 CHECK (proc_start_legacy IN (0, 1));",
+            transaction: transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET proc_start_legacy = 1;", transaction: transaction);
+    }
+
+    /// <summary>
     /// Rebuilds <c>agent_sessions</c> in place when its stamped CHECK
     /// constraint on <c>last_ping_result</c> predates <c>unsupported</c>,
     /// detected by inspecting the table's own recorded SQL in
@@ -258,17 +301,24 @@ internal sealed class AgentDatabase
                 $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
             await connection.ExecuteAsync(
                 AgentSessionSchema.CreateAgentSessionsTable(rebuildTableName), transaction: transaction);
+            // proc_start_legacy is set to the literal 1, not copied from a
+            // source column (this rebuild's source table predates it
+            // entirely): any row old enough to need this CHECK-constraint
+            // rebuild predates raw start ticks too, so every proc_start
+            // value it carries is the pre-v6 DateTimeOffset text.
             await connection.ExecuteAsync(
                 $"""
                 INSERT INTO "{rebuildTableName}" (
                     harness, session_id, agent_name, binding_kind, host, pid, proc_start,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail
+                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                    proc_start_legacy
                 )
                 SELECT
                     harness, session_id, agent_name, binding_kind, host, pid, proc_start,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail
+                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                    1
                 FROM agent_sessions;
                 """,
                 transaction: transaction);

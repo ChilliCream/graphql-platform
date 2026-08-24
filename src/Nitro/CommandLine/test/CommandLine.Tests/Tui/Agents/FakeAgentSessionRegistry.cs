@@ -59,7 +59,7 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken)
+        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<AgentSessionRecord?> FindByGenerationAsync(

@@ -172,7 +172,7 @@ internal interface IAgentSessionRegistry
     /// none matches; more than one means the match is ambiguous.
     /// </summary>
     Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken);
+        string harness, string host, int pid, string procStart, CancellationToken cancellationToken);
 
     /// <summary>
     /// Reaps dead current-instance rows, then returns every surviving row

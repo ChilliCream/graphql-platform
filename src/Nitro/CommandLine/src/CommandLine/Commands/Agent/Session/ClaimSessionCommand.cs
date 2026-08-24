@@ -75,12 +75,19 @@ internal sealed class ClaimSessionCommand : Command
         result.PreviousAgentName,
         result.Changed);
 
+    /// <summary>
+    /// The public shape of <c>agent session claim --output json</c>. Schema
+    /// v6 breaking change: <see cref="ProcStart"/> is now the process's raw
+    /// kernel start-tick count as a digit string (see <see
+    /// cref="ChilliCream.Nitro.CommandLine.Services.Workspace.ProcStat.ReadStartTicks(int)"/>),
+    /// not a DateTimeOffset.
+    /// </summary>
     public sealed record SessionClaimResult(
         string Harness,
         string SessionId,
         string Host,
         int Pid,
-        DateTimeOffset ProcStart,
+        string ProcStart,
         string AgentName,
         string BindingKind,
         string PreviousBindingKind,

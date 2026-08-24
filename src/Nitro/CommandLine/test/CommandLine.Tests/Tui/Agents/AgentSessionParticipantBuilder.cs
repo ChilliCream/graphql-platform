@@ -33,7 +33,7 @@ internal static class AgentSessionParticipantBuilder
             BindingKind = agentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Explicit,
             Host = host,
             Pid = pid,
-            ProcStart = startedAt ?? DefaultNow,
+            ProcStart = "1000000",
             Cwd = cwd,
             WorkspacePath = workspacePath,
             EndpointKind = endpointKind,
@@ -43,7 +43,8 @@ internal static class AgentSessionParticipantBuilder
             BlockBudgetUsed = 0,
             Role = role,
             HarnessVersion = harnessVersion,
-            ProcessScope = ""
+            ProcessScope = "",
+            ProcStartLegacy = false
         };
 
     /// <summary>

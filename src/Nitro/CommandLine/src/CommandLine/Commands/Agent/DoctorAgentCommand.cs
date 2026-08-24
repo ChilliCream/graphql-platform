@@ -1,4 +1,3 @@
-using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -105,7 +104,7 @@ internal sealed class DoctorAgentCommand : Command
                 SELECT harness AS Harness, session_id AS SessionId, agent_name AS AgentName,
                        binding_kind AS BindingKind, host AS Host, pid AS Pid, proc_start AS ProcStart,
                        workspace_path AS WorkspacePath, last_ping_result AS LastPingResult,
-                       process_scope AS ProcessScope
+                       process_scope AS ProcessScope, proc_start_legacy AS ProcStartLegacy
                 FROM agent_sessions
                 ORDER BY harness, session_id;
                 """))
@@ -122,7 +121,7 @@ internal sealed class DoctorAgentCommand : Command
             // ReapAsync will never delete such a row either.
             deadGenerationSessions = rows
                 .Where(row => row.Host == currentInstanceId
-                    && processInfoProvider.Observe(row.Pid, ParseProcStart(row.ProcStart), row.ProcessScope)
+                    && processInfoProvider.Observe(row.Pid, row.ProcStart, row.ProcStartLegacy, row.ProcessScope)
                         == ProcessObservationResult.Dead)
                 .Select(ToDoctorRow)
                 .ToArray();
@@ -145,7 +144,7 @@ internal sealed class DoctorAgentCommand : Command
                     SELECT harness AS Harness, session_id AS SessionId, agent_name AS AgentName,
                            binding_kind AS BindingKind, host AS Host, pid AS Pid, proc_start AS ProcStart,
                            workspace_path AS WorkspacePath, last_ping_result AS LastPingResult,
-                           process_scope AS ProcessScope
+                           process_scope AS ProcessScope, proc_start_legacy AS ProcStartLegacy
                     FROM agent_sessions
                     WHERE host != @currentInstanceId
                     ORDER BY harness, session_id;
@@ -390,12 +389,9 @@ internal sealed class DoctorAgentCommand : Command
         }
     }
 
-    private static DateTimeOffset ParseProcStart(string procStart)
-        => DateTimeOffset.Parse(procStart, CultureInfo.InvariantCulture);
-
     private static AgentSessionDoctorRow ToDoctorRow(SessionDoctorRow row) => new(
         row.Harness, row.SessionId, row.AgentName, row.BindingKind, row.Host, row.Pid,
-        ParseProcStart(row.ProcStart), row.WorkspacePath, row.LastPingResult, row.ProcessScope);
+        row.ProcStart, row.WorkspacePath, row.LastPingResult, row.ProcessScope);
 
     // Distinguishes "no endpoint to ping at all" (no last_ping_result ever
     // written) from "an endpoint the notifier has no transport for"
@@ -432,7 +428,7 @@ internal sealed class DoctorAgentCommand : Command
                     sessionId = row.SessionId,
                     host = row.Host,
                     pid = row.Pid,
-                    procStart = ParseProcStart(row.ProcStart),
+                    procStart = row.ProcStart,
                     cancellationToken
                 });
 
@@ -513,8 +509,16 @@ internal sealed class DoctorAgentCommand : Command
         public required string WorkspacePath { get; init; }
         public string? LastPingResult { get; init; }
         public required string ProcessScope { get; init; }
+        public required bool ProcStartLegacy { get; init; }
     }
 
+    /// <summary>
+    /// Part of the public shape of <c>agent doctor --output json</c>.
+    /// Schema v6 breaking change: <see cref="ProcStart"/> is now the
+    /// process's raw kernel start-tick count as a digit string (see
+    /// <see cref="ChilliCream.Nitro.CommandLine.Services.Workspace.ProcStat.ReadStartTicks(int)"/>),
+    /// not a DateTimeOffset.
+    /// </summary>
     public sealed record AgentSessionDoctorRow(
         string Harness,
         string SessionId,
@@ -522,7 +526,7 @@ internal sealed class DoctorAgentCommand : Command
         string BindingKind,
         string Host,
         int Pid,
-        DateTimeOffset ProcStart,
+        string ProcStart,
         string WorkspacePath,
         string? LastPingResult,
         string ProcessScope);

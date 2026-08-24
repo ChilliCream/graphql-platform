@@ -12,10 +12,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// digest and per-turn budget reset on UserPromptSubmit, the Stop gate
 /// (reentrancy, per-turn budget, ledger reservation), and conditional
 /// teardown on SessionEnd. Every call runs with <c>dryRun: true</c>, which
-/// pins the row's generation to the fixed sentinel identity (pid 1,
-/// <see cref="DateTimeOffset.UnixEpoch"/> proc_start) instead of walking for
-/// a live Claude Code ancestor - the same substitution the command layer's
-/// <c>--dry-run</c> flag makes for fixture-driven runs.
+/// pins the row's generation to the fixed sentinel identity (pid 1, "0"
+/// proc_start) instead of walking for a live Claude Code ancestor - the same
+/// substitution the command layer's <c>--dry-run</c> flag makes for
+/// fixture-driven runs.
 /// </summary>
 public sealed class ClaudeHookHandlerTests : IDisposable
 {
@@ -628,7 +628,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         SessionId,
         "host-1",
         Pid: 1,
-        DateTimeOffset.UnixEpoch);
+        "0");
 }
 
 internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? session) : IClaudeAncestorSessionResolver
@@ -716,7 +716,7 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
         => inner.RegisterAsync(generation, actor, role, client, forceRebind, cancellationToken);
 
     public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken)
+        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
         => inner.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
 
     public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
