@@ -1,3 +1,6 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
 
 public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
@@ -92,14 +95,17 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task RoleFilter_SendsOnlyToAgentsWithThatRole()
+    public async Task RoleFilter_SendsOnlyToLiveAgentsWithThatRole()
     {
-        // arrange
+        // arrange: durable registration alone is not enough - each candidate
+        // needs a live session bound with that role, per the fix direction.
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync(
-            "agent", "register", "--actor", "test-agent", "--role", "backend");
-        await ExecuteCommandAsync("agent", "register", "--actor", "zeta", "--role", "backend");
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--role", "frontend");
+        SetupInstanceId("host-broadcast-role-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
+        await SeedAliveSessionAsync("session-zeta", "zeta", "backend", "host-broadcast-role-test");
+        await SeedAliveSessionAsync("session-alpha", "alpha", "frontend", "host-broadcast-role-test");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -116,8 +122,10 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-role-test");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
-        await ExecuteCommandAsync("agent", "register", "--actor", "zeta", "--role", "frontend");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveSessionAsync("session-zeta", "zeta", "frontend", "host-broadcast-role-test");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -127,8 +135,171 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            No registered agent with role 'backend' to broadcast to.
+            No live agent with role 'backend' to broadcast to.
             """);
+    }
+
+    [Fact]
+    public async Task RoleFilter_ExcludesClosedHistoricalIdentity_ReturnsNoLiveRecipientError()
+    {
+        // arrange: zeta once registered as orchestrator, but has no live
+        // session at all now (the session ended, its row was reaped or
+        // deleted) - a planner-style role lookup must not find it.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync(
+            "agent", "register", "--actor", "zeta", "--role", "orchestrator");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "--subject", "hi", "--body", "hello");
+
+        // assert
+        result.AssertError(
+            """
+            No live agent with role 'orchestrator' to broadcast to.
+            """);
+    }
+
+    [Fact]
+    public async Task RoleFilter_DedupesMultipleLiveSessionsForTheSameActor()
+    {
+        // arrange: zeta has two live sessions both claiming orchestrator -
+        // the broadcast must reach the actor once, not twice.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-dedup-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveSessionAsync("session-zeta-1", "zeta", "orchestrator", "host-broadcast-dedup-test");
+        await SeedAliveSessionAsync("session-zeta-2", "zeta", "orchestrator", "host-broadcast-dedup-test");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertSuccess($"✓ Sent '{id}' to zeta.");
+        Assert.Equal(
+            "1",
+            await QueryScalarAsync($"SELECT COUNT(*) FROM message_recipients WHERE message_id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task RoleFilter_ReflectsTheCurrentRole_AfterTheLiveSessionsRoleChanges()
+    {
+        // arrange: zeta's live session starts as backend, then its role
+        // changes to orchestrator - discovery must follow the session's
+        // current role, not the role it had when the row was created.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-rolechange-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveSessionAsync("session-zeta", "zeta", "backend", "host-broadcast-rolechange-test");
+        await ExecuteAsync("UPDATE agent_sessions SET role = 'orchestrator' WHERE session_id = 'session-zeta'");
+
+        // act
+        var backendResult = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "backend",
+            "--subject", "backend broadcast", "--body", "Deploying.");
+        var orchestratorResult = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "--subject", "orchestrator broadcast", "--body", "Deploying.");
+
+        // assert
+        backendResult.AssertError(
+            """
+            No live agent with role 'backend' to broadcast to.
+            """);
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'orchestrator broadcast'");
+        orchestratorResult.AssertSuccess($"✓ Sent '{id}' to zeta.");
+    }
+
+    [Fact]
+    public async Task RoleFilter_ExcludesAnUnboundSession()
+    {
+        // arrange: a role can only end up on a session together with a
+        // binding through RegisterAsync, but discovery must not trust the
+        // role column alone - it must also require the session be bound.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-unbound-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await SeedAliveSessionAsync(
+            "session-unbound", agentName: null, role: "orchestrator", host: "host-broadcast-unbound-test");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "--subject", "hi", "--body", "hello");
+
+        // assert
+        result.AssertError(
+            """
+            No live agent with role 'orchestrator' to broadcast to.
+            """);
+    }
+
+    [Fact]
+    public async Task RoleFilter_SessionEndingBetweenDiscoveryAndSend_StillDeliversDurably()
+    {
+        // arrange: resolve the role-targeted recipient exactly the way
+        // BroadcastMailCommand does, then end the session before the durable
+        // send actually runs - discovery only feeds durable actor names into
+        // the same async send path every mail command uses, so the send must
+        // not depend on the row still existing.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("zeta");
+        await SeedAliveSessionAsync("session-zeta", "zeta", "orchestrator", "host-broadcast-race-test");
+
+        var to = await MailRoleRecipients.ResolveAsync(
+            CreateSessions("host-broadcast-race-test"), "orchestrator", "test-agent", cancellationToken);
+
+        // act
+        await ExecuteAsync("DELETE FROM agent_sessions WHERE session_id = 'session-zeta'");
+        var message = await CreateStore().SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = "test-agent",
+                Subject = "Heads up",
+                Body = "Deploying.",
+                To = to
+            },
+            cancellationToken);
+
+        // assert
+        Assert.Equal(["zeta"], to);
+        Assert.Equal(["zeta"], message.Recipients.Select(recipient => recipient.Name));
+    }
+
+    [Fact]
+    public async Task RoleFilter_PingsTheLiveResolvedSession()
+    {
+        // arrange: proves notifier fan-out still fires for a recipient
+        // resolved through the new role-targeted, live-participant path.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-broadcast-role-ping-test");
+        SetupPingWorkerLauncher(new FailingPingWorkerLauncher());
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveSessionAsync(
+            "session-zeta", "zeta", "orchestrator", "host-broadcast-role-ping-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-zeta");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertSuccess($"✓ Sent '{id}' to zeta.");
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-zeta'");
+        Assert.Equal("spawn-failed", pingResult);
     }
 
     [Fact]

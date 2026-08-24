@@ -40,6 +40,7 @@ internal sealed class BroadcastMailCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
         var registry = services.GetRequiredService<IAgentRegistry>();
+        var sessions = services.GetRequiredService<IAgentSessionRegistry>();
         var notifier = services.GetRequiredService<INotifier>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
@@ -51,19 +52,16 @@ internal sealed class BroadcastMailCommand : Command
         var actor = MailActor.Resolve(
             parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
 
-        var agents = await registry.ListAsync(role, staleBefore: null, cancellationToken);
-        var to = agents
-            .Where(agent => !agent.Implicit)
-            .Select(agent => agent.Name)
-            .Where(name => name != actor)
-            .ToArray();
+        var to = role is null
+            ? await ResolveEveryRegisteredAgentAsync(registry, actor, cancellationToken)
+            : await MailRoleRecipients.ResolveAsync(sessions, role, actor, cancellationToken);
 
-        if (to.Length is 0)
+        if (to.Count is 0)
         {
             throw new ExitException(
                 role is null
                     ? "No other registered agent to broadcast to."
-                    : $"No registered agent with role '{role}' to broadcast to.");
+                    : $"No live agent with role '{role}' to broadcast to.");
         }
 
         var body = await MailBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
@@ -102,5 +100,23 @@ internal sealed class BroadcastMailCommand : Command
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
 
         return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Returns the normalized names of every non-implicit registered agent
+    /// except <paramref name="excludingActor"/>. A broadcast with no role
+    /// filter reaches every registered mailbox regardless of whether any of
+    /// its sessions are currently live.
+    /// </summary>
+    private static async Task<IReadOnlyList<string>> ResolveEveryRegisteredAgentAsync(
+        IAgentRegistry registry, string excludingActor, CancellationToken cancellationToken)
+    {
+        var agents = await registry.ListAsync(role: null, staleBefore: null, cancellationToken);
+
+        return agents
+            .Where(agent => !agent.Implicit)
+            .Select(agent => agent.Name)
+            .Where(name => name != excludingActor)
+            .ToArray();
     }
 }

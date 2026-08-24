@@ -56,6 +56,24 @@ public abstract class MailCommandTestBase : CommandTestBase
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
 
     /// <summary>
+    /// Creates an <see cref="IAgentSessionRegistry"/> bound to this test's
+    /// workspace, clock, and instance id, for resolving live participants
+    /// directly without going through the CLI. No ancestor process is ever
+    /// found: every row it acts on must already exist, seeded directly
+    /// against the database.
+    /// </summary>
+    internal AgentSessionRegistry CreateSessions(string host)
+        => new(
+            new TestFileSystem(WorkingDirectory),
+            FakeTime,
+            new AgentDatabase(),
+            CreateRegistry(),
+            new FixedInstanceIdProvider(host),
+            new FixedGlobalConfigDirectoryProvider(WorkingDirectory),
+            new ProcessInfoProvider(),
+            new FixedClaudeAncestorSessionResolver(null));
+
+    /// <summary>
     /// Registers an agent directly against the registry.
     /// </summary>
     internal Task<AgentRecord> SeedAgentAsync(string name)
@@ -90,7 +108,27 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// resolution matches this row). Used to exercise auto-ping through the
     /// CLI without a live harness process.
     /// </summary>
-    private protected async Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
+    private protected Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
+        => SeedAliveSessionAsync(
+            "session-1", agentName, role: "", host,
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: threadId);
+
+    /// <summary>
+    /// Seeds an alive <c>agent_sessions</c> row directly against the
+    /// workspace database, on the host id <see cref="SetupInstanceId"/> was
+    /// pointed at (a test calling this must call that first, so the
+    /// notifier's own host resolution matches this row). A null
+    /// <paramref name="agentName"/> seeds an unbound row. Used to exercise
+    /// role-targeted mail discovery and auto-ping through the CLI without a
+    /// live harness process.
+    /// </summary>
+    private protected async Task SeedAliveSessionAsync(
+        string sessionId,
+        string? agentName,
+        string role,
+        string host,
+        string endpointKind = AgentSessionEndpointKind.None,
+        string endpointAddr = "")
     {
         using var process = Process.GetCurrentProcess();
         var pid = process.Id;
@@ -108,18 +146,23 @@ public abstract class MailCommandTestBase : CommandTestBase
         command.CommandText =
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, role, host, pid, proc_start,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'codex', 'session-1', $agentName, 'explicit', $host, $pid, $procStart,
-                '/work', '/work/.nitro/agents', 'codex-thread', $threadId, $now, $now
+                'codex', $sessionId, $agentName, $bindingKind, $role, $host, $pid, $procStart,
+                '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now
             );
             """;
-        command.Parameters.AddWithValue("$agentName", agentName);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
+        command.Parameters.AddWithValue(
+            "$bindingKind", agentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Explicit);
+        command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$host", host);
         command.Parameters.AddWithValue("$pid", pid);
         command.Parameters.AddWithValue("$procStart", procStart);
-        command.Parameters.AddWithValue("$threadId", threadId);
+        command.Parameters.AddWithValue("$endpointKind", endpointKind);
+        command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
@@ -143,6 +186,25 @@ public abstract class MailCommandTestBase : CommandTestBase
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
         return result is null or DBNull ? null : result.ToString();
+    }
+
+    /// <summary>
+    /// Runs a non-query statement against the workspace database, for
+    /// mutating a seeded row mid-test (e.g. simulating a role change or a
+    /// session ending between discovery and send).
+    /// </summary>
+    protected async Task ExecuteAsync(string sql)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection =
+            new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     public override async ValueTask DisposeAsync()
