@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LearnSubnavLinks } from "@/src/components/learn/LearnSubnavLinks";
+import { LearnSubnavScroller } from "@/src/components/learn/LearnSubnavScroller";
 
 /**
  * Persistent second navigation bar for every /learn route (learn-editorial.md
@@ -7,17 +8,11 @@ import { LearnSubnavLinks } from "@/src/components/learn/LearnSubnavLinks";
  * and a right-aligned Subscribe link. Sticky under the global header;
  * rendered once by the learn segment layout.
  *
- * Server-rendered shell: only the active-link computation (`LearnSubnavLinks`)
- * is a client component, reading the pathname via `usePathname`, which needs
- * no Suspense boundary.
- *
- * The gutter is split into an outer padding layer (`px-5 sm:px-12`) and an
- * inner `max-w-8xl mx-auto` box, matching the learn layout's content gutter
- * node-for-node (13.2 amendment, kbx.12) so the wordmark's left edge and the
- * content's left edge sit at the same x-position once the viewport is wide
- * enough for `max-w-8xl` to cap the box. Putting the padding and the max
- * width on the same node (the previous shape) offsets the two by the padding
- * value on any viewport wider than that cap.
+ * Server-rendered shell; `LearnSubnavLinks` (active link) and
+ * `LearnSubnavScroller` (overflow fade) are the only client pieces. The
+ * gutter is an outer `px-5 sm:px-12` layer wrapping an inner
+ * `max-w-8xl mx-auto` box, matching the learn content gutter's node
+ * structure.
  */
 export function LearnSubnav() {
   return (
@@ -33,9 +28,9 @@ export function LearnSubnav() {
           >
             Learn
           </Link>
-          <div className="flex [scrollbar-width:none]! items-stretch gap-6 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%_-_24px),transparent)] lg:[mask-image:none] [&::-webkit-scrollbar]:hidden!">
+          <LearnSubnavScroller>
             <LearnSubnavLinks />
-          </div>
+          </LearnSubnavScroller>
           <Link
             href="/learn#subscribe"
             className="text-cc-accent hover:text-cc-accent-hover flex shrink-0 items-center text-sm font-medium no-underline"

@@ -730,32 +730,23 @@ text-sm font-medium` link to `/learn#subscribe`. `LearnSubscribeBand`
 
 User review (2026-08-24) found two shipped defects in the anatomy above:
 
-1. **Desktop misalignment.** The subnav row put `px-5 sm:px-12` and
-   `max-w-8xl mx-auto` on the same element. On any viewport wide enough for
-   `max-w-8xl` to cap the box (roughly >1696px, so 1920 and 2560 but not
-   1440), that shape offsets the row's content by the padding value versus
-   the page content gutter (13.2's `<div className="px-5 py-8 sm:px-12">`
-   wrapping a separate `<div className="max-w-8xl mx-auto">`), because the
-   page gutter applies padding to the full viewport first and then centers
-   the capped box inside the remainder, while the subnav's single-node shape
-   applied padding inside the already-centered box. The fix splits the
-   subnav into the same two nodes, in the same order, as the content gutter:
-   an outer `px-5 sm:px-12` div with no width cap, wrapping an inner
+1. **Desktop misalignment.** The subnav row is split into the same two
+   nodes, in the same order, as the content gutter: an outer
+   `px-5 sm:px-12` div with no width cap, wrapping an inner
    `max-w-8xl mx-auto` div carrying the row's grid. This makes the wordmark's
    left edge and the content's left edge coincide exactly at every
    viewport, verified at 2560/1920/1440/768/390.
-2. **Mobile clipping.** The link row's `overflow-x-auto` already let a
-   visitor scroll to any link, but the hard container edge cut items off
-   mid-glyph with no visual cue that more content existed off-screen. The
-   link row now carries a `mask-image` gradient (fully transparent at the
-   outer 24px, opaque in between) so a clipped item fades out instead of
-   being cut off flush, the IBM-style overflow affordance named in the
-   ticket's fix direction. The mask is removed at `lg:` and up, where the
-   full link set already fits and a permanent fade on the first/last item
-   would be a cosmetic regression. The wordmark and Subscribe stay pinned
-   outside the scroller as in 13.3, since both are already reachable without
-   scrolling, satisfying "Subscribe reachable at the row end" without
-   folding it into the scroll track.
+2. **Mobile clipping.** The link row (`LearnSubnavScroller`) fades only the
+   side that actually has more content to scroll toward: a left fade
+   renders when `scrollLeft > 0`, a right fade renders when
+   `scrollLeft + clientWidth < scrollWidth`, and neither renders once
+   everything fits, so a fully visible first or last item is never dimmed.
+   The fade state is recomputed on scroll and on resize via
+   `ResizeObserver`. `scroll-padding-inline: 24px` on the scroller keeps a
+   keyboard-focused link clear of an active fade. The wordmark and Subscribe
+   stay pinned outside the scroller as in 13.3, since both are already
+   reachable without scrolling, satisfying "Subscribe reachable at the row
+   end" without folding it into the scroll track.
 
 ### 13.4 Relationship to `LearnTopicNav`
 
