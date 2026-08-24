@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  motion,
-  useMotionValueEvent,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { motion, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Stage } from "../../primitives/reel/Stage";
 import { AppFrame } from "../../primitives/reel/AppFrame";
 import { Cursor } from "../../primitives/reel/Cursor";
@@ -45,11 +40,7 @@ const ORANGE = token.graphEdgeActive;
 
 type Kind = "query" | "mutation" | "subscription";
 const kindColor = (k: Kind) =>
-  k === "mutation"
-    ? token.icMutation
-    : k === "subscription"
-      ? token.icObject
-      : token.icQuery;
+  k === "mutation" ? token.icMutation : k === "subscription" ? token.icObject : token.icQuery;
 function KindGlyph({ kind, size }: { kind: Kind; size: number }) {
   if (kind === "mutation") return <IconMutation size={size} />;
   if (kind === "subscription") return <IconSubscription size={size} />;
@@ -83,27 +74,17 @@ export interface ComposeScreenProps {
 export function ComposeScreen({ progress }: ComposeScreenProps) {
   const runClick = TL.start("runClick");
   const runDone = TL.end("runLoad");
-  const running = useTransform(progress, (p): number =>
-    p >= runClick && p < runDone ? 1 : 0,
-  );
-  const statusOpacity = useTransform(
-    progress,
-    [TL.start("statusResolve"), TL.end("statusResolve")],
-    [0, 1],
-    { clamp: true },
-  );
-  const responseOpacity = useTransform(
-    progress,
-    [TL.start("response"), TL.at("response", 0.1)],
-    [0, 1],
-    { clamp: true },
-  );
+  const running = useTransform(progress, (p): number => (p >= runClick && p < runDone ? 1 : 0));
+  const statusOpacity = useTransform(progress, [TL.start("statusResolve"), TL.end("statusResolve")], [0, 1], {
+    clamp: true,
+  });
+  const responseOpacity = useTransform(progress, [TL.start("response"), TL.at("response", 0.1)], [0, 1], {
+    clamp: true,
+  });
 
   const tick = TL.start("tickCustomer");
   const checkedAt = (p: number) => (p >= tick ? 1 : 0);
-  const [custChecked, setCustChecked] = useState(() =>
-    checkedAt(progress.get()),
-  );
+  const [custChecked, setCustChecked] = useState(() => checkedAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setCustChecked(checkedAt(p)));
 
   const lensClickP = TL.start("lensClick");
@@ -164,11 +145,7 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
           x={cx}
           y={cy}
           progress={progress}
-          clickTimes={[
-            TL.start("tickCustomer"),
-            runClick,
-            TL.start("lensClick"),
-          ]}
+          clickTimes={[TL.start("tickCustomer"), runClick, TL.start("lensClick")]}
           pointerWindows={[
             [TL.start("moveToBuilder"), TL.end("insertBlock")],
             [TL.start("moveToLens"), TL.end("lensReveal")],
@@ -176,11 +153,7 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
         />
       }
     >
-      <AppFrame
-        railActive="documents"
-        aside={<DocTree />}
-        toolbar={<DocTabs />}
-      >
+      <AppFrame railActive="documents" aside={<DocTree />} toolbar={<DocTabs />}>
         <div style={{ position: "absolute", inset: 0, display: "flex" }}>
           <CompanionRail lensOn={lensOn === 1} />
           <div
@@ -193,11 +166,7 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
               borderRight: `1px solid ${token.border}`,
             }}
           >
-            <CompanionPanel
-              lensOn={lensOn === 1}
-              custChecked={custChecked === 1}
-              progress={progress}
-            />
+            <CompanionPanel lensOn={lensOn === 1} custChecked={custChecked === 1} progress={progress} />
           </div>
           <div style={{ width: 1, background: token.border }} />
 
@@ -242,22 +211,11 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
                   fontSize: 12,
                 }}
               >
-                <UnderlineTab
-                  label="GraphQL Variables"
-                  active
-                  fontSize={12}
-                  underlineOffset={-8}
-                />
+                <UnderlineTab label="GraphQL Variables" active fontSize={12} underlineOffset={-8} />
                 <span style={{ color: token.textSecondary }}>HTTP Headers</span>
               </div>
               <div style={{ height: 76, overflow: "hidden" }}>
-                <CodeBlock
-                  code={D.variables}
-                  lang="json"
-                  gutter
-                  caret={false}
-                  fontSize={12}
-                />
+                <CodeBlock code={D.variables} lang="json" gutter caret={false} fontSize={12} />
               </div>
             </div>
           </div>
@@ -352,11 +310,7 @@ export function ComposeScreen({ progress }: ComposeScreenProps) {
 }
 
 function CompanionRail({ lensOn }: { lensOn: boolean }) {
-  const btn = (
-    Icon: (p: IconProps) => React.ReactElement,
-    active?: boolean,
-    testid?: string,
-  ) => (
+  const btn = (Icon: (p: IconProps) => React.ReactElement, active?: boolean, testid?: string) => (
     <div
       data-testid={testid}
       style={{
@@ -411,18 +365,10 @@ function CompanionPanel({
   custChecked: boolean;
   progress: MotionValue<number>;
 }) {
-  const builderOpacity = useTransform(
-    progress,
-    [TL.start("lensClick"), TL.at("lensReveal", 0.5)],
-    [1, 0],
-    { clamp: true },
-  );
-  const lensOpacity = useTransform(
-    progress,
-    [TL.at("lensReveal", 0.1), TL.end("lensReveal")],
-    [0, 1],
-    { clamp: true },
-  );
+  const builderOpacity = useTransform(progress, [TL.start("lensClick"), TL.at("lensReveal", 0.5)], [1, 0], {
+    clamp: true,
+  });
+  const lensOpacity = useTransform(progress, [TL.at("lensReveal", 0.1), TL.end("lensReveal")], [0, 1], { clamp: true });
   return (
     <>
       <ColumnHeader title={lensOn ? "Operation Lens" : "Operation Builder"} />
@@ -434,14 +380,10 @@ function CompanionPanel({
           position: "relative",
         }}
       >
-        <motion.div
-          style={{ position: "absolute", inset: 0, opacity: builderOpacity }}
-        >
+        <motion.div style={{ position: "absolute", inset: 0, opacity: builderOpacity }}>
           <QueryBuilder custChecked={custChecked} progress={progress} />
         </motion.div>
-        <motion.div
-          style={{ position: "absolute", inset: 0, opacity: lensOpacity }}
-        >
+        <motion.div style={{ position: "absolute", inset: 0, opacity: lensOpacity }}>
           <OperationLens />
         </motion.div>
       </div>
@@ -465,13 +407,7 @@ const LENS = {
   sources: ["Accounts", "Orders"],
 };
 
-function LensSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function LensSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div
       style={{
@@ -575,11 +511,7 @@ function OperationLens() {
         <span style={{ display: "flex", color: token.icObject }}>
           <IconObject size={16} color="currentColor" />
         </span>
-        <span
-          style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}
-        >
-          {LENS.name}
-        </span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}>{LENS.name}</span>
         <span
           style={{
             marginLeft: "auto",
@@ -656,11 +588,7 @@ function OperationLens() {
       </LensSection>
 
       <LensSection title="Return Type">
-        <LensCoordinateRow
-          icon={<IconObject size={13} />}
-          name={LENS.returnType.name}
-          color={token.icObject}
-        />
+        <LensCoordinateRow icon={<IconObject size={13} />} name={LENS.returnType.name} color={token.icObject} />
         <div
           style={{
             fontSize: 12,
@@ -689,11 +617,7 @@ interface BField {
 }
 
 const fieldIconColor = (k: FieldKind) =>
-  k === "object"
-    ? token.icObject
-    : k === "enum"
-      ? token.icEnum
-      : token.icScalar;
+  k === "object" ? token.icObject : k === "enum" ? token.icEnum : token.icScalar;
 function FieldIcon({ kind }: { kind: FieldKind }) {
   if (kind === "object") return <IconObject size={13} />;
   if (kind === "enum") return <IconEnum size={13} />;
@@ -760,13 +684,7 @@ const BUILDER: BField[] = [
 
 const BROW_H = 22;
 
-function QueryBuilder({
-  custChecked,
-  progress,
-}: {
-  custChecked: boolean;
-  progress: MotionValue<number>;
-}) {
+function QueryBuilder({ custChecked, progress }: { custChecked: boolean; progress: MotionValue<number> }) {
   return (
     <div
       role="img"
@@ -780,34 +698,19 @@ function QueryBuilder({
       }}
     >
       {BUILDER.map((f, i) => (
-        <BuilderRow
-          key={`${f.depth}-${f.name}-${i}`}
-          f={f}
-          custChecked={custChecked}
-          progress={progress}
-        />
+        <BuilderRow key={`${f.depth}-${f.name}-${i}`} f={f} custChecked={custChecked} progress={progress} />
       ))}
     </div>
   );
 }
 
-function BuilderRow({
-  f,
-  custChecked,
-  progress,
-}: {
-  f: BField;
-  custChecked: boolean;
-  progress: MotionValue<number>;
-}) {
+function BuilderRow({ f, custChecked, progress }: { f: BField; custChecked: boolean; progress: MotionValue<number> }) {
   const checked = f.cust ? custChecked : f.checked;
   const sel = f.cust && custChecked;
   const flashTick = TL.start("tickCustomer");
   const flash = useTransform(
     progress,
-    f.cust
-      ? [flashTick, flashTick + 0.01, flashTick + 0.08]
-      : [0, 0.0001, 0.0002],
+    f.cust ? [flashTick, flashTick + 0.01, flashTick + 0.08] : [0, 0.0001, 0.0002],
     [0, 1, sel ? 0.0 : 0],
     { clamp: true },
   );
@@ -858,11 +761,7 @@ function BuilderRow({
           <KindGlyph kind="query" size={12} />
         </span>
       ) : (
-        <Checkbox
-          checked={checked}
-          accent={sel}
-          testid={f.cust ? "cust-checkbox" : undefined}
-        />
+        <Checkbox checked={checked} accent={sel} testid={f.cust ? "cust-checkbox" : undefined} />
       )}
       <span
         style={{
@@ -885,34 +784,20 @@ function BuilderRow({
       >
         <span
           style={{
-            color: f.op
-              ? token.textStrong
-              : sel
-                ? token.textStrong
-                : token.synField,
+            color: f.op ? token.textStrong : sel ? token.textStrong : token.synField,
             fontFamily: token.mono,
           }}
         >
           {f.name}
         </span>
         <span style={{ color: token.synPunct }}>: </span>
-        <span style={{ color: token.synType, fontFamily: token.mono }}>
-          {f.type}
-        </span>
+        <span style={{ color: token.synType, fontFamily: token.mono }}>{f.type}</span>
       </span>
     </div>
   );
 }
 
-function Checkbox({
-  checked,
-  accent,
-  testid,
-}: {
-  checked: boolean;
-  accent?: boolean;
-  testid?: string;
-}) {
+function Checkbox({ checked, accent, testid }: { checked: boolean; accent?: boolean; testid?: string }) {
   return (
     <span
       data-testid={testid}
@@ -1009,12 +894,9 @@ const FS = 12.5;
 const GUTTER = 36;
 
 function QueryEditor({ progress }: { progress: MotionValue<number> }) {
-  const insertedOpacity = useTransform(
-    progress,
-    [TL.start("tickCustomer"), TL.at("insertBlock", 0.6)],
-    [0, 1],
-    { clamp: true },
-  );
+  const insertedOpacity = useTransform(progress, [TL.start("tickCustomer"), TL.at("insertBlock", 0.6)], [0, 1], {
+    clamp: true,
+  });
   const insertedHeight = useTransform(
     progress,
     [TL.start("tickCustomer"), TL.end("insertBlock")],
@@ -1058,11 +940,7 @@ function QueryEditor({ progress }: { progress: MotionValue<number> }) {
       </motion.div>
 
       {TAIL.map((segs, i) => (
-        <EditorLine
-          key={`t${i}`}
-          no={insertLineNo + INSERTED.length + i}
-          segs={segs}
-        />
+        <EditorLine key={`t${i}`} no={insertLineNo + INSERTED.length + i} segs={segs} />
       ))}
     </div>
   );
@@ -1120,15 +998,7 @@ function ColumnHeader({
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      {title && (
-        <UnderlineTab
-          label={title}
-          active
-          fontSize={14}
-          fontWeight={600}
-          height="100%"
-        />
-      )}
+      {title && <UnderlineTab label={title} active fontSize={14} fontWeight={600} height="100%" />}
       <div
         style={{
           marginLeft: "auto",
@@ -1144,13 +1014,7 @@ function ColumnHeader({
   );
 }
 
-function RunButton({
-  progress,
-  running,
-}: {
-  progress: MotionValue<number>;
-  running: MotionValue<number>;
-}) {
+function RunButton({ progress, running }: { progress: MotionValue<number>; running: MotionValue<number> }) {
   const press = useTransform(
     progress,
     [TL.start("runClick"), TL.at("runClick", 0.5), TL.end("runClick")],
@@ -1159,9 +1023,7 @@ function RunButton({
   );
   const spinnerOpacity = running;
   const playOpacity = useTransform(running, [0, 1], [1, 0]);
-  const label = useTransform(running, (r): string =>
-    r ? "Cancel" : "Run GetOrder",
-  );
+  const label = useTransform(running, (r): string => (r ? "Cancel" : "Run GetOrder"));
   return (
     <motion.div
       data-testid="run-button"
@@ -1214,11 +1076,7 @@ function RunButton({
             <IconSpinner size={13} color="#fff" />
           </motion.span>
         </span>
-        <motion.span
-          style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" }}
-        >
-          {label}
-        </motion.span>
+        <motion.span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" }}>{label}</motion.span>
       </div>
       <div
         style={{
@@ -1284,21 +1142,14 @@ function StatusInfo({
         >
           {value}
         </span>
-        <span style={{ fontSize: 10, color: token.textSecondary }}>
-          {label}
-        </span>
+        <span style={{ fontSize: 10, color: token.textSecondary }}>{label}</span>
       </div>
     </div>
   );
 }
 
 function NoResponseYet({ progress }: { progress: MotionValue<number> }) {
-  const opacity = useTransform(
-    progress,
-    [0, TL.start("runClick"), TL.start("response")],
-    [1, 1, 0],
-    { clamp: true },
-  );
+  const opacity = useTransform(progress, [0, TL.start("runClick"), TL.start("response")], [1, 1, 0], { clamp: true });
   return (
     <motion.div
       style={{
@@ -1322,15 +1173,7 @@ function HistoryList({ progress }: { progress: MotionValue<number> }) {
     <div style={{ padding: "2px 0" }}>
       {D.history.map((h, i) => {
         const first = i === 0;
-        return (
-          <HistoryRow
-            key={h.time}
-            h={h}
-            active={first}
-            progress={progress}
-            pending={first}
-          />
-        );
+        return <HistoryRow key={h.time} h={h} active={first} progress={progress} pending={first} />;
       })}
     </div>
   );
@@ -1354,12 +1197,8 @@ function HistoryRow({
     [pending ? 0 : 1, 1],
     { clamp: true },
   );
-  const checkOpacity = useTransform(progress, (p) =>
-    pending ? (p >= resolve ? 1 : 0) : 1,
-  );
-  const spinnerOpacity = useTransform(progress, (p) =>
-    pending && p >= runClick && p < resolve ? 1 : 0,
-  );
+  const checkOpacity = useTransform(progress, (p) => (pending ? (p >= resolve ? 1 : 0) : 1));
+  const spinnerOpacity = useTransform(progress, (p) => (pending && p >= runClick && p < resolve ? 1 : 0));
   return (
     <motion.div
       style={{
@@ -1467,15 +1306,7 @@ function DocTabs() {
     </div>
   );
 }
-function DocTab({
-  name,
-  kind,
-  activeTab,
-}: {
-  name: string;
-  kind: Kind;
-  activeTab?: boolean;
-}) {
+function DocTab({ name, kind, activeTab }: { name: string; kind: Kind; activeTab?: boolean }) {
   return (
     <div
       style={{
@@ -1544,34 +1375,14 @@ const TREE: TreeNode[] = [
   { label: "Netflix", depth: 0, folder: true, color: token.icEnum },
 ];
 
-function FolderIcon({
-  expanded,
-  color,
-}: {
-  expanded?: boolean;
-  color?: string;
-}) {
+function FolderIcon({ expanded, color }: { expanded?: boolean; color?: string }) {
   return expanded ? (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color ?? token.icEnum}
-      strokeWidth={1.5}
-    >
+    <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={color ?? token.icEnum} strokeWidth={1.5}>
       <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v1H3z" />
       <path d="M3 10h18l-2 7a2 2 0 01-2 1.6H6.8A2 2 0 015 17z" />
     </svg>
   ) : (
-    <svg
-      width={13}
-      height={13}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color ?? token.icEnum}
-      strokeWidth={1.5}
-    >
+    <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={color ?? token.icEnum} strokeWidth={1.5}>
       <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
     </svg>
   );
@@ -1639,11 +1450,7 @@ function DocTree() {
           padding: "11px 10px 7px",
         }}
       >
-        <span
-          style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}
-        >
-          Documents
-        </span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>Documents</span>
         <span style={{ display: "flex", gap: 8, color: token.textSecondary }}>
           <IconPlus size={16} color="currentColor" />
         </span>

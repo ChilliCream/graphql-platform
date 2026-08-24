@@ -67,9 +67,7 @@ function CommunityCard({ card, starCount }: CommunityCardProps) {
       <div className="border-cc-card-border bg-cc-surface text-cc-ink-dim flex h-10 w-10 items-center justify-center rounded-full border">
         {card.icon}
       </div>
-      <h3 className="font-heading text-cc-heading text-h6 mt-4 font-semibold">
-        {card.title}
-      </h3>
+      <h3 className="font-heading text-cc-heading text-h6 mt-4 font-semibold">{card.title}</h3>
       <p className="text-cc-ink-dim mt-2 pb-6 text-sm">{card.body}</p>
       <div className="mt-auto flex h-7 items-center">
         {card.withStars ? (

@@ -1,9 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import {
-  controlBaseClasses,
-  controlBorderClasses,
-  FormField,
-} from "./FormField";
+import { controlBaseClasses, controlBorderClasses, FormField } from "./FormField";
 
 const exampleInput = (hasError: boolean) => (
   <input

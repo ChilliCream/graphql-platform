@@ -4,8 +4,7 @@ import { StrokeIcon } from "./StrokeIcon";
 import { ThemeProvider } from "../../lib/theme";
 import { token } from "../../lib/tokens";
 
-const FOLDER_PATH =
-  "M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z";
+const FOLDER_PATH = "M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z";
 
 const meta = {
   title: "Nitro/Primitives/StrokeIcon",

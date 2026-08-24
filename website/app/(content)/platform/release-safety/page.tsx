@@ -55,10 +55,7 @@ const BREADCRUMB_DATA = {
 export default function ReleaseSafetyPage() {
   return (
     <div className="flex flex-col gap-24 py-6 sm:gap-28">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }} />
       <HeroSection />
       <CheckCardSection />
       <ImpactSection />

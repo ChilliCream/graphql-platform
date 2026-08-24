@@ -3,12 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
-import type {
-  Board,
-  Point,
-  Pulse,
-  RingFlash,
-} from "@/src/components/mocha/board";
+import type { Board, Point, Pulse, RingFlash } from "@/src/components/mocha/board";
 import {
   GLOW_RGB,
   MSG,
@@ -22,15 +17,11 @@ import {
 } from "@/src/components/mocha/board";
 import { MONO_FONT } from "@/src/components/mocha/palette";
 
-const SHADOW_TOP =
-  "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
-const SHADOW_BOTTOM =
-  "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const SHADOW_TOP = "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const SHADOW_BOTTOM = "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
 
-const VIGNETTE_TOP =
-  "linear-gradient(to bottom, rgba(2,6,16,0.35), rgba(2,6,16,0) 12%)";
-const VIGNETTE_BOTTOM =
-  "linear-gradient(to top, rgba(2,6,16,0.55), rgba(2,6,16,0) 18%)";
+const VIGNETTE_TOP = "linear-gradient(to bottom, rgba(2,6,16,0.35), rgba(2,6,16,0) 12%)";
+const VIGNETTE_BOTTOM = "linear-gradient(to top, rgba(2,6,16,0.55), rgba(2,6,16,0) 18%)";
 const VIGNETTE_SIDES =
   "linear-gradient(to right, rgba(2,6,16,0.3), rgba(2,6,16,0) 8%, rgba(2,6,16,0) 92%, rgba(2,6,16,0.3))";
 
@@ -97,10 +88,7 @@ function NodeChip({ seed }: NodeChipProps) {
         className="font-mono text-[0.68rem] font-semibold tracking-[0.26em] whitespace-nowrap uppercase"
         style={{ color: "rgba(170,188,214,0.8)", fontFamily: MONO_FONT }}
       >
-        <span
-          className="font-normal"
-          style={{ color: "rgba(154,172,200,0.45)" }}
-        >
+        <span className="font-normal" style={{ color: "rgba(154,172,200,0.45)" }}>
           {seed.designator}·
         </span>
         {seed.label}
@@ -128,31 +116,16 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="bg-cc-surface/25 absolute inset-0" />
         <PcbBoard />
-        <div
-          className="absolute inset-0"
-          style={{ background: VIGNETTE_BOTTOM }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: VIGNETTE_TOP }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: VIGNETTE_SIDES }}
-        />
+        <div className="absolute inset-0" style={{ background: VIGNETTE_BOTTOM }} />
+        <div className="absolute inset-0" style={{ background: VIGNETTE_TOP }} />
+        <div className="absolute inset-0" style={{ background: VIGNETTE_SIDES }} />
         <div aria-hidden className="pointer-events-none absolute inset-0">
           {SEEDS.filter((seed) => seed.label).map((seed) => (
             <NodeChip key={seed.designator} seed={seed} />
           ))}
         </div>
-        <div
-          className="absolute inset-x-0 top-0 h-10"
-          style={{ background: SHADOW_TOP }}
-        />
-        <div
-          className="absolute inset-x-0 bottom-0 h-10"
-          style={{ background: SHADOW_BOTTOM }}
-        />
+        <div className="absolute inset-x-0 top-0 h-10" style={{ background: SHADOW_TOP }} />
+        <div className="absolute inset-x-0 bottom-0 h-10" style={{ background: SHADOW_BOTTOM }} />
       </div>
 
       <div className="relative z-10">{children}</div>
@@ -181,9 +154,7 @@ function PcbBoard() {
       return;
     }
 
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const runtime = mulberry32(0x9c2b4d1);
 
     let board: Board | null = null;
@@ -221,14 +192,7 @@ function PcbBoard() {
       b.drawImage(off, 0, 0);
       b.setTransform(dpr, 0, 0, dpr, 0, 0);
       b.globalCompositeOperation = "destination-out";
-      const dim = b.createRadialGradient(
-        w * DIM_CX,
-        h * DIM_CY,
-        0,
-        w * DIM_CX,
-        h * DIM_CY,
-        w * DIM_RADIUS,
-      );
+      const dim = b.createRadialGradient(w * DIM_CX, h * DIM_CY, 0, w * DIM_CX, h * DIM_CY, w * DIM_RADIUS);
       dim.addColorStop(0, `rgba(0,0,0,${DIM_ALPHA})`);
       dim.addColorStop(1, "rgba(0,0,0,0)");
       b.fillStyle = dim;
@@ -327,10 +291,7 @@ function PcbBoard() {
         c.lineWidth = 1.6;
         let prev = pointAt(pulse.trace, Math.max(0, pulse.dist - PULSE_TRAIL));
         for (let k = 1; k <= chunks; k++) {
-          const d = Math.max(
-            0,
-            pulse.dist - PULSE_TRAIL + (k * PULSE_TRAIL) / chunks,
-          );
+          const d = Math.max(0, pulse.dist - PULSE_TRAIL + (k * PULSE_TRAIL) / chunks);
           const p = pointAt(pulse.trace, d);
           c.strokeStyle = `rgba(${MSG},${alpha * Math.pow(k / chunks, 2) * 0.9})`;
           c.beginPath();
@@ -487,10 +448,7 @@ function PcbBoard() {
     const ro = new ResizeObserver(() => {
       cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {
-        if (
-          disposed ||
-          (wrapper.clientWidth === w && wrapper.clientHeight === h && board)
-        ) {
+        if (disposed || (wrapper.clientWidth === w && wrapper.clientHeight === h && board)) {
           return;
         }
         measureAndBuild();

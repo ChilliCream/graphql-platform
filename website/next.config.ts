@@ -14,12 +14,7 @@ const nextConfig: NextConfig = {
   experimental: {
     inlineCss: true,
   },
-  serverExternalPackages: [
-    "rehype-mermaid",
-    "mermaid-isomorphic",
-    "playwright",
-    "playwright-core",
-  ],
+  serverExternalPackages: ["rehype-mermaid", "mermaid-isomorphic", "playwright", "playwright-core"],
 };
 
 const withMDX = createMDX({

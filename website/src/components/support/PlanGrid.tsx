@@ -38,12 +38,7 @@ const PLANS: readonly Plan[] = [
     price: "$1,300",
     priceNote: "per month",
     tagline: "Larger teams, critical work",
-    perks: [
-      "Private Slack Channel",
-      "5 critical incidents",
-      "2 non-critical incidents",
-      "Email support",
-    ],
+    perks: ["Private Slack Channel", "5 critical incidents", "2 non-critical incidents", "Email support"],
     cta: {
       label: "Contact Us",
       href: "/services/support/contact?plan=Business",
@@ -78,11 +73,7 @@ export function PlanGrid() {
   return (
     <section id="plans" className="py-16">
       <div className="mb-10">
-        <SectionHeading
-          align="center"
-          eyebrow="Plans"
-          title="Four plans. Pick the one that fits."
-        />
+        <SectionHeading align="center" eyebrow="Plans" title="Four plans. Pick the one that fits." />
       </div>
       <OfferingGrid columns="sm:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((plan) => (

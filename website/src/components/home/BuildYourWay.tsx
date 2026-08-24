@@ -12,8 +12,7 @@ import { StrawberryShake } from "@/src/icons/StrawberryShake";
 import { DrinkIcon } from "@/src/components/DrinkIcon";
 
 /** Brand spectrum (cyan -> violet -> coral), the card's pitch background. */
-const CARD_GRADIENT =
-  "linear-gradient(100deg,#16b9e4 0%,#7c92c6 36%,#b681a9 64%,#f0786a 100%)";
+const CARD_GRADIENT = "linear-gradient(100deg,#16b9e4 0%,#7c92c6 36%,#b681a9 64%,#f0786a 100%)";
 
 const PRODUCTS = [
   {
@@ -74,10 +73,9 @@ export function BuildYourWay() {
                 Add what you need.
               </h2>
               <p className="mt-5 text-base/relaxed text-[#0b1018]/75 sm:text-lg/relaxed">
-                Pick the pieces that fit what you are building: a monolith, a
-                federated API, a message-heavy service, or a client application.
-                We give you tools that work on their own and fit together when
-                your platform grows.
+                Pick the pieces that fit what you are building: a monolith, a federated API, a message-heavy service, or
+                a client application. We give you tools that work on their own and fit together when your platform
+                grows.
               </p>
             </div>
           </div>
@@ -99,10 +97,7 @@ export function BuildYourWay() {
               and the 4th tile starts at column 2, so the bottom two settle into
               the gaps between the top three (an "Olympic rings" arrangement).
               Large collapses everything onto a single five-up row. */}
-          <nav
-            aria-label="ChilliCream products"
-            className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-6 lg:grid-cols-5"
-          >
+          <nav aria-label="ChilliCream products" className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-6 lg:grid-cols-5">
             {PRODUCTS.map(({ label, role, href, Icon }, index) => {
               const isLast = index === PRODUCTS.length - 1;
               const isFirstOnSecondRow = index === 3;
@@ -120,9 +115,7 @@ export function BuildYourWay() {
                     base={56}
                     className="transition-transform duration-200 group-hover:-translate-y-1"
                   />
-                  <span className="text-cc-heading font-heading text-sm leading-tight font-semibold">
-                    {label}
-                  </span>
+                  <span className="text-cc-heading font-heading text-sm leading-tight font-semibold">{label}</span>
                   <span className="text-cc-ink-dim group-hover:text-cc-ink text-[0.7rem] leading-tight transition-colors duration-200">
                     {role}
                   </span>

@@ -33,32 +33,16 @@ export default function Home() {
       <FusionFlow />
       <ProtocolCards />
       <NitroSection />
-      <PatternBand
-        pattern="lines"
-        contain={false}
-        recessed
-        className="pb-16 sm:pb-24"
-      >
+      <PatternBand pattern="lines" contain={false} recessed className="pb-16 sm:pb-24">
         <AgenticSection />
       </PatternBand>
-      <PatternBand
-        pattern="grid"
-        contain={false}
-        blend
-        className="pb-16 sm:pb-24"
-      >
+      <PatternBand pattern="grid" contain={false} blend className="pb-16 sm:pb-24">
         <CombinedObservability />
       </PatternBand>
       <PcbBand className="pb-16 sm:pb-24">
         <CombinedMessaging />
       </PcbBand>
-      <PatternBand
-        pattern="dots"
-        contain={false}
-        blend
-        recessedBottom
-        className="pb-16 sm:pb-24"
-      >
+      <PatternBand pattern="dots" contain={false} blend recessedBottom className="pb-16 sm:pb-24">
         <CombinedGovernance />
       </PatternBand>
       <NitroPricing />

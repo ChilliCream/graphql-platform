@@ -13,13 +13,7 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import {
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  MONO_FONT,
-  VIOLET,
-} from "@/src/components/mocha/palette";
+import { CORAL, CORAL_SOFT, CYAN, MONO_FONT, VIOLET } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
@@ -240,8 +234,7 @@ export function TransportsVisual() {
 
         if (t < PULSE_MS) {
           const u = easeInOutCubic(t / PULSE_MS);
-          const op =
-            Math.min(t / 150, 1) * (1 - ramp(t, PULSE_MS - 160, PULSE_MS));
+          const op = Math.min(t / 150, 1) * (1 - ramp(t, PULSE_MS - 160, PULSE_MS));
           placePulse("p1", L.p1, u, op);
         } else {
           placePulse("p1", L.p1, 1, 0);
@@ -288,9 +281,7 @@ export function TransportsVisual() {
   const midU = 0.55;
   const midD = midU * L.p1.total;
   const [mx, my] = pointAt(L.p1, midU);
-  const trail = [1, 2, 3].map((k) =>
-    pointAt(L.p1, Math.max(0, midD - 7 * k) / L.p1.total),
-  );
+  const trail = [1, 2, 3].map((k) => pointAt(L.p1, Math.max(0, midD - 7 * k) / L.p1.total));
 
   return (
     <div
@@ -299,39 +290,17 @@ export function TransportsVisual() {
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[360px]"
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
-            <filter
-              id="transports-soft"
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
+            <filter id="transports-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="transports-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="transports-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
-          <rect
-            x={0}
-            y={0}
-            width={lw}
-            height={H}
-            fill="url(#transports-grid)"
-          />
+          <rect x={0} y={0} width={lw} height={H} fill="url(#transports-grid)" />
 
           <rect
             x={L.px}
@@ -344,24 +313,11 @@ export function TransportsVisual() {
             strokeWidth={1}
           />
           <circle cx={L.px + 7} cy={PANEL_Y + 7} r={1.2} fill={SILK} />
-          <text
-            x={L.px + 12}
-            y={PANEL_Y + 20}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            letterSpacing="0.18em"
-            fill={SILK}
-          >
+          <text x={L.px + 12} y={PANEL_Y + 20} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.18em" fill={SILK}>
             ORDERS SERVICE
           </text>
 
-          <circle
-            cx={L.px + L.pw - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={SILK}
-            opacity={0.25}
-          />
+          <circle cx={L.px + L.pw - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
           <circle
             ref={set("phC")}
             cx={L.px + L.pw - 10}
@@ -384,22 +340,8 @@ export function TransportsVisual() {
             filter="url(#transports-soft)"
             opacity={0}
           />
-          <circle
-            ref={set("plC")}
-            cx={L.px + L.pw - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={CORAL}
-            opacity={0}
-          />
-          <circle
-            ref={set("plS")}
-            cx={L.px + L.pw - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={CYAN}
-            opacity={0}
-          />
+          <circle ref={set("plC")} cx={L.px + L.pw - 10} cy={PANEL_Y + 10} r={2} fill={CORAL} opacity={0} />
+          <circle ref={set("plS")} cx={L.px + L.pw - 10} cy={PANEL_Y + 10} r={2} fill={CYAN} opacity={0} />
 
           <rect
             x={L.rowX}
@@ -411,30 +353,9 @@ export function TransportsVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect
-            x={L.rowX}
-            y={R1_TOP}
-            width={L.rowW}
-            height={ROW_H}
-            rx={6}
-            fill={VIOLET}
-            opacity={0.06}
-          />
-          <rect
-            x={L.rowX}
-            y={R1_TOP + 5}
-            width={3}
-            height={ROW_H - 10}
-            rx={1.5}
-            fill={VIOLET}
-          />
-          <text
-            x={L.rowX + 13}
-            y={R1_TOP + 19}
-            fontFamily={MONO_FONT}
-            fontSize={L.rowFont}
-            fill={INK}
-          >
+          <rect x={L.rowX} y={R1_TOP} width={L.rowW} height={ROW_H} rx={6} fill={VIOLET} opacity={0.06} />
+          <rect x={L.rowX} y={R1_TOP + 5} width={3} height={ROW_H - 10} rx={1.5} fill={VIOLET} />
+          <text x={L.rowX + 13} y={R1_TOP + 19} fontFamily={MONO_FONT} fontSize={L.rowFont} fill={INK}>
             OrderPlacedHandler
           </text>
           <text
@@ -481,21 +402,8 @@ export function TransportsVisual() {
             fill={CYAN}
             opacity={0.07}
           />
-          <rect
-            x={L.rowX}
-            y={R2_TOP + 5}
-            width={3}
-            height={ROW_H - 10}
-            rx={1.5}
-            fill={CYAN}
-          />
-          <text
-            x={L.rowX + 13}
-            y={R2_TOP + 19}
-            fontFamily={MONO_FONT}
-            fontSize={L.rowFont}
-            fill={INK}
-          >
+          <rect x={L.rowX} y={R2_TOP + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
+          <text x={L.rowX + 13} y={R2_TOP + 19} fontFamily={MONO_FONT} fontSize={L.rowFont} fill={INK}>
             DeviceTelemetryHandler
           </text>
           <text
@@ -522,116 +430,33 @@ export function TransportsVisual() {
             events today
           </text>
 
-          <path
-            d={L.d1}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-          <path
-            d={L.d2}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
+          <path d={L.d1} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
+          <path d={L.d2} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
 
           {[-5, 0, 5].map((dy) => (
             <g key={dy}>
-              <rect
-                x={CHIP_R}
-                y={C1_Y + dy - 1}
-                width={3.5}
-                height={2}
-                fill={PAD_FILL}
-              />
-              <rect
-                x={CHIP_R}
-                y={C2_Y + dy - 1}
-                width={3.5}
-                height={2}
-                fill={PAD_FILL}
-              />
-              <rect
-                x={L.px - 3.5}
-                y={R1_Y + dy - 1}
-                width={3.5}
-                height={2}
-                fill={PAD_FILL}
-              />
-              <rect
-                x={L.px - 3.5}
-                y={R2_Y + dy - 1}
-                width={3.5}
-                height={2}
-                fill={PAD_FILL}
-              />
+              <rect x={CHIP_R} y={C1_Y + dy - 1} width={3.5} height={2} fill={PAD_FILL} />
+              <rect x={CHIP_R} y={C2_Y + dy - 1} width={3.5} height={2} fill={PAD_FILL} />
+              <rect x={L.px - 3.5} y={R1_Y + dy - 1} width={3.5} height={2} fill={PAD_FILL} />
+              <rect x={L.px - 3.5} y={R2_Y + dy - 1} width={3.5} height={2} fill={PAD_FILL} />
             </g>
           ))}
 
-          <circle
-            cx={L.rowX}
-            cy={R1_Y}
-            r={2.5}
-            fill={SURFACE}
-            stroke={VIA_STROKE}
-            strokeWidth={1}
-          />
-          <circle
-            cx={L.rowX}
-            cy={R2_Y}
-            r={2.5}
-            fill={SURFACE}
-            stroke={VIA_STROKE}
-            strokeWidth={1}
-          />
+          <circle cx={L.rowX} cy={R1_Y} r={2.5} fill={SURFACE} stroke={VIA_STROKE} strokeWidth={1} />
+          <circle cx={L.rowX} cy={R2_Y} r={2.5} fill={SURFACE} stroke={VIA_STROKE} strokeWidth={1} />
 
           {Array.from({ length: MAX_DOTS }, (_, i) => {
             const d = i * DOT_GAP;
             const on = d < L.p2.total;
             const [x, y] = on ? pointAt(L.p2, d / L.p2.total) : [0, 0];
-            const op = on
-              ? 0.9 * clamp01(Math.min(d / 8, (L.p2.total - d) / 8, 1))
-              : 0;
-            return (
-              <circle
-                key={i}
-                ref={set(`s${i}`)}
-                cx={x}
-                cy={y}
-                r={1.4}
-                fill={CYAN}
-                opacity={op}
-              />
-            );
+            const op = on ? 0.9 * clamp01(Math.min(d / 8, (L.p2.total - d) / 8, 1)) : 0;
+            return <circle key={i} ref={set(`s${i}`)} cx={x} cy={y} r={1.4} fill={CYAN} opacity={op} />;
           })}
 
           <g ref={set("p1")} opacity={1}>
-            <circle
-              ref={set("p1t3")}
-              cx={trail[2][0]}
-              cy={trail[2][1]}
-              r={1.4}
-              fill={CORAL}
-              opacity={0.09}
-            />
-            <circle
-              ref={set("p1t2")}
-              cx={trail[1][0]}
-              cy={trail[1][1]}
-              r={1.7}
-              fill={CORAL}
-              opacity={0.21}
-            />
-            <circle
-              ref={set("p1t1")}
-              cx={trail[0][0]}
-              cy={trail[0][1]}
-              r={2}
-              fill={CORAL}
-              opacity={0.33}
-            />
+            <circle ref={set("p1t3")} cx={trail[2][0]} cy={trail[2][1]} r={1.4} fill={CORAL} opacity={0.09} />
+            <circle ref={set("p1t2")} cx={trail[1][0]} cy={trail[1][1]} r={1.7} fill={CORAL} opacity={0.21} />
+            <circle ref={set("p1t1")} cx={trail[0][0]} cy={trail[0][1]} r={2} fill={CORAL} opacity={0.33} />
             <circle
               ref={set("p1glow")}
               cx={mx}
@@ -642,13 +467,7 @@ export function TransportsVisual() {
               filter="url(#transports-soft)"
             />
             <circle ref={set("p1core")} cx={mx} cy={my} r={2.5} fill={CORAL} />
-            <circle
-              ref={set("p1in")}
-              cx={mx}
-              cy={my}
-              r={1.1}
-              fill={CORAL_SOFT}
-            />
+            <circle ref={set("p1in")} cx={mx} cy={my} r={1.1} fill={CORAL_SOFT} />
           </g>
 
           <circle

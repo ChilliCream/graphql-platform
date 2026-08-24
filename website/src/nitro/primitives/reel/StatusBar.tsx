@@ -20,15 +20,7 @@ const P = {
   screen: "M3 5h18v11H3zM9 20h6M12 16v4",
 };
 
-function Item({
-  icon,
-  label,
-  color,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  color?: string;
-}) {
+function Item({ icon, label, color }: { icon: React.ReactNode; label: string; color?: string }) {
   return (
     <span
       style={{

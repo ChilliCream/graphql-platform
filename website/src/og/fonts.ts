@@ -20,13 +20,12 @@ export type OgFont = {
  * required for the static export (`output: "export"`).
  */
 export async function loadShareCardFonts(): Promise<OgFont[]> {
-  const [interRegular, interBold, josefinSemiBold, josefinBold] =
-    await Promise.all([
-      readFile(path.join(FONT_DIR, "Inter-Regular.ttf")),
-      readFile(path.join(FONT_DIR, "Inter-Bold.ttf")),
-      readFile(path.join(FONT_DIR, "JosefinSans-600.woff")),
-      readFile(path.join(FONT_DIR, "JosefinSans-700.woff")),
-    ]);
+  const [interRegular, interBold, josefinSemiBold, josefinBold] = await Promise.all([
+    readFile(path.join(FONT_DIR, "Inter-Regular.ttf")),
+    readFile(path.join(FONT_DIR, "Inter-Bold.ttf")),
+    readFile(path.join(FONT_DIR, "JosefinSans-600.woff")),
+    readFile(path.join(FONT_DIR, "JosefinSans-700.woff")),
+  ]);
 
   return [
     { name: "Inter", data: interRegular, weight: 400, style: "normal" },

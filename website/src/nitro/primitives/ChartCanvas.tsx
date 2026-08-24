@@ -17,14 +17,7 @@ const SIZING_STYLE: Record<ChartCanvasSizing, CSSProperties> = {
   none: {},
 };
 
-export function ChartCanvas({
-  sizing = "fill",
-  label,
-  className,
-  style,
-  ref,
-  children,
-}: ChartCanvasProps) {
+export function ChartCanvas({ sizing = "fill", label, className, style, ref, children }: ChartCanvasProps) {
   return (
     <div
       ref={ref}

@@ -26,13 +26,11 @@ const FEATURES = [
   },
   {
     title: "DataLoader Batching",
-    description:
-      "Green Donut batches loads at the federation layer so cross-service N+1 disappears automatically.",
+    description: "Green Donut batches loads at the federation layer so cross-service N+1 disappears automatically.",
   },
   {
     title: "Realtime Subscriptions",
-    description:
-      "Server-sent events and WebSocket subscriptions are first-class — no extra wiring required.",
+    description: "Server-sent events and WebSocket subscriptions are first-class — no extra wiring required.",
   },
   {
     title: "OpenTelemetry Built In",
@@ -56,21 +54,15 @@ export default function HotChocolatePage() {
       />
       <div className="flex flex-wrap justify-center gap-4">
         <SolidButton href="/docs/hotchocolate">Get Started</SolidButton>
-        <OutlineButton href="https://github.com/ChilliCream/graphql-platform">
-          View on GitHub
-        </OutlineButton>
+        <OutlineButton href="https://github.com/ChilliCream/graphql-platform">View on GitHub</OutlineButton>
       </div>
 
       <Section title="Built for Production">
         <CardGrid cols={3} step="progressive" gap={6}>
           {FEATURES.map((feature) => (
             <Card key={feature.title} variant="tile">
-              <h3 className="text-cc-ink text-lg font-semibold">
-                {feature.title}
-              </h3>
-              <p className="text-cc-ink-dim mt-2 text-sm">
-                {feature.description}
-              </p>
+              <h3 className="text-cc-ink text-lg font-semibold">{feature.title}</h3>
+              <p className="text-cc-ink-dim mt-2 text-sm">{feature.description}</p>
             </Card>
           ))}
         </CardGrid>

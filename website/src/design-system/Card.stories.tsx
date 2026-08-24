@@ -31,9 +31,7 @@ type Story = StoryObj<typeof meta>;
 export const Plain: Story = {
   args: {
     className: "p-6",
-    children: (
-      <p className="text-cc-ink text-sm">A plain card with p-6 padding.</p>
-    ),
+    children: <p className="text-cc-ink text-sm">A plain card with p-6 padding.</p>,
   },
 };
 
@@ -44,9 +42,7 @@ export const Tile: Story = {
     children: (
       <>
         <h2 className="text-cc-heading text-xl font-semibold">Analytics</h2>
-        <p className="text-cc-ink-dim mt-3 text-sm">
-          Instant Insights. Enhanced Performance.
-        </p>
+        <p className="text-cc-ink-dim mt-3 text-sm">Instant Insights. Enhanced Performance.</p>
       </>
     ),
   },
@@ -56,11 +52,7 @@ export const PanelWithGlow: Story = {
   args: {
     variant: "panel",
     glow: true,
-    children: (
-      <p className="text-cc-ink text-sm">
-        A panel card with the decorative glow overlay.
-      </p>
-    ),
+    children: <p className="text-cc-ink text-sm">A panel card with the decorative glow overlay.</p>,
   },
 };
 
@@ -70,12 +62,9 @@ export const AsArticle: Story = {
     variant: "panel",
     children: (
       <>
-        <h3 className="font-heading text-cc-heading text-lg font-semibold">
-          On site
-        </h3>
+        <h3 className="font-heading text-cc-heading text-lg font-semibold">On site</h3>
         <p className="text-cc-ink mt-2 text-sm leading-relaxed">
-          A trainer joins your team in a room with a whiteboard and proper
-          coffee.
+          A trainer joins your team in a room with a whiteboard and proper coffee.
         </p>
       </>
     ),
@@ -91,12 +80,8 @@ export const AsLink: Story = {
     children: (
       <>
         <h2 className="text-cc-heading text-xl font-semibold">Analytics</h2>
-        <p className="text-cc-ink-dim mt-3 text-sm">
-          Instant Insights. Enhanced Performance.
-        </p>
-        <span className="text-cc-accent mt-6 block text-sm font-medium">
-          Learn more →
-        </span>
+        <p className="text-cc-ink-dim mt-3 text-sm">Instant Insights. Enhanced Performance.</p>
+        <span className="text-cc-accent mt-6 block text-sm font-medium">Learn more →</span>
       </>
     ),
   },

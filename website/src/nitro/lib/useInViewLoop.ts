@@ -1,12 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
-import {
-  animate,
-  useInView,
-  useMotionValue,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { animate, useInView, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useReducedMotionPreference } from "./motion";
 
 export interface MasterClock {

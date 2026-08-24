@@ -1,9 +1,5 @@
 import * as page from "./page";
-import {
-  createPageShareCardImage,
-  shareCardContentType,
-  shareCardSize,
-} from "@/src/og/pageShareCardImage";
+import { createPageShareCardImage, shareCardContentType, shareCardSize } from "@/src/og/pageShareCardImage";
 
 export const dynamic = "force-static";
 

@@ -1,31 +1,29 @@
 export type ChangeStatus = "safe" | "dangerous" | "breaking";
 
-export const STATUS_META: Record<
-  ChangeStatus,
-  { label: string; text: string; bg: string; ring: string; dot: string }
-> = {
-  safe: {
-    label: "SAFE",
-    text: "text-cc-success",
-    bg: "bg-cc-success/10",
-    ring: "ring-cc-success/30",
-    dot: "bg-cc-success",
-  },
-  dangerous: {
-    label: "DANGEROUS",
-    text: "text-cc-warning",
-    bg: "bg-cc-warning/10",
-    ring: "ring-cc-warning/30",
-    dot: "bg-cc-warning",
-  },
-  breaking: {
-    label: "BREAKING",
-    text: "text-cc-danger",
-    bg: "bg-cc-danger/10",
-    ring: "ring-cc-danger/30",
-    dot: "bg-cc-danger",
-  },
-};
+export const STATUS_META: Record<ChangeStatus, { label: string; text: string; bg: string; ring: string; dot: string }> =
+  {
+    safe: {
+      label: "SAFE",
+      text: "text-cc-success",
+      bg: "bg-cc-success/10",
+      ring: "ring-cc-success/30",
+      dot: "bg-cc-success",
+    },
+    dangerous: {
+      label: "DANGEROUS",
+      text: "text-cc-warning",
+      bg: "bg-cc-warning/10",
+      ring: "ring-cc-warning/30",
+      dot: "bg-cc-warning",
+    },
+    breaking: {
+      label: "BREAKING",
+      text: "text-cc-danger",
+      bg: "bg-cc-danger/10",
+      ring: "ring-cc-danger/30",
+      dot: "bg-cc-danger",
+    },
+  };
 
 interface StatusChipProps {
   readonly status: ChangeStatus;

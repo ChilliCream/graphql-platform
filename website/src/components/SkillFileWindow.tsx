@@ -18,11 +18,7 @@ interface SkillFileWindowProps {
   readonly className?: string;
 }
 
-export function SkillFileWindow({
-  name,
-  description,
-  className,
-}: SkillFileWindowProps) {
+export function SkillFileWindow({ name, description, className }: SkillFileWindowProps) {
   const frontmatter: SkillToken[][] = [
     [{ text: "---", color: VIOLET_SOFT }],
     [
@@ -61,11 +57,7 @@ export function SkillFileWindow({
           </span>
         ),
       }}
-      headerRight={
-        <span className="text-cc-ink-dim font-mono text-[0.6rem] whitespace-nowrap">
-          skills/
-        </span>
-      }
+      headerRight={<span className="text-cc-ink-dim font-mono text-[0.6rem] whitespace-nowrap">skills/</span>}
       footerClassName="bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-1.5"
       footer={
         <>
@@ -74,9 +66,7 @@ export function SkillFileWindow({
               <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
               main
             </span>
-            <span className="text-cc-ink-dim font-mono text-[0.6rem]">
-              markdown
-            </span>
+            <span className="text-cc-ink-dim font-mono text-[0.6rem]">markdown</span>
           </span>
           <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
             <CheckGlyph className="text-cc-success size-3" />
@@ -93,10 +83,7 @@ export function SkillFileWindow({
             </span>
             <span className="pl-3 font-mono text-[0.7rem] leading-[19px] whitespace-pre">
               {tokens.map((token, j) => (
-                <span
-                  key={`skill-tok-${i}-${j}`}
-                  style={{ color: token.color }}
-                >
+                <span key={`skill-tok-${i}-${j}`} style={{ color: token.color }}>
                   {token.text}
                 </span>
               ))}

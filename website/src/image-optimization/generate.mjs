@@ -52,8 +52,7 @@ async function run(config) {
   const manifestPath = path.resolve(cwd, config.manifestPath);
 
   const { quality, widths, formats } = config;
-  const onProgress =
-    typeof config.onProgress === "function" ? config.onProgress : null;
+  const onProgress = typeof config.onProgress === "function" ? config.onProgress : null;
   // Hash the encode settings so changing quality/widths/formats invalidates the cache.
   const settingsJson = JSON.stringify({ quality, widths, formats });
 
@@ -85,11 +84,7 @@ async function run(config) {
     const url = `/images/${relPath}`;
     try {
       const bytes = fs.readFileSync(file);
-      const hash = crypto
-        .createHash("sha256")
-        .update(bytes)
-        .update(settingsJson)
-        .digest("hex");
+      const hash = crypto.createHash("sha256").update(bytes).update(settingsJson).digest("hex");
 
       const shareOptions = {
         wanted: shareSet.has(url),
@@ -101,16 +96,10 @@ async function run(config) {
       };
 
       const existing = manifest[url];
-      if (
-        existing &&
-        existing.hash === hash &&
-        allOutputsExist(existing, outputDir)
-      ) {
+      if (existing && existing.hash === hash && allOutputsExist(existing, outputDir)) {
         // Backfill the blur placeholder for manifests generated before blur
         // support, without re-encoding the (unchanged) full-size variants.
-        const entry = existing.blurDataURL
-          ? existing
-          : { ...existing, ...(await makeBlur(bytes)) };
+        const entry = existing.blurDataURL ? existing : { ...existing, ...(await makeBlur(bytes)) };
         newManifest[url] = await ensureShareVariant(entry, shareOptions);
         cached++;
         return;
@@ -151,9 +140,7 @@ async function run(config) {
       );
       encoded++;
     } catch (err) {
-      console.warn(
-        `[image-opt] WARN failed to optimize ${url}: ${err.message}`,
-      );
+      console.warn(`[image-opt] WARN failed to optimize ${url}: ${err.message}`);
       // Reuse the previous manifest entry if we had one, so the page can still
       // fall back gracefully on the next build.
       if (manifest[url]) {
@@ -288,11 +275,7 @@ function shareTargetBox(share, intrinsicW, intrinsicH) {
   if (!intrinsicW || !intrinsicH) {
     return { width: share.width, height: share.height };
   }
-  const scale = Math.min(
-    intrinsicW / share.width,
-    intrinsicH / share.height,
-    1,
-  );
+  const scale = Math.min(intrinsicW / share.width, intrinsicH / share.height, 1);
   return {
     width: Math.max(1, Math.floor(share.width * scale)),
     height: Math.max(1, Math.floor(share.height * scale)),
@@ -303,10 +286,7 @@ function shareTargetBox(share, intrinsicW, intrinsicH) {
 // source-content hash on the entry already covers byte changes; `shareHash`
 // covers share encode-settings changes, so an up-to-date variant is reused
 // without re-encoding.
-async function ensureShareVariant(
-  entry,
-  { wanted, bytes, relPath, outputDir, share, shareHash },
-) {
+async function ensureShareVariant(entry, { wanted, bytes, relPath, outputDir, share, shareHash }) {
   if (!wanted || !share) {
     if (!entry.shareSrc) {
       return entry;
@@ -326,11 +306,7 @@ async function ensureShareVariant(
 
   const outRel = `${relPath}.share.jpg`;
   const outFile = path.join(outputDir, outRel);
-  if (
-    entry.shareSrc &&
-    entry.shareHash === shareHash &&
-    fs.existsSync(outFile)
-  ) {
+  if (entry.shareSrc && entry.shareHash === shareHash && fs.existsSync(outFile)) {
     return entry;
   }
 
@@ -466,15 +442,12 @@ function writeAtomic(file, buffer) {
 
 async function runPool(tasks, concurrency, onTick) {
   let index = 0;
-  const workers = Array.from(
-    { length: Math.min(concurrency, tasks.length) },
-    async () => {
-      while (index < tasks.length) {
-        const current = index++;
-        await tasks[current]();
-        onTick?.();
-      }
-    },
-  );
+  const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, async () => {
+    while (index < tasks.length) {
+      const current = index++;
+      await tasks[current]();
+      onTick?.();
+    }
+  });
   await Promise.all(workers);
 }

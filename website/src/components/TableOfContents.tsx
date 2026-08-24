@@ -33,10 +33,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
       <aside className="cc-content-dark hidden 2xl:block">
         <div className="sticky top-18 flex max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] flex-col px-5 pt-8">
           <TocHeader />
-          <div
-            data-toc-scroll
-            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
-          >
+          <div data-toc-scroll className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8">
             <TocNav sections={sections} />
           </div>
         </div>
@@ -51,11 +48,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 }
 
 function TocHeader() {
-  return (
-    <p className="text-cc-ink-dim mb-3 text-xs font-semibold tracking-widest uppercase">
-      On this page
-    </p>
-  );
+  return <p className="text-cc-ink-dim mb-3 text-xs font-semibold tracking-widest uppercase">On this page</p>;
 }
 
 export function TocNav({ sections }: { sections: TocSection[] }) {
@@ -63,11 +56,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
     <nav>
       <ul className="border-cc-card-border space-y-1 border-l text-sm">
         {sections.map((section) => (
-          <li
-            key={section.h2.id}
-            data-toc-section={section.h2.id}
-            className="group/section"
-          >
+          <li key={section.h2.id} data-toc-section={section.h2.id} className="group/section">
             <a
               href={`#${section.h2.id}`}
               data-toc-link={section.h2.id}
@@ -78,11 +67,7 @@ export function TocNav({ sections }: { sections: TocSection[] }) {
             {section.subtree.length > 0 && (
               <ul className="space-y-1">
                 {section.subtree.map((node) => (
-                  <li
-                    key={node.h3.id}
-                    data-toc-subtree={node.h3.id}
-                    className="group/subtree"
-                  >
+                  <li key={node.h3.id} data-toc-subtree={node.h3.id} className="group/subtree">
                     <a
                       href={`#${node.h3.id}`}
                       data-toc-link={node.h3.id}
@@ -146,10 +131,7 @@ function buildSections(items: HeadingItem[]): TocSection[] {
   }
 
   if (orphans) {
-    return [
-      ...orphans.map<TocSection>((h) => ({ h2: h, subtree: [] })),
-      ...sections,
-    ];
+    return [...orphans.map<TocSection>((h) => ({ h2: h, subtree: [] })), ...sections];
   }
   return sections;
 }

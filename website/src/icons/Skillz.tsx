@@ -12,22 +12,9 @@ interface SkillzProps {
  */
 export function Skillz({ className, style }: SkillzProps) {
   return (
-    <svg
-      viewBox="0 0 64 64"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true" className={className} style={style}>
       <defs>
-        <linearGradient
-          id="skillz-brand"
-          x1="12"
-          y1="0"
-          x2="12"
-          y2="24"
-          gradientUnits="userSpaceOnUse"
-        >
+        <linearGradient id="skillz-brand" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#F61D6E" />
           <stop offset="0.5" stopColor="#FB522E" />
           <stop offset="1" stopColor="#FFA52B" />

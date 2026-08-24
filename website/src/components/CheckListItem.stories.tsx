@@ -52,9 +52,7 @@ export const LabelAndValue: Story = {
   args: {
     children: (
       <>
-        <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-          Consulting
-        </span>
+        <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">Consulting</span>
         <br />
         Packages of hours
       </>

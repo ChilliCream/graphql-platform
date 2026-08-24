@@ -7,13 +7,7 @@ interface AeiLogoProps {
 
 export function AeiLogo({ className, style }: AeiLogoProps) {
   return (
-    <svg
-      viewBox="0 0 341.17 74.23"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 341.17 74.23" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <polygon points="64.41 64.79 64.39 0.25 44.55 0.25 0.32 64.72 20.2 64.73 47.94 24.29 47.94 48.28 47.92 48.28 37.55 48.28 37.58 64.79 64.41 64.79" />
       <rect x="73.37" y="0.28" width="39.88" height="16.45" />
       <rect x="73.38" y="24.26" width="39.88" height="16.45" />

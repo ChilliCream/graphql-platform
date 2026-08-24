@@ -32,11 +32,7 @@ const UNLOCKS = [
  */
 export function UnlockBand() {
   return (
-    <section
-      aria-labelledby="unlock-heading"
-      className="mt-24 scroll-mt-24 sm:mt-28"
-      id="unlock"
-    >
+    <section aria-labelledby="unlock-heading" className="mt-24 scroll-mt-24 sm:mt-28" id="unlock">
       <div className="mx-auto max-w-2xl">
         <SectionHeading
           align="center"
@@ -55,13 +51,7 @@ export function UnlockBand() {
   );
 }
 
-function UnlockRow({
-  unlock,
-  index,
-}: {
-  readonly unlock: (typeof UNLOCKS)[number];
-  readonly index: number;
-}) {
+function UnlockRow({ unlock, index }: { readonly unlock: (typeof UNLOCKS)[number]; readonly index: number }) {
   const Glyph = UNLOCK_ICONS[index] ?? SupportGlyph;
   return (
     <Card as="li" className="flex items-center gap-4 p-5 sm:gap-5 sm:p-6">
@@ -69,16 +59,10 @@ function UnlockRow({
         <Glyph className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <h3 className="font-heading text-cc-heading text-base font-semibold">
-          {unlock.title}
-        </h3>
-        <p className="text-cc-ink-dim mt-1 text-sm text-pretty">
-          {unlock.description}
-        </p>
+        <h3 className="font-heading text-cc-heading text-base font-semibold">{unlock.title}</h3>
+        <p className="text-cc-ink-dim mt-1 text-sm text-pretty">{unlock.description}</p>
       </div>
-      <span className="font-heading text-cc-heading shrink-0 text-lg font-semibold sm:text-xl">
-        {unlock.spend}
-      </span>
+      <span className="font-heading text-cc-heading shrink-0 text-lg font-semibold sm:text-xl">{unlock.spend}</span>
     </Card>
   );
 }

@@ -24,10 +24,7 @@ function abs(rel: string): string {
  *
  * `rootRel` is relative to the project's `content/` directory (e.g. `docs/fusion`).
  */
-export function buildContentTree(
-  rootRel: string,
-  urlPrefix: string,
-): TreeNode[] {
+export function buildContentTree(rootRel: string, urlPrefix: string): TreeNode[] {
   if (!fs.existsSync(abs(rootRel))) {
     return [];
   }
@@ -53,14 +50,10 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
 
   for (const item of items) {
     if (!item.path || !item.title) {
-      throw new Error(
-        `Invalid item in ${dirRel}/${META_FILE}: each item needs 'path' and 'title'`,
-      );
+      throw new Error(`Invalid item in ${dirRel}/${META_FILE}: each item needs 'path' and 'title'`);
     }
 
-    const fileExt = [".md", ".mdx"].find((ext) =>
-      fs.existsSync(abs(`${dirRel}/${item.path}${ext}`)),
-    );
+    const fileExt = [".md", ".mdx"].find((ext) => fs.existsSync(abs(`${dirRel}/${item.path}${ext}`)));
 
     if (fileExt) {
       const isIndex = item.path === "index";
@@ -73,9 +66,7 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
     const subAbs = abs(subRel);
     if (fs.existsSync(subAbs) && fs.statSync(subAbs).isDirectory()) {
       const childUrl = `${urlPrefix}/${item.path}`;
-      const indexFile = ["index.md", "index.mdx"].find((n) =>
-        fs.existsSync(abs(`${subRel}/${n}`)),
-      );
+      const indexFile = ["index.md", "index.mdx"].find((n) => fs.existsSync(abs(`${subRel}/${n}`)));
       const children = walk(subRel, childUrl);
       nodes.push({
         title: item.title,
@@ -85,9 +76,7 @@ function walk(dirRel: string, urlPrefix: string): TreeNode[] {
       continue;
     }
 
-    throw new Error(
-      `Item '${item.path}' referenced in ${dirRel}/${META_FILE} does not exist on disk`,
-    );
+    throw new Error(`Item '${item.path}' referenced in ${dirRel}/${META_FILE} does not exist on disk`);
   }
 
   return nodes;

@@ -24,28 +24,17 @@ interface NitroReelProps extends NitroWrapperProps {
 
 export function NitroReel({ className, tabsOverlay }: NitroReelProps) {
   return (
-    <ThemeProvider
-      theme="dark"
-      className={className}
-      style={tabsOverlay ? { background: "transparent" } : undefined}
-    >
+    <ThemeProvider theme="dark" className={className} style={tabsOverlay ? { background: "transparent" } : undefined}>
       <NitroTabReel tabsOverlay={tabsOverlay} />
     </ThemeProvider>
   );
 }
 
 interface StandaloneScreenProps extends NitroWrapperProps {
-  readonly Screen: (props: {
-    progress: MotionValue<number>;
-    active?: boolean;
-  }) => React.ReactElement;
+  readonly Screen: (props: { progress: MotionValue<number>; active?: boolean }) => React.ReactElement;
 }
 
-function StandaloneScreen({
-  Screen,
-  className,
-  durationMs,
-}: StandaloneScreenProps) {
+function StandaloneScreen({ Screen, className, durationMs }: StandaloneScreenProps) {
   const { ref, progress } = useMasterClock({ durationMs });
   return (
     <ThemeProvider theme="dark" className={className}>
@@ -66,53 +55,23 @@ function StandaloneScreen({
 }
 
 export function NitroCompose({ className, durationMs }: NitroWrapperProps) {
-  return (
-    <StandaloneScreen
-      Screen={ComposeScreen}
-      className={className}
-      durationMs={durationMs}
-    />
-  );
+  return <StandaloneScreen Screen={ComposeScreen} className={className} durationMs={durationMs} />;
 }
 
 export function NitroTrace({ className, durationMs }: NitroWrapperProps) {
-  return (
-    <StandaloneScreen
-      Screen={TraceScreen}
-      className={className}
-      durationMs={durationMs}
-    />
-  );
+  return <StandaloneScreen Screen={TraceScreen} className={className} durationMs={durationMs} />;
 }
 
 export function NitroDiagnose({ className, durationMs }: NitroWrapperProps) {
-  return (
-    <StandaloneScreen
-      Screen={DiagnoseScreen}
-      className={className}
-      durationMs={durationMs}
-    />
-  );
+  return <StandaloneScreen Screen={DiagnoseScreen} className={className} durationMs={durationMs} />;
 }
 
 export function NitroSchema({ className, durationMs }: NitroWrapperProps) {
-  return (
-    <StandaloneScreen
-      Screen={SchemaScreen}
-      className={className}
-      durationMs={durationMs}
-    />
-  );
+  return <StandaloneScreen Screen={SchemaScreen} className={className} durationMs={durationMs} />;
 }
 
 export function NitroFusion({ className, durationMs }: NitroWrapperProps) {
-  return (
-    <StandaloneScreen
-      Screen={FusionScreen}
-      className={className}
-      durationMs={durationMs}
-    />
-  );
+  return <StandaloneScreen Screen={FusionScreen} className={className} durationMs={durationMs} />;
 }
 
 export { ThemeProvider as NitroTheme } from "./lib/theme";

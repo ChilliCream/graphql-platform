@@ -53,11 +53,7 @@ function CopiedGlyph({ className }: { readonly className?: string }) {
  * accent color, the rest in ink, matching the static command pills it
  * replaces.
  */
-export function CopyCommand({
-  command,
-  className,
-  size = "md",
-}: CopyCommandProps) {
+export function CopyCommand({ command, className, size = "md" }: CopyCommandProps) {
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
 
@@ -96,11 +92,7 @@ export function CopyCommand({
           copied ? "text-cc-accent" : "text-cc-ink-faint hover:text-cc-ink",
         ].join(" ")}
       >
-        {copied ? (
-          <CopiedGlyph className="size-4" />
-        ) : (
-          <CopyGlyph className="size-4" />
-        )}
+        {copied ? <CopiedGlyph className="size-4" /> : <CopyGlyph className="size-4" />}
       </button>
       <div
         role="group"
@@ -114,9 +106,7 @@ export function CopyCommand({
         <code>
           <span className="text-cc-ink-faint select-none">$ </span>
           <span className="text-cc-accent">{executable}</span>
-          {args.length > 0 && (
-            <span className="text-cc-ink"> {args.join(" ")}</span>
-          )}
+          {args.length > 0 && <span className="text-cc-ink"> {args.join(" ")}</span>}
         </code>
       </div>
     </div>

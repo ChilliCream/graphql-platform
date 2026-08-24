@@ -40,9 +40,7 @@ export default async function EcosystemPage() {
     getGitHubCommitActivity(),
   ]);
   const heroContributors =
-    contributors?.filter(
-      (contributor) => !HIDDEN_CONTRIBUTOR_LOGINS.has(contributor.login),
-    ) ?? null;
+    contributors?.filter((contributor) => !HIDDEN_CONTRIBUTOR_LOGINS.has(contributor.login)) ?? null;
 
   return (
     <>

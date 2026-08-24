@@ -36,10 +36,9 @@ export function FunBand() {
             title="And yes, have lots of fun."
             description={
               <>
-                Training that nobody enjoys does not stick. We run sessions like
-                the workshops we wish we had been to: hands on, slightly
-                informal, no slide marathons, room for questions that start with
-                &ldquo;this is probably stupid but...&rdquo; (it is not).
+                Training that nobody enjoys does not stick. We run sessions like the workshops we wish we had been to:
+                hands on, slightly informal, no slide marathons, room for questions that start with &ldquo;this is
+                probably stupid but...&rdquo; (it is not).
               </>
             }
           />

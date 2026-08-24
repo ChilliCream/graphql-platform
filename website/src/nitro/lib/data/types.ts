@@ -29,12 +29,7 @@ export interface Client {
   impact: number;
 }
 
-export type SpanKind =
-  | "server"
-  | "client"
-  | "internal"
-  | "producer"
-  | "consumer";
+export type SpanKind = "server" | "client" | "internal" | "producer" | "consumer";
 
 export interface InsightRow {
   id: string;

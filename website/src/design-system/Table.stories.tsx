@@ -1,12 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "./Table";
+import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "./Table";
 
 const meta = {
   title: "Design System/Table",
@@ -14,8 +7,7 @@ const meta = {
   argTypes: {
     alternating: {
       control: "boolean",
-      description:
-        "Tint every other body row to make wide tables easier to scan.",
+      description: "Tint every other body row to make wide tables easier to scan.",
     },
   },
 } satisfies Meta<typeof Table>;

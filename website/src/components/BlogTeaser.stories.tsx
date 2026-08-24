@@ -46,8 +46,7 @@ export const LongTitle: Story = {
   args: {
     post: {
       href: "/blog/2024/01/01/example",
-      title:
-        "A particularly long blog post title that needs to wrap across multiple lines and eventually clamp",
+      title: "A particularly long blog post title that needs to wrap across multiple lines and eventually clamp",
       date: "2024-06-15",
       featuredImage: "/placeholders/featured.png",
       author: "Author Name",

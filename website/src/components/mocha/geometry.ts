@@ -10,10 +10,7 @@ export function measure(pts: readonly Pt[]): Polyline {
   const lens: number[] = [];
   let total = 0;
   for (let i = 0; i < pts.length - 1; i++) {
-    const len = Math.hypot(
-      pts[i + 1][0] - pts[i][0],
-      pts[i + 1][1] - pts[i][1],
-    );
+    const len = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
     lens.push(len);
     total += len;
   }

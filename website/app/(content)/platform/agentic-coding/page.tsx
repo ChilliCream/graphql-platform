@@ -34,8 +34,7 @@ export const metadata = pageMetadata({
  * tint a single phrase in the lead. Everything else stays in the calm
  * cream / grey / teal palette, matching the ScrollScenes treatment.
  */
-const SPECTRUM =
-  "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
+const SPECTRUM = "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
 
 /** Used exactly once: the wider center beam behind the hero. */
 const BEAM_SPECTRUM =
@@ -120,10 +119,7 @@ const DROP_CSS = `
  */
 function Backdrop() {
   return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute top-0 left-0 h-[3000px] w-full overflow-hidden"
-    >
+    <div aria-hidden="true" className="pointer-events-none absolute top-0 left-0 h-[3000px] w-full overflow-hidden">
       <style>{DROP_CSS}</style>
       {BEAMS.map((beam) => (
         <div
@@ -141,8 +137,7 @@ function Backdrop() {
         style={{
           width: "1.5px",
           height: "60px",
-          background:
-            "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
+          background: "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
         }}
       />
     </div>
@@ -166,10 +161,9 @@ function Hero() {
       }
       teaser={
         <>
-          Agents are strong at filling a known pattern and weak at inventing
-          architecture. The platform gives your agent the pattern to fill, your
-          conventions as checked-in skills, and feedback it can act on before
-          the merge, so what comes back is{" "}
+          Agents are strong at filling a known pattern and weak at inventing architecture. The platform gives your agent
+          the pattern to fill, your conventions as checked-in skills, and feedback it can act on before the merge, so
+          what comes back is{" "}
           <span
             className="mx-auto mt-2 block w-fit bg-clip-text text-xl font-semibold text-transparent sm:text-2xl"
             style={{ backgroundImage: SPECTRUM }}
@@ -183,9 +177,7 @@ function Hero() {
         command="dnx skillz add chillicream/agent-skills"
         className="bg-cc-surface/80 mx-auto mt-10 max-w-md text-left backdrop-blur-sm"
       />
-      <p className="text-cc-ink-dim mt-4 text-sm">
-        One command teaches your agent the platform.
-      </p>
+      <p className="text-cc-ink-dim mt-4 text-sm">One command teaches your agent the platform.</p>
     </PageHero>
   );
 }
@@ -211,17 +203,13 @@ function AgentDirectory() {
           <li key={agent.slug}>
             <Card hoverBorder className="flex items-center gap-3 p-4">
               <AgentLogo agent={agent} className="size-7 shrink-0" />
-              <span className="text-cc-ink font-mono text-sm">
-                {agent.name}
-              </span>
+              <span className="text-cc-ink font-mono text-sm">{agent.name}</span>
             </Card>
           </li>
         ))}
         <li>
           <div className="border-cc-ink-faint flex h-full items-center gap-3 rounded-2xl border border-dashed px-4 py-4">
-            <span className="text-cc-ink-dim font-mono text-sm">
-              and many more
-            </span>
+            <span className="text-cc-ink-dim font-mono text-sm">and many more</span>
           </div>
         </li>
       </ul>
@@ -240,14 +228,12 @@ const SKILLS = [
   {
     name: "prototype-feature",
     title: "Frontend prototype with mock data.",
-    description:
-      "Builds a clickable, local-only prototype with realistic mock data before any schema or backend work.",
+    description: "Builds a clickable, local-only prototype with realistic mock data before any schema or backend work.",
   },
   {
     name: "prototype-to-contract",
     title: "Prototype to backend contract.",
-    description:
-      "Turns an accepted prototype into colocated GraphQL fragments and a contract for the backend.",
+    description: "Turns an accepted prototype into colocated GraphQL fragments and a contract for the backend.",
   },
 ] as const;
 
@@ -268,25 +254,13 @@ function SkillsSection() {
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
         {SKILLS.map((skill) => (
-          <Card
-            key={skill.name}
-            as="article"
-            variant="panel"
-            hoverBorder
-            className="flex flex-col"
-          >
+          <Card key={skill.name} as="article" variant="panel" hoverBorder className="flex flex-col">
             <Eyebrow size="xs" className="text-[0.58rem]">
               SKILL.md
             </Eyebrow>
-            <h3 className="text-cc-accent mt-3 font-mono text-sm break-words">
-              {skill.name}
-            </h3>
-            <p className="text-cc-heading font-heading mt-3 text-base font-semibold">
-              {skill.title}
-            </p>
-            <p className="text-cc-ink-dim mt-2 text-sm/relaxed">
-              {skill.description}
-            </p>
+            <h3 className="text-cc-accent mt-3 font-mono text-sm break-words">{skill.name}</h3>
+            <p className="text-cc-heading font-heading mt-3 text-base font-semibold">{skill.title}</p>
+            <p className="text-cc-ink-dim mt-2 text-sm/relaxed">{skill.description}</p>
             {/* Try it: install just this skill. */}
             <div className="mt-auto pt-5">
               <CopyCommand
@@ -300,9 +274,7 @@ function SkillsSection() {
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-        <ArrowLink href="https://github.com/chillicream/agent-skills">
-          Browse chillicream/agent-skills
-        </ArrowLink>
+        <ArrowLink href="https://github.com/chillicream/agent-skills">Browse chillicream/agent-skills</ArrowLink>
         <ArrowLink href="/docs/skillz">Read the skillz docs</ArrowLink>
       </div>
     </section>
@@ -334,20 +306,14 @@ function PatternsTile() {
         One pattern per problem.
       </h2>
       <p className="text-cc-ink-dim mt-3 text-sm/relaxed">
-        Attributes mark queries, mutations, DataLoaders, and pagination; event
-        handlers implement a single interface. The agent fills a known shape
-        instead of inventing structure, so two features written weeks apart come
-        back looking the same.
+        Attributes mark queries, mutations, DataLoaders, and pagination; event handlers implement a single interface.
+        The agent fills a known shape instead of inventing structure, so two features written weeks apart come back
+        looking the same.
       </p>
 
       <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {PATTERN_CHIPS.map((chip) => (
-          <KeyValueChip
-            key={chip.label}
-            label={chip.label}
-            value={chip.attr}
-            labelTruncate
-          />
+          <KeyValueChip key={chip.label} label={chip.label} value={chip.attr} labelTruncate />
         ))}
       </div>
     </Card>
@@ -376,10 +342,9 @@ function FeedbackTile() {
         Feedback before the merge.
       </h2>
       <p className="text-cc-ink-dim mt-3 text-sm/relaxed">
-        A schema-first, strongly typed stack turns most bad edits into compile
-        errors. <code className="text-cc-accent">nitro</code> checks the rest in
-        CI against the client registry, so a risky change comes back as feedback
-        while the agent can still fix it.
+        A schema-first, strongly typed stack turns most bad edits into compile errors.{" "}
+        <code className="text-cc-accent">nitro</code> checks the rest in CI against the client registry, so a risky
+        change comes back as feedback while the agent can still fix it.
       </p>
 
       <div className="mt-5 space-y-2">
@@ -421,21 +386,15 @@ function McpSection() {
             title="Your API is a tool, too."
             description={
               <>
-                The same server that shapes the code agents write also serves
-                them at runtime.{" "}
+                The same server that shapes the code agents write also serves them at runtime.{" "}
                 <code className="text-cc-accent">AddMcp()</code> and{" "}
-                <code className="text-cc-accent">MapGraphQLMcp()</code> expose
-                your operations as MCP tools at{" "}
-                <code className="text-cc-accent">/graphql/mcp</code>, so an
-                agent can query the running API while it works instead of
-                guessing at your data.
+                <code className="text-cc-accent">MapGraphQLMcp()</code> expose your operations as MCP tools at{" "}
+                <code className="text-cc-accent">/graphql/mcp</code>, so an agent can query the running API while it
+                works instead of guessing at your data.
               </>
             }
           />
-          <ArrowLink
-            href="/docs/hotchocolate/build/adapters/mcp"
-            className="mt-6"
-          >
+          <ArrowLink href="/docs/hotchocolate/build/adapters/mcp" className="mt-6">
             Read the MCP adapter docs
           </ArrowLink>
         </div>
@@ -471,9 +430,8 @@ function ClosingCta() {
         Point your agent at the platform.
       </h2>
       <p className="text-cc-ink-dim mx-auto mt-5 max-w-2xl text-base/relaxed">
-        The patterns, the feedback, and the checks are already in place;
-        whatever agent your team uses writes against them. One command installs
-        the helpers, and your conventions ride along the same way.
+        The patterns, the feedback, and the checks are already in place; whatever agent your team uses writes against
+        them. One command installs the helpers, and your conventions ride along the same way.
       </p>
       <CopyCommand
         command="dnx skillz add chillicream/agent-skills"

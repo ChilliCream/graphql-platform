@@ -18,32 +18,13 @@ export function Fusion({ className, style }: FusionProps) {
   const shadeId = `fusion-shade-${uid}`;
 
   return (
-    <svg
-      viewBox="307 32 59 84"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="307 32 59 84" aria-hidden="true" className={className} style={style}>
       <defs>
-        <linearGradient
-          id={shadeId}
-          x1="336.77"
-          y1="74.17"
-          x2="361.81"
-          y2="74.17"
-          gradientUnits="userSpaceOnUse"
-        >
+        <linearGradient id={shadeId} x1="336.77" y1="74.17" x2="361.81" y2="74.17" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#0e1522" stopOpacity="0"></stop>
           <stop offset=".4" stopColor="#0e1522" stopOpacity=".1"></stop>
         </linearGradient>
-        <linearGradient
-          id={spectrumId}
-          x1="336.77"
-          y1="52.57"
-          x2="336.77"
-          y2="105.59"
-          gradientUnits="userSpaceOnUse"
-        >
+        <linearGradient id={spectrumId} x1="336.77" y1="52.57" x2="336.77" y2="105.59" gradientUnits="userSpaceOnUse">
           <stop offset=".1" stopColor="#f27765"></stop>
           <stop offset=".3" stopColor="#eabd21"></stop>
           <stop offset=".5" stopColor="#66be77"></stop>

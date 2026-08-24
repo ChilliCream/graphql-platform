@@ -1,7 +1,4 @@
-import {
-  CONSULTING_MAILTO,
-  CONTACT_FORM,
-} from "@/src/components/advisory/advisoryLinks";
+import { CONSULTING_MAILTO, CONTACT_FORM } from "@/src/components/advisory/advisoryLinks";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { MarketingHero } from "@/src/components/MarketingHero";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";

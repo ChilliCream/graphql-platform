@@ -91,11 +91,7 @@ export const CoralWithIcon: Story = {
     title: "Platform team",
     subtitle: "Owning the gateway for many teams.",
     listLabel: "What we cover",
-    items: [
-      "Fusion and distributed schemas",
-      "Subscriptions at scale",
-      "Operational guardrails and observability",
-    ],
+    items: ["Fusion and distributed schemas", "Subscriptions at scale", "Operational guardrails and observability"],
     accent: "coral",
     Icon: () => <CheckIcon size={28} />,
   },
@@ -109,11 +105,7 @@ export const WithOutlineCta: Story = {
     intro:
       "Build a GraphQL server with ASP.NET Core and Hot Chocolate over two days, tailored to where your team is today.",
     listLabel: "What is in the box",
-    items: [
-      "Core concepts and advanced",
-      "Work on a real project",
-      "Level up your entire team at once",
-    ],
+    items: ["Core concepts and advanced", "Work on a real project", "Level up your entire team at once"],
     cta: {
       label: "Enquire about a workshop",
       href: "mailto:contact@chillicream.com",
@@ -129,11 +121,7 @@ export const HighlightedOffer: Story = {
     intro:
       "Build a GraphQL server with ASP.NET Core and Hot Chocolate, then explore React and Relay on a real project.",
     listLabel: "What is in the box",
-    items: [
-      "Core concepts and advanced",
-      "Work on a real project",
-      "Level up your entire team at once",
-    ],
+    items: ["Core concepts and advanced", "Work on a real project", "Level up your entire team at once"],
     cta: {
       label: "Book Corporate Workshop",
       href: "mailto:contact@chillicream.com",

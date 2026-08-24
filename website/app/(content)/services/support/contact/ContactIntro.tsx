@@ -2,11 +2,7 @@ import { CheckList } from "@/src/components/CheckList";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { SlackIcon } from "@/src/icons/Slack";
 
-const POINTS = [
-  "A reply within one business day",
-  "Straight to the core engineers",
-  "No sales runaround",
-];
+const POINTS = ["A reply within one business day", "Straight to the core engineers", "No sales runaround"];
 
 /**
  * The left side of the contact panel: the pitch and what to expect, with the
@@ -21,16 +17,13 @@ export function ContactIntro() {
         Tell us what you need.
       </h1>
       <p className="text-cc-ink-dim mt-5 text-base leading-relaxed text-pretty">
-        Wherever you are and wherever you&rsquo;re headed, you&rsquo;ll hear
-        back from the core team, not a first-line queue.
+        Wherever you are and wherever you&rsquo;re headed, you&rsquo;ll hear back from the core team, not a first-line
+        queue.
       </p>
       <CheckList className="mt-8" items={POINTS} />
       <div className="mt-auto pt-10">
         <div className="border-cc-card-border flex flex-col items-start gap-3 border-t pt-6 text-sm">
-          <a
-            href="mailto:contact@chillicream.com"
-            className="text-cc-ink hover:text-cc-accent transition-colors"
-          >
+          <a href="mailto:contact@chillicream.com" className="text-cc-ink hover:text-cc-accent transition-colors">
             contact@chillicream.com
           </a>
           <a

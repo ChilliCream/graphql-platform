@@ -2,20 +2,8 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import {
-  easeInOutCubic,
-  easeOutCubic,
-  ramp,
-} from "@/src/components/mocha/geometry";
-import {
-  AMBER,
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  VIOLET,
-} from "@/src/components/mocha/palette";
+import { easeInOutCubic, easeOutCubic, ramp } from "@/src/components/mocha/geometry";
+import { AMBER, CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, VIOLET } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
@@ -114,14 +102,7 @@ interface Layout {
   readonly rowFont: number;
 }
 
-function framePath(
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  gx1: number,
-  gx2: number,
-): string {
+function framePath(x: number, y: number, w: number, h: number, gx1: number, gx2: number): string {
   const r = 3;
   const right = x + w;
   const bottom = y + h;
@@ -234,10 +215,7 @@ export function OutboxVisual() {
         const el = E.get(k);
         if (el) {
           el.setAttribute("opacity", o.toFixed(3));
-          el.setAttribute(
-            "transform",
-            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
-          );
+          el.setAttribute("transform", `translate(0 ${((1 - rise) * 5).toFixed(2)})`);
         }
       };
 
@@ -277,12 +255,7 @@ export function OutboxVisual() {
         el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
       };
 
-      const placePulse = (
-        p: string,
-        d: number,
-        groupOp: number,
-        coreR: number,
-      ) => {
+      const placePulse = (p: string, d: number, groupOp: number, coreR: number) => {
         if (coreR <= 0.05 || groupOp <= 0.01) {
           setO(p, 0);
           return;
@@ -299,10 +272,7 @@ export function OutboxVisual() {
           if (el) {
             el.setAttribute("cx", (L.x1 + Math.max(0, dk)).toFixed(1));
             el.setAttribute("cy", LANE_Y.toFixed(1));
-            el.setAttribute(
-              "opacity",
-              dk > 2 ? (0.5 - k * 0.13).toFixed(2) : "0",
-            );
+            el.setAttribute("opacity", dk > 2 ? (0.5 - k * 0.13).toFixed(2) : "0");
           }
         }
       };
@@ -324,18 +294,13 @@ export function OutboxVisual() {
           writeTyped("r2s", L_ROW2, n2);
         }
 
-        const actL =
-          easeOutCubic(ramp(t, 150, 450)) *
-          (1 - easeInOutCubic(ramp(t, 3375, 4025)));
+        const actL = easeOutCubic(ramp(t, 150, 450)) * (1 - easeInOutCubic(ramp(t, 3375, 4025)));
         setO("pwL", actL * 0.07);
         setO("peL", actL * 0.5);
         setO("plL", actL * 0.9);
         setO("phL", actL * 0.5);
 
-        const f1 =
-          t < 2250
-            ? easeOutCubic(ramp(t, 2025, 2250))
-            : 1 - easeInOutCubic(ramp(t, 2250, 3075));
+        const f1 = t < 2250 ? easeOutCubic(ramp(t, 2025, 2250)) : 1 - easeInOutCubic(ramp(t, 2250, 3075));
         setO("fxL", f1 * 0.9);
         setO("fxLg", f1 * 0.25);
         const b1 = easeOutCubic(ramp(t, 2145, 2550));
@@ -348,20 +313,13 @@ export function OutboxVisual() {
           placePulse("p1", u * L.laneTotal, Math.min(1, (t - 3075) / 150), 2.5);
         } else if (t >= 4125 && t < 4470) {
           const v = easeInOutCubic(ramp(t, 4125, 4470));
-          placePulse(
-            "p1",
-            L.laneTotal + v * L.inboxRun,
-            1 - ramp(t, 4310, 4470),
-            2.5,
-          );
+          placePulse("p1", L.laneTotal + v * L.inboxRun, 1 - ramp(t, 4310, 4470), 2.5);
         } else {
           setO("p1", 0);
         }
         const lit = Math.max(
-          easeOutCubic(ramp(t, 3405, 3555)) *
-            (1 - easeInOutCubic(ramp(t, 3705, 4050))),
-          easeOutCubic(ramp(t, 6840, 6990)) *
-            (1 - easeInOutCubic(ramp(t, 7140, 7485))),
+          easeOutCubic(ramp(t, 3405, 3555)) * (1 - easeInOutCubic(ramp(t, 3705, 4050))),
+          easeOutCubic(ramp(t, 6840, 6990)) * (1 - easeInOutCubic(ramp(t, 7140, 7485))),
         );
         setO("chipLit", lit * 0.9);
         setO("chipLitTx", lit);
@@ -373,9 +331,7 @@ export function OutboxVisual() {
         const e3 = t < 5220 ? ramp(t, 5070, 5220) : 1 - ramp(t, 5220, 6045);
         setO("hEcho", Math.max(0, e3) * 0.6);
 
-        const hwR =
-          easeOutCubic(ramp(t, 4430, 4690)) *
-          (1 - easeInOutCubic(ramp(t, 5775, 6425)));
+        const hwR = easeOutCubic(ramp(t, 4430, 4690)) * (1 - easeInOutCubic(ramp(t, 5775, 6425)));
         setO("pwR", hwR * 0.07);
         setO("peR", hwR * 0.55);
         setO("plR", hwR * 0.9);
@@ -391,10 +347,7 @@ export function OutboxVisual() {
           }
         }
 
-        const f2 =
-          t < 5625
-            ? easeOutCubic(ramp(t, 5400, 5625))
-            : 1 - easeInOutCubic(ramp(t, 5625, 6450));
+        const f2 = t < 5625 ? easeOutCubic(ramp(t, 5400, 5625)) : 1 - easeInOutCubic(ramp(t, 5625, 6450));
         setO("fxR", f2 * 0.9);
         setO("fxRg", f2 * 0.25);
         const b2 = easeOutCubic(ramp(t, 5520, 5925));
@@ -406,12 +359,7 @@ export function OutboxVisual() {
         } else if (t >= 7500 && t < 7995) {
           const v = easeInOutCubic(ramp(t, 7500, 7995));
           const r = 2.5 * (1 - easeInOutCubic(ramp(t, 7680, 7995)));
-          placePulse(
-            "p2",
-            L.laneTotal + v * L.inboxRun,
-            1 - ramp(t, 7770, 7995),
-            r,
-          );
+          placePulse("p2", L.laneTotal + v * L.inboxRun, 1 - ramp(t, 7770, 7995), r);
         } else {
           setO("p2", 0);
         }
@@ -449,40 +397,18 @@ export function OutboxVisual() {
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[440px]"
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
-            <filter
-              id="obx-glow"
-              x="-300%"
-              y="-300%"
-              width="700%"
-              height="700%"
-            >
+            <filter id="obx-glow" x="-300%" y="-300%" width="700%" height="700%">
               <feGaussianBlur stdDeviation="2.6" />
             </filter>
             <filter id="obx-soft" x="-40%" y="-90%" width="180%" height="280%">
               <feGaussianBlur stdDeviation="2.2" />
             </filter>
-            <filter
-              id="obx-frame-glow"
-              x="-12%"
-              y="-20%"
-              width="124%"
-              height="140%"
-            >
+            <filter id="obx-frame-glow" x="-12%" y="-20%" width="124%" height="140%">
               <feGaussianBlur stdDeviation="2" />
             </filter>
-            <pattern
-              id="obx-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="obx-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
@@ -500,16 +426,7 @@ export function OutboxVisual() {
             strokeWidth={1}
           />
           <circle cx={PL.px + 7} cy={PL.py + 7} r={1.2} fill={SILK} />
-          <rect
-            ref={set("pwL")}
-            x={PL.px}
-            y={PL.py}
-            width={L.pw}
-            height={PANEL_H}
-            rx={3}
-            fill={CORAL}
-            opacity={0}
-          />
+          <rect ref={set("pwL")} x={PL.px} y={PL.py} width={L.pw} height={PANEL_H} rx={3} fill={CORAL} opacity={0} />
           <rect
             ref={set("peL")}
             x={PL.px}
@@ -522,23 +439,10 @@ export function OutboxVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          <text
-            x={PL.px + 12}
-            y={PL.py + 20}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            letterSpacing="0.16em"
-            fill={SILK}
-          >
+          <text x={PL.px + 12} y={PL.py + 20} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.16em" fill={SILK}>
             ORDERS SERVICE
           </text>
-          <circle
-            cx={PL.px + L.pw - 10}
-            cy={PL.py + 10}
-            r={2}
-            fill={SILK}
-            opacity={0.25}
-          />
+          <circle cx={PL.px + L.pw - 10} cy={PL.py + 10} r={2} fill={SILK} opacity={0.25} />
           <circle
             ref={set("phL")}
             cx={PL.px + L.pw - 10}
@@ -550,30 +454,10 @@ export function OutboxVisual() {
             filter="url(#obx-glow)"
             opacity={0}
           />
-          <circle
-            ref={set("plL")}
-            cx={PL.px + L.pw - 10}
-            cy={PL.py + 10}
-            r={2}
-            fill={CORAL}
-            opacity={0}
-          />
+          <circle ref={set("plL")} cx={PL.px + L.pw - 10} cy={PL.py + 10} r={2} fill={CORAL} opacity={0} />
 
-          <rect
-            x={PL.fx}
-            y={PL.fy}
-            width={PL.fw}
-            height={FRAME_H}
-            rx={3}
-            fill="rgba(139,160,188,0.04)"
-          />
-          <path
-            d={PL.frameD}
-            fill="none"
-            stroke={FRAME_STROKE}
-            strokeWidth={1}
-            strokeDasharray="5 5"
-          />
+          <rect x={PL.fx} y={PL.fy} width={PL.fw} height={FRAME_H} rx={3} fill="rgba(139,160,188,0.04)" />
+          <path d={PL.frameD} fill="none" stroke={FRAME_STROKE} strokeWidth={1} strokeDasharray="5 5" />
           <path
             ref={set("fxLg")}
             d={PL.frameD}
@@ -593,14 +477,7 @@ export function OutboxVisual() {
             strokeDasharray="5 5"
             opacity={0}
           />
-          <text
-            x={PL.tagX}
-            y={PL.fy + 2.5}
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            letterSpacing="0.12em"
-            fill={SILK_DIM}
-          >
+          <text x={PL.tagX} y={PL.fy + 2.5} fontFamily={MONO_FONT} fontSize={9} letterSpacing="0.12em" fill={SILK_DIM}>
             ONE TRANSACTION
           </text>
 
@@ -615,12 +492,7 @@ export function OutboxVisual() {
               stroke={HAIR}
               strokeWidth={1}
             />
-            <text
-              x={PL.rowX + 9}
-              y={PL.row1Y + 21}
-              fontFamily={MONO_FONT}
-              fontSize={L.rowFont}
-            >
+            <text x={PL.rowX + 9} y={PL.row1Y + 21} fontFamily={MONO_FONT} fontSize={L.rowFont}>
               {L_ROW1.map((s, i) => (
                 <tspan key={i} ref={set(`r1s${i}`)} fill={s.f}>
                   {s.t}
@@ -639,29 +511,9 @@ export function OutboxVisual() {
               stroke={HAIR}
               strokeWidth={1}
             />
-            <rect
-              x={PL.rowX}
-              y={PL.row2Y}
-              width={PL.rowW}
-              height={ROW_H}
-              rx={6}
-              fill={CORAL}
-              opacity={0.07}
-            />
-            <rect
-              x={PL.rowX}
-              y={PL.row2Y + 5}
-              width={3}
-              height={ROW_H - 10}
-              rx={1.5}
-              fill={CORAL}
-            />
-            <text
-              x={PL.rowX + textPad}
-              y={PL.row2Y + 21}
-              fontFamily={MONO_FONT}
-              fontSize={L.rowFont}
-            >
+            <rect x={PL.rowX} y={PL.row2Y} width={PL.rowW} height={ROW_H} rx={6} fill={CORAL} opacity={0.07} />
+            <rect x={PL.rowX} y={PL.row2Y + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CORAL} />
+            <text x={PL.rowX + textPad} y={PL.row2Y + 21} fontFamily={MONO_FONT} fontSize={L.rowFont}>
               {L_ROW2.map((s, i) => (
                 <tspan key={i} ref={set(`r2s${i}`)} fill={s.f}>
                   {s.t}
@@ -717,16 +569,7 @@ export function OutboxVisual() {
             strokeWidth={1}
           />
           <circle cx={PR.px + 7} cy={PR.py + 7} r={1.2} fill={SILK} />
-          <rect
-            ref={set("pwR")}
-            x={PR.px}
-            y={PR.py}
-            width={L.pw}
-            height={PANEL_H}
-            rx={3}
-            fill={CORAL}
-            opacity={0}
-          />
+          <rect ref={set("pwR")} x={PR.px} y={PR.py} width={L.pw} height={PANEL_H} rx={3} fill={CORAL} opacity={0} />
           <rect
             ref={set("peR")}
             x={PR.px}
@@ -739,23 +582,10 @@ export function OutboxVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          <text
-            x={PR.px + 12}
-            y={PR.py + 20}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            letterSpacing="0.16em"
-            fill={SILK}
-          >
+          <text x={PR.px + 12} y={PR.py + 20} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.16em" fill={SILK}>
             BILLING SERVICE
           </text>
-          <circle
-            cx={PR.px + L.pw - 10}
-            cy={PR.py + 10}
-            r={2}
-            fill={SILK}
-            opacity={0.25}
-          />
+          <circle cx={PR.px + L.pw - 10} cy={PR.py + 10} r={2} fill={SILK} opacity={0.25} />
           <circle
             ref={set("phR")}
             cx={PR.px + L.pw - 10}
@@ -767,14 +597,7 @@ export function OutboxVisual() {
             filter="url(#obx-glow)"
             opacity={0}
           />
-          <circle
-            ref={set("plR")}
-            cx={PR.px + L.pw - 10}
-            cy={PR.py + 10}
-            r={2}
-            fill={CORAL}
-            opacity={0}
-          />
+          <circle ref={set("plR")} cx={PR.px + L.pw - 10} cy={PR.py + 10} r={2} fill={CORAL} opacity={0} />
           <circle
             ref={set("phRa")}
             cx={PR.px + L.pw - 10}
@@ -786,30 +609,10 @@ export function OutboxVisual() {
             filter="url(#obx-glow)"
             opacity={0}
           />
-          <circle
-            ref={set("plRa")}
-            cx={PR.px + L.pw - 10}
-            cy={PR.py + 10}
-            r={2}
-            fill={AMBER}
-            opacity={0}
-          />
+          <circle ref={set("plRa")} cx={PR.px + L.pw - 10} cy={PR.py + 10} r={2} fill={AMBER} opacity={0} />
 
-          <rect
-            x={PR.fx}
-            y={PR.fy}
-            width={PR.fw}
-            height={FRAME_H}
-            rx={3}
-            fill="rgba(139,160,188,0.04)"
-          />
-          <path
-            d={PR.frameD}
-            fill="none"
-            stroke={FRAME_STROKE}
-            strokeWidth={1}
-            strokeDasharray="5 5"
-          />
+          <rect x={PR.fx} y={PR.fy} width={PR.fw} height={FRAME_H} rx={3} fill="rgba(139,160,188,0.04)" />
+          <path d={PR.frameD} fill="none" stroke={FRAME_STROKE} strokeWidth={1} strokeDasharray="5 5" />
           <path
             ref={set("fxRg")}
             d={PR.frameD}
@@ -829,14 +632,7 @@ export function OutboxVisual() {
             strokeDasharray="5 5"
             opacity={0}
           />
-          <text
-            x={PR.tagX}
-            y={PR.fy + 2.5}
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            letterSpacing="0.12em"
-            fill={SILK_DIM}
-          >
+          <text x={PR.tagX} y={PR.fy + 2.5} fontFamily={MONO_FONT} fontSize={9} letterSpacing="0.12em" fill={SILK_DIM}>
             ONE TRANSACTION
           </text>
 
@@ -850,29 +646,9 @@ export function OutboxVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect
-            x={PR.rowX}
-            y={PR.row1Y}
-            width={PR.rowW}
-            height={ROW_H}
-            rx={6}
-            fill={CYAN}
-            opacity={0.06}
-          />
-          <rect
-            x={PR.rowX}
-            y={PR.row1Y + 5}
-            width={3}
-            height={ROW_H - 10}
-            rx={1.5}
-            fill={CYAN}
-          />
-          <text
-            x={PR.rowX + textPad}
-            y={PR.row1Y + 21}
-            fontFamily={MONO_FONT}
-            fontSize={L.rowFont}
-          >
+          <rect x={PR.rowX} y={PR.row1Y} width={PR.rowW} height={ROW_H} rx={6} fill={CYAN} opacity={0.06} />
+          <rect x={PR.rowX} y={PR.row1Y + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
+          <text x={PR.rowX + textPad} y={PR.row1Y + 21} fontFamily={MONO_FONT} fontSize={L.rowFont}>
             {R_ROW1.map((s, i) => (
               <tspan key={i} fill={s.f}>
                 {s.t}
@@ -917,12 +693,7 @@ export function OutboxVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <text
-            x={PR.rowX + 9}
-            y={PR.row2Y + 21}
-            fontFamily={MONO_FONT}
-            fontSize={L.rowFont}
-          >
+          <text x={PR.rowX + 9} y={PR.row2Y + 21} fontFamily={MONO_FONT} fontSize={L.rowFont}>
             {R_ROW2.map((s, i) => (
               <tspan key={i} fill={s.f}>
                 {s.t}
@@ -980,28 +751,11 @@ export function OutboxVisual() {
             DEDUPED BY ID
           </text>
 
-          <path
-            d={`M${L.x1} ${LANE_Y} H${L.x2}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
+          <path d={`M${L.x1} ${LANE_Y} H${L.x2}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
           {[-5, 0, 5].map((dy) => (
             <g key={dy}>
-              <rect
-                x={L.x1}
-                y={LANE_Y + dy - 1}
-                width={3.5}
-                height={2}
-                fill={PAD_FILL}
-              />
-              <rect
-                x={L.x2 - 3.5}
-                y={LANE_Y + dy - 1}
-                width={3.5}
-                height={2}
-                fill={PAD_FILL}
-              />
+              <rect x={L.x1} y={LANE_Y + dy - 1} width={3.5} height={2} fill={PAD_FILL} />
+              <rect x={L.x2 - 3.5} y={LANE_Y + dy - 1} width={3.5} height={2} fill={PAD_FILL} />
             </g>
           ))}
           <text
@@ -1042,13 +796,7 @@ export function OutboxVisual() {
             <circle ref={set("p1t1")} r={2} fill={CORAL} opacity={0} />
             <circle ref={set("p1t2")} r={1.7} fill={CORAL} opacity={0} />
             <circle ref={set("p1t3")} r={1.4} fill={CORAL} opacity={0} />
-            <circle
-              ref={set("p1glow")}
-              r={6}
-              fill={CORAL}
-              filter="url(#obx-glow)"
-              opacity={0.22}
-            />
+            <circle ref={set("p1glow")} r={6} fill={CORAL} filter="url(#obx-glow)" opacity={0.22} />
             <circle ref={set("p1core")} r={2.5} fill={CORAL} />
             <circle ref={set("p1inner")} r={1.1} fill={CORAL_SOFT} />
           </g>
@@ -1057,13 +805,7 @@ export function OutboxVisual() {
             <circle ref={set("p2t1")} r={2} fill={AMBER} opacity={0} />
             <circle ref={set("p2t2")} r={1.7} fill={AMBER} opacity={0} />
             <circle ref={set("p2t3")} r={1.4} fill={AMBER} opacity={0} />
-            <circle
-              ref={set("p2glow")}
-              r={6}
-              fill={AMBER}
-              filter="url(#obx-glow)"
-              opacity={0.22}
-            />
+            <circle ref={set("p2glow")} r={6} fill={AMBER} filter="url(#obx-glow)" opacity={0.22} />
             <circle ref={set("p2core")} r={2.5} fill={AMBER} />
             <circle ref={set("p2inner")} r={1.1} fill="#fde68a" />
           </g>

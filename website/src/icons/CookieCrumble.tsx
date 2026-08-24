@@ -11,12 +11,7 @@ interface CookieCrumbleProps {
  */
 export function CookieCrumble({ className, style }: CookieCrumbleProps) {
   return (
-    <svg
-      viewBox="207 7 59 109"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="207 7 59 109" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="cookie-crumble-uuid-b71bf578-4d5e-4861-8a30-be8743885d9c"

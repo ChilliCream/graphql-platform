@@ -7,13 +7,7 @@ interface HiloLogoProps {
 
 export function HiloLogo({ className, style }: HiloLogoProps) {
   return (
-    <svg
-      viewBox="0 0 251.6 154.5"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 251.6 154.5" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <polygon points="62.2 50.8 62.2 91.4 21 91.4 21 50.8 0 50.8 0 152.9 21 152.9 21 110.9 62.2 110.9 62.2 152.9 83.2 152.9 83.2 50.8 62.2 50.8" />
       <path d="M111.3,25.4A12.59,12.59,0,0,0,124,12.7a12.7,12.7,0,0,0-25.4,0A12.53,12.53,0,0,0,111.3,25.4Z" />
       <rect x="100.8" y="76.3" width="21" height="76.6" />

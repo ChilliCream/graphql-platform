@@ -1,20 +1,7 @@
 "use client";
 
-import React, {
-  FC,
-  useMemo,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
-import {
-  ReactFlowProvider,
-  useReactFlow,
-  useStore,
-  type Node,
-  type Edge,
-} from "@xyflow/react";
+import React, { FC, useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { ReactFlowProvider, useReactFlow, useStore, type Node, type Edge } from "@xyflow/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -285,12 +272,9 @@ function getNodeIcon(node: Node): {
   const label = (data.label as string) || node.id;
 
   if (nodeType === "entity") {
-    if (entityKind === "exchange")
-      return { icon: faRightLeft, color: "#d29922", label };
-    if (entityKind === "queue")
-      return { icon: faLayerGroup, color: "#3fb950", label };
-    if (entityKind === "topic")
-      return { icon: faHashtag, color: "#58a6ff", label };
+    if (entityKind === "exchange") return { icon: faRightLeft, color: "#d29922", label };
+    if (entityKind === "queue") return { icon: faLayerGroup, color: "#3fb950", label };
+    if (entityKind === "topic") return { icon: faHashtag, color: "#58a6ff", label };
     return { icon: faCubes, color: "#a371f7", label };
   }
   if (nodeType === "route") return { icon: faRoute, color: "#6e7681", label };
@@ -304,10 +288,8 @@ function getNodeIcon(node: Node): {
     };
   }
   if (nodeType === "consumer") return { icon: faGear, color: "#3fb950", label };
-  if (nodeType === "message")
-    return { icon: faEnvelope, color: "#d29922", label };
-  if (nodeType === "saga")
-    return { icon: faDiagramProject, color: "#a371f7", label };
+  if (nodeType === "message") return { icon: faEnvelope, color: "#d29922", label };
+  if (nodeType === "saga") return { icon: faDiagramProject, color: "#a371f7", label };
   return { icon: faEllipsis, color: "#484f58", label };
 }
 
@@ -339,14 +321,11 @@ function findInferredNodesBetween(
   allNodes: Node[],
   allEdges: Edge[],
 ): Node[] {
-  if (!sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId)
-    return [];
+  if (!sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId) return [];
 
   const traceNodeIds = traceMapping.nodeIds;
   const visited = new Set<string>([sourceNodeId]);
-  const queue: { id: string; path: string[] }[] = [
-    { id: sourceNodeId, path: [] },
-  ];
+  const queue: { id: string; path: string[] }[] = [{ id: sourceNodeId, path: [] }];
 
   while (queue.length > 0) {
     const current = queue.shift()!;
@@ -357,9 +336,7 @@ function findInferredNodesBetween(
       visited.add(next);
 
       if (next === targetNodeId) {
-        return current.path
-          .map((id) => allNodes.find((n) => n.id === id))
-          .filter((n): n is Node => !!n);
+        return current.path.map((id) => allNodes.find((n) => n.id === id)).filter((n): n is Node => !!n);
       }
       if (traceNodeIds.has(next)) {
         queue.push({ id: next, path: [...current.path, next] });
@@ -391,15 +368,7 @@ function TraceStepList({
       const sourceNodeId = traceMapping.activityToNodeId.get(sorted[i].id);
       const targetNodeId = traceMapping.activityToNodeId.get(sorted[i + 1].id);
       if (sourceNodeId && targetNodeId && sourceNodeId !== targetNodeId) {
-        inferredBetween.push(
-          findInferredNodesBetween(
-            sourceNodeId,
-            targetNodeId,
-            traceMapping,
-            nodes,
-            edges,
-          ),
-        );
+        inferredBetween.push(findInferredNodesBetween(sourceNodeId, targetNodeId, traceMapping, nodes, edges));
       } else {
         inferredBetween.push([]);
       }
@@ -441,14 +410,10 @@ function TraceStepList({
                 style={ts.inferredRow(isActive)}
                 onClick={() => onNodeClick(item.node.id)}
                 onMouseEnter={(e) => {
-                  if (!isActive)
-                    (e.currentTarget as HTMLElement).style.background =
-                      "rgba(88, 166, 255, 0.05)";
+                  if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(88, 166, 255, 0.05)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!isActive)
-                    (e.currentTarget as HTMLElement).style.background =
-                      "transparent";
+                  if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
                 }}
               >
                 <div style={ts.inferredDot(info.color)} />
@@ -465,8 +430,7 @@ function TraceStepList({
           const { activity, index } = item;
           const isActive = activity.id === activeActivityId;
           const hasError = activity.status === "error";
-          const offset =
-            index > 0 ? timestamps[index] - timestamps[index - 1] : 0;
+          const offset = index > 0 ? timestamps[index] - timestamps[index - 1] : 0;
           const { icon, color } = getOperationIcon(activity);
 
           return (
@@ -475,9 +439,7 @@ function TraceStepList({
               style={ts.row(isActive, hasError)}
               onClick={() => onActivityClick(activity)}
               onMouseEnter={(e) => {
-                if (!isActive)
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(88, 166, 255, 0.06)";
+                if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(88, 166, 255, 0.06)";
               }}
               onMouseLeave={(e) => {
                 if (!isActive)
@@ -500,9 +462,7 @@ function TraceStepList({
                 <div style={ts.bottomRow}>
                   <span>{formatTime(activity.startTime)}</span>
                   <span>{formatDuration(activity.durationMs)}</span>
-                  {offset > 0 && (
-                    <span style={ts.offset}>{formatOffset(offset)}</span>
-                  )}
+                  {offset > 0 && <span style={ts.offset}>{formatOffset(offset)}</span>}
                 </div>
               </div>
             </div>
@@ -539,12 +499,7 @@ function FitViewHelper() {
   }, [nodeCount, doFit]);
 
   useEffect(() => {
-    if (
-      nodeCount > 0 &&
-      width > 0 &&
-      height > 0 &&
-      (width !== prevSize.current.w || height !== prevSize.current.h)
-    ) {
+    if (nodeCount > 0 && width > 0 && height > 0 && (width !== prevSize.current.w || height !== prevSize.current.h)) {
       prevSize.current = { w: width, h: height };
       const id = setTimeout(doFit, 50);
       return () => clearTimeout(id);
@@ -560,9 +515,11 @@ export interface MochaTopologyVisualizationInnerProps {
   expanded?: boolean;
 }
 
-export const MochaTopologyVisualizationInner: FC<
-  MochaTopologyVisualizationInnerProps
-> = ({ data, trace, expanded = false }) => {
+export const MochaTopologyVisualizationInner: FC<MochaTopologyVisualizationInnerProps> = ({
+  data,
+  trace,
+  expanded = false,
+}) => {
   const diagramData = useMemo<DiagramData | null>(() => {
     if (data) {
       try {
@@ -587,12 +544,8 @@ export const MochaTopologyVisualizationInner: FC<
 
   // When maximized with a trace, auto-expand the sidebar on the trace tab
   const hasTrace = !!traceData;
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    !expanded || !hasTrace,
-  );
-  const [sidebarTab, setSidebarTab] = useState<SidebarTab>(
-    hasTrace ? "trace" : "search",
-  );
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(!expanded || !hasTrace);
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>(hasTrace ? "trace" : "search");
 
   // React to expand/collapse transitions (state adjustment during render
   // instead of an effect, per react.dev "You Might Not Need an Effect")
@@ -608,20 +561,14 @@ export const MochaTopologyVisualizationInner: FC<
   }
 
   // State captured from TopologyFlow via onTraceMappingChange
-  const [traceMapping, setTraceMapping] = useState<TraceTopologyMapping | null>(
-    null,
-  );
+  const [traceMapping, setTraceMapping] = useState<TraceTopologyMapping | null>(null);
   const [flowNodes, setFlowNodes] = useState<Node[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
   const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 
   const handleTraceMappingChange = useCallback(
-    (info: {
-      traceMapping: TraceTopologyMapping | null;
-      nodes: Node[];
-      edges: Edge[];
-    }) => {
+    (info: { traceMapping: TraceTopologyMapping | null; nodes: Node[]; edges: Edge[] }) => {
       setTraceMapping(info.traceMapping);
       setFlowNodes(info.nodes);
       setFlowEdges(info.edges);
@@ -663,18 +610,12 @@ export const MochaTopologyVisualizationInner: FC<
   ]);
 
   const hasSagas = useMemo(
-    () =>
-      diagramData?.services.some(
-        (s: { sagas: unknown[] }) => s.sagas.length > 0,
-      ) ?? false,
+    () => diagramData?.services.some((s: { sagas: unknown[] }) => s.sagas.length > 0) ?? false,
     [diagramData],
   );
 
   const sidebarTabs = useMemo<SidebarTab[]>(
-    () =>
-      hasSagas
-        ? ["trace", "sagas", "details", "search"]
-        : ["trace", "details", "search"],
+    () => (hasSagas ? ["trace", "sagas", "details", "search"] : ["trace", "details", "search"]),
     [hasSagas],
   );
 

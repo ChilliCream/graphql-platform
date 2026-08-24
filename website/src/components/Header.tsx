@@ -10,13 +10,7 @@ import { GitHubIcon } from "@/src/icons/GitHub";
 
 import { HeaderShell } from "./HeaderShell";
 import { HeaderNav } from "./header/HeaderNav";
-import {
-  CONTACT_HREF,
-  GITHUB_REPO_URL,
-  GITHUB_STARGAZERS_URL,
-  MOBILE_ITEMS,
-  TOOLS,
-} from "./header/navData";
+import { CONTACT_HREF, GITHUB_REPO_URL, GITHUB_STARGAZERS_URL, MOBILE_ITEMS, TOOLS } from "./header/navData";
 import { MobileNav } from "./MobileNav";
 import { Search } from "./Search";
 
@@ -74,27 +68,16 @@ export default async function Header() {
               </a>
             )}
           </span>
-          <Link
-            href={CONTACT_HREF}
-            prefetch={false}
-            className="text-cc-heading text-sm font-medium no-underline"
-          >
+          <Link href={CONTACT_HREF} prefetch={false} className="text-cc-heading text-sm font-medium no-underline">
             Contact Us
           </Link>
           <SolidButton href={TOOLS.nitro} className="h-10 py-0">
             Launch
           </SolidButton>
-          <Search
-            ariaLabel="Search"
-            className="text-cc-heading flex h-full cursor-pointer items-center"
-          />
+          <Search ariaLabel="Search" className="text-cc-heading flex h-full cursor-pointer items-center" />
         </div>
 
-        <MobileNav
-          items={MOBILE_ITEMS}
-          demoHref={CONTACT_HREF}
-          nitroHref={TOOLS.nitro}
-        />
+        <MobileNav items={MOBILE_ITEMS} demoHref={CONTACT_HREF} nitroHref={TOOLS.nitro} />
       </div>
     </HeaderShell>
   );

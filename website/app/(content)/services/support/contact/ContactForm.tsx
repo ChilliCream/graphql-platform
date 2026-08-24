@@ -6,14 +6,7 @@ import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
 import { TextArea } from "@/src/design-system/TextArea";
 
-const SUBJECTS = [
-  "Schedule a Demo",
-  "Pricing & Plans",
-  "Sales",
-  "Technical Support",
-  "Partnership",
-  "Other",
-];
+const SUBJECTS = ["Schedule a Demo", "Pricing & Plans", "Sales", "Technical Support", "Partnership", "Other"];
 
 const SUBMIT_ENDPOINT = "https://forms.chillicream.com/api/SupportForm";
 const THANK_YOU_PATH = "/services/support/thank-you";
@@ -46,8 +39,7 @@ function resolveSubject(subject: string | null): string {
 }
 
 const subscribe = () => () => {};
-const getSubjectFromUrl = () =>
-  resolveSubject(new URLSearchParams(window.location.search).get("subject"));
+const getSubjectFromUrl = () => resolveSubject(new URLSearchParams(window.location.search).get("subject"));
 const getServerSubject = () => "";
 
 export function ContactForm() {
@@ -55,11 +47,7 @@ export function ContactForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const urlSubject = useSyncExternalStore(
-    subscribe,
-    getSubjectFromUrl,
-    getServerSubject,
-  );
+  const urlSubject = useSyncExternalStore(subscribe, getSubjectFromUrl, getServerSubject);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const subject = selectedSubject ?? urlSubject;
 
@@ -166,17 +154,11 @@ export function ContactForm() {
         label="Subject"
         className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
         panelClassName="p-1"
-        trigger={
-          <span className="text-cc-ink text-sm">{subject || "\u00A0"}</span>
-        }
+        trigger={<span className="text-cc-ink text-sm">{subject || "\u00A0"}</span>}
       >
         <ul className="m-0 flex list-none flex-col p-0">
           {SUBJECTS.map((s) => (
-            <DropdownItem
-              key={s}
-              active={s === subject}
-              onClick={() => setSelectedSubject(s)}
-            >
+            <DropdownItem key={s} active={s === subject} onClick={() => setSelectedSubject(s)}>
               {s}
             </DropdownItem>
           ))}

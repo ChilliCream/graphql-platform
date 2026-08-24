@@ -4,12 +4,7 @@ import { KeyValueChipCard } from "./KeyValueChipCard";
 
 function CheckMark() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="text-cc-accent/70 size-3 shrink-0"
-    >
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className="text-cc-accent/70 size-3 shrink-0">
       <path
         d="M3 8.5 6.5 12 13 4.5"
         stroke="currentColor"

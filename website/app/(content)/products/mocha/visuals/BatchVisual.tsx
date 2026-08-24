@@ -2,19 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  easeInOutCubic,
-  easeOutCubic,
-  ramp,
-} from "@/src/components/mocha/geometry";
-import {
-  AMBER,
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  MONO_FONT,
-  NAVY,
-} from "@/src/components/mocha/palette";
+import { easeInOutCubic, easeOutCubic, ramp } from "@/src/components/mocha/geometry";
+import { AMBER, CORAL, CORAL_SOFT, CYAN, MONO_FONT, NAVY } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
@@ -67,9 +56,7 @@ const ROW_SEGS: readonly Seg[] = [
   { t: "<OrderPlaced>", f: INK },
 ];
 
-const COUNT_AT = Array.from({ length: DOTS + 1 }, (_, k) =>
-  Math.round((k * 100) / DOTS),
-);
+const COUNT_AT = Array.from({ length: DOTS + 1 }, (_, k) => Math.round((k * 100) / DOTS));
 
 const STATIC_FILL = 6;
 
@@ -239,17 +226,14 @@ export function BatchVisual() {
         }
 
         const hwAt = (x: number) =>
-          easeOutCubic(ramp(x, ARRIVE - 40, ARRIVE + 220)) *
-          (1 - easeInOutCubic(ramp(x, ARRIVE + 800, ARRIVE + 1450)));
+          easeOutCubic(ramp(x, ARRIVE - 40, ARRIVE + 220)) * (1 - easeInOutCubic(ramp(x, ARRIVE + 800, ARRIVE + 1450)));
         const hw = Math.max(hwAt(ct), hwAt(ct + CYCLE));
         setO("hEcho", hw * 0.9);
         setO("pw", hw * 0.07);
         setO("pe", hw * 0.55);
         setO("pl", hw * 0.9);
         setO("ph", hw * 0.5);
-        const hop =
-          ramp(ct, ARRIVE, ARRIVE + 220) *
-          (1 - ramp(ct, ARRIVE + 800, ARRIVE + 1050));
+        const hop = ramp(ct, ARRIVE, ARRIVE + 220) * (1 - ramp(ct, ARRIVE + 800, ARRIVE + 1050));
         setO("htag", hop * 0.95);
 
         let ast = 0;
@@ -261,10 +245,7 @@ export function BatchVisual() {
           const el = E.get("atag");
           if (el) {
             el.setAttribute("fill", ast === 0 ? SILK_SOFT : AMBER);
-            el.setAttribute(
-              "opacity",
-              ast === 0 ? "0.35" : ast === 1 ? "0.95" : "0.4",
-            );
+            el.setAttribute("opacity", ast === 0 ? "0.35" : ast === 1 ? "0.95" : "0.4");
           }
         }
       };
@@ -283,68 +264,27 @@ export function BatchVisual() {
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[320px]"
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
-            <filter
-              id="batch-soft"
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
+            <filter id="batch-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="batch-pads"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="batch-pads" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
           <rect x={0} y={0} width={lw} height={H} fill="url(#batch-pads)" />
 
-          <path
-            d={`M6 ${MID_Y} H${L.slotL}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
-          <path
-            d={`M${L.slotR} ${MID_Y} H${L.panelX}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
+          <path d={`M6 ${MID_Y} H${L.slotL}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
+          <path d={`M${L.slotR} ${MID_Y} H${L.panelX}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
 
           {[6, L.slotL, L.slotR].map((vx) => (
-            <circle
-              key={vx}
-              cx={vx}
-              cy={MID_Y}
-              r={2.5}
-              fill={NAVY}
-              stroke={VIA_STROKE}
-              strokeWidth={1}
-            />
+            <circle key={vx} cx={vx} cy={MID_Y} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
           ))}
 
           {[-1, 0, 1].map((i) => (
-            <rect
-              key={i}
-              x={L.panelX - 3.5}
-              y={MID_Y + 5 * i - 1}
-              width={3.5}
-              height={2}
-              fill={PAD_FILL}
-            />
+            <rect key={i} x={L.panelX - 3.5} y={MID_Y + 5 * i - 1} width={3.5} height={2} fill={PAD_FILL} />
           ))}
 
           <rect
@@ -446,13 +386,7 @@ export function BatchVisual() {
             BILLING SERVICE
           </text>
 
-          <circle
-            cx={L.panelX + PANEL_W - 10}
-            cy={PANEL_TOP + 10}
-            r={2}
-            fill={SILK}
-            opacity={0.25}
-          />
+          <circle cx={L.panelX + PANEL_W - 10} cy={PANEL_TOP + 10} r={2} fill={SILK} opacity={0.25} />
           <circle
             ref={set("ph")}
             cx={L.panelX + PANEL_W - 10}
@@ -464,14 +398,7 @@ export function BatchVisual() {
             filter="url(#batch-soft)"
             opacity={0}
           />
-          <circle
-            ref={set("pl")}
-            cx={L.panelX + PANEL_W - 10}
-            cy={PANEL_TOP + 10}
-            r={2}
-            fill={CORAL}
-            opacity={0}
-          />
+          <circle ref={set("pl")} cx={L.panelX + PANEL_W - 10} cy={PANEL_TOP + 10} r={2} fill={CORAL} opacity={0} />
 
           <rect
             x={L.rowX}
@@ -483,20 +410,8 @@ export function BatchVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect
-            x={L.rowX}
-            y={ROW_Y + 5}
-            width={3}
-            height={ROW_H - 10}
-            rx={1.5}
-            fill={CYAN}
-          />
-          <text
-            x={L.rowX + 13}
-            y={ROW_Y + 21}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-          >
+          <rect x={L.rowX} y={ROW_Y + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
+          <text x={L.rowX + 13} y={ROW_Y + 21} fontFamily={MONO_FONT} fontSize={10}>
             {ROW_SEGS.map((s, i) => (
               <tspan key={i} fill={s.f}>
                 {s.t}
@@ -514,13 +429,7 @@ export function BatchVisual() {
               stroke={CORAL}
               strokeWidth={1.2}
             />
-            <text
-              x={L.rowX + 13}
-              y={ROW_Y + 21}
-              fontFamily={MONO_FONT}
-              fontSize={10}
-              fill={CORAL_SOFT}
-            >
+            <text x={L.rowX + 13} y={ROW_Y + 21} fontFamily={MONO_FONT} fontSize={10} fill={CORAL_SOFT}>
               {ROW_SEGS.map((s) => s.t).join("")}
             </text>
           </g>

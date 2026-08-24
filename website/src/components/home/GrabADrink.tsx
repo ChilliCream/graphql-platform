@@ -13,17 +13,12 @@ export function GrabADrink() {
         Fancy a drink?
       </h2>
       <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-        Pick a starting point and we&rsquo;ll help you from there. Explore the
-        platform on your own, or talk to us about the API stack you&rsquo;re
-        building.
+        Pick a starting point and we&rsquo;ll help you from there. Explore the platform on your own, or talk to us about
+        the API stack you&rsquo;re building.
       </p>
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-        <SolidButton href="https://nitro.chillicream.com">
-          Start for Free
-        </SolidButton>
-        <OutlineButton href="/services/support/contact">
-          Talk to Us
-        </OutlineButton>
+        <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
+        <OutlineButton href="/services/support/contact">Talk to Us</OutlineButton>
       </div>
     </PageSection>
   );

@@ -18,22 +18,8 @@ const MINUTE = 60_000;
 
 const HIST_EDGES = [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
-const OP_NAMES = [
-  "reviews",
-  "products",
-  "inventory",
-  "accounts",
-  "shipping",
-  "catalog",
-  "payments",
-];
-const SPAN_KINDS: SpanKind[] = [
-  "server",
-  "server",
-  "server",
-  "client",
-  "internal",
-];
+const OP_NAMES = ["reviews", "products", "inventory", "accounts", "shipping", "catalog", "payments"];
+const SPAN_KINDS: SpanKind[] = ["server", "server", "server", "client", "internal"];
 const CLIENT_NAMES = ["Web", "Mobile", "Others"];
 
 const smooth = (r: Rng, n: number, base: number, amp: number) => {
@@ -71,8 +57,7 @@ export function makeThroughput(
   const errors: ThroughputPoint[] = [];
   for (let i = 0; i < n; i++) {
     const opm = Math.max(40, wave[i] + (ramp * i) / n);
-    const errFrac =
-      uniform(r, 0.01, 0.04) + bump(i, start, end, 0.09) + (i > end ? 0.01 : 0);
+    const errFrac = uniform(r, 0.01, 0.04) + bump(i, start, end, 0.09) + (i > end ? 0.01 : 0);
     const totalCount = Math.round(opm);
     const totalCountWithError = Math.round(opm * errFrac);
     const epoch = startEpoch + i * MINUTE;
@@ -92,11 +77,7 @@ export function makeThroughput(
   return { points, errors };
 }
 
-export function makeLatency(
-  r: Rng,
-  n: number,
-  startEpoch: number,
-): LatencyPoint[] {
+export function makeLatency(r: Rng, n: number, startEpoch: number): LatencyPoint[] {
   const meanWave = smooth(r, n, 42, 12);
   const { start, end } = spikeAt(n);
   return Array.from({ length: n }, (_, i) => {
@@ -112,8 +93,7 @@ export function makeHistogram(r: Rng): LatencyHistogram {
   const bins = HIST_EDGES.map((bin, i) => {
     const w = weights[i];
     const total = Math.round(w * uniform(r, 90, 140));
-    const errFrac =
-      uniform(r, 0.005, 0.02) + (i >= 6 ? uniform(r, 0.02, 0.08) : 0);
+    const errFrac = uniform(r, 0.005, 0.02) + (i >= 6 ? uniform(r, 0.02, 0.08) : 0);
     const errorFrequency = Math.round(total * errFrac);
     return { bin, successFrequency: total - errorFrequency, errorFrequency };
   });
@@ -122,9 +102,7 @@ export function makeHistogram(r: Rng): LatencyHistogram {
 
 export function makeClients(r: Rng, count = 3): Client[] {
   const names = [...CLIENT_NAMES].slice(0, count);
-  const totals = names.map((_, i) =>
-    Math.round(9000 * Math.pow(0.62, i) + uniform(r, 0, 300)),
-  );
+  const totals = names.map((_, i) => Math.round(9000 * Math.pow(0.62, i) + uniform(r, 0, 300)));
   const max = Math.max(...totals);
   return names
     .map((name, i) => ({
@@ -159,11 +137,7 @@ export function makeInsights(r: Rng, count = 7): InsightRow[] {
   }).sort((a, b) => b.impact - a.impact);
 }
 
-export function makeVersionMarker(
-  r: Rng,
-  n: number,
-  startEpoch: number,
-): VersionMarker {
+export function makeVersionMarker(r: Rng, n: number, startEpoch: number): VersionMarker {
   const minor = 10 + Math.floor(r() * 8);
   return {
     version: `v2.${minor}.0`,
@@ -188,10 +162,7 @@ export function makeTraceSamples(seed = 1, n = 90): TraceSample[] {
   });
 }
 
-export function makeLatencyDistribution(
-  seed = 1,
-  nbins = 48,
-): LatencyDistribution {
+export function makeLatencyDistribution(seed = 1, nbins = 48): LatencyDistribution {
   const r = mulberry32((seed ^ 0x85ebca6b) >>> 0);
   const min = 1;
   const max = 10000;

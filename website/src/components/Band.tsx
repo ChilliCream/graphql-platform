@@ -23,10 +23,8 @@ const ACCENT_GLOW =
   "radial-gradient(60% 80% at 100% 0%, rgba(22,185,228,0.12), transparent 60%), radial-gradient(50% 70% at 0% 100%, rgba(124,146,198,0.10), transparent 60%)";
 const WARM_GLOW =
   "radial-gradient(60% 80% at 100% 0%, rgba(22,185,228,0.12), transparent 60%), radial-gradient(50% 70% at 0% 100%, rgba(240,120,106,0.10), transparent 60%)";
-const SPECTRUM_HAIRLINE =
-  "linear-gradient(90deg, transparent, #16b9e4 30%, #7c92c6 50%, #f0786a 70%, transparent)";
-const SPECTRUM_GLOW =
-  "radial-gradient(50% 50% at 50% 50%, rgba(94,234,212,0.12), transparent 70%)";
+const SPECTRUM_HAIRLINE = "linear-gradient(90deg, transparent, #16b9e4 30%, #7c92c6 50%, #f0786a 70%, transparent)";
+const SPECTRUM_GLOW = "radial-gradient(50% 50% at 50% 50%, rgba(94,234,212,0.12), transparent 70%)";
 
 const PANEL_SKIN: Record<Exclude<BandSkin, "bare">, string> = {
   accent: "border-cc-accent/40 bg-cc-card-bg/70 p-8 sm:p-12",
@@ -41,15 +39,7 @@ const PANEL_SKIN: Record<Exclude<BandSkin, "bare">, string> = {
  * (`main` + `aside`) or a `centered` column (`children`). The `bare` skin drops
  * the panel and renders the content directly in the section.
  */
-export function Band({
-  skin = "card",
-  layout = "split",
-  className,
-  labelledBy,
-  main,
-  aside,
-  children,
-}: BandProps) {
+export function Band({ skin = "card", layout = "split", className, labelledBy, main, aside, children }: BandProps) {
   const centered = layout === "centered";
   const content =
     layout === "split" ? (
@@ -71,9 +61,7 @@ export function Band({
 
   return (
     <section aria-labelledby={labelledBy} className={className}>
-      <div
-        className={`relative overflow-hidden rounded-3xl border ${PANEL_SKIN[skin]}`}
-      >
+      <div className={`relative overflow-hidden rounded-3xl border ${PANEL_SKIN[skin]}`}>
         {(skin === "accent" || skin === "warm") && (
           <div
             aria-hidden="true"
@@ -95,9 +83,7 @@ export function Band({
             />
           </>
         )}
-        <div className={`relative ${centered ? "text-center" : ""}`.trim()}>
-          {content}
-        </div>
+        <div className={`relative ${centered ? "text-center" : ""}`.trim()}>{content}</div>
       </div>
     </section>
   );

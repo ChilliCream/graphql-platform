@@ -16,20 +16,12 @@ const meta = {
   },
   args: {
     title: "Latency",
-    children: (
-      <div style={{ fontSize: 12, color: token.textSecondary }}>
-        Chart content goes here
-      </div>
-    ),
+    children: <div style={{ fontSize: 12, color: token.textSecondary }}>Chart content goes here</div>,
     style: { width: 320, height: 160 },
   },
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[560px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[560px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),
@@ -74,11 +66,7 @@ export const WithSubtitleAndHeaderExtra: Story = {
   args: {
     title: "Latency Distribution",
     subtitle: "Total operations: 1,204",
-    headerExtra: (
-      <span style={{ fontSize: 11, color: token.textDim }}>
-        Click and drag to select a range
-      </span>
-    ),
+    headerExtra: <span style={{ fontSize: 11, color: token.textDim }}>Click and drag to select a range</span>,
     borderStrong: true,
     bodyPadding: "16px 16px 12px",
     style: { width: 420, height: 200 },
@@ -90,9 +78,7 @@ export const FixedHeight: Story = {
     title: "Latency",
     height: 220,
     flex: undefined,
-    headerExtra: (
-      <span style={{ fontSize: 11, color: token.textSecondary }}>p95</span>
-    ),
+    headerExtra: <span style={{ fontSize: 11, color: token.textSecondary }}>p95</span>,
     style: { width: 320, height: undefined },
   },
 };

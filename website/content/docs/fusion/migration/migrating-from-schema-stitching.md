@@ -41,16 +41,9 @@ In stitching, it was common to define type extensions and delegating resolvers i
 
 ```graphql filename="Gateway/Stitching.graphql"
 extend type Product {
-  inStock: Boolean
-    @delegate(
-      schema: "inventory"
-      path: "inventoryInfo(upc: $fields:upc).isInStock"
-    )
+  inStock: Boolean @delegate(schema: "inventory", path: "inventoryInfo(upc: $fields:upc).isInStock")
   shippingEstimate: Int
-    @delegate(
-      schema: "inventory"
-      path: "shippingEstimate(price: $fields:price, weight: $fields:weight)"
-    )
+    @delegate(schema: "inventory", path: "shippingEstimate(price: $fields:price, weight: $fields:weight)")
 }
 ```
 
@@ -196,16 +189,9 @@ In stitching, when you want to add fields from one service to a type owned by an
 
 ```graphql filename="Stitching.graphql"
 extend type Product {
-  inStock: Boolean
-    @delegate(
-      schema: "inventory"
-      path: "inventoryInfo(upc: $fields:upc).isInStock"
-    )
+  inStock: Boolean @delegate(schema: "inventory", path: "inventoryInfo(upc: $fields:upc).isInStock")
   shippingEstimate: Int
-    @delegate(
-      schema: "inventory"
-      path: "shippingEstimate(price: $fields:price, weight: $fields:weight)"
-    )
+    @delegate(schema: "inventory", path: "shippingEstimate(price: $fields:price, weight: $fields:weight)")
 }
 ```
 

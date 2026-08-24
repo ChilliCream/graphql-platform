@@ -150,6 +150,5 @@ const rehypePipeline: {
   },
 ];
 
-export const rehypePluginSpecs: (string | [string, unknown])[] =
-  rehypePipeline.map((p) => p.spec);
+export const rehypePluginSpecs: (string | [string, unknown])[] = rehypePipeline.map((p) => p.spec);
 export const rehypePlugins: Pluggable[] = rehypePipeline.map((p) => p.plugin);

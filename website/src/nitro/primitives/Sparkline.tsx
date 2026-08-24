@@ -50,9 +50,7 @@ export function Sparkline({
   const dMin = n ? Math.min(...values) : 0;
   const dMax = n ? Math.max(...values) : 1;
   const yOf = (v: number) =>
-    dMax === dMin
-      ? (plotTop + plotBottom) / 2
-      : plotBottom - ((v - dMin) / (dMax - dMin)) * (plotBottom - plotTop);
+    dMax === dMin ? (plotTop + plotBottom) / 2 : plotBottom - ((v - dMin) / (dMax - dMin)) * (plotBottom - plotTop);
   const xOf = (i: number) => (n <= 1 ? 0 : (i / (n - 1)) * width);
 
   const pts: Pt[] = values.map((v, i) => [xOf(i), yOf(v)]);
@@ -70,11 +68,7 @@ export function Sparkline({
 
   const label =
     ariaLabel ??
-    (n
-      ? `Sparkline trend, ${n} points, from ${Math.round(values[0])} to ${Math.round(
-          values[n - 1],
-        )}`
-      : "Sparkline");
+    (n ? `Sparkline trend, ${n} points, from ${Math.round(values[0])} to ${Math.round(values[n - 1])}` : "Sparkline");
 
   return (
     <ChartCanvas ref={ref} className={className} style={style} label={label}>
@@ -88,18 +82,9 @@ export function Sparkline({
         {fill && n > 1 && (
           <>
             <clipPath id={`spark-${clipId}`}>
-              <motion.rect
-                x={0}
-                y={0}
-                height={height}
-                style={{ width: wipeW }}
-              />
+              <motion.rect x={0} y={0} height={height} style={{ width: wipeW }} />
             </clipPath>
-            <motion.path
-              d={areaD}
-              clipPath={`url(#spark-${clipId})`}
-              style={{ fill: stroke, opacity: fillOpacity }}
-            />
+            <motion.path d={areaD} clipPath={`url(#spark-${clipId})`} style={{ fill: stroke, opacity: fillOpacity }} />
           </>
         )}
         <motion.path

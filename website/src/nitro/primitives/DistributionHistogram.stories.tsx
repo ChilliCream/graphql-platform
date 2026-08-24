@@ -6,10 +6,7 @@ import { makeLatencyDistribution } from "../lib/data";
 import { ThemeProvider } from "../lib/theme";
 
 const DISTRIBUTION = makeLatencyDistribution(1);
-const MAX_COUNT = Math.max(
-  1,
-  ...DISTRIBUTION.bins.map((b) => b.success + b.error),
-);
+const MAX_COUNT = Math.max(1, ...DISTRIBUTION.bins.map((b) => b.success + b.error));
 const Y_DOMAIN: [number, number] = [1, MAX_COUNT];
 
 const meta = {
@@ -41,11 +38,7 @@ const meta = {
   ),
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[720px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[720px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),

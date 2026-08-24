@@ -9,12 +9,7 @@ interface NitroFrameProps {
   readonly reducedMotion?: "user" | "always" | "never";
 }
 
-export function NitroFrame({
-  children,
-  className,
-  style,
-  reducedMotion = "never",
-}: NitroFrameProps) {
+export function NitroFrame({ children, className, style, reducedMotion = "never" }: NitroFrameProps) {
   return (
     <NitroTheme
       theme="dark"

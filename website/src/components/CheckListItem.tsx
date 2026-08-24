@@ -16,11 +16,7 @@ interface CheckListItemProps {
  * `PerkCard`, `ContactBand`, and `TierGrid` reimplement inline for their perk
  * and fact lists.
  */
-export function CheckListItem({
-  children,
-  iconClassName = "text-cc-accent",
-  className = "",
-}: CheckListItemProps) {
+export function CheckListItem({ children, iconClassName = "text-cc-accent", className = "" }: CheckListItemProps) {
   return (
     <li className={`flex items-start gap-3 ${className}`.trim()}>
       <span className={`mt-1 flex-none ${iconClassName}`}>

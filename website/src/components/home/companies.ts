@@ -40,10 +40,7 @@ import { ZioskLogo } from "@/src/icons/customer/ZioskLogo";
 export interface Company {
   readonly name: string;
   readonly href: string;
-  readonly Logo: (props: {
-    readonly className?: string;
-    readonly style?: CSSProperties;
-  }) => React.JSX.Element;
+  readonly Logo: (props: { readonly className?: string; readonly style?: CSSProperties }) => React.JSX.Element;
   /** Target width in px; height follows from the logo's aspect ratio. */
   readonly width: number;
   /**
@@ -238,7 +235,4 @@ export const OTHER_COMPANIES: readonly Company[] = [
   { name: "Ziosk", href: "https://www.ziosk.com", Logo: ZioskLogo, width: 120 },
 ];
 
-export const ALL_COMPANIES: readonly Company[] = [
-  ...FEATURED_COMPANIES,
-  ...OTHER_COMPANIES,
-];
+export const ALL_COMPANIES: readonly Company[] = [...FEATURED_COMPANIES, ...OTHER_COMPANIES];

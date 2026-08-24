@@ -52,19 +52,9 @@ interface DrinkIconProps {
   readonly style?: CSSProperties;
 }
 
-export function DrinkIcon({
-  Icon,
-  name,
-  base,
-  className,
-  style,
-}: DrinkIconProps) {
+export function DrinkIcon({ Icon, name, base, className, style }: DrinkIconProps) {
   return (
-    <span
-      aria-hidden="true"
-      className="flex items-end justify-center"
-      style={{ height: `${base * MAX_RATIO}px` }}
-    >
+    <span aria-hidden="true" className="flex items-end justify-center" style={{ height: `${base * MAX_RATIO}px` }}>
       <Icon
         className={className}
         style={{

@@ -455,8 +455,7 @@ builder
 
 ```graphql
 type Subscription {
-  onProductPriceChanged(productId: ID!): Product
-    @eventStream(message: "{ id }", broker: "nats")
+  onProductPriceChanged(productId: ID!): Product @eventStream(message: "{ id }", broker: "nats")
 }
 ```
 
@@ -536,10 +535,7 @@ supplies when it subscribes:
 ```graphql
 type Subscription {
   onProductPriceChanged(productId: ID!): Product
-    @eventStream(
-      message: "{ id }"
-      topics: ["product.price-changed.{$args.productId}"]
-    )
+    @eventStream(message: "{ id }", topics: ["product.price-changed.{$args.productId}"])
 }
 ```
 
@@ -582,10 +578,8 @@ changed entity together with the cursor field.
 ```graphql
 # Products subgraph
 type Subscription {
-  onProductPriceChanged(
-    productId: ID!
-    after: String @eventCursor
-  ): ProductPriceChange @eventStream(message: "{ product { id } }")
+  onProductPriceChanged(productId: ID!, after: String @eventCursor): ProductPriceChange
+    @eventStream(message: "{ product { id } }")
 }
 
 type ProductPriceChange {

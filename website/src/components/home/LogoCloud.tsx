@@ -20,10 +20,7 @@ function getItem<T>(index: number, array: T[]) {
 const NUM_SLOTS = FEATURED_COMPANIES.length;
 
 export function LogoCloud() {
-  const [companyQueue] = useState(() => [
-    ...shuffle(OTHER_COMPANIES),
-    ...FEATURED_COMPANIES,
-  ]);
+  const [companyQueue] = useState(() => [...shuffle(OTHER_COMPANIES), ...FEATURED_COMPANIES]);
   const currentCompanyIndex = useRef(0);
   const [slots, setSlots] = useState<Company[]>(() => [...FEATURED_COMPANIES]);
 
@@ -34,15 +31,10 @@ export function LogoCloud() {
 
     const swap = () => {
       const index = currentCompanyIndex.current;
-      const updatedSlots = new Array(NUM_SLOTS)
-        .fill(0)
-        .map((_, i) => getItem(index + i, companyQueue));
+      const updatedSlots = new Array(NUM_SLOTS).fill(0).map((_, i) => getItem(index + i, companyQueue));
       setSlots(updatedSlots);
 
-      currentCompanyIndex.current = wrapIndex(
-        currentCompanyIndex.current + NUM_SLOTS,
-        companyQueue.length,
-      );
+      currentCompanyIndex.current = wrapIndex(currentCompanyIndex.current + NUM_SLOTS, companyQueue.length);
     };
 
     // Hold the featured three, then rotate at a steady cadence.
@@ -63,11 +55,7 @@ export function LogoCloud() {
       <Eyebrow color="ink-dim">Trusted by Enterprises</Eyebrow>
       <div className="text-cc-heading mt-10 grid grid-cols-1 place-items-center gap-y-10 sm:mt-14 sm:grid-cols-3 sm:gap-x-8">
         {slots.map((company, index) => (
-          <LogoSlot
-            key={index}
-            company={company}
-            delay={index * ITEM_ANIMATION_OFFSET_MS}
-          />
+          <LogoSlot key={index} company={company} delay={index * ITEM_ANIMATION_OFFSET_MS} />
         ))}
       </div>
     </PageSection>
@@ -137,9 +125,7 @@ function CompanyLink({
       aria-hidden={hidden}
       tabIndex={hidden ? -1 : undefined}
       onAnimationEnd={onAnimationEnd}
-      className={`absolute inset-0 flex items-center justify-center transition-opacity ${
-        animationClassName ?? ""
-      }`}
+      className={`absolute inset-0 flex items-center justify-center transition-opacity ${animationClassName ?? ""}`}
       style={{ animationDelay: delay + "ms" }}
     >
       <Logo

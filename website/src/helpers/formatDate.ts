@@ -9,10 +9,7 @@ const DEFAULT_OPTIONS: Intl.DateTimeFormatOptions = {
  * Pass `options` to override the default `Mon D, YYYY` shape. An unparseable
  * string is returned unchanged so callers never render `Invalid Date`.
  */
-export function formatDate(
-  date: string | Date,
-  options: Intl.DateTimeFormatOptions = DEFAULT_OPTIONS,
-): string {
+export function formatDate(date: string | Date, options: Intl.DateTimeFormatOptions = DEFAULT_OPTIONS): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(d.getTime())) {
     return typeof date === "string" ? date : "";

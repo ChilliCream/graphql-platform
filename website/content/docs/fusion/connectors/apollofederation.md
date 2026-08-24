@@ -210,11 +210,7 @@ Nitro reports `Composed new configuration.` after it recomposes the archive. Wit
 Composition records the policy in the execution schema. For example, `common-runtime-types` produces:
 
 ```graphql
-schema
-  @fusion__execution(
-    nodeResolution: GATEWAY
-    shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES
-  ) {
+schema @fusion__execution(nodeResolution: GATEWAY, shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES) {
   query: Query
 }
 ```
@@ -226,11 +222,7 @@ The default is recorded as `shareableFieldRuntimeTypeRouting: SOURCE_LOCAL`.
 Apollo Federation v2 interface objects compose with native GraphQL Federation interfaces. Keep the Apollo declaration and its Federation v2 import in the subgraph SDL:
 
 ```graphql
-extend schema
-  @link(
-    url: "https://specs.apollo.dev/federation/v2.6"
-    import: ["@key", "@interfaceObject"]
-  )
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@interfaceObject"])
 
 type Media @key(fields: "id") @interfaceObject {
   id: ID!

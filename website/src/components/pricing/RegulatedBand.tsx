@@ -29,9 +29,7 @@ export function RegulatedBand() {
             description="We work directly with platform teams on procurement, data residency review, and dedicated onboarding. Bring us a constraint, we'll come back with an architecture."
           />
           <ButtonRow align="start" className="mt-6">
-            <SolidButton href="/services/support/contact?subject=Sales">
-              Talk to Sales
-            </SolidButton>
+            <SolidButton href="/services/support/contact?subject=Sales">Talk to Sales</SolidButton>
             <OutlineButton href="/platform">See the platform</OutlineButton>
           </ButtonRow>
         </div>

@@ -3,11 +3,7 @@
  * <YouTubeVideo> JSX element. Inline YouTube links inside surrounding text are
  * left alone, so raw markdown viewers (GitHub, etc.) still see a clickable link.
  */
-const SUPPORTED_HOSTS = new Set([
-  "youtube.com",
-  "youtu.be",
-  "youtube-nocookie.com",
-]);
+const SUPPORTED_HOSTS = new Set(["youtube.com", "youtu.be", "youtube-nocookie.com"]);
 
 const ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 
@@ -37,9 +33,7 @@ export default function remarkYouTubeEmbed() {
 }
 
 function soleLinkChild(paragraph) {
-  const meaningful = paragraph.children.filter(
-    (c) => !(c.type === "text" && (c.value ?? "").trim() === ""),
-  );
+  const meaningful = paragraph.children.filter((c) => !(c.type === "text" && (c.value ?? "").trim() === ""));
   if (meaningful.length !== 1) {
     return null;
   }
@@ -68,17 +62,13 @@ function extractYouTubeId(url) {
   if (v && ID_RE.test(v)) {
     return v;
   }
-  const match = parsed.pathname.match(
-    /^\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/,
-  );
+  const match = parsed.pathname.match(/^\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : null;
 }
 
 function toVideoNode(link, videoId) {
   const label = linkText(link).trim();
-  const attributes = [
-    { type: "mdxJsxAttribute", name: "videoId", value: videoId },
-  ];
+  const attributes = [{ type: "mdxJsxAttribute", name: "videoId", value: videoId }];
   if (label.length > 0) {
     attributes.push({
       type: "mdxJsxAttribute",

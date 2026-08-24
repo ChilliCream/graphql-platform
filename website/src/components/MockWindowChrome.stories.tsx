@@ -2,9 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { MockWindowChrome } from "./MockWindowChrome";
 
-const placeholderBody = (
-  <div className="text-cc-ink-dim p-6 font-mono text-xs">window content</div>
-);
+const placeholderBody = <div className="text-cc-ink-dim p-6 font-mono text-xs">window content</div>;
 
 const meta = {
   title: "Components/MockWindowChrome",
@@ -47,8 +45,7 @@ export const Dots: Story = {
     header: { variant: "dots" },
     label: "Nitro / Author",
     glow: {
-      background:
-        "radial-gradient(60% 60% at 50% 35%, rgba(94,234,212,0.16), transparent 70%)",
+      background: "radial-gradient(60% 60% at 50% 35%, rgba(94,234,212,0.16), transparent 70%)",
       inset: "-inset-3",
       blur: "blur-2xl",
       rounded: "rounded-[2rem]",
@@ -62,12 +59,9 @@ export const StatusDot: Story = {
   args: {
     header: { variant: "status-dot" },
     label: "Nitro / production",
-    headerRight: (
-      <span className="text-cc-ink-dim font-mono text-[10px]">live</span>
-    ),
+    headerRight: <span className="text-cc-ink-dim font-mono text-[10px]">live</span>,
     glow: {
-      background:
-        "radial-gradient(50% 50% at 50% 30%, rgba(94,234,212,0.16), transparent 70%)",
+      background: "radial-gradient(50% 50% at 50% 30%, rgba(94,234,212,0.16), transparent 70%)",
       inset: "-inset-x-10 -inset-y-8",
       blur: "blur-3xl",
       rounded: "rounded-[2.5rem]",
@@ -79,8 +73,7 @@ export const StatusDot: Story = {
 export const NoHeader: Story = {
   args: {
     glow: {
-      background:
-        "radial-gradient(60% 60% at 50% 40%, rgba(22,185,228,0.16), transparent 70%)",
+      background: "radial-gradient(60% 60% at 50% 40%, rgba(22,185,228,0.16), transparent 70%)",
       inset: "-inset-x-6 -inset-y-4",
       blur: "blur-3xl",
       rounded: "rounded-[2rem]",
@@ -93,8 +86,7 @@ export const HeaderAndFooter: Story = {
   args: {
     shadow: "none",
     surfaceClassName: "bg-cc-card-bg",
-    headerClassName:
-      "bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-2.5",
+    headerClassName: "bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-2.5",
     header: {
       variant: "custom",
       content: (
@@ -116,19 +108,12 @@ export const HeaderAndFooter: Story = {
         </span>
       ),
     },
-    headerRight: (
-      <span className="text-cc-nav-label font-mono text-[0.6rem] whitespace-nowrap">
-        skills/
-      </span>
-    ),
-    footerClassName:
-      "bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-1.5",
+    headerRight: <span className="text-cc-nav-label font-mono text-[0.6rem] whitespace-nowrap">skills/</span>,
+    footerClassName: "bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-1.5",
     footer: (
       <>
         <span className="text-cc-nav-label font-mono text-[0.6rem]">main</span>
-        <span className="text-cc-ink-dim font-mono text-[0.6rem]">
-          reviewed
-        </span>
+        <span className="text-cc-ink-dim font-mono text-[0.6rem]">reviewed</span>
       </>
     ),
   },
@@ -138,18 +123,13 @@ export const HeaderAndFooter: Story = {
 export const CustomHeaderSoftShadow: Story = {
   args: {
     shadow: "soft",
-    headerClassName:
-      "flex flex-wrap items-center gap-x-3 gap-y-2 bg-white/[0.03] px-4 py-2.5",
+    headerClassName: "flex flex-wrap items-center gap-x-3 gap-y-2 bg-white/[0.03] px-4 py-2.5",
     header: {
       variant: "custom",
       content: (
         <>
-          <span className="text-cc-ink font-mono text-sm">
-            feat: add product reviews
-          </span>
-          <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.1em] uppercase">
-            3 files changed
-          </span>
+          <span className="text-cc-ink font-mono text-sm">feat: add product reviews</span>
+          <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.1em] uppercase">3 files changed</span>
           <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-[0.1em] uppercase">
             Approved
           </span>

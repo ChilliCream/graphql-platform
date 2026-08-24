@@ -17,8 +17,8 @@ const meta = {
     title: "Built for teams that ship",
     children: (
       <p className="text-cc-ink/80 mx-auto max-w-2xl text-center text-lg">
-        Bring your GraphQL skills up to speed with hands-on training, expert
-        support, and a platform your whole team can rely on in production.
+        Bring your GraphQL skills up to speed with hands-on training, expert support, and a platform your whole team can
+        rely on in production.
       </p>
     ),
   },
@@ -62,8 +62,8 @@ export const CustomClassName: Story = {
     className: "bg-cc-ink/5 rounded-2xl",
     children: (
       <p className="text-cc-ink/80 mx-auto max-w-2xl text-center text-lg">
-        The optional className is appended to the section, so you can layer in a
-        background, border, or spacing override per placement.
+        The optional className is appended to the section, so you can layer in a background, border, or spacing override
+        per placement.
       </p>
     ),
   },

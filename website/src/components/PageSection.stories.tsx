@@ -4,9 +4,7 @@ import { PageSection } from "./PageSection";
 
 const placeholderCard = (
   <div className="border-cc-card-border bg-cc-card-bg rounded-2xl border p-8 text-center">
-    <p className="text-cc-ink-dim font-mono text-xs tracking-[0.2em] uppercase">
-      Section content
-    </p>
+    <p className="text-cc-ink-dim font-mono text-xs tracking-[0.2em] uppercase">Section content</p>
   </div>
 );
 
@@ -65,7 +63,6 @@ export const FlexColumnLayout: Story = {
 
 export const MinHeightHero: Story = {
   args: {
-    className:
-      "flex min-h-[24rem] flex-col items-center justify-center py-20 text-center",
+    className: "flex min-h-[24rem] flex-col items-center justify-center py-20 text-center",
   },
 };

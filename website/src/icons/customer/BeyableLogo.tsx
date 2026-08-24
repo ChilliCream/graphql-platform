@@ -7,13 +7,7 @@ interface BeyableLogoProps {
 
 export function BeyableLogo({ className, style }: BeyableLogoProps) {
   return (
-    <svg
-      viewBox="0 0 425.55 73.1"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 425.55 73.1" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <path d="M244.41,69.1l-4.7-15.6h-21.9l-4.7,15.6H198.64L220.25,3.49h17.67L259.25,69.1ZM228.9,16.47h-.47l-7.18,24.9h15Z" />
       <path d="M268.38,3.49h31.87c10.81,0,17.29,6.68,17.29,16.83S312,34.14,305.33,34.42V35c6.2,0,14.75,4.14,14.75,15.42,0,10.34-7.24,18.7-16.92,18.7H268.38Zm14.29,26.89h14.2c3.76,0,6-2.26,6-6V21.54c0-3.76-2.25-6-6-6h-14.2Zm0,26.69h16.45c3.76,0,6.11-2.16,6.11-5.92V48c0-3.76-2.35-5.92-6.11-5.92H282.67Z" />
       <path d="M331.08,69.1V3.49h14.29V56.41h25V69.1Z" />

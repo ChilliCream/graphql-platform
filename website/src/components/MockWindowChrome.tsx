@@ -62,11 +62,7 @@ function ChromeHeaderLeft({ header }: { readonly header: ChromeHeader }) {
     return (
       <span aria-hidden="true" className="flex items-center gap-1.5">
         {DOT_COLORS.map((color) => (
-          <span
-            key={color}
-            className="inline-block h-2 w-2 rounded-full"
-            style={{ background: color }}
-          />
+          <span key={color} className="inline-block h-2 w-2 rounded-full" style={{ background: color }} />
         ))}
       </span>
     );
@@ -107,8 +103,7 @@ export function MockWindowChrome({
   className,
   children,
 }: MockWindowChromeProps) {
-  const hasHeader =
-    header !== undefined || label !== undefined || headerRight !== undefined;
+  const hasHeader = header !== undefined || label !== undefined || headerRight !== undefined;
 
   return (
     <div className={["relative", className].filter(Boolean).join(" ")}>
@@ -136,33 +131,21 @@ export function MockWindowChrome({
       >
         {hasHeader && (
           <div
-            className={[
-              "border-cc-card-border border-b",
-              headerClassName ?? "flex items-center gap-2 px-4 py-2.5",
-            ]
+            className={["border-cc-card-border border-b", headerClassName ?? "flex items-center gap-2 px-4 py-2.5"]
               .filter(Boolean)
               .join(" ")}
           >
             {header && <ChromeHeaderLeft header={header} />}
             {label !== undefined && (
-              <span className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
-                {label}
-              </span>
+              <span className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">{label}</span>
             )}
-            {headerRight !== undefined && (
-              <span className="ml-auto flex shrink-0 items-center">
-                {headerRight}
-              </span>
-            )}
+            {headerRight !== undefined && <span className="ml-auto flex shrink-0 items-center">{headerRight}</span>}
           </div>
         )}
         {children}
         {footer && (
           <div
-            className={[
-              "border-cc-card-border border-t",
-              footerClassName ?? "flex items-center gap-2 px-4 py-2.5",
-            ]
+            className={["border-cc-card-border border-t", footerClassName ?? "flex items-center gap-2 px-4 py-2.5"]
               .filter(Boolean)
               .join(" ")}
           >

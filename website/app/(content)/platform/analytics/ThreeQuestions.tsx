@@ -9,23 +9,13 @@ import type { Client, InsightRow } from "@/src/nitro/lib/data/types";
 
 import { CORAL, TEAL } from "./palette";
 
-const HBarSeries = dynamic(() =>
-  import("@/src/nitro").then((m) => m.HBarSeries),
-);
-const InsightsTable = dynamic(() =>
-  import("@/src/nitro").then((m) => m.InsightsTable),
-);
-const LineAreaChart = dynamic(() =>
-  import("@/src/nitro").then((m) => m.LineAreaChart),
-);
+const HBarSeries = dynamic(() => import("@/src/nitro").then((m) => m.HBarSeries));
+const InsightsTable = dynamic(() => import("@/src/nitro").then((m) => m.InsightsTable));
+const LineAreaChart = dynamic(() => import("@/src/nitro").then((m) => m.LineAreaChart));
 
-const P95_SERIES = [
-  40, 43, 41, 45, 42, 46, 44, 41, 43, 46, 42, 44, 47, 43, 45, 42, 44, 46, 43,
-  45, 41, 44, 42, 45,
-];
+const P95_SERIES = [40, 43, 41, 45, 42, 46, 44, 41, 43, 46, 42, 44, 47, 43, 45, 42, 44, 46, 43, 45, 41, 44, 42, 45];
 const P99_SERIES = [
-  90, 94, 98, 102, 108, 115, 122, 130, 140, 152, 165, 180, 198, 218, 238, 258,
-  278, 296, 310, 318, 312, 298, 270, 240,
+  90, 94, 98, 102, 108, 115, 122, 130, 140, 152, 165, 180, 198, 218, 238, 258, 278, 296, 310, 318, 312, 298, 270, 240,
 ];
 
 const CLIENTS: Client[] = [
@@ -111,16 +101,12 @@ export function ThreeQuestions() {
             title="Rank operations to investigate with the impact score."
             body={
               <>
-                The impact score combines traffic, latency, and error rate to
-                help you decide which reported operations to investigate first.
+                The impact score combines traffic, latency, and error rate to help you decide which reported operations
+                to investigate first.
               </>
             }
             visual={
-              <ChartTile
-                title="Operations"
-                hint="ranked by impact · last 1h"
-                glow
-              >
+              <ChartTile title="Operations" hint="ranked by impact · last 1h" glow>
                 <NitroFrame>
                   <InsightsTable
                     once
@@ -139,9 +125,8 @@ export function ThreeQuestions() {
             title="The whole latency picture, not an average."
             body={
               <>
-                An average can look healthy while a small number of requests are
-                much slower. Percentiles show you where the tail starts, so you
-                can find and fix those slow paths before they affect more users.
+                An average can look healthy while a small number of requests are much slower. Percentiles show you where
+                the tail starts, so you can find and fix those slow paths before they affect more users.
               </>
             }
             visual={
@@ -149,17 +134,11 @@ export function ThreeQuestions() {
                 <NitroFrame reducedMotion="always">
                   <div className="mb-3 flex items-center gap-4 font-mono text-[0.62rem]">
                     <span className="text-cc-ink-dim flex items-center gap-1.5">
-                      <span
-                        className="h-1.5 w-3 rounded-full"
-                        style={{ background: TEAL }}
-                      />
+                      <span className="h-1.5 w-3 rounded-full" style={{ background: TEAL }} />
                       p95
                     </span>
                     <span className="text-cc-ink-dim flex items-center gap-1.5">
-                      <span
-                        className="h-1.5 w-3 rounded-full"
-                        style={{ background: CORAL }}
-                      />
+                      <span className="h-1.5 w-3 rounded-full" style={{ background: CORAL }} />
                       p99
                     </span>
                   </div>
@@ -202,20 +181,14 @@ export function ThreeQuestions() {
             title="Know which identified clients are affected."
             body={
               <>
-                See which client apps and versions are behind an operation. When
-                one starts causing trouble, you can tell whether it affects
-                everyone or only a particular client.
+                See which client apps and versions are behind an operation. When one starts causing trouble, you can
+                tell whether it affects everyone or only a particular client.
               </>
             }
             visual={
               <ChartTile title="Clients · checkout" hint="share of impact">
                 <NitroFrame>
-                  <HBarSeries
-                    once
-                    clients={CLIENTS}
-                    maxBars={3}
-                    barHeight={14}
-                  />
+                  <HBarSeries once clients={CLIENTS} maxBars={3} barHeight={14} />
                 </NitroFrame>
               </ChartTile>
             }

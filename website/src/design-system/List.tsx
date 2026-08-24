@@ -13,11 +13,6 @@ export function List({ ordered, className = "", ...props }: ListProps) {
   return <ul className={`${styles} ${className}`.trim()} {...props} />;
 }
 
-export function ListItem({
-  className = "",
-  ...props
-}: ComponentPropsWithoutRef<"li">) {
-  return (
-    <li className={`text-cc-prose leading-7 ${className}`.trim()} {...props} />
-  );
+export function ListItem({ className = "", ...props }: ComponentPropsWithoutRef<"li">) {
+  return <li className={`text-cc-prose leading-7 ${className}`.trim()} {...props} />;
 }

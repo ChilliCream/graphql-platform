@@ -77,24 +77,12 @@ export function PerkCard({
       highlight={highlight}
       badgeLabel={highlightLabel}
     >
-      {tag && (
-        <span
-          className={`font-mono text-xs font-semibold tracking-[0.2em] ${accentText}`}
-        >
-          {tag}
-        </span>
-      )}
+      {tag && <span className={`font-mono text-xs font-semibold tracking-[0.2em] ${accentText}`}>{tag}</span>}
 
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <h3 className="font-heading text-cc-heading text-h4 font-semibold">
-            {title}
-          </h3>
-          {subtitle && (
-            <p className="text-cc-ink-dim text-sm leading-relaxed">
-              {subtitle}
-            </p>
-          )}
+          <h3 className="font-heading text-cc-heading text-h4 font-semibold">{title}</h3>
+          {subtitle && <p className="text-cc-ink-dim text-sm leading-relaxed">{subtitle}</p>}
         </div>
         {Icon && (
           <span className={`flex-none ${accentText}`}>

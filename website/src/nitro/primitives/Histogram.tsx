@@ -121,13 +121,7 @@ export function Histogram({
           );
         })}
 
-        <P95Marker
-          x={p95X}
-          top={plotTop}
-          bottom={plotBottom}
-          t={t}
-          win={markerWin}
-        />
+        <P95Marker x={p95X} top={plotTop} bottom={plotBottom} t={t} win={markerWin} />
       </svg>
 
       <motion.div
@@ -136,14 +130,9 @@ export function Histogram({
           top: 0,
           left: `${(p95X / width) * 100}%`,
           transform: "translateX(-50%)",
-          opacity: useTransform(
-            t,
-            [markerWin[0] + 0.04, markerWin[1]],
-            [0, 1],
-            {
-              clamp: true,
-            },
-          ),
+          opacity: useTransform(t, [markerWin[0] + 0.04, markerWin[1]], [0, 1], {
+            clamp: true,
+          }),
         }}
       >
         <Badge
@@ -297,13 +286,7 @@ function P95Marker({
   );
 }
 
-function p95MarkerX(
-  edges: number[],
-  value: number,
-  centerOf: (i: number) => number,
-  lo: number,
-  hi: number,
-): number {
+function p95MarkerX(edges: number[], value: number, centerOf: (i: number) => number, lo: number, hi: number): number {
   const n = edges.length;
   if (n === 0) return lo;
   if (value <= edges[0]) return clamp(centerOf(0), lo, hi);

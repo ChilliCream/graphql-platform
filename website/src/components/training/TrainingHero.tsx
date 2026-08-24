@@ -13,19 +13,14 @@ export function TrainingHero() {
       title={<>Beginner team. Advanced team. Mixed team. Don&apos;t panic.</>}
       lead={
         <>
-          Our GraphQL curriculum is designed to teach in depth and works really
-          well. It also isn&apos;t set in stone, so we shape every engagement to
-          the team in the room.
+          Our GraphQL curriculum is designed to teach in depth and works really well. It also isn&apos;t set in stone,
+          so we shape every engagement to the team in the room.
         </>
       }
       actions={
         <ButtonRow align="center">
-          <SolidButton href="mailto:contact@chillicream.com?subject=Training">
-            Talk to a trainer
-          </SolidButton>
-          <OutlineButton href="#levels">
-            Where is your team today?
-          </OutlineButton>
+          <SolidButton href="mailto:contact@chillicream.com?subject=Training">Talk to a trainer</SolidButton>
+          <OutlineButton href="#levels">Where is your team today?</OutlineButton>
         </ButtonRow>
       }
     />

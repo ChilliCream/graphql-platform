@@ -14,13 +14,7 @@ const KIND_LABEL: Record<ChipKind, string> = {
   db: "DB",
 };
 
-const STATEMENT_KINDS: readonly ChipKind[] = [
-  "graphql",
-  "rest",
-  "grpc",
-  "job",
-  "db",
-];
+const STATEMENT_KINDS: readonly ChipKind[] = ["graphql", "rest", "grpc", "job", "db"];
 
 const OTEL_CHECKS: readonly string[] = [
   "Vendor-neutral OTLP in, no proprietary agent",
@@ -41,10 +35,7 @@ export function FullOtelBand() {
             titleId="otel-title"
             title={
               <>
-                OpenTelemetry-native,{" "}
-                <span className="text-cc-accent whitespace-nowrap">
-                  end to end.
-                </span>
+                OpenTelemetry-native, <span className="text-cc-accent whitespace-nowrap">end to end.</span>
               </>
             }
             description="Configured services export supported traces, metrics, and logs over plain OTLP. Nitro links reported operation signals to the related distributed traces for investigation."

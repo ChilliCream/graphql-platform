@@ -10,12 +10,7 @@ interface RisingParticlesProps {
   readonly colors?: readonly string[];
 }
 
-export function RisingParticles({
-  className,
-  count = 42,
-  color = "180,205,255",
-  colors,
-}: RisingParticlesProps) {
+export function RisingParticles({ className, count = 42, color = "180,205,255", colors }: RisingParticlesProps) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -70,8 +65,7 @@ export function RisingParticles({
         const y = (((p.y - t * p.sp) % 1) + 1) % 1;
         const px = p.x * w;
         const py = y * h;
-        const tw =
-          0.4 + 0.6 * Math.abs(Math.sin(t * (1 + p.tw * 2) + p.tw * 6));
+        const tw = 0.4 + 0.6 * Math.abs(Math.sin(t * (1 + p.tw * 2) + p.tw * 6));
         const a = tw * (0.3 + 0.4 * (1 - y));
         const rad = p.r * dpr * 3;
         const g = ctx.createRadialGradient(px, py, 0, px, py, rad);

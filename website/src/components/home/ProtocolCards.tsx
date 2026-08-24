@@ -103,8 +103,7 @@ export function ProtocolCards() {
       <div
         className="mx-auto max-w-3xl rounded-2xl p-px"
         style={{
-          backgroundImage:
-            "linear-gradient(to right,#f27765 0%,#eabd21 25%,#66be77 50%,#00bce5 75%,#a983ba 100%)",
+          backgroundImage: "linear-gradient(to right,#f27765 0%,#eabd21 25%,#66be77 50%,#00bce5 75%,#a983ba 100%)",
         }}
       >
         <div className="bg-cc-surface grid grid-cols-2 gap-3 rounded-[15px] p-3 sm:grid-cols-4 sm:p-4">
@@ -156,10 +155,9 @@ export function ProtocolCards() {
               One source.
             </h2>
             <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-              Let each caller use the protocol that fits: GraphQL for apps, gRPC
-              for services, OpenAPI for HTTP integrations, and MCP for agents.
-              The API model stays in one place, so every surface can evolve from
-              the same source.
+              Let each caller use the protocol that fits: GraphQL for apps, gRPC for services, OpenAPI for HTTP
+              integrations, and MCP for agents. The API model stays in one place, so every surface can evolve from the
+              same source.
             </p>
           </div>
         </div>
@@ -170,9 +168,7 @@ export function ProtocolCards() {
               <div className="border-cc-card-border bg-cc-card-bg flex size-20 items-center justify-center rounded-2xl border">
                 <Icon className="text-cc-nav-text size-11" />
               </div>
-              <h3 className="font-heading text-cc-heading mt-5 text-xl font-semibold">
-                {title}
-              </h3>
+              <h3 className="font-heading text-cc-heading mt-5 text-xl font-semibold">{title}</h3>
               <p className="text-cc-ink mt-1 text-sm">{subtitle}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {tags.map((tag) => (

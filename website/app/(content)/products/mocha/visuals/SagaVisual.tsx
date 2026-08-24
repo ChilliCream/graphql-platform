@@ -3,15 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { easeOutCubic } from "@/src/components/mocha/geometry";
-import {
-  AMBER,
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-} from "@/src/components/mocha/palette";
+import { AMBER, CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -344,10 +336,7 @@ export function SagaVisual() {
         E.get("tkglow")?.setAttribute("fill", color);
         E.get("tkt1")?.setAttribute("fill", color);
         E.get("tkt2")?.setAttribute("fill", color);
-        E.get("tkin")?.setAttribute(
-          "fill",
-          color === AMBER ? "#fde68a" : CORAL_SOFT,
-        );
+        E.get("tkin")?.setAttribute("fill", color === AMBER ? "#fde68a" : CORAL_SOFT);
       };
 
       let ringOn = false;
@@ -547,8 +536,7 @@ export function SagaVisual() {
       let cycle = 0;
       let prevStep = -1;
 
-      const scheduleFor = (c: number) =>
-        c % 3 === 2 ? buildFail() : buildHappy();
+      const scheduleFor = (c: number) => (c % 3 === 2 ? buildFail() : buildHappy());
 
       const apply = (_now: number, dt: number) => {
         elapsed += dt;
@@ -630,22 +618,12 @@ export function SagaVisual() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
             <filter id="saga-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="saga-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="saga-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
@@ -653,14 +631,7 @@ export function SagaVisual() {
           <rect x={0} y={0} width={lw} height={H} fill="url(#saga-grid)" />
 
           {L.lanes.map((d, i) => (
-            <path
-              key={`lane${i}`}
-              d={d}
-              fill="none"
-              stroke={LANE_STROKE}
-              strokeWidth={1.5}
-              strokeLinejoin="round"
-            />
+            <path key={`lane${i}`} d={d} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
           ))}
 
           <rect
@@ -675,15 +646,7 @@ export function SagaVisual() {
           />
 
           {L.vias.map((v, i) => (
-            <circle
-              key={`via${i}`}
-              cx={v.x}
-              cy={v.y}
-              r={2.5}
-              fill={NAVY}
-              stroke={VIA_STROKE}
-              strokeWidth={1.2}
-            />
+            <circle key={`via${i}`} cx={v.x} cy={v.y} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1.2} />
           ))}
 
           {L.pins.map((pin, i) => (
@@ -755,13 +718,7 @@ export function SagaVisual() {
               >
                 {p.title}
               </text>
-              <circle
-                cx={p.x + p.w - 10}
-                cy={p.y + 10}
-                r={2}
-                fill={SILK}
-                opacity={0.25}
-              />
+              <circle cx={p.x + p.w - 10} cy={p.y + 10} r={2} fill={SILK} opacity={0.25} />
               <circle
                 ref={set(`h${i}`)}
                 cx={p.x + p.w - 10}
@@ -789,24 +746,12 @@ export function SagaVisual() {
           <g ref={set("tk")} opacity={0}>
             <circle ref={set("tkt2")} r={1.6} fill={CORAL} opacity={0} />
             <circle ref={set("tkt1")} r={2} fill={CORAL} opacity={0} />
-            <circle
-              ref={set("tkglow")}
-              r={6}
-              fill={CORAL}
-              opacity={0.2}
-              filter="url(#saga-soft)"
-            />
+            <circle ref={set("tkglow")} r={6} fill={CORAL} opacity={0.2} filter="url(#saga-soft)" />
             <circle ref={set("tkcore")} r={2.5} fill={CORAL} />
             <circle ref={set("tkin")} r={1.1} fill={CORAL_SOFT} />
           </g>
 
-          <circle
-            ref={set("ring")}
-            r={0}
-            fill="none"
-            strokeWidth={1.5}
-            opacity={0}
-          />
+          <circle ref={set("ring")} r={0} fill="none" strokeWidth={1.5} opacity={0} />
 
           <text
             ref={set("fin")}

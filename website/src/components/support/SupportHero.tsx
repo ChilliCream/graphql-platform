@@ -39,17 +39,14 @@ export function SupportHero() {
       title="Support from the people who build the platform."
       lead={
         <>
-          However you reach us, you&rsquo;re working with the core engineers who
-          build Hot Chocolate, Fusion and Nitro, not a first-line queue. Here is
-          what that looks like in practice.
+          However you reach us, you&rsquo;re working with the core engineers who build Hot Chocolate, Fusion and Nitro,
+          not a first-line queue. Here is what that looks like in practice.
         </>
       }
       actions={
         <ButtonRow align="center">
           <SolidButton href="#plans">See the four plans</SolidButton>
-          <OutlineButton href="/services/support/contact">
-            Talk to us
-          </OutlineButton>
+          <OutlineButton href="/services/support/contact">Talk to us</OutlineButton>
         </ButtonRow>
       }
     >

@@ -8,11 +8,7 @@ import { ThemeProvider } from "../lib/theme";
 
 const dashboardChildren = (
   <>
-    <Tile
-      title="Fleet health"
-      subheader="All gateways reporting"
-      style={{ ...FULL_WIDTH, minHeight: 72 }}
-    >
+    <Tile title="Fleet health" subheader="All gateways reporting" style={{ ...FULL_WIDTH, minHeight: 72 }}>
       <div
         style={{
           display: "flex",
@@ -36,15 +32,8 @@ const dashboardChildren = (
       <CountUp value={0.4} format={(n) => `${n.toFixed(2)}%`} />
     </Tile>
 
-    <Tile
-      title="Throughput"
-      subheader="requests / min · last 60 min"
-      style={{ ...SPAN_2, minHeight: 128 }}
-    >
-      <Sparkline
-        values={[12, 18, 15, 22, 19, 26, 24, 30, 28, 34, 31, 38]}
-        fill
-      />
+    <Tile title="Throughput" subheader="requests / min · last 60 min" style={{ ...SPAN_2, minHeight: 128 }}>
+      <Sparkline values={[12, 18, 15, 22, 19, 26, 24, 30, 28, 34, 31, 38]} fill />
     </Tile>
     <Tile title="Saturation" style={{ minHeight: 128 }}>
       <Sparkline values={[48, 52, 50, 61, 58, 64, 60, 67]} />
@@ -71,11 +60,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[960px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[960px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),

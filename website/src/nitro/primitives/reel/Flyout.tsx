@@ -39,18 +39,8 @@ export function Flyout({
   children,
 }: FlyoutProps) {
   const SLIDE = 0.02;
-  const x = useTransform(
-    progress,
-    [show, show + SLIDE, hide - SLIDE, hide],
-    [width, 0, 0, width],
-    { clamp: true },
-  );
-  const opacity = useTransform(
-    progress,
-    [show, show + 0.004, hide - 0.004, hide],
-    [0, 1, 1, 0],
-    { clamp: true },
-  );
+  const x = useTransform(progress, [show, show + SLIDE, hide - SLIDE, hide], [width, 0, 0, width], { clamp: true });
+  const opacity = useTransform(progress, [show, show + 0.004, hide - 0.004, hide], [0, 1, 1, 0], { clamp: true });
 
   return (
     <motion.div
@@ -83,16 +73,8 @@ export function Flyout({
           borderBottom: `1px solid ${token.border}`,
         }}
       >
-        <span
-          style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}
-        >
-          {title}
-        </span>
-        {counter && (
-          <span style={{ marginLeft: "auto", fontSize: 12, color: token.text }}>
-            {counter}
-          </span>
-        )}
+        <span style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}>{title}</span>
+        {counter && <span style={{ marginLeft: "auto", fontSize: 12, color: token.text }}>{counter}</span>}
         <span
           style={{
             marginLeft: counter ? 8 : "auto",
@@ -111,12 +93,7 @@ export function Flyout({
 
       {tabs &&
         (tabSlide ? (
-          <SlidingTabStrip
-            progress={progress}
-            tabs={tabs}
-            indicatorColor={indicatorColor}
-            tabSlide={tabSlide}
-          />
+          <SlidingTabStrip progress={progress} tabs={tabs} indicatorColor={indicatorColor} tabSlide={tabSlide} />
         ) : (
           <div
             style={{
@@ -145,9 +122,7 @@ export function Flyout({
           </div>
         ))}
 
-      <div style={{ flex: 1, minHeight: 0, overflow: "hidden", padding: 14 }}>
-        {children}
-      </div>
+      <div style={{ flex: 1, minHeight: 0, overflow: "hidden", padding: 14 }}>{children}</div>
     </motion.div>
   );
 }
@@ -175,9 +150,7 @@ function SlidingTabStrip({
     setSlots(
       tabs.map((_, i) => {
         const el = refs.current[i];
-        return el
-          ? { left: el.offsetLeft, width: el.offsetWidth }
-          : { left: 0, width: 0 };
+        return el ? { left: el.offsetLeft, width: el.offsetWidth } : { left: 0, width: 0 };
       }),
     );
   }, [tabs]);
@@ -185,22 +158,13 @@ function SlidingTabStrip({
   const fromIdx = Math.max(0, tabs.indexOf(tabSlide.from));
   const toIdx = Math.max(0, tabs.indexOf(tabSlide.to));
   const cross = (tabSlide.range[0] + tabSlide.range[1]) / 2;
-  const f = useTransform(
-    progress,
-    [tabSlide.range[0], tabSlide.range[1]],
-    [0, 1],
-    { clamp: true },
-  );
+  const f = useTransform(progress, [tabSlide.range[0], tabSlide.range[1]], [0, 1], { clamp: true });
 
   const a = slots[fromIdx];
   const b = slots[toIdx];
   const ready = !!a && !!b && (a.width > 0 || b.width > 0);
-  const indLeft = useTransform(f, (v) =>
-    ready ? a.left + 6 + (b.left - a.left) * v : 0,
-  );
-  const indWidth = useTransform(f, (v) =>
-    ready ? a.width - 12 + (b.width - a.width) * v : 0,
-  );
+  const indLeft = useTransform(f, (v) => (ready ? a.left + 6 + (b.left - a.left) * v : 0));
+  const indWidth = useTransform(f, (v) => (ready ? a.width - 12 + (b.width - a.width) * v : 0));
 
   return (
     <div

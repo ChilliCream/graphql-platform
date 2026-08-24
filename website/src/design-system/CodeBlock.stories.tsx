@@ -35,11 +35,7 @@ export const WithFilename: Story = {
 export const WithLineHighlights: Story = {
   loaders: [
     async () => ({
-      rendered: await renderBlock(
-        "tsx",
-        tsxSample,
-        'filename="Counter.tsx" {4,6-7}',
-      ),
+      rendered: await renderBlock("tsx", tsxSample, 'filename="Counter.tsx" {4,6-7}'),
     }),
   ],
   render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
@@ -59,11 +55,10 @@ export const WithCodeSteps: Story = {
     <div>
       {ctx.loaded.rendered as ReactElement}
       <p className="text-cc-ink-dim my-4 text-base leading-7">
-        Hover each step to highlight the matching tokens above. Inside the{" "}
-        <CodeStep step={4}>Counter</CodeStep> component, call{" "}
-        <CodeStep step={1}>useState</CodeStep> to declare local state, read the
-        current value via <CodeStep step={2}>count</CodeStep>, and update it by
-        calling <CodeStep step={3}>setCount</CodeStep> from the click handler.
+        Hover each step to highlight the matching tokens above. Inside the <CodeStep step={4}>Counter</CodeStep>{" "}
+        component, call <CodeStep step={1}>useState</CodeStep> to declare local state, read the current value via{" "}
+        <CodeStep step={2}>count</CodeStep>, and update it by calling <CodeStep step={3}>setCount</CodeStep> from the
+        click handler.
       </p>
     </div>
   ),

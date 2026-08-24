@@ -19,12 +19,6 @@ const ALIGN: Record<ButtonRowAlign, string> = {
  * A row of call-to-action buttons. `center` and `start` wrap horizontally;
  * `stacked` lays the buttons out vertically (pair with full-width buttons).
  */
-export function ButtonRow({
-  children,
-  align = "center",
-  className = "",
-}: ButtonRowProps) {
-  return (
-    <div className={`${ALIGN[align]} ${className}`.trim()}>{children}</div>
-  );
+export function ButtonRow({ children, align = "center", className = "" }: ButtonRowProps) {
+  return <div className={`${ALIGN[align]} ${className}`.trim()}>{children}</div>;
 }

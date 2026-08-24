@@ -56,16 +56,8 @@ export function PanelTile({
           borderBottom: `1px solid ${token.border}`,
         }}
       >
-        <span
-          style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-        >
-          {title}
-        </span>
-        {subtitle != null && (
-          <span style={{ fontSize: 11.5, color: token.textSecondary }}>
-            {subtitle}
-          </span>
-        )}
+        <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>{title}</span>
+        {subtitle != null && <span style={{ fontSize: 11.5, color: token.textSecondary }}>{subtitle}</span>}
         {count != null && (
           <span
             style={{
@@ -81,11 +73,7 @@ export function PanelTile({
             {count}
           </span>
         )}
-        {headerExtra != null && (
-          <span style={{ marginLeft: "auto", display: "flex" }}>
-            {headerExtra}
-          </span>
-        )}
+        {headerExtra != null && <span style={{ marginLeft: "auto", display: "flex" }}>{headerExtra}</span>}
       </div>
       <div
         style={{

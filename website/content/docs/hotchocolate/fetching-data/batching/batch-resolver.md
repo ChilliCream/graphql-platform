@@ -168,10 +168,7 @@ A failed element becomes a GraphQL error at that specific parent's path, while t
     }
   ],
   "data": {
-    "users": [
-      { "verificationStatus": "verified" },
-      { "verificationStatus": null }
-    ]
+    "users": [{ "verificationStatus": "verified" }, { "verificationStatus": null }]
   }
 }
 ```

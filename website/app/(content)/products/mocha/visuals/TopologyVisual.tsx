@@ -13,14 +13,7 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import {
-  CORAL,
-  CORAL_SOFT,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-  SLATE,
-} from "@/src/components/mocha/palette";
+import { CORAL, CORAL_SOFT, GREEN, MONO_FONT, NAVY, SLATE } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -241,10 +234,7 @@ export function TopologyVisual() {
         const el = E.get(k);
         if (el) {
           el.setAttribute("opacity", o.toFixed(3));
-          el.setAttribute(
-            "transform",
-            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
-          );
+          el.setAttribute("transform", `translate(0 ${((1 - rise) * 5).toFixed(2)})`);
         }
       };
 
@@ -361,17 +351,10 @@ export function TopologyVisual() {
 
         for (let i = 0; i < DECL.length; i++) {
           const d = DECL[i];
-          const rv =
-            ramp(t, d.rowIn, d.rowIn + 200) *
-            (1 - ramp(t, d.rowHold, d.rowOut));
+          const rv = ramp(t, d.rowIn, d.rowIn + 200) * (1 - ramp(t, d.rowHold, d.rowOut));
           setO(`r${i}lit`, Math.max(rv * 0.9, act[i + 1] * 0.9));
           setO(`r${i}echo`, Math.max(rv * 0.7, act[i + 1] * 0.9));
-          drawLane(
-            `ln${i}`,
-            L.routes[i].poly.total,
-            easeInOutCubic(ramp(t, d.laneA, d.laneB)),
-            master,
-          );
+          drawLane(`ln${i}`, L.routes[i].poly.total, easeInOutCubic(ramp(t, d.laneA, d.laneB)), master);
           const pv = easeOutCubic(ramp(t, d.pill, d.pill + 500));
           setPop(`pill${i}`, pv * master, pv);
           const vv = easeOutCubic(ramp(t, d.via, d.via + 450));
@@ -399,13 +382,7 @@ export function TopologyVisual() {
     <g key={p} ref={set(p)} opacity={0}>
       <circle ref={set(p + "t2")} r={1.6} fill={color} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={color} opacity={0} />
-      <circle
-        ref={set(p + "glow")}
-        r={6}
-        fill={color}
-        opacity={0.2}
-        filter="url(#topo-soft)"
-      />
+      <circle ref={set(p + "glow")} r={6} fill={color} opacity={0.2} filter="url(#topo-soft)" />
       <circle ref={set(p + "core")} r={2.5} fill={color} />
       <circle ref={set(p + "in")} r={1.1} fill={inner} />
     </g>
@@ -422,22 +399,12 @@ export function TopologyVisual() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
             <filter id="topo-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="topo-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="topo-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
@@ -460,14 +427,7 @@ export function TopologyVisual() {
 
           {CONSUMERS.map((c, i) => (
             <g key={`via${i}`} ref={set(`via${i}`)} opacity={1}>
-              <circle
-                cx={L.viaX}
-                cy={c.laneY}
-                r={3.5}
-                fill={NAVY}
-                stroke={VIA_STROKE}
-                strokeWidth={1.2}
-              />
+              <circle cx={L.viaX} cy={c.laneY} r={3.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1.2} />
               <text
                 x={L.viaX}
                 y={i === 0 ? c.laneY - 12 : c.laneY + 20}
@@ -554,20 +514,8 @@ export function TopologyVisual() {
               <circle cx={p.x + 6} cy={p.y + 6} r={1.2} fill={SILK} />
               {i === 0 ? (
                 <g>
-                  <rect
-                    x={p.x + p.w - 30}
-                    y={p.y + p.h - 17}
-                    width={8}
-                    height={3}
-                    fill="rgba(154,172,200,0.12)"
-                  />
-                  <rect
-                    x={p.x + p.w - 30}
-                    y={p.y + p.h - 11}
-                    width={8}
-                    height={3}
-                    fill="rgba(154,172,200,0.12)"
-                  />
+                  <rect x={p.x + p.w - 30} y={p.y + p.h - 17} width={8} height={3} fill="rgba(154,172,200,0.12)" />
+                  <rect x={p.x + p.w - 30} y={p.y + p.h - 11} width={8} height={3} fill="rgba(154,172,200,0.12)" />
                 </g>
               ) : (
                 <g>
@@ -581,21 +529,8 @@ export function TopologyVisual() {
                     stroke={HAIR}
                     strokeWidth={1}
                   />
-                  <rect
-                    x={p.x + 12}
-                    y={p.y + 39}
-                    width={3}
-                    height={16}
-                    rx={1.5}
-                    fill={CORAL}
-                  />
-                  <text
-                    x={p.x + 25}
-                    y={p.y + 51}
-                    fontFamily={MONO_FONT}
-                    fontSize={9}
-                    fill={INK}
-                  >
+                  <rect x={p.x + 12} y={p.y + 39} width={3} height={16} rx={1.5} fill={CORAL} />
+                  <text x={p.x + 25} y={p.y + 51} fontFamily={MONO_FONT} fontSize={9} fill={INK}>
                     {CONSUMERS[i - 1].handler}
                   </text>
                   <text
@@ -623,16 +558,7 @@ export function TopologyVisual() {
                   />
                 </g>
               )}
-              <rect
-                ref={set(`pw${i}`)}
-                x={p.x}
-                y={p.y}
-                width={p.w}
-                height={p.h}
-                rx={3}
-                fill={CORAL}
-                opacity={0}
-              />
+              <rect ref={set(`pw${i}`)} x={p.x} y={p.y} width={p.w} height={p.h} rx={3} fill={CORAL} opacity={0} />
               <rect
                 ref={set(`pe${i}`)}
                 x={p.x}
@@ -645,23 +571,10 @@ export function TopologyVisual() {
                 strokeWidth={1.2}
                 opacity={0}
               />
-              <text
-                x={p.x + 12}
-                y={p.y + 18}
-                fontFamily={MONO_FONT}
-                fontSize={10}
-                letterSpacing="0.2em"
-                fill={SILK}
-              >
+              <text x={p.x + 12} y={p.y + 18} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.2em" fill={SILK}>
                 {p.title}
               </text>
-              <circle
-                cx={p.x + p.w - 10}
-                cy={p.y + 10}
-                r={2}
-                fill={SILK}
-                opacity={0.25}
-              />
+              <circle cx={p.x + p.w - 10} cy={p.y + 10} r={2} fill={SILK} opacity={0.25} />
               <circle
                 ref={set(`ph${i}`)}
                 cx={p.x + p.w - 10}
@@ -673,14 +586,7 @@ export function TopologyVisual() {
                 filter="url(#topo-soft)"
                 opacity={0}
               />
-              <circle
-                ref={set(`pl${i}`)}
-                cx={p.x + p.w - 10}
-                cy={p.y + 10}
-                r={2}
-                fill={CORAL}
-                opacity={0}
-              />
+              <circle ref={set(`pl${i}`)} cx={p.x + p.w - 10} cy={p.y + 10} r={2} fill={CORAL} opacity={0} />
             </g>
           ))}
 

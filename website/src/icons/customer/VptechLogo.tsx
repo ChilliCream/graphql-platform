@@ -7,13 +7,7 @@ interface VptechLogoProps {
 
 export function VptechLogo({ className, style }: VptechLogoProps) {
   return (
-    <svg
-      viewBox="0 0 466.69 95.31"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 466.69 95.31" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <path d="m12.8 42.7 33.91 12.1v10.1L0 46.7v-8l46.71-18.2v10.2Z" />
       <path d="m74.2 76.7-21-49.5h11.4l15.8 38.6 15.1-38.6h11L85.6 76.7Z" />
       <path d="M166.2 51.9c0 14.9-9.6 25.8-25 25.8-7.7 0-14.3-3.4-17.4-7.9v25.5h-10.3V27.2h10.4v7.6a20.21 20.21 0 0 1 16.8-8.8c15.3-.1 25.5 11 25.5 25.9Zm-41.4 0c0 8.7 6.4 15.9 15.4 15.9s15.5-6.8 15.5-15.9-6.1-16-15.5-16-15.4 7.2-15.4 16Z" />

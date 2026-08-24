@@ -20,11 +20,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[360px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[360px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),

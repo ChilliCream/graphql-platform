@@ -31,9 +31,7 @@ export function BrokenMedia({ message, className, style }: BrokenMediaProps) {
         <line x1="16" y1="19" x2="16" y2="22" />
         <line x1="19" y1="16" x2="22" y2="16" />
       </svg>
-      <span className="px-4 text-center text-sm font-medium @max-[14rem]:sr-only">
-        {message}
-      </span>
+      <span className="px-4 text-center text-sm font-medium @max-[14rem]:sr-only">{message}</span>
     </span>
   );
 }

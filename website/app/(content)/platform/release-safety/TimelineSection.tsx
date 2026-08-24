@@ -22,29 +22,19 @@ function VersionTimeline() {
     <AppWindow title={<span className="text-cc-prose">schema history</span>}>
       <div className="px-5 py-6">
         <div className="relative">
-          <span
-            aria-hidden
-            className="bg-cc-card-border absolute top-2.5 left-2 h-[calc(100%-1.25rem)] w-px"
-          />
+          <span aria-hidden className="bg-cc-card-border absolute top-2.5 left-2 h-[calc(100%-1.25rem)] w-px" />
           <ol className="space-y-5">
             {VERSIONS.map((p) => {
               const meta = STATUS_META[p.status];
               return (
-                <li
-                  key={`${p.v}-${p.note}`}
-                  className="relative flex items-center gap-4 pl-7"
-                >
+                <li key={`${p.v}-${p.note}`} className="relative flex items-center gap-4 pl-7">
                   <span
                     className={`absolute left-0 flex h-4 w-4 items-center justify-center rounded-full ${meta.bg} ring-1 ring-inset ${meta.ring}`}
                   >
                     <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                   </span>
-                  <span className="text-cc-heading w-10 shrink-0 font-mono text-[0.74rem] font-semibold">
-                    {p.v}
-                  </span>
-                  <span className="text-cc-prose min-w-0 flex-1 truncate font-mono text-[0.74rem]">
-                    {p.note}
-                  </span>
+                  <span className="text-cc-heading w-10 shrink-0 font-mono text-[0.74rem] font-semibold">{p.v}</span>
+                  <span className="text-cc-prose min-w-0 flex-1 truncate font-mono text-[0.74rem]">{p.note}</span>
                   <StatusChip status={p.status} />
                 </li>
               );

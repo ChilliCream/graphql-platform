@@ -86,22 +86,11 @@ export function SelfServeGrid() {
 function ChannelCard({ channel }: { readonly channel: Channel }) {
   const className =
     "group block h-full rounded-3xl [&_article]:transition-colors hover:[&_article]:border-cc-card-border-hover";
-  const card = (
-    <IconFeatureCard
-      icon={channel.icon}
-      title={channel.title}
-      copy={channel.copy}
-    />
-  );
+  const card = <IconFeatureCard icon={channel.icon} title={channel.title} copy={channel.copy} />;
 
   if (channel.external) {
     return (
-      <a
-        href={channel.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
+      <a href={channel.href} target="_blank" rel="noopener noreferrer" className={className}>
         {card}
       </a>
     );

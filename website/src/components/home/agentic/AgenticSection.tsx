@@ -31,13 +31,8 @@ const WIDEST_AGENT = AGENTS.find((agent) => agent.slug === "windsurf");
 function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
   return (
     <span className="relative inline-flex align-baseline">
-      <span
-        aria-hidden="true"
-        className="invisible inline-flex items-center gap-2 whitespace-nowrap"
-      >
-        {WIDEST_AGENT && (
-          <AgentLogo agent={WIDEST_AGENT} className="size-7 sm:size-8" />
-        )}
+      <span aria-hidden="true" className="invisible inline-flex items-center gap-2 whitespace-nowrap">
+        {WIDEST_AGENT && <AgentLogo agent={WIDEST_AGENT} className="size-7 sm:size-8" />}
         {WIDEST_AGENT?.name}.
       </span>
       {AGENTS.map((agent, index) => {
@@ -48,9 +43,7 @@ function FlipSlot({ activeIndex }: { readonly activeIndex: number }) {
             aria-hidden={!active}
             className={[
               "text-cc-accent absolute inset-0 inline-flex items-center gap-2 whitespace-nowrap transition-all duration-500 ease-out",
-              active
-                ? "translate-y-0 opacity-100"
-                : "pointer-events-none translate-y-2 opacity-0",
+              active ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0",
             ].join(" ")}
           >
             <AgentLogo agent={agent} className="size-7 sm:size-8" />
@@ -115,11 +108,7 @@ const HUNKS: readonly Hunk[] = [
     file: "ReviewAddedHandler.cs",
     lines: [
       [{ t: "class ReviewAddedHandler :" }],
-      [
-        { t: "  " },
-        { t: "IEventHandler", accent: true },
-        { t: "<ReviewAdded>" },
-      ],
+      [{ t: "  " }, { t: "IEventHandler", accent: true }, { t: "<ReviewAdded>" }],
     ],
   },
 ];
@@ -142,9 +131,7 @@ function ReviewFacet() {
     <Card className="p-4 select-none">
       <div className="flex items-center gap-2">
         <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
-        <span className="text-cc-ink min-w-0 truncate font-mono text-[0.7rem]">
-          feat: add reviews
-        </span>
+        <span className="text-cc-ink min-w-0 truncate font-mono text-[0.7rem]">feat: add reviews</span>
         <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[0.55rem] tracking-[0.1em] uppercase">
           <CheckGlyph className="text-cc-success size-3" />
           Approved
@@ -163,10 +150,7 @@ function ReviewFacet() {
                 <span className="text-cc-ink-dim shrink-0 select-none">+</span>
                 <span className="min-w-0 truncate whitespace-pre">
                   {runs.map((run, runIndex) => (
-                    <span
-                      key={runIndex}
-                      className={run.accent ? "text-cc-accent" : "text-cc-ink"}
-                    >
+                    <span key={runIndex} className={run.accent ? "text-cc-accent" : "text-cc-ink"}>
                       {run.t}
                     </span>
                   ))}
@@ -177,10 +161,7 @@ function ReviewFacet() {
         ))}
       </div>
 
-      <div
-        className="border-cc-card-border mt-3 space-y-2 border-t pt-3"
-        aria-hidden="true"
-      >
+      <div className="border-cc-card-border mt-3 space-y-2 border-t pt-3" aria-hidden="true">
         {TIME_BARS.map((bar) => (
           <div key={bar.label} className="flex items-center gap-2">
             <span className="text-cc-ink-dim w-20 shrink-0 font-mono text-[0.55rem] tracking-[0.06em] uppercase">
@@ -190,10 +171,7 @@ function ReviewFacet() {
               className="h-1.5 flex-1 overflow-hidden rounded-full"
               style={{ background: "rgba(245, 241, 234, 0.06)" }}
             >
-              <span
-                className="block h-full rounded-full"
-                style={{ width: `${bar.width}%`, background: bar.fill }}
-              />
+              <span className="block h-full rounded-full" style={{ width: `${bar.width}%`, background: bar.fill }} />
             </span>
           </div>
         ))}
@@ -242,12 +220,7 @@ const PATTERNS: readonly Pattern[] = [
 /** Subtle teal "follows the pattern" mark shown on each catalog tile. */
 function FollowsMark() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="text-cc-accent/70 size-3 shrink-0"
-    >
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className="text-cc-accent/70 size-3 shrink-0">
       <path
         d="M3 8.5 6.5 12 13 4.5"
         stroke="currentColor"
@@ -269,10 +242,7 @@ function PatternsFacet() {
           label={pattern.label}
           icon={<FollowsMark />}
           value={pattern.line.map((token, index) => (
-            <span
-              key={index}
-              className={token.color ? TOKEN_CLASS[token.color] : "text-cc-ink"}
-            >
+            <span key={index} className={token.color ? TOKEN_CLASS[token.color] : "text-cc-ink"}>
               {token.text}
             </span>
           ))}
@@ -349,11 +319,7 @@ function SkillFacet() {
           </span>
         ),
       }}
-      headerRight={
-        <span className="text-cc-ink-dim font-mono text-[0.6rem] whitespace-nowrap">
-          skills/
-        </span>
-      }
+      headerRight={<span className="text-cc-ink-dim font-mono text-[0.6rem] whitespace-nowrap">skills/</span>}
       footerClassName="bg-cc-surface/40 flex items-center justify-between gap-2.5 px-3 py-1.5"
       footer={
         <>
@@ -362,9 +328,7 @@ function SkillFacet() {
               <BranchGlyph className="text-cc-ink-dim size-3 shrink-0" />
               main
             </span>
-            <span className="text-cc-ink-dim font-mono text-[0.6rem]">
-              markdown
-            </span>
+            <span className="text-cc-ink-dim font-mono text-[0.6rem]">markdown</span>
           </span>
           <span className="text-cc-ink-dim inline-flex items-center gap-1.5 font-mono text-[0.6rem] whitespace-nowrap">
             <CheckGlyph className="text-cc-success size-3" />
@@ -382,10 +346,7 @@ function SkillFacet() {
             </span>
             <span className="pl-3 font-mono text-[0.7rem] leading-[19px] whitespace-pre">
               {tokens.map((token, j) => (
-                <span
-                  key={`skill-tok-${i}-${j}`}
-                  style={{ color: token.color }}
-                >
+                <span key={`skill-tok-${i}-${j}`} style={{ color: token.color }}>
                   {token.text}
                 </span>
               ))}
@@ -403,13 +364,8 @@ function SkillFacet() {
 function StartNowPanel() {
   return (
     <div className="min-w-0">
-      <p className="text-cc-heading font-heading text-lg font-semibold sm:text-xl">
-        Add the skills to your agent.
-      </p>
-      <CopyCommand
-        command="dnx skillz add chillicream/agent-skills"
-        className="bg-cc-surface mt-5"
-      />
+      <p className="text-cc-heading font-heading text-lg font-semibold sm:text-xl">Add the skills to your agent.</p>
+      <CopyCommand command="dnx skillz add chillicream/agent-skills" className="bg-cc-surface mt-5" />
       <ArrowLink href="/platform/agentic-coding" className="mt-5">
         Learn more
       </ArrowLink>
@@ -473,10 +429,8 @@ export function AgenticSection() {
             Built for <FlipSlot activeIndex={activeIndex} />
           </h2>
           <p className="text-cc-ink mt-6 text-base text-pretty sm:text-lg">
-            Use Claude, Codex, Copilot, Cursor, Windsurf, or another supported
-            agent. Checked-in skills give them the same reviewed patterns and
-            conventions; generated results still depend on the model, prompt,
-            and review.
+            Use Claude, Codex, Copilot, Cursor, Windsurf, or another supported agent. Checked-in skills give them the
+            same reviewed patterns and conventions; generated results still depend on the model, prompt, and review.
           </p>
         </div>
 
@@ -492,9 +446,7 @@ export function AgenticSection() {
               href={facet.href}
               className="border-cc-card-border bg-cc-surface hover:border-cc-card-border-hover flex flex-col gap-4 rounded-3xl border p-5 transition-colors sm:p-6"
             >
-              <h3 className="font-heading text-cc-heading text-h6 leading-snug font-semibold">
-                {facet.heading}
-              </h3>
+              <h3 className="font-heading text-cc-heading text-h6 leading-snug font-semibold">{facet.heading}</h3>
               <div className="min-w-0">{facet.illustration}</div>
             </Link>
           ))}

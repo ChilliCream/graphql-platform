@@ -4,12 +4,7 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
-import {
-  NitroCompose,
-  NitroFusion,
-  NitroSchema,
-  NitroTrace,
-} from "@/src/nitro";
+import { NitroCompose, NitroFusion, NitroSchema, NitroTrace } from "@/src/nitro";
 
 interface Surface {
   readonly caption: string;
@@ -44,8 +39,8 @@ export function NitroSection() {
             The platform, with wheels attached.
           </h2>
           <p className="text-cc-ink max-w-3xl text-base text-pretty sm:text-lg">
-            A GraphQL IDE, a telemetry dashboard, a schema and client registry,
-            and a Fusion query-plan viewer. All of it is the same app.
+            A GraphQL IDE, a telemetry dashboard, a schema and client registry, and a Fusion query-plan viewer. All of
+            it is the same app.
           </p>
           <ArrowLink href="/products/nitro">Learn more</ArrowLink>
         </div>
@@ -62,8 +57,7 @@ export function NitroSection() {
                 header={{ variant: "dots" }}
                 label={`Nitro / ${surface.caption}`}
                 glow={{
-                  background:
-                    "radial-gradient(60% 60% at 50% 35%, rgba(94,234,212,0.16), transparent 70%)",
+                  background: "radial-gradient(60% 60% at 50% 35%, rgba(94,234,212,0.16), transparent 70%)",
                   inset: "-inset-3",
                   blur: "blur-2xl",
                   rounded: "rounded-[2rem]",

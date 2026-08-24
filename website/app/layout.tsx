@@ -7,12 +7,7 @@ import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { StructuredData } from "@/src/components/StructuredData";
-import {
-  SITE_NAME,
-  SITE_TITLE,
-  TITLE_TEMPLATE,
-  TWITTER_HANDLE,
-} from "@/src/helpers/site";
+import { SITE_NAME, SITE_TITLE, TITLE_TEMPLATE, TWITTER_HANDLE } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
 const inter = Inter({
@@ -33,9 +28,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   // Preview/staging deployments emit `<meta name="robots" content="noindex, nofollow">`.
-  ...(process.env.NEXT_PUBLIC_NOINDEX === "true"
-    ? { robots: { index: false, follow: false } }
-    : {}),
+  ...(process.env.NEXT_PUBLIC_NOINDEX === "true" ? { robots: { index: false, follow: false } } : {}),
   title: {
     default: SITE_TITLE,
     template: TITLE_TEMPLATE,
@@ -55,9 +48,7 @@ export const metadata: Metadata = {
   },
   alternates: {
     types: {
-      "application/rss+xml": [
-        { url: "/blog/rss.xml", title: "ChilliCream Blog" },
-      ],
+      "application/rss+xml": [{ url: "/blog/rss.xml", title: "ChilliCream Blog" }],
     },
   },
 };
@@ -68,10 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${josefinSans.variable} font-sans`}
-    >
+    <html lang="en" className={`${inter.variable} ${josefinSans.variable} font-sans`}>
       <head>
         <link rel="preconnect" href="https://consent.cookiebot.com" />
         <link rel="preconnect" href="https://consentcdn.cookiebot.com" />

@@ -79,7 +79,6 @@ export const InlineWithFootnote: Story = {
     title: "Code review",
     subtitle: "Async, on your PRs",
     copy: "We review real pull requests and leave comments your team can act on the same day.",
-    footnote:
-      "Best when the team is already shipping and wants targeted feedback.",
+    footnote: "Best when the team is already shipping and wants targeted feedback.",
   },
 };

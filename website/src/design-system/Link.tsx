@@ -1,14 +1,8 @@
 import type { ComponentPropsWithoutRef } from "react";
 import NextLink from "next/link";
 
-export function Link({
-  href = "",
-  children,
-  className = "",
-  ...props
-}: ComponentPropsWithoutRef<"a">) {
-  const styles =
-    "text-cc-accent underline decoration-cc-accent/30 underline-offset-2 hover:decoration-cc-accent";
+export function Link({ href = "", children, className = "", ...props }: ComponentPropsWithoutRef<"a">) {
+  const styles = "text-cc-accent underline decoration-cc-accent/30 underline-offset-2 hover:decoration-cc-accent";
   const merged = `${styles} ${className}`.trim();
 
   if (href.startsWith("/")) {
@@ -19,11 +13,7 @@ export function Link({
     );
   }
 
-  if (
-    href.startsWith("#") ||
-    href.startsWith("mailto:") ||
-    href.startsWith("tel:")
-  ) {
+  if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
     return (
       <a href={href} className={merged} {...props}>
         {children}
@@ -32,13 +22,7 @@ export function Link({
   }
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={merged}
-      {...props}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className={merged} {...props}>
       {children}
     </a>
   );

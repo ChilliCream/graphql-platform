@@ -16,10 +16,7 @@ export function PhotoGrid({ images }: PhotoGridProps) {
   }
 
   return (
-    <PhotoLightbox
-      images={images}
-      className="my-8 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-4"
-    >
+    <PhotoLightbox images={images} className="my-8 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-4">
       {images.map((image, index) => (
         <li key={`${image.src}-${index}`} className="m-0 p-0">
           <a

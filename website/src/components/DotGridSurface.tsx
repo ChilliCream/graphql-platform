@@ -4,11 +4,9 @@ import { useReducedMotion } from "motion/react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 
-const DOT_BG =
-  "radial-gradient(circle, rgba(245,241,234,0.12) 1px, transparent 1.2px)";
+const DOT_BG = "radial-gradient(circle, rgba(245,241,234,0.12) 1px, transparent 1.2px)";
 
-const HALO_BG =
-  "radial-gradient(circle, rgba(94,234,212,0.7) 1px, transparent 1.2px)";
+const HALO_BG = "radial-gradient(circle, rgba(94,234,212,0.7) 1px, transparent 1.2px)";
 
 interface DotGridSurfaceProps {
   readonly children: ReactNode;
@@ -16,11 +14,7 @@ interface DotGridSurfaceProps {
   readonly id?: string;
 }
 
-export function DotGridSurface({
-  children,
-  className = "",
-  id,
-}: DotGridSurfaceProps) {
+export function DotGridSurface({ children, className = "", id }: DotGridSurfaceProps) {
   const reduced = useReducedMotion();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(false);

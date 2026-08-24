@@ -48,11 +48,7 @@ const SCATTER_SWIRLS: readonly SwirlMark[] = [
  * those constraints. Shares the marketing card background and shows the
  * product's drink icon in the top-right.
  */
-export function DocsShareCard({
-  eyebrow,
-  title,
-  productSlug,
-}: DocsShareCardProps) {
+export function DocsShareCard({ eyebrow, title, productSlug }: DocsShareCardProps) {
   const drink = productSlug ? PRODUCT_DRINKS[productSlug] : undefined;
   const iconWidth = drink ? ICON_HEIGHT / drink.aspect : 0;
   // Icon sits at top:72/right:72; this is its center on the 1200x630 frame.

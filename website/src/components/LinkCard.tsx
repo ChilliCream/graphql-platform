@@ -18,17 +18,8 @@ interface LinkCardProps {
   readonly external?: boolean;
 }
 
-export function LinkCard({
-  href,
-  title,
-  description,
-  variant,
-  icon,
-  external = false,
-}: LinkCardProps) {
-  const linkProps = external
-    ? { target: "_blank", rel: "noopener noreferrer" }
-    : {};
+export function LinkCard({ href, title, description, variant, icon, external = false }: LinkCardProps) {
+  const linkProps = external ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
   if (variant === "icon") {
     return (
@@ -44,9 +35,7 @@ export function LinkCard({
             {icon}
           </span>
           <span className="flex flex-col">
-            <span className="font-heading text-cc-heading text-lg font-semibold">
-              {title}
-            </span>
+            <span className="font-heading text-cc-heading text-lg font-semibold">{title}</span>
             <span className="text-cc-ink-dim text-sm">{description}</span>
           </span>
         </Card>
@@ -79,9 +68,7 @@ export function LinkCard({
     >
       <h2 className="text-cc-heading text-xl font-semibold">{title}</h2>
       <p className="text-cc-ink-dim mt-3 text-sm">{description}</p>
-      <span className="text-cc-accent mt-6 text-sm font-medium">
-        Learn more →
-      </span>
+      <span className="text-cc-accent mt-6 text-sm font-medium">Learn more →</span>
     </Card>
   );
 }

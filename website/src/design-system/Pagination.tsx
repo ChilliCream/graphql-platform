@@ -10,57 +10,32 @@ type PaginationProps = {
   hrefForPage: (page: number) => string;
 };
 
-export function Pagination({
-  currentPage,
-  totalPages,
-  hrefForPage,
-}: PaginationProps) {
+export function Pagination({ currentPage, totalPages, hrefForPage }: PaginationProps) {
   if (totalPages <= 1) {
     return null;
   }
 
   const pages = buildPageList(currentPage, totalPages);
   const prevHref = currentPage > 1 ? hrefForPage(currentPage - 1) : null;
-  const nextHref =
-    currentPage < totalPages ? hrefForPage(currentPage + 1) : null;
+  const nextHref = currentPage < totalPages ? hrefForPage(currentPage + 1) : null;
 
   return (
-    <nav
-      aria-label="Pagination"
-      className="mt-10 flex items-center justify-center gap-1"
-    >
-      <PageButton
-        href={prevHref}
-        disabled={prevHref === null}
-        ariaLabel="Previous page"
-      >
+    <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-1">
+      <PageButton href={prevHref} disabled={prevHref === null} ariaLabel="Previous page">
         ‹
       </PageButton>
       {pages.map((p, i) =>
         p === "ellipsis" ? (
-          <span
-            key={`gap-${i}`}
-            aria-hidden="true"
-            className="text-cc-ink-dim px-2"
-          >
+          <span key={`gap-${i}`} aria-hidden="true" className="text-cc-ink-dim px-2">
             …
           </span>
         ) : (
-          <PageButton
-            key={p}
-            href={hrefForPage(p)}
-            active={p === currentPage}
-            ariaLabel={`Page ${p}`}
-          >
+          <PageButton key={p} href={hrefForPage(p)} active={p === currentPage} ariaLabel={`Page ${p}`}>
             {p}
           </PageButton>
         ),
       )}
-      <PageButton
-        href={nextHref}
-        disabled={nextHref === null}
-        ariaLabel="Next page"
-      >
+      <PageButton href={nextHref} disabled={nextHref === null} ariaLabel="Next page">
         ›
       </PageButton>
     </nav>
@@ -75,13 +50,7 @@ type PageButtonProps = {
   ariaLabel?: string;
 };
 
-function PageButton({
-  href,
-  children,
-  active,
-  disabled,
-  ariaLabel,
-}: PageButtonProps) {
+function PageButton({ href, children, active, disabled, ariaLabel }: PageButtonProps) {
   const baseClasses =
     "inline-flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm no-underline transition-colors select-none";
   if (disabled || href === null) {
@@ -123,9 +92,7 @@ function buildPageList(current: number, total: number): PageListItem[] {
   // Always show first, last, current, and one neighbour either side; collapse
   // the rest with single-step ellipses.
   const set = new Set<number>([1, total, current, current - 1, current + 1]);
-  const sorted = [...set]
-    .filter((n) => n >= 1 && n <= total)
-    .sort((a, b) => a - b);
+  const sorted = [...set].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
 
   const result: PageListItem[] = [];
   let last = 0;

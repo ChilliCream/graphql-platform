@@ -11,12 +11,7 @@ interface MochaProps {
  */
 export function Mocha({ className, style }: MochaProps) {
   return (
-    <svg
-      viewBox="407 32 59 84"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="407 32 59 84" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="mocha-uuid-a277d284-3926-463f-a891-250dfeb729c3"

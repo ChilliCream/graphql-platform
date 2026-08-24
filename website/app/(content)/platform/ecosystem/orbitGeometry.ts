@@ -28,19 +28,11 @@ export const CONNECTORS: readonly ConnectorSpec[] = [
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
-export function polarPoint(
-  r: number,
-  angleDeg: number,
-): readonly [number, number] {
+export function polarPoint(r: number, angleDeg: number): readonly [number, number] {
   return [800 + r * Math.cos(rad(angleDeg)), 800 + r * Math.sin(rad(angleDeg))];
 }
 
-export function connectorPath(
-  r1: number,
-  a1: number,
-  r2: number,
-  a2: number,
-): string {
+export function connectorPath(r1: number, a1: number, r2: number, a2: number): string {
   const t1 = rad(a1);
   const dt = rad(a2) - rad(a1);
   const dr = r2 - r1;
@@ -56,10 +48,7 @@ export function connectorPath(
     const r = r1 + dr * s;
     const rPrime = dr * ds;
     const th = t1 + dt * u;
-    return [
-      rPrime * Math.cos(th) - r * dt * Math.sin(th),
-      rPrime * Math.sin(th) + r * dt * Math.cos(th),
-    ];
+    return [rPrime * Math.cos(th) - r * dt * Math.sin(th), rPrime * Math.sin(th) + r * dt * Math.cos(th)];
   };
   const segments = Math.max(1, Math.ceil(Math.abs(a2 - a1) / 45));
   const h = 1 / segments;

@@ -40,8 +40,7 @@ export function DistributionHistogram({
   const n = distribution.bins.length;
 
   const label =
-    ariaLabel ??
-    `Latency distribution of ${compact(distribution.total)} operations, p95 ${ms(distribution.p95)}`;
+    ariaLabel ?? `Latency distribution of ${compact(distribution.total)} operations, p95 ${ms(distribution.p95)}`;
 
   return (
     <ChartCanvas ref={ref} className={className} style={style} label={label}>
@@ -80,13 +79,7 @@ export function DistributionHistogram({
         t={t}
         at={0.6}
       />
-      <Marker
-        label="p95"
-        leftPct={(xScale(distribution.p95) / width) * 100}
-        color={token.cP95}
-        t={t}
-        at={0.7}
-      />
+      <Marker label="p95" leftPct={(xScale(distribution.p95) / width) * 100} color={token.cP95} t={t} at={0.7} />
     </ChartCanvas>
   );
 }
@@ -123,21 +116,9 @@ function Bar({
         transformOrigin: "bottom",
       }}
     >
-      <rect
-        x={x}
-        y={successY}
-        width={w}
-        height={Math.max(0, baseY - successY)}
-        style={{ fill: token.cSuccess }}
-      />
+      <rect x={x} y={successY} width={w} height={Math.max(0, baseY - successY)} style={{ fill: token.cSuccess }} />
       {hasError && (
-        <rect
-          x={x}
-          y={totalY}
-          width={w}
-          height={Math.max(0, successY - totalY)}
-          style={{ fill: token.cError }}
-        />
+        <rect x={x} y={totalY} width={w} height={Math.max(0, successY - totalY)} style={{ fill: token.cError }} />
       )}
     </motion.g>
   );

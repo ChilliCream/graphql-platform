@@ -96,9 +96,8 @@ export function FusionFlow() {
           Queried together.
         </h2>
         <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-          Let teams split the backend where it makes sense: catalog, billing,
-          orders, shipping, identity. Fusion composes the service contracts into
-          one API, so apps keep one place to query while each service can keep
+          Let teams split the backend where it makes sense: catalog, billing, orders, shipping, identity. Fusion
+          composes the service contracts into one API, so apps keep one place to query while each service can keep
           moving on its own.
         </p>
       </div>
@@ -138,13 +137,7 @@ export function FusionFlow() {
           ))}
 
           {/* Output line leaving the node, straight down into the next section. */}
-          <rect
-            x={GLOW.x - 0.75}
-            y={GLOW.y}
-            width={1.5}
-            height={VIEW.y + VIEW.h - GLOW.y}
-            fill="url(#ff-out)"
-          />
+          <rect x={GLOW.x - 0.75} y={GLOW.y} width={1.5} height={VIEW.y + VIEW.h - GLOW.y} fill="url(#ff-out)" />
         </svg>
 
         {/* Scrim dims the streams behind the copy so it stays readable. */}
@@ -227,9 +220,8 @@ export function FusionFlow() {
             Compose before it runs.
           </h2>
           <p className="text-cc-ink mx-auto mt-4 max-w-4xl px-4 text-sm text-pretty sm:mt-6 sm:text-xl">
-            Each part publishes its contract. Fusion checks that the pieces fit,
-            catches missing lookups and incompatible fields, and produces the
-            gateway artifact your runtime loads.
+            Each part publishes its contract. Fusion checks that the pieces fit, catches missing lookups and
+            incompatible fields, and produces the gateway artifact your runtime loads.
           </p>
         </div>
 
@@ -258,16 +250,15 @@ export function FusionFlow() {
           One API for every consumer.
         </h2>
         <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-          Apps, tools, and agents ask for what they need through one gateway.
-          Fusion plans the request across the backend and returns one response.
+          Apps, tools, and agents ask for what they need through one gateway. Fusion plans the request across the
+          backend and returns one response.
         </p>
         {/* Line below the copy, on into the protocol box. */}
         <div
           aria-hidden="true"
           className="mx-auto mt-10 h-28 w-px sm:h-36"
           style={{
-            backgroundImage:
-              "linear-gradient(to bottom, transparent 0%, #66be77 30%, #66be77 100%)",
+            backgroundImage: "linear-gradient(to bottom, transparent 0%, #66be77 30%, #66be77 100%)",
           }}
         />
       </div>

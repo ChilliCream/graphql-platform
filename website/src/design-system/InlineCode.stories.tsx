@@ -13,9 +13,8 @@ export const InProse: Story = {
   args: { children: "" },
   render: () => (
     <p className="text-base text-stone-800">
-      Use the <InlineCode>useState</InlineCode> hook to add local state to a
-      component, then pass the value down via props or read it from{" "}
-      <InlineCode>context</InlineCode>.
+      Use the <InlineCode>useState</InlineCode> hook to add local state to a component, then pass the value down via
+      props or read it from <InlineCode>context</InlineCode>.
     </p>
   ),
 };

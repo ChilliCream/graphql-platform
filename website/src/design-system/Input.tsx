@@ -1,9 +1,5 @@
 import { useId, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import {
-  FormField,
-  controlBaseClasses,
-  controlBorderClasses,
-} from "./FormField";
+import { FormField, controlBaseClasses, controlBorderClasses } from "./FormField";
 
 interface InputProps extends ComponentPropsWithoutRef<"input"> {
   /** Label rendered above the field. Omit for an unlabeled input. */
@@ -12,25 +8,12 @@ interface InputProps extends ComponentPropsWithoutRef<"input"> {
   error?: string;
 }
 
-export function Input({
-  label,
-  error,
-  required,
-  id,
-  name,
-  className = "",
-  ...props
-}: InputProps) {
+export function Input({ label, error, required, id, name, className = "", ...props }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? name ?? generatedId;
 
   return (
-    <FormField
-      htmlFor={inputId}
-      label={label}
-      required={required}
-      error={error}
-    >
+    <FormField htmlFor={inputId} label={label} required={required} error={error}>
       <input
         id={inputId}
         name={name}

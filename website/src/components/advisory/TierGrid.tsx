@@ -1,8 +1,4 @@
-import {
-  CONSULTING_MAILTO,
-  CONTRACTING_MAILTO,
-  CONTACT_FORM,
-} from "@/src/components/advisory/advisoryLinks";
+import { CONSULTING_MAILTO, CONTRACTING_MAILTO, CONTACT_FORM } from "@/src/components/advisory/advisoryLinks";
 import { CardGrid } from "@/src/components/CardGrid";
 import { CheckListItem } from "@/src/components/CheckListItem";
 import { HighlightCard } from "@/src/components/HighlightCard";
@@ -34,13 +30,7 @@ const TIERS: readonly Tier[] = [
     priceNote: "increments",
     bestFor:
       "Teams that already own the build and need a senior GraphQL engineer on call for design, troubleshooting, and review.",
-    perks: [
-      "Mentoring and guidance",
-      "Architecture",
-      "Troubleshooting",
-      "Code Review",
-      "Best practices education",
-    ],
+    perks: ["Mentoring and guidance", "Architecture", "Troubleshooting", "Code Review", "Best practices education"],
     primaryCta: { label: "Talk to us", href: CONTACT_FORM },
     secondaryCta: { label: "Email us", href: CONSULTING_MAILTO },
     highlight: true,
@@ -100,26 +90,15 @@ function TierCardBody({ tier }: { readonly tier: Tier }) {
   return (
     <>
       <Eyebrow size="2xs">{tier.eyebrow}</Eyebrow>
-      <h3 className="font-heading text-cc-heading text-h3 mt-3 font-semibold">
-        {tier.name}
-      </h3>
-      <p className="text-cc-ink-dim mt-3 text-sm leading-relaxed sm:text-base">
-        {tier.tagline}
-      </p>
+      <h3 className="font-heading text-cc-heading text-h3 mt-3 font-semibold">{tier.name}</h3>
+      <p className="text-cc-ink-dim mt-3 text-sm leading-relaxed sm:text-base">{tier.tagline}</p>
 
       <div className="mt-6 flex items-baseline gap-2">
-        <span className="font-heading text-cc-heading text-h4 font-semibold">
-          {tier.priceLine}
-        </span>
-        <span className="text-cc-nav-label font-mono text-xs">
-          {tier.priceNote}
-        </span>
+        <span className="font-heading text-cc-heading text-h4 font-semibold">{tier.priceLine}</span>
+        <span className="text-cc-nav-label font-mono text-xs">{tier.priceNote}</span>
       </div>
 
-      <div
-        aria-hidden="true"
-        className="border-cc-ink-faint my-6 border-t border-dashed"
-      />
+      <div aria-hidden="true" className="border-cc-ink-faint my-6 border-t border-dashed" />
 
       <Eyebrow size="2xs">Best for</Eyebrow>
       <p className="text-cc-ink mt-2 text-sm leading-relaxed">{tier.bestFor}</p>
@@ -139,10 +118,7 @@ function TierCardBody({ tier }: { readonly tier: Tier }) {
         <SolidButton href={tier.primaryCta.href} className="w-full sm:flex-1">
           {tier.primaryCta.label}
         </SolidButton>
-        <OutlineButton
-          href={tier.secondaryCta.href}
-          className="w-full sm:flex-1"
-        >
+        <OutlineButton href={tier.secondaryCta.href} className="w-full sm:flex-1">
           {tier.secondaryCta.label}
         </OutlineButton>
       </div>

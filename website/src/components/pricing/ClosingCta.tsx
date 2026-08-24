@@ -17,14 +17,10 @@ export function ClosingCta() {
         description="1M operations, 2 GB of ingest, schemas and environments, and the full Nitro control plane, free on the shared cloud. Upgrade only when you outgrow it."
       />
       <ButtonRow align="center" className="mt-8">
-        <SolidButton href="https://nitro.chillicream.com">
-          Start for free
-        </SolidButton>
+        <SolidButton href="https://nitro.chillicream.com">Start for free</SolidButton>
         <OutlineButton href="/docs">Read the docs</OutlineButton>
       </ButtonRow>
-      <p className="text-cc-ink-dim mt-6 font-mono text-xs">
-        No credit card. Free on the shared cloud.
-      </p>
+      <p className="text-cc-ink-dim mt-6 font-mono text-xs">No credit card. Free on the shared cloud.</p>
     </Band>
   );
 }

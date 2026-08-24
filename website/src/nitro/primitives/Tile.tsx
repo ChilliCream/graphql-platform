@@ -65,9 +65,7 @@ export function Tile({
     clamp: true,
   });
 
-  const skeletonVisible = useTransform(skeletonOpacity, (o) =>
-    o <= 0.001 ? "none" : "block",
-  );
+  const skeletonVisible = useTransform(skeletonOpacity, (o) => (o <= 0.001 ? "none" : "block"));
 
   const ariaLabel = subheader ? `${title} — ${subheader}` : title;
 
@@ -136,17 +134,11 @@ export function Tile({
             </span>
           )}
         </div>
-        {action != null && (
-          <div style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
-            {action}
-          </div>
-        )}
+        {action != null && <div style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>{action}</div>}
       </header>
 
       <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
-        <motion.div style={{ height: "100%", opacity: bodyOpacity }}>
-          {children}
-        </motion.div>
+        <motion.div style={{ height: "100%", opacity: bodyOpacity }}>{children}</motion.div>
 
         <motion.div
           aria-hidden

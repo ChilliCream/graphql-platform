@@ -1,11 +1,6 @@
 import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import {
-  useMotionValue,
-  useMotionValueEvent,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { token } from "../lib/tokens";
 
 type Tok = { t: string; c: string };
@@ -87,8 +82,7 @@ function tokenizeSql(line: string): Tok[] {
   let m: RegExpExecArray | null;
   let last = 0;
   while ((m = re.exec(line))) {
-    if (m.index > last)
-      out.push({ t: line.slice(last, m.index), c: token.synPunct });
+    if (m.index > last) out.push({ t: line.slice(last, m.index), c: token.synPunct });
     last = re.lastIndex;
     if (m[1]) out.push({ t: m[1], c: token.synPunct });
     else if (m[2]) out.push({ t: m[2], c: token.synComment });
@@ -98,9 +92,7 @@ function tokenizeSql(line: string): Tok[] {
     else if (m[6]) out.push({ t: m[6], c: token.synPunct });
     else if (m[7]) {
       const w = m[7];
-      const c = SQL_KEYWORDS.has(w.toLowerCase())
-        ? token.synKeyword
-        : token.synField;
+      const c = SQL_KEYWORDS.has(w.toLowerCase()) ? token.synKeyword : token.synField;
       out.push({ t: w, c });
     }
   }
@@ -115,8 +107,7 @@ function tokenizeGraphql(line: string): Tok[] {
   let m: RegExpExecArray | null;
   let last = 0;
   while ((m = re.exec(line))) {
-    if (m.index > last)
-      out.push({ t: line.slice(last, m.index), c: token.synPunct });
+    if (m.index > last) out.push({ t: line.slice(last, m.index), c: token.synPunct });
     last = re.lastIndex;
     if (m[1]) out.push({ t: m[1], c: token.synPunct });
     else if (m[2]) out.push({ t: m[2], c: token.synComment });
@@ -127,11 +118,7 @@ function tokenizeGraphql(line: string): Tok[] {
     else if (m[7]) out.push({ t: m[7], c: token.synPunct });
     else if (m[8]) {
       const w = m[8];
-      const c = GQL_KEYWORDS.has(w)
-        ? token.synKeyword
-        : /^[A-Z]/.test(w)
-          ? token.synType
-          : token.synField;
+      const c = GQL_KEYWORDS.has(w) ? token.synKeyword : /^[A-Z]/.test(w) ? token.synType : token.synField;
       out.push({ t: w, c });
     }
   }
@@ -141,13 +128,11 @@ function tokenizeGraphql(line: string): Tok[] {
 
 function tokenizeJson(line: string): Tok[] {
   const out: Tok[] = [];
-  const re =
-    /(\s+)|("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false|null)|([{}[\],:])/g;
+  const re = /(\s+)|("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false|null)|([{}[\],:])/g;
   let m: RegExpExecArray | null;
   let last = 0;
   while ((m = re.exec(line))) {
-    if (m.index > last)
-      out.push({ t: line.slice(last, m.index), c: token.synPunct });
+    if (m.index > last) out.push({ t: line.slice(last, m.index), c: token.synPunct });
     last = re.lastIndex;
     if (m[1]) out.push({ t: m[1], c: token.synPunct });
     else if (m[2]) {
@@ -194,13 +179,7 @@ export function CodeBlock({
   const lines = useMemo(() => code.split("\n"), [code]);
   const tokenized = useMemo(
     () =>
-      lines.map((l) =>
-        lang === "graphql"
-          ? tokenizeGraphql(l)
-          : lang === "sql"
-            ? tokenizeSql(l)
-            : tokenizeJson(l),
-      ),
+      lines.map((l) => (lang === "graphql" ? tokenizeGraphql(l) : lang === "sql" ? tokenizeSql(l) : tokenizeJson(l))),
     [lines, lang],
   );
   const starts = useMemo(() => {
@@ -216,26 +195,17 @@ export function CodeBlock({
 
   const [w0, w1] = playWindow;
   const fallback = useMotionValue(1);
-  const reveal = useTransform(
-    progress ?? fallback,
-    [w0, Math.max(w0 + 0.001, w1), 1],
-    [0, 1, 1],
-    {
-      clamp: true,
-    },
-  );
-  const [shown, setShown] = useState(() =>
-    progress ? Math.round(reveal.get() * totalChars) : totalChars,
-  );
+  const reveal = useTransform(progress ?? fallback, [w0, Math.max(w0 + 0.001, w1), 1], [0, 1, 1], {
+    clamp: true,
+  });
+  const [shown, setShown] = useState(() => (progress ? Math.round(reveal.get() * totalChars) : totalChars));
   useMotionValueEvent(reveal, "change", (v) => {
     const n = Math.round(v * totalChars);
     setShown((prev) => (prev === n ? prev : n));
   });
   const shownChars = progress ? shown : totalChars;
 
-  const gutterW = gutter
-    ? Math.max(22, String(startLine + lines.length).length * 8 + 14)
-    : 0;
+  const gutterW = gutter ? Math.max(22, String(startLine + lines.length).length * 8 + 14) : 0;
 
   return (
     <div

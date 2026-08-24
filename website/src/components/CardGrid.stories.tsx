@@ -2,32 +2,15 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { CardGrid } from "./CardGrid";
 
-const PLACEHOLDER_CARDS = [
-  "Alpha",
-  "Bravo",
-  "Charlie",
-  "Delta",
-  "Echo",
-  "Foxtrot",
-];
+const PLACEHOLDER_CARDS = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot"];
 
-function PlaceholderCard({
-  label,
-  tall = false,
-}: {
-  readonly label: string;
-  readonly tall?: boolean;
-}) {
+function PlaceholderCard({ label, tall = false }: { readonly label: string; readonly tall?: boolean }) {
   return (
     <div
-      className={`border-cc-card-border bg-cc-card-bg rounded-xl border p-6 backdrop-blur-sm ${
-        tall ? "h-full" : ""
-      }`}
+      className={`border-cc-card-border bg-cc-card-bg rounded-xl border p-6 backdrop-blur-sm ${tall ? "h-full" : ""}`}
     >
       <h3 className="text-cc-ink text-lg font-semibold">{label}</h3>
-      <p className="text-cc-ink-dim mt-2 text-sm">
-        Placeholder card body copy for the grid story.
-      </p>
+      <p className="text-cc-ink-dim mt-2 text-sm">Placeholder card body copy for the grid story.</p>
     </div>
   );
 }

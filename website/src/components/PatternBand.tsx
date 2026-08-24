@@ -4,34 +4,25 @@ import { useReducedMotion } from "motion/react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 
-const DOT_BG =
-  "radial-gradient(circle, rgba(245,241,234,0.12) 1px, transparent 1.2px)";
+const DOT_BG = "radial-gradient(circle, rgba(245,241,234,0.12) 1px, transparent 1.2px)";
 
-const HALO_BG =
-  "radial-gradient(circle, rgba(94,234,212,0.7) 1px, transparent 1.2px)";
+const HALO_BG = "radial-gradient(circle, rgba(94,234,212,0.7) 1px, transparent 1.2px)";
 
 const GRID_BG =
   "linear-gradient(rgba(245,241,234,1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,241,234,1) 1px, transparent 1px)";
 
-const GRID_MASK =
-  "radial-gradient(80% 130% at 50% 45%, #000 35%, transparent 82%)";
+const GRID_MASK = "radial-gradient(80% 130% at 50% 45%, #000 35%, transparent 82%)";
 
-const HALO_MASK =
-  "radial-gradient(circle 180px at var(--x) var(--y), #000 0%, rgba(0,0,0,0.6) 40%, transparent 75%)";
+const HALO_MASK = "radial-gradient(circle 180px at var(--x) var(--y), #000 0%, rgba(0,0,0,0.6) 40%, transparent 75%)";
 
-const EDGE_FADE =
-  "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)";
+const EDGE_FADE = "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)";
 
-const EDGE_FADE_TOP =
-  "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)";
+const EDGE_FADE_TOP = "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)";
 
-const SHADOW_TOP =
-  "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
-const SHADOW_BOTTOM =
-  "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const SHADOW_TOP = "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const SHADOW_BOTTOM = "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
 
-const TEAL_GLOW =
-  "radial-gradient(60% 90% at 50% 40%, rgba(94,234,212,0.08), transparent 65%)";
+const TEAL_GLOW = "radial-gradient(60% 90% at 50% 40%, rgba(94,234,212,0.08), transparent 65%)";
 
 const SPECTRUM_BEAM =
   "linear-gradient(180deg, rgba(22,185,228,0) 0%, rgba(22,185,228,0.1) 6%, rgba(124,146,198,0.09) 38%, rgba(240,120,106,0.06) 60%, rgba(240,120,106,0) 78%)";
@@ -110,9 +101,7 @@ export function PatternBand({
   const bandClass = [
     "border-cc-card-border/50 relative left-1/2 isolate w-screen -translate-x-1/2 overflow-hidden",
     recessed ? "border-y" : "",
-    recessedBottom
-      ? "border-b shadow-[0_20px_30px_-18px_rgba(2,6,16,0.9)]"
-      : "",
+    recessedBottom ? "border-b shadow-[0_20px_30px_-18px_rgba(2,6,16,0.9)]" : "",
     flush ? "-mt-8" : "",
     className,
   ]
@@ -136,11 +125,7 @@ export function PatternBand({
         } as CSSProperties
       }
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={bgMask}
-      >
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={bgMask}>
         <div className="bg-cc-surface/25 absolute inset-0" />
 
         {pattern === "dots" && (
@@ -178,10 +163,7 @@ export function PatternBand({
                 maskImage: GRID_MASK,
               }}
             />
-            <div
-              className="absolute inset-0"
-              style={{ background: TEAL_GLOW }}
-            />
+            <div className="absolute inset-0" style={{ background: TEAL_GLOW }} />
           </>
         )}
 
@@ -203,8 +185,7 @@ export function PatternBand({
               style={{
                 width: "1.5px",
                 height: "60px",
-                background:
-                  "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
+                background: "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
               }}
             />
           </>
@@ -212,27 +193,13 @@ export function PatternBand({
 
         {recessed && (
           <>
-            <div
-              className="absolute inset-x-0 top-0 h-10"
-              style={{ background: SHADOW_TOP }}
-            />
-            <div
-              className="absolute inset-x-0 bottom-0 h-10"
-              style={{ background: SHADOW_BOTTOM }}
-            />
+            <div className="absolute inset-x-0 top-0 h-10" style={{ background: SHADOW_TOP }} />
+            <div className="absolute inset-x-0 bottom-0 h-10" style={{ background: SHADOW_BOTTOM }} />
           </>
         )}
       </div>
 
-      <div
-        className={
-          contain
-            ? "relative z-10 mx-auto max-w-7xl px-5 sm:px-12"
-            : "relative z-10"
-        }
-      >
-        {children}
-      </div>
+      <div className={contain ? "relative z-10 mx-auto max-w-7xl px-5 sm:px-12" : "relative z-10"}>{children}</div>
     </div>
   );
 }

@@ -9,24 +9,11 @@ interface ChapterBandProps {
   readonly className?: string;
 }
 
-export function ChapterBand({
-  title,
-  description,
-  className = "",
-}: ChapterBandProps) {
+export function ChapterBand({ title, description, className = "" }: ChapterBandProps) {
   return (
-    <PatternBand
-      pattern="grid"
-      contain={false}
-      className={`border-y py-16 text-center sm:py-24 ${className}`}
-    >
+    <PatternBand pattern="grid" contain={false} className={`border-y py-16 text-center sm:py-24 ${className}`}>
       <div className="mx-auto max-w-3xl px-5 sm:px-12">
-        <SectionHeading
-          align="center"
-          size="lg"
-          title={title}
-          description={description}
-        />
+        <SectionHeading align="center" size="lg" title={title} description={description} />
       </div>
     </PatternBand>
   );

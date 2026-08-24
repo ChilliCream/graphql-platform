@@ -21,16 +21,11 @@ export function StatStrip({ items, className = "" }: StatStripProps) {
       }
     >
       {items.map((item) => (
-        <div
-          key={item.label}
-          className="bg-cc-surface px-4 py-5 text-center sm:px-6"
-        >
+        <div key={item.label} className="bg-cc-surface px-4 py-5 text-center sm:px-6">
           <Eyebrow as="dt" size="2xs" color="ink-dim">
             {item.label}
           </Eyebrow>
-          <dd className="font-heading text-cc-heading mt-2 text-xl font-semibold sm:text-2xl">
-            {item.value}
-          </dd>
+          <dd className="font-heading text-cc-heading mt-2 text-xl font-semibold sm:text-2xl">{item.value}</dd>
         </div>
       ))}
     </dl>

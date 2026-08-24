@@ -30,13 +30,7 @@ const RAIL_ITEMS: { key: RailKey; Icon: ComponentType<IconProps> }[] = [
   { key: "history", Icon: IconHistory },
 ];
 
-function RailButton({
-  Icon,
-  active,
-}: {
-  Icon: ComponentType<IconProps>;
-  active?: boolean;
-}) {
+function RailButton({ Icon, active }: { Icon: ComponentType<IconProps>; active?: boolean }) {
   return (
     <div
       style={{
@@ -128,21 +122,11 @@ function Footer({ counts = [0, 0, 0] }: { counts?: [number, number, number] }) {
         whiteSpace: "nowrap",
       }}
     >
-      {item(
-        <IconOnline size={9} color={token.successText} />,
-        "Online",
-        token.successText,
-      )}
-      {item(
-        <IconAccount size={sz} color="currentColor" />,
-        "pascal@chillicream.com",
-      )}
+      {item(<IconOnline size={9} color={token.successText} />, "Online", token.successText)}
+      {item(<IconAccount size={sz} color="currentColor" />, "pascal@chillicream.com")}
       {item(<IconOrganization size={sz} color="currentColor" />, "ChilliCream")}
       {item(<IconWorkspace size={sz} color="currentColor" />, "Default")}
-      {item(
-        <IconEnvironment size={sz} color="currentColor" />,
-        "No Environment",
-      )}
+      {item(<IconEnvironment size={sz} color="currentColor" />, "No Environment")}
       {item(<IconSync size={sz} color="currentColor" />, "Synchronize")}
       <span
         style={{
@@ -153,19 +137,13 @@ function Footer({ counts = [0, 0, 0] }: { counts?: [number, number, number] }) {
         }}
       >
         {item(
-          <IconErrorCircle
-            size={sz}
-            color={counts[0] ? token.errorText : "currentColor"}
-          />,
+          <IconErrorCircle size={sz} color={counts[0] ? token.errorText : "currentColor"} />,
           String(counts[0]),
           counts[0] ? token.errorText : undefined,
         )}
         {item(<IconInfo size={sz} color="currentColor" />, String(counts[1]))}
         {item(
-          <IconWarning
-            size={sz}
-            color={counts[2] ? token.warning : "currentColor"}
-          />,
+          <IconWarning size={sz} color={counts[2] ? token.warning : "currentColor"} />,
           String(counts[2]),
           counts[2] ? token.warning : undefined,
         )}
@@ -236,11 +214,7 @@ export function AppFrame({
         >
           <NitroLogo />
           {RAIL_ITEMS.map((it) => (
-            <RailButton
-              key={it.key}
-              Icon={it.Icon}
-              active={it.key === railActive}
-            />
+            <RailButton key={it.key} Icon={it.Icon} active={it.key === railActive} />
           ))}
           <div style={{ marginTop: "auto" }} />
           <RailButton Icon={IconAccount} />
@@ -285,9 +259,7 @@ export function AppFrame({
               {toolbar}
             </div>
           )}
-          <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
-            {children}
-          </div>
+          <div style={{ flex: 1, minHeight: 0, position: "relative" }}>{children}</div>
         </div>
       </div>
       <Footer counts={footerCounts} />

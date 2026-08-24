@@ -32,8 +32,7 @@ export const Default: Story = {};
 export const Small: Story = {
   args: {
     size: "sm",
-    command:
-      "dnx skillz add chillicream/agent-skills --skill graphql-schema-design",
+    command: "dnx skillz add chillicream/agent-skills --skill graphql-schema-design",
     className: "bg-cc-surface max-w-sm",
   },
 };

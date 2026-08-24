@@ -34,8 +34,7 @@ export function Cursor({
   });
 
   const hand = useTransform(progress, (p): number => {
-    for (const t of clickTimes)
-      if (p >= t - hoverLead && p <= t + 0.02) return 1;
+    for (const t of clickTimes) if (p >= t - hoverLead && p <= t + 0.02) return 1;
     for (const [a, b] of pointerWindows) if (p >= a && p <= b) return 1;
     return 0;
   });
@@ -79,13 +78,7 @@ export function Cursor({
             opacity: arrowOpacity,
           }}
         >
-          <path
-            d={ARROW}
-            fill="#fff"
-            stroke="#10151c"
-            strokeWidth={1.4}
-            strokeLinejoin="round"
-          />
+          <path d={ARROW} fill="#fff" stroke="#10151c" strokeWidth={1.4} strokeLinejoin="round" />
         </motion.svg>
         <motion.svg
           width={26}
@@ -99,27 +92,14 @@ export function Cursor({
             opacity: hand,
           }}
         >
-          <path
-            d={HAND}
-            fill="#fff"
-            stroke="#10151c"
-            strokeWidth={1.3}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
+          <path d={HAND} fill="#fff" stroke="#10151c" strokeWidth={1.3} strokeLinejoin="round" strokeLinecap="round" />
         </motion.svg>
       </motion.div>
     </motion.div>
   );
 }
 
-function Ripple({
-  progress,
-  at,
-}: {
-  progress: MotionValue<number>;
-  at: number;
-}) {
+function Ripple({ progress, at }: { progress: MotionValue<number>; at: number }) {
   const scale = useTransform(progress, [at, at + 0.05], [0, 2.6], {
     clamp: true,
   });

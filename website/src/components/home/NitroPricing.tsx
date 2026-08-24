@@ -12,9 +12,7 @@ import { FrenchPress } from "@/src/icons/FrenchPress";
 import { PourOver } from "@/src/icons/PourOver";
 
 // Coffee-brew icon per cloud tier, lightest brew to strongest.
-const ICONS: Partial<
-  Record<TierId, ComponentType<{ readonly className?: string }>>
-> = {
+const ICONS: Partial<Record<TierId, ComponentType<{ readonly className?: string }>>> = {
   free: FrenchPress,
   payg: DripBrewer,
   dedicated: PourOver,
@@ -31,13 +29,10 @@ const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
 export function NitroPricing() {
   return (
     <PageSection className="py-16 sm:py-24">
-      <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-center font-semibold">
-        Brew it your Way
-      </h2>
+      <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-center font-semibold">Brew it your Way</h2>
       <p className="text-cc-ink mx-auto mt-5 max-w-3xl text-center text-base text-pretty sm:text-lg">
-        Nitro is the Control Plane and CLI that keeps you in control, whether
-        you&rsquo;re deploying a new schema, rolling out a new client, or
-        gaining insights into your API environments.
+        Nitro is the Control Plane and CLI that keeps you in control, whether you&rsquo;re deploying a new schema,
+        rolling out a new client, or gaining insights into your API environments.
       </p>
 
       <OfferingGrid columns="mt-14 md:grid-cols-3">
@@ -57,23 +52,15 @@ export function NitroPricing() {
       </OfferingGrid>
 
       {SELF_HOSTED && (
-        <Card
-          variant="panel"
-          className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"
-        >
+        <Card variant="panel" className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="font-heading text-cc-heading text-h6 font-semibold">
-              {SELF_HOSTED.name}
-            </h3>
+            <h3 className="font-heading text-cc-heading text-h6 font-semibold">{SELF_HOSTED.name}</h3>
             <p className="text-cc-ink mt-2 text-sm text-pretty">
-              {SELF_HOSTED.tagline} Run on your own infrastructure, air-gapped
-              or on-prem, with configurable retention and priority support.
+              {SELF_HOSTED.tagline} Run on your own infrastructure, air-gapped or on-prem, with configurable retention
+              and priority support.
             </p>
           </div>
-          <OutlineButton
-            href={SELF_HOSTED.ctaHref}
-            className="shrink-0 sm:w-auto"
-          >
+          <OutlineButton href={SELF_HOSTED.ctaHref} className="shrink-0 sm:w-auto">
             {SELF_HOSTED.cta}
           </OutlineButton>
         </Card>

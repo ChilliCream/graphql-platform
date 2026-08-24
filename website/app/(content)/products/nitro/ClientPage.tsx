@@ -25,42 +25,20 @@ import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
 
 const ControlPlaneConsole = dynamic(() =>
-  import("@/src/components/nitro/ControlPlaneConsole").then(
-    (m) => m.ControlPlaneConsole,
-  ),
+  import("@/src/components/nitro/ControlPlaneConsole").then((m) => m.ControlPlaneConsole),
 );
 const BarSeries = dynamic(() => import("@/src/nitro").then((m) => m.BarSeries));
 const CountUp = dynamic(() => import("@/src/nitro").then((m) => m.CountUp));
-const HBarSeries = dynamic(() =>
-  import("@/src/nitro").then((m) => m.HBarSeries),
-);
-const InsightsTable = dynamic(() =>
-  import("@/src/nitro").then((m) => m.InsightsTable),
-);
-const LineAreaChart = dynamic(() =>
-  import("@/src/nitro").then((m) => m.LineAreaChart),
-);
-const NitroCompose = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroCompose),
-);
-const NitroDiagnose = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroDiagnose),
-);
-const NitroFusion = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroFusion),
-);
-const NitroSchema = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroSchema),
-);
-const NitroTheme = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroTheme),
-);
-const NitroTrace = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroTrace),
-);
-const TraceWaterfall = dynamic(() =>
-  import("@/src/nitro").then((m) => m.TraceWaterfall),
-);
+const HBarSeries = dynamic(() => import("@/src/nitro").then((m) => m.HBarSeries));
+const InsightsTable = dynamic(() => import("@/src/nitro").then((m) => m.InsightsTable));
+const LineAreaChart = dynamic(() => import("@/src/nitro").then((m) => m.LineAreaChart));
+const NitroCompose = dynamic(() => import("@/src/nitro").then((m) => m.NitroCompose));
+const NitroDiagnose = dynamic(() => import("@/src/nitro").then((m) => m.NitroDiagnose));
+const NitroFusion = dynamic(() => import("@/src/nitro").then((m) => m.NitroFusion));
+const NitroSchema = dynamic(() => import("@/src/nitro").then((m) => m.NitroSchema));
+const NitroTheme = dynamic(() => import("@/src/nitro").then((m) => m.NitroTheme));
+const NitroTrace = dynamic(() => import("@/src/nitro").then((m) => m.NitroTrace));
+const TraceWaterfall = dynamic(() => import("@/src/nitro").then((m) => m.TraceWaterfall));
 
 interface SectionIntroProps {
   readonly index?: string;
@@ -70,43 +48,19 @@ interface SectionIntroProps {
   readonly align?: "center" | "start";
 }
 
-function SectionIntro({
-  index,
-  eyebrow,
-  title,
-  lead,
-  align = "center",
-}: SectionIntroProps) {
+function SectionIntro({ index, eyebrow, title, lead, align = "center" }: SectionIntroProps) {
   return (
     <div
-      className={[
-        "flex flex-col gap-4",
-        align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-md",
-      ].join(" ")}
+      className={["flex flex-col gap-4", align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-md"].join(" ")}
     >
-      <div
-        className={[
-          "flex items-center gap-3",
-          align === "center" ? "justify-center" : "",
-        ].join(" ")}
-      >
-        {index && (
-          <span className="text-cc-ink-dim text-caption font-mono tabular-nums">
-            {index}
-          </span>
-        )}
+      <div className={["flex items-center gap-3", align === "center" ? "justify-center" : ""].join(" ")}>
+        {index && <span className="text-cc-ink-dim text-caption font-mono tabular-nums">{index}</span>}
         <Eyebrow as="span" color="accent" className="text-caption font-medium">
           {eyebrow}
         </Eyebrow>
       </div>
-      <h2 className="text-cc-heading font-heading text-h3 text-balance">
-        {title}
-      </h2>
-      {lead && (
-        <p className="text-cc-ink text-base leading-relaxed text-pretty sm:text-lg">
-          {lead}
-        </p>
-      )}
+      <h2 className="text-cc-heading font-heading text-h3 text-balance">{title}</h2>
+      {lead && <p className="text-cc-ink text-base leading-relaxed text-pretty sm:text-lg">{lead}</p>}
     </div>
   );
 }
@@ -179,8 +133,7 @@ function FramedVisual({ children }: FramedVisualProps) {
   return (
     <MockWindowChrome
       glow={{
-        background:
-          "radial-gradient(60% 60% at 50% 40%, rgba(22,185,228,0.16), transparent 70%)",
+        background: "radial-gradient(60% 60% at 50% 40%, rgba(22,185,228,0.16), transparent 70%)",
         inset: "-inset-x-6 -inset-y-4",
         blur: "blur-3xl",
         rounded: "rounded-[2rem]",
@@ -202,47 +155,20 @@ interface ShowcaseProps {
   readonly reverse?: boolean;
 }
 
-function Showcase({
-  id,
-  index,
-  eyebrow,
-  title,
-  body,
-  visual,
-  aside,
-  reverse = false,
-}: ShowcaseProps) {
+function Showcase({ id, index, eyebrow, title, body, visual, aside, reverse = false }: ShowcaseProps) {
   return (
-    <section
-      id={id}
-      className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28"
-    >
+    <section id={id} className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28">
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-        <RevealOnScroll
-          className={[
-            "lg:col-span-5",
-            reverse ? "lg:order-2" : "lg:order-1",
-          ].join(" ")}
-        >
+        <RevealOnScroll className={["lg:col-span-5", reverse ? "lg:order-2" : "lg:order-1"].join(" ")}>
           <div className="flex flex-col gap-5">
-            <SectionIntro
-              index={index}
-              eyebrow={eyebrow}
-              title={title}
-              align="start"
-            />
-            <p className="text-cc-ink max-w-md text-base leading-relaxed text-pretty sm:text-lg">
-              {body}
-            </p>
+            <SectionIntro index={index} eyebrow={eyebrow} title={title} align="start" />
+            <p className="text-cc-ink max-w-md text-base leading-relaxed text-pretty sm:text-lg">{body}</p>
             {aside}
           </div>
         </RevealOnScroll>
 
         <RevealOnScroll
-          className={[
-            "lg:col-span-7",
-            reverse ? "lg:order-1" : "lg:order-2",
-          ].join(" ")}
+          className={["lg:col-span-7", reverse ? "lg:order-1" : "lg:order-2"].join(" ")}
           hiddenClassName="translate-y-8 opacity-0"
         >
           <FramedVisual>
@@ -429,8 +355,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
         const spread = 0.05 + 0.95 * (m.life * m.life);
         const px = ox + m.fan * FAN_PX * spread + wobble;
         const py = oy - m.life * RISE_PX;
-        const edge =
-          smoothstep(0, 0.16, m.life) * (1 - smoothstep(0.78, 1, m.life));
+        const edge = smoothstep(0, 0.16, m.life) * (1 - smoothstep(0.78, 1, m.life));
         const twinkle = 0.55 + 0.45 * Math.sin(m.phase + t * m.twSpeed);
         const a = m.base * twinkle * edge;
         if (a <= 0.01) {
@@ -482,10 +407,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
   const baseY = 602;
   const screen = { mixBlendMode: "screen" as const };
   return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
-    >
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
       <style>{`
         @keyframes v22-breathe {
           0%, 100% { opacity: 0.9; }
@@ -531,9 +453,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
         className="v22-hero-flare absolute inset-0"
         style={{
           transform: "translateX(288px)",
-          ...(reduced
-            ? {}
-            : { animation: "v22-breathe 9s ease-in-out infinite" }),
+          ...(reduced ? {} : { animation: "v22-breathe 9s ease-in-out infinite" }),
         }}
       >
         {CONES.map((c, i) => (
@@ -546,19 +466,15 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
               height: baseY - 24,
               width: 1180,
               filter: `blur(${c.blur}px)`,
-              maskImage:
-                "linear-gradient(to bottom, transparent 1%, rgba(0,0,0,0.55) 15%, #000 42%, #000 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, transparent 1%, rgba(0,0,0,0.55) 15%, #000 42%, #000 100%)",
+              maskImage: "linear-gradient(to bottom, transparent 1%, rgba(0,0,0,0.55) 15%, #000 42%, #000 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 1%, rgba(0,0,0,0.55) 15%, #000 42%, #000 100%)",
               background: `conic-gradient(from 0deg at 50% 0%, transparent 0deg, transparent ${
                 180 - c.halfAngle
               }deg, rgba(${c.color},${c.mid}) ${
                 180 - c.halfAngle * 0.5
               }deg, rgba(${c.color},${c.peak}) 180deg, rgba(${c.color},${
                 c.mid
-              }) ${180 + c.halfAngle * 0.5}deg, transparent ${
-                180 + c.halfAngle
-              }deg, transparent 360deg)`,
+              }) ${180 + c.halfAngle * 0.5}deg, transparent ${180 + c.halfAngle}deg, transparent 360deg)`,
             }}
           />
         ))}
@@ -571,12 +487,9 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: baseY - 10,
             width: 760,
             filter: "blur(1px)",
-            background:
-              "repeating-linear-gradient(90deg, transparent 0 10px, rgba(206,240,248,0.07) 10px 12px)",
-            maskImage:
-              "radial-gradient(50% 62% at 50% 60%, #000 8%, transparent 76%)",
-            WebkitMaskImage:
-              "radial-gradient(50% 62% at 50% 60%, #000 8%, transparent 76%)",
+            background: "repeating-linear-gradient(90deg, transparent 0 10px, rgba(206,240,248,0.07) 10px 12px)",
+            maskImage: "radial-gradient(50% 62% at 50% 60%, #000 8%, transparent 76%)",
+            WebkitMaskImage: "radial-gradient(50% 62% at 50% 60%, #000 8%, transparent 76%)",
           }}
         />
 
@@ -652,8 +565,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 260,
             width: 560,
             filter: "blur(78px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(124,146,198,0.44), transparent 78%)",
+            background: "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(124,146,198,0.44), transparent 78%)",
           }}
         />
         <div
@@ -664,8 +576,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 280,
             width: 840,
             filter: "blur(70px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.58), transparent 74%)",
+            background: "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.58), transparent 74%)",
           }}
         />
         <div
@@ -724,8 +635,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 120,
             width: 720,
             filter: "blur(44px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(230,244,250,0.42), transparent 72%)",
+            background: "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(230,244,250,0.42), transparent 72%)",
           }}
         />
         <div
@@ -771,8 +681,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(120% 90% at 50% 8%, transparent 46%, rgba(11,15,26,0.55) 78%, #0b0f1a 100%)",
+          background: "radial-gradient(120% 90% at 50% 8%, transparent 46%, rgba(11,15,26,0.55) 78%, #0b0f1a 100%)",
         }}
       />
       <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent to-[#0b0f1a]" />
@@ -788,36 +697,22 @@ function LatencyLegend() {
   return (
     <span className="flex items-center gap-3">
       <span className="flex items-center gap-1.5">
-        <span
-          aria-hidden="true"
-          className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ background: BENTO_P95 }}
-        />
+        <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: BENTO_P95 }} />
         p95
       </span>
       <span className="flex items-center gap-1.5">
-        <span
-          aria-hidden="true"
-          className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ background: BENTO_P99 }}
-        />
+        <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: BENTO_P99 }} />
         p99
       </span>
     </span>
   );
 }
 
-const P95_SERIES = [
-  38, 41, 39, 44, 42, 47, 45, 43, 40, 42, 46, 49, 44, 41, 43, 42, 45, 48, 44,
-  40, 39, 42, 44, 41,
-];
+const P95_SERIES = [38, 41, 39, 44, 42, 47, 45, 43, 40, 42, 46, 49, 44, 41, 43, 42, 45, 48, 44, 40, 39, 42, 44, 41];
 const P99_SERIES = [
-  92, 96, 89, 104, 98, 118, 132, 121, 108, 99, 112, 141, 168, 128, 110, 104,
-  118, 152, 137, 112, 101, 108, 116, 106,
+  92, 96, 89, 104, 98, 118, 132, 121, 108, 99, 112, 141, 168, 128, 110, 104, 118, 152, 137, 112, 101, 108, 116, 106,
 ];
-const THROUGHPUT_BARS = [
-  32, 41, 38, 47, 52, 58, 61, 66, 72, 78, 74, 81, 88, 92, 86, 94,
-];
+const THROUGHPUT_BARS = [32, 41, 38, 47, 52, 58, 61, 66, 72, 78, 74, 81, 88, 92, 86, 94];
 
 const CLIENTS: readonly Client[] = [
   { name: "web-storefront", total: 184000, impact: 94 },
@@ -931,8 +826,7 @@ function useBentoProgress() {
 }
 
 const ERROR_CURVE = [
-  0.18, 0.22, 0.2, 0.28, 0.26, 0.34, 0.44, 0.52, 0.66, 0.9, 1.2, 1.6, 1.24,
-  0.82, 0.58, 0.48, 0.5, 0.44, 0.38, 0.31,
+  0.18, 0.22, 0.2, 0.28, 0.26, 0.34, 0.44, 0.52, 0.66, 0.9, 1.2, 1.6, 1.24, 0.82, 0.58, 0.48, 0.5, 0.44, 0.38, 0.31,
 ];
 
 interface ErrorRateSparkProps {
@@ -952,8 +846,7 @@ function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
   const dMin = Math.min(...ERROR_CURVE);
   const dMax = Math.max(...ERROR_CURVE);
   const xOf = (i: number) => (i / (n - 1)) * W;
-  const yOf = (v: number) =>
-    H - PAD - ((v - dMin) / (dMax - dMin)) * (H - PAD * 2);
+  const yOf = (v: number) => H - PAD - ((v - dMin) / (dMax - dMin)) * (H - PAD * 2);
   const pts: Pt[] = ERROR_CURVE.map((v, i) => [xOf(i), yOf(v)]);
   const lineD = smoothLinePath(pts);
   const areaD = areaFromLine(lineD, pts, H - PAD);
@@ -964,24 +857,9 @@ function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
   const draw = useTransform(progress, [0, 1], [0, 1], { clamp: true });
   const wipeW = useTransform(draw, [0, 1], [0, W]);
   const peakFrac = n > 1 ? peakIndex / (n - 1) : 0.5;
-  const dotOpacity = useTransform(
-    draw,
-    [peakFrac, Math.min(1, peakFrac + 0.05)],
-    [0, 1],
-    { clamp: true },
-  );
-  const dotScale = useTransform(
-    draw,
-    [peakFrac, Math.min(1, peakFrac + 0.1)],
-    [0.3, 1],
-    { clamp: true },
-  );
-  const glowOpacity = useTransform(
-    draw,
-    [peakFrac, Math.min(1, peakFrac + 0.14)],
-    [0, 1],
-    { clamp: true },
-  );
+  const dotOpacity = useTransform(draw, [peakFrac, Math.min(1, peakFrac + 0.05)], [0, 1], { clamp: true });
+  const dotScale = useTransform(draw, [peakFrac, Math.min(1, peakFrac + 0.1)], [0.3, 1], { clamp: true });
+  const glowOpacity = useTransform(draw, [peakFrac, Math.min(1, peakFrac + 0.14)], [0, 1], { clamp: true });
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -1037,16 +915,8 @@ function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
             borderRadius: "9999px",
             border: `1px solid ${stroke}`,
           }}
-          animate={
-            reduced || !active
-              ? { scale: 0.7, opacity: 0 }
-              : { scale: [0.7, 1.6, 0.7], opacity: [0.6, 0, 0.6] }
-          }
-          transition={
-            reduced || !active
-              ? { duration: 0 }
-              : { repeat: Infinity, duration: 1.8, ease: "easeInOut" }
-          }
+          animate={reduced || !active ? { scale: 0.7, opacity: 0 } : { scale: [0.7, 1.6, 0.7], opacity: [0.6, 0, 0.6] }}
+          transition={reduced || !active ? { duration: 0 } : { repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
         />
       </motion.span>
       <motion.span
@@ -1125,12 +995,7 @@ function SignalsBento() {
               />
             </NitroCanvas>
             <NitroCanvas className="mt-3 h-16">
-              <BarSeries
-                values={THROUGHPUT_BARS}
-                color={BENTO_THROUGHPUT}
-                progress={progress}
-                playWindow={[0, 1]}
-              />
+              <BarSeries values={THROUGHPUT_BARS} color={BENTO_THROUGHPUT} progress={progress} playWindow={[0, 1]} />
             </NitroCanvas>
           </div>
         </div>
@@ -1141,12 +1006,7 @@ function SignalsBento() {
           <CardHeader title="Top clients" hint="by impact" />
           <div className="px-5 pt-3 pb-5">
             <NitroCanvas>
-              <HBarSeries
-                clients={CLIENTS as Client[]}
-                maxBars={5}
-                progress={progress}
-                playWindow={[0, 1]}
-              />
+              <HBarSeries clients={CLIENTS as Client[]} maxBars={5} progress={progress} playWindow={[0, 1]} />
             </NitroCanvas>
           </div>
         </div>
@@ -1157,15 +1017,10 @@ function SignalsBento() {
           <CardHeader title="Error rate" hint="% of requests" />
           <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
             <div className="flex items-baseline gap-2">
-              <span
-                className="font-heading text-h4 tabular-nums"
-                style={{ color: "#f0786a" }}
-              >
+              <span className="font-heading text-h4 tabular-nums" style={{ color: "#f0786a" }}>
                 0.31%
               </span>
-              <span className="text-cc-ink-dim text-caption">
-                within budget · 1.6% peak
-              </span>
+              <span className="text-cc-ink-dim text-caption">within budget · 1.6% peak</span>
             </div>
             <div className="mt-3 h-16">
               <ErrorRateSpark progress={progress} active={inView} />
@@ -1204,12 +1059,7 @@ function SignalsBento() {
               }
             `}</style>
             <NitroCanvas>
-              <TraceWaterfall
-                trace={TRACE}
-                rowHeight={34}
-                progress={progress}
-                playWindow={[0, 1]}
-              />
+              <TraceWaterfall trace={TRACE} rowHeight={34} progress={progress} playWindow={[0, 1]} />
             </NitroCanvas>
           </div>
         </div>
@@ -1220,10 +1070,7 @@ function SignalsBento() {
 
 type ChangeKind = "safe" | "dangerous" | "breaking";
 
-const KIND_STYLE: Record<
-  ChangeKind,
-  { readonly label: string; readonly className: string }
-> = {
+const KIND_STYLE: Record<ChangeKind, { readonly label: string; readonly className: string }> = {
   safe: {
     label: "SAFE",
     className: "text-cc-success border-cc-success/40 bg-cc-success/[0.08]",
@@ -1245,12 +1092,7 @@ interface KindPillProps {
 function KindPill({ kind }: KindPillProps) {
   const s = KIND_STYLE[kind];
   return (
-    <span
-      className={[
-        "rounded border px-1.5 py-0.5 font-mono text-[10px] tracking-[0.12em]",
-        s.className,
-      ].join(" ")}
-    >
+    <span className={["rounded border px-1.5 py-0.5 font-mono text-[10px] tracking-[0.12em]", s.className].join(" ")}>
       {s.label}
     </span>
   );
@@ -1270,22 +1112,13 @@ function ClassificationCard() {
     <Card className="mt-1">
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">
-            orders-api · v14
-          </span>
-          <span className="text-cc-danger text-caption font-mono">
-            publish blocked
-          </span>
+          <span className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">orders-api · v14</span>
+          <span className="text-cc-danger text-caption font-mono">publish blocked</span>
         </div>
         <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
           {SCHEMA_CHANGES.map((c) => (
-            <div
-              key={c.field}
-              className="flex items-center justify-between gap-3 px-4 py-2.5"
-            >
-              <code className="text-cc-ink truncate font-mono text-xs">
-                {c.field}
-              </code>
+            <div key={c.field} className="flex items-center justify-between gap-3 px-4 py-2.5">
+              <code className="text-cc-ink truncate font-mono text-xs">{c.field}</code>
               <KindPill kind={c.kind} />
             </div>
           ))}
@@ -1314,21 +1147,13 @@ const CI_CHECKS: readonly CheckRow[] = [
 function CheckIconMark({ state }: { readonly state: "pass" | "fail" }) {
   if (state === "pass") {
     return (
-      <svg
-        viewBox="0 0 16 16"
-        aria-hidden="true"
-        className="text-cc-success h-4 w-4 fill-current"
-      >
+      <svg viewBox="0 0 16 16" aria-hidden="true" className="text-cc-success h-4 w-4 fill-current">
         <path d="M6.5 11.2 3.3 8l1.1-1.1 2.1 2.1 5-5L12.6 5z" />
       </svg>
     );
   }
   return (
-    <svg
-      viewBox="0 0 16 16"
-      aria-hidden="true"
-      className="text-cc-danger h-4 w-4 fill-current"
-    >
+    <svg viewBox="0 0 16 16" aria-hidden="true" className="text-cc-danger h-4 w-4 fill-current">
       <path d="M11.5 5.6 9.1 8l2.4 2.4-1.1 1.1L8 9.1l-2.4 2.4-1.1-1.1L6.9 8 4.5 5.6l1.1-1.1L8 6.9l2.4-2.4z" />
     </svg>
   );
@@ -1336,10 +1161,7 @@ function CheckIconMark({ state }: { readonly state: "pass" | "fail" }) {
 
 function DeliveryBand() {
   return (
-    <section
-      id="delivery"
-      className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28"
-    >
+    <section id="delivery" className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28">
       <RevealOnScroll>
         <SectionIntro
           index="07"
@@ -1354,26 +1176,17 @@ function DeliveryBand() {
           <Card>
             <div className="relative z-10 flex h-full flex-col">
               <div className="flex items-center justify-between px-5 py-3.5">
-                <span className="text-cc-heading font-heading text-h6">
-                  CI schema check
-                </span>
+                <span className="text-cc-heading font-heading text-h6">CI schema check</span>
                 <span className="text-cc-danger border-cc-danger/40 bg-cc-danger/[0.08] rounded border px-2 py-0.5 font-mono text-[10px] tracking-[0.12em]">
                   FAILED
                 </span>
               </div>
               <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
                 {CI_CHECKS.map((c) => (
-                  <div
-                    key={c.label}
-                    className="flex items-center gap-3 px-5 py-3"
-                  >
+                  <div key={c.label} className="flex items-center gap-3 px-5 py-3">
                     <CheckIconMark state={c.state} />
-                    <span className="text-cc-ink font-mono text-sm">
-                      {c.label}
-                    </span>
-                    <span className="text-cc-ink-dim ml-auto font-mono text-xs">
-                      {c.detail}
-                    </span>
+                    <span className="text-cc-ink font-mono text-sm">{c.label}</span>
+                    <span className="text-cc-ink-dim ml-auto font-mono text-xs">{c.detail}</span>
                   </div>
                 ))}
               </div>
@@ -1393,8 +1206,7 @@ function DeliveryBand() {
                     Persisted operations
                   </div>
                   <p className="text-cc-ink mt-2 text-sm leading-relaxed">
-                    Only registered query hashes execute. Ad-hoc queries and
-                    injection never reach a resolver.
+                    Only registered query hashes execute. Ad-hoc queries and injection never reach a resolver.
                   </p>
                 </div>
                 <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
@@ -1402,17 +1214,11 @@ function DeliveryBand() {
                   <div className="mt-1 truncate" style={{ color: "#16b9e4" }}>
                     documentId: sha256:7f3a9b2e…
                   </div>
-                  <div className="text-cc-success mt-1">
-                    200 · trusted · 12 ms
-                  </div>
+                  <div className="text-cc-success mt-1">200 · trusted · 12 ms</div>
                 </div>
                 <div className="mt-auto flex items-center gap-2">
-                  <span className="text-cc-success text-caption font-mono">
-                    ● safe rollout
-                  </span>
-                  <span className="text-cc-ink-dim text-caption">
-                    stage → canary → prod
-                  </span>
+                  <span className="text-cc-success text-caption font-mono">● safe rollout</span>
+                  <span className="text-cc-ink-dim text-caption">stage → canary → prod</span>
                 </div>
               </div>
             </div>
@@ -1435,24 +1241,15 @@ function Hero({ reduced }: HeroProps) {
       <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">
         <RevealOnScroll className="relative z-20 flex max-w-2xl flex-col gap-6">
           <div className="flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="h-px w-16 rounded-full"
-              style={{ background: "#16b9e4" }}
-            />
-            <Eyebrow
-              as="span"
-              color="accent"
-              className="text-caption font-medium"
-            >
+            <span aria-hidden="true" className="h-px w-16 rounded-full" style={{ background: "#16b9e4" }} />
+            <Eyebrow as="span" color="accent" className="text-caption font-medium">
               API Operations Platform
             </Eyebrow>
           </div>
           <h1
             className="font-heading text-h1 text-balance"
             style={{
-              backgroundImage:
-                "linear-gradient(105deg, #f5f0ea 24%, #8fd3ec 58%, #16b9e4 82%, #7c92c6 100%)",
+              backgroundImage: "linear-gradient(105deg, #f5f0ea 24%, #8fd3ec 58%, #16b9e4 82%, #7c92c6 100%)",
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               color: "transparent",
@@ -1462,33 +1259,26 @@ function Hero({ reduced }: HeroProps) {
             Your whole API, on one control plane.
           </h1>
           <p className="lead text-cc-ink max-w-xl !text-xl !leading-relaxed">
-            Nitro brings observability, tracing, schema governance, client
-            safety, and rollout checks together, so teams can understand what is
-            running and ship changes with confidence.
+            Nitro brings observability, tracing, schema governance, client safety, and rollout checks together, so teams
+            can understand what is running and ship changes with confidence.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <span
               className="relative inline-flex rounded-full"
               style={{
-                boxShadow:
-                  "0 0 24px rgba(22,185,228,0.5), 0 0 52px rgba(240,120,106,0.28)",
+                boxShadow: "0 0 24px rgba(22,185,228,0.5), 0 0 52px rgba(240,120,106,0.28)",
               }}
             >
               <NitroDownload />
             </span>
-            <OutlineButton href="https://nitro.chillicream.com">
-              Launch Nitro
-            </OutlineButton>
+            <OutlineButton href="https://nitro.chillicream.com">Launch Nitro</OutlineButton>
           </div>
         </RevealOnScroll>
 
         <div className="relative z-10 mt-16 sm:mt-20">
           <div className="v22-hero-reel relative mx-auto w-full max-w-6xl">
             <NitroReel tabsOverlay />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 z-30 hidden sm:block"
-            >
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-30 hidden sm:block">
               <div
                 className="absolute"
                 style={{
@@ -1573,30 +1363,23 @@ function PageAtmosphere() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
     >
-      <RisingParticles
-        colors={["22,185,228", "240,120,106"]}
-        count={28}
-        className="absolute inset-0"
-      />
+      <RisingParticles colors={["22,185,228", "240,120,106"]} count={28} className="absolute inset-0" />
       <div
         className="absolute top-[20%] left-0 h-[48rem] w-[48rem] -translate-x-1/4 rounded-full opacity-90 blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, rgba(240,120,106,0.18), transparent 68%)",
+          background: "radial-gradient(circle, rgba(240,120,106,0.18), transparent 68%)",
         }}
       />
       <div
         className="absolute top-[44%] right-0 h-[44rem] w-[44rem] translate-x-1/4 rounded-full opacity-90 blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, rgba(22,185,228,0.18), transparent 68%)",
+          background: "radial-gradient(circle, rgba(22,185,228,0.18), transparent 68%)",
         }}
       />
       <div
         className="absolute bottom-[8%] left-1/2 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full opacity-85 blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, rgba(182,129,169,0.16), transparent 68%)",
+          background: "radial-gradient(circle, rgba(182,129,169,0.16), transparent 68%)",
         }}
       />
     </div>
@@ -1612,10 +1395,7 @@ export function ClientPage() {
 
       <Hero reduced={reduced} />
 
-      <section
-        id="observe"
-        className="border-cc-card-border scroll-mt-24 border-t py-20 text-center sm:py-28"
-      >
+      <section id="observe" className="border-cc-card-border scroll-mt-24 border-t py-20 text-center sm:py-28">
         <RevealOnScroll>
           <SectionIntro
             index="01"
@@ -1624,18 +1404,12 @@ export function ClientPage() {
             lead="OpenTelemetry-native monitoring: latency, throughput, and error rate per operation and per client, ranked by the impact score that tells you what to fix first."
           />
         </RevealOnScroll>
-        <RevealOnScroll
-          className="mt-14 sm:mt-16"
-          hiddenClassName="translate-y-8 opacity-0"
-        >
+        <RevealOnScroll className="mt-14 sm:mt-16" hiddenClassName="translate-y-8 opacity-0">
           <ControlPlaneConsole className="mx-auto max-w-5xl" />
         </RevealOnScroll>
       </section>
 
-      <section
-        id="signals"
-        className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28"
-      >
+      <section id="signals" className="border-cc-card-border scroll-mt-24 border-t py-20 sm:py-28">
         <RevealOnScroll>
           <SectionIntro
             index="02"
@@ -1644,10 +1418,7 @@ export function ClientPage() {
             lead="Track p95 and p99 latency, throughput, error rate, top clients, and the slowest spans from the same telemetry source."
           />
         </RevealOnScroll>
-        <RevealOnScroll
-          className="mt-12"
-          hiddenClassName="translate-y-8 opacity-0"
-        >
+        <RevealOnScroll className="mt-12" hiddenClassName="translate-y-8 opacity-0">
           <SignalsBento />
         </RevealOnScroll>
       </section>
@@ -1704,27 +1475,17 @@ export function ClientPage() {
 
       <section className="border-cc-card-border border-t py-24 text-center sm:py-32">
         <RevealOnScroll className="mx-auto flex max-w-2xl flex-col items-center gap-6">
-          <Eyebrow
-            as="span"
-            color="accent"
-            className="text-caption font-medium"
-          >
+          <Eyebrow as="span" color="accent" className="text-caption font-medium">
             Ready when you are
           </Eyebrow>
-          <h2 className="text-cc-heading font-heading text-h2 text-balance">
-            Put your API on one control plane.
-          </h2>
+          <h2 className="text-cc-heading font-heading text-h2 text-balance">Put your API on one control plane.</h2>
           <p className="text-cc-ink max-w-xl text-lg leading-relaxed">
-            Start with production visibility, then add tracing, schema
-            governance, client safety, and release checks as your team grows.
+            Start with production visibility, then add tracing, schema governance, client safety, and release checks as
+            your team grows.
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-            <SolidButton href="https://nitro.chillicream.com">
-              Start for Free
-            </SolidButton>
-            <OutlineButton href="https://nitro.chillicream.com">
-              Launch Nitro
-            </OutlineButton>
+            <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
+            <OutlineButton href="https://nitro.chillicream.com">Launch Nitro</OutlineButton>
           </div>
         </RevealOnScroll>
       </section>

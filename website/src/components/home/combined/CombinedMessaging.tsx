@@ -5,9 +5,7 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 
 const WhyMessagingVisual = dynamic(() =>
-  import("@/app/(content)/products/mocha/visuals/WhyMessagingVisual").then(
-    (m) => m.WhyMessagingVisual,
-  ),
+  import("@/app/(content)/products/mocha/visuals/WhyMessagingVisual").then((m) => m.WhyMessagingVisual),
 );
 
 export function CombinedMessaging() {
@@ -19,11 +17,9 @@ export function CombinedMessaging() {
             Messaging for work that outlives a request.
           </h2>
           <p className="text-cc-ink mt-6 max-w-3xl text-base text-pretty sm:text-lg">
-            Mocha lets .NET services publish events, send commands, request
-            replies, and orchestrate sagas across RabbitMQ, Azure Event Hubs,
-            in-memory, and a preview PostgreSQL transport. Configure outbox and
-            inbox middleware for effectively exactly-once processing, and enable
-            OpenTelemetry to trace message flows.
+            Mocha lets .NET services publish events, send commands, request replies, and orchestrate sagas across
+            RabbitMQ, Azure Event Hubs, in-memory, and a preview PostgreSQL transport. Configure outbox and inbox
+            middleware for effectively exactly-once processing, and enable OpenTelemetry to trace message flows.
           </p>
           <ArrowLink href="/products/mocha" className="mt-6">
             Learn more

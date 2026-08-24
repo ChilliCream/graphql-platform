@@ -11,14 +11,7 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import {
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-} from "@/src/components/mocha/palette";
+import { CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -111,10 +104,7 @@ function buildLayout(lw: number): Layout {
       [hx, RES_Y],
       [LANE_X, RES_Y],
     ]),
-    chevXs: [
-      (LANE_X + PANELS_X) / 2,
-      ...panels.map((p) => p.x + p.w + GAP / 2),
-    ],
+    chevXs: [(LANE_X + PANELS_X) / 2, ...panels.map((p) => p.x + p.w + GAP / 2)],
     crossXs: panels.flatMap((p) => [p.x, p.x + p.w]),
     pins: [
       { x: hx, y: REQ_Y, side: "left" },
@@ -224,13 +214,7 @@ export function MediatorVisual() {
         if (t >= REQ_DEP && t < REQ_ARR) {
           const u = easeInOutCubic(ramp(t, REQ_DEP, REQ_ARR));
           px = pointAt(L.req, u)[0];
-          placePulse(
-            "rq",
-            L.req,
-            u,
-            Math.min((t - REQ_DEP) / 150, 1) *
-              (1 - ramp(t, REQ_ARR - 160, REQ_ARR)),
-          );
+          placePulse("rq", L.req, u, Math.min((t - REQ_DEP) / 150, 1) * (1 - ramp(t, REQ_ARR - 160, REQ_ARR)));
         } else {
           placePulse("rq", L.req, 0, 0);
         }
@@ -240,13 +224,7 @@ export function MediatorVisual() {
         if (t >= RES_DEP && t < RES_ARR) {
           const u = easeInOutCubic(ramp(t, RES_DEP, RES_ARR));
           gx = pointAt(L.res, u)[0];
-          placePulse(
-            "rs",
-            L.res,
-            u,
-            Math.min((t - RES_DEP) / 150, 1) *
-              (1 - ramp(t, RES_ARR - 160, RES_ARR)),
-          );
+          placePulse("rs", L.res, u, Math.min((t - RES_DEP) / 150, 1) * (1 - ramp(t, RES_ARR - 160, RES_ARR)));
         } else {
           placePulse("rs", L.res, 0, 0);
         }
@@ -268,10 +246,7 @@ export function MediatorVisual() {
           } else if (reachX >= x0 + 2) {
             target = 1;
           }
-          warm[i] =
-            target > warm[i]
-              ? Math.min(target, warm[i] + dt / 70)
-              : Math.max(target, warm[i] - dt / 450);
+          warm[i] = target > warm[i] ? Math.min(target, warm[i] + dt / 70) : Math.max(target, warm[i] - dt / 450);
           setO(`pw${i}`, warm[i] * 0.07);
           setO(`pe${i}`, warm[i] * 0.55);
           setO(`pl${i}`, warm[i] * 0.9);
@@ -287,10 +262,7 @@ export function MediatorVisual() {
         setO("phc", hact * 0.5);
         setO("hrow", hact * 0.9);
 
-        setO(
-          "rtag",
-          ramp(t, RES_ARR - 100, RES_ARR + 150) * (1 - ramp(t, 6500, 7100)),
-        );
+        setO("rtag", ramp(t, RES_ARR - 100, RES_ARR + 150) * (1 - ramp(t, 6500, 7100)));
       };
 
       apply(0, 0);
@@ -304,13 +276,7 @@ export function MediatorVisual() {
     <g key={p} ref={set(p)} opacity={0}>
       <circle ref={set(p + "t2")} r={1.6} fill={color} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={color} opacity={0} />
-      <circle
-        ref={set(p + "glow")}
-        r={6}
-        fill={color}
-        opacity={0.2}
-        filter="url(#mediator-soft)"
-      />
+      <circle ref={set(p + "glow")} r={6} fill={color} opacity={0.2} filter="url(#mediator-soft)" />
       <circle ref={set(p + "core")} r={2.5} fill={color} />
       <circle ref={set(p + "in")} r={1.1} fill={inner} />
     </g>
@@ -327,57 +293,23 @@ export function MediatorVisual() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
-            <filter
-              id="mediator-soft"
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
+            <filter id="mediator-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="mediator-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="mediator-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
           <rect x={0} y={0} width={lw} height={H} fill="url(#mediator-grid)" />
 
-          <path
-            d={`M${LANE_X} ${REQ_Y} H${L.hx}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
-          <path
-            d={`M${LANE_X} ${RES_Y} H${L.hx}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
+          <path d={`M${LANE_X} ${REQ_Y} H${L.hx}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
+          <path d={`M${LANE_X} ${RES_Y} H${L.hx}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
 
           {[REQ_Y, RES_Y].map((vy) => (
-            <circle
-              key={`via-${vy}`}
-              cx={LANE_X}
-              cy={vy}
-              r={2.5}
-              fill={NAVY}
-              stroke={VIA_STROKE}
-              strokeWidth={1.2}
-            />
+            <circle key={`via-${vy}`} cx={LANE_X} cy={vy} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1.2} />
           ))}
 
           {L.chevXs.map((cx) => (
@@ -389,25 +321,14 @@ export function MediatorVisual() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path
-                d={`M ${cx - 3} ${REQ_Y - 3.4} L ${cx + 2.8} ${REQ_Y} L ${cx - 3} ${REQ_Y + 3.4}`}
-              />
-              <path
-                d={`M ${cx + 3} ${RES_Y - 3.4} L ${cx - 2.8} ${RES_Y} L ${cx + 3} ${RES_Y + 3.4}`}
-              />
+              <path d={`M ${cx - 3} ${REQ_Y - 3.4} L ${cx + 2.8} ${REQ_Y} L ${cx - 3} ${REQ_Y + 3.4}`} />
+              <path d={`M ${cx + 3} ${RES_Y - 3.4} L ${cx - 2.8} ${RES_Y} L ${cx + 3} ${RES_Y + 3.4}`} />
             </g>
           ))}
 
           {L.crossXs.map((ex) =>
             [REQ_Y, RES_Y].map((py) => (
-              <rect
-                key={`pad-${ex}-${py}`}
-                x={ex - 1}
-                y={py - 1.75}
-                width={2}
-                height={3.5}
-                fill={PAD_FILL}
-              />
+              <rect key={`pad-${ex}-${py}`} x={ex - 1} y={py - 1.75} width={2} height={3.5} fill={PAD_FILL} />
             )),
           )}
 
@@ -486,13 +407,7 @@ export function MediatorVisual() {
               >
                 {p.label}
               </text>
-              <circle
-                cx={p.x + p.w - 10}
-                cy={PANEL_Y + 10}
-                r={2}
-                fill={SILK}
-                opacity={0.25}
-              />
+              <circle cx={p.x + p.w - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
               <circle
                 ref={set(`ph${i}`)}
                 cx={p.x + p.w - 10}
@@ -504,14 +419,7 @@ export function MediatorVisual() {
                 filter="url(#mediator-soft)"
                 opacity={0}
               />
-              <circle
-                ref={set(`pl${i}`)}
-                cx={p.x + p.w - 10}
-                cy={PANEL_Y + 10}
-                r={2}
-                fill={CORAL}
-                opacity={0}
-              />
+              <circle ref={set(`pl${i}`)} cx={p.x + p.w - 10} cy={PANEL_Y + 10} r={2} fill={CORAL} opacity={0} />
             </g>
           ))}
 
@@ -533,16 +441,7 @@ export function MediatorVisual() {
               strokeWidth={1}
               fill="none"
             />
-            <rect
-              ref={set("hcw")}
-              x={L.hx}
-              y={PANEL_Y}
-              width={L.hw}
-              height={PANEL_H}
-              rx={3}
-              fill={CYAN}
-              opacity={0}
-            />
+            <rect ref={set("hcw")} x={L.hx} y={PANEL_Y} width={L.hw} height={PANEL_H} rx={3} fill={CYAN} opacity={0} />
             <rect
               ref={set("hce")}
               x={L.hx}
@@ -577,33 +476,12 @@ export function MediatorVisual() {
               stroke={HAIR}
               strokeWidth={1}
             />
-            <rect
-              x={L.rowX}
-              y={ROW_Y + 5}
-              width={3}
-              height={ROW_H - 10}
-              rx={1.5}
-              fill={CYAN}
-            />
-            <text
-              x={L.rowX + 13}
-              y={ROW_Y + 20}
-              fontFamily={MONO_FONT}
-              fontSize={L.rowFont}
-              fill={INK}
-            >
+            <rect x={L.rowX} y={ROW_Y + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
+            <text x={L.rowX + 13} y={ROW_Y + 20} fontFamily={MONO_FONT} fontSize={L.rowFont} fill={INK}>
               {HANDLER_ROW}
             </text>
             <g ref={set("hrow")} opacity={0.35}>
-              <rect
-                x={L.rowX}
-                y={ROW_Y}
-                width={L.rowW}
-                height={ROW_H}
-                rx={5}
-                fill={CYAN}
-                opacity={0.07}
-              />
+              <rect x={L.rowX} y={ROW_Y} width={L.rowW} height={ROW_H} rx={5} fill={CYAN} opacity={0.07} />
               <rect
                 x={L.rowX}
                 y={ROW_Y}
@@ -615,13 +493,7 @@ export function MediatorVisual() {
                 strokeWidth={1.2}
                 opacity={0.8}
               />
-              <text
-                x={L.rowX + 13}
-                y={ROW_Y + 20}
-                fontFamily={MONO_FONT}
-                fontSize={L.rowFont}
-                fill={HANDLER_LIT}
-              >
+              <text x={L.rowX + 13} y={ROW_Y + 20} fontFamily={MONO_FONT} fontSize={L.rowFont} fill={HANDLER_LIT}>
                 {HANDLER_ROW}
               </text>
               <text
@@ -636,13 +508,7 @@ export function MediatorVisual() {
                 HANDLER
               </text>
             </g>
-            <circle
-              cx={L.hx + L.hw - 10}
-              cy={PANEL_Y + 10}
-              r={2}
-              fill={SILK}
-              opacity={0.25}
-            />
+            <circle cx={L.hx + L.hw - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
             <circle
               ref={set("phc")}
               cx={L.hx + L.hw - 10}
@@ -654,34 +520,13 @@ export function MediatorVisual() {
               filter="url(#mediator-soft)"
               opacity={0}
             />
-            <circle
-              ref={set("plc")}
-              cx={L.hx + L.hw - 10}
-              cy={PANEL_Y + 10}
-              r={2}
-              fill={CYAN}
-              opacity={0}
-            />
+            <circle ref={set("plc")} cx={L.hx + L.hw - 10} cy={PANEL_Y + 10} r={2} fill={CYAN} opacity={0} />
           </g>
 
-          <text
-            x={10}
-            y={REQ_Y - 11}
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            letterSpacing="0.02em"
-            fill={SILK_SOFT}
-          >
+          <text x={10} y={REQ_Y - 11} fontFamily={MONO_FONT} fontSize={9} letterSpacing="0.02em" fill={SILK_SOFT}>
             SendAsync
           </text>
-          <text
-            x={10}
-            y={RES_Y + 20}
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            letterSpacing="0.02em"
-            fill={SILK_SOFT}
-          >
+          <text x={10} y={RES_Y + 20} fontFamily={MONO_FONT} fontSize={9} letterSpacing="0.02em" fill={SILK_SOFT}>
             PlaceOrderResult
           </text>
           <text

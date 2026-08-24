@@ -7,10 +7,7 @@ const navList = (
   <ul className="m-0 flex list-none flex-col gap-1 p-4">
     {NAV_LINKS.map((label) => (
       <li key={label}>
-        <a
-          href="#"
-          className="text-cc-ink hover:bg-cc-ink-faint block rounded-md px-3 py-2 no-underline"
-        >
+        <a href="#" className="text-cc-ink hover:bg-cc-ink-faint block rounded-md px-3 py-2 no-underline">
           {label}
         </a>
       </li>
@@ -35,11 +32,7 @@ const tocList = (
 const fullScreenHeader = (
   <div className="border-cc-white/10 flex h-18 flex-none items-center justify-between border-b px-4">
     <span className="text-cc-heading text-lg font-semibold">ChilliCream</span>
-    <button
-      type="button"
-      aria-label="Close navigation menu"
-      className="text-cc-heading flex h-full items-center px-2"
-    >
+    <button type="button" aria-label="Close navigation menu" className="text-cc-heading flex h-full items-center px-2">
       Close
     </button>
   </div>

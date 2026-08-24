@@ -2,10 +2,7 @@ import { motion, useTransform, type MotionValue } from "motion/react";
 import { Stage } from "../../../primitives/reel/Stage";
 import { AppFrame } from "../../../primitives/reel/AppFrame";
 import { Cursor } from "../../../primitives/reel/Cursor";
-import {
-  GatewayChrome,
-  GW_HEADER_H,
-} from "../../../primitives/reel/GatewayChrome";
+import { GatewayChrome, GW_HEADER_H } from "../../../primitives/reel/GatewayChrome";
 import { TABREEL_CANVAS } from "../../../primitives/reel/TabReel";
 import { token } from "../../../lib/tokens";
 import { ease } from "../../../lib/motion";
@@ -135,10 +132,7 @@ export interface FusionDeploymentsScreenProps {
   showCursor?: boolean;
 }
 
-export function FusionDeploymentsScreen({
-  progress,
-  showCursor = true,
-}: FusionDeploymentsScreenProps) {
+export function FusionDeploymentsScreen({ progress, showCursor = true }: FusionDeploymentsScreenProps) {
   const cx = useTransform(
     progress,
     [0, TL.end("select"), TL.start("moveToPlus"), TL.start("plusClick"), 1],
@@ -166,9 +160,7 @@ export function FusionDeploymentsScreen({
             y={cy}
             progress={progress}
             clickTimes={[TL.start("plusClick")]}
-            pointerWindows={[
-              [TL.at("moveToPlus", 0.7), TL.at("plusClick", 0.3)],
-            ]}
+            pointerWindows={[[TL.at("moveToPlus", 0.7), TL.at("plusClick", 0.3)]]}
           />
         ) : null
       }
@@ -195,11 +187,7 @@ export function FusionDeploymentsScreen({
             }}
           >
             <IconHistory size={14} color={token.textSecondary} />
-            <span
-              style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-            >
-              Production Stage
-            </span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>Production Stage</span>
             <span
               style={{
                 marginLeft: "auto",
@@ -210,9 +198,7 @@ export function FusionDeploymentsScreen({
               {ROWS.length} deployments
             </span>
           </div>
-          <div
-            style={{ flex: 1, minHeight: 0, padding: 20, position: "relative" }}
-          >
+          <div style={{ flex: 1, minHeight: 0, padding: 20, position: "relative" }}>
             <div
               style={{
                 position: "absolute",
@@ -235,11 +221,7 @@ export function FusionDeploymentsScreen({
                 }}
               >
                 <DetailPane progress={progress} />
-                <Spinner
-                  progress={progress}
-                  show={TL.at("load", 0.1)}
-                  hide={TL.end("load")}
-                />
+                <Spinner progress={progress} show={TL.at("load", 0.1)} hide={TL.end("load")} />
               </div>
             </div>
           </div>
@@ -250,24 +232,9 @@ export function FusionDeploymentsScreen({
 }
 
 function DeploymentList({ progress }: { progress: MotionValue<number> }) {
-  const fade = useTransform(
-    progress,
-    [TL.at("load", 0.8), TL.at("select", 0.3)],
-    [0, 1],
-    { clamp: true },
-  );
-  const topSlide = useTransform(
-    progress,
-    [TL.end("load"), TL.at("select", 0.6)],
-    [-10, 0],
-    { clamp: true },
-  );
-  const activeBg = useTransform(
-    progress,
-    [TL.at("select", 0.5), TL.end("select")],
-    [0, 1],
-    { clamp: true },
-  );
+  const fade = useTransform(progress, [TL.at("load", 0.8), TL.at("select", 0.3)], [0, 1], { clamp: true });
+  const topSlide = useTransform(progress, [TL.end("load"), TL.at("select", 0.6)], [-10, 0], { clamp: true });
+  const activeBg = useTransform(progress, [TL.at("select", 0.5), TL.end("select")], [0, 1], { clamp: true });
   const activeRowBg = useTransform(
     progress,
     [TL.at("select", 0.5), TL.end("select")],
@@ -353,21 +320,12 @@ function DeploymentList({ progress }: { progress: MotionValue<number> }) {
                   )}
                 </div>
                 <div style={{ fontSize: 11.5, color: token.textSecondary }}>
-                  Started{" "}
-                  <strong style={{ color: token.text, fontWeight: 600 }}>
-                    {r.started}
-                  </strong>
+                  Started <strong style={{ color: token.text, fontWeight: 600 }}>{r.started}</strong>
                   {r.approved && r.by && (
                     <>
                       {" "}
-                      · Approved{" "}
-                      <strong style={{ color: token.text, fontWeight: 600 }}>
-                        1 minute ago
-                      </strong>{" "}
-                      by{" "}
-                      <strong style={{ color: token.text, fontWeight: 600 }}>
-                        {r.by}
-                      </strong>
+                      · Approved <strong style={{ color: token.text, fontWeight: 600 }}>1 minute ago</strong> by{" "}
+                      <strong style={{ color: token.text, fontWeight: 600 }}>{r.by}</strong>
                     </>
                   )}
                 </div>
@@ -429,12 +387,7 @@ function SubgraphBadge({ name }: { name: string }) {
 }
 
 function DetailPane({ progress }: { progress: MotionValue<number> }) {
-  const fade = useTransform(
-    progress,
-    [TL.at("select", 0.4), TL.end("select")],
-    [0, 1],
-    { clamp: true },
-  );
+  const fade = useTransform(progress, [TL.at("select", 0.4), TL.end("select")], [0, 1], { clamp: true });
   return (
     <motion.div
       style={{
@@ -464,11 +417,7 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
             >
               <IconCheck size={14} color={GREEN_TEXT} />
             </span>
-            <span
-              style={{ fontSize: 18, fontWeight: 700, color: token.textStrong }}
-            >
-              Deployment Succeeded
-            </span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: token.textStrong }}>Deployment Succeeded</span>
           </div>
           <div
             style={{
@@ -493,8 +442,7 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
             color: token.blue,
           }}
         >
-          <IconApiGateway size={13} color={token.icObject} /> Reviews{" "}
-          <IconLink size={11} color={token.blue} />
+          <IconApiGateway size={13} color={token.icObject} /> Reviews <IconLink size={11} color={token.blue} />
         </span>
       </Group>
 
@@ -520,13 +468,7 @@ function DetailPane({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-function Group({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div
@@ -546,12 +488,9 @@ function Group({
 }
 
 function SafeChip({ progress }: { progress: MotionValue<number> }) {
-  const scale = useTransform(
-    progress,
-    [TL.start("safe"), TL.at("safe", 0.4), TL.end("safe")],
-    [1, 1.12, 1],
-    { clamp: true },
-  );
+  const scale = useTransform(progress, [TL.start("safe"), TL.at("safe", 0.4), TL.end("safe")], [1, 1.12, 1], {
+    clamp: true,
+  });
   return (
     <motion.span
       data-testid="safe-chip"
@@ -576,24 +515,9 @@ function SafeChip({ progress }: { progress: MotionValue<number> }) {
 }
 
 function ChangelogTree({ progress }: { progress: MotionValue<number> }) {
-  const chevRot = useTransform(
-    progress,
-    [TL.start("tree"), TL.at("tree", 0.35)],
-    [-90, 0],
-    { clamp: true },
-  );
-  const c0 = useTransform(
-    progress,
-    [TL.at("tree", 0.3), TL.at("tree", 0.7)],
-    [0, 1],
-    { clamp: true },
-  );
-  const c1 = useTransform(
-    progress,
-    [TL.at("tree", 0.6), TL.end("tree")],
-    [0, 1],
-    { clamp: true },
-  );
+  const chevRot = useTransform(progress, [TL.start("tree"), TL.at("tree", 0.35)], [-90, 0], { clamp: true });
+  const c0 = useTransform(progress, [TL.at("tree", 0.3), TL.at("tree", 0.7)], [0, 1], { clamp: true });
+  const c1 = useTransform(progress, [TL.at("tree", 0.6), TL.end("tree")], [0, 1], { clamp: true });
   const children: [string, string, MotionValue<number>][] = [
     ["helpfulVotes", "Review.helpfulVotes: Int!", c0],
     ["verifiedPurchase", "Review.verifiedPurchase: Boolean!", c1],
@@ -679,12 +603,7 @@ function Coordinate({ text, green }: { text: string; green?: boolean }) {
 }
 
 function RawDiff({ progress }: { progress: MotionValue<number> }) {
-  const reveal = useTransform(
-    progress,
-    [TL.start("diff"), TL.at("diff", 0.6)],
-    [0, 1],
-    { clamp: true },
-  );
+  const reveal = useTransform(progress, [TL.start("diff"), TL.at("diff", 0.6)], [0, 1], { clamp: true });
   const lines = DIFF.split("\n");
   return (
     <motion.div
@@ -709,9 +628,7 @@ function RawDiff({ progress }: { progress: MotionValue<number> }) {
         }}
       >
         <span style={{ fontFamily: token.mono }}>schema.graphql</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: GREEN_TEXT }}>
-          +2 −0
-        </span>
+        <span style={{ marginLeft: "auto", fontSize: 11, color: GREEN_TEXT }}>+2 −0</span>
       </div>
       <div
         style={{
@@ -800,9 +717,7 @@ function Sequence() {
                 )}
               </div>
               <div style={{ paddingBottom: last ? 0 : 8 }}>
-                <div style={{ fontSize: 12, color: token.textStrong }}>
-                  {msg}
-                </div>
+                <div style={{ fontSize: 12, color: token.textStrong }}>{msg}</div>
                 <div
                   style={{
                     fontSize: 11,
@@ -821,22 +736,9 @@ function Sequence() {
   );
 }
 
-function Spinner({
-  progress,
-  show,
-  hide,
-}: {
-  progress: MotionValue<number>;
-  show: number;
-  hide: number;
-}) {
+function Spinner({ progress, show, hide }: { progress: MotionValue<number>; show: number; hide: number }) {
   const fade = (hide - show) * 0.15;
-  const opacity = useTransform(
-    progress,
-    [show, show + fade, hide - fade, hide],
-    [0, 1, 1, 0],
-    { clamp: true },
-  );
+  const opacity = useTransform(progress, [show, show + fade, hide - fade, hide], [0, 1, 1, 0], { clamp: true });
   const rotate = useTransform(progress, [show, hide], [0, 720]);
   return (
     <motion.div

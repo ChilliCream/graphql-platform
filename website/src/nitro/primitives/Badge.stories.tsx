@@ -19,11 +19,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[560px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[560px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),
@@ -91,14 +87,7 @@ export const TagWithIcon: Story = {
     children: "v2.4.1",
     mono: true,
     icon: (
-      <svg
-        width={10}
-        height={10}
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke={token.textSecondary}
-        strokeWidth={1.4}
-      >
+      <svg width={10} height={10} viewBox="0 0 16 16" fill="none" stroke={token.textSecondary} strokeWidth={1.4}>
         <path d="M2.5 2.5h5l6 6-5 5-6-6z" />
         <circle cx="5" cy="5" r="1" fill={token.textSecondary} stroke="none" />
       </svg>

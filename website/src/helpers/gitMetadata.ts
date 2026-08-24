@@ -43,9 +43,7 @@ function loadManifest(): Record<string, Entry> {
  * manifest has no record of it. Used by callers (e.g. sitemap generation) that
  * want to fall back to filesystem mtime when git attribution is unavailable.
  */
-export async function getLastModifiedFromGit(
-  absoluteFilePath: string,
-): Promise<Date | undefined> {
+export async function getLastModifiedFromGit(absoluteFilePath: string): Promise<Date | undefined> {
   const manifest = loadManifest();
   const key = path.relative(WEBSITE_ROOT, absoluteFilePath);
   const entry = manifest[key];
@@ -56,9 +54,7 @@ export async function getLastModifiedFromGit(
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-export async function getGitMetadata(
-  absoluteFilePath: string,
-): Promise<GitMetadata> {
+export async function getGitMetadata(absoluteFilePath: string): Promise<GitMetadata> {
   const manifest = loadManifest();
   const key = path.relative(WEBSITE_ROOT, absoluteFilePath);
   const entry = manifest[key];

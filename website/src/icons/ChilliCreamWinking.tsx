@@ -10,13 +10,7 @@ type ChilliCreamWinkingProps = {
  */
 export function ChilliCreamWinking({ className }: ChilliCreamWinkingProps) {
   return (
-    <svg
-      id="logo"
-      viewBox="0 0 2000 2000"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-    >
+    <svg id="logo" viewBox="0 0 2000 2000" fill="currentColor" aria-hidden="true" className={className}>
       <path
         id="glasses"
         d="m 612.43331,842.49922 c 0,0 61.66627,-7.5 72.36627,-7.5

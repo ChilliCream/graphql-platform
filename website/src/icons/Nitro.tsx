@@ -11,12 +11,7 @@ interface NitroProps {
  */
 export function Nitro({ className, style }: NitroProps) {
   return (
-    <svg
-      viewBox="607 32 47 84"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="607 32 47 84" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="nitro-uuid-f9637a48-2070-43bd-9719-86fb0654a9d0"

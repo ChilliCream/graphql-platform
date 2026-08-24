@@ -84,8 +84,7 @@ GraphQL provides the `@cacheControl` directive for this purpose. You can place i
 type Query {
   productById(id: ID!): Product @cacheControl(maxAge: 300, sharedMaxAge: 900)
 
-  me: UserProfile
-    @cacheControl(maxAge: 60, scope: PRIVATE, vary: ["Authorization"])
+  me: UserProfile @cacheControl(maxAge: 60, scope: PRIVATE, vary: ["Authorization"])
 }
 ```
 

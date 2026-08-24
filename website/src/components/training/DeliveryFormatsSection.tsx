@@ -19,8 +19,7 @@ const FORMATS = [
     subtitle: "Live, distributed",
     description:
       "Live sessions over your call tool of choice, with shared notebooks, breakout rooms, and homework between days so timezones do not become a wall.",
-    bestFor:
-      "Best for distributed teams or when travel does not make business sense.",
+    bestFor: "Best for distributed teams or when travel does not make business sense.",
     Icon: RemoteIcon,
   },
   {

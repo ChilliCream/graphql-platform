@@ -37,9 +37,7 @@ const stories = Object.values(index.entries).filter(
 
 for (const story of stories) {
   test(story.id, async ({ page }) => {
-    await page.goto(
-      `/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=story`,
-    );
+    await page.goto(`/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=story`);
 
     // Storybook signals a fully rendered story with this class on the body.
     await page.locator("body.sb-show-main").waitFor();

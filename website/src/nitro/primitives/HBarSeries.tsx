@@ -64,9 +64,7 @@ export function HBarSeries({
   const label =
     ariaLabel ??
     `Top ${rows.length} clients by request volume: ${rows
-      .map(
-        (r) => `${r.label} ${compact(r.value)}, impact ${Math.round(r.impact)}`,
-      )
+      .map((r) => `${r.label} ${compact(r.value)}, impact ${Math.round(r.impact)}`)
       .join(", ")}`;
 
   return (

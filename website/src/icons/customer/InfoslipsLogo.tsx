@@ -7,13 +7,7 @@ interface InfoslipsLogoProps {
 
 export function InfoslipsLogo({ className, style }: InfoslipsLogoProps) {
   return (
-    <svg
-      viewBox="0 0 482.81 150.3"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 482.81 150.3" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <path
         d="M404,44a6.28,6.28,0,0,0-2-4.6,5.63,5.63,0,0,0-4.4-1.8,5.94,5.94,0,0,0-4.5,1.8,6.18,6.18,0,0,0-1.9,4.6,6.35,6.35,0,0,0,1.9,4.6,5.69,5.69,0,0,0,4,1.8h.5a5.89,5.89,0,0,0,4.4-1.8A6.45,6.45,0,0,0,404,44Z"
         transform="translate(-3.9 -5.25)"
@@ -30,10 +24,7 @@ export function InfoslipsLogo({ className, style }: InfoslipsLogoProps) {
         d="M419.9,59.15V56h-11v66h11V102.3a22.42,22.42,0,0,0,9.6,2.1c7.3-.1,13.1-2.2,17.2-6.4s6.2-10.1,6.2-17.9c0-16.7-7.6-25-22.7-25A14.27,14.27,0,0,0,419.9,59.15Zm18.2,8.7c2.1,2.3,3.2,6.3,3.2,11.8s-1.1,9.3-3.2,11.6c-2.2,2.5-5.9,3.7-11,3.7a12,12,0,0,1-7.2-2.4v-25a10.18,10.18,0,0,1,7.2-3.1c5,0,8.7,1.1,11,3.4Z"
         transform="translate(-3.9 -5.25)"
       />
-      <path
-        d="M403.1,56H385.7v9.1h6.1v38.4h11.3Z"
-        transform="translate(-3.9 -5.25)"
-      />
+      <path d="M403.1,56H385.7v9.1h6.1v38.4h11.3Z" transform="translate(-3.9 -5.25)" />
       <path d="M201.5,38.45H189.9v65h11.6Z" transform="translate(-3.9 -5.25)" />
       <path
         d="M271.2,48.15a6,6,0,0,1,5.1-2.7,16.15,16.15,0,0,1,5.7,1.2l3.3-8.5a32.42,32.42,0,0,0-9.6-1.8,15.53,15.53,0,0,0-12.4,5.4A21.39,21.39,0,0,0,258.2,56h-7v9.1h7v38.4h11V65.05h9.6V56H269V54.8A9.75,9.75,0,0,1,271.2,48.15Z"

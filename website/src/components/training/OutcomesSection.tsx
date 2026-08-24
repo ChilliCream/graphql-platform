@@ -58,12 +58,7 @@ export function OutcomesSection() {
       </div>
       <CardGrid cols={3} step="progressive" gap={4}>
         {OUTCOMES.map((outcome) => (
-          <IconFeatureCard
-            key={outcome.title}
-            icon={<outcome.Icon />}
-            title={outcome.title}
-            copy={outcome.copy}
-          />
+          <IconFeatureCard key={outcome.title} icon={<outcome.Icon />} title={outcome.title} copy={outcome.copy} />
         ))}
       </CardGrid>
     </section>

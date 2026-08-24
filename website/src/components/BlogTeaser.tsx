@@ -42,17 +42,13 @@ export function BlogTeaser({ post }: BlogTeaserProps) {
                 {post.category}
               </span>
             ) : null}
-            <time dateTime={post.date}>
-              {formatDate(post.date, { month: "short", year: "numeric" })}
-            </time>
+            <time dateTime={post.date}>{formatDate(post.date, { month: "short", year: "numeric" })}</time>
           </div>
           <h3 className="text-cc-heading m-0 mt-5 mb-3 text-xl leading-tight font-medium tracking-[-0.015em]">
             {post.title}
           </h3>
           {post.description ? (
-            <p className="text-cc-ink-dim m-0 mb-6 line-clamp-3 text-sm leading-[1.55]">
-              {post.description}
-            </p>
+            <p className="text-cc-ink-dim m-0 mb-6 line-clamp-3 text-sm leading-[1.55]">{post.description}</p>
           ) : null}
           <span className="text-cc-ink group-hover/teaser:text-cc-accent mt-auto inline-flex items-center gap-1.5 text-xs tracking-[0.18em] uppercase transition-colors">
             Read

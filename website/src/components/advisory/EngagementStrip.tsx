@@ -8,22 +8,14 @@ const ENGAGEMENT_STEPS = [
     title: "Introductory call",
     description:
       "A working call. You walk us through the system, the goal, and the constraints. We ask the hard questions and tell you whether we are the right fit.",
-    bullets: [
-      "Senior engineer, no sales handoff",
-      "Mutual NDA available on request",
-      "Written recap with next steps",
-    ],
+    bullets: ["Senior engineer, no sales handoff", "Mutual NDA available on request", "Written recap with next steps"],
   },
   {
     index: "02",
     title: "Proposal",
     description:
       "A written proposal that matches your need: a package of hours for consulting, or a scoped statement of work for contracting with deliverables, milestones, and a target timeline.",
-    bullets: [
-      "Hour package or fixed scope",
-      "Clear deliverables and milestones",
-      "Written, scoped, and signable",
-    ],
+    bullets: ["Hour package or fixed scope", "Clear deliverables and milestones", "Written, scoped, and signable"],
   },
   {
     index: "03",

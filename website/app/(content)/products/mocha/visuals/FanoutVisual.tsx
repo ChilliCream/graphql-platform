@@ -13,16 +13,7 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import {
-  AMBER,
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-  SLATE,
-} from "@/src/components/mocha/palette";
+import { AMBER, CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY, SLATE } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
@@ -143,9 +134,7 @@ function buildLayout(lw: number): Layout {
       [PUB.x + PUB.w, MID_Y],
       [EX_X, MID_Y],
     ]),
-    branches: branchPts.map((pts, r) =>
-      measure([...pts.slice(0, -1), [entry, ROW_Y[r]]]),
-    ),
+    branches: branchPts.map((pts, r) => measure([...pts.slice(0, -1), [entry, ROW_Y[r]]])),
     branchD: branchPts.map(laneD),
   };
 }
@@ -249,20 +238,14 @@ export function FanoutVisual() {
         const color = mixColor(SLATE, CYAN, f);
         if (base) {
           base.setAttribute("stroke", color);
-          base.setAttribute(
-            "stroke-opacity",
-            ((0.3 + 0.5 * f) * (1 - 0.55 * off)).toFixed(3),
-          );
+          base.setAttribute("stroke-opacity", ((0.3 + 0.5 * f) * (1 - 0.55 * off)).toFixed(3));
         }
         if (glow) {
           glow.setAttribute("opacity", (0.22 * f).toFixed(3));
         }
         if (name) {
           name.setAttribute("fill", color);
-          name.setAttribute(
-            "fill-opacity",
-            ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3),
-          );
+          name.setAttribute("fill-opacity", ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3));
         }
       };
 
@@ -283,23 +266,13 @@ export function FanoutVisual() {
           const local = t - PUBS[ai];
           glow = 0.1 + 0.16 * clamp01(1 - local / 340);
           if (local < TRUNK_MS) {
-            placePulse(
-              "tk",
-              L.trunk,
-              local / TRUNK_MS,
-              Math.min(local / 110, 1),
-            );
+            placePulse("tk", L.trunk, local / TRUNK_MS, Math.min(local / 110, 1));
           } else {
             placePulse("tk", L.trunk, 1, 0);
           }
           const bu = (local - TRUNK_MS) / BRANCH_MS;
           for (let r = 0; r < 3; r++) {
-            placePulse(
-              `bp${r}`,
-              L.branches[r],
-              clamp01(bu),
-              bu >= 0 && bu < 1 ? 1 : 0,
-            );
+            placePulse(`bp${r}`, L.branches[r], clamp01(bu), bu >= 0 && bu < 1 ? 1 : 0);
           }
           exS = (local - TRUNK_MS) / 590;
         } else {
@@ -333,9 +306,7 @@ export function FanoutVisual() {
           setRing(`ar${r}`, aS, 2, 8);
         }
 
-        const off =
-          ramp(t, OFF_START, OFF_START + 350) *
-          (1 - ramp(t, OFF_END, OFF_END + 350));
+        const off = ramp(t, OFF_START, OFF_START + 350) * (1 - ramp(t, OFF_END, OFF_END + 350));
 
         for (let r = 0; r < 3; r++) {
           const cons = CONSUMES[r];
@@ -366,14 +337,10 @@ export function FanoutVisual() {
                 x = L.entry + (target - L.entry) * u;
                 op = 0.95;
               } else {
-                const start =
-                  L.entry +
-                  (L.front - L.entry) *
-                    easeOutCubic(clamp01((c - a) / ENTRY_MS));
+                const start = L.entry + (L.front - L.entry) * easeOutCubic(clamp01((c - a) / ENTRY_MS));
                 const u = easeInOutCubic(clamp01((t - c) / CONSUME_MS));
                 x = start + (L.chipEnter - start) * u;
-                op =
-                  0.95 * (1 - ramp(t, c + CONSUME_MS * 0.72, c + CONSUME_MS));
+                op = 0.95 * (1 - ramp(t, c + CONSUME_MS * 0.72, c + CONSUME_MS));
               }
             }
             if (op <= 0.01) {
@@ -410,8 +377,7 @@ export function FanoutVisual() {
           setRing(`cr${r}`, re / 700, 3, 11);
         }
 
-        const bucket =
-          t >= CAUGHT_UP ? 3 : t >= OFF_END ? 2 : t >= OFF_START ? 1 : 0;
+        const bucket = t >= CAUGHT_UP ? 3 : t >= OFF_END ? 2 : t >= OFF_START ? 1 : 0;
         if (bucket !== tagCache) {
           tagCache = bucket;
           const el = E.get("ntag");
@@ -432,13 +398,7 @@ export function FanoutVisual() {
     <g key={p} ref={set(p)} opacity={0}>
       <circle ref={set(p + "t2")} r={1.6} fill={CORAL} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={CORAL} opacity={0} />
-      <circle
-        ref={set(p + "glow")}
-        r={6}
-        fill={CORAL}
-        opacity={0.2}
-        filter="url(#fanout-soft)"
-      />
+      <circle ref={set(p + "glow")} r={6} fill={CORAL} opacity={0.2} filter="url(#fanout-soft)" />
       <circle ref={set(p + "core")} r={2.5} fill={CORAL} />
       <circle ref={set(p + "in")} r={1.1} fill={CORAL_SOFT} />
     </g>
@@ -455,49 +415,21 @@ export function FanoutVisual() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
-            <filter
-              id="fanout-soft"
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
+            <filter id="fanout-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="fanout-pcb-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="fanout-pcb-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
           <rect width={lw} height={H} fill="url(#fanout-pcb-grid)" />
 
-          <path
-            d={laneD(L.trunk.pts)}
-            fill="none"
-            stroke="rgba(139,160,188,0.4)"
-            strokeWidth={1.5}
-          />
+          <path d={laneD(L.trunk.pts)} fill="none" stroke="rgba(139,160,188,0.4)" strokeWidth={1.5} />
           {L.branchD.map((d) => (
-            <path
-              key={d}
-              d={d}
-              fill="none"
-              stroke="rgba(139,160,188,0.4)"
-              strokeWidth={1.5}
-              strokeLinejoin="round"
-            />
+            <path key={d} d={d} fill="none" stroke="rgba(139,160,188,0.4)" strokeWidth={1.5} strokeLinejoin="round" />
           ))}
           {ROW_Y.map((y) => (
             <path
@@ -510,25 +442,10 @@ export function FanoutVisual() {
           ))}
 
           {ROW_Y.map((y) => (
-            <circle
-              key={y}
-              cx={L.slotR}
-              cy={y}
-              r={2.5}
-              fill={NAVY}
-              stroke={VIA_STROKE}
-              strokeWidth={1}
-            />
+            <circle key={y} cx={L.slotR} cy={y} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
           ))}
 
-          <circle
-            cx={EX_X}
-            cy={MID_Y}
-            r={2.5}
-            fill={NAVY}
-            stroke={VIA_STROKE}
-            strokeWidth={1}
-          />
+          <circle cx={EX_X} cy={MID_Y} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
           <text
             x={EX_X}
             y={MID_Y + 17}
@@ -627,14 +544,7 @@ export function FanoutVisual() {
             />
             <circle cx={PUB.x + 4.5} cy={PUB.y + 4.5} r={1.2} fill={SILK} />
             {[-5, 0, 5].map((dy) => (
-              <rect
-                key={dy}
-                x={PUB.x + PUB.w - 1}
-                y={MID_Y + dy - 1.75}
-                width={2}
-                height={3.5}
-                fill={PAD_FILL}
-              />
+              <rect key={dy} x={PUB.x + PUB.w - 1} y={MID_Y + dy - 1.75} width={2} height={3.5} fill={PAD_FILL} />
             ))}
             <text
               x={PUB.x + PUB.w / 2}
@@ -658,13 +568,7 @@ export function FanoutVisual() {
             >
               publisher
             </text>
-            <circle
-              cx={PUB.x + PUB.w - 10}
-              cy={PUB.y + 10}
-              r={2}
-              fill={SILK}
-              opacity={0.25}
-            />
+            <circle cx={PUB.x + PUB.w - 10} cy={PUB.y + 10} r={2} fill={SILK} opacity={0.25} />
             <circle
               ref={set("pubH")}
               cx={PUB.x + PUB.w - 10}
@@ -676,14 +580,7 @@ export function FanoutVisual() {
               filter="url(#fanout-soft)"
               opacity={0}
             />
-            <circle
-              ref={set("pubL")}
-              cx={PUB.x + PUB.w - 10}
-              cy={PUB.y + 10}
-              r={2}
-              fill={CORAL}
-              opacity={0}
-            />
+            <circle ref={set("pubL")} cx={PUB.x + PUB.w - 10} cy={PUB.y + 10} r={2} fill={CORAL} opacity={0} />
           </g>
 
           {SUBSCRIBERS.map((s, r) => {
@@ -717,19 +614,8 @@ export function FanoutVisual() {
                   strokeOpacity={0.3 + 0.5 * lit}
                   strokeWidth={1}
                 />
-                <circle
-                  cx={L.chipX + 4.5}
-                  cy={y - CHIP_H / 2 + 4.5}
-                  r={1.2}
-                  fill={SILK}
-                />
-                <rect
-                  x={L.chipX - 1}
-                  y={y - 1.75}
-                  width={2}
-                  height={3.5}
-                  fill={PAD_FILL}
-                />
+                <circle cx={L.chipX + 4.5} cy={y - CHIP_H / 2 + 4.5} r={1.2} fill={SILK} />
+                <rect x={L.chipX - 1} y={y - 1.75} width={2} height={3.5} fill={PAD_FILL} />
                 <text
                   ref={set(`c${r}n`)}
                   x={L.chipX + CHIP_W / 2}
@@ -743,13 +629,7 @@ export function FanoutVisual() {
                 >
                   {s.name}
                 </text>
-                <circle
-                  cx={L.chipX + CHIP_W - 8}
-                  cy={y - CHIP_H / 2 + 7}
-                  r={2}
-                  fill={SILK}
-                  opacity={0.25}
-                />
+                <circle cx={L.chipX + CHIP_W - 8} cy={y - CHIP_H / 2 + 7} r={2} fill={SILK} opacity={0.25} />
                 <circle
                   ref={set(`ph${r}`)}
                   cx={L.chipX + CHIP_W - 8}

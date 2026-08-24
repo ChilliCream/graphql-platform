@@ -54,9 +54,7 @@ function DiffRow({ line }: DiffRowProps) {
       <span className="border-cc-card-border text-cc-ink-dim w-9 shrink-0 border-r py-1 pr-2 text-right font-mono text-[0.66rem] select-none">
         {line.nw ?? ""}
       </span>
-      <span
-        className={`w-5 shrink-0 py-1 pl-2 font-mono text-[0.78rem] select-none ${gutterColor(line.sign)}`}
-      >
+      <span className={`w-5 shrink-0 py-1 pl-2 font-mono text-[0.78rem] select-none ${gutterColor(line.sign)}`}>
         {line.sign}
       </span>
       <span className="text-cc-prose min-w-0 flex-1 py-1 pr-3 font-mono text-[0.78rem] leading-relaxed whitespace-pre">
@@ -173,26 +171,17 @@ function PinnedThread() {
           <span className="bg-cc-danger/15 text-cc-danger flex h-5 w-5 items-center justify-center rounded-full font-mono text-[0.6rem] font-semibold">
             R
           </span>
-          <span className="text-cc-heading text-[0.78rem] font-medium">
-            Registry
-          </span>
+          <span className="text-cc-heading text-[0.78rem] font-medium">Registry</span>
           <StatusChip status="breaking" />
-          <span className="text-cc-ink-dim ml-auto font-mono text-[0.62rem]">
-            line 43
-          </span>
+          <span className="text-cc-ink-dim ml-auto font-mono text-[0.62rem]">line 43</span>
         </div>
         <p className="text-cc-ink-dim mt-2 text-[0.78rem] leading-relaxed">
-          Removing{" "}
-          <code className="bg-cc-hover text-cc-prose rounded px-1 font-mono text-[0.72rem]">
-            Order.total
-          </code>{" "}
+          Removing <code className="bg-cc-hover text-cc-prose rounded px-1 font-mono text-[0.72rem]">Order.total</code>{" "}
           breaks queries that still select it.{" "}
           <span className="text-cc-prose">
-            Queries and mutations from 3 client versions published to this stage
-            are affected.
+            Queries and mutations from 3 client versions published to this stage are affected.
           </span>{" "}
-          Deprecate it, then remove it after those versions are retired or
-          unpublished from the stage.
+          Deprecate it, then remove it after those versions are retired or unpublished from the stage.
         </p>
       </div>
     </div>
@@ -209,9 +198,7 @@ function HeroDiffMock() {
             <span className="bg-cc-danger h-2 w-2 rounded-full" />
             registry check failed
           </span>
-          <span className="text-cc-ink-dim font-mono text-[0.66rem]">
-            1 breaking · 1 dangerous · 1 safe
-          </span>
+          <span className="text-cc-ink-dim font-mono text-[0.66rem]">1 breaking · 1 dangerous · 1 safe</span>
         </div>
       }
     >
@@ -250,18 +237,12 @@ export function HeroSection() {
             with confidence.
           </h1>
           <p className="text-body text-cc-prose mt-5 max-w-xl leading-relaxed">
-            Nitro&apos;s schema checks test a proposed change against the
-            operations your clients rely on in production. Breaking change
-            detection shows what would break, so you can fix it before it
-            reaches users.
+            Nitro&apos;s schema checks test a proposed change against the operations your clients rely on in production.
+            Breaking change detection shows what would break, so you can fix it before it reaches users.
           </p>
           <ButtonRow align="start" className="mt-9">
-            <SolidButton href="https://nitro.chillicream.com">
-              Start for free
-            </SolidButton>
-            <OutlineButton href="/docs/nitro/apis/client-registry">
-              Read client registry docs
-            </OutlineButton>
+            <SolidButton href="https://nitro.chillicream.com">Start for free</SolidButton>
+            <OutlineButton href="/docs/nitro/apis/client-registry">Read client registry docs</OutlineButton>
           </ButtonRow>
         </div>
         <div className="relative min-w-0">
@@ -269,8 +250,7 @@ export function HeroSection() {
             aria-hidden
             className="absolute -inset-6 -z-10 rounded-3xl opacity-60 blur-2xl"
             style={{
-              background:
-                "radial-gradient(60% 60% at 70% 20%, rgba(124,146,198,0.18), transparent 70%)",
+              background: "radial-gradient(60% 60% at 70% 20%, rgba(124,146,198,0.18), transparent 70%)",
             }}
           />
           <HeroDiffMock />

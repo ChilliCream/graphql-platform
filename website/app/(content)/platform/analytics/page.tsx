@@ -53,10 +53,7 @@ const BREADCRUMB_DATA = {
 export default function AnalyticsPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_DATA) }} />
       <Hero />
       <FullOtelBand />
       <ThreeQuestions />

@@ -31,8 +31,7 @@ const KIND_ICON: Record<SpanKindWf, string> = {
   internal: "⚙",
 };
 
-const fmtDur = (d: number) =>
-  d >= 1 ? `${d.toFixed(1)} ms` : `${Math.round(d * 1000)} µs`;
+const fmtDur = (d: number) => (d >= 1 ? `${d.toFixed(1)} ms` : `${Math.round(d * 1000)} µs`);
 
 const niceStep = (raw: number) => {
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -63,17 +62,10 @@ export function TraceWaterfall({
     ticks.push(tk);
   }
   const n = trace.spans.length;
-  const label =
-    ariaLabel ?? `Trace waterfall: ${n} spans over ${fmtDur(total)}`;
+  const label = ariaLabel ?? `Trace waterfall: ${n} spans over ${fmtDur(total)}`;
 
   return (
-    <ChartCanvas
-      ref={ref}
-      sizing="fill-width"
-      className={className}
-      style={style}
-      label={label}
-    >
+    <ChartCanvas ref={ref} sizing="fill-width" className={className} style={style} label={label}>
       <div style={{ position: "relative", height: 16, marginBottom: 4 }}>
         {ticks.map((tk) => (
           <span
@@ -121,14 +113,7 @@ export function TraceWaterfall({
           />
         ))}
         {trace.spans.map((s, i) => (
-          <Span
-            key={s.id}
-            span={s}
-            total={total}
-            rowHeight={rowHeight}
-            frac={i / Math.max(1, n - 1)}
-            t={t}
-          />
+          <Span key={s.id} span={s} total={total} rowHeight={rowHeight} frac={i / Math.max(1, n - 1)} t={t} />
         ))}
       </div>
     </ChartCanvas>
@@ -178,9 +163,7 @@ function Span({
       <motion.div
         style={{
           position: "absolute",
-          ...(left > 62
-            ? { right: `${Math.max(0, 100 - left - width)}%` }
-            : { left: `${left}%` }),
+          ...(left > 62 ? { right: `${Math.max(0, 100 - left - width)}%` } : { left: `${left}%` }),
           top: 16,
           fontSize: 11,
           color: token.text,
@@ -193,9 +176,7 @@ function Span({
       >
         <span style={{ color }}>{KIND_ICON[span.kind]}</span>
         <span style={{ color: token.textStrong }}>{span.name}</span>
-        <span style={{ color: token.textSecondary, fontFamily: token.mono }}>
-          {fmtDur(span.durationMs)}
-        </span>
+        <span style={{ color: token.textSecondary, fontFamily: token.mono }}>{fmtDur(span.durationMs)}</span>
       </motion.div>
     </div>
   );

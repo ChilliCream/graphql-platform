@@ -17,13 +17,7 @@ interface GateNodeProps {
   readonly tone: "passed" | "future";
 }
 
-function GateNode({
-  label,
-  state,
-  stateClassName = "",
-  icon,
-  tone,
-}: GateNodeProps) {
+function GateNode({ label, state, stateClassName = "", icon, tone }: GateNodeProps) {
   const tones = {
     passed: "border-cc-success/40 bg-cc-success/[0.06] text-cc-success",
     future: "border-cc-card-border bg-cc-hover/40 text-cc-ink-dim opacity-70",
@@ -31,18 +25,10 @@ function GateNode({
   return (
     <div className={`flex-1 rounded-lg border ${tones[tone]} px-4 py-4`}>
       <div className="flex items-center gap-2 font-mono text-[0.85rem] font-semibold">
-        {icon !== undefined && (
-          <span className="flex h-4 w-4 items-center justify-center">
-            {icon}
-          </span>
-        )}
+        {icon !== undefined && <span className="flex h-4 w-4 items-center justify-center">{icon}</span>}
         {label}
       </div>
-      <div
-        className={`text-cc-ink-dim mt-0.5 font-mono text-[0.64rem] ${stateClassName}`}
-      >
-        {state}
-      </div>
+      <div className={`text-cc-ink-dim mt-0.5 font-mono text-[0.64rem] ${stateClassName}`}>{state}</div>
     </div>
   );
 }
@@ -73,17 +59,11 @@ function StagingGateNode() {
       >
         <div className="flex items-center gap-2 font-mono text-[0.85rem] font-semibold">
           <span className="flex h-4 w-4 items-center justify-center">
-            <SpinnerGlyph
-              width={12}
-              height={12}
-              className="animate-spin motion-reduce:animate-none"
-            />
+            <SpinnerGlyph width={12} height={12} className="animate-spin motion-reduce:animate-none" />
           </span>
           Staging
         </div>
-        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">
-          Validating
-        </div>
+        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">Validating</div>
       </div>
       <div className="border-cc-danger/40 bg-cc-danger/[0.06] text-cc-danger absolute inset-0 rounded-lg border px-4 py-4 opacity-0 motion-safe:animate-[staging-failed_6s_ease-in-out_infinite] motion-reduce:opacity-100">
         <div className="flex items-center gap-2 font-mono text-[0.85rem] font-semibold">
@@ -92,9 +72,7 @@ function StagingGateNode() {
           </span>
           Staging
         </div>
-        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">
-          Failed
-        </div>
+        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.64rem]">Failed</div>
       </div>
     </div>
   );
@@ -121,21 +99,11 @@ function GateSchematic() {
         }
       `}</style>
       <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-        <GateNode
-          label="Development"
-          state="Passed"
-          icon={<CheckIcon size={14} />}
-          tone="passed"
-        />
+        <GateNode label="Development" state="Passed" icon={<CheckIcon size={14} />} tone="passed" />
         <Connector />
         <StagingGateNode />
         <Connector muted />
-        <GateNode
-          label="Production"
-          state="Future"
-          stateClassName="invisible"
-          tone="future"
-        />
+        <GateNode label="Production" state="Future" stateClassName="invisible" tone="future" />
       </div>
     </div>
   );

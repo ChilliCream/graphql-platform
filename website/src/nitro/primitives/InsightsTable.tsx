@@ -69,9 +69,7 @@ export function InsightsTable({
   const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const span = Math.max(0.001, 1 - Math.max(0, rows.length - 1) * rowStagger);
-  const label =
-    ariaLabel ??
-    `Top ${rows.length} operations by impact, with latency and error rate`;
+  const label = ariaLabel ?? `Top ${rows.length} operations by impact, with latency and error rate`;
 
   return (
     <div
@@ -159,14 +157,7 @@ interface RowProps {
   readonly once?: boolean;
 }
 
-function Row({
-  row,
-  t,
-  progress,
-  window: [w0, w1],
-  errorThreshold,
-  once,
-}: RowProps) {
+function Row({ row, t, progress, window: [w0, w1], errorThreshold, once }: RowProps) {
   const reveal = useTransform(t, [w0, w1], [0, 1], {
     ease: ease.out,
     clamp: true,
@@ -182,9 +173,7 @@ function Row({
   return (
     <motion.tr style={{ opacity, y }}>
       <td style={CELL}>
-        <div
-          style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span aria-label={SPAN_LABEL[row.spanKind]}>
             <Badge
               square
@@ -219,9 +208,7 @@ function Row({
         <span style={{ color: token.textSecondary }}>/m</span>
       </td>
 
-      <td style={{ ...NUM, color: isHot ? token.errorText : token.textStrong }}>
-        {(row.errorRate * 100).toFixed(1)}%
-      </td>
+      <td style={{ ...NUM, color: isHot ? token.errorText : token.textStrong }}>{(row.errorRate * 100).toFixed(1)}%</td>
 
       <td style={CELL}>
         <div style={{ height: 22, width: "100%" }}>

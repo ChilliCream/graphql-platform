@@ -42,9 +42,7 @@ function LegendDot({ status, label }: LegendDotProps) {
   return (
     <span className="flex items-center gap-2">
       <StatusDot status={status} pulse={status !== "healthy"} />
-      <span className="text-cc-ink-dim font-mono text-[0.66rem] tracking-wide">
-        {label}
-      </span>
+      <span className="text-cc-ink-dim font-mono text-[0.66rem] tracking-wide">{label}</span>
     </span>
   );
 }
@@ -105,9 +103,7 @@ const CHECKOUT_TRACE: Trace = {
   ],
 };
 
-const SPIKE_POINTS = [
-  18, 21, 19, 24, 22, 26, 23, 28, 31, 27, 34, 30, 41, 52, 71, 96, 102, 88,
-];
+const SPIKE_POINTS = [18, 21, 19, 24, 22, 26, 23, 28, 31, 27, 34, 30, 41, 52, 71, 96, 102, 88];
 
 interface MiniMetricProps {
   readonly label: string;
@@ -118,9 +114,7 @@ interface MiniMetricProps {
 function MiniMetric({ label, value, tone }: MiniMetricProps) {
   return (
     <div>
-      <p className="text-cc-ink-dim font-mono text-[0.56rem] tracking-[0.1em] uppercase">
-        {label}
-      </p>
+      <p className="text-cc-ink-dim font-mono text-[0.56rem] tracking-[0.1em] uppercase">{label}</p>
       <p
         className="text-cc-heading mt-0.5 font-mono text-sm font-semibold tabular-nums"
         style={tone ? { color: tone } : undefined}
@@ -162,47 +156,25 @@ function IncidentArtifact() {
         <div className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">
-                operation
-              </p>
-              <p className="text-cc-heading mt-0.5 font-mono text-sm">
-                mutation checkout
-              </p>
+              <p className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">operation</p>
+              <p className="text-cc-heading mt-0.5 font-mono text-sm">mutation checkout</p>
             </div>
             <div className="text-right">
-              <p className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">
-                p99
-              </p>
-              <p
-                className="mt-0.5 font-mono text-lg font-semibold tabular-nums"
-                style={{ color: CORAL }}
-              >
+              <p className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.12em] uppercase">p99</p>
+              <p className="mt-0.5 font-mono text-lg font-semibold tabular-nums" style={{ color: CORAL }}>
                 318ms
-                <span className="ml-1 align-middle text-[0.58rem] font-normal">
-                  ▲ 7.6×
-                </span>
+                <span className="ml-1 align-middle text-[0.58rem] font-normal">▲ 7.6×</span>
               </p>
             </div>
           </div>
           <div className="relative mt-4">
-            <AreaChart
-              points={SPIKE_POINTS}
-              stroke={CORAL}
-              fill={CORAL}
-              id="hero-spike"
-            />
-            <span className="text-cc-ink-dim absolute top-0 left-0 font-mono text-[0.56rem]">
-              latency / 5m
-            </span>
+            <AreaChart points={SPIKE_POINTS} stroke={CORAL} fill={CORAL} id="hero-spike" />
+            <span className="text-cc-ink-dim absolute top-0 left-0 font-mono text-[0.56rem]">latency / 5m</span>
           </div>
           <div className="border-cc-card-border mt-4 grid grid-cols-3 gap-3 border-t pt-3">
             <MiniMetric label="p95" value="42ms" />
             <MiniMetric label="throughput" value="1.2k/m" />
-            <MiniMetric
-              label="errors"
-              value="0.3%"
-              tone="var(--color-cc-warning)"
-            />
+            <MiniMetric label="errors" value="0.3%" tone="var(--color-cc-warning)" />
           </div>
         </div>
       </MockWindowChrome>
@@ -217,18 +189,13 @@ function IncidentArtifact() {
             </span>
           ),
         }}
-        headerRight={
-          <span className="text-cc-ink-dim font-mono text-[0.6rem] tabular-nums">
-            {TRACE_ID} · 318ms
-          </span>
-        }
+        headerRight={<span className="text-cc-ink-dim font-mono text-[0.6rem] tabular-nums">{TRACE_ID} · 318ms</span>}
         headerClassName="flex items-center justify-between px-5 py-2.5"
         footer={
           <>
             <StatusDot status="error" />
             <span className="text-cc-ink-dim font-mono text-[0.6rem]">
-              <span style={{ color: CORAL }}>204ms</span> of this 318ms request
-              were spent in the billing service.
+              <span style={{ color: CORAL }}>204ms</span> of this 318ms request were spent in the billing service.
             </span>
           </>
         }
@@ -239,12 +206,7 @@ function IncidentArtifact() {
       >
         <div className="px-5 pt-4 pb-2">
           <NitroFrame>
-            <TraceWaterfall
-              trace={CHECKOUT_TRACE}
-              rowHeight={30}
-              durationMs={4500}
-              once
-            />
+            <TraceWaterfall trace={CHECKOUT_TRACE} rowHeight={30} durationMs={4500} once />
           </NitroFrame>
         </div>
       </MockWindowChrome>
@@ -261,17 +223,12 @@ export function Hero() {
             See what the <span style={{ color: TEAL }}>API</span> is doing.
           </h1>
           <p className="text-cc-prose font-body text-lead mt-6 max-w-xl font-normal">
-            Track latency, errors, and throughput for the operations your
-            services report. When something slows down, open the related traces
-            and inspect which calls took the time.
+            Track latency, errors, and throughput for the operations your services report. When something slows down,
+            open the related traces and inspect which calls took the time.
           </p>
           <ButtonRow align="start" className="mt-9">
-            <SolidButton href="https://nitro.chillicream.com">
-              Start for Free
-            </SolidButton>
-            <OutlineButton href="/docs/nitro/open-telemetry/operation-monitoring">
-              Read the Docs
-            </OutlineButton>
+            <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
+            <OutlineButton href="/docs/nitro/open-telemetry/operation-monitoring">Read the Docs</OutlineButton>
           </ButtonRow>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">

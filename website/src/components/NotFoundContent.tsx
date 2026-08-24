@@ -26,15 +26,10 @@ export function NotFoundContent({ secondary = null }: NotFoundContentProps) {
         [illustration here]
       </div>
 
-      <p className="text-cc-ink-dim mt-8 font-mono text-sm font-semibold tracking-[0.3em] uppercase">
-        Error 404
-      </p>
-      <h1 className="text-cc-ink mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-        Well, that&apos;s a spill.
-      </h1>
+      <p className="text-cc-ink-dim mt-8 font-mono text-sm font-semibold tracking-[0.3em] uppercase">Error 404</p>
+      <h1 className="text-cc-ink mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Well, that&apos;s a spill.</h1>
       <p className="text-cc-ink-dim mt-4 max-w-md text-base leading-7">
-        We knocked this page over and the drink went everywhere. Whatever you
-        were looking for isn&apos;t here anymore.
+        We knocked this page over and the drink went everywhere. Whatever you were looking for isn&apos;t here anymore.
       </p>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

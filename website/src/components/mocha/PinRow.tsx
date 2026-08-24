@@ -16,23 +16,9 @@ export function PinRow({ pin }: PinRowProps) {
     <g>
       {[-1, 0, 1].map((i) =>
         side === "left" || side === "right" ? (
-          <rect
-            key={i}
-            x={side === "left" ? x - 3.5 : x}
-            y={y + i * 5 - 1}
-            width={3.5}
-            height={2}
-            fill={PAD_FILL}
-          />
+          <rect key={i} x={side === "left" ? x - 3.5 : x} y={y + i * 5 - 1} width={3.5} height={2} fill={PAD_FILL} />
         ) : (
-          <rect
-            key={i}
-            x={x + i * 5 - 1}
-            y={side === "top" ? y - 3.5 : y}
-            width={2}
-            height={3.5}
-            fill={PAD_FILL}
-          />
+          <rect key={i} x={x + i * 5 - 1} y={side === "top" ? y - 3.5 : y} width={2} height={3.5} fill={PAD_FILL} />
         ),
       )}
     </g>

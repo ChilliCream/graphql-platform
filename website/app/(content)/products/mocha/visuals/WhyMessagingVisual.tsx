@@ -13,14 +13,7 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import {
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-} from "@/src/components/mocha/palette";
+import { CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -352,8 +345,7 @@ export function WhyMessagingVisual() {
             "rq",
             L.req,
             easeInOutCubic(ramp(t, REQ_DEP, REQ_ARR)),
-            Math.min((t - REQ_DEP) / 150, 1) *
-              (1 - ramp(t, REQ_ARR - 120, REQ_ARR)),
+            Math.min((t - REQ_DEP) / 150, 1) * (1 - ramp(t, REQ_ARR - 120, REQ_ARR)),
           );
         } else {
           placePulse("rq", L.req, 0, 0);
@@ -364,8 +356,7 @@ export function WhyMessagingVisual() {
             "rs",
             L.res,
             easeInOutCubic(ramp(t, RES_DEP, RES_ARR)),
-            Math.min((t - RES_DEP) / 150, 1) *
-              (1 - ramp(t, RES_ARR - 120, RES_ARR)),
+            Math.min((t - RES_DEP) / 150, 1) * (1 - ramp(t, RES_ARR - 120, RES_ARR)),
           );
         } else {
           placePulse("rs", L.res, 0, 0);
@@ -422,10 +413,7 @@ export function WhyMessagingVisual() {
               litA = Math.max(litA, 1 - Math.abs(px - L.c1[0]) / 46);
               litB = Math.max(litB, 1 - Math.abs(px - L.c1b[0]) / 40);
             } else if (i === 1) {
-              litC = Math.max(
-                litC,
-                1 - Math.hypot(px - L.c3[0], py - L.c3[1]) / 46,
-              );
+              litC = Math.max(litC, 1 - Math.hypot(px - L.c3[0], py - L.c3[1]) / 46);
             }
           }
 
@@ -464,13 +452,7 @@ export function WhyMessagingVisual() {
     <g key={p} ref={set(p)} opacity={0}>
       <circle ref={set(p + "t2")} r={1.6} fill={color} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={color} opacity={0} />
-      <circle
-        ref={set(p + "glow")}
-        r={6}
-        fill={color}
-        opacity={0.2}
-        filter="url(#whym-soft)"
-      />
+      <circle ref={set(p + "glow")} r={6} fill={color} opacity={0.2} filter="url(#whym-soft)" />
       <circle ref={set(p + "core")} r={2.5} fill={color} />
       <circle ref={set(p + "in")} r={1.1} fill={inner} />
     </g>
@@ -487,50 +469,23 @@ export function WhyMessagingVisual() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
             <filter id="whym-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="whym-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="whym-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
           <rect x={0} y={0} width={lw} height={H} fill="url(#whym-grid)" />
 
-          <path
-            d={`M${L.gwR} ${REQ_Y} H${L.ox}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
-          <path
-            d={`M${L.gwR} ${RES_Y} H${L.ox}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
+          <path d={`M${L.gwR} ${REQ_Y} H${L.ox}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
+          <path d={`M${L.gwR} ${RES_Y} H${L.ox}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
 
           {L.flows.map((f, i) => (
-            <path
-              key={`lane${i}`}
-              d={f.d}
-              fill="none"
-              stroke={LANE_STROKE}
-              strokeWidth={1.5}
-              strokeLinejoin="round"
-            />
+            <path key={`lane${i}`} d={f.d} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
           ))}
 
           <path
@@ -570,22 +525,8 @@ export function WhyMessagingVisual() {
             />
           ))}
 
-          <circle
-            cx={L.c1[0]}
-            cy={L.c1[1]}
-            r={2.5}
-            fill={NAVY}
-            stroke={VIA_STROKE}
-            strokeWidth={1.2}
-          />
-          <circle
-            cx={L.c1b[0]}
-            cy={L.c1b[1]}
-            r={2.5}
-            fill={NAVY}
-            stroke={VIA_STROKE}
-            strokeWidth={1.2}
-          />
+          <circle cx={L.c1[0]} cy={L.c1[1]} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1.2} />
+          <circle cx={L.c1b[0]} cy={L.c1b[1]} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1.2} />
           <circle
             ref={set("c1g")}
             cx={L.c1[0]}
@@ -607,14 +548,7 @@ export function WhyMessagingVisual() {
             opacity={0}
           />
 
-          <circle
-            cx={L.c3[0]}
-            cy={L.c3[1]}
-            r={2.5}
-            fill={NAVY}
-            stroke={VIA_STROKE}
-            strokeWidth={1.2}
-          />
+          <circle cx={L.c3[0]} cy={L.c3[1]} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1.2} />
           <circle
             ref={set("c3g")}
             cx={L.c3[0]}
@@ -645,20 +579,8 @@ export function WhyMessagingVisual() {
               <circle cx={p.x + 6} cy={p.y + 6} r={1.2} fill={SILK} />
               {i % 2 === 0 ? (
                 <g>
-                  <rect
-                    x={p.x + p.w - 30}
-                    y={p.y + p.h - 17}
-                    width={8}
-                    height={3}
-                    fill="rgba(154,172,200,0.12)"
-                  />
-                  <rect
-                    x={p.x + p.w - 30}
-                    y={p.y + p.h - 11}
-                    width={8}
-                    height={3}
-                    fill="rgba(154,172,200,0.12)"
-                  />
+                  <rect x={p.x + p.w - 30} y={p.y + p.h - 17} width={8} height={3} fill="rgba(154,172,200,0.12)" />
+                  <rect x={p.x + p.w - 30} y={p.y + p.h - 11} width={8} height={3} fill="rgba(154,172,200,0.12)" />
                 </g>
               ) : (
                 <path
@@ -668,16 +590,7 @@ export function WhyMessagingVisual() {
                   fill="none"
                 />
               )}
-              <rect
-                ref={set(`pw${i}`)}
-                x={p.x}
-                y={p.y}
-                width={p.w}
-                height={p.h}
-                rx={3}
-                fill={CORAL}
-                opacity={0}
-              />
+              <rect ref={set(`pw${i}`)} x={p.x} y={p.y} width={p.w} height={p.h} rx={3} fill={CORAL} opacity={0} />
               <rect
                 ref={set(`pe${i}`)}
                 x={p.x}
@@ -690,23 +603,10 @@ export function WhyMessagingVisual() {
                 strokeWidth={1.2}
                 opacity={0}
               />
-              <text
-                x={p.x + 12}
-                y={p.y + 18}
-                fontFamily={MONO_FONT}
-                fontSize={10}
-                letterSpacing="0.2em"
-                fill={SILK}
-              >
+              <text x={p.x + 12} y={p.y + 18} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.2em" fill={SILK}>
                 {p.title}
               </text>
-              <circle
-                cx={p.x + p.w - 10}
-                cy={p.y + 10}
-                r={2}
-                fill={SILK}
-                opacity={0.25}
-              />
+              <circle cx={p.x + p.w - 10} cy={p.y + 10} r={2} fill={SILK} opacity={0.25} />
               <circle
                 ref={set(`ph${i}`)}
                 cx={p.x + p.w - 10}
@@ -718,14 +618,7 @@ export function WhyMessagingVisual() {
                 filter="url(#whym-soft)"
                 opacity={0}
               />
-              <circle
-                ref={set(`pl${i}`)}
-                cx={p.x + p.w - 10}
-                cy={p.y + 10}
-                r={2}
-                fill={CORAL}
-                opacity={0}
-              />
+              <circle ref={set(`pl${i}`)} cx={p.x + p.w - 10} cy={p.y + 10} r={2} fill={CORAL} opacity={0} />
             </g>
           ))}
 
@@ -787,16 +680,7 @@ export function WhyMessagingVisual() {
           {pulseGlyph("rs", GREEN, "#a7f3d0")}
           {FLOWS.map((_, i) => pulseGlyph(`f${i}`, CORAL, CORAL_SOFT))}
 
-          <circle
-            ref={set("rgq")}
-            cx={L.ox}
-            cy={REQ_Y}
-            r={3}
-            fill="none"
-            stroke={CYAN}
-            strokeWidth={1.5}
-            opacity={0}
-          />
+          <circle ref={set("rgq")} cx={L.ox} cy={REQ_Y} r={3} fill="none" stroke={CYAN} strokeWidth={1.5} opacity={0} />
           <circle
             ref={set("rgc")}
             cx={L.gwR}

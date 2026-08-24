@@ -58,14 +58,7 @@ export function PlanGraph({
     byRank.forEach((col) => col.sort((a, b) => a.order - b.order));
     const colH = byRank.map(
       (col) =>
-        col.reduce(
-          (s, n) =>
-            s +
-            (n.kind === "resolve" || n.kind === "introspection"
-              ? H_SLIM
-              : H_EXPANDED),
-          0,
-        ) +
+        col.reduce((s, n) => s + (n.kind === "resolve" || n.kind === "introspection" ? H_SLIM : H_EXPANDED), 0) +
         (col.length - 1) * NODESEP,
     );
     const H = Math.max(...colH);
@@ -73,10 +66,7 @@ export function PlanGraph({
     byRank.forEach((col, r) => {
       let y = (H - colH[r]) / 2;
       col.forEach((n) => {
-        const h =
-          n.kind === "resolve" || n.kind === "introspection"
-            ? H_SLIM
-            : H_EXPANDED;
+        const h = n.kind === "resolve" || n.kind === "introspection" ? H_SLIM : H_EXPANDED;
         placed.push({ ...n, x: r * (NODE_W + RANKSEP), y, h });
         y += h + NODESEP;
       });
@@ -134,30 +124,12 @@ export function PlanGraph({
           transform: `translate(-50%,-50%) scale(${fitScale})`,
         }}
       >
-        <svg
-          width={W}
-          height={H}
-          style={{ position: "absolute", inset: 0, overflow: "visible" }}
-        >
+        <svg width={W} height={H} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
           <defs>
-            <marker
-              id="pg-arrow"
-              markerWidth="7"
-              markerHeight="7"
-              refX="6"
-              refY="3"
-              orient="auto"
-            >
+            <marker id="pg-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
               <path d="M0 0 L6 3 L0 6 Z" fill={token.graphEdge} />
             </marker>
-            <marker
-              id="pg-arrow-on"
-              markerWidth="7"
-              markerHeight="7"
-              refX="6"
-              refY="3"
-              orient="auto"
-            >
+            <marker id="pg-arrow-on" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
               <path d="M0 0 L6 3 L0 6 Z" fill={token.graphEdgeActive} />
             </marker>
           </defs>
@@ -223,18 +195,10 @@ function EdgePath({
     clamp: true,
   });
   const dimmed = (p: number) => p >= hoverStart && p <= hoverEnd && !lit;
-  const stroke = useTransform(progress, (p) =>
-    p >= execAt && !dimmed(p) ? token.graphEdgeActive : token.graphEdge,
-  );
-  const opacity = useTransform(progress, (p) =>
-    p < drawAt ? 0 : dimmed(p) ? 0.15 : 1,
-  );
-  const dasharray = useTransform(progress, (p) =>
-    p >= execAt && !dimmed(p) ? "none" : "6 5",
-  );
-  const marker = useTransform(progress, (p) =>
-    p >= execAt && !dimmed(p) ? "url(#pg-arrow-on)" : "url(#pg-arrow)",
-  );
+  const stroke = useTransform(progress, (p) => (p >= execAt && !dimmed(p) ? token.graphEdgeActive : token.graphEdge));
+  const opacity = useTransform(progress, (p) => (p < drawAt ? 0 : dimmed(p) ? 0.15 : 1));
+  const dasharray = useTransform(progress, (p) => (p >= execAt && !dimmed(p) ? "none" : "6 5"));
+  const marker = useTransform(progress, (p) => (p >= execAt && !dimmed(p) ? "url(#pg-arrow-on)" : "url(#pg-arrow)"));
 
   return (
     <motion.path
@@ -271,21 +235,15 @@ function NodeCard({
   inLineage: boolean;
 }) {
   const opacity = useTransform(progress, (p) => {
-    const base =
-      p < appearAt ? 0 : p < appearAt + 0.05 ? (p - appearAt) / 0.05 : 1;
+    const base = p < appearAt ? 0 : p < appearAt + 0.05 ? (p - appearAt) / 0.05 : 1;
     if (p >= hoverStart && p <= hoverEnd && !inLineage) return base * 0.25;
     return base;
   });
-  const headerBg = useTransform(progress, (p) =>
-    p >= execAt ? statusBg[node.status] : "transparent",
-  );
+  const headerBg = useTransform(progress, (p) => (p >= execAt ? statusBg[node.status] : "transparent"));
   const dotOpacity = useTransform(progress, [execAt, execAt + 0.05], [0, 1], {
     clamp: true,
   });
-  const expanded =
-    node.kind === "root" ||
-    node.kind === "fetch" ||
-    node.kind === "introspection";
+  const expanded = node.kind === "root" || node.kind === "fetch" || node.kind === "introspection";
 
   return (
     <motion.div
@@ -377,8 +335,7 @@ function NodeCard({
               opacity: dotOpacity,
             }}
           >
-            duration:{" "}
-            <strong style={{ color: token.text }}>{node.durationMs}ms</strong>
+            duration: <strong style={{ color: token.text }}>{node.durationMs}ms</strong>
           </motion.span>
         </div>
       </motion.div>

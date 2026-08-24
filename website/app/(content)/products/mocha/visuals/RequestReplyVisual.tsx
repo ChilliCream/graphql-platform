@@ -12,14 +12,7 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import {
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-} from "@/src/components/mocha/palette";
+import { CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -240,9 +233,7 @@ export function RequestReplyVisual() {
       const apply = (t: number) => {
         const L = layoutRef.current;
 
-        const emit =
-          easeOutCubic(ramp(t, 220, 520)) *
-          (1 - easeInOutCubic(ramp(t, 1000, 1800)));
+        const emit = easeOutCubic(ramp(t, 220, 520)) * (1 - easeInOutCubic(ramp(t, 1000, 1800)));
         const back = loopFlash(t, REP_ARR, 1200);
         const act0 = Math.max(emit, back);
         setO("pw0", act0 * 0.07);
@@ -262,25 +253,14 @@ export function RequestReplyVisual() {
           qu = L.reqRestU;
           qop = 0.95;
         } else if (t >= REQ_PILL + REST && t < REQ_ARR) {
-          qu =
-            L.reqRestU +
-            (1 - L.reqRestU) *
-              easeInOutCubic(ramp(t, REQ_PILL + REST, REQ_ARR));
+          qu = L.reqRestU + (1 - L.reqRestU) * easeInOutCubic(ramp(t, REQ_PILL + REST, REQ_ARR));
           qop = 1 - ramp(t, REQ_ARR - 160, REQ_ARR);
         }
         placePulse("rq", L.req, qu, qop);
         if (qop > 0.02) {
-          corr = Math.max(
-            corr,
-            clamp01(1 - Math.abs(pointAt(L.req, qu)[0] - L.midX) / 70),
-          );
+          corr = Math.max(corr, clamp01(1 - Math.abs(pointAt(L.req, qu)[0] - L.midX) / 70));
         }
-        setO(
-          "pkq",
-          0.95 *
-            ramp(t, REQ_PILL, REQ_PILL + 120) *
-            (1 - ramp(t, REQ_PILL + REST, REQ_PILL + REST + 180)),
-        );
+        setO("pkq", 0.95 * ramp(t, REQ_PILL, REQ_PILL + 120) * (1 - ramp(t, REQ_PILL + REST, REQ_PILL + REST + 180)));
 
         setRing("ringH", ((t - REQ_ARR + T) % T) / 700, 3, 11);
         const hw =
@@ -301,37 +281,22 @@ export function RequestReplyVisual() {
           pu = L.repRestU;
           pop = 0.95;
         } else if (t >= REP_PILL + REST && t < REP_ARR) {
-          pu =
-            L.repRestU +
-            (1 - L.repRestU) *
-              easeInOutCubic(ramp(t, REP_PILL + REST, REP_ARR));
+          pu = L.repRestU + (1 - L.repRestU) * easeInOutCubic(ramp(t, REP_PILL + REST, REP_ARR));
           pop = 1 - ramp(t, REP_ARR - 160, REP_ARR);
         }
         placePulse("rp", L.rep, pu, pop);
         if (pop > 0.02) {
-          corr = Math.max(
-            corr,
-            clamp01(1 - Math.abs(pointAt(L.rep, pu)[0] - L.midX) / 70),
-          );
+          corr = Math.max(corr, clamp01(1 - Math.abs(pointAt(L.rep, pu)[0] - L.midX) / 70));
         }
-        setO(
-          "pkr",
-          0.95 *
-            ramp(t, REP_PILL, REP_PILL + 120) *
-            (1 - ramp(t, REP_PILL + REST, REP_PILL + REST + 180)),
-        );
+        setO("pkr", 0.95 * ramp(t, REP_PILL, REP_PILL + 120) * (1 - ramp(t, REP_PILL + REST, REP_PILL + REST + 180)));
 
         setO("corrLit", corr * 0.95);
 
         setRing("ringL", ((t - REP_ARR + T) % T) / 700, 3, 11);
-        const resp =
-          easeOutCubic(ramp(t, REP_ARR, REP_ARR + 320)) *
-          (1 - ramp(t, 9100, 9600));
+        const resp = easeOutCubic(ramp(t, REP_ARR, REP_ARR + 320)) * (1 - ramp(t, 9100, 9600));
         setO("resp", resp * 0.9);
 
-        const aw =
-          easeOutCubic(ramp(t, 700, 1000)) *
-          (1 - ramp(t, REP_ARR - 100, REP_ARR + 160));
+        const aw = easeOutCubic(ramp(t, 700, 1000)) * (1 - ramp(t, REP_ARR - 100, REP_ARR + 160));
         setO("await", aw * 0.55);
       };
 
@@ -346,13 +311,7 @@ export function RequestReplyVisual() {
     <g key={p} ref={set(p)} opacity={0}>
       <circle ref={set(p + "t2")} r={1.6} fill={color} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={color} opacity={0} />
-      <circle
-        ref={set(p + "glow")}
-        r={6}
-        fill={color}
-        opacity={0.2}
-        filter="url(#reqrep-soft)"
-      />
+      <circle ref={set(p + "glow")} r={6} fill={color} opacity={0.2} filter="url(#reqrep-soft)" />
       <circle ref={set(p + "core")} r={2.5} fill={color} />
       <circle ref={set(p + "in")} r={1.1} fill={inner} />
     </g>
@@ -367,54 +326,20 @@ export function RequestReplyVisual() {
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[320px]"
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${DIAG_H}`}
-          width="100%"
-          height={(DIAG_H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${DIAG_H}`} width="100%" height={(DIAG_H * w) / lw} className="block">
           <defs>
-            <filter
-              id="reqrep-soft"
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
+            <filter id="reqrep-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="reqrep-grid"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="reqrep-grid" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
-          <rect
-            x={0}
-            y={0}
-            width={lw}
-            height={DIAG_H}
-            fill="url(#reqrep-grid)"
-          />
+          <rect x={0} y={0} width={lw} height={DIAG_H} fill="url(#reqrep-grid)" />
 
-          <path
-            d={laneD(L.req.pts)}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-          <path
-            d={laneD(L.rep.pts)}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
+          <path d={laneD(L.req.pts)} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
+          <path d={laneD(L.rep.pts)} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
 
           {([L.pillReq, L.pillRep] as const).map((p, i) => (
             <rect
@@ -430,22 +355,8 @@ export function RequestReplyVisual() {
             />
           ))}
 
-          <circle
-            cx={L.bendInX}
-            cy={ROW_TOP}
-            r={2.5}
-            fill={NAVY}
-            stroke={VIA_STROKE}
-            strokeWidth={1}
-          />
-          <circle
-            cx={L.bendOutX}
-            cy={ROW_TOP + ROW_H}
-            r={2.5}
-            fill={NAVY}
-            stroke={VIA_STROKE}
-            strokeWidth={1}
-          />
+          <circle cx={L.bendInX} cy={ROW_TOP} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
+          <circle cx={L.bendOutX} cy={ROW_TOP + ROW_H} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
 
           {L.pins.map((pin, i) => (
             <PinRow key={`pin${i}`} pin={pin} />
@@ -574,13 +485,7 @@ export function RequestReplyVisual() {
             >
               ORDERS SVC
             </text>
-            <circle
-              cx={REQR_X + REQR_W - 10}
-              cy={REQR_TOP + 10}
-              r={2}
-              fill={SILK}
-              opacity={0.25}
-            />
+            <circle cx={REQR_X + REQR_W - 10} cy={REQR_TOP + 10} r={2} fill={SILK} opacity={0.25} />
             <circle
               ref={set("ph0")}
               cx={REQR_X + REQR_W - 10}
@@ -592,14 +497,7 @@ export function RequestReplyVisual() {
               filter="url(#reqrep-soft)"
               opacity={0}
             />
-            <circle
-              ref={set("pl0")}
-              cx={REQR_X + REQR_W - 10}
-              cy={REQR_TOP + 10}
-              r={2}
-              fill={CORAL}
-              opacity={0}
-            />
+            <circle ref={set("pl0")} cx={REQR_X + REQR_W - 10} cy={REQR_TOP + 10} r={2} fill={CORAL} opacity={0} />
           </g>
 
           <g>
@@ -652,13 +550,7 @@ export function RequestReplyVisual() {
             >
               CATALOG SERVICE
             </text>
-            <circle
-              cx={L.panelX + PANEL_W - 10}
-              cy={PANEL_TOP + 10}
-              r={2}
-              fill={SILK}
-              opacity={0.25}
-            />
+            <circle cx={L.panelX + PANEL_W - 10} cy={PANEL_TOP + 10} r={2} fill={SILK} opacity={0.25} />
             <circle
               ref={set("ph1")}
               cx={L.panelX + PANEL_W - 10}
@@ -670,14 +562,7 @@ export function RequestReplyVisual() {
               filter="url(#reqrep-soft)"
               opacity={0}
             />
-            <circle
-              ref={set("pl1")}
-              cx={L.panelX + PANEL_W - 10}
-              cy={PANEL_TOP + 10}
-              r={2}
-              fill={CORAL}
-              opacity={0}
-            />
+            <circle ref={set("pl1")} cx={L.panelX + PANEL_W - 10} cy={PANEL_TOP + 10} r={2} fill={CORAL} opacity={0} />
           </g>
 
           <rect
@@ -690,22 +575,8 @@ export function RequestReplyVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect
-            x={L.rowX}
-            y={ROW_TOP + 4}
-            width={3}
-            height={ROW_H - 8}
-            rx={1.5}
-            fill={CYAN}
-          />
-          <text
-            x={L.rowX + 13}
-            y={ROW_TOP + 19}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            letterSpacing="0.04em"
-            fill={DIM}
-          >
+          <rect x={L.rowX} y={ROW_TOP + 4} width={3} height={ROW_H - 8} rx={1.5} fill={CYAN} />
+          <text x={L.rowX + 13} y={ROW_TOP + 19} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.04em" fill={DIM}>
             GetProductHandler
           </text>
           <g ref={set("hFx")} opacity={0.35}>

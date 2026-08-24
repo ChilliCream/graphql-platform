@@ -40,8 +40,7 @@ const P = {
   caretR: "M9 6l6 6-6 6",
   caretD: "M6 9l6 6 6-6",
   newFile: "M14 3v5h5M14 3H6v18h12V8zM12 12v6M9 15h6",
-  newFolder:
-    "M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v6M9 14h6",
+  newFolder: "M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v6M9 14h6",
   newDoc: "M14 3v5h5M14 3H6v18h12V8zM9 13h6M9 16h6",
   search: "M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4",
   docs: "M8 3h8l4 4v14H8zM8 3v4h-4v14h10M16 3v4h4",
@@ -161,11 +160,7 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
             padding: "11px 10px 7px",
           }}
         >
-          <span
-            style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-          >
-            Documents
-          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>Documents</span>
           <span style={{ display: "flex", gap: 8, color: token.textSecondary }}>
             <StrokeIcon d={P.newFile} size={14} />
             <StrokeIcon d={P.newFolder} size={14} />
@@ -205,9 +200,7 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
                   paddingLeft: 8 + n.depth * 13,
                   paddingRight: 8,
                   background: isSel ? token.surface : "transparent",
-                  borderLeft: isSel
-                    ? `2px solid ${token.accent}`
-                    : "2px solid transparent",
+                  borderLeft: isSel ? `2px solid ${token.accent}` : "2px solid transparent",
                 }}
               >
                 {n.kind === "folder" ? (
@@ -219,18 +212,9 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
                         width: 9,
                       }}
                     >
-                      <StrokeIcon
-                        d={n.open ? P.caretD : P.caretR}
-                        size={9}
-                        strokeWidth={2}
-                      />
+                      <StrokeIcon d={n.open ? P.caretD : P.caretR} size={9} strokeWidth={2} />
                     </span>
-                    <StrokeIcon
-                      d={P.folder}
-                      size={14}
-                      strokeWidth={1.4}
-                      color={n.color}
-                    />
+                    <StrokeIcon d={P.folder} size={14} strokeWidth={1.4} color={n.color} />
                   </>
                 ) : (
                   <>

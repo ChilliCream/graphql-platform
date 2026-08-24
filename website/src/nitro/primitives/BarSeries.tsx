@@ -55,8 +55,7 @@ export function BarSeries({
   const step = n > 1 ? (1 - span) / (n - 1) : 0;
 
   const peak = n ? Math.max(...values) : 0;
-  const label =
-    ariaLabel ?? `Bar series of ${n} values, peak ${Math.round(peak)}`;
+  const label = ariaLabel ?? `Bar series of ${n} values, peak ${Math.round(peak)}`;
 
   return (
     <ChartCanvas ref={ref} className={className} style={style} label={label}>

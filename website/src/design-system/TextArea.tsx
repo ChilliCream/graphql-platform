@@ -1,9 +1,5 @@
 import { useId, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import {
-  FormField,
-  controlBaseClasses,
-  controlBorderClasses,
-} from "./FormField";
+import { FormField, controlBaseClasses, controlBorderClasses } from "./FormField";
 
 interface TextAreaProps extends ComponentPropsWithoutRef<"textarea"> {
   /** Label rendered above the field. Omit for an unlabeled textarea. */
@@ -12,26 +8,12 @@ interface TextAreaProps extends ComponentPropsWithoutRef<"textarea"> {
   error?: string;
 }
 
-export function TextArea({
-  label,
-  error,
-  required,
-  id,
-  name,
-  rows = 5,
-  className = "",
-  ...props
-}: TextAreaProps) {
+export function TextArea({ label, error, required, id, name, rows = 5, className = "", ...props }: TextAreaProps) {
   const generatedId = useId();
   const textAreaId = id ?? name ?? generatedId;
 
   return (
-    <FormField
-      htmlFor={textAreaId}
-      label={label}
-      required={required}
-      error={error}
-    >
+    <FormField htmlFor={textAreaId} label={label} required={required} error={error}>
       <textarea
         id={textAreaId}
         name={name}

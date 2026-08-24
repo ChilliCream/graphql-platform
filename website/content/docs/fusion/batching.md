@@ -65,10 +65,7 @@ Alias batching needs no protocol extension. The gateway merges the calls into **
 For the two book lookups above, the gateway sends:
 
 ```graphql
-query Op_68b774cc_Batch_2963222070b1fe07(
-  $_0___fusion_1_id: ID!
-  $_1___fusion_1_id: ID!
-) {
+query Op_68b774cc_Batch_2963222070b1fe07($_0___fusion_1_id: ID!, $_1___fusion_1_id: ID!) {
   _0_bookById: bookById(id: $_0___fusion_1_id) {
     ..._fusion_body_1
   }
@@ -171,10 +168,7 @@ That leaves distinct operations: several `_entities` calls with different sub-se
 By default only alias batching is on, so two `_entities` calls in one wave travel as one merged operation:
 
 ```graphql
-query Op_88f73202_Batch_d9cfb37825dbe30d(
-  $_0_representations: [_Any!]!
-  $_1_representations: [_Any!]!
-) {
+query Op_88f73202_Batch_d9cfb37825dbe30d($_0_representations: [_Any!]!, $_1_representations: [_Any!]!) {
   _0__entities: _entities(representations: $_0_representations) {
     ... on Child {
       b: value(suffix: "!")

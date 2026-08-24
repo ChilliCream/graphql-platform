@@ -28,9 +28,7 @@ interface NodeChipProps {
 
 function NodeChip({ label, designator, className }: NodeChipProps) {
   return (
-    <div
-      className={`pointer-events-none absolute z-10 flex flex-col items-center gap-1.5 ${className ?? ""}`}
-    >
+    <div className={`pointer-events-none absolute z-10 flex flex-col items-center gap-1.5 ${className ?? ""}`}>
       <span
         data-mocha-node
         className="pointer-events-auto relative block h-2.5 w-2.5 rounded-full border border-[rgba(205,216,232,0.55)] transition-colors duration-300 hover:border-[rgba(246,202,190,0.9)]"
@@ -41,10 +39,7 @@ function NodeChip({ label, designator, className }: NodeChipProps) {
         className="font-mono text-[0.68rem] font-semibold tracking-[0.26em] whitespace-nowrap uppercase"
         style={{ color: "rgba(170,188,214,0.8)", fontFamily: MONO_FONT }}
       >
-        <span
-          className="font-normal"
-          style={{ color: "rgba(154,172,200,0.45)" }}
-        >
+        <span className="font-normal" style={{ color: "rgba(154,172,200,0.45)" }}>
           {designator}·
         </span>
         {label}
@@ -196,10 +191,7 @@ export function HeroBoard() {
         c.lineWidth = 1.7;
         let prev = pointAt(pulse.trace, Math.max(0, pulse.dist - PULSE_TRAIL));
         for (let k = 1; k <= chunks; k++) {
-          const d = Math.max(
-            0,
-            pulse.dist - PULSE_TRAIL + (k * PULSE_TRAIL) / chunks,
-          );
+          const d = Math.max(0, pulse.dist - PULSE_TRAIL + (k * PULSE_TRAIL) / chunks);
           const p = pointAt(pulse.trace, d);
           c.strokeStyle = `rgba(${MSG},${alpha * Math.pow(k / chunks, 2) * 0.95})`;
           c.beginPath();
@@ -323,9 +315,9 @@ export function HeroBoard() {
       canvas!.width = Math.round(w * dpr);
       canvas!.height = Math.round(h * dpr);
       const rect = root!.getBoundingClientRect();
-      const chips = Array.from(
-        root!.querySelectorAll<HTMLElement>("[data-mocha-node]"),
-      ).filter((el) => el.offsetParent !== null);
+      const chips = Array.from(root!.querySelectorAll<HTMLElement>("[data-mocha-node]")).filter(
+        (el) => el.offsetParent !== null,
+      );
       const nodes: Point[] = chips.map((chip) => {
         const r = chip.getBoundingClientRect();
         return {
@@ -376,9 +368,7 @@ export function HeroBoard() {
     };
     function watchDpr() {
       dprMql?.removeEventListener("change", onDprChange);
-      dprMql = window.matchMedia(
-        `(resolution: ${window.devicePixelRatio}dppx)`,
-      );
+      dprMql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
       dprMql.addEventListener("change", onDprChange);
     }
     watchDpr();
@@ -433,61 +423,30 @@ export function HeroBoard() {
   }, []);
 
   return (
-    <div
-      ref={rootRef}
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
+    <div ref={rootRef} aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-      <NodeChip
-        label="Ordering"
-        designator="U7"
-        className="top-[22%] left-[54%]"
-      />
-      <NodeChip
-        label="Billing"
-        designator="U12"
-        className="top-[14%] right-[10%]"
-      />
-      <NodeChip
-        label="Catalog"
-        designator="U31"
-        className="top-[46%] left-[74%] max-md:hidden"
-      />
-      <NodeChip
-        label="Payments"
-        designator="U18"
-        className="bottom-[30%] left-[57%] max-md:hidden"
-      />
-      <NodeChip
-        label="Shipping"
-        designator="U44"
-        className="right-[7%] bottom-[18%] max-md:hidden"
-      />
-      <NodeChip
-        label="Inventory"
-        designator="U26"
-        className="bottom-[10%] left-[70%] max-lg:hidden"
-      />
+      <NodeChip label="Ordering" designator="U7" className="top-[22%] left-[54%]" />
+      <NodeChip label="Billing" designator="U12" className="top-[14%] right-[10%]" />
+      <NodeChip label="Catalog" designator="U31" className="top-[46%] left-[74%] max-md:hidden" />
+      <NodeChip label="Payments" designator="U18" className="bottom-[30%] left-[57%] max-md:hidden" />
+      <NodeChip label="Shipping" designator="U44" className="right-[7%] bottom-[18%] max-md:hidden" />
+      <NodeChip label="Inventory" designator="U26" className="bottom-[10%] left-[70%] max-lg:hidden" />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(90deg, rgba(11,15,26,0.92) 0%, rgba(11,15,26,0.5) 34%, rgba(11,15,26,0) 60%)",
+          background: "linear-gradient(90deg, rgba(11,15,26,0.92) 0%, rgba(11,15,26,0.5) 34%, rgba(11,15,26,0) 60%)",
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(11,15,26,0) 70%, rgba(11,15,26,0.94) 98%)",
+          background: "linear-gradient(180deg, rgba(11,15,26,0) 70%, rgba(11,15,26,0.94) 98%)",
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(11,15,26,0.6) 0%, rgba(11,15,26,0) 14%)",
+          background: "linear-gradient(180deg, rgba(11,15,26,0.6) 0%, rgba(11,15,26,0) 14%)",
         }}
       />
       <div className="absolute inset-0 bg-[#0b0f1a]/45 md:hidden" />

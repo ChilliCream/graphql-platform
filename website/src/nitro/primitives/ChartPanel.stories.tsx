@@ -42,15 +42,11 @@ const meta = {
             fillGradient: true,
           },
           {
-            values: [
-              128, 141, 133, 158, 166, 149, 138, 152, 171, 160, 147, 139,
-            ],
+            values: [128, 141, 133, 158, 166, 149, 138, 152, 171, 160, 147, 139],
             stroke: token.cP95,
           },
           {
-            values: [
-              212, 231, 224, 248, 259, 240, 226, 244, 261, 250, 237, 229,
-            ],
+            values: [212, 231, 224, 248, 259, 240, 226, 244, 261, 250, 237, 229],
             stroke: token.cP99,
           },
         ]}
@@ -59,11 +55,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[560px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[560px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),

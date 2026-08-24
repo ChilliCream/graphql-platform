@@ -19,23 +19,9 @@ export interface PopoutProps {
   anchor?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }
 
-export function Popout({
-  x,
-  y,
-  progress,
-  show,
-  hide,
-  title,
-  rows,
-  anchor = "top-left",
-}: PopoutProps) {
+export function Popout({ x, y, progress, show, hide, title, rows, anchor = "top-left" }: PopoutProps) {
   const FADE = 0.02;
-  const opacity = useTransform(
-    progress,
-    [show, show + FADE, hide - FADE, hide],
-    [0, 1, 1, 0],
-    { clamp: true },
-  );
+  const opacity = useTransform(progress, [show, show + FADE, hide - FADE, hide], [0, 1, 1, 0], { clamp: true });
   const ty = useTransform(progress, [show, show + FADE], [6, 0], {
     clamp: true,
   });
@@ -65,19 +51,10 @@ export function Popout({
         zIndex: 40,
       }}
     >
-      {title && (
-        <div
-          style={{ fontSize: 11, color: token.textSecondary, marginBottom: 6 }}
-        >
-          {title}
-        </div>
-      )}
+      {title && <div style={{ fontSize: 11, color: token.textSecondary, marginBottom: 6 }}>{title}</div>}
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {rows.map((r) => (
-          <div
-            key={r.label}
-            style={{ display: "flex", alignItems: "center", gap: 8 }}
-          >
+          <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
                 width: 8,
@@ -87,9 +64,7 @@ export function Popout({
                 flex: "0 0 auto",
               }}
             />
-            <span style={{ fontSize: 11, color: token.textSecondary }}>
-              {r.label}
-            </span>
+            <span style={{ fontSize: 11, color: token.textSecondary }}>{r.label}</span>
             <span
               style={{
                 marginLeft: "auto",

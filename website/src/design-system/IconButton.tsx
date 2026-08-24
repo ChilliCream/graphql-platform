@@ -15,24 +15,11 @@ export type IconButtonProps = {
 const BASE_CLASSES =
   "inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-cc-ink-dim transition-colors hover:bg-cc-ink-faint disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent";
 
-export function IconButton({
-  children,
-  className,
-  type = "button",
-  disabled,
-  onClick,
-  ...rest
-}: IconButtonProps) {
+export function IconButton({ children, className, type = "button", disabled, onClick, ...rest }: IconButtonProps) {
   const cls = [BASE_CLASSES, className ?? ""].filter(Boolean).join(" ");
 
   return (
-    <button
-      type={type}
-      disabled={disabled}
-      onClick={onClick}
-      className={cls}
-      aria-label={rest["aria-label"]}
-    >
+    <button type={type} disabled={disabled} onClick={onClick} className={cls} aria-label={rest["aria-label"]}>
       {children}
     </button>
   );

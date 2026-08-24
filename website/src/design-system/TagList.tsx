@@ -40,18 +40,10 @@ export function TagList({ tags, hrefForTag, className }: TagListProps) {
   }
 
   return (
-    <ul
-      className={["m-0 flex list-none flex-wrap gap-1.5 p-0", className ?? ""]
-        .filter(Boolean)
-        .join(" ")}
-    >
+    <ul className={["m-0 flex list-none flex-wrap gap-1.5 p-0", className ?? ""].filter(Boolean).join(" ")}>
       {items.map((item) => (
         <li key={item.label} className="m-0">
-          {item.href ? (
-            <Tag href={item.href}>{item.label}</Tag>
-          ) : (
-            <Tag>{item.label}</Tag>
-          )}
+          {item.href ? <Tag href={item.href}>{item.label}</Tag> : <Tag>{item.label}</Tag>}
         </li>
       ))}
     </ul>

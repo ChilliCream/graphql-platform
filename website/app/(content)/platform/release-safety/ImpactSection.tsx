@@ -24,29 +24,18 @@ interface ImpactBarProps {
 
 function ImpactBar({ ok, total, status }: ImpactBarProps) {
   const cells = Array.from({ length: total });
-  const color =
-    status === "ok"
-      ? "bg-cc-success"
-      : status === "risk"
-        ? "bg-cc-warning"
-        : "bg-cc-ink-dim/50";
+  const color = status === "ok" ? "bg-cc-success" : status === "risk" ? "bg-cc-warning" : "bg-cc-ink-dim/50";
   return (
     <span className="flex gap-1">
       {cells.map((_, i) => (
-        <span
-          key={i}
-          className={`h-2 w-5 rounded-[2px] ${i < ok ? color : "bg-cc-ink-faint"}`}
-        />
+        <span key={i} className={`h-2 w-5 rounded-[2px] ${i < ok ? color : "bg-cc-ink-faint"}`} />
       ))}
     </span>
   );
 }
 
 function ClientImpactMatrix() {
-  const statusLabel: Record<
-    ClientRow["status"],
-    { text: string; cls: string }
-  > = {
+  const statusLabel: Record<ClientRow["status"], { text: string; cls: string }> = {
     ok: { text: "OK", cls: "text-cc-success" },
     risk: { text: "at risk", cls: "text-cc-warning" },
     outside: { text: "outside result", cls: "text-cc-ink-dim" },
@@ -84,31 +73,18 @@ function ClientImpactMatrix() {
           {CLIENT_ROWS.map((c) => {
             const s = statusLabel[c.status];
             return (
-              <tr
-                key={c.name}
-                className="border-cc-card-border border-b last:border-b-0"
-              >
+              <tr key={c.name} className="border-cc-card-border border-b last:border-b-0">
                 <td className="min-w-0 px-4 py-3">
-                  <div className="text-cc-heading truncate font-mono text-[0.78rem]">
-                    {c.name}
-                  </div>
-                  <div className="text-cc-ink-dim font-mono text-[0.62rem]">
-                    {c.env}
-                  </div>
+                  <div className="text-cc-heading truncate font-mono text-[0.78rem]">{c.name}</div>
+                  <div className="text-cc-ink-dim font-mono text-[0.62rem]">{c.env}</div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {c.total === 0 ? (
-                      <span className="text-cc-heading font-mono text-[0.68rem]">
-                        none published
-                      </span>
+                      <span className="text-cc-heading font-mono text-[0.68rem]">none published</span>
                     ) : (
                       <>
-                        <ImpactBar
-                          ok={c.ok}
-                          total={c.total}
-                          status={c.status}
-                        />
+                        <ImpactBar ok={c.ok} total={c.total} status={c.status} />
                         <span className="text-cc-ink-dim font-mono text-[0.68rem]">
                           {c.ok}/{c.total}
                         </span>
@@ -116,11 +92,7 @@ function ClientImpactMatrix() {
                     )}
                   </div>
                 </td>
-                <td
-                  className={`px-4 py-3 text-right font-mono text-[0.72rem] font-semibold ${s.cls}`}
-                >
-                  {s.text}
-                </td>
+                <td className={`px-4 py-3 text-right font-mono text-[0.72rem] font-semibold ${s.cls}`}>{s.text}</td>
               </tr>
             );
           })}

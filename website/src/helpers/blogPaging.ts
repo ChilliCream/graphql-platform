@@ -8,10 +8,7 @@ export type PageSlice = {
   totalPages: number;
 };
 
-export function paginate(
-  posts: BlogPostSummary[],
-  page: number,
-): PageSlice | null {
+export function paginate(posts: BlogPostSummary[], page: number): PageSlice | null {
   const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
   if (page < 1 || page > totalPages) {
     return null;
@@ -34,9 +31,6 @@ export function listTags(posts: BlogPostSummary[]): string[] {
   return [...set].sort();
 }
 
-export function postsForTag(
-  posts: BlogPostSummary[],
-  tag: string,
-): BlogPostSummary[] {
+export function postsForTag(posts: BlogPostSummary[], tag: string): BlogPostSummary[] {
   return posts.filter((p) => p.tags.includes(tag));
 }

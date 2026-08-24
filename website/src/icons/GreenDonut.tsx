@@ -11,12 +11,7 @@ interface GreenDonutProps {
  */
 export function GreenDonut({ className, style }: GreenDonutProps) {
   return (
-    <svg
-      viewBox="7 9 59 109"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="7 9 59 109" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="green-donut-uuid-57cc0f40-acfc-4cac-bbd0-c72b3607b9d0"

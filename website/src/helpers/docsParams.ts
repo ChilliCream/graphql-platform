@@ -20,9 +20,7 @@ export function listDocSlugs(): string[][] {
     .filter((f) => /\.mdx?$/.test(f))
     .map((f) => path.relative(CONTENT_ROOT, f).replace(/\.mdx?$/, ""))
     .map((rel) => rel.split(path.sep))
-    .map((parts) =>
-      parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts,
-    )
+    .map((parts) => (parts[parts.length - 1] === "index" ? parts.slice(0, -1) : parts))
     .filter((slug) => slug.length > 0);
 
   return slugs.length > 0 ? slugs : [["__empty__"]];
@@ -71,12 +69,7 @@ export function listDocProducts(): string[] {
  */
 export function resolveFile(slug: string[]): string | null {
   const joined = slug.join("/");
-  const candidates = [
-    `${joined}.md`,
-    `${joined}.mdx`,
-    `${joined}/index.md`,
-    `${joined}/index.mdx`,
-  ];
+  const candidates = [`${joined}.md`, `${joined}.mdx`, `${joined}/index.md`, `${joined}/index.mdx`];
 
   for (const c of candidates) {
     if (fs.existsSync(path.join(CONTENT_ROOT, c))) {

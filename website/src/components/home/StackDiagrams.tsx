@@ -12,17 +12,7 @@ interface NodeBox {
 }
 
 function Node({ x, y, w, h }: NodeBox) {
-  return (
-    <rect
-      x={x - w / 2}
-      y={y - h / 2}
-      width={w}
-      height={h}
-      rx={8}
-      fill="#e3dfee"
-      filter="url(#node-shadow)"
-    />
-  );
+  return <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={8} fill="#e3dfee" filter="url(#node-shadow)" />;
 }
 
 interface Leg {
@@ -86,21 +76,10 @@ function Hub({ className }: { readonly className?: string }) {
   };
 
   return (
-    <svg
-      viewBox="0 0 420 380"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
+    <svg viewBox="0 0 420 380" fill="none" aria-hidden="true" className={className}>
       <defs>
         <filter id="node-shadow" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow
-            dx="0"
-            dy="3"
-            stdDeviation="4"
-            floodColor="#000"
-            floodOpacity="0.35"
-          />
+          <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#000" floodOpacity="0.35" />
         </filter>
       </defs>
 
@@ -130,19 +109,12 @@ interface StackRowProps {
 
 function StackRow({ title, diagram, reverse }: StackRowProps) {
   return (
-    <div
-      className={`flex flex-col items-center gap-8 md:gap-20 ${
-        reverse ? "md:flex-row-reverse" : "md:flex-row"
-      }`}
-    >
+    <div className={`flex flex-col items-center gap-8 md:gap-20 ${reverse ? "md:flex-row-reverse" : "md:flex-row"}`}>
       <div className="max-w-md flex-1 text-center md:text-left">
-        <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold">
-          {title}
-        </h3>
+        <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold">{title}</h3>
         <p className="text-cc-ink mt-4 text-base/relaxed">
-          Pick what you need for your stack. Whether you&rsquo;re building a
-          monolithic or federated GraphQL API, a message-intensive service, or
-          an application, we&rsquo;ve got the right tools for you.
+          Pick what you need for your stack. Whether you&rsquo;re building a monolithic or federated GraphQL API, a
+          message-intensive service, or an application, we&rsquo;ve got the right tools for you.
         </p>
       </div>
       <div className="flex flex-1 justify-center">
@@ -160,11 +132,7 @@ export function StackDiagrams() {
   return (
     <PageSection className="flex flex-col gap-20 py-16 sm:py-24 lg:gap-28">
       <StackRow title="Platform" diagram={<Hub className="h-auto w-full" />} />
-      <StackRow
-        title="Agentic Era"
-        diagram={<Hub className="h-auto w-full" />}
-        reverse
-      />
+      <StackRow title="Agentic Era" diagram={<Hub className="h-auto w-full" />} reverse />
     </PageSection>
   );
 }

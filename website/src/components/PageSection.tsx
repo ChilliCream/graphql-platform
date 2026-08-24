@@ -20,16 +20,8 @@ const MAX_WIDTH: Record<PageSectionMaxWidth, string> = {
  * padding and any layout on top of it (centering text, flex rows, a minimum
  * height, ...) are the caller's concern via `className`.
  */
-export function PageSection({
-  maxWidth = "7xl",
-  className,
-  children,
-}: PageSectionProps) {
+export function PageSection({ maxWidth = "7xl", className, children }: PageSectionProps) {
   return (
-    <section
-      className={`mx-auto ${MAX_WIDTH[maxWidth]} px-5 sm:px-12 ${className ?? ""}`.trim()}
-    >
-      {children}
-    </section>
+    <section className={`mx-auto ${MAX_WIDTH[maxWidth]} px-5 sm:px-12 ${className ?? ""}`.trim()}>{children}</section>
   );
 }

@@ -28,10 +28,7 @@ export const LANGUAGES: Record<string, LanguageDescriptor> = {
 
 // Colors live in the theme (`--cc-step-*` in globals.css). The chip background
 // and border are derived from each step's base hue via alpha.
-function stepColors(
-  base: string,
-  text: string,
-): { bg: string; border: string; text: string } {
+function stepColors(base: string, text: string): { bg: string; border: string; text: string } {
   return {
     bg: `color-mix(in srgb, ${base} 18%, transparent)`,
     border: `color-mix(in srgb, ${base} 55%, transparent)`,
@@ -39,10 +36,7 @@ function stepColors(
   };
 }
 
-export const STEP_PALETTE: Record<
-  number,
-  { bg: string; border: string; text: string }
-> = {
+export const STEP_PALETTE: Record<number, { bg: string; border: string; text: string }> = {
   1: stepColors("var(--cc-step-1)", "var(--cc-step-1-text)"),
   2: stepColors("var(--cc-step-2)", "var(--cc-step-2-text)"),
   3: stepColors("var(--cc-step-3)", "var(--cc-step-3-text)"),

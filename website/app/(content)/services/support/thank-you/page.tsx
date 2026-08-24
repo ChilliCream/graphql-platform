@@ -10,9 +10,7 @@ export default function ThankYouPage() {
       />
       <div className="flex flex-wrap justify-center gap-4 pb-16">
         <SolidButton href="/docs/hotchocolate">Read the Docs</SolidButton>
-        <OutlineButton href="https://slack.chillicream.com/">
-          Join Slack
-        </OutlineButton>
+        <OutlineButton href="https://slack.chillicream.com/">Join Slack</OutlineButton>
       </div>
     </>
   );

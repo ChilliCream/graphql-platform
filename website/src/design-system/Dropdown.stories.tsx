@@ -79,12 +79,7 @@ export const WithDescriptions: Story = {
     children: (
       <ul className="m-0 flex list-none flex-col p-1">
         {PRODUCTS_WITH_DESCRIPTIONS.map((p) => (
-          <DropdownItem
-            key={p.title}
-            href="#"
-            active={p.active}
-            description={p.description}
-          >
+          <DropdownItem key={p.title} href="#" active={p.active} description={p.description}>
             {p.title}
           </DropdownItem>
         ))}

@@ -11,12 +11,7 @@ interface EspressoProps {
  */
 export function Espresso({ className, style }: EspressoProps) {
   return (
-    <svg
-      viewBox="696 55 55 61"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="696 55 55 61" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="espresso-uuid-8c8812fc-0711-41d3-905b-5d4de255d51b"

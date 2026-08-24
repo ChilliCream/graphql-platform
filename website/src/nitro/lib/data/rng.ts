@@ -15,8 +15,6 @@ export const uniform = (r: Rng, lo: number, hi: number) => lo + r() * (hi - lo);
 
 export const gaussian = (r: Rng) => (r() + r() + r() - 1.5) * (1 / 0.866);
 
-export const normal = (r: Rng, mean: number, sd: number) =>
-  mean + gaussian(r) * sd;
+export const normal = (r: Rng, mean: number, sd: number) => mean + gaussian(r) * sd;
 
-export const pick = <T>(r: Rng, xs: readonly T[]): T =>
-  xs[Math.floor(r() * xs.length)];
+export const pick = <T>(r: Rng, xs: readonly T[]): T => xs[Math.floor(r() * xs.length)];

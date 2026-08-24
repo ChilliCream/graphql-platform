@@ -54,12 +54,7 @@ _GraphQL Query:_
 
 ```graphql
 query GetPersons {
-  persons(
-    where: {
-      name: { eq: "Yorker Shorton" }
-      addresses: { some: { street: { eq: "04 Leroy Trail" } } }
-    }
-  ) {
+  persons(where: { name: { eq: "Yorker Shorton" }, addresses: { some: { street: { eq: "04 Leroy Trail" } } } }) {
     name
     addresses {
       street

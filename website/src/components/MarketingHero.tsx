@@ -20,25 +20,14 @@ interface MarketingHeroProps {
  * for extra content, call-to-action buttons, and a caption. Distinct from the
  * larger `PageHero` used on the content pages.
  */
-export function MarketingHero({
-  eyebrow,
-  title,
-  lead,
-  children,
-  actions,
-  footnote,
-}: MarketingHeroProps) {
+export function MarketingHero({ eyebrow, title, lead, children, actions, footnote }: MarketingHeroProps) {
   return (
     <section className="pt-16 pb-12 text-center sm:pt-24 sm:pb-16">
       {eyebrow && <Eyebrow color="ink-dim">{eyebrow}</Eyebrow>}
       <h1 className="font-heading text-cc-heading sm:text-h2 mx-auto mt-5 max-w-3xl text-4xl leading-tight font-semibold tracking-tight text-balance">
         {title}
       </h1>
-      {lead && (
-        <p className="text-cc-ink-dim mx-auto mt-6 max-w-2xl text-base text-pretty sm:text-lg">
-          {lead}
-        </p>
-      )}
+      {lead && <p className="text-cc-ink-dim mx-auto mt-6 max-w-2xl text-base text-pretty sm:text-lg">{lead}</p>}
       {children}
       {actions && <div className="mt-9">{actions}</div>}
       {footnote && (

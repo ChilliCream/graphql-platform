@@ -1,30 +1,16 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import { getText, slugify } from "@/src/helpers/slugify";
 
-export type TypographyVariant =
-  | "h1"
-  | "h2"
-  | "h3"
-  | "h4"
-  | "h5"
-  | "h6"
-  | "body"
-  | "strong"
-  | "em"
-  | "del";
+export type TypographyVariant = "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "body" | "strong" | "em" | "del";
 
-const variantConfig: Record<
-  TypographyVariant,
-  { tag: ElementType; className: string }
-> = {
+const variantConfig: Record<TypographyVariant, { tag: ElementType; className: string }> = {
   h1: {
     tag: "h1",
     className: "mt-10 mb-4 text-4xl font-bold tracking-tight text-cc-prose",
   },
   h2: {
     tag: "h2",
-    className:
-      "mt-12 mb-4 pb-2 text-3xl font-semibold tracking-tight text-cc-prose border-b border-cc-card-border",
+    className: "mt-12 mb-4 pb-2 text-3xl font-semibold tracking-tight text-cc-prose border-b border-cc-card-border",
   },
   h3: {
     tag: "h3",
@@ -54,14 +40,7 @@ const variantConfig: Record<
   },
 };
 
-const HEADING_VARIANTS = new Set<TypographyVariant>([
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-]);
+const HEADING_VARIANTS = new Set<TypographyVariant>(["h1", "h2", "h3", "h4", "h5", "h6"]);
 
 type TypographyProps = {
   variant: TypographyVariant;
@@ -93,22 +72,13 @@ export function Typography({
   const config = variantConfig[variant];
   const Tag = component ?? config.tag;
   const isHeading = HEADING_VARIANTS.has(variant);
-  const resolvedId =
-    id ?? (isHeading && anchor ? slugify(children) : undefined);
+  const resolvedId = id ?? (isHeading && anchor ? slugify(children) : undefined);
 
   return (
-    <Tag
-      id={resolvedId}
-      className={`${config.className} ${className}`.trim()}
-      {...rest}
-    >
+    <Tag id={resolvedId} className={`${config.className} ${className}`.trim()} {...rest}>
       {children}
       {isHeading && anchor && resolvedId ? (
-        <a
-          href={`#${resolvedId}`}
-          className="heading-anchor"
-          aria-label={`Link to ${getText(children)}`}
-        >
+        <a href={`#${resolvedId}`} className="heading-anchor" aria-label={`Link to ${getText(children)}`}>
           #
         </a>
       ) : null}

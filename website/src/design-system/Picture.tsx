@@ -1,9 +1,6 @@
 import type { CSSProperties } from "react";
 import ReactDOM from "react-dom";
-import {
-  getOptimizedImage,
-  type OptimizedVariant,
-} from "@/src/image-optimization/manifest";
+import { getOptimizedImage, type OptimizedVariant } from "@/src/image-optimization/manifest";
 import { Image } from "./Image";
 
 // Default `sizes` used when a caller does not provide one. Configurable.
@@ -90,18 +87,10 @@ export function Picture({
     // `object-cover`, `h-full`, flex/grid sizing on the image).
     <picture className="contents">
       {opt.formats.avif && (
-        <source
-          type="image/avif"
-          srcSet={srcset(opt.formats.avif)}
-          sizes={sizes ?? DEFAULT_SIZES}
-        />
+        <source type="image/avif" srcSet={srcset(opt.formats.avif)} sizes={sizes ?? DEFAULT_SIZES} />
       )}
       {opt.formats.webp && (
-        <source
-          type="image/webp"
-          srcSet={srcset(opt.formats.webp)}
-          sizes={sizes ?? DEFAULT_SIZES}
-        />
+        <source type="image/webp" srcSet={srcset(opt.formats.webp)} sizes={sizes ?? DEFAULT_SIZES} />
       )}
       {imgEl}
     </picture>

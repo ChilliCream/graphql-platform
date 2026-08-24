@@ -112,8 +112,7 @@ try {
   const manifest = buildManifest(repoRoot);
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(manifest, null, 2));
   console.log(
-    `[git-metadata] wrote ${Object.keys(manifest).length} entries to ` +
-      path.relative(WEBSITE_ROOT, OUTPUT_PATH),
+    `[git-metadata] wrote ${Object.keys(manifest).length} entries to ` + path.relative(WEBSITE_ROOT, OUTPUT_PATH),
   );
 } catch (err) {
   console.error(`[git-metadata] ${err?.message ?? err}`);

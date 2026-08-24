@@ -28,8 +28,8 @@ const AzureDevOpsNote: FC = () => (
       <Link href="https://marketplace.visualstudio.com/items?itemName=ChilliCream.nitro-azure-pipelines-tasks">
         Nitro Azure Pipelines Tasks
       </Link>{" "}
-      extension into your Azure DevOps organization before using these tasks,
-      then configure authentication as described in the{" "}
+      extension into your Azure DevOps organization before using these tasks, then configure authentication as described
+      in the{" "}
       <Link href="https://github.com/ChilliCream/nitro-azure-pipelines-tasks/tree/main#authentication">
         authentication guide
       </Link>

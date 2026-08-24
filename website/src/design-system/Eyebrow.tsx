@@ -37,14 +37,7 @@ export function Eyebrow({
   className = "",
   ...rest
 }: EyebrowProps & Omit<ComponentPropsWithoutRef<"p">, keyof EyebrowProps>) {
-  const classes = [
-    COLOR_CLASSES[color],
-    "font-mono",
-    SIZE_CLASSES[size],
-    "tracking-[0.18em]",
-    "uppercase",
-    className,
-  ]
+  const classes = [COLOR_CLASSES[color], "font-mono", SIZE_CLASSES[size], "tracking-[0.18em]", "uppercase", className]
     .filter(Boolean)
     .join(" ");
 

@@ -2,11 +2,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 import { ButtonRow } from "@/src/components/ButtonRow";
-import {
-  GITHUB_REPO_URL,
-  GITHUB_STARGAZERS_URL,
-  TOOLS,
-} from "@/src/components/header/navData";
+import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL, TOOLS } from "@/src/components/header/navData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import type { GitHubContributor } from "@/src/helpers/githubContributors";
 import { BlogIcon } from "@/src/icons/Blog";
@@ -15,12 +11,7 @@ import { SlackIcon } from "@/src/icons/Slack";
 
 import { CARD_FOCUS_CLASSES } from "./cardFocus";
 import { PILL_CLASSES, StarPillContent } from "./StarPill";
-import {
-  CONNECTORS,
-  ORBIT_RINGS,
-  connectorPath,
-  polarPoint,
-} from "./orbitGeometry";
+import { CONNECTORS, ORBIT_RINGS, connectorPath, polarPoint } from "./orbitGeometry";
 
 const RING_STROKE = "rgba(245,240,234,0.17)";
 
@@ -190,13 +181,7 @@ function SocialChip({ href, label, children }: SocialChipProps) {
   }
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={label}
-      className={className}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={className}>
       {children}
     </a>
   );
@@ -210,18 +195,10 @@ interface MobileHeroLinksProps {
 function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
   const linkClassName = `border-cc-card-border bg-cc-surface text-cc-ink-dim flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 font-mono text-[0.65rem] no-underline ${CARD_FOCUS_CLASSES}`;
   return (
-    <nav
-      aria-label="Ecosystem links"
-      className="pointer-events-auto mx-auto mt-10 max-w-md sm:hidden"
-    >
+    <nav aria-label="Ecosystem links" className="pointer-events-auto mx-auto mt-10 max-w-md sm:hidden">
       <ul className="grid grid-cols-2 gap-2">
         <li>
-          <a
-            href={GITHUB_STARGAZERS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClassName}
-          >
+          <a href={GITHUB_STARGAZERS_URL} target="_blank" rel="noopener noreferrer" className={linkClassName}>
             <StarPillContent count={starCount} />
           </a>
         </li>
@@ -236,12 +213,7 @@ function MobileHeroLinks({ starCount, contributors }: MobileHeroLinksProps) {
           </a>
         </li>
         <li>
-          <a
-            href={TOOLS.slack}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClassName}
-          >
+          <a href={TOOLS.slack} target="_blank" rel="noopener noreferrer" className={linkClassName}>
             <SlackIcon className="size-4 fill-current" />
             Slack
           </a>
@@ -299,10 +271,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
         {ENTRANCE_STYLES}
       </style>
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2"
-      >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2">
         <div
           className="absolute top-[46%] left-1/2 -translate-x-1/2 -translate-y-1/2"
           style={{
@@ -349,12 +318,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
           }}
         >
           {ORBIT_NODES.map((node, i) => (
-            <OrbitNode
-              key={node.key}
-              angle={node.angle}
-              radius={node.radius}
-              delay={i * 40}
-            >
+            <OrbitNode key={node.key} angle={node.angle} radius={node.radius} delay={i * 40}>
               {node.render(starCount)}
             </OrbitNode>
           ))}
@@ -394,19 +358,16 @@ export function Hero({ starCount, contributors }: HeroProps) {
         aria-hidden="true"
         className="pointer-events-none absolute top-[46%] left-1/2 z-[1] h-[560px] w-[120%] max-w-[880px] -translate-x-1/2 -translate-y-1/2 sm:h-[520px] sm:w-[85%]"
         style={{
-          background:
-            "radial-gradient(closest-side, var(--color-cc-bg) 55%, transparent 100%)",
+          background: "radial-gradient(closest-side, var(--color-cc-bg) 55%, transparent 100%)",
         }}
       />
 
       <div className="pointer-events-none relative z-10 px-5 text-center">
         <h1 className="font-heading text-h3 sm:text-h2 lg:text-h1 text-cc-heading mx-auto max-w-3xl font-semibold text-balance">
-          The open ecosystem{" "}
-          <span className="text-cc-accent">for .NET, built in public.</span>
+          The open ecosystem <span className="text-cc-accent">for .NET, built in public.</span>
         </h1>
         <p className="lead text-cc-ink-dim mx-auto mt-5 max-w-2xl">
-          Explore the code, read the docs, and talk to the maintainers building
-          the platform.
+          Explore the code, read the docs, and talk to the maintainers building the platform.
         </p>
         <ButtonRow align="center" className="pointer-events-auto mt-8">
           <SolidButton href={GITHUB_REPO_URL}>Explore the code</SolidButton>
@@ -416,8 +377,7 @@ export function Hero({ starCount, contributors }: HeroProps) {
         </ButtonRow>
         <MobileHeroLinks starCount={starCount} contributors={contributors} />
         <p className="font-heading text-h4 text-cc-heading mx-auto mt-20 max-w-2xl font-semibold sm:mt-24">
-          Open source you can inspect. Standards you can follow. People you can
-          reach.
+          Open source you can inspect. Standards you can follow. People you can reach.
         </p>
       </div>
     </section>

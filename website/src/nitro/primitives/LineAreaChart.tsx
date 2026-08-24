@@ -1,15 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
-import {
-  areaFromLine,
-  linScale,
-  logScale,
-  smoothLinePath,
-  linePath,
-  niceTicks,
-  type Pt,
-} from "../lib/scale";
+import { areaFromLine, linScale, logScale, smoothLinePath, linePath, niceTicks, type Pt } from "../lib/scale";
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
@@ -93,16 +85,11 @@ export function LineAreaChart({
   const allValues = series.flatMap((s) => s.values);
   const dMin = domain ? domain[0] : Math.min(...allValues);
   const dMaxRaw = domain ? domain[1] : Math.max(...allValues);
-  const dMax = domain
-    ? dMaxRaw
-    : dMaxRaw + (dMaxRaw - dMin) * 0.12 || dMaxRaw + 1;
+  const dMax = domain ? dMaxRaw : dMaxRaw + (dMaxRaw - dMin) * 0.12 || dMaxRaw + 1;
   const lo = log ? Math.max(dMin, 1) : dMin;
-  const yScale = log
-    ? logScale(lo, dMax, plotBottom, plotTop)
-    : linScale(dMin, dMax, plotBottom, plotTop);
+  const yScale = log ? logScale(lo, dMax, plotBottom, plotTop) : linScale(dMin, dMax, plotBottom, plotTop);
 
-  const xOf = (i: number, n: number) =>
-    n <= 1 ? plotLeft : plotLeft + (i / (n - 1)) * plotW;
+  const xOf = (i: number, n: number) => (n <= 1 ? plotLeft : plotLeft + (i / (n - 1)) * plotW);
 
   const ticks = grid ? niceTicks(dMin, dMax, gridCount) : [];
 
@@ -135,10 +122,7 @@ export function LineAreaChart({
           })}
 
         {series.map((s, i) => {
-          const pts: Pt[] = s.values.map((v, j) => [
-            xOf(j, s.values.length),
-            yScale(v),
-          ]);
+          const pts: Pt[] = s.values.map((v, j) => [xOf(j, s.values.length), yScale(v)]);
           const s0 = Math.min(i * seriesStagger, 0.99);
           const s1 = Math.min(s0 + span, 1);
           return (
@@ -194,11 +178,7 @@ function SeriesPath({
     clamp: true,
   });
   const wipeW = useTransform(progress, [0, 1], [0, plotW]);
-  const fillOpacity = useTransform(
-    progress,
-    [0, 0.25, 1],
-    [0, 0, series.fillOpacity ?? 0.18],
-  );
+  const fillOpacity = useTransform(progress, [0, 0.25, 1], [0, 0, series.fillOpacity ?? 0.18]);
   const headOpacity = useTransform(progress, [0.85, 0.95, 1], [0, 1, 0]);
   const [drawn, setDrawn] = useState(() => progress.get() >= 0.99);
   useEffect(() => {
@@ -211,12 +191,7 @@ function SeriesPath({
       {series.fill && (
         <>
           <clipPath id={clipId}>
-            <motion.rect
-              x={plotLeft}
-              y={0}
-              height={baselineY}
-              style={{ width: wipeW }}
-            />
+            <motion.rect x={plotLeft} y={0} height={baselineY} style={{ width: wipeW }} />
           </clipPath>
           {gradient && (
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -271,12 +246,7 @@ function SeriesPath({
               }}
             />
           )}
-          <circle
-            cx={last[0]}
-            cy={last[1]}
-            r={2.6}
-            style={{ fill: series.stroke }}
-          />
+          <circle cx={last[0]} cy={last[1]} r={2.6} style={{ fill: series.stroke }} />
         </motion.g>
       )}
     </g>

@@ -10,13 +10,11 @@ const SKILLS = [
   },
   {
     name: "prototype-feature",
-    description:
-      "Builds a clickable, local-only prototype with realistic mock data before any schema or backend work.",
+    description: "Builds a clickable, local-only prototype with realistic mock data before any schema or backend work.",
   },
   {
     name: "prototype-to-contract",
-    description:
-      "Turns an accepted prototype into colocated GraphQL fragments and a contract for the backend.",
+    description: "Turns an accepted prototype into colocated GraphQL fragments and a contract for the backend.",
   },
 ] as const;
 
@@ -59,12 +57,7 @@ export const SkillGrid: Story = {
   render: () => (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
       {SKILLS.map((skill) => (
-        <SkillFileWindow
-          key={skill.name}
-          name={skill.name}
-          description={skill.description}
-          className="flex-1"
-        />
+        <SkillFileWindow key={skill.name} name={skill.name} description={skill.description} className="flex-1" />
       ))}
     </div>
   ),

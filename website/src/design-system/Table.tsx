@@ -8,21 +8,12 @@ interface TableProps extends ComponentPropsWithoutRef<"table"> {
   alternating?: boolean;
 }
 
-export function Table({
-  className = "",
-  alternating = false,
-  ...props
-}: TableProps) {
-  const striping = alternating
-    ? "[&_tbody_tr:nth-child(even)]:bg-cc-card-bg"
-    : "";
+export function Table({ className = "", alternating = false, ...props }: TableProps) {
+  const striping = alternating ? "[&_tbody_tr:nth-child(even)]:bg-cc-card-bg" : "";
 
   return (
     <div className="my-6 overflow-x-auto">
-      <table
-        className={`w-full border-collapse text-sm ${striping} ${className}`.trim()}
-        {...props}
-      />
+      <table className={`w-full border-collapse text-sm ${striping} ${className}`.trim()} {...props} />
     </div>
   );
 }
@@ -35,10 +26,7 @@ const ALIGN_CLASS: Record<Align, string> = {
   right: "text-right",
 };
 
-export function TableHead({
-  className = "",
-  ...props
-}: ComponentPropsWithoutRef<"thead">) {
+export function TableHead({ className = "", ...props }: ComponentPropsWithoutRef<"thead">) {
   return <thead className={`text-cc-prose ${className}`.trim()} {...props} />;
 }
 
@@ -46,16 +34,8 @@ export function TableBody(props: ComponentPropsWithoutRef<"tbody">) {
   return <tbody {...props} />;
 }
 
-export function TableRow({
-  className = "",
-  ...props
-}: ComponentPropsWithoutRef<"tr">) {
-  return (
-    <tr
-      className={`border-cc-card-border border-b ${className}`.trim()}
-      {...props}
-    />
-  );
+export function TableRow({ className = "", ...props }: ComponentPropsWithoutRef<"tr">) {
+  return <tr className={`border-cc-card-border border-b ${className}`.trim()} {...props} />;
 }
 
 export function TableHeaderCell({
@@ -64,10 +44,7 @@ export function TableHeaderCell({
   ...props
 }: ComponentPropsWithoutRef<"th"> & { align?: Align }) {
   return (
-    <th
-      className={`text-cc-prose px-4 py-3 font-semibold ${ALIGN_CLASS[align]} ${className}`.trim()}
-      {...props}
-    />
+    <th className={`text-cc-prose px-4 py-3 font-semibold ${ALIGN_CLASS[align]} ${className}`.trim()} {...props} />
   );
 }
 
@@ -76,10 +53,5 @@ export function TableCell({
   align = "left",
   ...props
 }: ComponentPropsWithoutRef<"td"> & { align?: Align }) {
-  return (
-    <td
-      className={`text-cc-prose px-4 py-3 ${ALIGN_CLASS[align]} ${className}`.trim()}
-      {...props}
-    />
-  );
+  return <td className={`text-cc-prose px-4 py-3 ${ALIGN_CLASS[align]} ${className}`.trim()} {...props} />;
 }

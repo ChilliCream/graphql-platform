@@ -39,13 +39,7 @@ function CheckRow({ icon, name, detail, delayClassName }: CheckRowProps) {
     },
     pass: { node: <CheckIcon size={12} />, color: "text-cc-success" },
     run: {
-      node: (
-        <SpinnerGlyph
-          width={12}
-          height={12}
-          className="animate-spin motion-reduce:animate-none"
-        />
-      ),
+      node: <SpinnerGlyph width={12} height={12} className="animate-spin motion-reduce:animate-none" />,
       color: "text-cc-warning",
     },
   } as const;
@@ -62,9 +56,7 @@ function CheckRow({ icon, name, detail, delayClassName }: CheckRowProps) {
         </RevealOnScroll>
       </span>
       <span className="text-cc-heading text-[0.82rem] font-medium">{name}</span>
-      <span className="text-cc-ink-dim ml-auto font-mono text-[0.7rem]">
-        {detail}
-      </span>
+      <span className="text-cc-ink-dim ml-auto font-mono text-[0.7rem]">{detail}</span>
     </div>
   );
 }
@@ -88,12 +80,8 @@ function CheckCard() {
         <span className="bg-cc-danger/15 text-cc-danger ring-cc-danger/30 flex items-center gap-2 rounded-md px-2.5 py-1 font-mono text-[0.66rem] font-semibold tracking-wide ring-1 ring-inset">
           <CrossGlyph width={12} height={12} /> FAIL
         </span>
-        <span className="text-cc-heading text-[0.84rem] font-medium">
-          Registry check
-        </span>
-        <span className="text-cc-ink-dim ml-auto font-mono text-[0.68rem]">
-          1 breaking · 2 safe
-        </span>
+        <span className="text-cc-heading text-[0.84rem] font-medium">Registry check</span>
+        <span className="text-cc-ink-dim ml-auto font-mono text-[0.68rem]">1 breaking · 2 safe</span>
       </div>
       <CheckRow
         icon="fail"

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Children,
-  isValidElement,
-  useState,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { Children, isValidElement, useState, type ReactElement, type ReactNode } from "react";
 
 type TabProps = {
   label: string;
@@ -42,10 +36,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
   // <Tab> elements that were created by the MDX runtime.
   const tabs = Children.toArray(children).filter(hasLabelProp);
 
-  const safeDefault = Math.min(
-    Math.max(defaultIndex, 0),
-    Math.max(tabs.length - 1, 0),
-  );
+  const safeDefault = Math.min(Math.max(defaultIndex, 0), Math.max(tabs.length - 1, 0));
   const [active, setActive] = useState(safeDefault);
 
   if (tabs.length === 0) {
@@ -56,10 +47,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
 
   return (
     <div className="ring-cc-card-border my-6 overflow-hidden rounded-md ring-1">
-      <div
-        role="tablist"
-        className="border-cc-card-border bg-cc-ink-faint flex flex-wrap border-b"
-      >
+      <div role="tablist" className="border-cc-card-border bg-cc-ink-faint flex flex-wrap border-b">
         {tabs.map((tab, i) => {
           const selected = i === active;
           return (
@@ -71,9 +59,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(i)}
               className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-                selected
-                  ? "border-cc-accent text-cc-accent"
-                  : "text-cc-ink-dim hover:text-cc-ink border-transparent"
+                selected ? "border-cc-accent text-cc-accent" : "text-cc-ink-dim hover:text-cc-ink border-transparent"
               }`}
             >
               {tab.props.label}
@@ -81,10 +67,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
           );
         })}
       </div>
-      <div
-        role="tabpanel"
-        className="p-5 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-      >
+      <div role="tabpanel" className="p-5 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
         {current.props.children}
       </div>
     </div>

@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  motion,
-  useMotionValueEvent,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { motion, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Stage, type StageCamera } from "../../../primitives/reel/Stage";
 import { AppFrame } from "../../../primitives/reel/AppFrame";
 import { Cursor } from "../../../primitives/reel/Cursor";
@@ -37,8 +32,7 @@ const H = TABREEL_CANVAS.h;
 
 const ORANGE = token.graphEdgeActive;
 
-const kindColor = (k: string) =>
-  k === "mutation" ? token.icMutation : token.icQuery;
+const kindColor = (k: string) => (k === "mutation" ? token.icMutation : token.icQuery);
 const renderKindGlyph = (k: string, size: number) =>
   k === "mutation" ? <IconMutation size={size} /> : <IconQuery size={size} />;
 
@@ -88,16 +82,10 @@ export interface FusionQueryPlanScreenProps {
   camera?: StageCamera;
 }
 
-export function FusionQueryPlanScreen({
-  progress,
-  showCursor = true,
-  camera,
-}: FusionQueryPlanScreenProps) {
+export function FusionQueryPlanScreen({ progress, showCursor = true, camera }: FusionQueryPlanScreenProps) {
   const runClick = TL.start("runClick");
   const runDone = TL.end("runLoad");
-  const running = useTransform(progress, (p): number =>
-    p >= runClick && p < runDone ? 1 : 0,
-  );
+  const running = useTransform(progress, (p): number => (p >= runClick && p < runDone ? 1 : 0));
 
   const planTabClick = TL.start("planTabClick");
   const subTabAt = (p: number) => (p >= planTabClick ? 1 : 0);
@@ -148,12 +136,7 @@ export function FusionQueryPlanScreen({
     { ease: ease.glide },
   );
 
-  const reqWidth = useTransform(
-    progress,
-    TL.span("planTabClick"),
-    ["44%", "0%"],
-    { clamp: true },
-  );
+  const reqWidth = useTransform(progress, TL.span("planTabClick"), ["44%", "0%"], { clamp: true });
 
   return (
     <Stage
@@ -240,22 +223,11 @@ export function FusionQueryPlanScreen({
                   fontSize: 12,
                 }}
               >
-                <UnderlineTab
-                  label="GraphQL Variables"
-                  active
-                  fontSize={12}
-                  underlineOffset={-8}
-                />
+                <UnderlineTab label="GraphQL Variables" active fontSize={12} underlineOffset={-8} />
                 <span style={{ color: token.textSecondary }}>HTTP Headers</span>
               </div>
               <div style={{ height: 56, overflow: "hidden" }}>
-                <CodeBlock
-                  code={`{\n  "id": "ord_8F2KQ7"\n}`}
-                  lang="json"
-                  gutter
-                  caret={false}
-                  fontSize={12}
-                />
+                <CodeBlock code={`{\n  "id": "ord_8F2KQ7"\n}`} lang="json" gutter caret={false} fontSize={12} />
               </div>
             </div>
           </motion.div>
@@ -300,25 +272,11 @@ export function FusionQueryPlanScreen({
   );
 }
 
-function ResponseHeader({
-  progress,
-  subTab,
-}: {
-  progress: MotionValue<number>;
-  subTab: number;
-}) {
-  const statusOpacity = useTransform(
-    progress,
-    [TL.at("response", 0.1), TL.at("response", 0.4)],
-    [0, 1],
-    { clamp: true },
-  );
-  const planStatusOpacity = useTransform(
-    progress,
-    [TL.end("planExec"), TL.at("zoomIn", 0.1)],
-    [0, 1],
-    { clamp: true },
-  );
+function ResponseHeader({ progress, subTab }: { progress: MotionValue<number>; subTab: number }) {
+  const statusOpacity = useTransform(progress, [TL.at("response", 0.1), TL.at("response", 0.4)], [0, 1], {
+    clamp: true,
+  });
+  const planStatusOpacity = useTransform(progress, [TL.end("planExec"), TL.at("zoomIn", 0.1)], [0, 1], { clamp: true });
 
   return (
     <div
@@ -349,9 +307,7 @@ function ResponseHeader({
         height={36}
         testId="plan-subtab"
       />
-      <div
-        style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}
-      >
+      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
         {subTab === 0 ? (
           <motion.div
             style={{
@@ -425,9 +381,7 @@ function ResponseHeader({
             >
               41 ms
             </span>
-            <span style={{ fontSize: 12, color: token.textSecondary }}>
-              7 nodes
-            </span>
+            <span style={{ fontSize: 12, color: token.textSecondary }}>7 nodes</span>
           </motion.div>
         )}
       </div>
@@ -435,21 +389,12 @@ function ResponseHeader({
   );
 }
 
-function ResponsePane({
-  progress,
-  visible,
-}: {
-  progress: MotionValue<number>;
-  visible: boolean;
-}) {
+function ResponsePane({ progress, visible }: { progress: MotionValue<number>; visible: boolean }) {
   const runClick = TL.start("runClick");
   const runDone = TL.end("runLoad");
-  const responseOpacity = useTransform(
-    progress,
-    [TL.start("response"), TL.at("response", 0.1)],
-    [0, 1],
-    { clamp: true },
-  );
+  const responseOpacity = useTransform(progress, [TL.start("response"), TL.at("response", 0.1)], [0, 1], {
+    clamp: true,
+  });
   const spinnerOpacity = useTransform(
     progress,
     [runClick, TL.at("runLoad", 0.1), TL.at("runLoad", 0.9), runDone],
@@ -457,12 +402,7 @@ function ResponsePane({
     { clamp: true },
   );
   const spinnerRot = useTransform(progress, [runClick, runDone], [0, 540]);
-  const emptyOpacity = useTransform(
-    progress,
-    [runClick, TL.end("runClick")],
-    [1, 0],
-    { clamp: true },
-  );
+  const emptyOpacity = useTransform(progress, [runClick, TL.end("runClick")], [1, 0], { clamp: true });
 
   return (
     <div
@@ -472,9 +412,7 @@ function ResponsePane({
         display: visible ? "block" : "none",
       }}
     >
-      <motion.div
-        style={{ position: "absolute", inset: 0, opacity: responseOpacity }}
-      >
+      <motion.div style={{ position: "absolute", inset: 0, opacity: responseOpacity }}>
         <CodeBlock
           code={RESPONSE}
           lang="json"
@@ -521,13 +459,7 @@ function ResponsePane({
   );
 }
 
-function PlanPane({
-  progress,
-  visible,
-}: {
-  progress: MotionValue<number>;
-  visible: boolean;
-}) {
+function PlanPane({ progress, visible }: { progress: MotionValue<number>; visible: boolean }) {
   const planTabClick = TL.start("planTabClick");
   const planLoadEnd = TL.end("planLoad");
   const spinnerOpacity = useTransform(
@@ -536,17 +468,8 @@ function PlanPane({
     [0, 1, 1, 0],
     { clamp: true },
   );
-  const spinnerRot = useTransform(
-    progress,
-    [planTabClick, planLoadEnd],
-    [0, 540],
-  );
-  const graphOpacity = useTransform(
-    progress,
-    [TL.at("planLoad", 0.9), TL.start("planBuild")],
-    [0, 1],
-    { clamp: true },
-  );
+  const spinnerRot = useTransform(progress, [planTabClick, planLoadEnd], [0, 540]);
+  const graphOpacity = useTransform(progress, [TL.at("planLoad", 0.9), TL.start("planBuild")], [0, 1], { clamp: true });
 
   return (
     <div
@@ -556,9 +479,7 @@ function PlanPane({
         display: visible ? "block" : "none",
       }}
     >
-      <motion.div
-        style={{ position: "absolute", inset: 0, opacity: graphOpacity }}
-      >
+      <motion.div style={{ position: "absolute", inset: 0, opacity: graphOpacity }}>
         <PlanGraph
           nodes={F.nodes}
           edges={F.edges}
@@ -591,13 +512,7 @@ function PlanPane({
   );
 }
 
-function ColumnHeader({
-  title,
-  children,
-}: {
-  title?: string;
-  children?: React.ReactNode;
-}) {
+function ColumnHeader({ title, children }: { title?: string; children?: React.ReactNode }) {
   return (
     <div
       style={{
@@ -610,15 +525,7 @@ function ColumnHeader({
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      {title && (
-        <UnderlineTab
-          label={title}
-          active
-          fontSize={14}
-          fontWeight={600}
-          height="100%"
-        />
-      )}
+      {title && <UnderlineTab label={title} active fontSize={14} fontWeight={600} height="100%" />}
       <div
         style={{
           marginLeft: "auto",
@@ -633,13 +540,7 @@ function ColumnHeader({
   );
 }
 
-function RunButton({
-  progress,
-  running,
-}: {
-  progress: MotionValue<number>;
-  running: MotionValue<number>;
-}) {
+function RunButton({ progress, running }: { progress: MotionValue<number>; running: MotionValue<number> }) {
   const press = useTransform(
     progress,
     [TL.start("runClick"), TL.at("runClick", 0.5), TL.end("runClick")],
@@ -648,9 +549,7 @@ function RunButton({
   );
   const spinnerOpacity = running;
   const playOpacity = useTransform(running, [0, 1], [1, 0]);
-  const label = useTransform(running, (r): string =>
-    r ? "Cancel" : "Run GetOrderSummary",
-  );
+  const label = useTransform(running, (r): string => (r ? "Cancel" : "Run GetOrderSummary"));
   return (
     <motion.div
       data-testid="run-button"
@@ -703,11 +602,7 @@ function RunButton({
             <IconSpinner size={13} color="#fff" />
           </motion.span>
         </span>
-        <motion.span
-          style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" }}
-        >
-          {label}
-        </motion.span>
+        <motion.span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" }}>{label}</motion.span>
       </div>
       <div
         style={{
@@ -733,11 +628,7 @@ function DocTabs({ view }: { view: number }) {
         height: "100%",
       }}
     >
-      <DocTab
-        name="EShops Gateway"
-        glyph={<IconApiGateway size={12} />}
-        glyphColor={token.icObject}
-      />
+      <DocTab name="EShops Gateway" glyph={<IconApiGateway size={12} />} glyphColor={token.icObject} />
       <DocTab
         name="GetOrderSummary"
         glyph={renderKindGlyph("query", 12)}
@@ -779,22 +670,14 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
   const loadEnd = TL.end("subgraphLoad");
   const spinnerOpacity = useTransform(
     progress,
-    [
-      viewClick,
-      TL.at("subgraphLoad", 0.1),
-      TL.at("subgraphLoad", 0.9),
-      loadEnd,
-    ],
+    [viewClick, TL.at("subgraphLoad", 0.1), TL.at("subgraphLoad", 0.9), loadEnd],
     [0, 1, 1, 0],
     { clamp: true },
   );
   const spinnerRot = useTransform(progress, [viewClick, loadEnd], [0, 540]);
-  const contentOpacity = useTransform(
-    progress,
-    [TL.at("subgraphLoad", 0.9), TL.start("subgraphReveal")],
-    [0, 1],
-    { clamp: true },
-  );
+  const contentOpacity = useTransform(progress, [TL.at("subgraphLoad", 0.9), TL.start("subgraphReveal")], [0, 1], {
+    clamp: true,
+  });
 
   return (
     <div style={{ position: "absolute", inset: 0 }}>
@@ -818,14 +701,8 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
             borderBottom: `1px solid ${token.border}`,
           }}
         >
-          <span style={{ display: "flex", color: kindColor("query") }}>
-            {renderKindGlyph("query", 13)}
-          </span>
-          <span
-            style={{ fontSize: 13.5, fontWeight: 600, color: token.textStrong }}
-          >
-            Subgraph Request · Products
-          </span>
+          <span style={{ display: "flex", color: kindColor("query") }}>{renderKindGlyph("query", 13)}</span>
+          <span style={{ fontSize: 13.5, fontWeight: 600, color: token.textStrong }}>Subgraph Request · Products</span>
         </div>
         <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
           <div
@@ -849,10 +726,7 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
                 code={subOp}
                 lang="graphql"
                 progress={progress}
-                playWindow={[
-                  TL.start("subgraphReveal"),
-                  TL.at("subgraphReveal", 0.45),
-                ]}
+                playWindow={[TL.start("subgraphReveal"), TL.at("subgraphReveal", 0.45)]}
                 gutter
                 caret={false}
                 fontSize={13}
@@ -877,25 +751,15 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
                   fontSize: 12,
                 }}
               >
-                <UnderlineTab
-                  label="Variables"
-                  active
-                  fontSize={12}
-                  underlineOffset={-8}
-                />
+                <UnderlineTab label="Variables" active fontSize={12} underlineOffset={-8} />
                 <Badge size="xs">batched · 2</Badge>
               </div>
-              <div
-                style={{ height: 88, overflow: "hidden", position: "relative" }}
-              >
+              <div style={{ height: 88, overflow: "hidden", position: "relative" }}>
                 <CodeBlock
                   code={variables}
                   lang="json"
                   progress={progress}
-                  playWindow={[
-                    TL.start("subgraphReveal"),
-                    TL.at("subgraphReveal", 0.45),
-                  ]}
+                  playWindow={[TL.start("subgraphReveal"), TL.at("subgraphReveal", 0.45)]}
                   gutter
                   caret={false}
                   fontSize={12}
@@ -927,10 +791,7 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
                 code={response}
                 lang="json"
                 progress={progress}
-                playWindow={[
-                  TL.start("subgraphReveal"),
-                  TL.at("subgraphReveal", 0.45),
-                ]}
+                playWindow={[TL.start("subgraphReveal"), TL.at("subgraphReveal", 0.45)]}
                 gutter
                 caret={false}
                 fontSize={12.5}

@@ -96,8 +96,7 @@ function CardGlow() {
       aria-hidden="true"
       className="pointer-events-none absolute -top-24 right-0 -z-0 h-56 w-56 opacity-40 blur-3xl"
       style={{
-        background:
-          "radial-gradient(50% 50% at 60% 40%, rgba(22,185,228,0.18), transparent 70%)",
+        background: "radial-gradient(50% 50% at 60% 40%, rgba(22,185,228,0.18), transparent 70%)",
       }}
     />
   );

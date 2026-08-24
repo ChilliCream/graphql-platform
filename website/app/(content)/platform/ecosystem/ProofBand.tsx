@@ -6,13 +6,7 @@ import { GitHubIcon } from "@/src/icons/GitHub";
 
 import { CARD_FOCUS_CLASSES } from "./cardFocus";
 
-const HEATMAP_LEVELS = [
-  "rgba(245,240,234,0.06)",
-  "#0e4429",
-  "#006d32",
-  "#26a641",
-  "#39d353",
-] as const;
+const HEATMAP_LEVELS = ["rgba(245,240,234,0.06)", "#0e4429", "#006d32", "#26a641", "#39d353"] as const;
 
 interface CommitHeatmapProps {
   readonly weeks: ReadonlyArray<ReadonlyArray<number>>;
@@ -21,22 +15,14 @@ interface CommitHeatmapProps {
 function CommitHeatmap({ weeks }: CommitHeatmapProps) {
   const maxCount = Math.max(...weeks.flat(), 1);
   return (
-    <div
-      aria-hidden="true"
-      className="grid auto-cols-fr grid-flow-col grid-rows-7 gap-[2px]"
-    >
+    <div aria-hidden="true" className="grid auto-cols-fr grid-flow-col grid-rows-7 gap-[2px]">
       {weeks.flatMap((days, weekIndex) =>
         days.map((count, dayIndex) => (
           <div
             key={`${weekIndex}-${dayIndex}`}
             className="aspect-square rounded-[2px]"
             style={{
-              backgroundColor:
-                HEATMAP_LEVELS[
-                  count === 0
-                    ? 0
-                    : Math.min(4, Math.ceil((count / maxCount) * 4))
-                ],
+              backgroundColor: HEATMAP_LEVELS[count === 0 ? 0 : Math.min(4, Math.ceil((count / maxCount) * 4))],
             }}
           />
         )),
@@ -94,9 +80,7 @@ export function ProofBand({ commitActivity }: ProofBandProps) {
                   <span className="border-cc-card-border bg-cc-surface text-cc-ink-dim flex h-9 w-9 shrink-0 items-center justify-center rounded-full border">
                     <GitHubIcon className="h-4 w-4 fill-current" />
                   </span>
-                  <span className="text-cc-heading truncate font-mono text-sm">
-                    ChilliCream/graphql-platform
-                  </span>
+                  <span className="text-cc-heading truncate font-mono text-sm">ChilliCream/graphql-platform</span>
                 </span>
                 <span aria-hidden="true" className="text-cc-ink-dim">
                   ↗

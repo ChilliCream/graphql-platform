@@ -11,12 +11,7 @@ interface StrawberryShakeProps {
  */
 export function StrawberryShake({ className, style }: StrawberryShakeProps) {
   return (
-    <svg
-      viewBox="107 7 59 109"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="107 7 59 109" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="strawberry-shake-uuid-774baba9-50ef-49d9-b9b3-5ff66480af59"

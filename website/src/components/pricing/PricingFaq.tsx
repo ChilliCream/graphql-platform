@@ -38,12 +38,6 @@ const FAQ = [
  */
 export function PricingFaq() {
   return (
-    <FaqSection
-      id="faq"
-      className="mt-24 scroll-mt-24 sm:mt-28"
-      eyebrow="FAQ"
-      heading="Common questions"
-      items={FAQ}
-    />
+    <FaqSection id="faq" className="mt-24 scroll-mt-24 sm:mt-28" eyebrow="FAQ" heading="Common questions" items={FAQ} />
   );
 }

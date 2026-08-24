@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useInView,
-  useMotionValue,
-  useTransform,
-} from "motion/react";
+import { animate, AnimatePresence, motion, useInView, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import { Card } from "@/src/design-system/Card";
@@ -27,15 +20,7 @@ interface KpiTileProps {
   readonly format?: (value: number) => string;
 }
 
-function KpiTile({
-  label,
-  suffix,
-  target,
-  drift,
-  inView,
-  reduceMotion,
-  format,
-}: KpiTileProps) {
+function KpiTile({ label, suffix, target, drift, inView, reduceMotion, format }: KpiTileProps) {
   const value = useMotionValue(reduceMotion ? target : 0);
   const [display, setDisplay] = useState(reduceMotion ? target : 0);
 
@@ -116,9 +101,7 @@ function Sparkline({ inView, reduceMotion }: SparklineProps) {
     [108, 10],
     [120, 16],
   ] as const;
-  const d = basePoints
-    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`)
-    .join(" ");
+  const d = basePoints.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x} ${y}`).join(" ");
 
   const travel = useMotionValue(0);
   useEffect(() => {
@@ -139,33 +122,20 @@ function Sparkline({ inView, reduceMotion }: SparklineProps) {
     const scaled = t * lastIndex;
     const i = Math.min(Math.max(Math.floor(scaled), 0), lastIndex - 1);
     const f = scaled - i;
-    return (
-      basePoints[i][axis] + (basePoints[i + 1][axis] - basePoints[i][axis]) * f
-    );
+    return basePoints[i][axis] + (basePoints[i + 1][axis] - basePoints[i][axis]) * f;
   };
   const tipX = useTransform(travel, (t) => pointAt(t, 0));
   const tipY = useTransform(travel, (t) => pointAt(t, 1));
   const pulseOpacity = useTransform(travel, [0, 0.12, 0.85, 1], [0, 1, 1, 0]);
 
   return (
-    <svg
-      viewBox="0 0 120 36"
-      className="h-16 w-full"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 120 36" className="h-16 w-full" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="cc-cpc-spark-fill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={ACCENT} stopOpacity="0.35" />
           <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
         </linearGradient>
-        <filter
-          id="cc-cpc-spark-glow"
-          x="-50%"
-          y="-50%"
-          width="200%"
-          height="200%"
-        >
+        <filter id="cc-cpc-spark-glow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.6" />
         </filter>
       </defs>
@@ -220,24 +190,13 @@ function Waterfall({ inView, reduceMotion }: WaterfallProps) {
   const height = 88;
   const rowH = height / lanes.length;
   return (
-    <svg
-      viewBox={`0 0 100 ${height}`}
-      preserveAspectRatio="none"
-      className="h-full w-full"
-      aria-hidden="true"
-    >
+    <svg viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" className="h-full w-full" aria-hidden="true">
       {lanes.map((lane, i) => {
         const y = i * rowH + rowH * 0.3;
         const barH = rowH * 0.4;
         return (
           <g key={lane.label}>
-            <rect
-              x={0}
-              y={y + barH / 2 - 0.25}
-              width={100}
-              height={0.5}
-              fill="rgba(255,255,255,0.04)"
-            />
+            <rect x={0} y={y + barH / 2 - 0.25} width={100} height={0.5} fill="rgba(255,255,255,0.04)" />
             <motion.rect
               x={lane.start}
               y={y}
@@ -246,11 +205,7 @@ function Waterfall({ inView, reduceMotion }: WaterfallProps) {
               fill={ACCENT}
               fillOpacity={0.85 - i * 0.12}
               initial={{ width: 0 }}
-              animate={
-                inView
-                  ? { width: lane.width }
-                  : { width: reduceMotion ? lane.width : 0 }
-              }
+              animate={inView ? { width: lane.width } : { width: reduceMotion ? lane.width : 0 }}
               transition={{
                 duration: reduceMotion ? 0 : 0.9,
                 delay: reduceMotion ? 0 : 0.15 + i * 0.15,
@@ -271,10 +226,7 @@ interface DiffEntry {
   readonly text: string;
 }
 
-const DIFF_PALETTE: Record<
-  DiffKind,
-  { fg: string; bg: string; label: string }
-> = {
+const DIFF_PALETTE: Record<DiffKind, { fg: string; bg: string; label: string }> = {
   safe: { fg: ACCENT, bg: "rgba(94,234,212,0.12)", label: "Safe" },
   dangerous: { fg: "#16b9e4", bg: "rgba(22,185,228,0.12)", label: "Dangerous" },
   breaking: { fg: "#f0786a", bg: "rgba(240,120,106,0.14)", label: "Breaking" },
@@ -292,9 +244,7 @@ interface SchemaDiffStripProps {
 }
 
 function SchemaDiffStrip({ inView, reduceMotion }: SchemaDiffStripProps) {
-  const [index, setIndex] = useState(
-    reduceMotion ? SCHEMA_DIFFS.length - 1 : 0,
-  );
+  const [index, setIndex] = useState(reduceMotion ? SCHEMA_DIFFS.length - 1 : 0);
 
   useEffect(() => {
     if (!inView || reduceMotion) {
@@ -354,12 +304,9 @@ export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
       <MockWindowChrome
         header={{ variant: "status-dot" }}
         label="Nitro / production"
-        headerRight={
-          <span className="text-cc-ink-dim font-mono text-[10px]">live</span>
-        }
+        headerRight={<span className="text-cc-ink-dim font-mono text-[10px]">live</span>}
         glow={{
-          background:
-            "radial-gradient(50% 50% at 50% 30%, rgba(94,234,212,0.16), transparent 70%)",
+          background: "radial-gradient(50% 50% at 50% 30%, rgba(94,234,212,0.16), transparent 70%)",
           inset: "-inset-x-10 -inset-y-8",
           blur: "blur-3xl",
           rounded: "rounded-[2.5rem]",
@@ -368,25 +315,14 @@ export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
         <div className="grid gap-4 p-4 sm:p-6 lg:grid-cols-12">
           <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-4 lg:col-span-7">
             <div className="flex items-center justify-between">
-              <div className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
-                Requests / sec
-              </div>
-              <div className="text-cc-ink-dim font-mono text-[10px]">
-                last 15m
-              </div>
+              <div className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">Requests / sec</div>
+              <div className="text-cc-ink-dim font-mono text-[10px]">last 15m</div>
             </div>
             <Sparkline inView={inView} reduceMotion={reduceMotion} />
           </div>
 
           <div className="grid grid-cols-3 gap-3 lg:col-span-5">
-            <KpiTile
-              label="p95"
-              suffix="ms"
-              target={142}
-              drift={6}
-              inView={inView}
-              reduceMotion={reduceMotion}
-            />
+            <KpiTile label="p95" suffix="ms" target={142} drift={6} inView={inView} reduceMotion={reduceMotion} />
             <KpiTile
               label="Error rate"
               suffix="%"
@@ -412,9 +348,7 @@ export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
               <div className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
                 Trace waterfall / checkoutOrder
               </div>
-              <div className="text-cc-ink-dim font-mono text-[10px]">
-                212 ms
-              </div>
+              <div className="text-cc-ink-dim font-mono text-[10px]">212 ms</div>
             </div>
             <div className="mt-3 h-24">
               <Waterfall inView={inView} reduceMotion={reduceMotion} />

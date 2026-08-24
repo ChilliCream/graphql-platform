@@ -23,10 +23,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
   return (
     <>
       <div className="flex items-center gap-2 min-[1060px]:hidden">
-        <Search
-          ariaLabel="Search"
-          className="text-cc-heading flex h-full items-center px-2"
-        />
+        <Search ariaLabel="Search" className="text-cc-heading flex h-full items-center px-2" />
         <button
           type="button"
           aria-label="Open navigation menu"

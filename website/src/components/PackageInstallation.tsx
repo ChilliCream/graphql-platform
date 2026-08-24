@@ -10,11 +10,7 @@ type Props = {
   external?: boolean;
 };
 
-export function PackageInstallation({
-  packageName,
-  packagename,
-  external,
-}: Props) {
+export function PackageInstallation({ packageName, packagename, external }: Props) {
   const name = packageName ?? packagename ?? "";
 
   return (
@@ -27,21 +23,18 @@ export function PackageInstallation({
         </InputChoiceTabs.CLI>
         <InputChoiceTabs.VisualStudio>
           <p>
-            Add the <InlineCode>{name}</InlineCode> package using the NuGet
-            Package Manager within Visual Studio.
+            Add the <InlineCode>{name}</InlineCode> package using the NuGet Package Manager within Visual Studio.
           </p>
           <p>
             <Link href="https://docs.microsoft.com/nuget/quickstart/install-and-use-a-package-in-visual-studio#nuget-package-manager">
-              Learn how you can use the NuGet Package Manager to install a
-              package
+              Learn how you can use the NuGet Package Manager to install a package
             </Link>
           </p>
         </InputChoiceTabs.VisualStudio>
       </InputChoiceTabs>
       {!external && (
         <Admonition kind="warning">
-          All <InlineCode>HotChocolate.*</InlineCode> packages need to have the
-          same version.
+          All <InlineCode>HotChocolate.*</InlineCode> packages need to have the same version.
         </Admonition>
       )}
     </>

@@ -76,20 +76,8 @@ The minimum a tool needs is a `.graphql` file. The operation runs against your G
 `mcp/tools/SearchProducts/SearchProducts.graphql`:
 
 ```graphql
-query SearchProducts(
-  $text: String!
-  $minPrice: Float
-  $maxPrice: Float
-  $first: Int!
-  $after: String
-) {
-  products(
-    searchText: $text
-    minPrice: $minPrice
-    maxPrice: $maxPrice
-    first: $first
-    after: $after
-  ) {
+query SearchProducts($text: String!, $minPrice: Float, $maxPrice: Float, $first: Int!, $after: String) {
+  products(searchText: $text, minPrice: $minPrice, maxPrice: $maxPrice, first: $first, after: $after) {
     nodes {
       id
       name
@@ -197,8 +185,7 @@ You can also add a `view` block to the tool's settings to tweak how the host fra
       // Adopt the host's theme, CSS variables, and fonts so the view feels native.
       app.onhostcontextchanged = (ctx) => {
         if (ctx.theme) applyDocumentTheme(ctx.theme);
-        if (ctx.styles?.variables)
-          applyHostStyleVariables(ctx.styles.variables);
+        if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
         if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
       };
 

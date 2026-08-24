@@ -14,8 +14,7 @@ const HEX = {
 
 const TRACK = "rgba(245, 241, 234, 0.1)";
 
-const MONO =
-  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace';
 
 type Status = "firing" | "investigating" | "healthy";
 
@@ -40,9 +39,8 @@ export function CombinedObservability() {
             See what the API is doing.
           </h2>
           <p className="text-cc-ink mt-6 max-w-3xl text-base text-pretty sm:text-lg">
-            Rank reported GraphQL operations by impact and inspect traces from
-            services configured to export supported OpenTelemetry data. The
-            documented .NET setup covers REST, gRPC, and background jobs.
+            Rank reported GraphQL operations by impact and inspect traces from services configured to export supported
+            OpenTelemetry data. The documented .NET setup covers REST, gRPC, and background jobs.
           </p>
           <ArrowLink href="/platform/analytics" className="mt-6">
             Learn more
@@ -75,9 +73,7 @@ function FacetCard({ title, href, children }: FacetCardProps) {
       href={href}
       className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover flex flex-col rounded-2xl border p-5 no-underline backdrop-blur-sm transition-colors"
     >
-      <h3 className="font-heading text-cc-heading text-base font-semibold">
-        {title}
-      </h3>
+      <h3 className="font-heading text-cc-heading text-base font-semibold">{title}</h3>
       {children}
     </Link>
   );
@@ -125,15 +121,9 @@ function ImpactFacet() {
             <div
               key={row.name}
               className={`rounded-xl border p-3 ${
-                pinned
-                  ? "border-cc-status-firing/30 bg-cc-status-firing/5"
-                  : "border-cc-card-border bg-cc-surface/40"
+                pinned ? "border-cc-status-firing/30 bg-cc-status-firing/5" : "border-cc-card-border bg-cc-surface/40"
               }`}
-              style={
-                pinned
-                  ? { boxShadow: `inset 2px 0 0 ${STATUS_HEX.firing}` }
-                  : undefined
-              }
+              style={pinned ? { boxShadow: `inset 2px 0 0 ${STATUS_HEX.firing}` } : undefined}
             >
               <div className="flex items-center gap-2">
                 <span
@@ -252,10 +242,7 @@ function TraceFacet() {
   return (
     <FacetCard href="/platform/analytics" title="See where time is lost.">
       <div className="relative mt-5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex gap-2"
-        >
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex gap-2">
           <span className="w-[4.5rem] shrink-0" />
           <span className="relative flex-1">
             {TIME_TICKS.map((tick) => (
@@ -281,9 +268,7 @@ function TraceFacet() {
                   style={{ left: `${span.left}%`, width: `${span.width}%` }}
                 />
               </span>
-              <span
-                className={`w-12 shrink-0 text-right font-mono text-[0.6rem] tabular-nums ${DUR_TEXT[span.tone]}`}
-              >
+              <span className={`w-12 shrink-0 text-right font-mono text-[0.6rem] tabular-nums ${DUR_TEXT[span.tone]}`}>
                 {span.dur} ms
               </span>
             </div>
@@ -318,9 +303,7 @@ function TraceFacet() {
 
 const SPARK_ID = "cmb-obs-";
 
-const SERIES: readonly number[] = [
-  152, 158, 150, 161, 155, 163, 157, 168, 162, 178, 205, 248, 292, 318,
-];
+const SERIES: readonly number[] = [152, 158, 150, 161, 155, 163, 157, 168, 162, 178, 205, 248, 292, 318];
 
 const DOMAIN_MIN = 120;
 const DOMAIN_MAX = 340;
@@ -332,19 +315,14 @@ type Point = readonly [number, number];
 function buildSloSparkline() {
   const n = SERIES.length;
   const round = (v: number) => Math.round(v * 10) / 10;
-  const xOf = (i: number) =>
-    PLOT.left + (i / (n - 1)) * (PLOT.right - PLOT.left);
-  const yOf = (v: number) =>
-    PLOT.bottom -
-    ((v - DOMAIN_MIN) / (DOMAIN_MAX - DOMAIN_MIN)) * (PLOT.bottom - PLOT.top);
+  const xOf = (i: number) => PLOT.left + (i / (n - 1)) * (PLOT.right - PLOT.left);
+  const yOf = (v: number) => PLOT.bottom - ((v - DOMAIN_MIN) / (DOMAIN_MAX - DOMAIN_MIN)) * (PLOT.bottom - PLOT.top);
 
   const pts: Point[] = SERIES.map((v, i) => [xOf(i), yOf(v)]);
   const sloY = yOf(SLO_VALUE);
 
   const toLine = (p: readonly Point[]) =>
-    p
-      .map(([x, y], i) => `${i === 0 ? "M" : "L"}${round(x)} ${round(y)}`)
-      .join(" ");
+    p.map(([x, y], i) => `${i === 0 ? "M" : "L"}${round(x)} ${round(y)}`).join(" ");
   const toArea = (p: readonly Point[]) =>
     `${toLine(p)} L${round(p[p.length - 1][0])} ${PLOT.bottom} L${round(p[0][0])} ${PLOT.bottom} Z`;
 
@@ -408,12 +386,8 @@ function SymptomCauseFacet() {
     <FacetCard href="/platform/analytics" title="Inspect the slow spans.">
       <div className="mt-5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-cc-ink-dim font-mono text-[0.58rem] tracking-[0.12em] uppercase">
-            checkout p99
-          </span>
-          <span className="text-cc-status-firing font-mono text-sm font-semibold tabular-nums">
-            318 ms
-          </span>
+          <span className="text-cc-ink-dim font-mono text-[0.58rem] tracking-[0.12em] uppercase">checkout p99</span>
+          <span className="text-cc-status-firing font-mono text-sm font-semibold tabular-nums">318 ms</span>
         </div>
         <div className="mt-2">
           <svg
@@ -500,19 +474,8 @@ function SymptomCauseFacet() {
               strokeWidth="1.4"
               vectorEffect="non-scaling-stroke"
             />
-            <circle
-              cx={SPARK.last[0]}
-              cy={SPARK.last[1]}
-              r="6"
-              fill={HEX.coral}
-              fillOpacity="0.16"
-            />
-            <circle
-              cx={SPARK.last[0]}
-              cy={SPARK.last[1]}
-              r="2.8"
-              fill={HEX.coral}
-            />
+            <circle cx={SPARK.last[0]} cy={SPARK.last[1]} r="6" fill={HEX.coral} fillOpacity="0.16" />
+            <circle cx={SPARK.last[0]} cy={SPARK.last[1]} r="2.8" fill={HEX.coral} />
           </svg>
         </div>
       </div>
@@ -522,11 +485,7 @@ function SymptomCauseFacet() {
           <div key={span.name} className="flex items-center gap-2">
             <span
               className={`w-[4.5rem] shrink-0 truncate text-right font-mono text-[0.58rem] ${
-                span.cause
-                  ? "text-cc-status-firing"
-                  : span.root
-                    ? "text-cc-ink"
-                    : "text-cc-ink-dim"
+                span.cause ? "text-cc-status-firing" : span.root ? "text-cc-ink" : "text-cc-ink-dim"
               }`}
             >
               {span.name}
@@ -534,11 +493,7 @@ function SymptomCauseFacet() {
             <span className="bg-cc-surface relative h-2 flex-1 overflow-hidden rounded-full">
               <span
                 className={`absolute top-0 h-full rounded-full ${
-                  span.cause
-                    ? "bg-cc-status-firing"
-                    : span.root
-                      ? "bg-cc-accent/25"
-                      : "bg-cc-accent/70"
+                  span.cause ? "bg-cc-status-firing" : span.root ? "bg-cc-accent/25" : "bg-cc-accent/70"
                 }`}
                 style={{ left: `${span.left}%`, width: `${span.width}%` }}
               />
@@ -564,21 +519,8 @@ interface StatusDotProps {
 function StatusDot({ status }: StatusDotProps) {
   const color = STATUS_HEX[status];
   return (
-    <svg
-      width={12}
-      height={12}
-      viewBox="0 0 14 14"
-      aria-hidden="true"
-      className="shrink-0"
-    >
-      <circle
-        cx={7}
-        cy={7}
-        r={5}
-        fill={`${color}22`}
-        stroke={color}
-        strokeWidth={1}
-      />
+    <svg width={12} height={12} viewBox="0 0 14 14" aria-hidden="true" className="shrink-0">
+      <circle cx={7} cy={7} r={5} fill={`${color}22`} stroke={color} strokeWidth={1} />
       <circle cx={7} cy={7} r={2.3} fill={color} />
     </svg>
   );
@@ -603,23 +545,9 @@ interface ImpactBarProps {
 
 function ImpactBar({ status, impact }: ImpactBarProps) {
   return (
-    <svg
-      viewBox="0 0 100 5"
-      width="100%"
-      height={5}
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      className="block"
-    >
+    <svg viewBox="0 0 100 5" width="100%" height={5} preserveAspectRatio="none" aria-hidden="true" className="block">
       <rect x={0} y={0} width={100} height={5} rx={2.5} fill={TRACK} />
-      <rect
-        x={0}
-        y={0}
-        width={impact}
-        height={5}
-        rx={2.5}
-        fill={STATUS_HEX[status]}
-      />
+      <rect x={0} y={0} width={impact} height={5} rx={2.5} fill={STATUS_HEX[status]} />
     </svg>
   );
 }

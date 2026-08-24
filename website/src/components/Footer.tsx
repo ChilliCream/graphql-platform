@@ -95,10 +95,7 @@ export default function Footer() {
             <SocialLink href={tools.slack} label="ChilliCream Slack Community">
               <SlackIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink
-              href={tools.youtube}
-              label="ChilliCream YouTube Channel"
-            >
+            <SocialLink href={tools.youtube} label="ChilliCream YouTube Channel">
               <YouTubeIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.x} label="ChilliCream on X">
@@ -110,10 +107,7 @@ export default function Footer() {
           </nav>
         </Section>
         <Section>
-          <p className="text-cc-ink-dim">
-            © {new Date().getFullYear()} ChilliCream, Inc. ・ All Rights
-            Reserved
-          </p>
+          <p className="text-cc-ink-dim">© {new Date().getFullYear()} ChilliCream, Inc. ・ All Rights Reserved</p>
         </Section>
       </div>
     </footer>
@@ -124,26 +118,17 @@ function Section({ children }: { children: ReactNode }) {
   return <div className="flex flex-col gap-8 lg:flex-row">{children}</div>;
 }
 
-function LinkColumn({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function LinkColumn({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex min-w-36 flex-col gap-6">
-      <h3 className="text-cc-heading flex h-8 items-end text-base font-semibold">
-        {title}
-      </h3>
+      <h3 className="text-cc-heading flex h-8 items-end text-base font-semibold">{title}</h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>
     </div>
   );
 }
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
-  const className =
-    "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
+  const className = "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
 
   if (href.startsWith("/")) {
     return (
@@ -162,28 +147,14 @@ function NavLink({ href, children }: { href: string; children: ReactNode }) {
   }
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
       {children}
     </a>
   );
 }
 
-function SocialLink({
-  href,
-  label,
-  children,
-}: {
-  href: string;
-  label: string;
-  children: ReactNode;
-}) {
-  const className =
-    "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
+function SocialLink({ href, label, children }: { href: string; label: string; children: ReactNode }) {
+  const className = "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
 
   if (href.startsWith("/")) {
     return (
@@ -195,13 +166,7 @@ function SocialLink({
   }
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={label}
-      className={className}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={className}>
       {children}
       <span className="sr-only">{label}</span>
     </a>

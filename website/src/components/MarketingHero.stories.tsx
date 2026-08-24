@@ -61,18 +61,16 @@ export const WithCardGrid: Story = {
     lead: "You work with the core engineers, not a first-line queue.",
     children: (
       <div className="mt-14 grid gap-4 md:grid-cols-3">
-        {["A quick question", "Production is down", "A second opinion"].map(
-          (label) => (
-            <IconFeatureCard
-              key={label}
-              eyebrow={label}
-              size="lg"
-              icon={<CheckIcon size={20} />}
-              title="We respond fast"
-              copy="A core team member jumps in and stays with you until it is resolved."
-            />
-          ),
-        )}
+        {["A quick question", "Production is down", "A second opinion"].map((label) => (
+          <IconFeatureCard
+            key={label}
+            eyebrow={label}
+            size="lg"
+            icon={<CheckIcon size={20} />}
+            title="We respond fast"
+            copy="A core team member jumps in and stays with you until it is resolved."
+          />
+        ))}
       </div>
     ),
   },

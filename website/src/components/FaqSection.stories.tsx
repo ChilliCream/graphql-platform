@@ -58,8 +58,7 @@ export const SingleItem: Story = {
     items: [
       {
         question: "Is there a free trial?",
-        answer:
-          "Every plan starts with a 14-day free trial. No credit card is required to get going.",
+        answer: "Every plan starts with a 14-day free trial. No credit card is required to get going.",
       },
     ],
   },
@@ -69,9 +68,7 @@ export const ExpandsOnClick: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    const firstSummary = canvas.getAllByText(
-      "How fast do you respond to support requests?",
-    )[0];
+    const firstSummary = canvas.getAllByText("How fast do you respond to support requests?")[0];
     const details = firstSummary.closest("details");
 
     expect(details).not.toBeNull();
@@ -80,8 +77,6 @@ export const ExpandsOnClick: Story = {
     await userEvent.click(firstSummary);
 
     expect(details).toHaveAttribute("open");
-    expect(
-      canvas.getByText(/Most messages get a first response within minutes/),
-    ).toBeVisible();
+    expect(canvas.getByText(/Most messages get a first response within minutes/)).toBeVisible();
   },
 };

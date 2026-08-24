@@ -9,12 +9,7 @@ interface SectionShellProps {
   readonly flip?: boolean;
 }
 
-export function SectionShell({
-  title,
-  lead,
-  artifact,
-  flip = false,
-}: SectionShellProps) {
+export function SectionShell({ title, lead, artifact, flip = false }: SectionShellProps) {
   return (
     <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
       <div className={`min-w-0 ${flip ? "lg:order-2" : ""}`}>

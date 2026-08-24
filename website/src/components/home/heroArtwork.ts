@@ -309,5 +309,4 @@ export const HERO_HEADLINE = {
 } as const;
 
 /** Brand spectrum (cyan -> violet -> coral) used on the headline accent line. */
-export const HERO_ACCENT_GRADIENT =
-  "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
+export const HERO_ACCENT_GRADIENT = "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";

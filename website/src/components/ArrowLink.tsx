@@ -13,12 +13,7 @@ interface ArrowLinkProps extends Omit<ComponentPropsWithoutRef<"a">, "href"> {
  * The recurring "label + trailing arrow" link: an accent-colored,
  * medium-weight link with a trailing `ArrowRightIcon`.
  */
-export function ArrowLink({
-  href,
-  children,
-  className = "",
-  ...props
-}: ArrowLinkProps) {
+export function ArrowLink({ href, children, className = "", ...props }: ArrowLinkProps) {
   const linkClassName =
     `text-cc-accent hover:text-cc-accent-hover text-sm font-medium no-underline transition-colors inline-flex items-center gap-1.5 ${className}`.trim();
   const content = (

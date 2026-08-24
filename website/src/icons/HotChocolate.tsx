@@ -11,12 +11,7 @@ interface HotChocolateProps {
  */
 export function HotChocolate({ className, style }: HotChocolateProps) {
   return (
-    <svg
-      viewBox="507 32 59 84"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="507 32 59 84" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="hot-chocolate-uuid-38fc5fc7-ceab-4d60-9949-23f500a13b8d"

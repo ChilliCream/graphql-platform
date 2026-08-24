@@ -7,13 +7,7 @@ interface CoffeeTrayProps {
 
 export function CoffeeTray({ className, style }: CoffeeTrayProps) {
   return (
-    <svg
-      viewBox="256 1320 198 158"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="256 1320 198 158" fill="none" aria-hidden="true" className={className} style={style}>
       <defs>
         <linearGradient
           id="uuid-abed04d8-74ef-4337-859c-b4fac039b09c"

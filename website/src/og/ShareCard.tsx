@@ -1,9 +1,4 @@
-import {
-  HERO_ACCENT_GRADIENT,
-  HERO_DRINKS,
-  HERO_HEADLINE,
-  HERO_SWIRLS,
-} from "@/src/components/home/heroArtwork";
+import { HERO_ACCENT_GRADIENT, HERO_DRINKS, HERO_HEADLINE, HERO_SWIRLS } from "@/src/components/home/heroArtwork";
 import { Swirl } from "@/src/icons/Swirl";
 import { ccBg, ccDarkSurface, ccInk } from "@/src/theme/colors";
 
@@ -72,23 +67,23 @@ export function ShareCard({ pageTitle }: ShareCardProps) {
           <Drink style={{ width: cardWidth, height: cardWidth * aspect }} />
         </div>
       ))}
-      {HERO_SWIRLS.filter(
-        ({ left, top }) => !pageTitle || !inTitleZone(left, top),
-      ).map(({ left, top, cardSize, rotate }) => (
-        <div
-          key={left + top}
-          style={{
-            position: "absolute",
-            left,
-            top,
-            display: "flex",
-            color: rgba("#62748e", 0.55),
-            transform: `translate(-50%, -50%) rotate(${rotate})`,
-          }}
-        >
-          <Swirl style={{ width: cardSize, height: cardSize }} />
-        </div>
-      ))}
+      {HERO_SWIRLS.filter(({ left, top }) => !pageTitle || !inTitleZone(left, top)).map(
+        ({ left, top, cardSize, rotate }) => (
+          <div
+            key={left + top}
+            style={{
+              position: "absolute",
+              left,
+              top,
+              display: "flex",
+              color: rgba("#62748e", 0.55),
+              transform: `translate(-50%, -50%) rotate(${rotate})`,
+            }}
+          >
+            <Swirl style={{ width: cardSize, height: cardSize }} />
+          </div>
+        ),
+      )}
 
       {/* Headline */}
       <div
@@ -102,9 +97,7 @@ export function ShareCard({ pageTitle }: ShareCardProps) {
           letterSpacing: "-1.5px",
         }}
       >
-        <div style={{ display: "flex", color: ccInk }}>
-          {HERO_HEADLINE.lead}
-        </div>
+        <div style={{ display: "flex", color: ccInk }}>{HERO_HEADLINE.lead}</div>
         <div
           style={{
             display: "flex",

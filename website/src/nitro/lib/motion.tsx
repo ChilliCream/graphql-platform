@@ -12,11 +12,7 @@ const getServerSnapshot = () => false;
 export function useReducedMotionPreference(): boolean {
   const mode = useContext(ReducedMotionContext);
   const media = useReducedMotion() ?? false;
-  const hydrated = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot,
-  );
+  const hydrated = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   if (mode === "always") return true;
   if (mode === "never") return false;
   return hydrated && media;

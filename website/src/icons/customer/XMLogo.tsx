@@ -7,13 +7,7 @@ interface XMLogoProps {
 
 export function XMLogo({ className, style }: XMLogoProps) {
   return (
-    <svg
-      viewBox="0 0 150 39.52"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 150 39.52" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <polygon points="83.91 8.74 79.89 0 66.11 0 74.58 17.48 83.91 8.74" />
       <path d="M116.59,0H92L58.31,39.52H71.72L80.52,29l4.85,10.5h23.11l3.11-17.61,2.8,9.72,8.39-10.09ZM97.72,36.37l-8.2-17.45,14.17-16.4Z" />
       <polygon points="137.61 0 115.11 34.14 126.4 34.14 134.96 20.78 131.65 39.52 143.03 39.52 150 0 137.61 0" />

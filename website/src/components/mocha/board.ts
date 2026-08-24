@@ -186,11 +186,7 @@ export function mulberry32(seed: number): () => number {
 }
 
 function posRand(x: number, y: number): () => number {
-  return mulberry32(
-    (Math.imul(Math.round(x), 73856093) ^
-      Math.imul(Math.round(y), 19349663)) >>>
-      0,
-  );
+  return mulberry32((Math.imul(Math.round(x), 73856093) ^ Math.imul(Math.round(y), 19349663)) >>> 0);
 }
 
 function footPads(foot: Footprint): Pad[] {
@@ -209,11 +205,7 @@ function footPads(foot: Footprint): Pad[] {
   return pads;
 }
 
-function padEscapes(
-  pads: Pad[],
-  rand: () => number,
-  keep: (x: number, y: number) => boolean,
-): Point[][] {
+function padEscapes(pads: Pad[], rand: () => number, keep: (x: number, y: number) => boolean): Point[][] {
   const escapes: Point[][] = [];
   for (const pad of pads) {
     if (pad.connected || rand() > 0.72) {
@@ -245,22 +237,14 @@ function traceFrom(pts: Point[], to: number, connector: boolean): Trace {
   return { pts, cum, len, to, connector, layer: 0 };
 }
 
-function walk(
-  rand: () => number,
-  start: Point,
-  dir: number,
-  w: number,
-  h: number,
-): Trace | null {
+function walk(rand: () => number, start: Point, dir: number, w: number, h: number): Trace | null {
   const pts: Point[] = [start];
   let { x, y } = start;
   let d = dir;
   const segs = 2 + Math.floor(rand() * 3);
   for (let s = 0; s < segs; s++) {
     const diag = d % 2 === 1;
-    const cells = diag
-      ? 1 + Math.floor(rand() * 2)
-      : 2 + Math.floor(rand() * 4);
+    const cells = diag ? 1 + Math.floor(rand() * 2) : 2 + Math.floor(rand() * 4);
     const nx = x + DIR_VECS[d].x * cells * GRID;
     const ny = y + DIR_VECS[d].y * cells * GRID;
     if (nx < GRID || nx > w - GRID || ny < GRID || ny > h - GRID) {
@@ -292,11 +276,7 @@ function dedupPath(pts: Point[]): Point[] {
   const out: Point[] = [];
   for (const p of pts) {
     const last = out[out.length - 1];
-    if (
-      last &&
-      Math.abs(last.x - p.x) < 0.26 &&
-      Math.abs(last.y - p.y) < 0.26
-    ) {
+    if (last && Math.abs(last.x - p.x) < 0.26 && Math.abs(last.y - p.y) < 0.26) {
       continue;
     }
     out.push(p);
@@ -359,15 +339,7 @@ function offsetPolyline(pts: Point[], o: number): Point[] {
   return out;
 }
 
-function busPath(
-  a: Point,
-  adir: Point,
-  aStub: number,
-  b: Point,
-  bdir: Point,
-  bStub: number,
-  midT: number,
-): Point[] {
+function busPath(a: Point, adir: Point, aStub: number, b: Point, bdir: Point, bStub: number, midT: number): Point[] {
   const a2 = { x: a.x + adir.x * aStub, y: a.y + adir.y * aStub };
   const b2 = { x: b.x + bdir.x * bStub, y: b.y + bdir.y * bStub };
   const dx = b2.x - a2.x;
@@ -389,13 +361,7 @@ function busPath(
   return dedupPath(pts);
 }
 
-function padWindow(
-  foot: Footprint,
-  nx: number,
-  ny: number,
-  n: number,
-  toward: number,
-): Pad[] | null {
+function padWindow(foot: Footprint, nx: number, ny: number, n: number, toward: number): Pad[] | null {
   const horiz = ny !== 0;
   const row = (foot.pads ?? [])
     .filter((p) => p.nx === nx && p.ny === ny)
@@ -432,10 +398,7 @@ export function pointAt(trace: Trace, dist: number): Point {
 }
 
 export function envelope(p: Pulse): number {
-  return (
-    Math.min(1, p.dist / 70) *
-    Math.min(1, Math.max(0, (p.trace.len - p.dist) / 120))
-  );
+  return Math.min(1, p.dist / 70) * Math.min(1, Math.max(0, (p.trace.len - p.dist) / 120));
 }
 
 const SEED_QUANTUM = 80;
@@ -481,10 +444,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1];
       const b = pts[i];
-      const steps = Math.max(
-        1,
-        Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / STEP),
-      );
+      const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / STEP));
       for (let s = 0; s <= steps; s++) {
         const t = s / steps;
         fn(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
@@ -540,10 +500,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
       const line = o === 0 ? pts : offsetPolyline(pts, o);
       let total = 0;
       for (let i = 1; i < line.length; i++) {
-        total += Math.hypot(
-          line[i].x - line[i - 1].x,
-          line[i].y - line[i - 1].y,
-        );
+        total += Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y);
       }
       let acc = 0;
       for (let i = 1; i < line.length; i++) {
@@ -615,10 +572,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
 
   const furniture: Rect[] = [];
   const overlaps = (a: Rect, b: Rect, m: number) =>
-    a.x < b.x + b.w + m &&
-    a.x + a.w + m > b.x &&
-    a.y < b.y + b.h + m &&
-    a.y + a.h + m > b.y;
+    a.x < b.x + b.w + m && a.x + a.w + m > b.x && a.y < b.y + b.h + m && a.y + a.h + m > b.y;
   const copperAt = (x: number, y: number) => {
     const gx = Math.min(gcols - 1, Math.max(0, Math.floor(x / CELL)));
     const gy = Math.min(grows - 1, Math.max(0, Math.floor(y / CELL)));
@@ -659,8 +613,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
           w: r.w + (PAD_LEN + 2) * 2,
           h: r.h + COURT_GAP * 2,
         };
-  const passiveHalf = (kind: PassiveKind) =>
-    kind === "res" ? { l: 5.5, c: 2 } : { l: 5.6, c: 2.8 };
+  const passiveHalf = (kind: PassiveKind) => (kind === "res" ? { l: 5.5, c: 2 } : { l: 5.6, c: 2.8 });
   const passiveCourt = (p: Passive): Rect => {
     const { l, c } = passiveHalf(p.kind);
     const hw = (p.horiz ? l : c) + COURT_GAP;
@@ -703,12 +656,8 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
       }
       let done = false;
       for (let attempt = 0; attempt < 6 && !done; attempt++) {
-        const fx =
-          GRID *
-          Math.round((cell.x + rand() * Math.max(1, cell.w - bw)) / GRID);
-        const fy =
-          GRID *
-          Math.round((cell.y + rand() * Math.max(1, cell.h - bh)) / GRID);
+        const fx = GRID * Math.round((cell.x + rand() * Math.max(1, cell.w - bw)) / GRID);
+        const fy = GRID * Math.round((cell.y + rand() * Math.max(1, cell.h - bh)) / GRID);
         const r: Rect = { x: fx, y: fy, w: bw, h: bh };
         const court = icCourt(r);
         if (rejected(court)) {
@@ -736,10 +685,8 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     for (let attempt = 0; attempt < 6; attempt++) {
       const bw = GRID * (1 + Math.floor(rand() * 2));
       const bh = GRID;
-      const fx =
-        GRID * Math.round((cell.x + rand() * Math.max(1, cell.w - bw)) / GRID);
-      const fy =
-        GRID * Math.round((cell.y + rand() * Math.max(1, cell.h - bh)) / GRID);
+      const fx = GRID * Math.round((cell.x + rand() * Math.max(1, cell.w - bw)) / GRID);
+      const fy = GRID * Math.round((cell.y + rand() * Math.max(1, cell.h - bh)) / GRID);
       const r: Rect = { x: fx, y: fy, w: bw, h: bh };
       const court = icCourt(r);
       if (rejected(court)) {
@@ -869,16 +816,9 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
   });
   const sideToward = (foot: Footprint, target: Point) => {
     const c = footCenter(foot);
-    return foot.w >= foot.h
-      ? { nx: 0, ny: target.y < c.y ? -1 : 1 }
-      : { nx: target.x < c.x ? -1 : 1, ny: 0 };
+    return foot.w >= foot.h ? { nx: 0, ny: target.y < c.y ? -1 : 1 } : { nx: target.x < c.x ? -1 : 1, ny: 0 };
   };
-  const routeBus = (
-    src: BusEnd,
-    dst: BusEnd,
-    want: number,
-    endVias: boolean,
-  ): boolean => {
+  const routeBus = (src: BusEnd, dst: BusEnd, want: number, endVias: boolean): boolean => {
     const aRef = src.foot ? footCenter(src.foot) : src.pt;
     const bRef = dst.foot ? footCenter(dst.foot) : dst.pt;
     for (let n = want; n >= 2; n--) {
@@ -894,13 +834,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
         if (src.foot) {
           const s0 = sideToward(src.foot, bRef);
           const s = { nx: s0.nx * sFlip, ny: s0.ny * sFlip };
-          srcPads = padWindow(
-            src.foot,
-            s.nx,
-            s.ny,
-            n,
-            s.ny !== 0 ? bRef.x : bRef.y,
-          );
+          srcPads = padWindow(src.foot, s.nx, s.ny, n, s.ny !== 0 ? bRef.x : bRef.y);
           if (!srcPads) {
             continue;
           }
@@ -916,13 +850,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
         if (dst.foot) {
           const s0 = sideToward(dst.foot, aRef);
           const s = { nx: s0.nx * dFlip, ny: s0.ny * dFlip };
-          dstPads = padWindow(
-            dst.foot,
-            s.nx,
-            s.ny,
-            n,
-            s.ny !== 0 ? aRef.x : aRef.y,
-          );
+          dstPads = padWindow(dst.foot, s.nx, s.ny, n, s.ny !== 0 ? aRef.x : aRef.y);
           if (!dstPads) {
             continue;
           }
@@ -948,9 +876,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
           }
           const laneLines: Point[][] = [];
           for (let k = 0; k < n; k++) {
-            laneLines.push(
-              offsetPolyline(center, (k - (n - 1) / 2) * BUS_LANE_PITCH),
-            );
+            laneLines.push(offsetPolyline(center, (k - (n - 1) / 2) * BUS_LANE_PITCH));
           }
           const fanout = (pads: Pad[] | null, dir: Point, atStart: boolean) => {
             if (!pads) {
@@ -963,9 +889,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
                 return { k, c: alongX ? p.x : p.y };
               })
               .sort((p, q) => p.c - q.c);
-            const sorted = [...pads].sort((p, q) =>
-              alongX ? p.x - q.x : p.y - q.y,
-            );
+            const sorted = [...pads].sort((p, q) => (alongX ? p.x - q.x : p.y - q.y));
             for (let r = 0; r < order.length; r++) {
               const line = laneLines[order[r].k];
               const pad = sorted[r];
@@ -1018,16 +942,8 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
       const c = footCenter(o.f);
       const dx = c.x - node.x;
       const dy = c.y - node.y;
-      const dir =
-        Math.abs(dx) >= Math.abs(dy)
-          ? { x: Math.sign(dx) || 1, y: 0 }
-          : { x: 0, y: Math.sign(dy) || 1 };
-      routeBus(
-        { pt: node, dir },
-        { foot: o.f, pt: c },
-        2 + Math.floor(rand() * 2),
-        false,
-      );
+      const dir = Math.abs(dx) >= Math.abs(dy) ? { x: Math.sign(dx) || 1, y: 0 } : { x: 0, y: Math.sign(dy) || 1 };
+      routeBus({ pt: node, dir }, { foot: o.f, pt: c }, 2 + Math.floor(rand() * 2), false);
     }
   }
 
@@ -1042,12 +958,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
       .sort((p, q) => p.d - q.d)
       .slice(0, 1 + Math.floor(rand() * 2));
     for (const o of near) {
-      routeBus(
-        { foot: majors[i], pt: c1 },
-        { foot: o.f, pt: footCenter(o.f) },
-        2 + Math.floor(rand() * 5),
-        false,
-      );
+      routeBus({ foot: majors[i], pt: c1 }, { foot: o.f, pt: footCenter(o.f) }, 2 + Math.floor(rand() * 5), false);
     }
   }
 
@@ -1071,14 +982,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     if (edgeRuns >= wantRuns) {
       break;
     }
-    if (
-      routeBus(
-        { foot: o.f, pt: footCenter(o.f) },
-        { pt: o.pt, dir: o.dir },
-        3 + Math.floor(rand() * 4),
-        true,
-      )
-    ) {
+    if (routeBus({ foot: o.f, pt: footCenter(o.f) }, { pt: o.pt, dir: o.dir }, 3 + Math.floor(rand() * 4), true)) {
       edgeRuns++;
     }
   }
@@ -1088,9 +992,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     const side = rand() < 0.5 ? -1 : 1;
     const off = 22 + rand() * 4;
     const want = DECAP_MIN + Math.floor(rand() * (DECAP_MAX - DECAP_MIN + 1));
-    const row = (foot.pads ?? []).filter((p) =>
-      horiz ? p.ny === side : p.nx === side,
-    );
+    const row = (foot.pads ?? []).filter((p) => (horiz ? p.ny === side : p.nx === side));
     let placed = 0;
     for (let attempt = 0; attempt < row.length && placed < want; attempt++) {
       const pad = row[Math.floor(rand() * row.length)];
@@ -1144,11 +1046,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
           ? foot.x - off
           : foot.x + foot.w + off
         : foot.x + 4 + rand() * Math.max(1, foot.w - 8);
-      const y = horiz
-        ? foot.y + 4 + rand() * Math.max(1, foot.h - 8)
-        : side < 0
-          ? foot.y - off
-          : foot.y + foot.h + off;
+      const y = horiz ? foot.y + 4 + rand() * Math.max(1, foot.h - 8) : side < 0 ? foot.y - off : foot.y + foot.h + off;
       if (tryCan(x, y)) {
         placed++;
       }
@@ -1212,10 +1110,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     x < w - 10 &&
     y < h - 10 &&
     !copperAt(x, y) &&
-    !furniture.some(
-      (f) =>
-        x > f.x - 4 && x < f.x + f.w + 4 && y > f.y - 4 && y < f.y + f.h + 4,
-    ) &&
+    !furniture.some((f) => x > f.x - 4 && x < f.x + f.w + 4 && y > f.y - 4 && y < f.y + f.h + 4) &&
     !keepOuts.some((k) => x > k.x && x < k.x + k.w && y > k.y && y < k.y + k.h);
   const stitchRows = 2 + Math.floor(rand() * 2);
   for (let i = 0; i < stitchRows; i++) {
@@ -1226,10 +1121,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
       const sy = 20 + rand() * (h - 40);
       let ok = true;
       for (let k = 0; k < n && ok; k++) {
-        ok = freePoint(
-          sx + dir.x * STITCH_PITCH * k,
-          sy + dir.y * STITCH_PITCH * k,
-        );
+        ok = freePoint(sx + dir.x * STITCH_PITCH * k, sy + dir.y * STITCH_PITCH * k);
       }
       if (!ok) {
         continue;
@@ -1320,10 +1212,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
     if (p.bank) {
       continue;
     }
-    placeSilkNear(
-      p.kind === "res" ? `R${rIdx++}` : `C${cIdx++}`,
-      passiveCourt(p),
-    );
+    placeSilkNear(p.kind === "res" ? `R${rIdx++}` : `C${cIdx++}`, passiveCourt(p));
   }
   for (const can of cans) {
     placeSilkNear(`C${cIdx++}`, canCourt(can.x, can.y));
@@ -1333,10 +1222,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
   }
 
   const hatches: Rect[] = [];
-  const pourCount = Math.min(
-    POUR_MAX,
-    Math.max(POUR_MIN, Math.floor((w * h) / 400000)),
-  );
+  const pourCount = Math.min(POUR_MAX, Math.max(POUR_MIN, Math.floor((w * h) / 400000)));
   for (let i = 0; i < pourCount; i++) {
     for (let attempt = 0; attempt < 14; attempt++) {
       let r: Rect = {
@@ -1360,11 +1246,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
         ];
         for (let j = 0; j < cands.length; j++) {
           const c = cands[(step + j) % cands.length];
-          if (
-            c.w <= GRID * POUR_MAX_SPAN &&
-            c.h <= GRID * POUR_MAX_SPAN &&
-            !rejected(c)
-          ) {
+          if (c.w <= GRID * POUR_MAX_SPAN && c.h <= GRID * POUR_MAX_SPAN && !rejected(c)) {
             r = c;
             grew = true;
             step++;
@@ -1379,11 +1261,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
   }
 
   const escapeKeep = (x: number, y: number) =>
-    !copperAt(x, y) &&
-    !furniture.some(
-      (f) =>
-        x > f.x - 2 && x < f.x + f.w + 2 && y > f.y - 2 && y < f.y + f.h + 2,
-    );
+    !copperAt(x, y) && !furniture.some((f) => x > f.x - 2 && x < f.x + f.w + 2 && y > f.y - 2 && y < f.y + f.h + 2);
   for (const foot of footprints) {
     foot.pads = footPads(foot);
     foot.escapes = padEscapes(foot.pads, posRand(foot.x, foot.y), escapeKeep);
@@ -1407,12 +1285,7 @@ export function generateBoard(nodes: Point[], w: number, h: number): Board {
   };
 }
 
-export function paintBoard(
-  g: CanvasRenderingContext2D,
-  board: Board,
-  w: number,
-  h: number,
-): void {
+export function paintBoard(g: CanvasRenderingContext2D, board: Board, w: number, h: number): void {
   g.fillStyle = PAD_COLOR;
   const pitch = GRID * 2;
   for (let y = 0; y <= h; y += pitch) {
@@ -1501,19 +1374,9 @@ export function paintBoard(
     g.fillStyle = FOOT_PIN;
     for (const pad of foot.pads ?? []) {
       if (pad.ny !== 0) {
-        g.fillRect(
-          pad.x - 1,
-          pad.ny < 0 ? foot.y - PAD_LEN : foot.y + foot.h,
-          2,
-          PAD_LEN,
-        );
+        g.fillRect(pad.x - 1, pad.ny < 0 ? foot.y - PAD_LEN : foot.y + foot.h, 2, PAD_LEN);
       } else {
-        g.fillRect(
-          pad.nx < 0 ? foot.x - PAD_LEN : foot.x + foot.w,
-          pad.y - 1,
-          PAD_LEN,
-          2,
-        );
+        g.fillRect(pad.nx < 0 ? foot.x - PAD_LEN : foot.x + foot.w, pad.y - 1, PAD_LEN, 2);
       }
     }
   }

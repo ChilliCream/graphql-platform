@@ -5,10 +5,7 @@ import dynamic from "next/dynamic";
 import "@xyflow/react/dist/style.css";
 
 const MochaTopologyVisualizationInner = dynamic(
-  () =>
-    import("./MochaTopologyVisualizationInner").then(
-      (m) => m.MochaTopologyVisualizationInner,
-    ),
+  () => import("./MochaTopologyVisualizationInner").then((m) => m.MochaTopologyVisualizationInner),
   { ssr: false },
 );
 
@@ -103,9 +100,7 @@ export interface MochaTopologyVisualizationProps {
   readonly trace?: string;
 }
 
-export const MochaTopologyVisualization: FC<
-  MochaTopologyVisualizationProps
-> = ({ data, trace }) => {
+export const MochaTopologyVisualization: FC<MochaTopologyVisualizationProps> = ({ data, trace }) => {
   const [expanded, setExpanded] = useState(false);
 
   const open = useCallback(() => setExpanded(true), []);
@@ -133,43 +128,21 @@ export const MochaTopologyVisualization: FC<
 
   return (
     <>
-      <div
-        style={{ ...containerStyle, cursor: "pointer" }}
-        onClick={open}
-        title="Click to expand visualization"
-      >
-        <button
-          style={iconButtonStyle}
-          onClick={open}
-          title="Expand visualization"
-          aria-label="Expand visualization"
-        >
+      <div style={{ ...containerStyle, cursor: "pointer" }} onClick={open} title="Click to expand visualization">
+        <button style={iconButtonStyle} onClick={open} title="Expand visualization" aria-label="Expand visualization">
           <ExpandIcon />
         </button>
         <div style={{ position: "absolute", inset: 0, zIndex: 5 }} />
-        <MochaTopologyVisualizationInner
-          data={data}
-          trace={trace}
-          expanded={false}
-        />
+        <MochaTopologyVisualizationInner data={data} trace={trace} expanded={false} />
       </div>
 
       {expanded && (
         <div style={overlayStyle} onClick={close}>
           <div style={popupStyle} onClick={(e) => e.stopPropagation()}>
-            <button
-              style={iconButtonStyle}
-              onClick={close}
-              title="Close"
-              aria-label="Close visualization"
-            >
+            <button style={iconButtonStyle} onClick={close} title="Close" aria-label="Close visualization">
               <CloseIcon />
             </button>
-            <MochaTopologyVisualizationInner
-              data={data}
-              trace={trace}
-              expanded={true}
-            />
+            <MochaTopologyVisualizationInner data={data} trace={trace} expanded={true} />
           </div>
         </div>
       )}

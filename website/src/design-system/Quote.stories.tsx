@@ -19,10 +19,7 @@ export const Multiline: Story = {
   args: {
     children: (
       <>
-        <p>
-          Premature optimization is the root of all evil (or at least most of
-          it) in programming.
-        </p>
+        <p>Premature optimization is the root of all evil (or at least most of it) in programming.</p>
         <p className="mt-2">— Donald Knuth</p>
       </>
     ),

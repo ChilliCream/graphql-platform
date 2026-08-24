@@ -13,14 +13,7 @@ type DropdownProps = {
   panelClassName?: string;
 };
 
-export function Dropdown({
-  trigger,
-  children,
-  label,
-  defaultOpen,
-  className,
-  panelClassName,
-}: DropdownProps) {
+export function Dropdown({ trigger, children, label, defaultOpen, className, panelClassName }: DropdownProps) {
   const labelId = useId();
 
   return (
@@ -75,8 +68,7 @@ type DropdownItemCommon = {
   children: ReactNode;
 };
 
-type DropdownItemLinkProps = DropdownItemCommon &
-  Omit<ComponentProps<typeof Link>, "children" | "className">;
+type DropdownItemLinkProps = DropdownItemCommon & Omit<ComponentProps<typeof Link>, "children" | "className">;
 
 type DropdownItemButtonProps = DropdownItemCommon &
   Omit<ComponentProps<"button">, "children" | "className"> & { href?: never };
@@ -88,12 +80,7 @@ export type DropdownItemProps = DropdownItemLinkProps | DropdownItemButtonProps;
  * provided, otherwise a `<button>`. Shares the active/hover styling so every
  * dropdown looks the same.
  */
-export function DropdownItem({
-  active,
-  description,
-  children,
-  ...rest
-}: DropdownItemProps) {
+export function DropdownItem({ active, description, children, ...rest }: DropdownItemProps) {
   const className = [
     "block w-full cursor-pointer rounded px-3 py-2 text-left no-underline transition-colors",
     active ? "bg-cc-accent/10 text-cc-accent" : "text-cc-ink hover:bg-cc-hover",
@@ -103,11 +90,7 @@ export function DropdownItem({
     <>
       <div className="text-sm font-medium">{children}</div>
       {description && (
-        <div
-          className={`text-xs ${active ? "text-cc-accent/80" : "text-cc-ink-dim"}`}
-        >
-          {description}
-        </div>
+        <div className={`text-xs ${active ? "text-cc-accent/80" : "text-cc-ink-dim"}`}>{description}</div>
       )}
     </>
   );
@@ -115,20 +98,11 @@ export function DropdownItem({
   return (
     <li>
       {"href" in rest && rest.href !== undefined ? (
-        <Link
-          {...rest}
-          aria-current={active ? "page" : undefined}
-          className={className}
-        >
+        <Link {...rest} aria-current={active ? "page" : undefined} className={className}>
           {content}
         </Link>
       ) : (
-        <button
-          type="button"
-          {...rest}
-          aria-current={active ? "true" : undefined}
-          className={className}
-        >
+        <button type="button" {...rest} aria-current={active ? "true" : undefined} className={className}>
           {content}
         </button>
       )}

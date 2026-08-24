@@ -144,9 +144,7 @@ const DiagramNode: FC<NodeProps> = ({ data }) => {
         background: emphatic ? COLORS.surfaceAlt : COLORS.surface,
         border: `1px solid ${COLORS.border}`,
         borderTop: `3px solid ${accent}`,
-        boxShadow: emphatic
-          ? `0 0 0 1px ${accent}22, 0 8px 24px rgba(0,0,0,0.35)`
-          : "0 4px 12px rgba(0,0,0,0.25)",
+        boxShadow: emphatic ? `0 0 0 1px ${accent}22, 0 8px 24px rgba(0,0,0,0.35)` : "0 4px 12px rgba(0,0,0,0.25)",
         display: "flex",
         alignItems: "center",
         gap: 10,
@@ -184,8 +182,7 @@ const DiagramNode: FC<NodeProps> = ({ data }) => {
               color: COLORS.muted,
               fontSize: 11,
               lineHeight: 1.3,
-              fontFamily:
-                "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
               marginTop: 2,
             }}
           >
@@ -197,67 +194,25 @@ const DiagramNode: FC<NodeProps> = ({ data }) => {
       {/* Broker: receives publishes on the right, streams out the bottom. */}
       {d.kind === "broker" && (
         <>
-          <Handle
-            id="in"
-            type="target"
-            position={Position.Right}
-            style={handleStyle}
-          />
-          <Handle
-            id="out"
-            type="source"
-            position={Position.Bottom}
-            style={handleStyle}
-          />
+          <Handle id="in" type="target" position={Position.Right} style={handleStyle} />
+          <Handle id="out" type="source" position={Position.Bottom} style={handleStyle} />
         </>
       )}
       {/* Gateway: subs in (left), events in (top), http out (right). */}
       {d.kind === "gateway" && (
         <>
-          <Handle
-            id="subs"
-            type="target"
-            position={Position.Left}
-            style={handleStyle}
-          />
-          <Handle
-            id="events"
-            type="target"
-            position={Position.Top}
-            style={handleStyle}
-          />
-          <Handle
-            id="http"
-            type="source"
-            position={Position.Right}
-            style={handleStyle}
-          />
+          <Handle id="subs" type="target" position={Position.Left} style={handleStyle} />
+          <Handle id="events" type="target" position={Position.Top} style={handleStyle} />
+          <Handle id="http" type="source" position={Position.Right} style={handleStyle} />
         </>
       )}
       {/* Client: subscribes out the right. */}
-      {d.kind === "client" && (
-        <Handle
-          id="out"
-          type="source"
-          position={Position.Right}
-          style={handleStyle}
-        />
-      )}
+      {d.kind === "client" && <Handle id="out" type="source" position={Position.Right} style={handleStyle} />}
       {/* Service: publishes out the top, answers http on the left. */}
       {d.kind === "service" && (
         <>
-          <Handle
-            id="pub"
-            type="source"
-            position={Position.Top}
-            style={handleStyle}
-          />
-          <Handle
-            id="http"
-            type="target"
-            position={Position.Left}
-            style={handleStyle}
-          />
+          <Handle id="pub" type="source" position={Position.Top} style={handleStyle} />
+          <Handle id="http" type="target" position={Position.Left} style={handleStyle} />
         </>
       )}
     </div>
@@ -368,49 +323,17 @@ const edge = (
 
 const EDGES: Edge[] = [
   // Clients subscribe to the gateway.
-  edge(
-    "sub-a",
-    "client-a",
-    "out",
-    "gateway",
-    "subs",
-    COLORS.client,
-    "subscribe",
-  ),
+  edge("sub-a", "client-a", "out", "gateway", "subs", COLORS.client, "subscribe"),
   edge("sub-b", "client-b", "out", "gateway", "subs", COLORS.client),
   edge("sub-c", "client-c", "out", "gateway", "subs", COLORS.client),
   // Gateway reads the event stream from the broker.
-  edge(
-    "stream",
-    "broker",
-    "out",
-    "gateway",
-    "events",
-    COLORS.stream,
-    "event stream",
-  ),
+  edge("stream", "broker", "out", "gateway", "events", COLORS.stream, "event stream"),
   // Services publish events to the broker.
-  edge(
-    "pub-p",
-    "svc-products",
-    "pub",
-    "broker",
-    "in",
-    COLORS.publish,
-    "publish",
-  ),
+  edge("pub-p", "svc-products", "pub", "broker", "in", COLORS.publish, "publish"),
   edge("pub-r", "svc-reviews", "pub", "broker", "in", COLORS.publish),
   edge("pub-a", "svc-accounts", "pub", "broker", "in", COLORS.publish),
   // Gateway resolves each event with stateless GraphQL-over-HTTP fetches.
-  edge(
-    "http-p",
-    "gateway",
-    "http",
-    "svc-products",
-    "http",
-    COLORS.http,
-    "GraphQL / HTTP",
-  ),
+  edge("http-p", "gateway", "http", "svc-products", "http", COLORS.http, "GraphQL / HTTP"),
   edge("http-r", "gateway", "http", "svc-reviews", "http", COLORS.http),
   edge("http-a", "gateway", "http", "svc-accounts", "http", COLORS.http),
 ];
@@ -426,9 +349,7 @@ interface FusionSubscriptionsDiagramInnerProps {
   readonly expanded: boolean;
 }
 
-export const FusionSubscriptionsDiagramInner: FC<
-  FusionSubscriptionsDiagramInnerProps
-> = ({ expanded }) => {
+export const FusionSubscriptionsDiagramInner: FC<FusionSubscriptionsDiagramInnerProps> = ({ expanded }) => {
   const nodes = useMemo(() => NODES, []);
   const edges = useMemo(() => EDGES, []);
 
@@ -452,12 +373,7 @@ export const FusionSubscriptionsDiagramInner: FC<
       maxZoom={1.6}
       style={{ background: COLORS.bg }}
     >
-      <Background
-        variant={BackgroundVariant.Dots}
-        gap={22}
-        size={1}
-        color={COLORS.border}
-      />
+      <Background variant={BackgroundVariant.Dots} gap={22} size={1} color={COLORS.border} />
       {expanded ? <Controls showInteractive={false} /> : null}
       <Panel position="bottom-left">
         <div

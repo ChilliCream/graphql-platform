@@ -15,12 +15,7 @@ interface KeyValueChipCardProps {
  * catalog tiles where the value is a full code snippet rather than a short
  * inline value.
  */
-export function KeyValueChipCard({
-  label,
-  value,
-  icon,
-  className = "",
-}: KeyValueChipCardProps) {
+export function KeyValueChipCard({ label, value, icon, className = "" }: KeyValueChipCardProps) {
   return (
     <div
       className={`border-cc-card-border bg-cc-card-bg flex flex-col gap-2 rounded-xl border p-3 ${className}`.trim()}

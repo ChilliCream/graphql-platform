@@ -8,11 +8,7 @@ import { PanelTile } from "../../../primitives/PanelTile";
 import { token } from "../../../lib/tokens";
 import { ease } from "../../../lib/motion";
 import { timeline } from "../../../lib/timeline";
-import {
-  IconCheck,
-  IconApiGateway,
-  IconChevronDown,
-} from "../../../primitives/icons";
+import { IconCheck, IconApiGateway, IconChevronDown } from "../../../primitives/icons";
 
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
@@ -131,8 +127,7 @@ const ROW2_TOP = CONTENT_TOP + ROW1_H + GAP;
 const SG_ROW_H = 58;
 
 const DEP_ROW_H = 70;
-const depRowY = (i: number) =>
-  ROW2_TOP + TILE_HEAD + i * DEP_ROW_H + DEP_ROW_H / 2;
+const depRowY = (i: number) => ROW2_TOP + TILE_HEAD + i * DEP_ROW_H + DEP_ROW_H / 2;
 const DEP_ROW_CX = RIGHT_X + 320;
 
 const TL = timeline([
@@ -154,10 +149,7 @@ export interface FusionOverviewScreenProps {
   showCursor?: boolean;
 }
 
-export function FusionOverviewScreen({
-  progress,
-  showCursor = true,
-}: FusionOverviewScreenProps) {
+export function FusionOverviewScreen({ progress, showCursor = true }: FusionOverviewScreenProps) {
   const cx = useTransform(
     progress,
     [TL.start("moveToDeployment"), TL.end("moveToDeployment")],
@@ -212,14 +204,8 @@ export function FusionOverviewScreen({
             }}
           >
             <IconApiGateway size={13} color={token.icObject} />
-            <span
-              style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-            >
-              Production
-            </span>
-            <span style={{ fontSize: 13, color: token.textSecondary }}>
-              Stage
-            </span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>Production</span>
+            <span style={{ fontSize: 13, color: token.textSecondary }}>Stage</span>
           </div>
           <div
             style={{
@@ -297,19 +283,8 @@ function TopologyTile() {
           style={{ position: "absolute", inset: 0 }}
         >
           <defs>
-            <pattern
-              id="topo-dots"
-              width="22"
-              height="22"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle
-                cx="1.2"
-                cy="1.2"
-                r="1.2"
-                fill={token.graphDots}
-                opacity={0.35}
-              />
+            <pattern id="topo-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+              <circle cx="1.2" cy="1.2" r="1.2" fill={token.graphDots} opacity={0.35} />
             </pattern>
           </defs>
           <rect x="0" y="0" width={VW} height={VH} fill="url(#topo-dots)" />
@@ -327,23 +302,13 @@ function TopologyTile() {
               stroke={token.graphEdge}
               strokeWidth={1.6}
             >
-              <animate
-                attributeName="stroke-dashoffset"
-                values="24;0"
-                dur="2.6s"
-                repeatCount="indefinite"
-              />
+              <animate attributeName="stroke-dashoffset" values="24;0" dur="2.6s" repeatCount="indefinite" />
               <set attributeName="stroke-dasharray" to="3 5" />
             </path>
           ))}
         </svg>
 
-        <NodeBox
-          xPct={clientX / VW}
-          yPct={clientY / VH}
-          label="eshops-web"
-          sub="client"
-        >
+        <NodeBox xPct={clientX / VW} yPct={clientY / VH} label="eshops-web" sub="client">
           <span
             style={{
               width: 9,
@@ -399,13 +364,7 @@ function TopologyTile() {
         </div>
 
         {subs.map((s) => (
-          <NodeBox
-            key={s.name}
-            xPct={s.x / VW}
-            yPct={s.y / VH}
-            label={s.name}
-            sub="subgraph"
-          >
+          <NodeBox key={s.name} xPct={s.x / VW} yPct={s.y / VH} label={s.name} sub="subgraph">
             <SubgraphIcon size={15} />
           </NodeBox>
         ))}
@@ -448,17 +407,9 @@ function NodeBox({
         }}
       >
         {children}
-        <div
-          style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}
-        >
-          <span
-            style={{ fontSize: 11.5, fontWeight: 600, color: token.textStrong }}
-          >
-            {label}
-          </span>
-          <span style={{ fontSize: 9.5, color: token.textSecondary }}>
-            {sub}
-          </span>
+        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: token.textStrong }}>{label}</span>
+          <span style={{ fontSize: 9.5, color: token.textSecondary }}>{sub}</span>
         </div>
       </div>
     </div>
@@ -523,9 +474,7 @@ function DetailsTile() {
                 >
                   {k.value}
                 </span>
-                <span style={{ fontSize: 10.5, color: token.textSecondary }}>
-                  {k.unit}
-                </span>
+                <span style={{ fontSize: 10.5, color: token.textSecondary }}>{k.unit}</span>
                 <Sentiment dir={k.dir} good={k.good} />
               </div>
             </div>
@@ -599,11 +548,7 @@ function Sentiment({ dir, good }: { dir: "up" | "down"; good: boolean }) {
         transform: dir === "up" ? undefined : "rotate(180deg)",
       }}
     >
-      <path
-        d="M8 13V3M8 3l-4 4M8 3l4 4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M8 13V3M8 3l-4 4M8 3l4 4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -620,10 +565,7 @@ function CopyIcon() {
       style={{ flex: "0 0 auto" }}
     >
       <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
-      <path
-        d="M3 10.5H2.5A1.5 1.5 0 0 1 1 9V2.5A1.5 1.5 0 0 1 2.5 1H9a1.5 1.5 0 0 1 1.5 1.5V3"
-        strokeLinecap="round"
-      />
+      <path d="M3 10.5H2.5A1.5 1.5 0 0 1 1 9V2.5A1.5 1.5 0 0 1 2.5 1H9a1.5 1.5 0 0 1 1.5 1.5V3" strokeLinecap="round" />
     </svg>
   );
 }
@@ -645,12 +587,7 @@ function HealthDot() {
 
 function SubgraphsTile() {
   return (
-    <PanelTile
-      title="Subgraphs"
-      count="4"
-      flex={`0 0 ${LEFT_W}px`}
-      borderStrong
-    >
+    <PanelTile title="Subgraphs" count="4" flex={`0 0 ${LEFT_W}px`} borderStrong>
       {SUBGRAPHS.map((s, i) => (
         <SubgraphRow key={s.name} s={s} i={i} />
       ))}
@@ -677,11 +614,7 @@ function SubgraphRow({ s, i }: { s: Subgraph; i: number }) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}
-          >
-            {s.name}
-          </span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>{s.name}</span>
           <span
             style={{
               fontSize: 11.5,
@@ -710,9 +643,7 @@ function SubgraphRow({ s, i }: { s: Subgraph; i: number }) {
             </span>
           )}
         </div>
-        <div style={{ fontSize: 11, color: token.textSecondary, marginTop: 1 }}>
-          Healthy · source schema
-        </div>
+        <div style={{ fontSize: 11, color: token.textSecondary, marginTop: 1 }}>Healthy · source schema</div>
       </div>
       <div style={{ textAlign: "right" }}>
         <div
@@ -744,26 +675,13 @@ function DeploymentsTile({ progress }: { progress: MotionValue<number> }) {
   return (
     <PanelTile title="Deployments" flex="1" borderStrong>
       {DEPLOYMENTS.map((d, i) => (
-        <DeploymentRow
-          key={`${d.tag}-${d.target}`}
-          d={d}
-          i={i}
-          progress={progress}
-        />
+        <DeploymentRow key={`${d.tag}-${d.target}`} d={d} i={i} progress={progress} />
       ))}
     </PanelTile>
   );
 }
 
-function DeploymentRow({
-  d,
-  i,
-  progress,
-}: {
-  d: Deployment;
-  i: number;
-  progress: MotionValue<number>;
-}) {
+function DeploymentRow({ d, i, progress }: { d: Deployment; i: number; progress: MotionValue<number> }) {
   const isNew = !!d.isNew;
   const HOVER = TL.start("hover");
   const bg = useTransform(progress, (p): string => {
@@ -772,9 +690,7 @@ function DeploymentRow({
     if (p >= HOVER) return token.surface;
     return "rgba(30,217,148,0.06)";
   });
-  const accentOpacity = useTransform(progress, (p): number =>
-    isNew ? (p >= CLICK ? 1 : 0.5) : 0,
-  );
+  const accentOpacity = useTransform(progress, (p): number => (isNew ? (p >= CLICK ? 1 : 0.5) : 0));
   return (
     <motion.div
       data-testid={isNew ? "fusion-new-deployment" : undefined}
@@ -860,19 +776,13 @@ function DeploymentRow({
             </span>
           )}
         </div>
-        <div
-          style={{ fontSize: 11.5, color: token.textSecondary, marginTop: 3 }}
-        >
+        <div style={{ fontSize: 11.5, color: token.textSecondary, marginTop: 3 }}>
           Started {d.when}
           {isNew && " · Approved 2 minutes ago by pascal"}
         </div>
       </div>
       {!isNew && (
-        <IconChevronDown
-          size={13}
-          color={token.textDim}
-          style={{ transform: "rotate(-90deg)", flex: "0 0 auto" }}
-        />
+        <IconChevronDown size={13} color={token.textDim} style={{ transform: "rotate(-90deg)", flex: "0 0 auto" }} />
       )}
     </motion.div>
   );

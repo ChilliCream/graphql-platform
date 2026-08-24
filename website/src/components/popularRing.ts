@@ -1,8 +1,7 @@
 import type { CSSProperties } from "react";
 
 /** Rainbow accent gradient for a popular/highlighted card's border. */
-export const RING_GRADIENT =
-  "linear-gradient(140deg, #16b9e4 0%, #7c92c6 50%, #f0786a 100%)";
+export const RING_GRADIENT = "linear-gradient(140deg, #16b9e4 0%, #7c92c6 50%, #f0786a 100%)";
 
 /**
  * Border treatment for a popular/highlighted card: the gradient paints the

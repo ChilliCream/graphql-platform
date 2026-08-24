@@ -28,9 +28,7 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       }
     }
 
-    const headings = allIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
+    const headings = allIds.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
     if (headings.length === 0) {
       return;
     }
@@ -40,9 +38,7 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
     function applyActive(activeId: string | null) {
       const activeSection = activeId ? (sectionOf.get(activeId) ?? null) : null;
 
-      for (const link of document.querySelectorAll<HTMLElement>(
-        "[data-toc-link]",
-      )) {
+      for (const link of document.querySelectorAll<HTMLElement>("[data-toc-link]")) {
         if (link.dataset.tocLink === activeId) {
           link.dataset.active = "true";
         } else {
@@ -50,9 +46,7 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
         }
       }
 
-      for (const sectionEl of document.querySelectorAll<HTMLElement>(
-        "[data-toc-section]",
-      )) {
+      for (const sectionEl of document.querySelectorAll<HTMLElement>("[data-toc-section]")) {
         if (sectionEl.dataset.tocSection === activeSection) {
           sectionEl.dataset.sectionActive = "true";
         } else {
@@ -61,9 +55,7 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       }
 
       const activeSubtree = activeId ? (subtreeOf.get(activeId) ?? null) : null;
-      for (const subtreeEl of document.querySelectorAll<HTMLElement>(
-        "[data-toc-subtree]",
-      )) {
+      for (const subtreeEl of document.querySelectorAll<HTMLElement>("[data-toc-subtree]")) {
         if (subtreeEl.dataset.tocSubtree === activeSubtree) {
           subtreeEl.dataset.subtreeActive = "true";
         } else {
@@ -82,11 +74,8 @@ export function TocActive({ sections }: { sections: SectionDescriptor[] }) {
       if (!activeId) {
         return;
       }
-      const container =
-        document.querySelector<HTMLElement>("[data-toc-scroll]");
-      const link = container?.querySelector<HTMLElement>(
-        `[data-toc-link="${CSS.escape(activeId)}"]`,
-      );
+      const container = document.querySelector<HTMLElement>("[data-toc-scroll]");
+      const link = container?.querySelector<HTMLElement>(`[data-toc-link="${CSS.escape(activeId)}"]`);
       if (!container || !link) {
         return;
       }

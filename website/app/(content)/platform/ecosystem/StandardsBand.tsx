@@ -72,8 +72,7 @@ export function StandardsBand() {
           title="Helping write the standards we implement."
           description={
             <>
-              ChilliCream contributors help shape the specifications and
-              conventions the platform implements. See the{" "}
+              ChilliCream contributors help shape the specifications and conventions the platform implements. See the{" "}
               <a
                 href="https://graphql.org/community/team/"
                 target="_blank"
@@ -105,18 +104,13 @@ export function StandardsBand() {
               >
                 {item.role}
               </p>
-              <h3 className="font-heading text-cc-heading text-h6 mt-4 font-semibold">
-                {item.name}
-              </h3>
+              <h3 className="font-heading text-cc-heading text-h6 mt-4 font-semibold">{item.name}</h3>
               <p className="text-cc-ink-dim mt-2 pb-6 text-sm">{item.body}</p>
               <div className="mt-auto flex items-center justify-between">
                 <span className="text-cc-ink-dim font-mono text-[0.6rem] tracking-[0.14em] uppercase">
                   {new URL(item.href).host}
                 </span>
-                <span
-                  aria-hidden="true"
-                  className="text-cc-ink-dim group-hover:text-cc-heading transition-colors"
-                >
+                <span aria-hidden="true" className="text-cc-ink-dim group-hover:text-cc-heading transition-colors">
                   ↗
                 </span>
               </div>

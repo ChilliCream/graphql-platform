@@ -9,8 +9,7 @@ import { CORAL, CYAN, GREEN, VIOLET } from "@/src/components/mocha/palette";
    (message / dispatch / handler implementation).
 ============================================================================ */
 
-const KEYWORDS =
-  /^(?:public|sealed|record|class|var|await|new|async|static|int|decimal|bool|return|readonly)$/;
+const KEYWORDS = /^(?:public|sealed|record|class|var|await|new|async|static|int|decimal|bool|return|readonly)$/;
 
 /**
  * Minimal deterministic C# highlighter for these curated snippets: comments,
@@ -30,11 +29,7 @@ function hl(code: string): ReactNode[] {
           {text}
         </span>
       ) : (
-        <span
-          key={key++}
-          className={color ? "" : "text-cc-ink"}
-          style={color ? { color } : undefined}
-        >
+        <span key={key++} className={color ? "" : "text-cc-ink"} style={color ? { color } : undefined}>
           {text}
         </span>
       ),
@@ -93,9 +88,7 @@ function CodeCard({ code, title }: CodeCardProps) {
   return (
     <div>
       {title && (
-        <div className="text-cc-ink-dim mb-2 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-          {title}
-        </div>
+        <div className="text-cc-ink-dim mb-2 font-mono text-[0.65rem] tracking-[0.18em] uppercase">{title}</div>
       )}
       <div
         role="region"
@@ -121,11 +114,7 @@ interface WideGridProps {
  */
 function WideGrid({ three, children }: WideGridProps) {
   return (
-    <div
-      className={`grid grid-cols-1 gap-4 xl:grid-cols-2 ${three ? "min-[1900px]:grid-cols-3" : ""}`}
-    >
-      {children}
-    </div>
+    <div className={`grid grid-cols-1 gap-4 xl:grid-cols-2 ${three ? "min-[1900px]:grid-cols-3" : ""}`}>{children}</div>
   );
 }
 
@@ -134,9 +123,7 @@ interface SpanLastProps {
 }
 
 function SpanLast({ children }: SpanLastProps) {
-  return (
-    <div className="min-[1900px]:col-span-1 xl:col-span-2">{children}</div>
-  );
+  return <div className="min-[1900px]:col-span-1 xl:col-span-2">{children}</div>;
 }
 
 /* ============================================================================

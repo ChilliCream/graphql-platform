@@ -29,20 +29,14 @@ const meta = {
         }}
       >
         <CountUp value={128400} />
-        <Sparkline
-          values={[42, 55, 48, 61, 74, 69, 88, 95, 112, 108, 121, 128]}
-        />
+        <Sparkline values={[42, 55, 48, 61, 74, 69, 88, 95, 112, 108, 121, 128]} />
       </div>
     ),
     style: { width: 300, height: 160 },
   },
   decorators: [
     (Story) => (
-      <ThemeProvider
-        theme="dark"
-        reducedMotion="always"
-        className="w-[560px] max-w-full p-6"
-      >
+      <ThemeProvider theme="dark" reducedMotion="always" className="w-[560px] max-w-full p-6">
         <Story />
       </ThemeProvider>
     ),

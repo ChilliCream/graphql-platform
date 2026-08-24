@@ -1,30 +1,12 @@
 import { useState } from "react";
-import {
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Stage } from "../../primitives/reel/Stage";
 import { Cursor } from "../../primitives/reel/Cursor";
 import { TABREEL_CANVAS } from "../../primitives/reel/TabReel";
 import { ease } from "../../lib/motion";
-import {
-  FusionOverviewScreen,
-  OVERVIEW_MS,
-  OVERVIEW_TL,
-} from "./fusion/FusionOverviewScreen";
-import {
-  FusionDeploymentsScreen,
-  DEPLOYMENTS_MS,
-  DEPLOYMENTS_TL,
-} from "./fusion/FusionDeploymentsScreen";
-import {
-  FusionQueryPlanScreen,
-  QUERYPLAN_MS,
-  QUERYPLAN_TL,
-} from "./fusion/FusionQueryPlanScreen";
+import { FusionOverviewScreen, OVERVIEW_MS, OVERVIEW_TL } from "./fusion/FusionOverviewScreen";
+import { FusionDeploymentsScreen, DEPLOYMENTS_MS, DEPLOYMENTS_TL } from "./fusion/FusionDeploymentsScreen";
+import { FusionQueryPlanScreen, QUERYPLAN_MS, QUERYPLAN_TL } from "./fusion/FusionQueryPlanScreen";
 
 const W = TABREEL_CANVAS.w;
 const H = TABREEL_CANVAS.h;
@@ -36,8 +18,7 @@ const BAND = 0.014;
 
 const gOv = (l: number) => (l * OVERVIEW_MS) / FUSION_MS;
 const gDep = (l: number) => (OVERVIEW_MS + l * DEPLOYMENTS_MS) / FUSION_MS;
-const gQp = (l: number) =>
-  (OVERVIEW_MS + DEPLOYMENTS_MS + l * QUERYPLAN_MS) / FUSION_MS;
+const gQp = (l: number) => (OVERVIEW_MS + DEPLOYMENTS_MS + l * QUERYPLAN_MS) / FUSION_MS;
 const Q = QUERYPLAN_TL;
 
 const Z_IN0 = gQp(Q.start("zoomIn"));
@@ -73,12 +54,8 @@ const CURSOR_T = [
   gQp(Q.start("viewClick")),
   1,
 ];
-const CURSOR_X = [
-  1082, 1082, 1122, 1122, 243, 243, 300, 320, 620, 690, 830, 752, 752, 710, 710,
-];
-const CURSOR_Y = [
-  393, 393, 543, 543, 19, 19, 210, 230, 64, 95, 64, 470, 470, 453, 453,
-];
+const CURSOR_X = [1082, 1082, 1122, 1122, 243, 243, 300, 320, 620, 690, 830, 752, 752, 710, 710];
+const CURSOR_Y = [393, 393, 543, 543, 19, 19, 210, 230, 64, 95, 64, 470, 470, 453, 453];
 const CURSOR_CLICKS = [
   gOv(OVERVIEW_TL.start("click")),
   gDep(DEPLOYMENTS_TL.start("plusClick")),
@@ -109,34 +86,23 @@ export function FusionScreen({ progress }: FusionScreenProps) {
   const ovOp = useTransform(progress, [OV_END - BAND, OV_END], [1, 0], {
     clamp: true,
   });
-  const depOp = useTransform(
-    progress,
-    [OV_END - BAND, OV_END, DEP_END - BAND, DEP_END],
-    [0, 1, 1, 0],
-    { clamp: true },
-  );
+  const depOp = useTransform(progress, [OV_END - BAND, OV_END, DEP_END - BAND, DEP_END], [0, 1, 1, 0], { clamp: true });
   const qpOp = useTransform(progress, [DEP_END - BAND, DEP_END], [0, 1], {
     clamp: true,
   });
 
-  const camScale = useTransform(
-    progress,
-    [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1],
-    [1, ZK, ZK, 1],
-    { clamp: true, ease: ease.glide },
-  );
-  const camX = useTransform(
-    progress,
-    [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1],
-    [0, C0.x, C1.x, 0],
-    { clamp: true, ease: ease.glide },
-  );
-  const camY = useTransform(
-    progress,
-    [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1],
-    [0, C0.y, C1.y, 0],
-    { clamp: true, ease: ease.glide },
-  );
+  const camScale = useTransform(progress, [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1], [1, ZK, ZK, 1], {
+    clamp: true,
+    ease: ease.glide,
+  });
+  const camX = useTransform(progress, [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1], [0, C0.x, C1.x, 0], {
+    clamp: true,
+    ease: ease.glide,
+  });
+  const camY = useTransform(progress, [Z_IN0, Z_IN1, Z_PAN1, Z_OUT1], [0, C0.y, C1.y, 0], {
+    clamp: true,
+    ease: ease.glide,
+  });
   const planCamera = { x: camX, y: camY, scale: camScale };
 
   const cx = useTransform(progress, CURSOR_T, CURSOR_X, { ease: ease.glide });
@@ -148,9 +114,7 @@ export function FusionScreen({ progress }: FusionScreenProps) {
   const [live, setLive] = useState(() => liveAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => {
     const n = liveAt(p);
-    setLive((prev) =>
-      prev.ov === n.ov && prev.dep === n.dep && prev.qp === n.qp ? prev : n,
-    );
+    setLive((prev) => (prev.ov === n.ov && prev.dep === n.dep && prev.qp === n.qp ? prev : n));
   });
 
   return (
@@ -167,18 +131,11 @@ export function FusionScreen({ progress }: FusionScreenProps) {
       )}
       {live.qp && (
         <motion.div style={{ position: "absolute", inset: 0, opacity: qpOp }}>
-          <FusionQueryPlanScreen
-            progress={qpLocal}
-            showCursor={false}
-            camera={planCamera}
-          />
+          <FusionQueryPlanScreen progress={qpLocal} showCursor={false} camera={planCamera} />
         </motion.div>
       )}
 
-      <div
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
-      >
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
         <Stage
           width={W}
           height={H}

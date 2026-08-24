@@ -11,8 +11,7 @@ export type PageTags = {
 type HeadingTagsProps = PageTags;
 
 // Native tooltips render the newline, keeping the caveat on its own line.
-const NITRO_VERSION_TOOLTIP =
-  "Minimum Nitro backend version required.\nOnly relevant when self-hosting Nitro.";
+const NITRO_VERSION_TOOLTIP = "Minimum Nitro backend version required.\nOnly relevant when self-hosting Nitro.";
 
 /**
  * Renders the tag line of a docs heading (see the `Since:` / `Nitro:`
@@ -26,12 +25,8 @@ export function HeadingTags({ since, requiresNitro }: HeadingTagsProps) {
 
   return (
     <span className="ml-2 inline-flex flex-wrap items-center gap-2 text-base leading-none font-normal">
-      {since ? (
-        <Tag title="Minimum package/tool version required.">{since}+</Tag>
-      ) : null}
-      {requiresNitro ? (
-        <Tag title={NITRO_VERSION_TOOLTIP}>Nitro {requiresNitro}+</Tag>
-      ) : null}
+      {since ? <Tag title="Minimum package/tool version required.">{since}+</Tag> : null}
+      {requiresNitro ? <Tag title={NITRO_VERSION_TOOLTIP}>Nitro {requiresNitro}+</Tag> : null}
     </span>
   );
 }

@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import {
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  NAVY,
-  VIOLET,
-} from "@/src/components/mocha/palette";
+import { CORAL, CORAL_SOFT, CYAN, NAVY, VIOLET } from "@/src/components/mocha/palette";
 
 const STEP = 3.4;
 const PERIOD = STEP * 3;
@@ -157,13 +151,7 @@ export function QuickstartVisual() {
         return Math.round(r.top + r.height / 2 - rr.top);
       }) as [number, number, number];
       setGeom((prev) =>
-        prev &&
-        prev.x === x &&
-        prev.ys[0] === ys[0] &&
-        prev.ys[1] === ys[1] &&
-        prev.ys[2] === ys[2]
-          ? prev
-          : { x, ys },
+        prev && prev.x === x && prev.ys[0] === ys[0] && prev.ys[1] === ys[1] && prev.ys[2] === ys[2] ? prev : { x, ys },
       );
     };
     measure();
@@ -323,10 +311,7 @@ export function QuickstartVisual() {
 
       <div className="flex min-h-0 flex-1 gap-3">
         <div ref={railRef} className="relative w-4 shrink-0">
-          <svg
-            className="absolute inset-0 h-full w-full overflow-visible"
-            role="presentation"
-          >
+          <svg className="absolute inset-0 h-full w-full overflow-visible" role="presentation">
             {geom && (
               <g>
                 <line

@@ -63,12 +63,7 @@ export function HighlightCard({
 
   if (!highlight) {
     return (
-      <Card
-        as={Tag}
-        variant="plain"
-        className={`bg-cc-card-bg/60 ${layoutCls}`}
-        style={style}
-      >
+      <Card as={Tag} variant="plain" className={`bg-cc-card-bg/60 ${layoutCls}`} style={style}>
         {children}
       </Card>
     );

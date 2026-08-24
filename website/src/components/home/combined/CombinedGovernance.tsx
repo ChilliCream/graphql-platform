@@ -75,9 +75,7 @@ interface FacetWindowProps {
 function FacetWindow({ bar, children }: FacetWindowProps) {
   return (
     <div className="border-cc-card-border bg-cc-surface mt-4 flex flex-1 flex-col overflow-hidden rounded-xl border shadow-[0_1px_3px_rgba(2,6,16,0.6)]">
-      <div className="border-cc-card-border flex shrink-0 items-center gap-2 border-b px-3 py-2">
-        {bar}
-      </div>
+      <div className="border-cc-card-border flex shrink-0 items-center gap-2 border-b px-3 py-2">{bar}</div>
       {children}
     </div>
   );
@@ -93,16 +91,12 @@ function BlockedPublishCard() {
             <span className="bg-cc-ink-faint size-2 rounded-full" />
             <span className="bg-cc-ink-faint size-2 rounded-full" />
           </span>
-          <span className="text-cc-ink-dim ml-auto font-mono text-[0.6rem]">
-            schema publish
-          </span>
+          <span className="text-cc-ink-dim ml-auto font-mono text-[0.6rem]">schema publish</span>
         </>
       }
     >
       <div className="flex flex-1 flex-col justify-center space-y-2 p-3 font-mono text-[0.7rem] leading-relaxed">
-        <p className="text-cc-ink-dim text-[0.58rem] tracking-[0.12em] uppercase">
-          Illustrative configured check
-        </p>
+        <p className="text-cc-ink-dim text-[0.58rem] tracking-[0.12em] uppercase">Illustrative configured check</p>
         <div className="flex items-center gap-1.5">
           <span aria-hidden="true" className="text-cc-ink-dim select-none">
             $
@@ -128,9 +122,7 @@ function BlockedPublishCard() {
                 <span className="text-cc-heading">4,213 req</span> / 7d,{" "}
                 <span className="text-cc-heading">web@2.4.0</span>
               </p>
-              <p className="text-cc-danger mt-1.5 font-semibold">
-                publish blocked
-              </p>
+              <p className="text-cc-danger mt-1.5 font-semibold">publish blocked</p>
             </div>
           </div>
         </div>
@@ -145,9 +137,7 @@ function SchemaLintCard() {
       bar={
         <>
           <LintMark className="text-cc-ink-dim shrink-0" />
-          <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
-            schema-lint
-          </span>
+          <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">schema-lint</span>
           <span className="border-cc-danger/40 bg-cc-danger/10 text-cc-danger ml-auto rounded-full border px-2 py-0.5 font-mono text-[0.55rem] font-semibold tracking-[0.08em] uppercase">
             failed
           </span>
@@ -167,10 +157,9 @@ function SchemaLintCard() {
             >
               <span
                 aria-hidden="true"
-                className={[
-                  "absolute top-0 left-0 h-full w-[3px]",
-                  isError ? "bg-cc-danger" : "bg-cc-warning",
-                ].join(" ")}
+                className={["absolute top-0 left-0 h-full w-[3px]", isError ? "bg-cc-danger" : "bg-cc-warning"].join(
+                  " ",
+                )}
               />
               <span
                 aria-hidden="true"
@@ -182,8 +171,7 @@ function SchemaLintCard() {
                 {isError ? "x" : "!"}
               </span>
               <code className="text-cc-ink min-w-0 flex-1 font-mono text-[0.7rem] leading-[1.5] break-words">
-                <span className="text-cc-ink-dim">{finding.rule}</span>{" "}
-                {finding.message}
+                <span className="text-cc-ink-dim">{finding.rule}</span> {finding.message}
                 {finding.fix ? (
                   <>
                     {" "}
@@ -206,17 +194,10 @@ function RegistryTraceCard() {
       bar={
         <>
           <RegistryNodeIcon className="text-cc-accent shrink-0" />
-          <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
-            schema.graphql
-          </span>
-          <span className="text-cc-ink-dim font-mono text-[0.7rem]">
-            history
-          </span>
+          <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">schema.graphql</span>
+          <span className="text-cc-ink-dim font-mono text-[0.7rem]">history</span>
           <span className="border-cc-accent/40 text-cc-accent ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[0.55rem] tracking-[0.06em] uppercase">
-            <span
-              aria-hidden="true"
-              className="bg-cc-accent size-1.5 rounded-full"
-            />
+            <span aria-hidden="true" className="bg-cc-accent size-1.5 rounded-full" />
             v14
           </span>
         </>
@@ -224,28 +205,12 @@ function RegistryTraceCard() {
     >
       <ol className="flex flex-1 flex-col justify-center p-2">
         {CHANGES.map((entry) => (
-          <li
-            key={entry.version}
-            className="flex items-baseline gap-2 px-1 py-1.5 font-mono text-[0.7rem]"
-          >
-            <span className="text-cc-ink-dim w-6 shrink-0">
-              {entry.version}
-            </span>
-            <span
-              aria-hidden="true"
-              className={`${KIND[entry.kind]} size-1.5 shrink-0 self-center rounded-full`}
-            />
-            <span className="text-cc-heading min-w-0 flex-1 truncate">
-              {entry.field}
-            </span>
-            <span
-              className={`shrink-0 ${entry.agent ? "text-cc-accent" : "text-cc-ink-dim"}`}
-            >
-              {entry.author}
-            </span>
-            <span className="text-cc-ink-dim w-6 shrink-0 text-right">
-              {entry.time}
-            </span>
+          <li key={entry.version} className="flex items-baseline gap-2 px-1 py-1.5 font-mono text-[0.7rem]">
+            <span className="text-cc-ink-dim w-6 shrink-0">{entry.version}</span>
+            <span aria-hidden="true" className={`${KIND[entry.kind]} size-1.5 shrink-0 self-center rounded-full`} />
+            <span className="text-cc-heading min-w-0 flex-1 truncate">{entry.field}</span>
+            <span className={`shrink-0 ${entry.agent ? "text-cc-accent" : "text-cc-ink-dim"}`}>{entry.author}</span>
+            <span className="text-cc-ink-dim w-6 shrink-0 text-right">{entry.time}</span>
           </li>
         ))}
       </ol>
@@ -286,9 +251,8 @@ export function CombinedGovernance() {
             Change contracts with a safety net.
           </h2>
           <p className="text-cc-ink mt-5 max-w-3xl text-base text-pretty sm:text-lg">
-            Classify schema changes, validate them against operations registered
-            by published client versions, apply lint rules, and keep version
-            history.
+            Classify schema changes, validate them against operations registered by published client versions, apply
+            lint rules, and keep version history.
           </p>
           <ArrowLink href="/platform/release-safety" className="mt-6">
             Learn more
@@ -302,12 +266,8 @@ export function CombinedGovernance() {
               href="/platform/release-safety"
               className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover flex h-full flex-col rounded-2xl border p-5 no-underline backdrop-blur-sm transition-colors"
             >
-              <h3 className="font-heading text-cc-heading text-base font-semibold sm:text-lg">
-                {facet.title}
-              </h3>
-              <p className="text-cc-ink-dim mt-1.5 text-sm lg:min-h-[2.5rem]">
-                {facet.line}
-              </p>
+              <h3 className="font-heading text-cc-heading text-base font-semibold sm:text-lg">{facet.title}</h3>
+              <p className="text-cc-ink-dim mt-1.5 text-sm lg:min-h-[2.5rem]">{facet.line}</p>
               {facet.card}
             </Link>
           ))}

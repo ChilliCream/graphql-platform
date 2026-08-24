@@ -5,18 +5,9 @@ interface RailCargoAustriaLogoProps {
   readonly style?: CSSProperties;
 }
 
-export function RailCargoAustriaLogo({
-  className,
-  style,
-}: RailCargoAustriaLogoProps) {
+export function RailCargoAustriaLogo({ className, style }: RailCargoAustriaLogoProps) {
   return (
-    <svg
-      viewBox="0 0 639.045 104.214"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 639.045 104.214" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <path d="M0,71.9h9.2l3.4-16.3h8.6c3.6,0,6,1,6,5c0,2.8-0.5,5.7-0.5,8.5c0,0.9,0.2,1.8,0.4,2.8h8.9c-0.5-1.2-0.6-3-0.6-4.8c0-2.6,0.3-5.4,0.3-7.2c0-3.3-0.9-6.3-4.3-7.4v-0.1c5.6-0.8,9.6-5.5,9.6-11.2c0-8.1-4.9-11-12.4-10.9H8.8L0,71.9 M16.5,37.3h8.7c3.6,0,6.8,0.6,6.8,5.1c0,4.7-4.6,6.5-9.5,6.6H14C14,49.1,16.5,37.3,16.5,37.3z" />
       <path d="M60.9,60.4c-0.9,3.3-2.6,6.8-7.8,6.8c-2.4,0-4.6-1.1-4.6-3.4c0-3.8,3-4.6,6.1-4.9c2.4-0.2,4.9-0.2,7-1.5L60.9,60.4 M51.9,50.9c0.5-3,3.2-4.4,6.1-4.4c2.1,0,5.3,0.7,5.3,3.7c0,3.9-3.7,3.4-11.5,4.4c-7.2,0.9-11.6,4.5-11.6,10.3c0,4.2,3.2,7.9,9.8,7.9c3.4,0,7-1.2,9.2-3.8v3h8.3c-0.2-0.5-0.3-1.2-0.3-1.8c0-1.2,0.1-3,0.4-4.1l2.7-12.2c0.3-1.9,0.6-3.8,0.6-5.1c0.1-6.8-7.2-7.9-12.6-7.9c-6.8,0-13.3,2.4-14.3,10L51.9,50.9C51.9,50.9,51.9,50.9,51.9,50.9z" />
       <path d="M72.9,71.9h8.4l6.4-30.2h-8.4L72.9,71.9 M90.1,30.2h-8.3L80.3,37h8.4C88.6,37,90.1,30.2,90.1,30.2z" />

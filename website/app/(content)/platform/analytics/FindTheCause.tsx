@@ -6,12 +6,8 @@ import { ChapterBand } from "@/src/components/ChapterBand";
 import { FeatureRow } from "@/src/components/FeatureRow";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 
-const NitroDiagnose = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroDiagnose),
-);
-const NitroTrace = dynamic(() =>
-  import("@/src/nitro").then((m) => m.NitroTrace),
-);
+const NitroDiagnose = dynamic(() => import("@/src/nitro").then((m) => m.NitroDiagnose));
+const NitroTrace = dynamic(() => import("@/src/nitro").then((m) => m.NitroTrace));
 
 interface FramedVisualProps {
   readonly children: ReactNode;
@@ -21,8 +17,7 @@ function FramedVisual({ children }: FramedVisualProps) {
   return (
     <MockWindowChrome
       glow={{
-        background:
-          "radial-gradient(60% 60% at 50% 40%, rgba(94,234,212,0.16), transparent 70%)",
+        background: "radial-gradient(60% 60% at 50% 40%, rgba(94,234,212,0.16), transparent 70%)",
         inset: "-inset-x-6 -inset-y-4",
         blur: "blur-3xl",
         rounded: "rounded-[2rem]",
@@ -39,10 +34,7 @@ function FramedVisual({ children }: FramedVisualProps) {
 export function FindTheCause() {
   return (
     <>
-      <ChapterBand
-        className="mt-12 sm:mt-16"
-        title="Move from a metric spike to the related traces."
-      />
+      <ChapterBand className="mt-12 sm:mt-16" title="Move from a metric spike to the related traces." />
 
       <section className="py-12 sm:py-16">
         <div className="flex flex-col gap-16 sm:gap-20">

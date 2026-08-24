@@ -18,8 +18,7 @@ const SAMPLE = Array.from({ length: 6 }, (_, i) => ({
   alt: `Trip photo ${i + 1}`,
 }));
 
-const GRID_CLASS =
-  "grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-4";
+const GRID_CLASS = "grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-4";
 
 // PhotoLightbox wraps arbitrary thumbnail markup; the only contract is that each
 // clickable thumbnail is an `<a data-photo-index={i}>`. The popout image comes
@@ -27,11 +26,7 @@ const GRID_CLASS =
 const thumbnails = (images: readonly { src: string; alt: string }[]) =>
   images.map((image, index) => (
     <li key={`${image.alt}-${index}`} className="m-0 p-0">
-      <a
-        href={image.src}
-        data-photo-index={index}
-        className="group block cursor-zoom-in overflow-hidden rounded-lg"
-      >
+      <a href={image.src} data-photo-index={index} className="group block cursor-zoom-in overflow-hidden rounded-lg">
         <Picture
           src={image.src}
           alt={image.alt}

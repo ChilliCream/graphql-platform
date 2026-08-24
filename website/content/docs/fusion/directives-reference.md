@@ -319,8 +319,7 @@ type Product {
 type Product {
   delivery(
     zip: String!
-    dimension: ProductDimensionInput!
-      @require(field: "{ size: dimension.size, weight: dimension.weight }")
+    dimension: ProductDimensionInput! @require(field: "{ size: dimension.size, weight: dimension.weight }")
   ): DeliveryEstimates
 }
 ```
@@ -623,11 +622,7 @@ Use `@internal` when a field or type exists solely for the gateway's entity reso
 Backs a subscription root field with a message broker (NATS, Kafka, Azure Event Hubs, Amazon SQS, or Redis). The gateway subscribes to the configured topics and, for each event, resolves the field's selection set across the subgraphs from the event payload.
 
 ```graphql
-directive @eventStream(
-  message: FieldSelectionSet!
-  topics: [String!]
-  broker: String
-) on FIELD_DEFINITION
+directive @eventStream(message: FieldSelectionSet!, topics: [String!], broker: String) on FIELD_DEFINITION
 ```
 
 | Argument  | Type                 | Description                                                                                                                             |
@@ -673,10 +668,8 @@ The marked argument and field must both be of type `String`. A subscription fiel
 ```graphql
 # Source schema (Products subgraph)
 type Subscription {
-  onProductPriceChanged(
-    productId: ID!
-    after: String @eventCursor
-  ): ProductPriceChange @eventStream(message: "{ product { id } }")
+  onProductPriceChanged(productId: ID!, after: String @eventCursor): ProductPriceChange
+    @eventStream(message: "{ product { id } }")
 }
 
 type ProductPriceChange {

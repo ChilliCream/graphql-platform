@@ -7,13 +7,7 @@ interface AtminaLogoProps {
 
 export function AtminaLogo({ className, style }: AtminaLogoProps) {
   return (
-    <svg
-      viewBox="0 0 228.1 158.5"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 228.1 158.5" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <polygon points="141.3 76 121.7 25 101.8 76 141.3 76" />
       <path d="M157.7,81.4A50.11,50.11,0,0,0,125.3,0Z" />
       <path d="M103.8,40.2A50.16,50.16,0,0,0,59.1,90a49.65,49.65,0,0,0,12,32.5Z" />

@@ -1,11 +1,5 @@
 import { TabReel, type TabReelTab } from "../../primitives/reel/TabReel";
-import {
-  IconGraphql,
-  IconTelemetry,
-  IconWarning,
-  IconSchema,
-  IconQueryPlan,
-} from "../../primitives/icons";
+import { IconGraphql, IconTelemetry, IconWarning, IconSchema, IconQueryPlan } from "../../primitives/icons";
 import { ComposeScreen, COMPOSE_MS } from "./ComposeScreen";
 import { TraceScreen, TRACE_MS } from "./TraceScreen";
 import { DiagnoseScreen, DIAGNOSE_MS } from "./DiagnoseScreen";
@@ -22,8 +16,7 @@ export const NITRO_TABS: TabReelTab[] = [
     durationMs: TRACE_MS,
     icon: <IconTelemetry size={16} color="currentColor" />,
     headline: "See everything your gateway is doing",
-    subhead:
-      "Monitoring overview to operation breakdown to distributions to the exact slow trace span.",
+    subhead: "Monitoring overview to operation breakdown to distributions to the exact slow trace span.",
     Screen: TraceScreen,
   },
   {
@@ -32,8 +25,7 @@ export const NITRO_TABS: TabReelTab[] = [
     durationMs: DIAGNOSE_MS,
     icon: <IconWarning size={16} color="currentColor" />,
     headline: "From error spike to root cause",
-    subhead:
-      "Two clicks turn a production error spike into the exact failing operation and its server stack trace.",
+    subhead: "Two clicks turn a production error spike into the exact failing operation and its server stack trace.",
     Screen: DiagnoseScreen,
   },
   {
@@ -42,8 +34,7 @@ export const NITRO_TABS: TabReelTab[] = [
     durationMs: FUSION_MS,
     icon: <IconQueryPlan size={16} color="currentColor" />,
     headline: "See your query's path",
-    subhead:
-      "Fusion turns one request into a traced, parallel, batched fetch plan across every subgraph.",
+    subhead: "Fusion turns one request into a traced, parallel, batched fetch plan across every subgraph.",
     Screen: FusionScreen,
   },
   {
@@ -52,8 +43,7 @@ export const NITRO_TABS: TabReelTab[] = [
     durationMs: 22000,
     icon: <IconSchema size={16} color="currentColor" />,
     headline: "Change fields without breaking anyone",
-    subhead:
-      "Filter to deprecated fields, sort by traffic, and drill into the exact operations still calling them.",
+    subhead: "Filter to deprecated fields, sort by traffic, and drill into the exact operations still calling them.",
     Screen: SchemaScreen,
   },
   {
@@ -62,8 +52,7 @@ export const NITRO_TABS: TabReelTab[] = [
     durationMs: COMPOSE_MS,
     icon: <IconGraphql size={16} color="currentColor" />,
     headline: "Write GraphQL at the speed of thought",
-    subhead:
-      "Schema-aware autocomplete finishes your query, then real federated data streams back.",
+    subhead: "Schema-aware autocomplete finishes your query, then real federated data streams back.",
     Screen: ComposeScreen,
   },
 ].map((tab) => ({ ...tab, durationMs: tab.durationMs / REEL_RATE }));
@@ -74,11 +63,7 @@ export interface NitroTabReelProps {
   tabsOverlay?: boolean;
 }
 
-export function NitroTabReel({
-  staticTab,
-  staticProgress,
-  tabsOverlay,
-}: NitroTabReelProps = {}) {
+export function NitroTabReel({ staticTab, staticProgress, tabsOverlay }: NitroTabReelProps = {}) {
   return (
     <TabReel
       tabs={NITRO_TABS}

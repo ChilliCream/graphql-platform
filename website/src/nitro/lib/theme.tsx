@@ -34,11 +34,7 @@ export function ThemeProvider({
   useThemeStyles();
   return (
     <AppMotionConfig reducedMotion={reducedMotion}>
-      <div
-        className={`nt-root${className ? " " + className : ""}`}
-        data-theme={theme}
-        style={style}
-      >
+      <div className={`nt-root${className ? " " + className : ""}`} data-theme={theme} style={style}>
         {children}
       </div>
     </AppMotionConfig>

@@ -149,9 +149,7 @@ The `@deprecated` directive signals that a field, argument, or enum value is bei
 
 ```graphql
 type Query {
-  product(id: ID!): Product
-    @lookup
-    @deprecated(reason: "Use `productById` instead.")
+  product(id: ID!): Product @lookup @deprecated(reason: "Use `productById` instead.")
   productBySku(sku: String!): Product @lookup
 }
 ```

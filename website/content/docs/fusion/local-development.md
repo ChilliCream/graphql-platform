@@ -98,13 +98,9 @@ const builder = await createBuilder();
 
 await builder.addNitroComposition();
 
-const productsApi = await builder
-  .addProject("products-api", "../Products/Products.csproj")
-  .withGraphQLHttpEndpoint();
+const productsApi = await builder.addProject("products-api", "../Products/Products.csproj").withGraphQLHttpEndpoint();
 
-const reviewsApi = await builder
-  .addProject("reviews-api", "../Reviews/Reviews.csproj")
-  .withGraphQLHttpEndpoint();
+const reviewsApi = await builder.addProject("reviews-api", "../Reviews/Reviews.csproj").withGraphQLHttpEndpoint();
 
 await builder
   .addProject("gateway-api", "../Gateway/Gateway.csproj")
@@ -154,14 +150,12 @@ var productsApi = builder
 <TypeScript>
 
 ```typescript
-const productsApi = await builder
-  .addProject("products-api", "../Products/Products.csproj")
-  .withGraphQLHttpEndpoint({
-    path: "/graphql",
-    schemaPath: "/graphql/schema.graphql",
-    endpointName: "http",
-    sourceSchemaName: "Products",
-  });
+const productsApi = await builder.addProject("products-api", "../Products/Products.csproj").withGraphQLHttpEndpoint({
+  path: "/graphql",
+  schemaPath: "/graphql/schema.graphql",
+  endpointName: "http",
+  sourceSchemaName: "Products",
+});
 ```
 
 </TypeScript>
@@ -212,9 +206,7 @@ const builder = await createBuilder();
 
 await builder.addNitroComposition({ stage: "dev" });
 
-const productsApi = await builder
-  .addProject("products-api", "../Products/Products.csproj")
-  .withGraphQLHttpEndpoint();
+const productsApi = await builder.addProject("products-api", "../Products/Products.csproj").withGraphQLHttpEndpoint();
 
 await builder
   .addProject("gateway-api", "../Gateway/Gateway.csproj")
@@ -368,9 +360,7 @@ builder
 <TypeScript>
 
 ```typescript
-await builder
-  .addProject("gateway-api", "../Gateway/Gateway.csproj")
-  .withNitroComposition({ disableValidation: true });
+await builder.addProject("gateway-api", "../Gateway/Gateway.csproj").withNitroComposition({ disableValidation: true });
 ```
 
 </TypeScript>

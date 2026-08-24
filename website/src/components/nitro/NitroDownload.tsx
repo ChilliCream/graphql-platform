@@ -1,13 +1,7 @@
 "use client";
 
 import { load } from "js-yaml";
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
 import { SolidButton } from "@/src/design-system/Button";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
@@ -67,10 +61,7 @@ function getOS(): OS | null {
     return "mac";
   }
 
-  if (
-    navigator.userAgent.indexOf("X11") >= 0 ||
-    navigator.userAgent.indexOf("Linux") >= 0
-  ) {
+  if (navigator.userAgent.indexOf("X11") >= 0 || navigator.userAgent.indexOf("Linux") >= 0) {
     return "linux";
   }
 
@@ -86,14 +77,10 @@ interface LatestAppInfo {
 
 async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
   const filename = os === "windows" ? `${variant}.yml` : `${variant}-${os}.yml`;
-  const response = await fetch(
-    DOWNLOAD_BASE_URL + filename + "?no-cache=" + new Date().getTime(),
-  );
+  const response = await fetch(DOWNLOAD_BASE_URL + filename + "?no-cache=" + new Date().getTime());
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch ${filename}: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`Failed to fetch ${filename}: ${response.status} ${response.statusText}`);
   }
 
   const text = await response.text();
@@ -103,9 +90,7 @@ async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
     typeof parsed !== "object" ||
     parsed === null ||
     !Array.isArray((parsed as { files?: unknown }).files) ||
-    !(parsed as LatestAppInfo).files.every(
-      (file) => typeof file?.url === "string",
-    )
+    !(parsed as LatestAppInfo).files.every((file) => typeof file?.url === "string")
   ) {
     throw new Error(`Invalid app info manifest: ${filename}`);
   }
@@ -113,11 +98,7 @@ async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
   return parsed as LatestAppInfo;
 }
 
-function findFile(
-  files: LatestAppInfo["files"],
-  predicate: (url: string) => boolean,
-  description: string,
-): string {
+function findFile(files: LatestAppInfo["files"], predicate: (url: string) => boolean, description: string): string {
   const match = files.find((file) => predicate(file.url));
 
   if (!match) {
@@ -133,11 +114,7 @@ async function fetchLinuxAppInfo(variant: Variant): Promise<LinuxAppInfo> {
   return {
     os: "linux",
     appImage: {
-      filename: findFile(
-        files,
-        (url) => url.endsWith(".AppImage"),
-        "Linux AppImage",
-      ),
+      filename: findFile(files, (url) => url.endsWith(".AppImage"), "Linux AppImage"),
       text: "Linux",
     },
   };
@@ -150,27 +127,15 @@ async function fetchMacOSAppInfo(variant: Variant): Promise<MacOSAppInfo> {
   return {
     os: "mac",
     intel: {
-      filename: findFile(
-        files,
-        (url) => isDmg(url) && url.includes("x64"),
-        "Mac Intel (.dmg)",
-      ),
+      filename: findFile(files, (url) => isDmg(url) && url.includes("x64"), "Mac Intel (.dmg)"),
       text: "Mac Intel",
     },
     silicon: {
-      filename: findFile(
-        files,
-        (url) => isDmg(url) && url.includes("arm64"),
-        "Mac Silicon (.dmg)",
-      ),
+      filename: findFile(files, (url) => isDmg(url) && url.includes("arm64"), "Mac Silicon (.dmg)"),
       text: "Mac Silicon",
     },
     universal: {
-      filename: findFile(
-        files,
-        (url) => isDmg(url) && url.includes("universal"),
-        "Mac Universal (.dmg)",
-      ),
+      filename: findFile(files, (url) => isDmg(url) && url.includes("universal"), "Mac Universal (.dmg)"),
       text: "Mac Universal",
     },
   };
@@ -183,19 +148,11 @@ async function fetchWindowsAppInfo(variant: Variant): Promise<WindowsAppInfo> {
   return {
     os: "windows",
     arm64: {
-      filename: findFile(
-        files,
-        (url) => isExe(url) && url.includes("arm64"),
-        "Windows arm64 (.exe)",
-      ),
+      filename: findFile(files, (url) => isExe(url) && url.includes("arm64"), "Windows arm64 (.exe)"),
       text: "Windows arm64",
     },
     x64: {
-      filename: findFile(
-        files,
-        (url) => isExe(url) && url.includes("x64"),
-        "Windows x64 (.exe)",
-      ),
+      filename: findFile(files, (url) => isExe(url) && url.includes("x64"), "Windows x64 (.exe)"),
       text: "Windows x64",
     },
     universal: {
@@ -209,10 +166,7 @@ async function fetchWindowsAppInfo(variant: Variant): Promise<WindowsAppInfo> {
   };
 }
 
-async function fetchVariantAppInfo(
-  variant: Variant,
-  os: OS,
-): Promise<ActiveAppInfo> {
+async function fetchVariantAppInfo(variant: Variant, os: OS): Promise<ActiveAppInfo> {
   switch (os) {
     case "linux":
       return fetchLinuxAppInfo(variant);
@@ -312,32 +266,23 @@ function useAppMatrix(enabled: boolean): AppMatrixStatus {
       fetchWindowsAppInfo("nitro"),
       fetchWindowsAppInfo("nitro-insider"),
     ])
-      .then(
-        ([
-          linux,
-          linuxInsider,
-          macOS,
-          macOSInsider,
-          windows,
-          windowsInsider,
-        ]) => {
-          if (cancelled) {
-            return;
-          }
+      .then(([linux, linuxInsider, macOS, macOSInsider, windows, windowsInsider]) => {
+        if (cancelled) {
+          return;
+        }
 
-          setStatus({
-            state: "ready",
-            matrix: {
-              stable: { linux, macOS, windows },
-              insider: {
-                linux: linuxInsider,
-                macOS: macOSInsider,
-                windows: windowsInsider,
-              },
+        setStatus({
+          state: "ready",
+          matrix: {
+            stable: { linux, macOS, windows },
+            insider: {
+              linux: linuxInsider,
+              macOS: macOSInsider,
+              windows: windowsInsider,
             },
-          });
-        },
-      )
+          },
+        });
+      })
       .catch(() => {
         if (cancelled) {
           return;
@@ -395,16 +340,12 @@ interface ActiveDownload {
 // Maps the fetch status to what the split button shows: the resolved download
 // link, a link-less shell while the detected OS's manifest is still loading,
 // or null when only the web fallback can be offered.
-function resolveActiveDownload(
-  status: ActiveAppInfoStatus,
-): ActiveDownload | null {
+function resolveActiveDownload(status: ActiveAppInfoStatus): ActiveDownload | null {
   if (status.state === "loading") {
     return { text: SPLIT_BUTTON_LABELS[status.os] };
   }
 
-  return status.activeStable === undefined
-    ? null
-    : getActiveDownload(status.activeStable);
+  return status.activeStable === undefined ? null : getActiveDownload(status.activeStable);
 }
 
 interface DownloadAppLinkProps {
@@ -422,10 +363,7 @@ function DownloadAppLink({ filename, onClick }: DownloadAppLinkProps) {
       className="text-cc-ink hover:text-cc-white flex items-center justify-center py-1"
       aria-label={"Download " + filename}
     >
-      <CircleArrowDownIcon
-        className="h-4 w-4 fill-current"
-        aria-hidden="true"
-      />
+      <CircleArrowDownIcon className="h-4 w-4 fill-current" aria-hidden="true" />
     </a>
   );
 }
@@ -463,8 +401,7 @@ export function NitroDownload() {
   const activeStatus = useActiveAppInfo();
   const [open, setOpen] = useState(false);
   const matrixStatus = useAppMatrix(open);
-  const matrix =
-    matrixStatus.state === "ready" ? matrixStatus.matrix : undefined;
+  const matrix = matrixStatus.state === "ready" ? matrixStatus.matrix : undefined;
   const matrixLoading = matrixStatus.state === "idle";
   const containerRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -524,10 +461,7 @@ export function NitroDownload() {
         onClick={() => setOpen((prev) => !prev)}
         className="border-cc-surface/20 bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex cursor-pointer items-center justify-center rounded-r-full border-l py-1.5 pr-5 pl-3 transition-colors"
       >
-        <ChevronDownIcon
-          className="h-3.5 w-3.5 fill-current"
-          aria-hidden="true"
-        />
+        <ChevronDownIcon className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
       </button>
       {open && (
         <div
@@ -539,12 +473,8 @@ export function NitroDownload() {
               <tr>
                 <th className="px-3 py-1.5" />
                 <th className="px-3 py-1.5" />
-                <th className="px-3 py-1.5 text-center font-semibold">
-                  Stable
-                </th>
-                <th className="px-3 py-1.5 text-center font-semibold">
-                  Insider
-                </th>
+                <th className="px-3 py-1.5 text-center font-semibold">Stable</th>
+                <th className="px-3 py-1.5 text-center font-semibold">Insider</th>
               </tr>
             </thead>
             {matrix ? (
@@ -552,29 +482,15 @@ export function NitroDownload() {
                 {MATRIX_ROWS.map((row) => (
                   <tr
                     key={row.os + row.type}
-                    className={
-                      row.groupStart || row.os
-                        ? "border-cc-card-border border-t"
-                        : ""
-                    }
+                    className={row.groupStart || row.os ? "border-cc-card-border border-t" : ""}
                   >
-                    <td className="px-3 py-1.5 font-semibold whitespace-nowrap">
-                      {row.os}
-                    </td>
-                    <td className="text-cc-ink-dim px-3 py-1.5 whitespace-nowrap">
-                      {row.type}
+                    <td className="px-3 py-1.5 font-semibold whitespace-nowrap">{row.os}</td>
+                    <td className="text-cc-ink-dim px-3 py-1.5 whitespace-nowrap">{row.type}</td>
+                    <td className="px-3 py-1.5 text-center">
+                      <DownloadAppLink filename={row.pick(matrix.stable)} onClick={() => setOpen(false)} />
                     </td>
                     <td className="px-3 py-1.5 text-center">
-                      <DownloadAppLink
-                        filename={row.pick(matrix.stable)}
-                        onClick={() => setOpen(false)}
-                      />
-                    </td>
-                    <td className="px-3 py-1.5 text-center">
-                      <DownloadAppLink
-                        filename={row.pick(matrix.insider)}
-                        onClick={() => setOpen(false)}
-                      />
+                      <DownloadAppLink filename={row.pick(matrix.insider)} onClick={() => setOpen(false)} />
                     </td>
                   </tr>
                 ))}
@@ -582,23 +498,15 @@ export function NitroDownload() {
             ) : (
               <tbody>
                 <tr className="border-cc-card-border border-t">
-                  <td
-                    colSpan={4}
-                    className="text-cc-ink-dim px-3 py-3 text-center"
-                  >
-                    {matrixLoading
-                      ? "Loading downloads…"
-                      : "Downloads unavailable"}
+                  <td colSpan={4} className="text-cc-ink-dim px-3 py-3 text-center">
+                    {matrixLoading ? "Loading downloads…" : "Downloads unavailable"}
                   </td>
                 </tr>
               </tbody>
             )}
             <tfoot>
               <tr className="border-cc-card-border border-t">
-                <td
-                  colSpan={4}
-                  className="px-3 py-2 text-center whitespace-nowrap"
-                >
+                <td colSpan={4} className="px-3 py-2 text-center whitespace-nowrap">
                   <a
                     href={WEB_STABLE_URL}
                     target="_blank"

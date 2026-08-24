@@ -41,11 +41,7 @@ const HUNKS: readonly Hunk[] = [
     added: 21,
     removed: 0,
     lines: [
-      [
-        { t: "class ReviewAddedHandler : " },
-        { t: "IEventHandler", accent: true },
-        { t: "<ReviewAdded>" },
-      ],
+      [{ t: "class ReviewAddedHandler : " }, { t: "IEventHandler", accent: true }, { t: "<ReviewAdded>" }],
       [{ t: "ValueTask HandleAsync(ReviewAdded e, ...)" }],
     ],
   },
@@ -54,11 +50,7 @@ const HUNKS: readonly Hunk[] = [
     added: 18,
     removed: 0,
     lines: [
-      [
-        { t: "class GetSummaryHandler : " },
-        { t: "IQueryHandler", accent: true },
-        { t: "<GetSummary, Summary>" },
-      ],
+      [{ t: "class GetSummaryHandler : " }, { t: "IQueryHandler", accent: true }, { t: "<GetSummary, Summary>" }],
       [{ t: "ValueTask<Summary> HandleAsync(...)" }],
     ],
   },
@@ -162,24 +154,9 @@ const STEPS: readonly {
 
 function FileGlyph() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="text-cc-nav-label size-3.5 shrink-0"
-    >
-      <path
-        d="M4 2.5h5l3 3v8H4z"
-        stroke="currentColor"
-        strokeWidth={1.1}
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9 2.5v3h3"
-        stroke="currentColor"
-        strokeWidth={1.1}
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className="text-cc-nav-label size-3.5 shrink-0">
+      <path d="M4 2.5h5l3 3v8H4z" stroke="currentColor" strokeWidth={1.1} strokeLinejoin="round" />
+      <path d="M9 2.5v3h3" stroke="currentColor" strokeWidth={1.1} strokeLinejoin="round" />
     </svg>
   );
 }
@@ -187,39 +164,12 @@ function FileGlyph() {
 /** Small git-merge glyph for the merged status badge. */
 function MergeGlyph({ className }: { readonly className?: string }) {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle
-        cx="4.5"
-        cy="3.5"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <circle
-        cx="4.5"
-        cy="12.5"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
-      <circle
-        cx="11.5"
-        cy="8"
-        r="1.5"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className={className}>
+      <circle cx="4.5" cy="3.5" r="1.5" stroke="currentColor" strokeWidth={1.1} />
+      <circle cx="4.5" cy="12.5" r="1.5" stroke="currentColor" strokeWidth={1.1} />
+      <circle cx="11.5" cy="8" r="1.5" stroke="currentColor" strokeWidth={1.1} />
       <path d="M4.5 5v6" stroke="currentColor" strokeWidth={1.1} />
-      <path
-        d="M4.5 6.5a3.5 3.5 0 0 0 3.5 3.5H10"
-        stroke="currentColor"
-        strokeWidth={1.1}
-      />
+      <path d="M4.5 6.5a3.5 3.5 0 0 0 3.5 3.5H10" stroke="currentColor" strokeWidth={1.1} />
     </svg>
   );
 }
@@ -227,12 +177,7 @@ function MergeGlyph({ className }: { readonly className?: string }) {
 /** The animated pointer that plays the reviewer. */
 function CursorGlyph({ className }: { readonly className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
       <path
         d="M5.5 3.2 17.6 11l-5.3 1.1 2.9 5.9-2.5 1.2-2.9-5.9-4.3 3.4z"
         fill="#f5f1ea"
@@ -246,9 +191,7 @@ function CursorGlyph({ className }: { readonly className?: string }) {
 
 /** Amber spinner, GitHub-style, for a check that is still running. */
 function PendingSpinner() {
-  return (
-    <SpinnerGlyph className="size-3.5 shrink-0 animate-spin text-[#d9a441] motion-reduce:animate-none" />
-  );
+  return <SpinnerGlyph className="size-3.5 shrink-0 animate-spin text-[#d9a441] motion-reduce:animate-none" />;
 }
 
 interface StatusBadgeProps {
@@ -309,9 +252,7 @@ function FileCard({ hunk, viewed, pressed, checkboxRef }: FileCardProps) {
     <div className="border-cc-card-border overflow-hidden rounded-lg border select-none">
       <div className="border-cc-card-border flex items-center gap-2 border-b bg-white/[0.03] px-3 py-2">
         <FileGlyph />
-        <span className="text-cc-ink-dim min-w-0 truncate font-mono text-xs">
-          {hunk.file}
-        </span>
+        <span className="text-cc-ink-dim min-w-0 truncate font-mono text-xs">{hunk.file}</span>
         <span className="flex shrink-0 items-center gap-1.5 font-mono text-[0.6rem]">
           <span className="text-cc-success">+{hunk.added}</span>
           <span className="text-cc-danger">-{hunk.removed}</span>
@@ -320,9 +261,7 @@ function FileCard({ hunk, viewed, pressed, checkboxRef }: FileCardProps) {
           <span
             ref={checkboxRef}
             className={`flex size-3.5 items-center justify-center rounded-[4px] border transition-all duration-150 ${
-              viewed
-                ? "border-cc-accent/60 bg-cc-accent/20"
-                : "border-cc-ink-faint"
+              viewed ? "border-cc-accent/60 bg-cc-accent/20" : "border-cc-ink-faint"
             } ${pressed ? "scale-90" : ""}`}
           >
             {viewed && <CheckGlyph className="text-cc-accent size-2.5" />}
@@ -330,11 +269,7 @@ function FileCard({ hunk, viewed, pressed, checkboxRef }: FileCardProps) {
           Viewed
         </span>
       </div>
-      <div
-        className={`py-1 font-mono text-xs transition-opacity duration-300 ${
-          viewed ? "opacity-45" : ""
-        }`}
-      >
+      <div className={`py-1 font-mono text-xs transition-opacity duration-300 ${viewed ? "opacity-45" : ""}`}>
         {hunk.lines.map((runs, lineIndex) => (
           <div
             key={lineIndex}
@@ -344,10 +279,7 @@ function FileCard({ hunk, viewed, pressed, checkboxRef }: FileCardProps) {
             <span className="text-cc-success shrink-0 select-none">+</span>
             <span className="min-w-0 truncate whitespace-pre">
               {runs.map((run, runIndex) => (
-                <span
-                  key={runIndex}
-                  className={run.accent ? "text-cc-accent" : "text-cc-ink"}
-                >
+                <span key={runIndex} className={run.accent ? "text-cc-accent" : "text-cc-ink"}>
                   {run.t}
                 </span>
               ))}
@@ -377,9 +309,7 @@ export function ReviewSection() {
   const [started, setStarted] = useState(false);
   const windowRef = useRef<HTMLDivElement | null>(null);
   const cursorRef = useRef<HTMLDivElement | null>(null);
-  const targetRefs = useRef<Partial<Record<CursorTarget, HTMLElement | null>>>(
-    {},
-  );
+  const targetRefs = useRef<Partial<Record<CursorTarget, HTMLElement | null>>>({});
 
   // Start the script once the window scrolls into view.
   useEffect(() => {
@@ -409,9 +339,7 @@ export function ReviewSection() {
       const id = window.setTimeout(() => setDemo(FINISHED_DEMO), 0);
       return () => window.clearTimeout(id);
     }
-    const timeouts = STEPS.map((step) =>
-      window.setTimeout(() => setDemo(step.apply), step.at),
-    );
+    const timeouts = STEPS.map((step) => window.setTimeout(() => setDemo(step.apply), step.at));
     return () => {
       for (const id of timeouts) {
         window.clearTimeout(id);
@@ -465,9 +393,7 @@ export function ReviewSection() {
               content: (
                 <>
                   <BranchGlyph className="text-cc-ink-dim size-3.5 shrink-0" />
-                  <span className="text-cc-ink font-mono text-sm">
-                    feat: add product reviews
-                  </span>
+                  <span className="text-cc-ink font-mono text-sm">feat: add product reviews</span>
                   <Eyebrow as="span" size="2xs" color="ink-dim">
                     3 files changed
                   </Eyebrow>
@@ -503,15 +429,8 @@ export function ReviewSection() {
                   {CHECKS.map((check) => {
                     const done = demo[check.key];
                     return (
-                      <li
-                        key={check.name}
-                        className="flex items-center gap-2.5 font-mono text-xs"
-                      >
-                        {done ? (
-                          <CheckGlyph className="text-cc-success size-3.5" />
-                        ) : (
-                          <PendingSpinner />
-                        )}
+                      <li key={check.name} className="flex items-center gap-2.5 font-mono text-xs">
+                        {done ? <CheckGlyph className="text-cc-success size-3.5" /> : <PendingSpinner />}
                         <span className="text-cc-ink">{check.name}</span>
                         <span className="text-cc-ink-dim ml-auto text-[0.6rem]">
                           {done ? "Succeeded" : "In progress"}
@@ -536,9 +455,7 @@ export function ReviewSection() {
                       : "border-cc-success/50 bg-cc-success/20 text-cc-success"
                   }`}
                 >
-                  {approved && (
-                    <CheckGlyph className="text-cc-success size-3.5" />
-                  )}
+                  {approved && <CheckGlyph className="text-cc-success size-3.5" />}
                   {approved ? "Approved" : "Approve"}
                 </span>
               </div>
@@ -554,9 +471,7 @@ export function ReviewSection() {
               style={{ transform: "translate(320px, 90px)" }}
             >
               <CursorGlyph
-                className={`size-5 drop-shadow-md transition-transform duration-150 ${
-                  demo.clicking ? "scale-90" : ""
-                }`}
+                className={`size-5 drop-shadow-md transition-transform duration-150 ${demo.clicking ? "scale-90" : ""}`}
               />
             </div>
           </MockWindowChrome>
@@ -567,9 +482,7 @@ export function ReviewSection() {
           <Eyebrow as="p" size="2xs">
             time to ship
           </Eyebrow>
-          <p className="font-heading text-cc-heading text-h5 mt-2 leading-tight font-semibold">
-            reviewed in seconds
-          </p>
+          <p className="font-heading text-cc-heading text-h5 mt-2 leading-tight font-semibold">reviewed in seconds</p>
           <div className="mt-5 space-y-3" aria-hidden="true">
             {TIME_BARS.map((bar) => (
               <div key={bar.label} className="flex items-center gap-3">

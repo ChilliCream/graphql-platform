@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ComponentPropsWithoutRef,
-  type CSSProperties,
-} from "react";
+import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type CSSProperties } from "react";
 import { BrokenMedia } from "./BrokenMedia";
 
 interface ImageProps extends ComponentPropsWithoutRef<"img"> {
@@ -21,11 +15,7 @@ interface ImageProps extends ComponentPropsWithoutRef<"img"> {
  * is stretched across an upscaled viewBox and run through a Gaussian blur, then
  * used as the element background (`cover`) behind the real image until it loads.
  */
-function blurBackground(
-  blurDataURL: string,
-  blurWidth = 8,
-  blurHeight = 8,
-): CSSProperties {
+function blurBackground(blurDataURL: string, blurWidth = 8, blurHeight = 8): CSSProperties {
   const svgWidth = blurWidth * 40;
   const svgHeight = blurHeight * 40;
   const svg =
@@ -82,11 +72,7 @@ export function Image({
       <BrokenMedia
         message="This image couldn't be loaded."
         className={className || undefined}
-        style={
-          width && height
-            ? { aspectRatio: `${width} / ${height}`, ...style }
-            : style
-        }
+        style={width && height ? { aspectRatio: `${width} / ${height}`, ...style } : style}
       />
     );
   }

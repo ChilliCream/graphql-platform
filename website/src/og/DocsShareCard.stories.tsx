@@ -48,10 +48,7 @@ export const Default: Story = {
 
 // A long doc page title, to check wrapping within the frame.
 export const LongTitle: Story = {
-  args: productArgs(
-    "fusion",
-    "Composing a Distributed Schema with Fusion Gateways",
-  ),
+  args: productArgs("fusion", "Composing a Distributed Schema with Fusion Gateways"),
 };
 
 // A doc page title far too long for the frame, to show how overflow is handled.

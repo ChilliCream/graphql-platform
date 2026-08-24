@@ -15,12 +15,7 @@ interface NitroCanvasProps {
 
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
-    <NitroTheme
-      theme="dark"
-      reducedMotion="user"
-      className={className}
-      style={{ background: "transparent", ...style }}
-    >
+    <NitroTheme theme="dark" reducedMotion="user" className={className} style={{ background: "transparent", ...style }}>
       {children}
     </NitroTheme>
   );
@@ -107,9 +102,7 @@ interface TileHeaderProps {
 function TileHeader({ index, title, hint }: TileHeaderProps) {
   return (
     <div className="flex items-baseline gap-3 px-5 pt-5">
-      <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.14em]">
-        {index}
-      </span>
+      <span className="text-cc-ink-dim font-mono text-[0.65rem] tracking-[0.14em]">{index}</span>
       <h3 className="text-cc-heading font-heading text-h6">{title}</h3>
       <span className="text-cc-ink-dim ml-auto text-right font-mono text-[0.6rem] tracking-[0.16em] uppercase">
         {hint}
@@ -140,11 +133,7 @@ export function TraceBento() {
   return (
     <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-6">
       <Tile className="sm:col-span-4">
-        <TileHeader
-          index="a"
-          title="One message, end to end"
-          hint="TRACE · 7f3a·9b2e"
-        />
+        <TileHeader index="a" title="One message, end to end" hint="TRACE · 7f3a·9b2e" />
         <div className="px-5 pt-4 pb-3" aria-hidden="true">
           <NitroCanvas>
             <TraceWaterfall trace={TRACE} />
@@ -174,9 +163,7 @@ export function TraceBento() {
                 <Sparkline values={DELIVERY_LATENCY} stroke={CORAL} />
               </NitroCanvas>
             </div>
-            <p className="text-cc-ink-dim mt-2 font-mono text-[0.6rem] tracking-[0.14em] uppercase">
-              delivery latency
-            </p>
+            <p className="text-cc-ink-dim mt-2 font-mono text-[0.6rem] tracking-[0.14em] uppercase">delivery latency</p>
           </div>
 
           <div>

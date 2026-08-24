@@ -12,8 +12,7 @@ export const metadata = pageMetadata({
 });
 
 // Cyan-to-coral brand spectrum, faded at both edges, for the panel's top hairline.
-const SPECTRUM =
-  "linear-gradient(90deg, transparent, #16b9e4 30%, #7c92c6 50%, #f0786a 70%, transparent)";
+const SPECTRUM = "linear-gradient(90deg, transparent, #16b9e4 30%, #7c92c6 50%, #f0786a 70%, transparent)";
 
 export default function ContactPage() {
   return (

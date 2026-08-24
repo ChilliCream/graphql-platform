@@ -7,22 +7,10 @@ interface MotiviewLogoProps {
 
 export function MotiviewLogo({ className, style }: MotiviewLogoProps) {
   return (
-    <svg
-      viewBox="0 0 387.12 78.73"
-      fill="currentColor"
-      aria-hidden="true"
-      className={className}
-      style={style}
-    >
+    <svg viewBox="0 0 387.12 78.73" fill="currentColor" aria-hidden="true" className={className} style={style}>
       <defs>
         <clipPath id="motiview-be6e9fc1-7060-42f9-b9f4-8bd48bb965e5">
-          <rect
-            x="-38.71"
-            y="-15.45"
-            width="113.82"
-            height="113.82"
-            fill="none"
-          />
+          <rect x="-38.71" y="-15.45" width="113.82" height="113.82" fill="none" />
         </clipPath>
         <clipPath id="motiview-fba7f6ec-f63a-4d45-b29a-3d9525528e97">
           <rect x="-29.16" y="-5.35" width="85.14" height="85.14" fill="none" />

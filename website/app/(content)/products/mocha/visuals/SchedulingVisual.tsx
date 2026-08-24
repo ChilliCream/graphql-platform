@@ -2,22 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  clamp01,
-  easeInOutCubic,
-  easeOutCubic,
-  ramp,
-} from "@/src/components/mocha/geometry";
-import {
-  AMBER,
-  CORAL,
-  CORAL_SOFT,
-  CYAN,
-  GREEN,
-  MONO_FONT,
-  NAVY,
-  SLATE,
-} from "@/src/components/mocha/palette";
+import { clamp01, easeInOutCubic, easeOutCubic, ramp } from "@/src/components/mocha/geometry";
+import { AMBER, CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY, SLATE } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
@@ -145,10 +131,7 @@ export function SchedulingVisual() {
         const el = E.get(k);
         if (el) {
           el.setAttribute("opacity", o.toFixed(3));
-          el.setAttribute(
-            "transform",
-            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
-          );
+          el.setAttribute("transform", `translate(0 ${((1 - rise) * 5).toFixed(2)})`);
         }
       };
 
@@ -176,14 +159,7 @@ export function SchedulingVisual() {
         el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
       };
 
-      const placePulse = (
-        p: string,
-        x0: number,
-        x1: number,
-        u: number,
-        op: number,
-        coreR: number,
-      ) => {
+      const placePulse = (p: string, x0: number, x1: number, u: number, op: number, coreR: number) => {
         const g = E.get(p);
         if (!g) {
           return;
@@ -220,9 +196,7 @@ export function SchedulingVisual() {
 
         const tp = easeOutCubic(ramp(t, 450, 900));
         setPop("schedTag", tp * 0.9 * (1 - ramp(t, 2600, 3200)), tp);
-        const e1 =
-          easeOutCubic(ramp(t, 320, 620)) *
-          (1 - easeInOutCubic(ramp(t, 1100, 1900)));
+        const e1 = easeOutCubic(ramp(t, 320, 620)) * (1 - easeInOutCubic(ramp(t, 1100, 1900)));
         setO("rowEcho", e1 * 0.7);
         setO("pw1", e1 * 0.07);
         setO("pe1", e1 * 0.5);
@@ -231,14 +205,7 @@ export function SchedulingVisual() {
 
         if (t >= 600 && t < 2100) {
           const u = easeInOutCubic(ramp(t, 600, 2100));
-          placePulse(
-            "pub",
-            L.pubX0,
-            L.entryS,
-            u,
-            Math.min((t - 600) / 150, 1),
-            2.5,
-          );
+          placePulse("pub", L.pubX0, L.entryS, u, Math.min((t - 600) / 150, 1), 2.5);
         } else {
           hidePulse("pub");
         }
@@ -282,14 +249,7 @@ export function SchedulingVisual() {
 
         if (t >= 7400 && t < 8850) {
           const u = easeInOutCubic(ramp(t, 7400, 8850));
-          placePulse(
-            "rel",
-            L.frontS,
-            L.entryQ,
-            u,
-            Math.min((t - 7400) / 150, 1),
-            2.5,
-          );
+          placePulse("rel", L.frontS, L.entryQ, u, Math.min((t - 7400) / 150, 1), 2.5);
         } else {
           hidePulse("rel");
         }
@@ -308,16 +268,13 @@ export function SchedulingVisual() {
 
         if (t >= 9600 && t < 11050) {
           const u = easeInOutCubic(ramp(t, 9600, 11050));
-          const op =
-            Math.min((t - 9600) / 150, 1) * (1 - ramp(t, 10890, 11050));
+          const op = Math.min((t - 9600) / 150, 1) * (1 - ramp(t, 10890, 11050));
           placePulse("dlv", L.frontQ, L.dlvEnd, u, op, 2.5);
         } else {
           hidePulse("dlv");
         }
         setRing("ring2", ((t - 11050 + T) % T) / 700, 3, 11);
-        const w2 =
-          easeOutCubic(ramp(t, 11010, 11270)) *
-          (1 - easeInOutCubic(ramp(t, 11300, 11950)));
+        const w2 = easeOutCubic(ramp(t, 11010, 11270)) * (1 - easeInOutCubic(ramp(t, 11300, 11950)));
         setO("h2echo", w2 * 0.9);
         setO("h2lit", w2 * 0.9);
         setO("pw2", w2 * 0.07);
@@ -336,13 +293,7 @@ export function SchedulingVisual() {
       <circle ref={set(p + "t3")} r={1.4} fill={CORAL} opacity={0} />
       <circle ref={set(p + "t2")} r={1.7} fill={CORAL} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={CORAL} opacity={0} />
-      <circle
-        ref={set(p + "glow")}
-        r={6}
-        fill={CORAL}
-        opacity={0.22}
-        filter="url(#sched-soft)"
-      />
+      <circle ref={set(p + "glow")} r={6} fill={CORAL} opacity={0.22} filter="url(#sched-soft)" />
       <circle ref={set(p + "core")} r={2.5} fill={CORAL} />
       <circle ref={set(p + "in")} r={1.1} fill={CORAL_SOFT} />
     </g>
@@ -358,52 +309,21 @@ export function SchedulingVisual() {
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[360px]"
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg
-          viewBox={`0 0 ${lw} ${H}`}
-          width="100%"
-          height={(H * w) / lw}
-          className="block"
-        >
+        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
           <defs>
-            <filter
-              id="sched-soft"
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
+            <filter id="sched-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern
-              id="sched-pads"
-              width={28}
-              height={28}
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id="sched-pads" width={28} height={28} patternUnits="userSpaceOnUse">
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
           <rect x={0} y={0} width={lw} height={H} fill="url(#sched-pads)" />
 
-          <path
-            d={`M${x1R} ${LANE_Y} H${L.slotL}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
-          <path
-            d={`M${L.slotR} ${LANE_Y} H${L.qL}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
-          <path
-            d={`M${L.qR} ${LANE_Y} H${L.px2}`}
-            fill="none"
-            stroke={LANE_STROKE}
-            strokeWidth={1.5}
-          />
+          <path d={`M${x1R} ${LANE_Y} H${L.slotL}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
+          <path d={`M${L.slotR} ${LANE_Y} H${L.qL}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
+          <path d={`M${L.qR} ${LANE_Y} H${L.px2}`} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
 
           {(
             [
@@ -413,15 +333,7 @@ export function SchedulingVisual() {
               ["v-q-r", L.qR],
             ] as const
           ).map(([k, x]) => (
-            <circle
-              key={k}
-              cx={x}
-              cy={LANE_Y}
-              r={2.5}
-              fill={NAVY}
-              stroke={VIA_STROKE}
-              strokeWidth={1}
-            />
+            <circle key={k} cx={x} cy={LANE_Y} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
           ))}
 
           {(
@@ -481,13 +393,7 @@ export function SchedulingVisual() {
           </text>
 
           <g ref={set("cdown")} opacity={0.95}>
-            <text
-              x={L.cdX}
-              y={72}
-              textAnchor="middle"
-              fontFamily={MONO_FONT}
-              fontSize={10.5}
-            >
+            <text x={L.cdX} y={72} textAnchor="middle" fontFamily={MONO_FONT} fontSize={10.5}>
               <tspan fill={SILK_SOFT}>{"delivers in "}</tspan>
               <tspan ref={set("cdNum")} fill={AMBER}>
                 12
@@ -528,16 +434,7 @@ export function SchedulingVisual() {
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
-          <rect
-            ref={set("pw1")}
-            x={M}
-            y={PANEL_Y}
-            width={PW1}
-            height={PANEL_H}
-            rx={3}
-            fill={CORAL}
-            opacity={0}
-          />
+          <rect ref={set("pw1")} x={M} y={PANEL_Y} width={PW1} height={PANEL_H} rx={3} fill={CORAL} opacity={0} />
           <rect
             ref={set("pe1")}
             x={M}
@@ -551,14 +448,7 @@ export function SchedulingVisual() {
             opacity={0}
           />
           <circle cx={M + 7} cy={PANEL_Y + 7} r={1.2} fill={SILK} />
-          <text
-            x={M + 12}
-            y={PANEL_Y + 22}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            letterSpacing="0.18em"
-            fill={SILK}
-          >
+          <text x={M + 12} y={PANEL_Y + 22} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.18em" fill={SILK}>
             ORDERS SERVICE
           </text>
           <rect
@@ -571,30 +461,9 @@ export function SchedulingVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect
-            x={L.rowX1}
-            y={ROW_TOP}
-            width={PW1 - 24}
-            height={ROW_H}
-            rx={5}
-            fill={CORAL}
-            opacity={0.06}
-          />
-          <rect
-            x={L.rowX1}
-            y={ROW_TOP + 5}
-            width={3}
-            height={ROW_H - 10}
-            rx={1.5}
-            fill={CORAL}
-          />
-          <text
-            x={L.rowX1 + 13}
-            y={ROW_TOP + 20}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            fill={CORAL_SOFT}
-          >
+          <rect x={L.rowX1} y={ROW_TOP} width={PW1 - 24} height={ROW_H} rx={5} fill={CORAL} opacity={0.06} />
+          <rect x={L.rowX1} y={ROW_TOP + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CORAL} />
+          <text x={L.rowX1 + 13} y={ROW_TOP + 20} fontFamily={MONO_FONT} fontSize={10} fill={CORAL_SOFT}>
             WelcomeEmail
           </text>
           <rect
@@ -609,13 +478,7 @@ export function SchedulingVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          <circle
-            cx={x1R - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={SILK}
-            opacity={0.25}
-          />
+          <circle cx={x1R - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
           <circle
             ref={set("ph1")}
             cx={x1R - 10}
@@ -627,14 +490,7 @@ export function SchedulingVisual() {
             filter="url(#sched-soft)"
             opacity={0}
           />
-          <circle
-            ref={set("pl1")}
-            cx={x1R - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={CORAL}
-            opacity={0}
-          />
+          <circle ref={set("pl1")} cx={x1R - 10} cy={PANEL_Y + 10} r={2} fill={CORAL} opacity={0} />
           <text
             ref={set("schedTag")}
             x={M + PW1 / 2}
@@ -659,16 +515,7 @@ export function SchedulingVisual() {
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
-          <rect
-            ref={set("pw2")}
-            x={L.px2}
-            y={PANEL_Y}
-            width={PW2}
-            height={PANEL_H}
-            rx={3}
-            fill={CORAL}
-            opacity={0}
-          />
+          <rect ref={set("pw2")} x={L.px2} y={PANEL_Y} width={PW2} height={PANEL_H} rx={3} fill={CORAL} opacity={0} />
           <rect
             ref={set("pe2")}
             x={L.px2}
@@ -682,14 +529,7 @@ export function SchedulingVisual() {
             opacity={0}
           />
           <circle cx={L.px2 + 7} cy={PANEL_Y + 7} r={1.2} fill={SILK} />
-          <text
-            x={L.px2 + 12}
-            y={PANEL_Y + 22}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            letterSpacing="0.18em"
-            fill={SILK}
-          >
+          <text x={L.px2 + 12} y={PANEL_Y + 22} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.18em" fill={SILK}>
             NOTIFICATIONS SERVICE
           </text>
           <rect
@@ -702,30 +542,9 @@ export function SchedulingVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect
-            x={L.rowX2}
-            y={ROW_TOP}
-            width={PW2 - 24}
-            height={ROW_H}
-            rx={5}
-            fill={CYAN}
-            opacity={0.05}
-          />
-          <rect
-            x={L.rowX2}
-            y={ROW_TOP + 5}
-            width={3}
-            height={ROW_H - 10}
-            rx={1.5}
-            fill={CYAN}
-          />
-          <text
-            x={L.rowX2 + 13}
-            y={ROW_TOP + 20}
-            fontFamily={MONO_FONT}
-            fontSize={10}
-            fill={INK}
-          >
+          <rect x={L.rowX2} y={ROW_TOP} width={PW2 - 24} height={ROW_H} rx={5} fill={CYAN} opacity={0.05} />
+          <rect x={L.rowX2} y={ROW_TOP + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
+          <text x={L.rowX2 + 13} y={ROW_TOP + 20} fontFamily={MONO_FONT} fontSize={10} fill={INK}>
             SendWelcomeEmailHandler
           </text>
           <text
@@ -751,13 +570,7 @@ export function SchedulingVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          <circle
-            cx={L.px2 + PW2 - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={SILK}
-            opacity={0.25}
-          />
+          <circle cx={L.px2 + PW2 - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
           <circle
             ref={set("ph2")}
             cx={L.px2 + PW2 - 10}
@@ -769,35 +582,14 @@ export function SchedulingVisual() {
             filter="url(#sched-soft)"
             opacity={0}
           />
-          <circle
-            ref={set("pl2")}
-            cx={L.px2 + PW2 - 10}
-            cy={PANEL_Y + 10}
-            r={2}
-            fill={CORAL}
-            opacity={0}
-          />
+          <circle ref={set("pl2")} cx={L.px2 + PW2 - 10} cy={PANEL_Y + 10} r={2} fill={CORAL} opacity={0} />
 
           {pulseGlyph("pub")}
           {pulseGlyph("rel")}
           {pulseGlyph("dlv")}
 
-          <circle
-            ref={set("sdot")}
-            cx={L.frontS}
-            cy={LANE_Y}
-            r={2.5}
-            fill={CORAL}
-            opacity={0.95}
-          />
-          <circle
-            ref={set("qdot")}
-            cx={L.frontQ}
-            cy={LANE_Y}
-            r={2.5}
-            fill={CORAL}
-            opacity={0}
-          />
+          <circle ref={set("sdot")} cx={L.frontS} cy={LANE_Y} r={2.5} fill={CORAL} opacity={0.95} />
+          <circle ref={set("qdot")} cx={L.frontQ} cy={LANE_Y} r={2.5} fill={CORAL} opacity={0} />
 
           <circle
             ref={set("ringS")}
@@ -830,14 +622,7 @@ export function SchedulingVisual() {
             opacity={0}
           />
 
-          <circle
-            cx={L.clockX}
-            cy={LANE_Y}
-            r={CLOCK_R}
-            fill={SURFACE}
-            stroke={PANEL_STROKE}
-            strokeWidth={1}
-          />
+          <circle cx={L.clockX} cy={LANE_Y} r={CLOCK_R} fill={SURFACE} stroke={PANEL_STROKE} strokeWidth={1} />
           <line
             x1={L.clockX}
             y1={LANE_Y - CLOCK_R + 0.5}
@@ -847,13 +632,7 @@ export function SchedulingVisual() {
             strokeWidth={1}
             opacity={0.5}
           />
-          <circle
-            cx={L.clockX}
-            cy={LANE_Y}
-            r={1.2}
-            fill={SLATE}
-            opacity={0.6}
-          />
+          <circle cx={L.clockX} cy={LANE_Y} r={1.2} fill={SLATE} opacity={0.6} />
           <circle
             ref={set("cdArc")}
             cx={L.clockX}

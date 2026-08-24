@@ -25,16 +25,9 @@ export default async function DocsLayout({
   const currentPath = `/docs/${slug.join("/")}`;
 
   return (
-    <div
-      data-docs-layout
-      className="cc-content-dark grid h-full grid-cols-1 lg:grid-cols-[20rem_1fr]"
-    >
+    <div data-docs-layout className="cc-content-dark grid h-full grid-cols-1 lg:grid-cols-[20rem_1fr]">
       <SidebarDrawer>
-        <Sidebar
-          tree={tree}
-          currentPath={currentPath}
-          activeProduct={product}
-        />
+        <Sidebar tree={tree} currentPath={currentPath} activeProduct={product} />
       </SidebarDrawer>
       <div className="min-w-0">
         <DocsToolbar />

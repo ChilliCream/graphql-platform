@@ -21,18 +21,15 @@ const FEATURES = [
   },
   {
     title: "Reactive Store",
-    description:
-      "Built-in reactive store with caching, optimistic updates, and offline support. Just wire it up.",
+    description: "Built-in reactive store with caching, optimistic updates, and offline support. Just wire it up.",
   },
   {
     title: "Subscriptions",
-    description:
-      "First-class GraphQL subscriptions over WebSockets or Server-Sent Events.",
+    description: "First-class GraphQL subscriptions over WebSockets or Server-Sent Events.",
   },
   {
     title: "Source Generators",
-    description:
-      "Roslyn source generators emit strongly-typed code at compile time — no IL weaving, no runtime cost.",
+    description: "Roslyn source generators emit strongly-typed code at compile time — no IL weaving, no runtime cost.",
   },
 ];
 
@@ -46,30 +43,21 @@ export default function StrawberryShakePage() {
       />
       <div className="flex flex-wrap justify-center gap-4">
         <SolidButton href="/docs/strawberryshake">Get Started</SolidButton>
-        <OutlineButton href="https://github.com/ChilliCream/graphql-platform">
-          View on GitHub
-        </OutlineButton>
+        <OutlineButton href="https://github.com/ChilliCream/graphql-platform">View on GitHub</OutlineButton>
       </div>
 
       <Section title="Built for .NET Teams">
         <CardGrid cols={2} breakpoint="sm" gap={6}>
           {FEATURES.map((feature) => (
             <Card key={feature.title} variant="tile">
-              <h3 className="text-cc-ink text-lg font-semibold">
-                {feature.title}
-              </h3>
-              <p className="text-cc-ink-dim mt-2 text-sm">
-                {feature.description}
-              </p>
+              <h3 className="text-cc-ink text-lg font-semibold">{feature.title}</h3>
+              <p className="text-cc-ink-dim mt-2 text-sm">{feature.description}</p>
             </Card>
           ))}
         </CardGrid>
       </Section>
 
-      <ContentSection
-        title="MIT Licensed"
-        text="Free for any project, commercial or otherwise."
-      />
+      <ContentSection title="MIT Licensed" text="Free for any project, commercial or otherwise." />
     </>
   );
 }

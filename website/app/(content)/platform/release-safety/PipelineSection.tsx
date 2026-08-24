@@ -8,8 +8,7 @@ import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 
 import { tk } from "./syntaxTokens";
 
-const CARD_FOCUS_CLASSES =
-  "focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden";
+const CARD_FOCUS_CLASSES = "focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden";
 
 interface PipelineCardSpec {
   readonly kicker: string;
@@ -140,14 +139,7 @@ interface PipelineCardProps {
   readonly action: string;
 }
 
-function PipelineCard({
-  kicker,
-  file,
-  code,
-  status,
-  href,
-  action,
-}: PipelineCardProps) {
+function PipelineCard({ kicker, file, code, status, href, action }: PipelineCardProps) {
   const external = !href.startsWith("/");
   const linkClassName = `group block min-w-0 rounded-xl no-underline transition-transform duration-200 hover:-translate-y-1 ${CARD_FOCUS_CLASSES}`;
   const card = (
@@ -156,9 +148,7 @@ function PipelineCard({
       title={<span className="text-cc-prose">{file}</span>}
       footer={
         <div className="flex items-center justify-between gap-2">
-          <span className="text-cc-success font-mono text-[0.66rem]">
-            {status}
-          </span>
+          <span className="text-cc-success font-mono text-[0.66rem]">{status}</span>
           <span className="text-cc-accent group-hover:text-cc-accent-hover inline-flex items-center gap-1.5 text-sm font-medium transition-colors">
             {action}
             <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -172,12 +162,7 @@ function PipelineCard({
     </AppWindow>
   );
   return external ? (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={linkClassName}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className={linkClassName}>
       {card}
     </a>
   ) : (
