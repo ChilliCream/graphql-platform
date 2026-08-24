@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLink } from "@/src/components/ArrowLink";
 import { youTubePosterFallback } from "@/src/components/youTubePosterUrl";
 import type { ProductKey } from "@/src/data/learn/facets";
 import { findHub, hubHref, primaryHubForLearnItem, type HubKey } from "@/src/data/learn/hubs";
@@ -33,7 +32,9 @@ interface LearnLatestVideosProps {
  * `VideoThumb`): a server-rendering caller resolves each row's self-hosted
  * poster ahead of time via `resolveYouTubePoster` and passes it in
  * `LatestVideoRailItem.poster`; rows without one fall back to the pure
- * `youTubePosterUrl.ts` external thumbnail.
+ * `youTubePosterUrl.ts` external thumbnail. The caller renders the rail's
+ * "All videos" more-link itself, outside this component, so it can be
+ * anchored to the rail column's bottom alongside the tag cloud.
  */
 export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
   if (videos.length === 0) {
@@ -91,9 +92,6 @@ export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
           );
         })}
       </div>
-      <ArrowLink href="/learn/browse?type=video" className="mt-6">
-        All videos
-      </ArrowLink>
     </div>
   );
 }
