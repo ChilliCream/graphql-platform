@@ -117,6 +117,8 @@ function SubmenuPanel({
       <LatestBlogPanel post={latestBlog} image={blogImage} onNavigate={onNavigate} />
     ) : item.aside === "get-in-touch" ? (
       <GetInTouchPanel />
+    ) : item.aside === "help" ? (
+      <HelpPanel onNavigate={onNavigate} />
     ) : null;
   const showAside = aside !== null;
 
@@ -218,6 +220,27 @@ function LatestBlogPanel({
         <div className="text-cc-ink-dim text-xs">{formatDate(post.date)}</div>
         <div className="text-cc-ink group-hover/blog:text-cc-accent text-sm leading-snug font-medium">{post.title}</div>
       </Link>
+    </div>
+  );
+}
+
+function HelpPanel({ onNavigate }: { onNavigate: NavigateHandler }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div role="heading" aria-level={2} className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase">
+        Help
+      </div>
+      <div className="border-cc-white/10 flex h-45 flex-col items-center justify-center gap-3 rounded-md border bg-(image:--cc-promo-gradient) px-4 text-center">
+        <p className="text-cc-ink text-sm leading-snug font-medium">Stuck? Our team is one message away.</p>
+        <Link
+          href="/help"
+          prefetch={false}
+          onClick={onNavigate}
+          className="text-cc-ink text-xs font-semibold underline underline-offset-2"
+        >
+          Visit the Help Center
+        </Link>
+      </div>
     </div>
   );
 }

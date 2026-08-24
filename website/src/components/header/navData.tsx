@@ -50,7 +50,7 @@ export interface NavItem {
   label: string;
   groups?: SubGroup[];
   panelWidth?: string;
-  aside?: "blog" | "get-in-touch";
+  aside?: "blog" | "get-in-touch" | "help";
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -112,7 +112,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/services",
     label: "Services",
     panelWidth: "w-[780px]",
-    aside: "get-in-touch",
+    aside: "help",
     groups: [
       {
         title: "Services",
@@ -136,10 +136,6 @@ export const NAV_ITEMS: NavItem[] = [
             icon: BuildingIcon,
           },
         ],
-      },
-      {
-        title: "Help",
-        links: [{ href: "/help", label: "Help" }],
       },
     ],
   },
