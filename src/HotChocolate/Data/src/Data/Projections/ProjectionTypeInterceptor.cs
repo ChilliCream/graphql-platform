@@ -79,9 +79,9 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             List<string>? alwaysProjected = null;
             foreach (var field in objectTypeDefinition.Fields)
             {
-                alwaysProjected ??= [];
                 if (field.Flags.HasFlag(CoreFieldFlags.AlwaysProjected))
                 {
+                    alwaysProjected ??= [];
                     alwaysProjected.Add(field.Name);
                 }
             }
