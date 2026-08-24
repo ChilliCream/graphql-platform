@@ -15,6 +15,9 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
     public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<AgentSessionView>>(Sessions);
 
+    public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
         string cwd,

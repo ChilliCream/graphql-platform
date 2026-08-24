@@ -134,6 +134,15 @@ internal interface IAgentSessionRegistry
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Reaps provably dead current-instance rows, then returns one
+    /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
+    /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when
+    /// the session is claimed, and computing the same
+    /// <see cref="AgentSessionState"/> as <see cref="ListAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken);
+
+    /// <summary>
     /// Atomically upserts the durable identity for <paramref name="actor"/>
     /// and binds/promotes it onto the row matching <paramref
     /// name="generation"/> exactly, applying the same claim state machine as

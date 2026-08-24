@@ -669,19 +669,24 @@ internal sealed class AgentSessionRegistry(
         return rows.Select(row =>
         {
             var record = row.ToRecord();
-
-            var state = record.Host != host
-                ? AgentSessionState.Remote
-                : processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcessScope)
-                    == ProcessObservationResult.Unobservable
-                    ? AgentSessionState.Unobservable
-                    : record.EndpointKind == AgentSessionEndpointKind.None
-                        ? AgentSessionState.Unreachable
-                        : AgentSessionState.Online;
-
-            return new AgentSessionView(record, state);
+            return new AgentSessionView(record, ComputeState(record, host));
         }).ToList();
     }
+
+    /// <summary>
+    /// Computes the same <see cref="AgentSessionState"/> <see cref="ListAsync"/>
+    /// and <see cref="ListParticipantsAsync"/> report for <paramref name="record"/>,
+    /// relative to the current instance's resolved <paramref name="host"/>.
+    /// </summary>
+    private string ComputeState(AgentSessionRecord record, string host)
+        => record.Host != host
+            ? AgentSessionState.Remote
+            : processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcessScope)
+                == ProcessObservationResult.Unobservable
+                ? AgentSessionState.Unobservable
+                : record.EndpointKind == AgentSessionEndpointKind.None
+                    ? AgentSessionState.Unreachable
+                    : AgentSessionState.Online;
 
     public async Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
@@ -732,13 +737,15 @@ internal sealed class AgentSessionRegistry(
     /// Reaps dead current-instance rows, then returns one
     /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
     /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when
-    /// the session is claimed. Not yet part of <see cref="IAgentSessionRegistry"/>:
-    /// no command consumes this yet.
+    /// the session is claimed, and computing the same
+    /// <see cref="AgentSessionState"/> as <see cref="ListAsync"/>.
     /// </summary>
     public async Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(
         CancellationToken cancellationToken)
     {
         await ReapAsync(cancellationToken);
+
+        var host = await ResolveHostAsync(cancellationToken);
 
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -766,7 +773,7 @@ internal sealed class AgentSessionRegistry(
                 }
             }
 
-            participants.Add(new AgentSessionParticipant(session, agent));
+            participants.Add(new AgentSessionParticipant(session, agent, ComputeState(session, host)));
         }
 
         return participants;
