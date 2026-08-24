@@ -2,15 +2,13 @@ import type { ReactNode } from "react";
 import { CardGrid } from "@/src/components/CardGrid";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { productLabel } from "@/src/data/learn/facets";
+import { findHub, hubHref, hubsForLearnItem } from "@/src/data/learn/hubs";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { SolidButton } from "@/src/design-system/Button";
 import { Link } from "@/src/design-system/Link";
-import { Tag } from "@/src/design-system/Tag";
 import { formatDate } from "@/src/helpers/formatDate";
 import { ArticleBreadcrumb } from "./ArticleLayout";
-import { ContentTypeBadge } from "./ContentTypeBadge";
 import { Detail } from "./Detail";
-import { topicLabelForProduct } from "./editorial";
 import { LearnCard } from "./LearnCard";
 import { LearnVideoPlayer } from "./LearnVideoPlayer";
 
@@ -42,32 +40,65 @@ function linkify(text: string): ReactNode {
   );
 }
 
-function ExampleCard({ exampleUrl }: { readonly exampleUrl: string }) {
+/** Topic-hub links (Detail's dt styling, linked dd values) for the video's hubs, per the canonical taxonomy in `src/data/learn/hubs.ts`. */
+function TopicsDetail({ video }: { readonly video: VideoItem }) {
+  const hubs = hubsForLearnItem(video)
+    .map((key) => findHub(key))
+    .filter((hub) => hub !== undefined);
+  if (hubs.length === 0) {
+    return null;
+  }
   return (
-    <div className="border-cc-card-border bg-cc-card-bg rounded-2xl border p-5 backdrop-blur-sm">
-      <p className="text-cc-heading font-heading text-lg font-semibold">Example code</p>
-      <p className="text-cc-prose mt-2 text-sm leading-relaxed">The complete project built in this video.</p>
-      <SolidButton href={exampleUrl} download className="mt-4 w-full">
-        Download example
-      </SolidButton>
-      <p className="text-cc-ink-dim mt-3 text-sm">Free download, no signup</p>
+    <div>
+      <dt className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">Topics</dt>
+      <dd className="text-cc-heading mt-1 flex flex-wrap gap-x-3 gap-y-1">
+        {hubs.map((hub) => (
+          <Link
+            key={hub.key}
+            href={hubHref(hub.key)}
+            className="hover:text-cc-accent underline-offset-4 hover:underline"
+          >
+            {hub.label}
+          </Link>
+        ))}
+      </dd>
     </div>
   );
 }
 
-function Facts({ video }: { readonly video: VideoItem }) {
+/**
+ * The metadata rail to the right of the player: the example-code download as
+ * the primary action at the top, then every other piece of video metadata
+ * below it (learn-editorial.md section 20, amended per website-kbx.19).
+ * Follows `TemplateDetail`'s sticky sidebar-card treatment (website-8s5.3)
+ * so the two detail types feel consistent.
+ */
+function VideoRail({ video }: { readonly video: VideoItem }) {
   return (
-    <div>
-      <dl className="space-y-4 text-sm">
-        <Detail label="Products" value={video.products.map(productLabel).join(", ")} />
-        {video.duration && <Detail label="Duration" value={video.duration} />}
-        {video.level && <Detail label="Level" value={video.level} className="capitalize" />}
-        {video.publishedAt && <Detail label="Published" value={formatDate(video.publishedAt)} />}
-      </dl>
-      <div className="mt-5">
-        <ArrowLink href={video.url} target="_blank" rel="noopener noreferrer">
-          Watch on YouTube
-        </ArrowLink>
+    <div className="border-cc-card-border bg-cc-card-bg overflow-hidden rounded-2xl border backdrop-blur-sm">
+      <div className="p-5">
+        {video.exampleUrl && (
+          <>
+            <p className="text-cc-heading font-heading text-lg font-semibold">Example code</p>
+            <p className="text-cc-prose mt-2 text-sm leading-relaxed">The complete project built in this video.</p>
+            <SolidButton href={video.exampleUrl} download className="mt-4 w-full">
+              Download example
+            </SolidButton>
+            <p className="text-cc-ink-dim mt-3 text-sm">Free download, no signup</p>
+          </>
+        )}
+        <dl className={`space-y-4 text-sm ${video.exampleUrl ? "border-cc-card-border mt-6 border-t pt-5" : ""}`}>
+          {video.publishedAt && <Detail label="Published" value={formatDate(video.publishedAt)} />}
+          {video.duration && <Detail label="Duration" value={video.duration} />}
+          {video.level && <Detail label="Level" value={video.level} className="capitalize" />}
+          <TopicsDetail video={video} />
+          <Detail label="Products" value={video.products.map(productLabel).join(", ")} />
+        </dl>
+        <div className="mt-5">
+          <ArrowLink href={video.url} target="_blank" rel="noopener noreferrer">
+            Watch on YouTube
+          </ArrowLink>
+        </div>
       </div>
     </div>
   );
@@ -75,23 +106,20 @@ function Facts({ video }: { readonly video: VideoItem }) {
 
 /**
  * Video detail page composition (learn-editorial.md section 20, amended by
- * learn-harmonization.md D2/D9): header, click-to-load embed, description,
- * example-code download, facts list, and a related-videos rail. The page
- * loads data and picks related items; this component only renders the props
- * it's given.
+ * learn-harmonization.md D2/D9 and website-kbx.19): breadcrumb-only header,
+ * click-to-load embed, description, and a metadata rail (example-code
+ * download, publish date, duration, level, topics, products) to the right of
+ * the player. The page loads data and picks related items; this component
+ * only renders the props it's given.
  *
- * Each piece (player, example card, description, facts) renders once;
- * explicit grid placement (not a duplicated `lg:hidden` / `hidden lg:block`
- * pair) puts them in reading order on small screens (player, example,
- * description, facts) and into a player+description column beside a sticky
- * example+facts column at `lg` (hnm.1 review, website-8s5.3 comment 2).
+ * Each piece (player, rail, description) renders once; explicit grid
+ * placement (not a duplicated `lg:hidden` / `hidden lg:block` pair) puts them
+ * in reading order on small screens (player, rail, description) and into a
+ * player+description column beside a sticky rail column at `lg`
+ * (website-kbx.19, following hnm.1's website-8s5.3 comment 2).
  */
 export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
   const paragraphs = video.description ? paragraphsOf(video.description) : [];
-  const topic = topicLabelForProduct(video.products);
-  const metaLine = video.publishedAt
-    ? [formatDate(video.publishedAt), video.duration].filter(Boolean).join(" · ")
-    : video.duration;
 
   const description = paragraphs.length > 0 && (
     <div className="max-w-3xl space-y-4">
@@ -105,7 +133,7 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
 
   return (
     <>
-      <header className="py-8 sm:py-10">
+      <header className="pb-8 sm:pb-10">
         <div className="mb-8">
           <ArticleBreadcrumb
             items={[
@@ -115,36 +143,22 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
             ]}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <ContentTypeBadge type="video" />
-          <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{topic}</span>
-          {video.level && <Tag className="capitalize">{video.level}</Tag>}
-        </div>
-        <h1 className="font-heading text-cc-heading text-h3 mt-6 font-semibold tracking-[-0.02em] text-balance">
+        <h1 className="font-heading text-cc-heading text-h3 font-semibold tracking-[-0.02em] text-balance">
           {video.title}
         </h1>
-        {metaLine && <p className="text-cc-ink-dim mt-3 text-sm">{metaLine}</p>}
         <p className="text-cc-prose mt-5 max-w-2xl text-lg leading-relaxed">{video.tagline}</p>
       </header>
 
-      <div className="border-cc-card-border grid gap-10 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-16 lg:gap-y-10">
+      <div className="border-cc-card-border grid gap-10 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-x-16 lg:gap-y-10">
         <div className="order-1 min-w-0 lg:order-none lg:col-start-1 lg:row-start-1">
           <LearnVideoPlayer videoId={video.youtubeId} title={video.title} />
         </div>
-        {video.exampleUrl && (
-          <div className="order-2 lg:sticky lg:top-28 lg:order-none lg:col-start-2 lg:row-start-1">
-            <ExampleCard exampleUrl={video.exampleUrl} />
-          </div>
-        )}
+        <div className="order-2 lg:sticky lg:top-28 lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <VideoRail video={video} />
+        </div>
         {description && (
           <div className="order-3 min-w-0 lg:order-none lg:col-start-1 lg:row-start-2">{description}</div>
         )}
-        {/* Facts sits beside the player (row 1) when there's no example card to lead the aside, otherwise below it (row 2), matching the original stacked-aside order. */}
-        <div
-          className={`order-4 lg:sticky lg:top-28 lg:order-none lg:col-start-2 ${video.exampleUrl ? "lg:row-start-2" : "lg:row-start-1"}`}
-        >
-          <Facts video={video} />
-        </div>
       </div>
 
       {related.length > 0 && (
