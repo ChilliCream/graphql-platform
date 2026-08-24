@@ -81,7 +81,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Ok, outcome);
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(ThreadId, call.ThreadId);
         Assert.Contains(message.Id, call.Message);
@@ -133,7 +133,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Error, outcome);
+        Assert.Equal(AgentPingResult.Error, outcome.Result);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.EndpointGone, outcome);
+        Assert.Equal(AgentPingResult.EndpointGone, outcome.Result);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.EndpointGone, row!.LastPingResult);
     }
@@ -181,13 +181,156 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Ok, outcome);
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_claudePeerClient.Calls);
         Assert.Equal(42, call.Pid);
         Assert.Equal(SessionId, call.SessionId);
         Assert.Contains(message.Id, call.Message);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+    }
+
+    [Fact]
+    public async Task ExecuteClaudePeerAsync_Should_ReturnOutcomeMatchingTheDurableRow_When_ItSucceeds()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteClaudePeerAsync(
+            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert: the typed outcome exactly matches what was durably written.
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(row!.LastPingResult, outcome.Result);
+        Assert.Equal(row.LastPingDetail, outcome.Detail);
+        Assert.Equal(Harness, outcome.Harness);
+        Assert.Equal(SessionId, outcome.SessionId);
+        Assert.Equal(attemptId, outcome.AttemptId);
+    }
+
+    [Fact]
+    public async Task ExecuteClaudePeerAsync_Should_ReturnAccessDeniedReason_When_ThePeerClientReportsAccessDenied()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _claudePeerClient.NextOutcome = ClaudePeerSendOutcome.AccessDenied;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteClaudePeerAsync(
+            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert: the coarse CHECK-compatible result stays "error", but the
+        // typed reason and detail stay specific.
+        Assert.Equal(AgentPingResult.Error, outcome.Result);
+        Assert.Equal(PingAttemptReason.AccessDenied, outcome.Reason);
+        Assert.False(outcome.Retryable);
+        Assert.Equal(ClaudePeerSendOutcome.AccessDenied.Detail, outcome.Detail);
+    }
+
+    [Fact]
+    public async Task ExecuteClaudePeerAsync_Should_ReturnInvalidAuthReason_When_ThePeerClientReportsInvalidAuth()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _claudePeerClient.NextOutcome = ClaudePeerSendOutcome.InvalidAuth;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteClaudePeerAsync(
+            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Error, outcome.Result);
+        Assert.Equal(PingAttemptReason.InvalidAuth, outcome.Reason);
+        Assert.False(outcome.Retryable);
+    }
+
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_NotExposeTransportDetail_When_TheQueueClientReportsError()
+    {
+        // arrange: CodexQueueResult.Error can stem from the subprocess's own
+        // stderr, but that raw text never reaches ICodexQueueClient's
+        // caller, so the returned outcome must carry no detail either.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _queueClient.NextResult = CodexQueueResult.Error;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(PingAttemptReason.TransportError, outcome.Reason);
+        Assert.True(outcome.Retryable);
+        Assert.Null(outcome.Detail);
+    }
+
+    [Fact]
+    public async Task ExecuteClaudePeerAsync_Should_NotOverwriteTheRow_When_TheAttemptIsStale()
+    {
+        // arrange: a stale attempt (staleAttemptId) races a newer one
+        // (newerAttemptId) that already reclaimed the row's cooldown by the
+        // time the stale attempt's write lands.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var staleAttemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            staleAttemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var freshSession = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        var newerAttemptId = $"attempt-{Guid.NewGuid():N}";
+        await _sessions.TryClaimPingCooldownAsync(
+            freshSession!,
+            newerAttemptId,
+            _timeProvider.GetUtcNow() + PingPolicy.Cooldown + TimeSpan.FromSeconds(1),
+            PingPolicy.Cooldown,
+            cancellationToken);
+        var executor = CreateExecutor();
+
+        // act: the stale attempt's own transport work still completes and
+        // returns its own conclusion, even though the row has already moved
+        // on to the newer attempt.
+        var outcome = await executor.ExecuteClaudePeerAsync(
+            Harness, SessionId, Actor, pid: 1, staleAttemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(newerAttemptId, row!.LastPingAttempt);
+        Assert.Null(row.LastPingResult);
     }
 
     [Fact]
@@ -207,7 +350,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Ok, outcome);
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
         Assert.Empty(_queueClient.Calls);
     }
 
@@ -237,7 +380,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             _timeProvider.GetUtcNow() + TimeSpan.FromMilliseconds(50), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Timeout, outcome);
+        Assert.Equal(AgentPingResult.Timeout, outcome.Result);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Timeout, row!.LastPingResult);
     }
@@ -263,7 +406,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             _timeProvider.GetUtcNow() - TimeSpan.FromSeconds(1), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Timeout, outcome);
+        Assert.Equal(AgentPingResult.Timeout, outcome.Result);
         Assert.Empty(_queueClient.Calls);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Timeout, row!.LastPingResult);
@@ -324,15 +467,15 @@ internal sealed class FakeClaudePeerClient : IClaudePeerClient
 {
     public List<FakeClaudePeerCall> Calls { get; } = [];
 
-    public ClaudePeerSendResult NextResult { get; set; } = ClaudePeerSendResult.Ok;
+    public ClaudePeerSendOutcome NextOutcome { get; set; } = ClaudePeerSendOutcome.Ok;
 
-    public Task<ClaudePeerSendResult> SendAsync(
+    public Task<ClaudePeerSendOutcome> SendAsync(
         int pid,
         string sessionId,
         string message,
         CancellationToken cancellationToken)
     {
         Calls.Add(new FakeClaudePeerCall(pid, sessionId, message));
-        return Task.FromResult(NextResult);
+        return Task.FromResult(NextOutcome);
     }
 }

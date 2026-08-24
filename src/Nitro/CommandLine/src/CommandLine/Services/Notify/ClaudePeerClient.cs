@@ -37,7 +37,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
         _sessionDirectory = sessionDirectory;
     }
 
-    public async Task<ClaudePeerSendResult> SendAsync(
+    public async Task<ClaudePeerSendOutcome> SendAsync(
         int pid,
         string sessionId,
         string message,
@@ -45,13 +45,16 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
     {
         try
         {
+            // Always read fresh: the registry and key files are re-read on
+            // every call rather than cached, so an attempt always sees the
+            // endpoint's current metadata instead of a stale prior read.
             var registryPath = Path.Combine(_sessionDirectory, $"{pid}.json");
             var registryJson = await ReadBoundedTextAsync(
                 registryPath, MaxRegistryBytes, cancellationToken);
 
             if (registryJson is null)
             {
-                return ClaudePeerSendResult.EndpointGone;
+                return ClaudePeerSendOutcome.EndpointGone;
             }
 
             using var registryDocument = JsonDocument.Parse(registryJson);
@@ -59,34 +62,34 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
 
             if (!TryReadRegistry(root, pid, sessionId, out var endpoint, out var procStart))
             {
-                return ClaudePeerSendResult.EndpointGone;
+                return ClaudePeerSendOutcome.EndpointGone;
             }
 
             if (!root.TryGetProperty("peerProtocol", out var protocolElement)
                 || !protocolElement.TryGetInt32(out var protocol)
                 || protocol != SupportedProtocol)
             {
-                return ClaudePeerSendResult.Unsupported;
+                return ClaudePeerSendOutcome.Unsupported;
             }
 
             var key = await ResolveKeyAsync(pid, procStart, cancellationToken);
 
             if (!key.Success)
             {
-                return ClaudePeerSendResult.Error;
+                return ClaudePeerSendOutcome.InvalidAuth;
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.Token is null)
             {
                 // Claude Code requires inbox authentication on Windows. A
                 // missing key means this endpoint cannot be spoken safely.
-                return ClaudePeerSendResult.Error;
+                return ClaudePeerSendOutcome.InvalidAuth;
             }
 
             var payload = BuildPayload(sessionId, message, key.Token);
             await SendPayloadAsync(endpoint, payload, cancellationToken);
 
-            return ClaudePeerSendResult.Ok;
+            return ClaudePeerSendOutcome.Ok;
         }
         catch (OperationCanceledException)
         {
@@ -94,36 +97,49 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
         }
         catch (FileNotFoundException)
         {
-            return ClaudePeerSendResult.EndpointGone;
+            return ClaudePeerSendOutcome.EndpointGone;
         }
         catch (DirectoryNotFoundException)
         {
-            return ClaudePeerSendResult.EndpointGone;
+            return ClaudePeerSendOutcome.EndpointGone;
+        }
+        catch (SocketException exception) when (exception.SocketErrorCode == SocketError.AccessDenied)
+        {
+            return ClaudePeerSendOutcome.AccessDenied;
+        }
+        catch (IOException exception) when (exception.InnerException is SocketException
+        { SocketErrorCode: SocketError.AccessDenied })
+        {
+            return ClaudePeerSendOutcome.AccessDenied;
         }
         catch (SocketException exception) when (IsGone(exception.SocketErrorCode))
         {
-            return ClaudePeerSendResult.EndpointGone;
+            return ClaudePeerSendOutcome.EndpointGone;
         }
         catch (IOException exception) when (exception.InnerException is SocketException socketException
             && IsGone(socketException.SocketErrorCode))
         {
-            return ClaudePeerSendResult.EndpointGone;
+            return ClaudePeerSendOutcome.EndpointGone;
         }
-        catch (JsonException)
+        catch (SocketException exception)
         {
-            return ClaudePeerSendResult.Error;
+            return ClaudePeerSendOutcome.TransportError(exception.SocketErrorCode.ToString());
         }
-        catch (IOException)
+        catch (JsonException exception)
         {
-            return ClaudePeerSendResult.Error;
+            return ClaudePeerSendOutcome.TransportError(exception.GetType().Name);
         }
-        catch (UnauthorizedAccessException)
+        catch (IOException exception)
         {
-            return ClaudePeerSendResult.Error;
+            return ClaudePeerSendOutcome.TransportError(exception.GetType().Name);
         }
-        catch (ArgumentException)
+        catch (UnauthorizedAccessException exception)
         {
-            return ClaudePeerSendResult.Error;
+            return ClaudePeerSendOutcome.TransportError(exception.GetType().Name);
+        }
+        catch (ArgumentException exception)
+        {
+            return ClaudePeerSendOutcome.TransportError(exception.GetType().Name);
         }
     }
 

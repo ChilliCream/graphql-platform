@@ -153,7 +153,7 @@ internal sealed class ClaudeRoundTripProbe(
                 return AgentPingResult.CapacityDropped;
             }
 
-            return await pingSessionExecutor.ExecuteClaudePeerAsync(
+            var outcome = await pingSessionExecutor.ExecuteClaudePeerAsync(
                 generation.Harness,
                 generation.SessionId,
                 actor,
@@ -162,6 +162,7 @@ internal sealed class ClaudeRoundTripProbe(
                 slot.Value,
                 now + PingPolicy.HardTimeout,
                 cancellationToken);
+            return outcome.Result;
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

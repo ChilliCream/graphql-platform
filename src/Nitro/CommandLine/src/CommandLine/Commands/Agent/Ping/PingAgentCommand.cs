@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Ping.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -143,14 +142,16 @@ internal sealed class PingAgentCommand : Command
 
         if (session.EndpointKind == AgentSessionEndpointKind.ClaudePeer)
         {
-            return await executor.ExecuteClaudePeerAsync(
+            var peerOutcome = await executor.ExecuteClaudePeerAsync(
                 session.Harness, session.SessionId, actor, session.Pid, attemptId, slot.Value,
                 now + PingPolicy.HardTimeout, cancellationToken);
+            return peerOutcome.Result;
         }
 
-        return await executor.ExecuteCodexThreadAsync(
+        var threadOutcome = await executor.ExecuteCodexThreadAsync(
             session.Harness, session.SessionId, actor, session.EndpointAddr, attemptId, slot.Value,
             now + PingPolicy.HardTimeout, cancellationToken);
+        return threadOutcome.Result;
     }
 
     public sealed record PingSessionResult(string Harness, string SessionId, string EndpointKind, string Outcome);

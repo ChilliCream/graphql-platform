@@ -12,7 +12,7 @@ internal sealed class PingSessionExecutor(
     IPingLeaseStore leaseStore,
     TimeProvider timeProvider) : IPingSessionExecutor
 {
-    public Task<string> ExecuteCodexThreadAsync(
+    public Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
         string harness,
         string sessionId,
         string actorName,
@@ -31,7 +31,7 @@ internal sealed class PingSessionExecutor(
             async (digest, token) => MapQueueResult(await queueClient.QueueAsync(endpointAddr, digest, token)),
             cancellationToken);
 
-    public Task<string> ExecuteClaudePeerAsync(
+    public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
         string harness,
         string sessionId,
         string actorName,
@@ -51,14 +51,14 @@ internal sealed class PingSessionExecutor(
                 await claudePeerClient.SendAsync(pid, sessionId, digest, token)),
             cancellationToken);
 
-    private async Task<string> ExecuteAsync(
+    private async Task<PingAttemptOutcome> ExecuteAsync(
         string harness,
         string sessionId,
         string actorName,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
-        Func<string, CancellationToken, Task<string>> sendAsync,
+        Func<string, CancellationToken, Task<TransportOutcome>> sendAsync,
         CancellationToken cancellationToken)
     {
         var remaining = ClampRemaining(deadline);
@@ -71,7 +71,8 @@ internal sealed class PingSessionExecutor(
             // may start.
             try
             {
-                return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
+                return await WriteResultAsync(
+                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
             }
             finally
             {
@@ -93,7 +94,8 @@ internal sealed class PingSessionExecutor(
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
-                return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
+                return await WriteResultAsync(
+                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
             }
 
             if (digest is null)
@@ -102,21 +104,23 @@ internal sealed class PingSessionExecutor(
                 // by the time the attempt actually ran (a benign race, not
                 // a failure): nothing left to say, so this is a success
                 // with no transport call.
-                return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Ok, null);
+                return await WriteResultAsync(harness, sessionId, attemptId, PingAttemptReason.Ok, null);
             }
 
-            string transportResult;
+            TransportOutcome transportOutcome;
 
             try
             {
-                transportResult = await sendAsync(digest, linkedSource.Token);
+                transportOutcome = await sendAsync(digest, linkedSource.Token);
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
-                return await WriteResultAsync(harness, sessionId, attemptId, AgentPingResult.Timeout, null);
+                return await WriteResultAsync(
+                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
             }
 
-            return await WriteResultAsync(harness, sessionId, attemptId, transportResult, null);
+            return await WriteResultAsync(
+                harness, sessionId, attemptId, transportOutcome.Reason, transportOutcome.Detail);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -124,7 +128,7 @@ internal sealed class PingSessionExecutor(
             // exception from this method may ever propagate to a caller
             // whose own exit code or output must stay unaffected.
             return await WriteResultAsync(
-                harness, sessionId, attemptId, AgentPingResult.Error, Truncate(exception.Message));
+                harness, sessionId, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
         }
         finally
         {
@@ -154,9 +158,11 @@ internal sealed class PingSessionExecutor(
     /// cancellation or hard-timeout token must not prevent the outcome it
     /// just decided from actually being recorded.
     /// </summary>
-    private async Task<string> WriteResultAsync(
-        string harness, string sessionId, string attemptId, string result, string? detail)
+    private async Task<PingAttemptOutcome> WriteResultAsync(
+        string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail)
     {
+        var result = ToResult(reason);
+
         try
         {
             await sessionRegistry.WritePingResultAsync(
@@ -168,7 +174,15 @@ internal sealed class PingSessionExecutor(
             // is a non-event like every other ping failure.
         }
 
-        return result;
+        return new PingAttemptOutcome(
+            result,
+            reason,
+            IsRetryable(reason),
+            detail,
+            harness,
+            sessionId,
+            attemptId,
+            timeProvider.GetUtcNow());
     }
 
     private async Task ReleaseLeaseAsync(int slot, string attemptId)
@@ -190,20 +204,51 @@ internal sealed class PingSessionExecutor(
     private static string? Truncate(string? value)
         => value is { Length: > 200 } ? value[..200] : value;
 
-    private static string MapQueueResult(CodexQueueResult result) => result switch
+    /// <summary>
+    /// The coarse, CHECK-compatible <c>agent_sessions.last_ping_result</c>
+    /// value for <paramref name="reason"/>. Every reason without its own
+    /// column value collapses to <see cref="AgentPingResult.Error"/>; rich
+    /// per-reason state lives only in the returned <see cref="PingAttemptOutcome"/>.
+    /// </summary>
+    private static string ToResult(PingAttemptReason reason) => reason switch
     {
-        CodexQueueResult.Ok => AgentPingResult.Ok,
-        CodexQueueResult.EndpointGone => AgentPingResult.EndpointGone,
+        PingAttemptReason.Ok => AgentPingResult.Ok,
+        PingAttemptReason.Unsupported => AgentPingResult.Unsupported,
+        PingAttemptReason.EndpointGone => AgentPingResult.EndpointGone,
+        PingAttemptReason.Timeout => AgentPingResult.Timeout,
+        PingAttemptReason.CapacityDropped => AgentPingResult.CapacityDropped,
         _ => AgentPingResult.Error
     };
 
-    private static string MapClaudePeerResult(ClaudePeerSendResult result) => result switch
+    private static bool IsRetryable(PingAttemptReason reason) => reason switch
     {
-        ClaudePeerSendResult.Ok => AgentPingResult.Ok,
-        ClaudePeerSendResult.Unsupported => AgentPingResult.Unsupported,
-        ClaudePeerSendResult.EndpointGone => AgentPingResult.EndpointGone,
-        _ => AgentPingResult.Error
+        PingAttemptReason.Timeout => true,
+        PingAttemptReason.CapacityDropped => true,
+        PingAttemptReason.TransportError => true,
+        _ => false
     };
+
+    private static TransportOutcome MapQueueResult(CodexQueueResult result) => result switch
+    {
+        CodexQueueResult.Ok => new TransportOutcome(PingAttemptReason.Ok, null),
+        CodexQueueResult.EndpointGone => new TransportOutcome(PingAttemptReason.EndpointGone, null),
+        // CodexQueueResult.Error covers a spawn failure, a timeout, or any
+        // other nonzero exit; the subprocess's raw stderr never reaches
+        // this layer, so there is no detail to attach.
+        _ => new TransportOutcome(PingAttemptReason.TransportError, null)
+    };
+
+    private static TransportOutcome MapClaudePeerResult(ClaudePeerSendOutcome outcome) => new(
+        outcome.Reason switch
+        {
+            ClaudePeerSendReason.Ok => PingAttemptReason.Ok,
+            ClaudePeerSendReason.Unsupported => PingAttemptReason.Unsupported,
+            ClaudePeerSendReason.EndpointGone => PingAttemptReason.EndpointGone,
+            ClaudePeerSendReason.InvalidAuth => PingAttemptReason.InvalidAuth,
+            ClaudePeerSendReason.AccessDenied => PingAttemptReason.AccessDenied,
+            _ => PingAttemptReason.TransportError
+        },
+        outcome.Detail);
 
     /// <summary>
     /// The time left until <paramref name="deadline"/>, clamped to
@@ -222,4 +267,6 @@ internal sealed class PingSessionExecutor(
 
         return remaining > PingPolicy.HardTimeout ? PingPolicy.HardTimeout : remaining;
     }
+
+    private readonly record struct TransportOutcome(PingAttemptReason Reason, string? Detail);
 }

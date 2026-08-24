@@ -12,9 +12,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal interface IPingSessionExecutor
 {
     /// <summary>
-    /// Returns the <c>last_ping_result</c> value this attempt wrote (the
-    /// same value a caller could re-read from the row): <c>ok</c>,
-    /// <c>timeout</c>, <c>endpoint-gone</c>, or <c>error</c>. Never throws except
+    /// Runs one Codex thread attempt and returns the typed outcome this
+    /// attempt wrote (the same coarse <see cref="PingAttemptOutcome.Result"/>
+    /// a caller could re-read from the row: <c>ok</c>, <c>timeout</c>,
+    /// <c>endpoint-gone</c>, or <c>error</c>). Never throws except
     /// <see cref="OperationCanceledException"/> when the caller's own
     /// <paramref name="cancellationToken"/> is cancelled; the lease slot is
     /// still guaranteed to be released in that case. <paramref name="deadline"/>
@@ -22,7 +23,7 @@ internal interface IPingSessionExecutor
     /// must finish before; a deadline already in the past records
     /// <c>timeout</c> without starting either.
     /// </summary>
-    Task<string> ExecuteCodexThreadAsync(
+    Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
         string harness,
         string sessionId,
         string actorName,
@@ -32,7 +33,12 @@ internal interface IPingSessionExecutor
         DateTimeOffset deadline,
         CancellationToken cancellationToken);
 
-    Task<string> ExecuteClaudePeerAsync(
+    /// <summary>
+    /// Runs one Claude peer attempt and returns the typed outcome this
+    /// attempt wrote, with the same never-throws and deadline contract as
+    /// <see cref="ExecuteCodexThreadAsync"/>.
+    /// </summary>
+    Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
         string harness,
         string sessionId,
         string actorName,

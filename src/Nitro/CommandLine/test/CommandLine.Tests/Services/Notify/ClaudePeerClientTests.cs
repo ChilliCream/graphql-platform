@@ -36,10 +36,10 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 1, cancellationToken);
 
         // act
-        var (result, frames) = await SendToListeningSocketAsync("hello", cancellationToken);
+        var (outcome, frames) = await SendToListeningSocketAsync("hello", cancellationToken);
 
         // assert
-        Assert.Equal(ClaudePeerSendResult.Ok, result);
+        Assert.Equal(ClaudePeerSendOutcome.Ok, outcome);
         var frame = Assert.Single(frames);
         Assert.Equal("user", frame.RootElement.GetProperty("type").GetString());
         Assert.Equal(SessionId, frame.RootElement.GetProperty("session_id").GetString());
@@ -56,10 +56,10 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteKeyAsync(ProcStart, cancellationToken);
 
         // act
-        var (result, frames) = await SendToListeningSocketAsync("authenticated", cancellationToken);
+        var (outcome, frames) = await SendToListeningSocketAsync("authenticated", cancellationToken);
 
         // assert
-        Assert.Equal(ClaudePeerSendResult.Ok, result);
+        Assert.Equal(ClaudePeerSendOutcome.Ok, outcome);
         Assert.Collection(
             frames,
             auth =>
@@ -83,14 +83,14 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 2, cancellationToken);
 
         // act
-        var result = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
 
         // assert
-        Assert.Equal(ClaudePeerSendResult.Unsupported, result);
+        Assert.Equal(ClaudePeerSendOutcome.Unsupported, outcome);
     }
 
     [Fact]
-    public async Task SendAsync_Should_ReturnErrorWithoutDowngrading_When_KeyGenerationDoesNotMatch()
+    public async Task SendAsync_Should_ReturnInvalidAuthWithoutDowngrading_When_KeyGenerationDoesNotMatch()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -98,10 +98,11 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteKeyAsync("different-generation", cancellationToken);
 
         // act
-        var result = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
 
         // assert
-        Assert.Equal(ClaudePeerSendResult.Error, result);
+        Assert.Equal(ClaudePeerSendOutcome.InvalidAuth, outcome);
+        Assert.False(outcome.Retryable);
     }
 
     [Fact]
@@ -115,10 +116,10 @@ public sealed class ClaudePeerClientTests : IDisposable
         }
 
         // act
-        var result = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
 
         // assert
-        Assert.Equal(ClaudePeerSendResult.EndpointGone, result);
+        Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
     }
 
     [Fact]
@@ -129,13 +130,54 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 1, cancellationToken);
 
         // act
-        var result = await _client.SendAsync(Pid, "different-session", "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Pid, "different-session", "hello", cancellationToken);
 
         // assert
-        Assert.Equal(ClaudePeerSendResult.EndpointGone, result);
+        Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
     }
 
-    private async Task<(ClaudePeerSendResult Result, IReadOnlyList<JsonDocument> Frames)>
+    [Fact]
+    public async Task SendAsync_Should_ReturnAccessDenied_When_ConnectFailsWithSocketAccessDenied()
+    {
+        // arrange: a real access-denied-shaped SocketException raised from the
+        // connect call itself (an unsearchable parent directory), not parsed
+        // from any exception text. Skipped where this OS trick cannot
+        // reproduce a real EACCES: Windows has no matching mechanism, and a
+        // process running as root bypasses the directory permission check
+        // entirely.
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Skip("Unix directory-permission denial has no Windows equivalent.");
+        }
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var deniedSocketPath = Path.Combine(_tempRoot.FullName, "unsearchable", "peer.sock");
+        await WriteRegistryAsync(protocol: 1, cancellationToken, endpointOverride: deniedSocketPath);
+        MakeParentUnsearchable(deniedSocketPath);
+
+        try
+        {
+            // act
+            var outcome = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
+
+            if (outcome.Reason != ClaudePeerSendReason.AccessDenied)
+            {
+                Assert.Skip(
+                    "The OS did not deny the connect (likely running as root); "
+                    + $"got {outcome.Reason} instead.");
+            }
+
+            // assert
+            Assert.False(outcome.Retryable);
+            Assert.NotNull(outcome.Detail);
+        }
+        finally
+        {
+            RestoreParentSearchable(deniedSocketPath);
+        }
+    }
+
+    private async Task<(ClaudePeerSendOutcome Outcome, IReadOnlyList<JsonDocument> Frames)>
         SendToListeningSocketAsync(string message, CancellationToken cancellationToken)
     {
         using var listener = CreateListener();
@@ -157,12 +199,47 @@ public sealed class ClaudePeerClientTests : IDisposable
             await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken);
         }
 
-        var result = await sendTask;
+        var outcome = await sendTask;
         var lines = Encoding.UTF8.GetString(buffer.ToArray())
             .Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var frames = lines.Select(line => JsonDocument.Parse(line)).ToArray();
 
-        return (result, frames);
+        return (outcome, frames);
+    }
+
+    /// <summary>
+    /// Strips the execute bit from <paramref name="socketPath"/>'s parent
+    /// directory, which turns a Unix-domain <c>connect(2)</c> against a path
+    /// beneath it into a real <c>EACCES</c> the OS reports as
+    /// <see cref="SocketError.AccessDenied"/>, not a fabricated exception.
+    /// </summary>
+    private static void MakeParentUnsearchable(string socketPath)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var parent = Path.GetDirectoryName(socketPath)!;
+        Directory.CreateDirectory(parent);
+        File.SetUnixFileMode(parent, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+    }
+
+    private static void RestoreParentSearchable(string socketPath)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var parent = Path.GetDirectoryName(socketPath)!;
+
+        if (Directory.Exists(parent))
+        {
+            File.SetUnixFileMode(
+                parent,
+                UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
     }
 
     private Socket CreateListener()
@@ -173,7 +250,8 @@ public sealed class ClaudePeerClientTests : IDisposable
         return listener;
     }
 
-    private Task WriteRegistryAsync(int protocol, CancellationToken cancellationToken)
+    private Task WriteRegistryAsync(
+        int protocol, CancellationToken cancellationToken, string? endpointOverride = null)
     {
         var json = JsonSerializer.Serialize(new
         {
@@ -182,7 +260,7 @@ public sealed class ClaudePeerClientTests : IDisposable
             kind = "interactive",
             procStart = ProcStart,
             peerProtocol = protocol,
-            messagingSocketPath = _socketPath
+            messagingSocketPath = endpointOverride ?? _socketPath
         });
 
         return File.WriteAllTextAsync(
