@@ -46,6 +46,16 @@ public sealed class AzureServiceBusQueueDescriptorConfiguration : MessagingConfi
     public ReceiveEndpointKind? Kind { get; set; }
 
     /// <summary>
+    /// Gets or sets whether the queue's receive endpoint is temporary.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
+    /// Gets or sets the idle window after which a temporary queue may be deleted by the broker.
+    /// </summary>
+    public TimeSpan? TemporaryIdleTimeout { get; set; }
+
+    /// <summary>
     /// Gets or sets the receive endpoint maximum concurrency.
     /// </summary>
     public int? MaxConcurrency { get; set; }

@@ -18,6 +18,19 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
 
     public int CreateSubscriptionCallCount { get; private set; }
 
+    /// <summary>
+    /// Records every <see cref="DeleteSubscriptionAsync"/> call as a (topicName, subscriptionName) pair.
+    /// </summary>
+    public List<(string TopicName, string SubscriptionName)> DeletedSubscriptions { get; } = [];
+
+    public List<string> DeletedQueues { get; } = [];
+
+    /// <summary>
+    /// When set, <see cref="DeleteSubscriptionAsync"/> throws the returned exception instead of
+    /// recording the call, simulating a failed subscription deletion.
+    /// </summary>
+    public Func<string, string, Exception?>? DeleteSubscriptionFailure { get; set; }
+
     public override Task<Response<QueueProperties>> CreateQueueAsync(
         CreateQueueOptions options,
         CancellationToken cancellationToken = default)
@@ -71,6 +84,29 @@ internal sealed class FakeServiceBusAdministrationClient : ServiceBusAdministrat
                     forwardTo: options.ForwardTo,
                     userMetadata: string.Empty),
                 new FakeResponse()));
+    }
+
+    public override Task<Response> DeleteSubscriptionAsync(
+        string topicName,
+        string subscriptionName,
+        CancellationToken cancellationToken = default)
+    {
+        if (DeleteSubscriptionFailure?.Invoke(topicName, subscriptionName) is { } exception)
+        {
+            throw exception;
+        }
+
+        DeletedSubscriptions.Add((topicName, subscriptionName));
+
+        return Task.FromResult<Response>(new FakeResponse());
+    }
+
+    public override Task<Response> DeleteQueueAsync(
+        string queueName,
+        CancellationToken cancellationToken = default)
+    {
+        DeletedQueues.Add(queueName);
+        return Task.FromResult<Response>(new FakeResponse());
     }
 
     private sealed class FakeResponse : Response

@@ -75,6 +75,15 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     }
 
     /// <summary>
+    /// Marks this queue as non-durable and auto-delete.
+    /// </summary>
+    internal void MarkTemporary()
+    {
+        Durable = false;
+        AutoDelete = true;
+    }
+
+    /// <summary>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>
     /// <param name="channel">The RabbitMQ channel to use for declaring the queue.</param>
