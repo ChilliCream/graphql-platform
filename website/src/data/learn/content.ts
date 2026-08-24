@@ -1082,14 +1082,14 @@ const mochaEcommerceDemoExample: ExampleItem = {
     "Three services (Catalog, Billing, Shipping) wired with Mocha messaging, sagas, and the transactional outbox, orchestrated with .NET Aspire.",
   products: ["mocha"],
   level: "advanced",
-  externalUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
-  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
+  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo",
+  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo",
   updatedRelative: "this week",
   cli: [
     {
       key: "clone",
-      label: "clone the platform repo",
-      code: "git clone https://github.com/ChilliCream/graphql-platform.git && cd graphql-platform/src/Mocha/examples/Demo",
+      label: "clone the examples repo",
+      code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/Demo",
     },
     { key: "run", label: "run the AppHost", code: "dotnet run --project Demo.AppHost" },
   ],
@@ -1154,9 +1154,134 @@ const hotChocolateExamplesExample: ExampleItem = {
   ],
 };
 
+const mochaPostgresTransportExample: ExampleItem = {
+  type: "example",
+  slug: "mocha-postgres-transport",
+  title: "Mocha PostgreSQL Transport",
+  tagline: "Publish, send, and request/reply over Mocha's Postgres-based message queue, wired up with .NET Aspire.",
+  products: ["mocha"],
+  level: "intermediate",
+  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport",
+  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport",
+  updatedRelative: "this week",
+  cli: [
+    {
+      key: "clone",
+      label: "clone the examples repo",
+      code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/PostgresTransport",
+    },
+    { key: "run", label: "run the AppHost", code: "dotnet run --project PostgresTransport.AppHost" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Demonstrates Mocha's PostgreSQL transport: publish, send, and request/reply patterns backed by a Postgres-based message queue, wired up with .NET Aspire. The AppHost provisions a single Postgres instance with a shared messaging-db database.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "OrderService exposes demo HTTP endpoints that publish OrderPlacedEvent, send ProcessOrderCommand and OrderShippedEvent, and issue a GetOrderStatusRequest/response round trip. ShippingService and NotificationService subscribe to those events and log the resulting notifications.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Run the AppHost from the repo root, then exercise OrderService's demo endpoints: /api/demo/publish, /api/demo/send, and /api/demo/request-reply.",
+      ],
+    },
+  ],
+};
+
+const mochaAotExample: ExampleItem = {
+  type: "example",
+  slug: "mocha-aot-example",
+  title: "Mocha Native AOT Example",
+  tagline: "Publish/subscribe, request/reply, and a saga over RabbitMQ, all in AOT-compiled, trim-compatible services.",
+  products: ["mocha"],
+  level: "advanced",
+  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/AotExample",
+  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/AotExample",
+  updatedRelative: "this week",
+  cli: [
+    {
+      key: "clone",
+      label: "clone the examples repo",
+      code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/AotExample",
+    },
+    { key: "rabbitmq", label: "start RabbitMQ", code: "docker compose up -d" },
+    { key: "run-order", label: "run OrderService", code: "dotnet run --project AotExample.OrderService" },
+    { key: "run-fulfillment", label: "run FulfillmentService", code: "dotnet run --project AotExample.FulfillmentService" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Demonstrates running Mocha under Native AOT: publish/subscribe and request/reply over RabbitMQ, a saga tracking an order through shipment, and a mediator handling in-process commands and queries, all in AOT-compiled and trim-compatible services.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "OrderService and FulfillmentService are both published with PublishAot and IsAotCompatible enabled. OrderService's background worker places orders through the mediator and publishes OrderPlacedEvent/OrderShippedEvent; an OrderSaga tracks each order to shipment with a 30-second timeout. FulfillmentService subscribes to OrderPlacedEvent, checks inventory via a request/reply call, and publishes OrderShippedEvent once stock is confirmed.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Start RabbitMQ, then run OrderService and FulfillmentService each in their own terminal and watch the console output as orders move from placement to inventory check to shipment. Publish both projects with a runtime identifier (e.g. -r linux-x64) to verify they build and run as self-contained native executables.",
+      ],
+    },
+  ],
+};
+
+const mochaExceptionPoliciesExample: ExampleItem = {
+  type: "example",
+  slug: "mocha-exception-policies",
+  title: "Mocha Exception Policies",
+  tagline: "Dead-lettering, discarding, retrying, redelivering, and chained resilience policies keyed on exception state.",
+  products: ["mocha"],
+  level: "intermediate",
+  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
+  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
+  updatedRelative: "this week",
+  cli: [
+    {
+      key: "clone",
+      label: "clone the examples repo",
+      code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/ExceptionPolicies",
+    },
+    { key: "run", label: "run the host", code: "dotnet run" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Demonstrates Mocha's per-exception resilience policies: dead-lettering, discarding, retrying, redelivering, and chaining retry into redelivery into dead-lettering, including conditional policies keyed on exception state. Uses the InMemory transport, no external dependencies.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A single host registers eight event handlers, each throwing a different exception to exercise one policy shape, all configured in one AddResilience call in Program.cs. HttpServiceException branches on its status code to three different policies for the same exception type, and a catch-all On<Exception>() covers anything unmatched.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Run the host: it registers the handlers and policies but doesn't publish any messages itself, so the process just idles. Read Program.cs alongside Handlers/Handlers.cs as a policy-configuration reference, or wire in a publisher to observe retries, redeliveries, and dead-letters in the console output.",
+      ],
+    },
+  ],
+};
+
 export const EXAMPLE_ITEMS: readonly ExampleItem[] = [
   fusionDemoExample,
   mochaEcommerceDemoExample,
+  mochaPostgresTransportExample,
+  mochaAotExample,
+  mochaExceptionPoliciesExample,
   hotChocolateExamplesExample,
 ];
 

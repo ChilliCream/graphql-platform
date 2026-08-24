@@ -461,6 +461,6 @@ All auto-provisioned resources are inserted as rows in the corresponding topolog
 - [Middleware and Pipelines](../middleware-and-pipelines.md) - Customize the receive and dispatch pipelines.
 - [Routing and Endpoints](../routing-and-endpoints.md) - Understand naming conventions and endpoint model.
 
-> **Runnable example:** [PostgresTransport](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/PostgresTransport)
+> **Runnable example:** [PostgresTransport](https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport)
 >
 > **Multi-service demo:** The PostgresTransport example includes three services (OrderService, ShippingService, NotificationService) orchestrated with .NET Aspire, demonstrating publish/subscribe, send, request/reply, and batch processing over a shared PostgreSQL database.
