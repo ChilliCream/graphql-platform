@@ -42,6 +42,7 @@ public abstract class CommandTestBase
     private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     protected readonly FakeTimeProvider FakeTime =
@@ -117,6 +118,18 @@ public abstract class CommandTestBase
     private protected void SetupGlobalConfigDirectory(string directory)
     {
         _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Points Claude Code <c>settings.json</c> resolution at fixed paths
+    /// instead of the real machine's home directory, so tests that exercise
+    /// <c>agent doctor</c>'s unconditional user-scope Claude hooks check
+    /// never read whatever happens to be installed on the machine running
+    /// the test.
+    /// </summary>
+    private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
+    {
+        _claudeSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
     }
 
     /// <summary>
@@ -319,6 +332,11 @@ public abstract class CommandTestBase
         if (_globalConfigDirectoryProviderOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
+        if (_claudeSettingsPathResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
         }
 
         if (_pingWorkerLauncherOverride is not null)
@@ -551,6 +569,13 @@ internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvi
 internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
 {
     public string GetDirectory() => directory;
+}
+
+internal sealed class FixedClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
+    : Services.Hook.IClaudeSettingsPathResolver
+{
+    public string Resolve(string scope)
+        => scope == Services.Hook.HookInstallScopes.Project ? projectScopePath : userScopePath;
 }
 
 internal sealed class InteractiveCommand(
