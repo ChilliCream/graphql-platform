@@ -892,6 +892,40 @@ const getStartedNetCoreTutorial: TutorialItem = {
   level: "beginner",
   externalUrl: "/docs/hotchocolate/get-started-with-graphql-in-net-core",
   updatedRelative: "2 months ago",
+  cli: [
+    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
+    { key: "new", label: "scaffold project", code: "dotnet new graphql --name GettingStarted" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "The Hot Chocolate project template scaffolds a runnable GraphQL server: two record types (Author, Book), a Query class that exposes a book field, and a Program.cs wired with AddGraphQL() and MapGraphQL(). Hot Chocolate infers the schema from the C# types, so there is no SDL to hand-write to get a first query running.",
+        "The [QueryType] attribute registers a class's public methods as fields on the root Query type; a source generator does the wiring at build time. RunWithGraphQLCommands(args) adds developer commands on top of the normal Run(), including exporting the schema as SDL with dotnet run -- schema export.",
+      ],
+      code: {
+        language: "csharp",
+        code: `[QueryType]
+public static partial class Query
+{
+    public static Book GetBook()
+        => new Book("C# in depth.", new Author("Jon Skeet"));
+}`,
+      },
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A server that responds to a book query with a title and nested author. Running dotnet run starts it on a local port (the template defaults to http://localhost:5095) and serves the Nitro GraphQL IDE at /graphql, where you create a document, run the query, and inspect the schema.",
+      ],
+    },
+    {
+      heading: "Next steps",
+      paragraphs: [
+        "The tutorial's own next steps: read Defining a Schema for the full type system, DataLoader or the Entity Framework integration for fetching real data, the GraphQL Workshop repo for a longer hands-on walkthrough, or the official GraphQL introduction if you're new to the query language itself.",
+      ],
+    },
+  ],
 };
 
 const getStartedFederationTutorial: TutorialItem = {
@@ -903,6 +937,42 @@ const getStartedFederationTutorial: TutorialItem = {
   level: "intermediate",
   externalUrl: "/docs/fusion/getting-started",
   updatedRelative: "2 weeks ago",
+  cli: [
+    { key: "nitro", label: "install Nitro CLI", code: "dotnet tool install -g ChilliCream.Nitro.CommandLine" },
+    { key: "new", label: "scaffold a subgraph", code: "dotnet new graphql -n Products" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Fusion lets you split a GraphQL API across independent subgraphs and present them to clients as one composite schema. A gateway in front of the subgraphs routes each part of a query to the subgraph that owns it and combines the results; a subgraph never calls another subgraph directly, it only declares its entities and lookups and trusts the gateway to resolve references across the graph.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A Products subgraph (localhost:5001) and a Reviews subgraph (localhost:5002), each a normal Hot Chocolate server. Reviews contributes a reviews field to the Product type from Products using an entity stub, without duplicating any Product data. The Nitro CLI composes both subgraphs' exported schemas into a Fusion archive that a gateway (localhost:5000) loads and serves as one unified schema.",
+      ],
+      code: {
+        language: "graphql",
+        code: `type Query {
+  productById(id: ID!): Product @lookup
+}`,
+      },
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Install the .NET 10 SDK, the Nitro CLI, and the Hot Chocolate templates. Scaffold each subgraph with dotnet new graphql, run nitro fusion compose against their exported schema.graphqls files to produce gateway.far, then start both subgraphs and a gateway project (dotnet new graphql-gateway) that loads the archive with AddFileSystemConfiguration.",
+      ],
+    },
+    {
+      heading: "Next steps",
+      paragraphs: [
+        "From here: add a third subgraph (Adding a Subgraph), go deeper on entities, lookups, and cross-subgraph field dependencies with [Require] (Entities and Lookups), or move on to Deployment & CI/CD and Authentication and Authorization for a production setup. Coming from Apollo Federation covers the terminology mapping if that's your starting point.",
+      ],
+    },
+  ],
 };
 
 const strawberryShakeBlazorTutorial: TutorialItem = {
@@ -914,6 +984,47 @@ const strawberryShakeBlazorTutorial: TutorialItem = {
   level: "beginner",
   externalUrl: "/docs/strawberryshake/get-started",
   updatedRelative: "2 months ago",
+  cli: [
+    { key: "tools", label: "install the tools", code: "dotnet tool install StrawberryShake.Tools --local" },
+    {
+      key: "init",
+      label: "generate a client",
+      code: "dotnet graphql init https://demo.chillicream.com/graphql/ --clientName CryptoClient",
+    },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Strawberry Shake generates a typed C# client from .graphql query documents. The dotnet graphql init CLI command points at a running GraphQL endpoint, downloads its schema, and scaffolds a .graphqlrc.json plus the generated client project. Strawberry Shake isn't Blazor-specific: this tutorial builds a Blazor WebAssembly app, but the generated client works in any .NET standard-compliant project.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A Blazor WebAssembly page that queries ChilliCream's public demo GraphQL server (demo.chillicream.com/graphql) for a list of assets and renders their name and price. After a .graphql query document is added and the project is built, the source generator emits both the typed client and a UseGetAssets Razor component with built-in ChildContent, LoadingContent, and ErrorContent slots.",
+      ],
+      code: {
+        language: "graphql",
+        code: `query GetAssets {
+  assets {
+    nodes {
+      name
+      price {
+        lastPrice
+      }
+    }
+  }
+}`,
+      },
+    },
+    {
+      heading: "Next steps",
+      paragraphs: [
+        "The tutorial also links a companion walkthrough video covering the same steps end to end. Swap the demo endpoint for your own Hot Chocolate server's URL to generate a client against your own schema.",
+      ],
+    },
+  ],
 };
 
 export const TUTORIAL_ITEMS: readonly TutorialItem[] = [
@@ -936,6 +1047,30 @@ const fusionDemoExample: ExampleItem = {
   externalUrl: "https://github.com/ChilliCream/fusion-demo",
   githubUrl: "https://github.com/ChilliCream/fusion-demo",
   updatedRelative: "this week",
+  cli: [
+    { key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/fusion-demo" },
+    { key: "run", label: "run the AppHost", code: "dotnet run --project src/AppHost/Demo.AppHost.csproj" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Eight subgraphs (Accounts, Cart, Inventory, Order, Payments, Products, Reviews, Shipping) composed behind one Fusion gateway, orchestrated end to end with .NET Aspire. The Fusion getting-started tutorial points here for a fuller picture of DataLoader and batch-resolver patterns across subgraph boundaries than its own two-subgraph walkthrough covers.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "The Aspire AppHost wires up Postgres (one database per subgraph), NATS with JetStream backing the Reviews subgraph's event stream, and Keycloak for authentication, then composes all eight subgraphs' schemas into the Gateway project with global object identification enabled. A frontend project and a load generator project round out the solution.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Clone the repo and run the AppHost project; Aspire starts every subgraph, the gateway, and their infrastructure dependencies together and waits on each one before the gateway comes up.",
+      ],
+    },
+  ],
 };
 
 const mochaEcommerceDemoExample: ExampleItem = {
@@ -949,6 +1084,35 @@ const mochaEcommerceDemoExample: ExampleItem = {
   externalUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
   githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
   updatedRelative: "this week",
+  cli: [{ key: "run", label: "run the AppHost", code: "dotnet run --project Demo.AppHost" }],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Mocha's own docs point to this project as its real-world reference: a complete e-commerce system built on the message bus, covering event-driven communication, saga orchestration, batch processing, and the transactional outbox. The AppHost wires up RabbitMQ and one Postgres database per service (catalog, billing, shipping), each service waiting on its dependencies before starting.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "Three included .http files (for the VS Code REST Client extension) walk through the saga flows step by step: a basic place-order-then-pay-then-ship sequence, a quick refund with no physical return, and a full return saga with inspection and parallel processing. Sample product IDs are seeded so requests chain together without extra setup.",
+      ],
+      code: {
+        language: "text",
+        code: `Catalog  ──OrderPlacedEvent──▶  Billing
+   ▲                                │
+   │  ShipmentCreated/ShippedEvent  │ PaymentCompletedEvent
+   │                                ▼
+   └────────────────────────  Shipping`,
+      },
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Install the REST Client extension, start the Demo AppHost (Aspire), then update the @catalogUrl, @billingUrl, and @shippingUrl variables in each .http file to match the ports Aspire assigns. Run the requests in a file in order, waiting a couple of seconds between steps for async processing.",
+      ],
+    },
+  ],
 };
 
 const hotChocolateExamplesExample: ExampleItem = {
@@ -961,6 +1125,25 @@ const hotChocolateExamplesExample: ExampleItem = {
   externalUrl: "https://github.com/ChilliCream/hotchocolate-examples",
   githubUrl: "https://github.com/ChilliCream/hotchocolate-examples",
   updatedRelative: "over a year ago",
+  cli: [{ key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/hotchocolate-examples" }],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "A collection of small, independent Hot Chocolate projects rather than one app: each folder under misc/ is a standalone sample with its own README and .csproj, focused on one topic. WebsocketAuthentication demonstrates authenticating a subscription over the GraphQL WebSocket protocol; other folders cover DataLoader, persisted queries, Relay-style schemas, type extensions, OpenTelemetry, schema stitching, and integrations with MongoDB, RavenDB, and Marten.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "Whatever the folder you open covers. There is no single app to run end to end; each sample is scoped to demonstrate one Hot Chocolate feature or integration in isolation, which makes it a reference to dip into rather than a tutorial to follow start to finish.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: ["Clone the repo, open the sample folder for the topic you need, and dotnet run that project."],
+    },
+  ],
 };
 
 export const EXAMPLE_ITEMS: readonly ExampleItem[] = [
@@ -983,6 +1166,30 @@ const fullstackWorkshop: WorkshopItem = {
   level: "advanced",
   externalUrl: "/learn/articles/fullstack-workshop",
   updatedRelative: "over 2 years ago",
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "A two-day, hands-on workshop that builds a distributed web shop from scratch with Hot Chocolate, Relay.js, Fusion across multiple subgraphs, and .NET Aspire, alongside domain-driven design, CQRS, and clean architecture concepts.",
+      ],
+    },
+    {
+      heading: "What you learn",
+      paragraphs: [
+        "Fourteen modules across two days. Day one covers GraphQL fundamentals, building efficient APIs with EF Core (paging, filtering, sorting, projections), layered architecture with DataLoaders, schema evolution patterns, and Relay.js from the basics through advanced fetching and store internals. Day two moves into GraphQL mutation patterns, Relay mutations and optimistic updates, schema evolution with client and schema registries, distributed GraphQL with Fusion, authentication and authorization, CQRS and DDD, and subscription patterns, closing with an open Q&A.",
+      ],
+    },
+    {
+      heading: "How to attend",
+      paragraphs: [
+        "Public sessions are announced on the ChilliCream blog; book a seat through the link there. The workshop can also be run privately, tailored to a team's specific focus areas.",
+      ],
+    },
+    {
+      heading: "Next steps",
+      paragraphs: ["Questions before booking go to contact@chillicream.com or the ChilliCream Slack."],
+    },
+  ],
 };
 
 const graphqlWorkshopRepo: WorkshopItem = {
@@ -995,6 +1202,27 @@ const graphqlWorkshopRepo: WorkshopItem = {
   externalUrl: "https://github.com/ChilliCream/graphql-workshop",
   githubUrl: "https://github.com/ChilliCream/graphql-workshop",
   updatedRelative: "3 months ago",
+  cli: [{ key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/graphql-workshop" }],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "A self-paced repo that builds a conference-planner GraphQL server with ASP.NET Core and Hot Chocolate from File → New, one session at a time. A hosted copy of the finished server is browsable at workshop.chillicream.com.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "Seven sessions, each with its own doc: creating the GraphQL server project, understanding DataLoader, schema design approaches, understanding middleware, adding complex filter capabilities, real-time functionality with subscriptions, and testing the GraphQL server. Each session builds on the previous one's code.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Install the .NET SDK and the Nitro GraphQL IDE, then work through the session docs in order starting with Session 1.",
+      ],
+    },
+  ],
 };
 
 export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [fullstackWorkshop, graphqlWorkshopRepo];
