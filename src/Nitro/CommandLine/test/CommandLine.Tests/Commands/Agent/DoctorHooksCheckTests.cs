@@ -23,6 +23,8 @@ public sealed class DoctorHooksCheckTests : IDisposable
     private readonly DirectoryInfo _tempRoot;
     private readonly string _settingsPath;
     private readonly string _hooksJsonPath;
+    private readonly string _codexHooksJsonPath;
+    private readonly string _codexConfigTomlPath;
     private readonly string _sidecarDirectory;
     private readonly TestFileSystem _fileSystem;
     private readonly FakeTimeProvider _timeProvider;
@@ -32,6 +34,8 @@ public sealed class DoctorHooksCheckTests : IDisposable
         _tempRoot = Directory.CreateTempSubdirectory("nitro-doctor-hooks-check-tests");
         _settingsPath = Path.Combine(_tempRoot.FullName, "claude-home", ".claude", "settings.json");
         _hooksJsonPath = Path.Combine(_tempRoot.FullName, "copilot-home", "hooks", "nitro-mail.json");
+        _codexHooksJsonPath = Path.Combine(_tempRoot.FullName, "codex-home", ".codex", "hooks.json");
+        _codexConfigTomlPath = Path.Combine(_tempRoot.FullName, "codex-home", ".codex", "config.toml");
         _sidecarDirectory = Path.Combine(_tempRoot.FullName, "app-data");
         _fileSystem = new TestFileSystem(_tempRoot.FullName);
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
@@ -119,6 +123,37 @@ public sealed class DoctorHooksCheckTests : IDisposable
     }
 
     [Fact]
+    public async Task CheckCodexAsync_Should_ReturnNull_When_NeverInstalled()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var (installer, sidecarStore) = CreateCodexServices();
+
+        // act
+        var result = await DoctorHooksCheck.CheckCodexAsync(installer, sidecarStore, ct);
+
+        // assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task CheckCodexAsync_Should_ReportConsistent_When_JustInstalled()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var (installer, sidecarStore) = CreateCodexServices();
+        await installer.InstallAsync(ct);
+
+        // act
+        var result = await DoctorHooksCheck.CheckCodexAsync(installer, sidecarStore, ct);
+
+        // assert
+        Assert.NotNull(result);
+        Assert.True(result.Consistent);
+        Assert.Empty(result.Issues);
+    }
+
+    [Fact]
     public async Task CheckCopilotAsync_Should_ReturnNull_When_NeverInstalled()
     {
         // arrange
@@ -188,6 +223,20 @@ public sealed class DoctorHooksCheckTests : IDisposable
         return (installer, sidecarStore);
     }
 
+    private (CodexHooksInstallerService Installer, ICodexHooksSidecarStore SidecarStore) CreateCodexServices(
+        LaunchDescriptor? descriptor = null)
+    {
+        var sidecarStore = new CodexHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory));
+        var installer = new CodexHooksInstallerService(
+            _fileSystem,
+            new FixedCodexPathResolver(_codexHooksJsonPath, _codexConfigTomlPath),
+            new FixedLaunchDescriptorResolver(descriptor ?? Descriptor),
+            sidecarStore,
+            _timeProvider);
+
+        return (installer, sidecarStore);
+    }
+
     private (CopilotHooksInstallerService Installer, ICopilotHooksSidecarStore SidecarStore) CreateCopilotServices(
         LaunchDescriptor? descriptor = null)
     {
@@ -210,6 +259,13 @@ public sealed class DoctorHooksCheckTests : IDisposable
     private sealed class FixedCopilotPathResolver(string path) : ICopilotPathResolver
     {
         public string ResolveHooksFile() => path;
+    }
+
+    private sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath) : ICodexPathResolver
+    {
+        public string ResolveHooksJson() => hooksJsonPath;
+
+        public string ResolveConfigToml() => configTomlPath;
     }
 
     private sealed class FixedLaunchDescriptorResolver(LaunchDescriptor descriptor) : ILaunchDescriptorResolver
