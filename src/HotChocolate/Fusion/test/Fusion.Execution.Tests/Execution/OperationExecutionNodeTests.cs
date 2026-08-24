@@ -51,6 +51,7 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasResult = await enumerator.MoveNextAsync();
+        Assert.True(hasResult);
         var errorResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
         var hasNextResult = await enumerator.MoveNextAsync();
@@ -58,33 +59,24 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         // assert
         try
         {
-            // the failure surfaces as one terminal error result and then the stream ends
-            var arena = Assert.IsType<MemoryArena>(mintedArena);
-            Assert.True(hasResult);
-            Assert.False(hasNextResult);
-            errorResult.ToJson().MatchInlineSnapshot(
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "Unexpected Execution Error",
-                      "path": [
-                        "onMessage"
-                      ]
-                    }
-                  ],
-                  "data": {
-                    "onMessage": null
-                  }
-                }
-                """);
-            var error = Assert.Single(errorResult.Errors ?? []);
-            var exception = Assert.IsType<InvalidOperationException>(error.Exception);
-            Assert.Equal("The subscription event failed after minting an arena.", exception.Message);
-
+            // the failure surfaces as one terminal error result and then the stream ends;
             // the arena minted during the failed iteration was never bound, so the enumerator owns and releases it
-            Assert.Throws<ObjectDisposedException>(() => arena.Rent(1));
-            Assert.Equal(0, arena.RentedPageCount);
+            var arena = (MemoryArena)mintedArena;
+            var exception = errorResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(errorResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasNextResult,
+                        ArenaRentExceptionType = Record.Exception(() => arena.Rent(1))?.GetType().Name,
+                        ArenaRentedPageCount = arena.RentedPageCount
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
         }
         finally
         {
@@ -108,42 +100,34 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasFirstResult = await enumerator.MoveNextAsync();
+        Assert.True(hasFirstResult);
         var firstResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
         var hasSecondResult = await enumerator.MoveNextAsync();
+        Assert.True(hasSecondResult);
         var secondResult = enumerator.Current;
         var hasThirdResult = await enumerator.MoveNextAsync();
 
         // assert
         try
         {
-            // the delivered event arrives, then one terminal error result, then the stream ends
-            var firstArena = Assert.IsType<MemoryArena>(mintedArena);
-            Assert.True(hasFirstResult);
-            Assert.True(hasSecondResult);
-            Assert.False(hasThirdResult);
-            secondResult.ToJson().MatchInlineSnapshot(
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "Unexpected Execution Error",
-                      "path": [
-                        "onMessage"
-                      ]
-                    }
-                  ],
-                  "data": {
-                    "onMessage": null
-                  }
-                }
-                """);
-            var error = Assert.Single(secondResult.Errors ?? []);
-            var exception = Assert.IsType<InvalidOperationException>(error.Exception);
-            Assert.Equal("The next subscription event failed before minting an arena.", exception.Message);
-
+            // the delivered event arrives, then one terminal error result, then the stream ends;
             // the arena bound to the delivered event is still owned by that result
-            Assert.False(firstArena.IsDisposed);
+            var firstArena = (MemoryArena)mintedArena;
+            var exception = secondResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(secondResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasThirdResult,
+                        FirstEventArenaDisposed = firstArena.IsDisposed
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
         }
         finally
         {
