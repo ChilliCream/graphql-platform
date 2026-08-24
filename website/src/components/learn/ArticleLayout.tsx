@@ -88,7 +88,7 @@ export function ArticleLayout({
               src={heroImageSrc}
               alt=""
               priority
-              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) calc(100vw - 6rem), 46rem"
+              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) min(calc(100vw - 6rem), 46rem), 46rem"
               className="mt-6 mb-6 aspect-video w-full max-w-[46rem] rounded-lg object-cover"
             />
           ) : null}

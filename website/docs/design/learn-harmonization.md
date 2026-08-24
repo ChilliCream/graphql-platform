@@ -588,8 +588,10 @@ six equal hairline-topped bands.
 ### 2.7 Per-section layout prescriptions: reading pages
 
 1. **`/learn/articles/[slug]`** (`ArticleLayout.tsx`): article shell keeps
-   `max-w-5xl`; running prose wraps at `max-w-[46rem]` with code blocks,
-   figures, and the hero breaking out to the shell width (D5); the title
+   `max-w-5xl`; running prose wraps at `max-w-[46rem]` with code blocks and
+   figures breaking out to the shell width (D5); the hero no longer breaks
+   out: it is capped to the 46rem prose measure per the kbx.7 amendment in
+   learn-editorial.md 4.1 item 3; the title
    takes the page-h1 recipe (D6); related items render at card weight or in
    even counts (D16). Language chips render through `Tag` (D14).
 2. **`/learn/templates/[slug]`** (`TemplateDetail.tsx`): header
