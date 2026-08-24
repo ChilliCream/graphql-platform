@@ -43,7 +43,7 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
             <h1 className="font-heading text-cc-heading text-h3 mt-6 font-semibold tracking-[-0.02em] text-balance">
               {template.title}
             </h1>
-            <p className="text-cc-prose mt-5 max-w-2xl text-lg leading-relaxed">{template.tagline}</p>
+            <p className="text-cc-prose mt-5 text-lg leading-relaxed">{template.tagline}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <SolidButton href={template.githubUrl}>
                 <GitHubIcon className="mr-2 size-4 fill-current" />
@@ -60,14 +60,14 @@ export function TemplateDetail({ template, related }: TemplateDetailProps) {
         </div>
       </header>
 
-      <div className="border-cc-card-border grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,46rem)_19rem] lg:justify-between lg:gap-16">
+      <div className="border-cc-card-border grid gap-12 border-t py-12 lg:grid-cols-[1fr_19rem] lg:gap-16">
         <article className="min-w-0">
           {template.body.map((section) => (
             <section key={section.heading} className="mb-14 last:mb-0">
               <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{section.heading}</h2>
               <div className="mt-5 space-y-4">
                 {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph} className="text-cc-prose leading-7">
+                  <p key={paragraph} className="text-cc-prose text-lg leading-8">
                     {paragraph}
                   </p>
                 ))}
