@@ -369,7 +369,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
     }
 
     [Fact]
-    public async Task WithGraphQLHttpEndpoint_Should_TargetDeclaredEndpoint_When_AppDeclaresCustomEndpointName()
+    public async Task WithGraphQLHttpEndpoint_Should_TargetDeclaredEndpoint_When_EndpointNameIsDeclaredByApp()
     {
         // arrange
         WriteSchemaSettings(
@@ -382,7 +382,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         var app = builder
             .AddJavaScriptApp("shop", _appDirectory.FullName)
             .WithHttpEndpoint(port: 4321, name: "web")
-            .WithGraphQLHttpEndpoint();
+            .WithGraphQLHttpEndpoint(endpointName: "web");
         builder
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroComposition()
