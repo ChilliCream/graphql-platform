@@ -454,16 +454,18 @@ public sealed class TuiShellTabsTests
     public void Handle_Should_AlwaysShowSelectedAgentDetail_WithoutOpeningAnything_ThroughATabbedShell()
     {
         // arrange: the detail pane sits next to the list, so the selected
-        // agent's identity is already on screen before any key is pressed.
-        var registry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
-        registry.Agents.Add(Agent("agent-a", role: "backend"));
+        // participant's identity is already on screen before any key is
+        // pressed.
+        var sessions = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry();
+        sessions.Participants.Add(
+            ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.AgentSessionParticipantBuilder.Participant(
+                sessionId: "s-a", agentName: "agent-a", role: "backend", agent: Agent("agent-a", role: "backend")));
         var taskStore = new FakeTaskStore();
         var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
         var agentsMode = new AgentsMode(
-            registry,
             taskStore,
             mailStore,
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
+            sessions,
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
@@ -491,15 +493,16 @@ public sealed class TuiShellTabsTests
     {
         // arrange: there is no pushed mode to pop anymore, so Escape on the
         // Agents tab is inert rather than navigating anywhere.
-        var registry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
-        registry.Agents.Add(Agent("agent-a"));
+        var sessions = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry();
+        sessions.Participants.Add(
+            ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.AgentSessionParticipantBuilder.Participant(
+                sessionId: "s-a", agentName: "agent-a"));
         var taskStore = new FakeTaskStore();
         var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
         var agentsMode = new AgentsMode(
-            registry,
             taskStore,
             mailStore,
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
+            sessions,
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
@@ -514,7 +517,7 @@ public sealed class TuiShellTabsTests
 
         // assert
         Assert.True(dirty);
-        Assert.Equal("agent-a", agentsMode.State.SelectedAgent?.Name);
+        Assert.Equal("agent-a", agentsMode.State.SelectedParticipant?.Participant.Session.AgentName);
         Assert.Contains("Agents (1)", RenderToText(shell));
     }
 

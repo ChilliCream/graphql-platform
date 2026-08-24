@@ -99,8 +99,7 @@ internal static class AgentTuiLauncher
 
         var mailTab = BuildMailTab(mailStore, agentRegistry, timeProvider, environmentVariableProvider);
 
-        var agentsMode = new AgentsMode(
-            agentRegistry, taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
+        var agentsMode = new AgentsMode(taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var memoryMode = new MemoryMode(memoryStore, timeProvider);

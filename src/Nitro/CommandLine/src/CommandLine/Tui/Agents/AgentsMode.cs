@@ -10,17 +10,18 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The agents <see cref="ITuiMode"/>: a list pane of every registered agent
-/// next to a detail pane for the selected agent, modeled on the mail
-/// board's own list/detail split (see <see cref="AgentsFocus"/> and
+/// The agents <see cref="ITuiMode"/>: a list pane of every live participant
+/// next to a detail pane for the selected one, modeled on the mail board's
+/// own list/detail split (see <see cref="AgentsFocus"/> and
 /// <c>MailMode</c>/<c>MailFocus</c>). Moving the list selection reloads the
-/// detail pane (identity, assigned tasks, sent mail) through the same
-/// <see cref="AgentDetailModel"/>/<see cref="AgentDetailView"/> pair the
-/// former pushed <c>AgentDetailMode</c> used; that pushed full-screen mode
-/// is gone; there is nothing left for it to do once the detail is always
-/// visible next to the list. Enter and h/l/Left/Right toggle which pane
-/// holds focus, exactly like the mail board: List focus moves the list
-/// selection with j/k, Detail focus scrolls the detail body instead.
+/// detail pane (session diagnostics, bound identity, assigned tasks, sent
+/// mail) through the same <see cref="AgentDetailModel"/>/<see cref="AgentDetailView"/>
+/// pair the former pushed <c>AgentDetailMode</c> used; that pushed
+/// full-screen mode is gone; there is nothing left for it to do once the
+/// detail is always visible next to the list. Enter and h/l/Left/Right
+/// toggle which pane holds focus, exactly like the mail board: List focus
+/// moves the list selection with j/k, Detail focus scrolls the detail body
+/// instead.
 /// </summary>
 internal sealed class AgentsMode : ITuiMode
 {
@@ -46,8 +47,9 @@ internal sealed class AgentsMode : ITuiMode
     /// <summary>
     /// The fraction of the frame width the list pane occupies; the detail
     /// pane takes the remainder. Wider than the mail board's own split
-    /// since an agent row spends its width on five columns (name, client,
-    /// role, two ages) rather than one truncated subject line.
+    /// since a participant row spends its width on several columns (actor,
+    /// presence, harness, role, two ages) rather than one truncated subject
+    /// line.
     /// </summary>
     private const int ListWidthNumerator = 1;
     private const int ListWidthDenominator = 2;
@@ -59,28 +61,26 @@ internal sealed class AgentsMode : ITuiMode
     private readonly Viewport _listViewport = new(0, 0);
 
     public AgentsMode(
-        IAgentRegistry registry,
         ITaskStore taskStore,
         IMailStore mailStore,
         IAgentSessionRegistry sessionRegistry,
         IClaudeSessionActivityReader activityReader,
         TimeProvider? timeProvider = null)
     {
-        ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(taskStore);
         ArgumentNullException.ThrowIfNull(mailStore);
         ArgumentNullException.ThrowIfNull(sessionRegistry);
         ArgumentNullException.ThrowIfNull(activityReader);
 
         _timeProvider = timeProvider ?? TimeProvider.System;
-        _state = new AgentsState(registry, sessionRegistry, activityReader);
-        _detailModel = new AgentDetailModel(registry, taskStore, mailStore);
+        _state = new AgentsState(sessionRegistry, activityReader);
+        _detailModel = new AgentDetailModel(taskStore, mailStore);
         _detailView = new AgentDetailView(_detailModel, _timeProvider);
     }
 
     /// <summary>
-    /// The mode's current live state: the loaded agents, selection, and
-    /// pane focus.
+    /// The mode's current live state: the loaded participants, selection,
+    /// and pane focus.
     /// </summary>
     public AgentsState State => _state;
 
@@ -130,16 +130,16 @@ internal sealed class AgentsMode : ITuiMode
 
     /// <summary>
     /// Up/Down moves the list selection (and reloads the detail pane for
-    /// the newly selected agent) while the list has focus, or scrolls the
-    /// detail body while the detail pane has focus.
+    /// the newly selected participant) while the list has focus, or scrolls
+    /// the detail body while the detail pane has focus.
     /// </summary>
     private IReadOnlyList<TuiMessage> MoveOrScroll(int delta)
     {
         if (_state.Focus == AgentsFocus.List)
         {
-            if (_state.Agents.Count > 0)
+            if (_state.Rows.Count > 0)
             {
-                _state.SelectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.Agents.Count - 1);
+                _state.SelectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.Rows.Count - 1);
                 ReloadDetailIfNeeded();
             }
         }
@@ -159,9 +159,9 @@ internal sealed class AgentsMode : ITuiMode
     {
         if (_state.Focus == AgentsFocus.List)
         {
-            if (_state.Agents.Count > 0)
+            if (_state.Rows.Count > 0)
             {
-                _state.SelectedRow = edge == EdgeTarget.Top ? 0 : _state.Agents.Count - 1;
+                _state.SelectedRow = edge == EdgeTarget.Top ? 0 : _state.Rows.Count - 1;
                 ReloadDetailIfNeeded();
             }
         }
@@ -201,11 +201,11 @@ internal sealed class AgentsMode : ITuiMode
 
     private IReadOnlyList<TuiMessage> CopySelectedId()
     {
-        var name = _state.SelectedAgent?.Name;
+        var sessionId = _state.SelectedParticipant?.Participant.Session.SessionId;
 
-        return name is null
-            ? [new TuiMessage.ShowToast("No agent selected.", ToastStyle.Warn)]
-            : [new TuiMessage.ShowToast(name, ToastStyle.Info)];
+        return sessionId is null
+            ? [new TuiMessage.ShowToast("No session selected.", ToastStyle.Warn)]
+            : [new TuiMessage.ShowToast(sessionId, ToastStyle.Info)];
     }
 
     private IRenderable RenderListPane(int width, int height)
@@ -216,7 +216,7 @@ internal sealed class AgentsMode : ITuiMode
         var interiorHeight = Math.Max(0, height - PanelChromeHeight);
 
         var lines = RenderListLines(contentWidth, interiorHeight, focused);
-        var panel = ColumnPane.Render("Agents", _state.Agents.Count, lines, focused);
+        var panel = ColumnPane.Render("Agents", _state.Rows.Count, lines, focused);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
@@ -227,12 +227,12 @@ internal sealed class AgentsMode : ITuiMode
         => _detailView.Render(width, height, _state.Focus == AgentsFocus.Detail);
 
     /// <summary>
-    /// Renders the visible rows: the scrolled agent badges, padded with
-    /// blank lines so the panel reports a stable line count, with "N more
-    /// above/below" indicators reserving their own rows once the agents no
-    /// longer fit <paramref name="interiorHeight"/>. Column widths are
-    /// computed from this call's visible slice, so they track whichever
-    /// rows are actually on screen as the list scrolls.
+    /// Renders the visible rows: the scrolled participant badges, padded
+    /// with blank lines so the panel reports a stable line count, with "N
+    /// more above/below" indicators reserving their own rows once the
+    /// participants no longer fit <paramref name="interiorHeight"/>. Column
+    /// widths are computed from this call's visible slice, so they track
+    /// whichever rows are actually on screen as the list scrolls.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, bool focused)
     {
@@ -241,13 +241,13 @@ internal sealed class AgentsMode : ITuiMode
             return [];
         }
 
-        var agents = _state.Agents;
+        var rows = _state.Rows;
         var reservedRows = 0;
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
         {
             var windowHeight = Math.Max(0, interiorHeight - reservedRows);
-            _listViewport.Update(agents.Count, windowHeight);
+            _listViewport.Update(rows.Count, windowHeight);
             _listViewport.EnsureVisible(_state.SelectedRow);
 
             var needed = (_listViewport.HiddenAbove > 0 ? 1 : 0) + (_listViewport.HiddenBelow > 0 ? 1 : 0);
@@ -262,14 +262,14 @@ internal sealed class AgentsMode : ITuiMode
 
         var (start, visibleCount) = _listViewport.Slice();
         var now = _timeProvider.GetUtcNow();
-        var visibleAgents = new List<AgentRecord>(visibleCount);
+        var visibleRows = new List<AgentParticipantRow>(visibleCount);
 
         for (var i = 0; i < visibleCount; i++)
         {
-            visibleAgents.Add(agents[start + i]);
+            visibleRows.Add(rows[start + i]);
         }
 
-        var widths = AgentRowBadge.ComputeWidths(visibleAgents, _state.Presence, now);
+        var widths = AgentRowBadge.ComputeWidths(visibleRows, now);
         var lines = new List<string>(interiorHeight);
 
         if (_listViewport.HiddenAbove > 0)
@@ -280,7 +280,7 @@ internal sealed class AgentsMode : ITuiMode
         for (var i = 0; i < visibleCount; i++)
         {
             var selected = focused && start + i == _state.SelectedRow;
-            lines.Add(AgentRowBadge.Render(visibleAgents[i], _state.Presence, now, selected, contentWidth, widths));
+            lines.Add(AgentRowBadge.Render(visibleRows[i], now, selected, contentWidth, widths));
         }
 
         if (_listViewport.HiddenBelow > 0)
@@ -306,43 +306,44 @@ internal sealed class AgentsMode : ITuiMode
 
     /// <summary>
     /// Reloads the detail pane through <see cref="AgentDetailModel"/> when
-    /// the selected agent differs from whichever agent it last loaded. A
-    /// no-op when the selection hasn't actually changed (for example a
-    /// clamped move at the list's edge), so scrolling doesn't re-issue the
-    /// tasks/mail queries on every keypress. Used only by the selection-move
-    /// handlers; a data refresh uses <see cref="RefreshDetail"/> instead,
-    /// which reloads unconditionally.
+    /// the selected participant's <see cref="AgentSessionKey"/> differs from
+    /// whichever it last loaded. A no-op when the selection hasn't actually
+    /// changed (for example a clamped move at the list's edge), so
+    /// scrolling doesn't re-issue the tasks/mail queries on every keypress.
+    /// Used only by the selection-move handlers; a data refresh uses
+    /// <see cref="RefreshDetail"/> instead, which reloads unconditionally.
     /// </summary>
     private void ReloadDetailIfNeeded()
     {
-        var selectedName = _state.SelectedAgent?.Name;
+        var selected = _state.SelectedParticipant;
 
-        if (selectedName is null || selectedName == _detailModel.CurrentAgentName)
+        if (selected is null || _detailModel.CurrentKey == selected.Key)
         {
             return;
         }
 
-        _detailModel.LoadAsync(selectedName, CancellationToken.None).GetAwaiter().GetResult();
+        _detailModel.LoadAsync(selected.Participant, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <summary>
-    /// Reloads the detail pane for whichever agent is currently selected,
-    /// unconditionally, or clears it when nothing is selected. Used by
-    /// <see cref="RefreshBlocking"/> so a data refresh always re-queries the
-    /// still-selected agent's tasks and mail, even when the selected name
-    /// hasn't changed since the last load, and falls back to the "no agent
-    /// selected" state when the selected agent has vanished from the list.
+    /// Reloads the detail pane for whichever participant is currently
+    /// selected, unconditionally, or clears it when nothing is selected.
+    /// Used by <see cref="RefreshBlocking"/> so a data refresh always
+    /// re-queries the still-selected participant's tasks and mail, even when
+    /// the selection hasn't changed since the last load, and falls back to
+    /// the "no session selected" state when the selected session has
+    /// vanished from the list.
     /// </summary>
     private void RefreshDetail()
     {
-        var selectedName = _state.SelectedAgent?.Name;
+        var selected = _state.SelectedParticipant;
 
-        if (selectedName is null)
+        if (selected is null)
         {
             _detailModel.Clear();
             return;
         }
 
-        _detailModel.LoadAsync(selectedName, CancellationToken.None).GetAwaiter().GetResult();
+        _detailModel.LoadAsync(selected.Participant, CancellationToken.None).GetAwaiter().GetResult();
     }
 }

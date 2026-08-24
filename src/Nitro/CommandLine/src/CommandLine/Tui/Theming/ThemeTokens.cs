@@ -70,6 +70,7 @@ internal static class DefaultTheme
 
         ["agents.list.name"] = new Style(Color.Aqua),
         ["agents.list.client"] = new Style(Color.SkyBlue1, decoration: Decoration.Dim),
+        ["agents.list.harness"] = new Style(Color.SkyBlue1, decoration: Decoration.Dim),
         ["agents.list.role"] = new Style(Color.Grey70),
         ["agents.list.role.orchestrator"] = new Style(Color.MediumPurple1),
         ["agents.list.role.planner"] = new Style(Color.Gold1),
@@ -80,6 +81,7 @@ internal static class DefaultTheme
         ["agents.list.presence"] = new Style(Color.Grey70),
         ["agents.list.presence.online"] = new Style(Color.Green),
         ["agents.list.presence.unreachable"] = new Style(Color.Yellow),
+        ["agents.list.presence.unobservable"] = new Style(Color.SlateBlue1),
         ["agents.list.presence.remote"] = new Style(Color.SkyBlue1),
         ["agents.list.presence.offline"] = new Style(Color.Grey50, decoration: Decoration.Dim),
         ["agents.list.presence.conflict"] = new Style(Color.Red, decoration: Decoration.Bold),

@@ -53,7 +53,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
         string bindingKind = "explicit",
         string harness = "claude-code",
         string endpointKind = "none",
-        string endpointAddr = "")
+        string endpointAddr = "",
+        string role = "",
+        string harnessVersion = "")
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
         var pid = process.Id;
@@ -73,10 +75,12 @@ public abstract class AgentCommandTestBase : CommandTestBase
             """
             INSERT INTO agent_sessions (
                 harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                role, harness_version
             ) VALUES (
                 $harness, $sessionId, $agentName, $bindingKind, $host, $pid, $procStart,
-                '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now
+                '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now,
+                $role, $harnessVersion
             );
             """;
         command.Parameters.AddWithValue("$harness", harness);
@@ -89,6 +93,28 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.Parameters.AddWithValue("$endpointKind", endpointKind);
         command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Updates the mutable role on the session row matching <paramref name="host"/>
+    /// and <paramref name="sessionId"/>, standing in for the same-row role
+    /// promotion <c>IAgentSessionRegistry.RegisterAsync</c> applies, without
+    /// requiring a detectable harness ancestor process in the test.
+    /// </summary>
+    protected async Task UpdateSessionRoleAsync(string host, string sessionId, string role)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET role = $role WHERE host = $host AND session_id = $sessionId";
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$host", host);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }

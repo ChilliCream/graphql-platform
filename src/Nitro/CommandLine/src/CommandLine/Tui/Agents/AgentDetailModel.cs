@@ -5,9 +5,12 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The loaded state behind the agent detail view: the selected agent's
-/// identity, the tasks assigned to it, and the mail it has sent, each
-/// re-fetched independently on every <see cref="LoadAsync"/> call.
+/// The loaded state behind the agent detail view: the selected live
+/// participant's session diagnostics, the durable identity its session is
+/// bound to (if any), the tasks assigned to that identity, and the mail it
+/// has sent, each re-fetched independently on every <see cref="LoadAsync"/>
+/// call. An unbound session loads no tasks or mail: there is no actor to
+/// query them by.
 /// </summary>
 internal sealed class AgentDetailModel
 {
@@ -17,72 +20,82 @@ internal sealed class AgentDetailModel
     /// </summary>
     private const int SentMailLimit = 20;
 
-    private readonly IAgentRegistry _registry;
     private readonly ITaskStore _taskStore;
     private readonly IMailStore _mailStore;
 
-    public AgentDetailModel(IAgentRegistry registry, ITaskStore taskStore, IMailStore mailStore)
+    public AgentDetailModel(ITaskStore taskStore, IMailStore mailStore)
     {
-        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _taskStore = taskStore ?? throw new ArgumentNullException(nameof(taskStore));
         _mailStore = mailStore ?? throw new ArgumentNullException(nameof(mailStore));
     }
 
     /// <summary>
-    /// The name last passed to <see cref="LoadAsync"/>, even when it does
-    /// not resolve to a registered agent.
+    /// The key of the participant last passed to <see cref="LoadAsync"/>, or
+    /// null before the first load or after <see cref="Clear"/>.
     /// </summary>
-    public string? CurrentAgentName { get; private set; }
+    public AgentSessionKey? CurrentKey { get; private set; }
 
     /// <summary>
-    /// The currently loaded agent's identity, or null when the last load
-    /// target does not exist.
+    /// The currently loaded participant, or null before the first load or
+    /// after <see cref="Clear"/>.
     /// </summary>
-    public AgentRecord? Agent { get; private set; }
+    public AgentSessionParticipant? Participant { get; private set; }
 
     /// <summary>
-    /// The tasks assigned to the loaded agent, in-progress tasks first, then
-    /// open, then any other non-closed, non-tombstone status, each group in
-    /// the store's own order.
+    /// The tasks assigned to the loaded participant's bound actor, empty for
+    /// an unbound session, in-progress tasks first, then open, then any
+    /// other non-closed, non-tombstone status, each group in the store's own
+    /// order.
     /// </summary>
     public IReadOnlyList<TaskItem> Tasks { get; private set; } = [];
 
     /// <summary>
-    /// The loaded agent's most recent sent messages, newest first, capped at
+    /// The loaded participant's bound actor's most recent sent messages,
+    /// empty for an unbound session, newest first, capped at
     /// <see cref="SentMailLimit"/>.
     /// </summary>
     public IReadOnlyList<MailMessage> SentMail { get; private set; } = [];
 
     /// <summary>
-    /// Loads the agent with the given name, its assigned tasks, and its sent
-    /// mail, replacing whichever agent was previously loaded.
+    /// Loads <paramref name="participant"/>'s session diagnostics, and, when
+    /// its session is bound to an actor, that actor's assigned tasks and
+    /// sent mail, replacing whichever participant was previously loaded.
     /// </summary>
-    public async Task LoadAsync(string name, CancellationToken cancellationToken)
+    public async Task LoadAsync(AgentSessionParticipant participant, CancellationToken cancellationToken)
     {
-        CurrentAgentName = name;
+        ArgumentNullException.ThrowIfNull(participant);
 
-        Agent = await _registry.GetAsync(name, cancellationToken).ConfigureAwait(false);
+        CurrentKey = AgentSessionKey.From(participant.Session);
+        Participant = participant;
+
+        if (participant.Session.AgentName is not { } actor)
+        {
+            Tasks = [];
+            SentMail = [];
+            return;
+        }
 
         var tasks = await _taskStore.QueryTasksAsync(
-            new TaskFilter { Assignee = name },
+            new TaskFilter { Assignee = actor },
             cancellationToken).ConfigureAwait(false);
         Tasks = OrderTasks(tasks);
 
-        SentMail = await _mailStore.QuerySentAsync(name, SentMailLimit, cancellationToken)
+        SentMail = await _mailStore.QuerySentAsync(actor, SentMailLimit, cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Resets the model to its unloaded state: no current agent name, agent,
-    /// tasks, or sent mail. Used when the previously selected agent vanishes
-    /// (for example a refresh that empties the registry), so the detail pane
-    /// falls back to its "no agent selected" state instead of continuing to
-    /// show the vanished agent's stale identity and lists.
+    /// Resets the model to its unloaded state: no current key, participant,
+    /// tasks, or sent mail. Used when the previously selected participant
+    /// vanishes (for example a refresh whose session ended or was reaped),
+    /// so the detail pane falls back to its "no session selected" state
+    /// instead of continuing to show the vanished session's stale
+    /// diagnostics.
     /// </summary>
     public void Clear()
     {
-        CurrentAgentName = null;
-        Agent = null;
+        CurrentKey = null;
+        Participant = null;
         Tasks = [];
         SentMail = [];
     }

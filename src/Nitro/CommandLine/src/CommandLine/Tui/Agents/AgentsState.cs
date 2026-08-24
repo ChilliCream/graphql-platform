@@ -3,33 +3,23 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The live state of the agents list: every registered agent, in the order
-/// the registry returns them, plus each agent's computed
-/// <see cref="AgentPresence"/> (see <see cref="AgentRowBadge"/>), which row
-/// is selected, and which of the tab's two panes currently holds focus.
+/// The live state of the agents list: every live participant from
+/// <see cref="IAgentSessionRegistry.ListParticipantsAsync"/>, in the order
+/// the registry returns them, which row is selected, and which of the tab's
+/// two panes currently holds focus.
 /// </summary>
-internal sealed class AgentsState(
-    IAgentRegistry registry, IAgentSessionRegistry sessionRegistry, IClaudeSessionActivityReader activityReader)
+internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaudeSessionActivityReader activityReader)
 {
-    private static readonly IReadOnlyDictionary<string, AgentPresence> EmptyPresence =
-        new Dictionary<string, AgentPresence>();
-
     /// <summary>
-    /// The agents currently loaded, ordered by name (the registry's own
-    /// order).
+    /// The participant rows currently loaded, ordered by harness then
+    /// session id (the registry's own order). One row per live harness
+    /// session, including unbound ones; a session that ends or is reaped is
+    /// simply absent from the next <see cref="RefreshAsync"/>.
     /// </summary>
-    public IReadOnlyList<AgentRecord> Agents { get; private set; } = [];
+    public IReadOnlyList<AgentParticipantRow> Rows { get; private set; } = [];
 
     /// <summary>
-    /// Each loaded agent's presence, keyed by name, reloaded from
-    /// <see cref="IAgentSessionRegistry.ListAsync"/> alongside
-    /// <see cref="Agents"/> on every <see cref="RefreshAsync"/>. An agent
-    /// with no entry here (should not happen once loaded) is offline.
-    /// </summary>
-    public IReadOnlyDictionary<string, AgentPresence> Presence { get; private set; } = EmptyPresence;
-
-    /// <summary>
-    /// The index of the selected row within <see cref="Agents"/>.
+    /// The index of the selected row within <see cref="Rows"/>.
     /// </summary>
     public int SelectedRow { get; set; }
 
@@ -39,41 +29,55 @@ internal sealed class AgentsState(
     public AgentsFocus Focus { get; set; } = AgentsFocus.List;
 
     /// <summary>
-    /// The agent at <see cref="SelectedRow"/>, or null when the list is
-    /// empty or the row is out of range.
+    /// The row at <see cref="SelectedRow"/>, or null when the list is empty
+    /// or the row is out of range.
     /// </summary>
-    public AgentRecord? SelectedAgent
-        => SelectedRow >= 0 && SelectedRow < Agents.Count ? Agents[SelectedRow] : null;
+    public AgentParticipantRow? SelectedParticipant
+        => SelectedRow >= 0 && SelectedRow < Rows.Count ? Rows[SelectedRow] : null;
 
     /// <summary>
-    /// Reloads every agent from the registry. The selected agent stays
-    /// selected when it is still present in the reloaded list; otherwise the
-    /// selected row is clamped to the new list's bounds.
+    /// Reloads every live participant from the registry. The selected row
+    /// stays selected by its <see cref="AgentSessionKey"/> (harness plus
+    /// session id), never by actor name, so two sessions sharing one actor
+    /// and a bound session's role being promoted both leave the selection
+    /// untouched. Otherwise the selected row is clamped to the new list's
+    /// bounds.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
-        var selectedName = SelectedAgent?.Name;
+        var selectedKey = SelectedParticipant?.Key;
 
-        var agents = await registry.ListAsync(role: null, staleBefore: null, cancellationToken);
-        var sessions = await sessionRegistry.ListAsync(cancellationToken);
-        Agents = agents;
-        Presence = agents.ToDictionary(
-            agent => agent.Name,
-            agent => AgentPresence.Compute(
-                sessions.Where(v => v.Session.AgentName == agent.Name).ToArray(), activityReader));
+        var participants = await sessionRegistry.ListParticipantsAsync(cancellationToken);
+        Rows = participants.Select(ToRow).ToList();
 
-        var preservedIndex = selectedName is null ? -1 : IndexOf(agents, selectedName);
+        var preservedIndex = selectedKey is { } key ? IndexOf(Rows, key) : -1;
 
         SelectedRow = preservedIndex >= 0
             ? preservedIndex
-            : Math.Clamp(SelectedRow, 0, Math.Max(0, agents.Count - 1));
+            : Math.Clamp(SelectedRow, 0, Math.Max(0, Rows.Count - 1));
     }
 
-    private static int IndexOf(IReadOnlyList<AgentRecord> agents, string name)
+    /// <summary>
+    /// Reads the Claude activity read-through for a single online
+    /// claude-code session; every other row carries no activity, since the
+    /// read-through only means anything against a session a caller could
+    /// plausibly find a live status file for.
+    /// </summary>
+    private AgentParticipantRow ToRow(AgentSessionParticipant participant)
     {
-        for (var i = 0; i < agents.Count; i++)
+        var activity = participant.State == AgentSessionState.Online
+            && participant.Session.Harness == AgentSessionHarness.ClaudeCode
+                ? activityReader.GetStatus(participant.Session.Pid, participant.Session.SessionId)
+                : null;
+
+        return new AgentParticipantRow(participant, activity);
+    }
+
+    private static int IndexOf(IReadOnlyList<AgentParticipantRow> rows, AgentSessionKey key)
+    {
+        for (var i = 0; i < rows.Count; i++)
         {
-            if (agents[i].Name == name)
+            if (rows[i].Key == key)
             {
                 return i;
             }

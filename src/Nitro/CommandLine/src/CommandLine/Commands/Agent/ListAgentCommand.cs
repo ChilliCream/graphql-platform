@@ -9,21 +9,14 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
 internal sealed class ListAgentCommand : Command
 {
-    /// <summary>
-    /// The staleness threshold applied by <c>--stale</c>, mirroring
-    /// <c>agent tasks stale</c>'s default of 30 days.
-    /// </summary>
-    private const int StaleDays = 30;
-
     public ListAgentCommand() : base("list")
     {
-        Description = "List registered agents.";
+        Description = "List live agent participants: one row per harness session, including unbound sessions.";
 
         Options.Add(Opt<RoleAgentOption>.Instance);
-        Options.Add(Opt<StaleAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent list", "agent list --role \"backend\"", "agent list --stale");
+        this.AddExamples("agent list", "agent list --role \"orchestrator\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -34,98 +27,85 @@ internal sealed class ListAgentCommand : Command
         CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<INitroConsole>();
-        var registry = services.GetRequiredService<IAgentRegistry>();
         var sessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
-        var activityReader = services.GetRequiredService<IClaudeSessionActivityReader>();
-        var timeProvider = services.GetRequiredService<TimeProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance);
-        var stale = parseResult.GetValue(Opt<StaleAgentOption>.Instance);
-        var staleBefore = stale ? timeProvider.GetUtcNow() - TimeSpan.FromDays(StaleDays) : (DateTimeOffset?)null;
 
-        var agents = await registry.ListAsync(role, staleBefore, cancellationToken);
-        var sessions = await sessionRegistry.ListAsync(cancellationToken);
-        var rows = agents
-            .Select(agent => (Agent: agent, Presence: ComputePresence(agent, sessions, activityReader)))
-            .ToArray();
+        var participants = await sessionRegistry.ListParticipantsAsync(cancellationToken);
+
+        if (role is not null)
+        {
+            var normalizedRole = AgentRole.Normalize(role);
+            participants = participants.Where(p => p.Session.Role == normalizedRole).ToArray();
+        }
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(
-                new ListResult<AgentListRowResult>(rows.Select(r => ToRow(r.Agent, r.Presence)).ToArray()));
+            resultHolder.SetResult(new ListResult<AgentListRowResult>(participants.Select(ToRow).ToArray()));
             return ExitCodes.Success;
         }
 
-        if (rows.Length == 0)
+        if (participants.Count == 0)
         {
-            console.WriteLine("No registered agents.");
+            console.WriteLine("No live agent participants.");
             return ExitCodes.Success;
         }
 
-        foreach (var (agent, presence) in rows)
+        foreach (var participant in participants)
         {
-            var roleSuffix = agent.Role.Length > 0 ? $"  role {agent.Role}" : "";
-            var clientSuffix = agent.Client.Length > 0 ? $"  client {agent.Client}" : "";
-            var implicitSuffix = agent.Implicit ? "  (implicit)" : "";
-
-            console.WriteLine(
-                $"{agent.Name}  {FormatPresence(presence)}{roleSuffix}{clientSuffix}{implicitSuffix}"
-                + $"  registered {TaskDates.Format(agent.RegisteredAt)}"
-                + $"  last seen {TaskDates.Format(agent.LastSeenAt)}");
+            console.WriteLine(FormatLine(participant));
         }
 
         return ExitCodes.Success;
     }
 
-    private static AgentPresence ComputePresence(
-        AgentRecord agent, IReadOnlyList<AgentSessionView> sessions, IClaudeSessionActivityReader activityReader)
-    {
-        var mine = sessions.Where(v => v.Session.AgentName == agent.Name).ToArray();
-        return AgentPresence.Compute(mine, activityReader);
-    }
-
     /// <summary>
-    /// Renders a presence for the human-readable line: the state, the
-    /// Claude activity read-through in parentheses when known (only ever set
-    /// for a single online claude-code session, see
-    /// <see cref="AgentPresence.Compute"/>), or the live session count in
-    /// parentheses when the agent's sessions disagree on state (the
-    /// "surfaced, not hidden" multi-session conflict).
+    /// Renders the human-readable line for one participant: the bound actor
+    /// (or "unbound"), the live state, the harness with its exact version
+    /// when captured, the mutable role when set, and when it was last heard
+    /// from. Full session id, cwd/workspace, and endpoint/host diagnostics
+    /// are machine output only (<c>--output json</c>); <c>agent session list</c>
+    /// is the lower-level surface for those on a human terminal.
     /// </summary>
-    private static string FormatPresence(AgentPresence presence)
+    private static string FormatLine(AgentSessionParticipant participant)
     {
-        var activitySuffix = presence.Activity is { Length: > 0 } activity ? $" ({activity})" : "";
-        var conflictSuffix = presence.Conflicted ? $" ({presence.SessionCount} sessions)" : "";
+        var session = participant.Session;
+        var actor = session.AgentName ?? "unbound";
+        var versionSuffix = session.HarnessVersion.Length > 0 ? $" {session.HarnessVersion}" : "";
+        var roleSuffix = session.Role.Length > 0 ? $"  role {session.Role}" : "";
 
-        return presence.State + activitySuffix + conflictSuffix;
+        return $"{actor}  {participant.State}  {session.Harness}{versionSuffix}{roleSuffix}"
+            + $"  last heard {TaskDates.Format(session.LastBeatAt)}";
     }
 
-    private static AgentListRowResult ToRow(AgentRecord agent, AgentPresence presence) => new(
-        agent.Name,
-        agent.Role,
-        agent.Client,
-        agent.Implicit,
-        agent.RegisteredAt,
-        agent.LastSeenAt,
-        presence.State,
-        presence.Conflicted,
-        presence.SessionCount,
-        presence.EndpointKind,
-        presence.EndpointAddr,
-        presence.Activity);
+    private static AgentListRowResult ToRow(AgentSessionParticipant participant) => new(
+        participant.Session.Harness,
+        participant.Session.SessionId,
+        participant.Session.AgentName,
+        participant.Session.Role,
+        participant.Session.HarnessVersion,
+        participant.State,
+        participant.Session.StartedAt,
+        participant.Session.LastBeatAt,
+        participant.Session.Cwd,
+        participant.Session.WorkspacePath,
+        participant.Session.Host,
+        participant.Session.EndpointKind,
+        participant.Session.EndpointAddr);
 
     public sealed record AgentListRowResult(
-        string Name,
+        string Harness,
+        string SessionId,
+        string? Actor,
         string Role,
-        string Client,
-        bool Implicit,
-        DateTimeOffset RegisteredAt,
-        DateTimeOffset LastSeenAt,
-        string Presence,
-        bool PresenceConflict,
-        int SessionCount,
-        string? EndpointKind,
-        string? EndpointAddr,
-        string? Activity);
+        string HarnessVersion,
+        string State,
+        DateTimeOffset StartedAt,
+        DateTimeOffset LastHeardAt,
+        string Cwd,
+        string WorkspacePath,
+        string Host,
+        string EndpointKind,
+        string EndpointAddr);
 }

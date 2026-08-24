@@ -5,17 +5,17 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 /// <summary>
 /// An in-memory <see cref="IAgentSessionRegistry"/> exercising the surface
 /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentsState"/> consumes
-/// (<see cref="ListAsync"/>). Every other member throws
+/// (<see cref="ListParticipantsAsync"/>). Every other member throws
 /// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
 {
-    public List<AgentSessionView> Sessions { get; } = [];
-
-    public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
-        => Task.FromResult<IReadOnlyList<AgentSessionView>>(Sessions);
+    public List<AgentSessionParticipant> Participants { get; } = [];
 
     public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<AgentSessionParticipant>>(Participants);
+
+    public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<AgentSessionRecord> StartAsync(

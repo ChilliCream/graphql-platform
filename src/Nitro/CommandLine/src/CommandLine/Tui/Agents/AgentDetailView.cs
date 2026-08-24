@@ -7,9 +7,9 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
 /// Renders an <see cref="AgentDetailModel"/> as a scrollable body of its
-/// Identity, Tasks, and Sent mail sections inside a bordered panel, the same
-/// single-panel shape <c>MailDetailView</c> uses. Owns the body's scroll
-/// position; the model owns everything else.
+/// Session, Identity, Tasks, and Sent mail sections inside a bordered panel,
+/// the same single-panel shape <c>MailDetailView</c> uses. Owns the body's
+/// scroll position; the model owns everything else.
 /// </summary>
 internal sealed class AgentDetailView
 {
@@ -31,6 +31,8 @@ internal sealed class AgentDetailView
     /// them needs to be recomputed.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
+
+    private const string NoSessionMessage = "No session selected.";
 
     private readonly AgentDetailModel _model;
     private readonly TimeProvider _timeProvider;
@@ -63,7 +65,8 @@ internal sealed class AgentDetailView
     public void ScrollToBottom() => _bodyViewport.ScrollBy(int.MaxValue / 2);
 
     /// <summary>
-    /// Renders the loaded agent's sections into the given content area.
+    /// Renders the loaded participant's sections into the given content
+    /// area.
     /// </summary>
     public IRenderable Render(int width, int height, bool focused)
     {
@@ -80,7 +83,7 @@ internal sealed class AgentDetailView
         var lines = AgentDetailBody.Build(_model, now, interiorWidth);
 
         IRenderable content = lines.Count == 0
-            ? Align.Center(new Markup(Markup.Escape(NoAgentMessage())), VerticalAlignment.Middle)
+            ? Align.Center(new Markup(Markup.Escape(NoSessionMessage)), VerticalAlignment.Middle)
             : new Rows(RenderVisibleLines(lines, interiorHeight).Select(Row));
 
         var borderToken = focused ? "board.column.border.focused" : "board.column.border";
@@ -96,10 +99,9 @@ internal sealed class AgentDetailView
     }
 
     private string BuildHeader()
-        => _model.Agent is { } agent ? Markup.Escape(agent.Name) : "Agent detail";
-
-    private string NoAgentMessage()
-        => _model.CurrentAgentName is { } name ? $"Agent {name} not found." : "No agent selected.";
+        => _model.Participant is { } participant
+            ? Markup.Escape(participant.Session.AgentName ?? AgentParticipantRow.UnboundLabel)
+            : "Session detail";
 
     /// <summary>
     /// Slices the body's visible window, reserving rows for "N more

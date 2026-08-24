@@ -19,26 +19,24 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
         result.AssertHelpOutput(
             """
             Description:
-              List registered agents.
+              List live agent participants: one row per harness session, including unbound sessions.
 
             Usage:
               nitro agent list [options]
 
             Options:
               --role <role>    The agent's role, free text, normalized lowercase (defaults to empty)
-              --stale          Only show agents not seen in the last 30 days
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 
             Example:
               nitro agent list
-              nitro agent list --role "backend"
-              nitro agent list --stale
+              nitro agent list --role "orchestrator"
             """);
     }
 
     [Fact]
-    public async Task NoAgents_PrintsEmptyMessage()
+    public async Task NoSessions_PrintsEmptyMessage()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -49,12 +47,12 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
         // assert
         result.AssertSuccess(
             """
-            No registered agents.
+            No live agent participants.
             """);
     }
 
     [Fact]
-    public async Task JsonOutput_NoAgents_ReturnsEmptyArray()
+    public async Task JsonOutput_NoSessions_ReturnsEmptyArray()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -73,100 +71,6 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task Agents_AreOrderedByName()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
-        await ExecuteCommandAsync("agent", "register", "--actor", "mu");
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        // assert
-        var lines = result.StdOut.Split('\n');
-        Assert.Equal(3, lines.Length);
-        Assert.StartsWith("alpha", lines[0]);
-        Assert.StartsWith("mu", lines[1]);
-        Assert.StartsWith("zeta", lines[2]);
-    }
-
-    [Fact]
-    public async Task JsonOutput_ReturnsRegisteredAgentsWithRole()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync(
-            "agent", "register", "--actor", "alpha", "--role", "backend", "--client", "claude-code");
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        var items = root.GetProperty("items");
-        Assert.Equal(1, items.GetArrayLength());
-        Assert.Equal("alpha", items[0].GetProperty("name").GetString());
-        Assert.Equal("backend", items[0].GetProperty("role").GetString());
-        Assert.Equal("claude-code", items[0].GetProperty("client").GetString());
-        Assert.False(items[0].GetProperty("implicit").GetBoolean());
-    }
-
-    [Fact]
-    public async Task HumanReadableOutput_ShowsClientSuffix_When_ClientIsSet()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--client", "claude-code");
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        // assert
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("client claude-code", line);
-    }
-
-    [Fact]
-    public async Task RoleOption_FiltersByExactRole()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--role", "backend");
-        await ExecuteCommandAsync("agent", "register", "--actor", "beta", "--role", "frontend");
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list", "--role", "backend");
-
-        // assert
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.StartsWith("alpha", line);
-    }
-
-    [Fact]
-    public async Task StaleOption_FiltersByLastSeenOlderThan30Days()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "old-agent");
-        FakeTime.Advance(TimeSpan.FromDays(31));
-        await ExecuteCommandAsync("agent", "register", "--actor", "fresh-agent");
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list", "--stale");
-
-        // assert
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.StartsWith("old-agent", line);
-    }
-
-    [Fact]
     public async Task NoWorkspace_ReturnsError()
     {
         // act
@@ -180,9 +84,12 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task HumanReadableOutput_ShowsOffline_When_AgentHasNoLiveSession()
+    public async Task HumanReadableOutput_ShowsNothing_When_AnActorHasHistoryButNoLiveSession()
     {
-        // arrange
+        // arrange: a durable identity that has registered before, but has
+        // no live harness session right now. The old durable-agents-table
+        // listing would still show it (stale historical identity); the
+        // live-participant listing must not.
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
 
@@ -190,12 +97,128 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
         var result = await ExecuteCommandAsync("agent", "list");
 
         // assert
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("alpha  offline", line);
+        result.AssertSuccess(
+            """
+            No live agent participants.
+            """);
     }
 
     [Fact]
-    public async Task HumanReadableOutput_ShowsOnline_When_AgentHasALiveSessionWithAnEndpoint()
+    public async Task HumanReadableOutput_ShowsUnboundSession_WithNoActor()
+    {
+        // arrange: a live harness session that has never been claimed or
+        // registered by any actor.
+        await InitWorkspaceAsync();
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", agentName: null, bindingKind: "none");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.StartsWith("unbound", line);
+    }
+
+    [Fact]
+    public async Task JsonOutput_ShowsUnboundSession_WithNullActor()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", agentName: null, bindingKind: "none");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var item = document.RootElement.GetProperty("items")[0];
+
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, item.GetProperty("actor").ValueKind);
+        Assert.Equal("session-1", item.GetProperty("sessionId").GetString());
+    }
+
+    [Fact]
+    public async Task Rows_Should_ShowTwoSeparateRows_When_TwoSessionsShareOneActor()
+    {
+        // arrange: a same-actor restart leaves two live sessions bound to
+        // the same actor; the live-participant listing never aggregates
+        // them into one row.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", "alpha");
+        await InsertAliveSessionRowAsync(FixedHost, "session-2", "alpha", harness: "codex");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var items = document.RootElement.GetProperty("items");
+
+        Assert.Equal(2, items.GetArrayLength());
+        Assert.All(items.EnumerateArray(), item => Assert.Equal("alpha", item.GetProperty("actor").GetString()));
+    }
+
+    [Fact]
+    public async Task Refresh_Should_ShowPromotedRole_WithoutDuplicatingTheRow()
+    {
+        // arrange: a session's mutable role changes on the SAME (harness,
+        // session id) row (the shape IAgentSessionRegistry.RegisterAsync
+        // applies); the listing must show exactly one row, with the new
+        // role, never a second row for the promotion.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", "alpha", role: "");
+        await UpdateSessionRoleAsync(FixedHost, "session-1", "orchestrator");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.Contains("role orchestrator", line);
+    }
+
+    [Fact]
+    public async Task RoleOption_FiltersByTheMutableSessionRole_NotTheDurableIdentityRole()
+    {
+        // arrange: planners locate the orchestrator by --role, which must
+        // match a bound live row's mutable session role.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
+        await ExecuteCommandAsync("agent", "register", "--actor", "beta");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", "alpha", role: "orchestrator");
+        await InsertAliveSessionRowAsync(FixedHost, "session-2", "beta", role: "planner");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list", "--role", "orchestrator");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.StartsWith("alpha", line);
+    }
+
+    [Fact]
+    public async Task HumanReadableOutput_ShowsHarnessAndExactVersion()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", "alpha", harness: "claude-code", harnessVersion: "2.1.241");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.Contains("claude-code 2.1.241", line);
+    }
+
+    [Fact]
+    public async Task HumanReadableOutput_ShowsState()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -208,11 +231,11 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
 
         // assert
         var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("alpha  online", line);
+        Assert.Contains("online", line);
     }
 
     [Fact]
-    public async Task HumanReadableOutput_ShowsUnreachable_When_AgentHasALiveSessionWithNoEndpoint()
+    public async Task HumanReadableOutput_ShowsUnreachable_When_TheSessionHasNoEndpoint()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -224,28 +247,11 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
 
         // assert
         var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("alpha  unreachable", line);
+        Assert.Contains("unreachable", line);
     }
 
     [Fact]
-    public async Task HumanReadableOutput_ShowsOffline_When_TheOnlySessionRowIsADeadGeneration()
-    {
-        // arrange: a dead-generation row on the current instance is reaped
-        // on read, not reported as some stale presence state.
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
-        await InsertDeadSessionRowAsync(FixedHost, "session-dead", "alpha");
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        // assert
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("alpha  offline", line);
-    }
-
-    [Fact]
-    public async Task HumanReadableOutput_ShowsRemote_When_AgentsLiveSessionIsOnAnotherInstance()
+    public async Task HumanReadableOutput_ShowsRemote_When_TheSessionIsOnAnotherInstance()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -257,39 +263,36 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
 
         // assert
         var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("alpha  remote", line);
+        Assert.Contains("remote", line);
     }
 
     [Fact]
-    public async Task HumanReadableOutput_SurfacesConflict_When_SameActorSessionsDisagreeOnState()
+    public async Task HumanReadableOutput_OmitsDeadGenerationRow()
     {
-        // arrange: a same-actor restart leaves two live sessions - one
-        // online, one unreachable - and the plan requires that disagreement
-        // is surfaced, not silently collapsed into one of the two states.
+        // arrange: a dead-generation row on the current instance is reaped
+        // on read, not reported at all.
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
-        await InsertAliveSessionRowAsync(
-            FixedHost, "session-1", "alpha", endpointKind: "claude-peer", endpointAddr: "alpha-peer");
-        await InsertAliveSessionRowAsync(FixedHost, "session-2", "alpha", harness: "codex");
+        await InsertDeadSessionRowAsync(FixedHost, "session-dead", "alpha");
 
         // act
         var result = await ExecuteCommandAsync("agent", "list");
 
-        // assert: both states are named, and the session count is shown so
-        // the conflict cannot be mistaken for either state alone.
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.Contains("online+unreachable", line);
-        Assert.Contains("(2 sessions)", line);
+        // assert
+        result.AssertSuccess(
+            """
+            No live agent participants.
+            """);
     }
 
     [Fact]
-    public async Task JsonOutput_IncludesPresenceAndEndpointColumns()
+    public async Task JsonOutput_IncludesFullSessionIdAndDiagnosticColumns()
     {
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
         await InsertAliveSessionRowAsync(
-            FixedHost, "session-1", "alpha", endpointKind: "claude-peer", endpointAddr: "alpha-peer");
+            FixedHost, "session-1-full-id", "alpha", endpointKind: "claude-peer", endpointAddr: "alpha-peer");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -299,30 +302,14 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
         var item = document.RootElement.GetProperty("items")[0];
 
-        Assert.Equal("online", item.GetProperty("presence").GetString());
-        Assert.False(item.GetProperty("presenceConflict").GetBoolean());
-        Assert.Equal(1, item.GetProperty("sessionCount").GetInt32());
+        Assert.Equal("claude-code", item.GetProperty("harness").GetString());
+        Assert.Equal("session-1-full-id", item.GetProperty("sessionId").GetString());
+        Assert.Equal("alpha", item.GetProperty("actor").GetString());
+        Assert.Equal("online", item.GetProperty("state").GetString());
+        Assert.Equal("/work", item.GetProperty("cwd").GetString());
+        Assert.Equal("/work/.nitro/agents", item.GetProperty("workspacePath").GetString());
+        Assert.Equal(FixedHost, item.GetProperty("host").GetString());
         Assert.Equal("claude-peer", item.GetProperty("endpointKind").GetString());
         Assert.Equal("alpha-peer", item.GetProperty("endpointAddr").GetString());
-    }
-
-    [Fact]
-    public async Task JsonOutput_OmitsEndpointColumns_When_AgentHasNoLiveSession()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var item = document.RootElement.GetProperty("items")[0];
-
-        Assert.Equal("offline", item.GetProperty("presence").GetString());
-        Assert.Equal(0, item.GetProperty("sessionCount").GetInt32());
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, item.GetProperty("endpointKind").ValueKind);
     }
 }
