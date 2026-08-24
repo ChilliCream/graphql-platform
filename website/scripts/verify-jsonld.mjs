@@ -72,7 +72,7 @@ const ROUTES = [
     expect: ["BreadcrumbList", "SoftwareSourceCode"],
   },
   {
-    path: "/learn/workshops/graphql-workshop-repo",
+    path: "/learn/workshops/graphql-workshop",
     type: "workshop page",
     expect: ["BreadcrumbList", "Course"],
   },

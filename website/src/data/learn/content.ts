@@ -1330,11 +1330,11 @@ const fullstackWorkshop: WorkshopItem = {
   ],
 };
 
-const graphqlWorkshopRepo: WorkshopItem = {
+const graphqlWorkshop: WorkshopItem = {
   type: "workshop",
-  slug: "graphql-workshop-repo",
-  title: "GraphQL Workshop",
-  tagline: "A self-paced, hands-on workshop repo covering types, resolvers, DataLoaders, and filtering.",
+  slug: "graphql-workshop",
+  title: "Getting started with GraphQL on ASP.NET Core and Hot Chocolate",
+  tagline: "A self-paced, hands-on workshop repo building a conference-planner GraphQL server, one session at a time.",
   products: ["hot-chocolate"],
   level: "beginner",
   externalUrl: "https://github.com/ChilliCream/graphql-workshop",
@@ -1343,27 +1343,33 @@ const graphqlWorkshopRepo: WorkshopItem = {
   cli: [{ key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/graphql-workshop" }],
   body: [
     {
-      heading: "Overview",
-      paragraphs: [
-        "A self-paced repo that builds a conference-planner GraphQL server with ASP.NET Core and Hot Chocolate from File → New, one session at a time. A hosted copy of the finished server is browsable at workshop.chillicream.com.",
-      ],
-    },
-    {
       heading: "What you build",
       paragraphs: [
-        "Seven sessions, each with its own doc: creating the GraphQL server project, understanding DataLoader, schema design approaches, understanding middleware, adding complex filter capabilities, real-time functionality with subscriptions, and testing the GraphQL server. Each session builds on the previous one's code.",
+        "A conference-planner GraphQL server built with ASP.NET Core and Hot Chocolate from File → New, up through custom middleware, complex filters, subscriptions, Relay support, and tests. A hosted copy of the finished server is browsable at workshop.chillicream.com.",
       ],
     },
     {
-      heading: "How to run it",
+      heading: "Sessions",
       paragraphs: [
-        "Install the .NET SDK and the Nitro GraphQL IDE, then work through the session docs in order starting with Session 1.",
+        "Seven sessions, each with its own guide: creating the server project, understanding DataLoader, schema design, middleware, complex filters, subscriptions, and testing. Each session builds on the previous one's code.",
+      ],
+    },
+    {
+      heading: "Prerequisites",
+      paragraphs: [
+        "The .NET SDK 8.0, an editor (VS Code, Visual Studio, or JetBrains Rider), and the Nitro GraphQL IDE.",
+      ],
+    },
+    {
+      heading: "How to start",
+      paragraphs: [
+        "Clone the repo, then work through the session guides under docs/ in order, starting with Session 1.",
       ],
     },
   ],
 };
 
-export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [fullstackWorkshop, graphqlWorkshopRepo];
+export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [fullstackWorkshop, graphqlWorkshop];
 
 export const LEARN_ITEMS: readonly LearnItem[] = [
   ...TEMPLATE_ITEMS,
