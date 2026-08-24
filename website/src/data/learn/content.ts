@@ -934,6 +934,7 @@ const fusionDemoExample: ExampleItem = {
   products: ["hot-chocolate", "fusion"],
   level: "intermediate",
   externalUrl: "https://github.com/ChilliCream/fusion-demo",
+  githubUrl: "https://github.com/ChilliCream/fusion-demo",
   updatedRelative: "this week",
 };
 
@@ -946,6 +947,7 @@ const mochaEcommerceDemoExample: ExampleItem = {
   products: ["mocha"],
   level: "advanced",
   externalUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
+  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
   updatedRelative: "this week",
 };
 
@@ -957,6 +959,7 @@ const hotChocolateExamplesExample: ExampleItem = {
   products: ["hot-chocolate"],
   level: "intermediate",
   externalUrl: "https://github.com/ChilliCream/hotchocolate-examples",
+  githubUrl: "https://github.com/ChilliCream/hotchocolate-examples",
   updatedRelative: "over a year ago",
 };
 
@@ -990,6 +993,7 @@ const graphqlWorkshopRepo: WorkshopItem = {
   products: ["hot-chocolate"],
   level: "beginner",
   externalUrl: "https://github.com/ChilliCream/graphql-workshop",
+  githubUrl: "https://github.com/ChilliCream/graphql-workshop",
   updatedRelative: "3 months ago",
 };
 
@@ -1053,4 +1057,28 @@ export const findRelatedTemplates = (template: TemplateItem, max: number = 3): r
     (t) => !sameTopology.includes(t) && t.products.some((p) => template.products.includes(p)),
   );
   return [...sameTopology, ...productOverlap, ...others].slice(0, max);
+};
+
+/**
+ * Related items for a tutorial/example/workshop detail page: same-type items
+ * sharing a product first, then other content types sharing a product,
+ * capped at `max`. Templates carry their own topology-aware `findRelated` in
+ * the templates route, since topology has no equivalent on these types.
+ */
+export const findRelatedCatalogItems = (
+  item: TutorialItem | ExampleItem | WorkshopItem,
+  max: number = 3,
+): readonly LearnItemSummary[] => {
+  const others = LEARN_SUMMARIES.filter((i) => i.slug !== item.slug);
+  const sameType = others.filter((i) => i.type === item.type);
+  const sameTypeProductOverlap = sameType.filter((i) => i.products.some((p) => item.products.includes(p)));
+  const primary = (sameTypeProductOverlap.length > 0 ? sameTypeProductOverlap : sameType).slice(0, max);
+  if (primary.length >= max) {
+    return primary;
+  }
+  const usedSlugs = new Set([item.slug, ...primary.map((i) => i.slug)]);
+  const otherType = others.filter(
+    (i) => i.type !== item.type && !usedSlugs.has(i.slug) && i.products.some((p) => item.products.includes(p)),
+  );
+  return [...primary, ...otherType].slice(0, max);
 };

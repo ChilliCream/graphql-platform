@@ -1,5 +1,6 @@
-import type { ProductKey } from "@/src/data/learn/facets";
 import { DrinkIcon } from "@/src/components/DrinkIcon";
+import type { ProductKey } from "@/src/data/learn/facets";
+import { productLabel } from "@/src/data/learn/facets";
 import { ART_DOT_GRID, PRODUCT_ART, accentProduct } from "./productArt";
 
 interface TemplateStackArtProps {
@@ -27,13 +28,14 @@ export function TemplateStackArt({ products, drinkBase = 64, className }: Templa
         {products.slice(0, 3).map((product) => {
           const art = PRODUCT_ART[product];
           return (
-            <DrinkIcon
-              key={product}
-              Icon={art.Drink}
-              name={art.drinkName}
-              base={drinkBase}
-              className="drop-shadow-[0_10px_24px_rgba(0,0,0,0.5)]"
-            />
+            <span key={product} title={productLabel(product)}>
+              <DrinkIcon
+                Icon={art.Drink}
+                name={art.drinkName}
+                base={drinkBase}
+                className="drop-shadow-[0_10px_24px_rgba(0,0,0,0.5)]"
+              />
+            </span>
           );
         })}
       </div>

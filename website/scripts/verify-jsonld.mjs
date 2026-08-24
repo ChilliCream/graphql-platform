@@ -23,7 +23,15 @@ const REQUIRED_PROPS = {
   ItemList: ["itemListElement"],
   Article: ["headline", "datePublished", "publisher"],
   BlogPosting: ["headline", "datePublished", "publisher"],
-  SoftwareSourceCode: ["name", "url", "codeRepository", "programmingLanguage"],
+  // No `programmingLanguage` here: templates always carry one (from their
+  // `language` axis) but examples don't have an equivalent field, so it's
+  // only ever emitted when available rather than required.
+  SoftwareSourceCode: ["name", "url", "codeRepository"],
+  // Tutorial detail pages (website-kbx.25): a technical how-to, not a dated
+  // news article, so no `datePublished` requirement either.
+  TechArticle: ["headline", "url", "description"],
+  // Workshop detail pages (website-kbx.25).
+  Course: ["name", "url", "description", "provider"],
 };
 
 /**
@@ -52,6 +60,21 @@ const ROUTES = [
     path: "/learn/templates/fusion-3-service-federation",
     type: "template page",
     expect: ["BreadcrumbList", "SoftwareSourceCode"],
+  },
+  {
+    path: "/learn/tutorials/get-started-with-graphql-in-net-core",
+    type: "tutorial page",
+    expect: ["BreadcrumbList", "TechArticle"],
+  },
+  {
+    path: "/learn/examples/fusion-demo",
+    type: "example page",
+    expect: ["BreadcrumbList", "SoftwareSourceCode"],
+  },
+  {
+    path: "/learn/workshops/graphql-workshop-repo",
+    type: "workshop page",
+    expect: ["BreadcrumbList", "Course"],
   },
   {
     path: "/learn/topics/graphql-federation",

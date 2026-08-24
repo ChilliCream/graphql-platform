@@ -4,8 +4,12 @@
 // products, updated info, optional external URL); each type then adds its
 // own payload. Templates carry the full shape the old /templates pages
 // render (topology, language, clients, stack, agentReady, cli, body).
-// Video/tutorial/example/workshop payloads are intentionally minimal until
-// real content is seeded (see website-5yo.6).
+// Tutorial/example/workshop payloads share the same detail-page fields
+// (body/cli/githubUrl) as templates, kept optional since the concept can
+// genuinely be absent (a docs-hosted tutorial has no githubUrl; a workshop
+// walkthrough has no cli) and since the 8 seed items don't carry real body
+// content yet (website-kbx.26 backfills it). Video payloads stay on their
+// own shape (see LearnVideoDetail).
 
 import type { LearnContentType, ProductKey } from "./facets";
 import type { LanguageKey, TopologyKey } from "./facets";
@@ -40,7 +44,8 @@ export interface CliCommand {
   readonly code: string;
 }
 
-export interface TemplateSection {
+/** One heading + paragraphs (+ optional code sample) section of a detail page's body. */
+export interface DetailSection {
   readonly heading: string;
   readonly paragraphs: readonly string[];
   readonly code?: CodeBlock;
@@ -75,7 +80,7 @@ export interface TemplateItem extends LearnItemBase {
   readonly demoUrl?: string;
   readonly license: string;
   readonly cli: readonly CliCommand[];
-  readonly body: readonly TemplateSection[];
+  readonly body: readonly DetailSection[];
 }
 
 export interface VideoItem extends LearnItemBase {
@@ -101,21 +106,35 @@ export interface VideoItem extends LearnItemBase {
 export interface TutorialItem extends LearnItemBase {
   readonly type: "tutorial";
   readonly level?: LearnLevel;
+  /** Tutorials are mostly docs-hosted walkthroughs, not GitHub repos; omitted unless one exists. */
+  readonly githubUrl?: string;
+  readonly cli?: readonly CliCommand[];
+  readonly body?: readonly DetailSection[];
 }
 
 export interface ExampleItem extends LearnItemBase {
   readonly type: "example";
   readonly level?: LearnLevel;
+  readonly githubUrl?: string;
+  readonly cli?: readonly CliCommand[];
+  readonly body?: readonly DetailSection[];
 }
 
 export interface WorkshopItem extends LearnItemBase {
   readonly type: "workshop";
   readonly level?: LearnLevel;
+  readonly githubUrl?: string;
+  /** Most workshops are facilitated walkthroughs with nothing to scaffold from a CLI. */
+  readonly cli?: readonly CliCommand[];
+  readonly body?: readonly DetailSection[];
 }
 
 export type LearnItem = TemplateItem | VideoItem | TutorialItem | ExampleItem | WorkshopItem;
 
 export type LearnItemOfType<T extends LearnContentType> = Extract<LearnItem, { type: T }>;
+
+/** The content types with a shared `LearnDetail` detail page (every catalog type except video, which has its own layout). */
+export type DetailItem = TemplateItem | TutorialItem | ExampleItem | WorkshopItem;
 
 export type TemplateSummary = Pick<
   TemplateItem,

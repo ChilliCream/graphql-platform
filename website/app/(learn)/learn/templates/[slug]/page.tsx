@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { TemplateDetail } from "@/src/components/learn/TemplateDetail";
+import { LearnDetail } from "@/src/components/learn/LearnDetail";
 import { languageLabel, productLabel } from "@/src/data/learn/facets";
 import { findTemplate, LEARN_SUMMARIES, TEMPLATE_ITEMS, TEMPLATE_SUMMARIES } from "@/src/data/learn/content";
 import type { LearnItemSummary, TemplateItem } from "@/src/data/learn/types";
+import { ORGANIZATION_ID } from "@/src/helpers/structuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 
@@ -53,7 +54,7 @@ const structuredData = (template: TemplateItem) => ({
       codeRepository: template.githubUrl,
       programmingLanguage: languageLabel(template.language),
       license: template.license,
-      author: { "@id": `${SITE_URL}/#organization` },
+      author: { "@id": ORGANIZATION_ID },
     },
   ],
 });
@@ -96,7 +97,7 @@ export default async function TemplatePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(template)) }}
       />
-      <TemplateDetail template={template} related={related} />
+      <LearnDetail item={template} related={related} />
     </>
   );
 }

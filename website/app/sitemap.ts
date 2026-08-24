@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
-import { TEMPLATE_ITEMS, VIDEO_ITEMS } from "@/src/data/learn/content";
+import { EXAMPLE_ITEMS, TEMPLATE_ITEMS, TUTORIAL_ITEMS, VIDEO_ITEMS, WORKSHOP_ITEMS } from "@/src/data/learn/content";
 import { ARTICLES_ROOT, listArticleSlugs } from "@/src/helpers/articlePaths";
 
 export const dynamic = "force-static";
@@ -24,6 +24,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await staticPages()),
     ...learnTemplatePages(),
     ...learnVideoPages(),
+    ...learnTutorialPages(),
+    ...learnExamplePages(),
+    ...learnWorkshopPages(),
     ...(await docsPages()),
     ...(await articlePages()),
   ];
@@ -81,6 +84,30 @@ function learnTemplatePages(): MetadataRoute.Sitemap {
 function learnVideoPages(): MetadataRoute.Sitemap {
   return VIDEO_ITEMS.filter((video) => video.youtubeId).map((video) => ({
     url: `${SITE_URL}/learn/videos/${video.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+}
+
+function learnTutorialPages(): MetadataRoute.Sitemap {
+  return TUTORIAL_ITEMS.map((tutorial) => ({
+    url: `${SITE_URL}/learn/tutorials/${tutorial.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+}
+
+function learnExamplePages(): MetadataRoute.Sitemap {
+  return EXAMPLE_ITEMS.map((example) => ({
+    url: `${SITE_URL}/learn/examples/${example.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+}
+
+function learnWorkshopPages(): MetadataRoute.Sitemap {
+  return WORKSHOP_ITEMS.map((workshop) => ({
+    url: `${SITE_URL}/learn/workshops/${workshop.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
