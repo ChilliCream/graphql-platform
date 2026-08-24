@@ -168,8 +168,7 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: "Additional Resources",
         links: [
-          { href: "/learn", label: "Learn", icon: RocketIcon },
-          { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          { href: "/learn/articles", label: "Articles", icon: BlogIcon },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },
@@ -179,6 +178,7 @@ export const NAV_ITEMS: NavItem[] = [
       },
     ],
   },
+  { href: "/learn", label: "Learn" },
   {
     href: "/resources",
     label: "Company",
