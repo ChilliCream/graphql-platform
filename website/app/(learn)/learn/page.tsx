@@ -5,9 +5,10 @@ import type { LatestVideoRailItem } from "@/src/components/learn/LearnLatestVide
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
 import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
-import { popularTags, TOPICS, topicBrowseHref, topicsForBlogPost, type Topic } from "@/src/components/learn/editorial";
+import { popularTags } from "@/src/components/learn/editorial";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
 import { findFeaturedTemplate, LEARN_SUMMARIES, TEMPLATE_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
+import { HUBS, hubHref, hubsForPost, type Hub } from "@/src/data/learn/hubs";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { listArticlesByKind } from "@/src/helpers/articles";
 import { getLatestBlogPost, listBlogPostSummaries, type BlogPostSummary } from "@/src/helpers/blogPosts";
@@ -59,10 +60,12 @@ function buildStructuredData(collectionItems: readonly LearnItemSummary[]) {
 }
 
 /**
- * Selects up to 4 posts for a topic rail (learn-editorial.md section 15.2),
- * newest first. Returns an empty array (the rail is then omitted) when fewer
- * than 3 posts remain after the editorial band's dedupe. Returning the exact
- * posts placed, rather than a count, is what the caller marks as consumed.
+ * Selects up to 4 posts for a hub rail (learn-editorial.md section 15.2,
+ * amended by website-kbx.6 to source rails from the four canonical hubs
+ * instead of the five legacy topics), newest first. Returns an empty array
+ * (the rail is then omitted) when fewer than 3 posts remain after the
+ * editorial band's dedupe. Returning the exact posts placed, rather than a
+ * count, is what the caller marks as consumed.
  */
 function selectTopicPosts(pool: readonly BlogPostSummary[]): readonly BlogPostSummary[] {
   return pool.length >= 3 ? pool.slice(0, 4) : [];
@@ -151,20 +154,24 @@ export default function LearnPage() {
   const railVideoSlugs = new Set(railVideos.map((v) => v.slug));
 
   // Rails that actually render, so the lead-side alternation (A-B-A, D7) is
-  // computed over rendered rails, not every entry in TOPICS.
-  const topicRails: { readonly topic: Topic; readonly posts: readonly BlogPostSummary[] }[] = [];
-  for (const topic of TOPICS) {
-    const topicPosts = topicPostPool.filter(
-      (post) => !consumedStems.has(post.stem) && topicsForBlogPost(post).includes(topic.key),
+  // computed over rendered rails, not every entry in HUBS. Sourced from the
+  // four canonical hubs (website-kbx.6), not the five legacy TOPICS: a hub
+  // with no posts left in the pool (e.g. Messaging, which has none at all)
+  // simply contributes no rail, matching every other "only render sections
+  // with content" rule on this page.
+  const topicRails: { readonly hub: Hub; readonly posts: readonly BlogPostSummary[] }[] = [];
+  for (const hub of HUBS) {
+    const hubPosts = topicPostPool.filter(
+      (post) => !consumedStems.has(post.stem) && hubsForPost(post).includes(hub.key),
     );
-    const shown = selectTopicPosts(topicPosts);
+    const shown = selectTopicPosts(hubPosts);
     if (shown.length === 0) {
       continue;
     }
     for (const post of shown) {
       consumedStems.add(post.stem);
     }
-    topicRails.push({ topic, posts: shown });
+    topicRails.push({ hub, posts: shown });
   }
 
   return (
@@ -172,14 +179,17 @@ export default function LearnPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       {/* The subnav wordmark carries the visible section identity (learn-editorial.md section 15); this page leads with content. */}
       <h1 className="sr-only">Learn ChilliCream</h1>
-      {featured ? (
-        <LearnEditorialBand latestPosts={latestPosts} featuredPost={featured} latestVideos={railVideos} tags={tags} />
-      ) : null}
-      {topicRails.map(({ topic, posts }, index) => (
+      <LearnEditorialBand
+        latestPosts={latestPosts}
+        featuredPost={featured ?? null}
+        latestVideos={railVideos}
+        tags={tags}
+      />
+      {topicRails.map(({ hub, posts }, index) => (
         <LearnTopicRail
-          key={topic.key}
-          heading={topic.label}
-          moreHref={topicBrowseHref(topic)}
+          key={hub.key}
+          heading={hub.label}
+          moreHref={hubHref(hub.key)}
           posts={posts}
           leadSide={index % 2 === 0 ? "left" : "right"}
         />

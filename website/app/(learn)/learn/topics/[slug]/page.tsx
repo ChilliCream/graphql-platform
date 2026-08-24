@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
+import { popularTags } from "@/src/components/learn/editorial";
 import { LearnCollectionSection } from "@/src/components/learn/LearnCollectionSection";
-import { LearnFeaturedStory } from "@/src/components/learn/LearnFeaturedStory";
+import { LearnEditorialBand } from "@/src/components/learn/LearnEditorialBand";
+import type { LatestVideoRailItem } from "@/src/components/learn/LearnLatestVideos";
 import { LearnMasthead } from "@/src/components/learn/LearnMasthead";
 import { LearnSubscribeBand } from "@/src/components/learn/LearnSubscribeBand";
-import { LearnTopicRail } from "@/src/components/learn/LearnTopicRail";
 import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
 import { contentTypeLabel } from "@/src/data/learn/facets";
@@ -20,9 +21,6 @@ import { breadcrumbList, WEBSITE_ID } from "@/src/helpers/structuredData";
 interface PageProps {
   readonly params: Promise<{ readonly slug: string }>;
 }
-
-/** A "Latest" rail needs a lead story plus at least 2 secondary rows to fill its two-column layout; below that it is omitted, matching /learn's own topic rails (page.tsx's `selectTopicPosts`). */
-const MIN_RAIL_POSTS = 3;
 
 export const dynamicParams = false;
 
@@ -79,6 +77,28 @@ function selectVideos(videos: readonly VideoItem[]): readonly VideoItem[] {
   return [...videos].sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "")).slice(0, 4);
 }
 
+/**
+ * Hero band's "Latest videos" rail, scoped to the hub (website-kbx.6, mirrors
+ * /learn's own `selectRailVideos`): only videos with a `youtubeId` qualify,
+ * since the rail links to the internal `/learn/videos/<slug>` page, newest
+ * `publishedAt` first, capped at 2 per the kbx.5 hero-band composition.
+ */
+function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRailItem[] {
+  return videos
+    .filter((video): video is VideoItem & { youtubeId: string } => Boolean(video.youtubeId))
+    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
+    .slice(0, 2)
+    .map(({ slug, title, youtubeId, duration, poster, products, hubs }) => ({
+      slug,
+      title,
+      youtubeId,
+      duration,
+      poster,
+      products,
+      hubs,
+    }));
+}
+
 /** One browse sub-link per content type actually present among `items`, pre-filtered to the hub's product plus that type. Omitted (empty array) when only one type is present: a single-option filter row adds nothing. */
 function typeSubLinks(
   hub: Hub,
@@ -104,13 +124,24 @@ export default async function LearnHubPage({ params }: PageProps) {
   }
 
   const hubKey: HubKey = hub.key;
+
+  // Scoped hero band (website-kbx.6): the same Latest / Featured / rail
+  // composition as /learn's editorial band, parameterized to this hub's own
+  // posts, videos, and tags instead of the sitewide pool. Mirrors /learn's
+  // own featured/latestPosts split (page.tsx): the newest post leads as
+  // Featured, the next up to 5 fill the Latest column.
   const posts = listBlogPostSummaries().filter((post) => hubsForPost(post).includes(hubKey));
-  const [featuredPost, ...railPostPool] = posts;
+  const [featuredPost = null, ...restPosts] = posts;
+  const latestPosts = restPosts.slice(0, 5);
+
   const catalogItems = LEARN_SUMMARIES.filter(
     (item): item is Exclude<LearnItemSummary, VideoItem> =>
       item.type !== "video" && hubsForLearnItem(item).includes(hubKey),
   );
-  const videos = selectVideos(VIDEO_ITEMS.filter((video) => hubsForLearnItem(video).includes(hubKey)));
+  const hubVideos = VIDEO_ITEMS.filter((video) => hubsForLearnItem(video).includes(hubKey));
+  const railVideos = selectRailVideos(hubVideos);
+  const railVideoSlugs = new Set(railVideos.map((video) => video.slug));
+  const tags = popularTags(posts);
 
   const collectionItems = catalogItems.slice(0, 6);
   const structuredData = buildStructuredData(hub, collectionItems);
@@ -122,21 +153,19 @@ export default async function LearnHubPage({ params }: PageProps) {
         <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: hub.label }]} />
       </div>
       <LearnMasthead title={hub.label} teaser={hub.description} />
-      {featuredPost ? <LearnFeaturedStory post={featuredPost} /> : null}
-      {railPostPool.length >= MIN_RAIL_POSTS ? (
-        <LearnTopicRail
-          heading={`Latest in ${hub.label}`}
-          moreHref={hub.browseHref}
-          moreLabel={`More ${hub.label}`}
-          posts={railPostPool.slice(0, 4)}
-        />
-      ) : null}
+      <LearnEditorialBand
+        latestPosts={latestPosts}
+        featuredPost={featuredPost}
+        latestVideos={railVideos}
+        tags={tags}
+        allArticlesHref={hub.browseHref}
+      />
       <LearnCollectionSection
         items={collectionItems}
         subLinks={typeSubLinks(hub, collectionItems)}
         browseHref={hub.browseHref}
       />
-      <LearnVideoSection videos={videos} />
+      <LearnVideoSection videos={selectVideos(hubVideos.filter((video) => !railVideoSlugs.has(video.slug)))} />
       <LearnSubscribeBand />
     </>
   );
