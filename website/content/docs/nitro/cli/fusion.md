@@ -425,21 +425,21 @@ nitro fusion source-schema init [options]
 
 ## Options
 
-| Option                            | Env            | Description                                                                                               |
-| --------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
-| `--name <name>`                   |                | Name that identifies the source schema in the composite schema. Required for a new file.                  |
-| `-f, --source-schema-file <path>` |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to.             |
-| `--settings-file <path>`          |                | Write the settings to this path instead of deriving it from the schema file.                              |
-| `--url <url>`                     |                | URL the gateway uses to reach the source schema. Required for a new file.                                 |
-| `--dev-url <url>`                 |                | URL a local development environment uses to reach the source schema.                                      |
-| `--client-name <name>`            |                | Name of the HTTP client the gateway uses to reach the source schema.                                      |
-| `--api-id <id>`                   | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                                          |
-| `--schema-type <type>`            |                | `graphql-federation`, `apollo-federation-1`, or `apollo-federation-2`.                                    |
-| `--variable-batching <bool>`      |                | Whether the source schema supports variable batching. Defaults to `false` for a new file.                 |
-| `--request-batching <bool>`       |                | Whether the source schema supports request batching. Defaults to `false` for a new file.                  |
-| `--alias-batching <bool>`         |                | Whether the source schema supports alias batching. Defaults to `true` for a new file.                     |
-| `--batching-format <format>...`   |                | One or more response media types supported for batching, such as `application/jsonl`.                     |
-| `-w, --working-directory <path>`  |                | Working directory for the command.                                                                        |
+| Option                            | Env            | Description                                                                                   |
+| --------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `--name <name>`                   |                | Name that identifies the source schema in the composite schema. Required for a new file.      |
+| `-f, --source-schema-file <path>` |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to. |
+| `--settings-file <path>`          |                | Write the settings to this path instead of deriving it from the schema file.                  |
+| `--url <url>`                     |                | URL the gateway uses to reach the source schema. Required for a new file.                     |
+| `--dev-url <url>`                 |                | URL a local development environment uses to reach the source schema.                          |
+| `--client-name <name>`            |                | Name of the HTTP client the gateway uses to reach the source schema.                          |
+| `--api-id <id>`                   | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                              |
+| `--schema-type <type>`            |                | `graphql-federation`, `apollo-federation-1`, or `apollo-federation-2`.                        |
+| `--variable-batching <bool>`      |                | Whether the source schema supports variable batching. Defaults to `false` for a new file.     |
+| `--request-batching <bool>`       |                | Whether the source schema supports request batching. Defaults to `false` for a new file.      |
+| `--alias-batching <bool>`         |                | Whether the source schema supports alias batching. Defaults to `true` for a new file.         |
+| `--batching-format <format>...`   |                | One or more response media types supported for batching, such as `application/jsonl`.         |
+| `-w, --working-directory <path>`  |                | Working directory for the command.                                                            |
 
 `--name` and `--url` are only required when the settings file does not exist yet, since an existing file already carries both. On an interactive terminal the command asks for whichever of the two you did not pass. Everywhere else, including CI, omitting one fails rather than guessing a value.
 
@@ -451,11 +451,11 @@ Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which comp
 
 `--schema-type` describes the specification implemented by the source schema.
 
-| Type                  | What it declares                                                                                                            |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `graphql-federation`  | GraphQL Federation semantics from the Composite Schemas Specification. This is the default used by Fusion.                  |
-| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.                            |
-| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.                            |
+| Type                  | What it declares                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `graphql-federation`  | GraphQL Federation semantics from the Composite Schemas Specification. This is the default used by Fusion. |
+| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
+| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
 
 Selecting an Apollo Federation type writes the corresponding `1.0` or `2.0` marker. Selecting `graphql-federation` removes that marker. Schema-type changes do not modify transport capabilities.
 
