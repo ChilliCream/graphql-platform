@@ -134,6 +134,38 @@ internal interface IAgentSessionRegistry
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Atomically upserts the durable identity for <paramref name="actor"/>
+    /// and binds/promotes it onto the row matching <paramref
+    /// name="generation"/> exactly, applying the same claim state machine as
+    /// <see cref="ClaimAsync"/> and persisting <paramref name="role"/>
+    /// (normalized) onto the participant. Both writes commit or roll back
+    /// together. Throws <see cref="ExitException"/> when no row matches that
+    /// generation, when this process cannot verify it against the row's
+    /// recorded process scope, or when the row is already explicitly
+    /// claimed by a different actor and <paramref name="forceRebind"/> is
+    /// false. Repeating the same actor and role is idempotent: it still
+    /// refreshes the identity's last-seen time and the participant's
+    /// heartbeat, but reports no change.
+    /// </summary>
+    Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string actor,
+        string role,
+        string client,
+        bool forceRebind,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns every row matching <paramref name="harness"/>, <paramref
+    /// name="host"/>, <paramref name="pid"/>, and <paramref
+    /// name="procStart"/> exactly, for resolving a session by its process
+    /// identity when its session id is not independently known. Empty when
+    /// none matches; more than one means the match is ambiguous.
+    /// </summary>
+    Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
+        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Reaps dead current-instance rows, then returns every surviving row
     /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
     /// rows are never returned: a ping fired from here cannot reach a

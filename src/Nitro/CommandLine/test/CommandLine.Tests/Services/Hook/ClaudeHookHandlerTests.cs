@@ -703,6 +703,19 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
         => inner.RecordHarnessVersionAsync(generation, harnessVersion, cancellationToken);
 
+    public Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string actor,
+        string role,
+        string client,
+        bool forceRebind,
+        CancellationToken cancellationToken)
+        => inner.RegisterAsync(generation, actor, role, client, forceRebind, cancellationToken);
+
+    public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
+        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken)
+        => inner.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
+
     public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken)
         => inner.FindLiveClaimedByAgentNameAsync(agentName, cancellationToken);

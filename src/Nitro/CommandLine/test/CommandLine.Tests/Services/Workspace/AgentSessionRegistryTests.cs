@@ -390,6 +390,323 @@ public sealed class AgentSessionRegistryTests : IDisposable
             () => _sessions.ClaimAsync(staleGeneration, "pascal", forceRebind: false, cancellationToken));
     }
 
+    // ---------- RegisterAsync ----------
+
+    [Fact]
+    public async Task RegisterAsync_Should_UpsertIdentityAndBindTheUnboundSession_When_BlankToRolePromotion()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        var result = await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "claude-code", forceRebind: false, cancellationToken);
+
+        // assert
+        Assert.True(result.Changed);
+        Assert.Equal("pascal", result.Agent.Name);
+        Assert.Equal("orchestrator", result.Agent.Role);
+        Assert.Equal("claude-code", result.Agent.Client);
+        Assert.Equal("pascal", result.Session.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Explicit, result.Session.BindingKind);
+        Assert.Equal("orchestrator", result.Session.Role);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_NormalizeRole_When_Written()
+    {
+        // arrange: the first writer of agent_sessions.role - proves
+        // AgentRole.Normalize applies on the write path, not just reads.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        var result = await _sessions.RegisterAsync(
+            generation, "pascal", "  Backend  ", "", forceRebind: false, cancellationToken);
+
+        // assert
+        Assert.Equal("backend", result.Agent.Role);
+        Assert.Equal("backend", result.Session.Role);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_BeIdempotent_When_SameActorAndRoleAreRepeated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        var first = await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act: repeating the same actor and role is a no-op success that
+        // only refreshes last-heard.
+        var result = await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+
+        // assert
+        Assert.False(result.Changed);
+        Assert.Equal("orchestrator", result.Session.Role);
+        Assert.True(result.Session.LastBeatAt > first.Session.LastBeatAt);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_UpdateRole_When_RoleChanges()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+
+        // act
+        var result = await _sessions.RegisterAsync(
+            generation, "pascal", "planner", "", forceRebind: false, cancellationToken);
+
+        // assert
+        Assert.True(result.Changed);
+        Assert.Equal("planner", result.Agent.Role);
+        Assert.Equal("planner", result.Session.Role);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_PromoteEnvBoundToExplicit_When_SameActorRegisters()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "pascal", cancellationToken);
+
+        // act
+        var result = await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+
+        // assert
+        Assert.True(result.Changed);
+        Assert.Equal(AgentSessionBindingKind.Env, result.PreviousBindingKind);
+        Assert.Equal(AgentSessionBindingKind.Explicit, result.Session.BindingKind);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_Throw_When_ConflictingActorWithoutForceRebind()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+
+        // act & assert
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => _sessions.RegisterAsync(
+                generation, "codex", "worker", "", forceRebind: false, cancellationToken));
+        Assert.Contains("--force-rebind", exception.Message);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_RollBackTheIdentityUpsert_When_TheClaimTransitionThrows()
+    {
+        // arrange: the transaction rollback guarantee - a failed register
+        // call (a conflicting actor without --force-rebind) must not leave
+        // the durable identity's role changed either, even though the
+        // identity upsert runs BEFORE the throwing claim transition inside
+        // the same transaction.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+        await _agentRegistry.RegisterAsync("codex", "original-role", "", cancellationToken);
+
+        // act
+        await Assert.ThrowsAsync<ExitException>(
+            () => _sessions.RegisterAsync(
+                generation, "codex", "new-role", "", forceRebind: false, cancellationToken));
+
+        // assert: codex's identity role is unchanged, and the session is
+        // still bound to pascal, not codex.
+        var codex = await _agentRegistry.GetAsync("codex", cancellationToken);
+        Assert.Equal("original-role", codex!.Role);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal("pascal", row!.AgentName);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_RebindAndResetLedger_When_ForceRebindOverridesConflictingActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.RegisterAsync(
+            generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
+        await InsertDeliveryAsync(generation, "msg-1", cancellationToken);
+
+        // act
+        var result = await _sessions.RegisterAsync(
+            generation, "codex", "worker", "", forceRebind: true, cancellationToken);
+
+        // assert
+        Assert.True(result.Changed);
+        Assert.Equal("codex", result.Session.AgentName);
+        Assert.Equal("worker", result.Session.Role);
+        Assert.Equal(0, await CountDeliveriesAsync(generation, cancellationToken));
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_Throw_When_NoRowMatchesTheGeneration()
+    {
+        // arrange: the missing-row case - no SessionStart hook has fired
+        // for this generation yet.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _sessions.RegisterAsync(
+                generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken));
+    }
+
+    [Fact]
+    public async Task RegisterAsync_Should_Throw_When_ThisReaderCannotObserveTheRowsProcessScope()
+    {
+        // arrange: a positive process-scope mismatch means this reader
+        // cannot verify the row's pid refers to the same process its
+        // writer observed (e.g. a foreign sandbox), so register must
+        // refuse to bind rather than risk a false match.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await SetSessionMetadataAsync(generation, "", "", "pidns:different-scope", cancellationToken);
+        var fakeProcessInfo = new FakeProcessInfoProvider { ProcessScope = "pidns:this-reader" };
+        fakeProcessInfo.SetAlive(generation.Pid, generation.ProcStart);
+        var sessions = NewRegistry(fakeProcessInfo);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => sessions.RegisterAsync(
+                generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken));
+    }
+
+    // ---------- FindByProcessAsync ----------
+
+    [Fact]
+    public async Task FindByProcessAsync_Should_ReturnEmpty_When_NoRowMatches()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var candidates = await _sessions.FindByProcessAsync(
+            AgentSessionHarness.Codex, CurrentHost, 4242, DateTimeOffset.UnixEpoch, cancellationToken);
+
+        // assert
+        Assert.Empty(candidates);
+    }
+
+    [Fact]
+    public async Task FindByProcessAsync_Should_ReturnOneRow_When_ExactlyOneMatches()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1") with { Harness = AgentSessionHarness.Codex };
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-1",
+            envActor: null, cancellationToken);
+
+        // act
+        var candidates = await _sessions.FindByProcessAsync(
+            AgentSessionHarness.Codex, generation.Host, generation.Pid, generation.ProcStart, cancellationToken);
+
+        // assert
+        var candidate = Assert.Single(candidates);
+        Assert.Equal("session-1", candidate.SessionId);
+    }
+
+    [Fact]
+    public async Task FindByProcessAsync_Should_ReturnEveryRow_When_MoreThanOneMatches()
+    {
+        // arrange: an ambiguous match - two distinct session ids happen to
+        // share the same (harness, host, pid, proc_start). Should not
+        // normally happen, but the caller must be able to detect and
+        // refuse it rather than silently pick one.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1") with { Harness = AgentSessionHarness.Codex };
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-1",
+            envActor: null, cancellationToken);
+        var duplicateGeneration = generation with { SessionId = "session-2" };
+        await _sessions.StartAsync(
+            duplicateGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-2",
+            envActor: null, cancellationToken);
+
+        // act
+        var candidates = await _sessions.FindByProcessAsync(
+            AgentSessionHarness.Codex, generation.Host, generation.Pid, generation.ProcStart, cancellationToken);
+
+        // assert
+        Assert.Equal(2, candidates.Count);
+    }
+
+    [Fact]
+    public async Task FindByProcessAsync_Should_ReturnEmpty_When_ProcStartDoesNotMatchAReusedPid()
+    {
+        // arrange: a stale row from a process that has since exited, whose
+        // pid the OS reused for the CURRENT process. The current process's
+        // OWN actual start time must not match the stale row's recorded one.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var staleGeneration = DeadGeneration("session-old") with { Harness = AgentSessionHarness.Codex };
+        await _sessions.StartAsync(
+            staleGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "session-old",
+            envActor: null, cancellationToken);
+        var currentProcStart = _timeProvider.GetUtcNow().AddMinutes(10);
+
+        // act: the same pid, but a different, current process start time.
+        var candidates = await _sessions.FindByProcessAsync(
+            AgentSessionHarness.Codex, staleGeneration.Host, staleGeneration.Pid, currentProcStart, cancellationToken);
+
+        // assert
+        Assert.Empty(candidates);
+    }
+
     // ---------- EndAsync ----------
 
     [Fact]

@@ -227,7 +227,144 @@ internal sealed class AgentSessionRegistry(
         var previousBindingKind = row.BindingKind;
         var previousAgentName = row.AgentName;
 
-        var (newBindingKind, resetLedger, changed) = (previousBindingKind, previousAgentName) switch
+        var (newBindingKind, resetLedger, changed) = ComputeClaimTransition(
+            previousBindingKind, previousAgentName, normalizedActor, forceRebind, generation.SessionId);
+
+        if (changed)
+        {
+            await ApplyBindingAsync(
+                connection, transaction, generation, normalizedActor, newBindingKind, resetLedger, cancellationToken);
+        }
+
+        var updated = await connection.QueryFirstAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new AgentSessionClaimResult(updated.ToRecord(), changed, previousBindingKind, previousAgentName);
+    }
+
+    public async Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string actor,
+        string role,
+        string client,
+        bool forceRebind,
+        CancellationToken cancellationToken)
+    {
+        var normalizedActor = MailAgentName.Normalize(actor);
+        var normalizedRole = AgentRole.Normalize(role);
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            },
+            transaction);
+
+        if (row is null)
+        {
+            throw new ExitException(
+                $"No session found for '{generation.Harness}' session '{generation.SessionId}' "
+                + $"at pid {generation.Pid} on this host. It may have ended, been reaped, "
+                + "or never started.");
+        }
+
+        RequireObservableProcessScope(generation, row.ProcessScope);
+
+        // Shares THIS transaction rather than calling AgentRegistry.RegisterAsync
+        // (which opens its own connection): SQLite allows only one writer
+        // transaction per connection, and the identity upsert and the
+        // participant bind/role write below must commit or roll back
+        // together, the atomicity this method's contract promises.
+        var agent = await AgentRegistry.UpsertWithinTransactionAsync(
+            connection, transaction, timeProvider, normalizedActor, normalizedRole, client, cancellationToken);
+
+        var previousBindingKind = row.BindingKind;
+        var previousAgentName = row.AgentName;
+
+        var (newBindingKind, resetLedger, bindingChanged) = ComputeClaimTransition(
+            previousBindingKind, previousAgentName, normalizedActor, forceRebind, generation.SessionId);
+
+        if (bindingChanged)
+        {
+            await ApplyBindingAsync(
+                connection, transaction, generation, normalizedActor, newBindingKind, resetLedger, cancellationToken);
+        }
+
+        var roleChanged = row.Role != normalizedRole;
+
+        await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET role = @role, last_beat_at = @now "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                role = normalizedRole,
+                now,
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            },
+            transaction);
+
+        var updated = await connection.QueryFirstAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new AgentSessionRegisterResult(
+            agent, updated.ToRecord(), bindingChanged || roleChanged, previousBindingKind, previousAgentName);
+    }
+
+    public async Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
+        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND host = @host AND pid = @pid AND proc_start = @procStart",
+            new { harness, host, pid, procStart, cancellationToken });
+
+        return rows.Select(r => r.ToRecord()).ToList();
+    }
+
+    /// <summary>
+    /// The claim state machine <see cref="ClaimAsync"/> and <see
+    /// cref="RegisterAsync"/> both apply: none binds, env promotes to
+    /// explicit (resetting the ledger only for a different actor), explicit
+    /// for the same actor is a no-op, and explicit for a different actor
+    /// requires <paramref name="forceRebind"/>.
+    /// </summary>
+    private static (string NewBindingKind, bool ResetLedger, bool Changed) ComputeClaimTransition(
+        string previousBindingKind,
+        string? previousAgentName,
+        string normalizedActor,
+        bool forceRebind,
+        string sessionId)
+        => (previousBindingKind, previousAgentName) switch
         {
             (AgentSessionBindingKind.None, _) =>
                 (AgentSessionBindingKind.Explicit, true, true),
@@ -246,22 +383,57 @@ internal sealed class AgentSessionRegistry(
 
             (AgentSessionBindingKind.Explicit, _) when !forceRebind =>
                 throw new ExitException(
-                    $"Session '{generation.SessionId}' is already explicitly claimed by "
+                    $"Session '{sessionId}' is already explicitly claimed by "
                     + $"'{previousAgentName}'. Use --force-rebind to reclaim it as '{normalizedActor}'."),
 
             _ => (AgentSessionBindingKind.Explicit, true, true)
         };
 
-        if (changed)
+    /// <summary>
+    /// Applies a changed binding: sets <c>agent_name</c>/<c>binding_kind</c>,
+    /// and when <paramref name="resetLedger"/> also clears the delivery
+    /// ledger and block budget, all predicated on <paramref
+    /// name="generation"/> exactly.
+    /// </summary>
+    private static async Task ApplyBindingAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        AgentSessionGeneration generation,
+        string normalizedActor,
+        string newBindingKind,
+        bool resetLedger,
+        CancellationToken cancellationToken)
+    {
+        await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET agent_name = @agentName, binding_kind = @bindingKind "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                agentName = normalizedActor,
+                bindingKind = newBindingKind,
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            },
+            transaction);
+
+        if (resetLedger)
         {
             await connection.ExecuteAsync(
-                "UPDATE agent_sessions SET agent_name = @agentName, binding_kind = @bindingKind "
+                "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId",
+                new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+                transaction);
+
+            await connection.ExecuteAsync(
+                "UPDATE agent_sessions SET block_budget_used = 0 "
                 + "WHERE harness = @harness AND session_id = @sessionId "
                 + "AND pid = @pid AND proc_start = @procStart AND host = @host",
                 new
                 {
-                    agentName = normalizedActor,
-                    bindingKind = newBindingKind,
                     harness = generation.Harness,
                     sessionId = generation.SessionId,
                     pid = generation.Pid,
@@ -270,40 +442,7 @@ internal sealed class AgentSessionRegistry(
                     cancellationToken
                 },
                 transaction);
-
-            if (resetLedger)
-            {
-                await connection.ExecuteAsync(
-                    "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId",
-                    new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
-                    transaction);
-
-                await connection.ExecuteAsync(
-                    "UPDATE agent_sessions SET block_budget_used = 0 "
-                    + "WHERE harness = @harness AND session_id = @sessionId "
-                    + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                    new
-                    {
-                        harness = generation.Harness,
-                        sessionId = generation.SessionId,
-                        pid = generation.Pid,
-                        procStart = generation.ProcStart,
-                        host = generation.Host,
-                        cancellationToken
-                    },
-                    transaction);
-            }
         }
-
-        var updated = await connection.QueryFirstAsync<AgentSessionRow>(
-            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
-            + "WHERE harness = @harness AND session_id = @sessionId",
-            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
-            transaction);
-
-        await transaction.CommitAsync(cancellationToken);
-
-        return new AgentSessionClaimResult(updated.ToRecord(), changed, previousBindingKind, previousAgentName);
     }
 
     public async Task<AgentSessionClaimResult> SelfClaimAsync(
@@ -714,6 +853,26 @@ internal sealed class AgentSessionRegistry(
         => existing.Pid == generation.Pid
             && existing.Host == generation.Host
             && DateTimeOffset.Parse(existing.ProcStart, CultureInfo.InvariantCulture) == generation.ProcStart;
+
+    /// <summary>
+    /// Throws when this process's own observable scope and <paramref
+    /// name="recordedProcessScope"/> are both known and disagree: a positive
+    /// mismatch means this process cannot trust that <paramref
+    /// name="generation"/>'s pid refers to the same process the row's writer
+    /// observed. Either scope being unknown is not treated as a mismatch.
+    /// </summary>
+    private void RequireObservableProcessScope(AgentSessionGeneration generation, string recordedProcessScope)
+    {
+        var readerScope = processInfoProvider.GetProcessScope();
+
+        if (readerScope.Length > 0 && recordedProcessScope.Length > 0 && readerScope != recordedProcessScope)
+        {
+            throw new ExitException(
+                $"Cannot verify this process against the '{generation.Harness}' session "
+                + $"'{generation.SessionId}' (a different process observation scope than the one "
+                + "that started it).");
+        }
+    }
 
     /// <summary>
     /// Demotes an endpoint to <c>none</c> when its kind is already

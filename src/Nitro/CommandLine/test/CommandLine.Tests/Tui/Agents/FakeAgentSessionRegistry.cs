@@ -46,6 +46,19 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string actor,
+        string role,
+        string client,
+        bool forceRebind,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
+        string harness, string host, int pid, DateTimeOffset procStart, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<AgentSessionRecord?> FindByGenerationAsync(
         AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();

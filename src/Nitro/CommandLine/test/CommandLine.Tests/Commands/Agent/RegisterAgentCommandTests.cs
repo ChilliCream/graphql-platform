@@ -1,8 +1,19 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
+/// <summary>
+/// Exercises the identity-only fallback (no harness ancestor detected, this
+/// command's original behavior, and <see cref="AgentCommandTestBase"/>'s
+/// default) and command wiring. The session-aware registration path (all
+/// three harnesses, the claim state machine, role promotion) is exercised
+/// directly against <see cref="AgentSessionRegistry"/> in
+/// <c>AgentSessionRegistryTests</c>, and the harness-resolution branching
+/// itself in <see cref="RegisterAgentCommandSessionAwareTests"/>.
+/// </summary>
 public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
     : AgentCommandTestBase(fixture)
 {
@@ -25,6 +36,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
               --actor <actor>    The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
               --role <role>      The agent's role, free text, normalized lowercase (defaults to empty)
               --client <client>  The client program the agent runs as, e.g. "claude-code" or "codex", free text, normalized lowercase (defaults to auto-detected, or empty)
+              --force-rebind     Reclaim a session already explicitly claimed by a different actor, resetting its delivery ledger and block budget
               --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help     Show help and usage information
 
@@ -271,6 +283,187 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
             """
             An agent name must not be empty.
             """);
+    }
+}
+
+/// <summary>
+/// Exercises register's session-aware path across all three harnesses via
+/// fixed ancestor resolvers and a fixed instance id: the harness-resolution
+/// branching (Claude by its ancestor session's own id, Codex and Copilot by
+/// (host, pid, proc_start) since their ancestor resolvers expose no session
+/// file), the wrong-workspace guard, and the machine-readable output shape.
+/// The claim state machine and role promotion themselves are exercised
+/// directly against <see cref="AgentSessionRegistry"/> in
+/// <c>AgentSessionRegistryTests</c>.
+/// </summary>
+public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
+{
+    private const string FixedHost = "host-register-session-aware-tests";
+
+    public RegisterAgentCommandSessionAwareTests(NitroCommandFixture fixture) : base(fixture)
+    {
+        SetupInstanceId(FixedHost);
+    }
+
+    [Fact]
+    public async Task Claude_RegistersAndBindsTheHookStartedSession()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        await InsertSessionRowAsync("claude-code", "claude-session-1");
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(process.Id, "claude-session-1", WorkingDirectory, "peer-a"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "orchestrator");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Registered 'test-agent' as 'orchestrator', bound to claude-code session 'claude-session-1'.
+            """);
+        Assert.Equal(
+            "test-agent",
+            await QueryScalarAsync("SELECT agent_name FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+        Assert.Equal(
+            "orchestrator",
+            await QueryScalarAsync("SELECT role FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+    }
+
+    [Fact]
+    public async Task Codex_RegistersAndBindsTheHookStartedSession()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        await InsertSessionRowAsync("codex", "codex-session-1");
+        SetupAncestorSessionResolvers(codex: new CodexAncestorSession(process.Id));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "worker");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Registered 'test-agent' as 'worker', bound to codex session 'codex-session-1'.
+            """);
+    }
+
+    [Fact]
+    public async Task Copilot_RegistersAndBindsTheHookStartedSession()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        await InsertSessionRowAsync("copilot", "copilot-session-1");
+        SetupAncestorSessionResolvers(copilot: new CopilotAncestorSession(process.Id));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "worker");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Registered 'test-agent' as 'worker', bound to copilot session 'copilot-session-1'.
+            """);
+    }
+
+    [Fact]
+    public async Task ReturnsError_When_TheAncestorsWorkspaceDoesNotMatch()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        var otherRoot = Directory.CreateTempSubdirectory("nitro-register-other-workspace-tests");
+
+        try
+        {
+            SetupAncestorSessionResolvers(
+                claude: new ClaudeAncestorSession(process.Id, "claude-session-1", otherRoot.FullName, "peer-a"));
+
+            // act
+            var result = await ExecuteCommandAsync("agent", "register");
+
+            // assert
+            Assert.Equal(1, result.ExitCode);
+            Assert.Contains("No agent workspace found", result.StdErr);
+        }
+        finally
+        {
+            otherRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ReturnsError_When_NoSessionRowExistsForTheAncestor()
+    {
+        // arrange: the missing-row case through the CLI - an ancestor was
+        // detected but no SessionStart hook has fired for it yet.
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        SetupAncestorSessionResolvers(codex: new CodexAncestorSession(process.Id));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("No codex session found", result.StdErr);
+    }
+
+    [Fact]
+    public async Task JsonOutput_IncludesHarnessSessionVersionAndRole()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        await InsertSessionRowAsync("codex", "codex-session-1");
+        SetupAncestorSessionResolvers(codex: new CodexAncestorSession(process.Id));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "worker");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("codex", root.GetProperty("harness").GetString());
+        Assert.Equal("codex-session-1", root.GetProperty("sessionId").GetString());
+        Assert.Equal("worker", root.GetProperty("role").GetString());
+        Assert.True(root.TryGetProperty("harnessVersion", out _));
+    }
+
+    private async Task InsertSessionRowAsync(string harness, string sessionId)
+    {
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        var procStart = new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+            ) VALUES (
+                $harness, $sessionId, NULL, 'none', $host, $pid, $procStart,
+                $cwd, $workspacePath, 'none', '', $now, $now
+            );
+            """;
+        command.Parameters.AddWithValue("$harness", harness);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$host", FixedHost);
+        command.Parameters.AddWithValue("$pid", process.Id);
+        command.Parameters.AddWithValue("$procStart", procStart);
+        command.Parameters.AddWithValue("$cwd", WorkingDirectory);
+        command.Parameters.AddWithValue("$workspacePath", WorkspaceDirectory);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 }
 

@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using Dapper;
@@ -16,13 +17,38 @@ internal sealed class AgentRegistry(
         string client,
         CancellationToken cancellationToken)
     {
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var agent = await UpsertWithinTransactionAsync(
+            connection, transaction, timeProvider, name, role, client, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return agent;
+    }
+
+    /// <summary>
+    /// The agents upsert <see cref="RegisterAsync"/> applies (sets
+    /// last_seen_at to now, implicit to false, and role and client to the
+    /// given values), exposed so a caller with its own already-open writer
+    /// transaction can upsert an agent identity as part of it: SQLite allows
+    /// only one writer transaction per connection, so such a caller cannot
+    /// go through <see cref="RegisterAsync"/>, which opens its own.
+    /// </summary>
+    public static async Task<AgentRecord> UpsertWithinTransactionAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        TimeProvider timeProvider,
+        string name,
+        string role,
+        string client,
+        CancellationToken cancellationToken)
+    {
         var normalizedName = MailAgentName.Normalize(name);
         var normalizedRole = AgentRole.Normalize(role);
         var normalizedClient = NormalizeClient(client);
         var now = timeProvider.GetUtcNow();
-
-        await using var connection = await ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
@@ -43,8 +69,6 @@ internal sealed class AgentRegistry(
             """,
             new { name = normalizedName, now, role = normalizedRole, client = normalizedClient, cancellationToken },
             transaction);
-
-        await transaction.CommitAsync(cancellationToken);
 
         return row.ToAgentRecord();
     }
