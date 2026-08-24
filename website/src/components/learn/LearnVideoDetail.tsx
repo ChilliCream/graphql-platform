@@ -53,11 +53,7 @@ function TopicsDetail({ video }: { readonly video: VideoItem }) {
       <dt className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">Topics</dt>
       <dd className="text-cc-heading mt-1 flex flex-wrap gap-x-3 gap-y-1">
         {hubs.map((hub) => (
-          <Link
-            key={hub.key}
-            href={hubHref(hub.key)}
-            className="hover:text-cc-accent underline-offset-4 hover:underline"
-          >
+          <Link key={hub.key} href={hubHref(hub.key)}>
             {hub.label}
           </Link>
         ))}
