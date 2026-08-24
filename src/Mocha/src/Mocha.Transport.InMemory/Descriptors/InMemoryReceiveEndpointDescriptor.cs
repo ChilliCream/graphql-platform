@@ -82,6 +82,13 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
+    public new IInMemoryReceiveEndpointDescriptor Temporary()
+    {
+        base.Temporary();
+
+        return this;
+    }
+
     public IInMemoryReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);

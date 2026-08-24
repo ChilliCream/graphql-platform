@@ -81,6 +81,53 @@ public class AzureServiceBusUnifiedQueueTests
     }
 
     [Fact]
+    public void Queue_Should_PropagateTemporaryToEndpointAndQueue_When_ConfiguredWithDefaultIdleTimeout()
+    {
+        var (transport, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("audit").Temporary();
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var queue = topology.Queues.Single(q => q.Name == "audit");
+        var endpoint = configuration
+            .ReceiveEndpoints.OfType<AzureServiceBusReceiveEndpointConfiguration>()
+            .Single(e => e.Name == "audit");
+
+        Assert.True(endpoint.IsTemporary);
+        Assert.Equal(TimeSpan.FromHours(24), queue.AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void Queue_Should_PropagateTemporaryIdleTimeoutToQueue_When_ConfiguredWithExplicitIdleTimeout()
+    {
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("audit").Temporary(TimeSpan.FromMinutes(15));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var queue = topology.Queues.Single(q => q.Name == "audit");
+
+        Assert.Equal(TimeSpan.FromMinutes(15), queue.AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void Queue_Should_Throw_When_TemporaryIdleTimeoutBelowMinimum()
+    {
+        // arrange
+        Action action = () =>
+            CreateTransport(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("audit").Temporary(TimeSpan.FromMinutes(1));
+            });
+
+        // act & assert
+        Assert.Throws<ArgumentOutOfRangeException>(action);
+    }
+
+    [Fact]
     public void Queue_Should_DeclareExplicitSubscription_When_BindFromTopicConfigured()
     {
         var (transport, _) = CreateTransport(t =>

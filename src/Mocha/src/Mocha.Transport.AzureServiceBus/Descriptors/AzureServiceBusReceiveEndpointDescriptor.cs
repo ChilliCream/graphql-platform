@@ -93,6 +93,27 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IAzureServiceBusReceiveEndpointDescriptor Temporary()
+    {
+        base.Temporary();
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor Temporary(TimeSpan idleTimeout)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(
+            idleTimeout,
+            AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle);
+
+        base.Temporary();
+        Configuration.TemporaryIdleTimeout = idleTimeout;
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IAzureServiceBusReceiveEndpointDescriptor Queue(string name)
     {
         Configuration.QueueName = name;

@@ -120,6 +120,11 @@ public sealed class AzureServiceBusQueue
         ForwardDeadLetteredMessagesTo = entityName;
     }
 
+    internal void SetAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    {
+        AutoDeleteOnIdle = autoDeleteOnIdle;
+    }
+
     /// <inheritdoc />
     public async Task ProvisionAsync(
         AzureServiceBusClientManager clientManager,
@@ -190,6 +195,22 @@ public sealed class AzureServiceBusQueue
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
             // Already provisioned by another instance, safe to ignore.
+        }
+    }
+
+    /// <summary>
+    /// Deletes this queue from Azure Service Bus.
+    /// </summary>
+    internal async Task DeprovisionAsync(
+        AzureServiceBusClientManager clientManager,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await clientManager.DeleteQueueAsync(Name, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+        {
         }
     }
 }
