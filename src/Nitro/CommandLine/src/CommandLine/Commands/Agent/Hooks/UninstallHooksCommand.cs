@@ -13,7 +13,8 @@ internal sealed class UninstallHooksCommand : Command
 {
     public UninstallHooksCommand() : base("uninstall")
     {
-        Description = "Remove this CLI's Claude Code turn-boundary hook entries.";
+        Description = "Remove this CLI's Claude Code turn-boundary hook entries. "
+            + "(deprecated, use hooks claude uninstall)";
 
         Options.Add(Opt<HookInstallScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);

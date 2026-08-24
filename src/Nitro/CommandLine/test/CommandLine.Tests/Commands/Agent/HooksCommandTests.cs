@@ -151,7 +151,7 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         result.AssertHelpOutput(
             """
             Description:
-              Add or update this CLI's Claude Code turn-boundary hook entries.
+              Add or update this CLI's Claude Code turn-boundary hook entries. (deprecated, use hooks claude install)
 
             Usage:
               nitro agent hooks install [options]
@@ -177,7 +177,7 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         result.AssertHelpOutput(
             """
             Description:
-              Show whether this CLI's Claude Code hook entries are missing, current, or outdated.
+              Show whether this CLI's Claude Code hook entries are missing, current, or outdated. (deprecated, use hooks claude status)
 
             Usage:
               nitro agent hooks status [options]
@@ -203,7 +203,7 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         result.AssertHelpOutput(
             """
             Description:
-              Remove this CLI's Claude Code turn-boundary hook entries.
+              Remove this CLI's Claude Code turn-boundary hook entries. (deprecated, use hooks claude uninstall)
 
             Usage:
               nitro agent hooks uninstall [options]

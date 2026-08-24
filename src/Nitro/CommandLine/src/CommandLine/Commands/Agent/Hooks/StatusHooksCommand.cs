@@ -13,7 +13,8 @@ internal sealed class StatusHooksCommand : Command
 {
     public StatusHooksCommand() : base("status")
     {
-        Description = "Show whether this CLI's Claude Code hook entries are missing, current, or outdated.";
+        Description = "Show whether this CLI's Claude Code hook entries are missing, current, or outdated. "
+            + "(deprecated, use hooks claude status)";
 
         Options.Add(Opt<HookInstallScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);

@@ -13,7 +13,8 @@ internal sealed class InstallHooksCommand : Command
 {
     public InstallHooksCommand() : base("install")
     {
-        Description = "Add or update this CLI's Claude Code turn-boundary hook entries.";
+        Description = "Add or update this CLI's Claude Code turn-boundary hook entries. "
+            + "(deprecated, use hooks claude install)";
 
         Options.Add(Opt<HookInstallScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);

@@ -94,7 +94,8 @@ internal static class DoctorHooksCheck
 
             if (eventResult.Outcome == HookStatusOutcome.Outdated)
             {
-                issues.Add($"'{eventResult.Event}': outdated; rerun `nitro agent hooks install` to refresh it.");
+                issues.Add(
+                    $"'{eventResult.Event}': outdated; rerun `nitro agent hooks claude install` to refresh it.");
             }
         }
 
