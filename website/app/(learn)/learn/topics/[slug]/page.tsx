@@ -150,7 +150,7 @@ export default async function LearnHubPage({ params }: PageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: hub.label }]} />
-      <LearnMasthead title={hub.label} teaser={hub.description} showEyebrow={false} />
+      <LearnMasthead title={hub.label} showEyebrow={false} />
       <LearnEditorialBand
         latestPosts={latestPosts}
         featuredPost={featuredPost}

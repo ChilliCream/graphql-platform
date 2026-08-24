@@ -2,7 +2,8 @@ import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 interface LearnMastheadProps {
   readonly title: string;
-  readonly teaser: string;
+  /** Teaser paragraph below the title. Omit to render just the title. */
+  readonly teaser?: string;
   /** Renders the "Learn" eyebrow above the title. Defaults to `true`. */
   readonly showEyebrow?: boolean;
 }
@@ -21,7 +22,7 @@ export function LearnMasthead({ title, teaser, showEyebrow = true }: LearnMasthe
       <h1 className={`font-heading text-cc-heading text-h3 font-semibold text-balance ${showEyebrow ? "mt-3" : ""}`}>
         {title}
       </h1>
-      <p className="text-cc-ink-dim mt-4 max-w-2xl text-lg">{teaser}</p>
+      {teaser ? <p className="text-cc-ink-dim mt-4 max-w-2xl text-lg">{teaser}</p> : null}
     </header>
   );
 }
