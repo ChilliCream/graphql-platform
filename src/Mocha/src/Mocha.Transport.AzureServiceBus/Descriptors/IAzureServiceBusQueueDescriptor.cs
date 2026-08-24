@@ -49,6 +49,22 @@ public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureSer
 
     IAzureServiceBusQueueDescriptor Kind(ReceiveEndpointKind kind);
 
+    /// <summary>
+    /// Marks this queue's receive endpoint as temporary, using the default idle window.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusQueueDescriptor Temporary();
+
+    /// <summary>
+    /// Marks this queue's receive endpoint as temporary with an explicit idle window after which
+    /// the broker may delete the queue.
+    /// </summary>
+    /// <param name="idleTimeout">
+    /// The idle window. Must be at least <see cref="AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle"/>.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusQueueDescriptor Temporary(TimeSpan idleTimeout);
+
     IAzureServiceBusQueueDescriptor MaxConcurrency(int maxConcurrency);
 
     IAzureServiceBusQueueDescriptor PrefetchCount(int? count);

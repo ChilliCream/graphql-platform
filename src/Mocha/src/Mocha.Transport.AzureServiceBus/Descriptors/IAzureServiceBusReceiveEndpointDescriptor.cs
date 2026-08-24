@@ -36,6 +36,19 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Kind(ReceiveEndpointKind)"/>
     new IAzureServiceBusReceiveEndpointDescriptor Kind(ReceiveEndpointKind kind);
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Temporary"/>
+    new IAzureServiceBusReceiveEndpointDescriptor Temporary();
+
+    /// <summary>
+    /// Marks this receive endpoint as temporary with an explicit idle window after which the
+    /// broker may delete its backing queue.
+    /// </summary>
+    /// <param name="idleTimeout">
+    /// The idle window. Must be at least <see cref="AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle"/>.
+    /// </param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IAzureServiceBusReceiveEndpointDescriptor Temporary(TimeSpan idleTimeout);
+
     /// <summary>
     /// Sets the absolute address of the fault endpoint.
     /// </summary>
