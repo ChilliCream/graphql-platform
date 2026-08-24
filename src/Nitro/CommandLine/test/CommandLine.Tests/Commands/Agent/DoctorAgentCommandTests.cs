@@ -40,12 +40,14 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
 
             Options:
               --clean-mixed-instance  Delete session rows stranded from a previous Nitro instance id (a regenerated fallback id, or a different host sharing this workspace); these rows are never reaped automatically
+              --probe <claude>        Run the live round-trip probe for a harness (register a scratch actor, send mail, verify the digest/gate ledger claims, fire the ping): 'claude'. Requires a live claimed session; not part of the default, free checks.
               --output <json>         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help          Show help and usage information
 
             Example:
               nitro agent doctor
               nitro agent doctor --clean-mixed-instance
+              nitro agent doctor --probe claude
             """);
     }
 
@@ -104,6 +106,39 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         Assert.Empty(root.GetProperty("deadGenerationSessions").EnumerateArray());
         Assert.Empty(root.GetProperty("mixedInstanceSessions").EnumerateArray());
         Assert.Equal(0, root.GetProperty("mixedInstanceSessionsCleaned").GetInt32());
+
+        // no harness has ever been installed and no probe was requested in
+        // this workspace: all four are absent findings, not empty ones.
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("claudeUserHooks").ValueKind);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("claudeProjectHooks").ValueKind);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("copilotHooks").ValueKind);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("probe").ValueKind);
+    }
+
+    [Fact]
+    public async Task InvalidProbeValue_ReturnsParseError()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor", "--probe", "codex");
+
+        // assert: system.commandline's own AcceptOnlyFromAmong validation,
+        // before this command's action ever runs.
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("codex", result.StdErr + result.StdOut);
+    }
+
+    [Fact]
+    public async Task ProbeClaude_UpgradableSchema_ReturnsActionableError_NeverAttemptsTheProbe()
+    {
+        // arrange
+        await SeedLegacySchemaVersionAsync(3);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor", "--probe", "claude");
+
+        // assert
+        result.AssertError(
+            "`--probe claude` requires the current schema; run `nitro agent init` first.");
     }
 
     [Fact]

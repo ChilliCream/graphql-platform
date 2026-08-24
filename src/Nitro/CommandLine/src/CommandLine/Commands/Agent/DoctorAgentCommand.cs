@@ -3,19 +3,24 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
 /// <summary>
-/// Static, free diagnostics for the hook and session presence layer: schema
-/// version, orphaned/unclaimed session rows, dead-generation rows pending
-/// reap, and mixed-instance rows stranded by an instance id regeneration
-/// (with an explicit, opt-in cleanup for those). Round-trip probes (register
-/// a scratch actor, send mail, verify a ledger claim and a ping result) are
-/// out of scope here; they need a live claimed session and land later as
-/// <c>doctor --probe</c>.
+/// Diagnostics for the hook and session presence layer. Static and free:
+/// schema version, orphaned/unclaimed session rows, dead-generation rows
+/// pending reap, mixed-instance rows stranded by an instance id
+/// regeneration (with an explicit, opt-in cleanup for those), and, per
+/// harness, whether its installed hook entries are current and its sidecar
+/// record agrees with what is actually on disk. Explicit opt-in and not
+/// free: <c>--probe claude</c> runs a live round-trip (register a scratch
+/// actor, claim this process's own live session, send it mail, verify the
+/// digest/gate delivery-ledger claims, fire the ping) against a session
+/// this process's own Claude Code ancestor provides.
 /// </summary>
 internal sealed class DoctorAgentCommand : Command
 {
@@ -24,9 +29,10 @@ internal sealed class DoctorAgentCommand : Command
         Description = "Check the agent workspace's schema and session presence for problems.";
 
         Options.Add(Opt<CleanMixedInstanceAgentOption>.Instance);
+        Options.Add(Opt<ProbeHarnessDoctorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent doctor", "agent doctor --clean-mixed-instance");
+        this.AddExamples("agent doctor", "agent doctor --clean-mixed-instance", "agent doctor --probe claude");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -42,9 +48,19 @@ internal sealed class DoctorAgentCommand : Command
         var instanceIdProvider = services.GetRequiredService<INitroInstanceIdProvider>();
         var globalConfigDirectoryProvider = services.GetRequiredService<IGlobalConfigDirectoryProvider>();
         var processInfoProvider = services.GetRequiredService<IProcessInfoProvider>();
+        var claudeHooksInstaller = services.GetRequiredService<IClaudeHooksInstallerService>();
+        var claudeHooksSidecarStore = services.GetRequiredService<IClaudeHooksSidecarStore>();
+        var copilotHooksInstaller = services.GetRequiredService<ICopilotHooksInstallerService>();
+        var copilotHooksSidecarStore = services.GetRequiredService<ICopilotHooksSidecarStore>();
+        var agentRegistry = services.GetRequiredService<IAgentRegistry>();
+        var sessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
+        var mailStore = services.GetRequiredService<IMailStore>();
+        var deliveryLedger = services.GetRequiredService<ISessionDeliveryLedger>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var cleanMixedInstance = parseResult.GetValue(Opt<CleanMixedInstanceAgentOption>.Instance);
+        var probeHarness = parseResult.GetValue(Opt<ProbeHarnessDoctorOption>.Instance);
 
         var workspaceDirectory = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory())
             ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
@@ -123,7 +139,38 @@ internal sealed class DoctorAgentCommand : Command
             mixedInstanceSessions = mixedInstanceRows.Select(ToDoctorRow).ToArray();
         }
 
-        var healthy = schemaCurrent && mixedInstanceSessions.Count == 0;
+        // Hooks/sidecar checks are independent of the agent_sessions schema
+        // (they read the harness's own config file and this CLI's sidecar,
+        // never the workspace database), so they always run, current schema
+        // or not. Each returns null when that harness was never installed
+        // here: opting out is not a doctor finding.
+        var claudeUserHooks = await DoctorHooksCheck.CheckClaudeAsync(
+            claudeHooksInstaller, claudeHooksSidecarStore, HookInstallScopes.User, cancellationToken);
+        var claudeProjectHooks = await DoctorHooksCheck.CheckClaudeAsync(
+            claudeHooksInstaller, claudeHooksSidecarStore, HookInstallScopes.Project, cancellationToken);
+        var copilotHooks = await DoctorHooksCheck.CheckCopilotAsync(
+            copilotHooksInstaller, copilotHooksSidecarStore, cancellationToken);
+
+        var hooksConsistent = (claudeUserHooks?.Consistent ?? true)
+            && (claudeProjectHooks?.Consistent ?? true)
+            && (copilotHooks?.Consistent ?? true);
+
+        ClaudeProbeResult? probe = null;
+
+        if (probeHarness == "claude")
+        {
+            if (!schemaCurrent)
+            {
+                throw new ExitException(
+                    "`--probe claude` requires the current schema; run `nitro agent init` first.");
+            }
+
+            probe = await new ClaudeRoundTripProbe(agentRegistry, sessionRegistry, mailStore, deliveryLedger, timeProvider)
+                .RunAsync(cancellationToken);
+        }
+
+        var healthy = schemaCurrent && mixedInstanceSessions.Count == 0 && hooksConsistent
+            && (probe is null || probe.Success);
 
         if (!console.IsHumanReadable)
         {
@@ -137,6 +184,10 @@ internal sealed class DoctorAgentCommand : Command
                 deadGenerationSessions,
                 mixedInstanceSessions,
                 mixedInstanceSessionsCleaned,
+                claudeUserHooks,
+                claudeProjectHooks,
+                copilotHooks,
+                probe,
                 healthy)));
 
             return healthy ? ExitCodes.Success : ExitCodes.Error;
@@ -149,6 +200,10 @@ internal sealed class DoctorAgentCommand : Command
         WriteCheck(console, "Schema version", schemaCurrent, schemaCurrent
             ? []
             : [DescribeSchemaStatus(schemaStatus, version)]);
+
+        WriteHooksCheck(console, "Claude hooks (user)", claudeUserHooks);
+        WriteHooksCheck(console, "Claude hooks (project)", claudeProjectHooks);
+        WriteHooksCheck(console, "Copilot hooks", copilotHooks);
 
         if (!schemaCurrent)
         {
@@ -199,7 +254,38 @@ internal sealed class DoctorAgentCommand : Command
             }
         }
 
+        if (probe is not null)
+        {
+            console.WriteLine();
+            WriteCheck(
+                console,
+                "Round-trip probe (claude)",
+                probe.Success,
+                probe.Success
+                    ? []
+                    : ["Digest or gate delivery-ledger claim did not reserve the probe message."]);
+
+            console.WriteLine($"  Scratch actor: {probe.ScratchActor.EscapeMarkup()}");
+            console.WriteLine(
+                $"  Session: {probe.Harness.EscapeMarkup()} {probe.SessionId.EscapeMarkup()} "
+                + $"endpoint={probe.EndpointKind.EscapeMarkup()}");
+            console.WriteLine(
+                $"  Ledger: digest={(probe.DigestLedgerClaimed ? "claimed" : "NOT claimed")}, "
+                + $"gate={(probe.GateLedgerClaimed ? "claimed" : "NOT claimed")}");
+            console.WriteLine($"  Ping: {probe.PingResult.EscapeMarkup()}");
+        }
+
         return healthy ? ExitCodes.Success : ExitCodes.Error;
+    }
+
+    private static void WriteHooksCheck(INitroConsole console, string name, HookHarnessDoctorResult? result)
+    {
+        if (result is null)
+        {
+            return;
+        }
+
+        WriteCheck(console, name, result.Consistent, result.Issues);
     }
 
     private static DateTimeOffset ParseProcStart(string procStart)
@@ -347,5 +433,29 @@ internal sealed class DoctorAgentCommand : Command
         IReadOnlyList<AgentSessionDoctorRow> DeadGenerationSessions,
         IReadOnlyList<AgentSessionDoctorRow> MixedInstanceSessions,
         int MixedInstanceSessionsCleaned,
+        HookHarnessDoctorResult? ClaudeUserHooks,
+        HookHarnessDoctorResult? ClaudeProjectHooks,
+        HookHarnessDoctorResult? CopilotHooks,
+        ClaudeProbeResult? Probe,
         bool Healthy);
+
+    /// <summary>
+    /// One managed hook event's <see cref="HookStatusOutcome"/>, by
+    /// name, as reported by <see cref="DoctorHooksCheck"/>.
+    /// </summary>
+    public sealed record HookEventDoctorResult(string Event, string Outcome);
+
+    /// <summary>
+    /// A harness's hooks doctor check: every managed event's status, whether
+    /// the sidecar record agrees with what is actually installed
+    /// (<see cref="Consistent"/>), and, when it does not, the specific
+    /// issues found. Returned only when this harness has some Nitro-managed
+    /// state to check; a harness that was never installed here reports no
+    /// result at all rather than an empty one.
+    /// </summary>
+    public sealed record HookHarnessDoctorResult(
+        string Path,
+        IReadOnlyList<HookEventDoctorResult> Events,
+        bool Consistent,
+        IReadOnlyList<string> Issues);
 }
