@@ -7,4 +7,16 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// row per active <c>agent_sessions</c> entry, as
 /// <see cref="IAgentSessionRegistry.ListParticipantsAsync"/> returns it.
 /// </summary>
-internal sealed record AgentSessionParticipant(AgentSessionRecord Session, AgentRecord? Agent, string State);
+internal sealed record AgentSessionParticipant(AgentSessionRecord Session, AgentRecord? Agent, string State)
+{
+    /// <summary>
+    /// True when this participant is bound and its role, or its durable
+    /// identity's role when the session's own role is blank, equals
+    /// <paramref name="normalizedRole"/>. A session bound before role-aware
+    /// registration never had its own role written, so the durable identity's
+    /// role is matched instead. An unbound participant never matches.
+    /// </summary>
+    public bool MatchesRole(string normalizedRole)
+        => Agent is not null
+            && (Session.Role == normalizedRole || (Session.Role.Length is 0 && Agent.Role == normalizedRole));
+}

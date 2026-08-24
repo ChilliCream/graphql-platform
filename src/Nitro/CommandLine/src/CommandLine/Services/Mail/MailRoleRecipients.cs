@@ -29,15 +29,10 @@ internal static class MailRoleRecipients
         var participants = await sessions.ListParticipantsAsync(cancellationToken);
 
         return participants
-            .Where(participant => participant.Agent is { Implicit: false } agent
-                && MatchesRole(participant.Session, agent, normalizedRole))
+            .Where(participant => participant.Agent is { Implicit: false } && participant.MatchesRole(normalizedRole))
             .Select(participant => participant.Agent!.Name)
             .Where(name => name != excludingActor)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
     }
-
-    private static bool MatchesRole(AgentSessionRecord session, AgentRecord agent, string normalizedRole)
-        => session.Role == normalizedRole
-            || (session.Role.Length is 0 && agent.Role == normalizedRole);
 }

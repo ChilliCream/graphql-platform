@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
@@ -37,7 +38,7 @@ internal sealed class ListAgentCommand : Command
         if (role is not null)
         {
             var normalizedRole = AgentRole.Normalize(role);
-            participants = participants.Where(p => p.Session.Role == normalizedRole).ToArray();
+            participants = participants.Where(p => p.MatchesRole(normalizedRole)).ToArray();
         }
 
         if (!console.IsHumanReadable)
@@ -62,16 +63,17 @@ internal sealed class ListAgentCommand : Command
 
     /// <summary>
     /// Renders the human-readable line for one participant: the bound actor
-    /// (or "unbound"), the live state, the harness with its exact version
-    /// when captured, the mutable role when set, and when it was last heard
-    /// from. Full session id, cwd/workspace, and endpoint/host diagnostics
-    /// are machine output only (<c>--output json</c>); <c>agent session list</c>
-    /// is the lower-level surface for those on a human terminal.
+    /// (or <see cref="AgentParticipantRow.UnboundLabel"/>), the live state,
+    /// the harness with its exact version when captured, the mutable role
+    /// when set, and when it was last heard from. Full session id,
+    /// cwd/workspace, and endpoint/host diagnostics are machine output only
+    /// (<c>--output json</c>); <c>agent session list</c> is the lower-level
+    /// surface for those on a human terminal.
     /// </summary>
     private static string FormatLine(AgentSessionParticipant participant)
     {
         var session = participant.Session;
-        var actor = session.AgentName ?? "unbound";
+        var actor = session.AgentName ?? AgentParticipantRow.UnboundLabel;
         var versionSuffix = session.HarnessVersion.Length > 0 ? $" {session.HarnessVersion}" : "";
         var roleSuffix = session.Role.Length > 0 ? $"  role {session.Role}" : "";
 

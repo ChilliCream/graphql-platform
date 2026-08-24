@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 public sealed class ListAgentCommandTests : AgentCommandTestBase
@@ -116,7 +118,7 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
 
         // assert
         var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.StartsWith("unbound", line);
+        Assert.StartsWith(AgentParticipantRow.UnboundLabel, line);
     }
 
     [Fact]
@@ -198,6 +200,43 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
         // assert
         var line = Assert.Single(result.StdOut.Split('\n'));
         Assert.StartsWith("alpha", line);
+    }
+
+    [Fact]
+    public async Task RoleOption_MatchesDurableIdentityRole_When_TheBoundSessionsOwnRoleIsBlank()
+    {
+        // arrange: a session bound before role-aware registration never had
+        // its own role written, so --role falls back to the durable
+        // identity's role for that live, bound row.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--role", "orchestrator");
+        await InsertAliveSessionRowAsync(FixedHost, "session-1", "alpha", role: "");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list", "--role", "orchestrator");
+
+        // assert
+        var line = Assert.Single(result.StdOut.Split('\n'));
+        Assert.StartsWith("alpha", line);
+    }
+
+    [Fact]
+    public async Task RoleOption_ExcludesADurableIdentity_When_ItHasNoLiveSession()
+    {
+        // arrange: an orchestrator identity that registered before but has
+        // no live session right now has no row to match --role against at
+        // all, durable role fallback included.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha", "--role", "orchestrator");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list", "--role", "orchestrator");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No live agent participants.
+            """);
     }
 
     [Fact]
