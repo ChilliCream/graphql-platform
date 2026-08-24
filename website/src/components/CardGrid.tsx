@@ -19,6 +19,14 @@ interface CardGridProps {
   readonly gap?: 4 | 6;
   /** Stretches every row to the tallest cell (`items-stretch` at `breakpoint`). */
   readonly itemsStretch?: boolean;
+  /**
+   * With `step="progressive"` and `cols={4}`, skips the intermediate
+   * 3-column step and jumps straight from `sm:grid-cols-2` to
+   * `lg:grid-cols-4`. For a grid that always holds an exact multiple of 4
+   * items, 3 columns orphans the last row; this keeps every row full at
+   * every breakpoint. Ignored for other `cols`/`step` combinations.
+   */
+  readonly skipThreeCol?: boolean;
 }
 
 const SINGLE_COLS_CLASS: Record<"sm" | "md" | "lg", Record<2 | 3 | 4, string>> = {
@@ -44,6 +52,9 @@ const PROGRESSIVE_COLS_CLASS: Record<2 | 3 | 4, string> = {
   4: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
 };
 
+/** `step="progressive"` with `cols={4}` and `skipThreeCol`: see `CardGridProps.skipThreeCol`. */
+const PROGRESSIVE_FOUR_COLS_SKIP_THREE_CLASS = "sm:grid-cols-2 lg:grid-cols-4";
+
 /**
  * Lays out cards (`IconFeatureCard`, `PerkCard`, or an ad hoc card) in a
  * responsive grid. Consumers render their own cards as children; this
@@ -56,8 +67,14 @@ export function CardGrid({
   breakpoint = "md",
   gap = 6,
   itemsStretch = false,
+  skipThreeCol = false,
 }: CardGridProps) {
-  const colsClass = step === "progressive" ? PROGRESSIVE_COLS_CLASS[cols] : SINGLE_COLS_CLASS[breakpoint][cols];
+  const colsClass =
+    step === "progressive"
+      ? cols === 4 && skipThreeCol
+        ? PROGRESSIVE_FOUR_COLS_SKIP_THREE_CLASS
+        : PROGRESSIVE_COLS_CLASS[cols]
+      : SINGLE_COLS_CLASS[breakpoint][cols];
 
   return (
     <div className={`grid ${GAP_CLASS[gap]} ${colsClass}${itemsStretch ? ` ${ITEMS_STRETCH_CLASS[breakpoint]}` : ""}`}>

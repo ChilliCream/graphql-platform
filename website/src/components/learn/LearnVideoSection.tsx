@@ -19,13 +19,13 @@ interface LearnVideoSectionProps {
  * site. Keeps its `border-t` per the divider policy (section 2.2 item 4):
  * its body is a card grid with no row dividers.
  *
- * `cols={2}` (rather than the `4` its width could otherwise fit) keeps the
- * rail's up-to-4 cards in a clean 2-per-row layout at every breakpoint from
- * `sm` up: at `cols={4}`, the `lg` step (1024-1279px) lands on 3 columns,
- * which orphans the 4th card onto its own row (website-kbx.4). This is the
- * cheaper of the two harmonization treatments for a 4-item rail; the other,
- * a dedicated `lg`-skips-to-4-at-`xl` grid step, would need a new `CardGrid`
- * variant for this one call site.
+ * `cols={4}` with `skipThreeCol` (website-kbx.9) renders `sm:grid-cols-2
+ * lg:grid-cols-4`: 1 column at mobile, 2 from `sm`, 4 from `lg`, with no
+ * 3-column step in between. The rail always holds up to 4 cards, so 3
+ * columns would orphan the 4th onto its own row (website-kbx.4); jumping
+ * straight from 2 to 4 keeps every row full at every breakpoint. At `lg`
+ * (1024px) each card is ~214px wide, verified by inspection to still fit a
+ * thumbnail, badge, kicker, title, and the dek without clipping.
  */
 export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
   if (videos.length === 0) {
@@ -37,7 +37,7 @@ export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Watch</h2>
         <ArrowLink href="/learn/browse?type=video">Browse videos</ArrowLink>
       </div>
-      <CardGrid cols={2} step="progressive" itemsStretch>
+      <CardGrid cols={4} step="progressive" skipThreeCol itemsStretch>
         {videos.map((video) => (
           <LearnCard key={video.slug} item={video} />
         ))}
