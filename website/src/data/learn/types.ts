@@ -83,6 +83,11 @@ export interface VideoItem extends LearnItemBase {
   readonly level?: LearnLevel;
   readonly url: string;
   readonly duration?: string;
+  /**
+   * Self-hosted optimized poster src, resolved server-side from the image
+   * manifest. `undefined` when the manifest has no entry for this video's id.
+   */
+  readonly poster?: string;
   /** YouTube video id (the `v` query param), for embedding without re-parsing `url`. */
   readonly youtubeId?: string;
   /** Long-form description for a future video detail page: cleaned of repeated social-links boilerplate. */

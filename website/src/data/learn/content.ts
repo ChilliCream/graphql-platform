@@ -16,6 +16,7 @@
 // (Topology, Use case, Language, Client, Product mix, Agent-ready). Missing
 // any axis breaks faceted filtering silently.
 
+import { resolveYouTubePoster } from "@/src/components/YouTubePoster";
 import type {
   ExampleItem,
   LearnItem,
@@ -861,6 +862,9 @@ const dataLoaderExplainedVideo: VideoItem = {
   exampleUrl: "/files/learn-examples/dataloader-explained.txt",
 };
 
+// Resolved once here (rather than per-consumer) so every surface that reads
+// from `VIDEO_ITEMS` (LEARN_SUMMARIES, LEARN_ITEMS, the Watch rail, the
+// latest-videos rail) gets the self-hosted poster without its own lookup.
 export const VIDEO_ITEMS: readonly VideoItem[] = [
   graphqlObservabilityVideo,
   getStartedGraphqlBlazorVideo,
@@ -871,7 +875,7 @@ export const VIDEO_ITEMS: readonly VideoItem[] = [
   dataLoaderInLayeredArchitectureVideo,
   greenDonutInActionVideo,
   dataLoaderExplainedVideo,
-];
+].map((video) => (video.youtubeId ? { ...video, poster: resolveYouTubePoster(video.youtubeId) } : video));
 
 // -----------------------------------------------------------------------------
 // Tutorials

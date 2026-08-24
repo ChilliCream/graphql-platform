@@ -13,13 +13,6 @@ import { STACK_ICONS } from "./stackIcons";
 
 interface LearnCardProps {
   readonly item: LearnItemSummary;
-  /**
-   * Self-hosted optimized poster src for a video item, resolved by the
-   * caller (a server component, via `resolveYouTubePoster`). Falls back to
-   * the external `hqdefault` thumbnail when omitted, e.g. in development or
-   * when this card renders from a client component.
-   */
-  readonly poster?: string;
 }
 
 /** Diagonal arrow-out-of-box glyph for items that open in a new tab. */
@@ -64,18 +57,16 @@ function HeaderMeta({ item }: LearnCardProps) {
 
 /**
  * Poster thumbnail for a video item that has a native `youtubeId`
- * (learn-harmonization.md section 2.5 item 5, ticket website-8s5.4): builds
- * its `i.ytimg.com` URL from the same `youTubePosterFallback` key the
- * `YouTubePoster` component uses (`youTubePosterUrl.ts`), so the lookup key
- * is defined in exactly one place. Renders a plain `<img>` rather than the
- * `YouTubePoster` component itself, since `LearnCard` is also imported by
- * `LearnCatalog`, a client component: `YouTubePoster` pulls in the
- * `node:fs`-based optimized-image manifest, which cannot enter a browser
- * bundle. A server-rendering caller resolves the self-hosted optimized
- * poster ahead of time and passes it as `poster`; without one (development,
- * or a client-rendered card) this falls back to the external `hqdefault`
- * thumbnail. Overlays the duration only when the video has one (7 of the 9
- * seeded videos don't, so most cards render no chip at all).
+ * (learn-harmonization.md section 2.5 item 5, ticket website-8s5.4). Renders
+ * a plain `<img>` rather than the `YouTubePoster` component itself, since
+ * `LearnCard` is also imported by `LearnCatalog`, a client component:
+ * `YouTubePoster` pulls in the `node:fs`-based optimized-image manifest,
+ * which cannot enter a browser bundle. `poster` is the self-hosted optimized
+ * src resolved once in `content.ts` (server-only) and carried on the item;
+ * without one (development, or the manifest has no entry) this falls back to
+ * the external `hqdefault` thumbnail built from the same `youTubePosterFallback`
+ * key `YouTubePoster` uses. Overlays the duration only when the video has one
+ * (7 of the 9 seeded videos don't, so most cards render no chip at all).
  */
 function VideoThumb({
   videoId,
@@ -112,7 +103,7 @@ function VideoThumb({
  * neutral at rest, and only the accent CTA and the icons' hover state carry
  * color.
  */
-export function LearnCard({ item, poster }: LearnCardProps) {
+export function LearnCard({ item }: LearnCardProps) {
   const href = learnItemHref(item);
   const external = !href.startsWith("/");
   const hasThumbnail = item.type === "video" && Boolean(item.youtubeId);
@@ -120,7 +111,7 @@ export function LearnCard({ item, poster }: LearnCardProps) {
   const inner = (
     <>
       {hasThumbnail && item.type === "video" && item.youtubeId && (
-        <VideoThumb videoId={item.youtubeId} duration={item.duration} poster={poster} />
+        <VideoThumb videoId={item.youtubeId} duration={item.duration} poster={item.poster} />
       )}
       <div className="flex items-start justify-between gap-3">
         <ContentTypeBadge type={item.type} />

@@ -1,6 +1,5 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CardGrid } from "@/src/components/CardGrid";
-import { resolveYouTubePoster } from "@/src/components/YouTubePoster";
 import type { VideoItem } from "@/src/data/learn/types";
 import { LearnCard } from "./LearnCard";
 
@@ -40,11 +39,7 @@ export function LearnVideoSection({ videos }: LearnVideoSectionProps) {
       </div>
       <CardGrid cols={2} step="progressive" itemsStretch>
         {videos.map((video) => (
-          <LearnCard
-            key={video.slug}
-            item={video}
-            poster={video.youtubeId ? resolveYouTubePoster(video.youtubeId) : undefined}
-          />
+          <LearnCard key={video.slug} item={video} />
         ))}
       </CardGrid>
     </section>
