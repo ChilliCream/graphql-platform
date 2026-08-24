@@ -1372,30 +1372,27 @@ Route file `app/(learn)/learn/videos/[slug]/page.tsx`, inheriting
 **(new)**, the `TemplateDetail` sibling: the page loads data and picks
 related items, the component renders props.
 
-Header in the `TemplateDetail` voice, `py-10 sm:py-16`, top to bottom:
+Header (kbx.19 amendment, superseding the original kind-row layout): the
+page opens at the shared 32px subnav-to-content rhythm (no extra header
+`py`), top to bottom:
 
 1. **Breadcrumb**: `ArticleBreadcrumb` (exported from `ArticleLayout`),
    `Learn / Videos / {title}`, "Videos" linking to
    `/learn/browse?type=video`, mirroring the template detail breadcrumb
    (cleanup 17.5: one breadcrumb component, one voice).
-2. **Kind row**: `ContentTypeBadge type="video"` (the shipped `cc-danger`
-   accent), then the topic kicker in the mono caption voice (`font-mono
-text-xs uppercase tracking-wider text-cc-ink-dim`): the label of the
-   first `TOPICS` entry whose `browseQuery` product matches one of the
-   video's `products` (a small `topicLabelForProduct` helper in
-   `editorial.ts`, sibling of `kickerForBlogPost`), falling back to
-   `productLabel` of the first product. Optional `level` renders as a
-   `Tag`, the template header's chip recipe.
-3. **Title**: `h1` in the `TemplateDetail` recipe (`font-heading
+2. **Title**: `h1` in the `TemplateDetail` recipe (`font-heading
 text-cc-heading text-h3 sm:text-h2 font-semibold tracking-[-0.02em]
-text-balance`), not `Typography variant="h1"`: videos are catalog voice,
-   not article voice.
-4. **Meta line**: `text-cc-ink-dim text-sm`, "{MMM d, yyyy} · {duration}"
-   from `publishedAt` and `duration`. The date prints exactly once on the
-   page (rules 14.2 and 17.4); videos carry no author byline, so
-   date-plus-duration is the whole line.
-5. **Standfirst**: the `tagline`, `text-cc-prose mt-5 max-w-2xl text-lg
+text-balance`), directly under the breadcrumb: no eyebrow, no
+   `ContentTypeBadge`, no topic kicker, no `level` tag above the title
+   (kbx.19; consistent with the hub header treatment of kbx.10).
+3. **Standfirst**: the `tagline`, `text-cc-prose mt-5 max-w-2xl text-lg
 leading-relaxed` (template header recipe).
+
+All metadata lives in the rail beside the player (section 20.4): published
+date, duration and level where present, topic links to the
+`/learn/topics/<slug>` hubs, products, and the example download button as
+the rail's primary action. The date prints exactly once on the page (rules
+14.2 and 17.4).
 
 The header has no buttons: the play affordance is the facade itself and
 the download lives in the example card (20.4). Repeating either here would
@@ -1432,12 +1429,11 @@ grid gap-12 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16`.
   The player fills the fluid left column: roughly 900px wide at a 1280px
   viewport up to about 1250px in the full 100rem container, so a 16:9
   embed stays comfortably inside the fold.
-- **Tablet and mobile (below `lg`)**: one column in DOM order player,
-  example card, description, facts. The free download must not sink below
-  a long description, so the example card renders above it; this ordering
-  deliberately differs from `TemplateDetail`'s aside-last collapse (grid
-  `order` utilities on the aside pieces, or two render slots, are
-  implementation's choice).
+- **Tablet and mobile (below `lg`)**: one column in DOM order player, then
+  the whole metadata rail (download button first), then the description
+  (kbx.19 amendment: the rail stacks as one unit before the description so
+  the free download never sinks below long prose; grid `order` utilities,
+  no duplicated render slots).
 
 **Description**: paragraphs as `text-cc-prose leading-7` with `space-y-4`,
 in a `max-w-3xl` measure inside the left column so the prose line length
