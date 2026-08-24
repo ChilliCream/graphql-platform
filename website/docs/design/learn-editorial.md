@@ -329,10 +329,11 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
    full content column width like every other element in this list. The
    `max-w-3xl` cap is removed; the hero is a direct, unwrapped child of the
    full `1fr` main column,
-   `aspect-video max-h-[26rem] w-full object-cover rounded-lg`. The
-   `max-h-[26rem]` cap is carried over from the kbx.18 attempt: it is what
-   keeps a 16:9 image usable once its width can reach 1344px (aspect-video
-   alone would put it at roughly 756px tall). The crop consequence kbx.18
+   `aspect-video max-h-[27rem] w-full object-cover rounded-lg`. The
+   `max-h-[27rem]` (432px) cap matches the pre-change rendered height
+   exactly (a 768px-wide 16:9 hero was 432px tall; user ruling 2026-08-24)
+   and keeps a 16:9 image usable once its width can reach 1344px
+   (aspect-video alone would put it at roughly 756px tall). The crop consequence kbx.18
    reverted for is now accepted by the ruling: at full column width,
    `object-cover` center-crops the same roughly 11 of 27 heroes with
    baked-in title art. See the kbx.22 amendment after item 9 for the
@@ -491,19 +492,19 @@ removed; the hero is now a direct child of the `1fr` main column, matching
 the widths above exactly (fusion-16-5, re-measured with the same standalone
 Playwright script):
 
-| Viewport | Hero width | Hero height (`max-h-[26rem]` cap) |
+| Viewport | Hero width | Hero height (`max-h-[27rem]` cap) |
 | -------- | ---------- | --------------------------------- |
-| 1440     | 1344px     | 416px                             |
-| 1920     | 1280px     | 416px                             |
-| 2560     | 1280px     | 416px                             |
+| 1440     | 1344px     | 432px                             |
+| 1920     | 1280px     | 432px                             |
+| 2560     | 1280px     | 432px                             |
 
-The height cap is unchanged from the `max-h-[26rem]` (416px) treatment
-kbx.18 tried and reverted: `aspect-video` alone would put a 1344px-wide
-hero at roughly 756px tall, so the cap plus `object-cover` keeps the page
-usable at the new width. The cap binds at all three sampled viewports
-(768px-wide 16:9 was already 432px, close to this cap; every wider column
-exceeds it), so every hero image is center-cropped, not just the ones from
-the old `max-w-3xl` measurements.
+The height cap is `max-h-[27rem]` (432px), the exact rendered height of
+the pre-change 768px-wide 16:9 hero (user ruling 2026-08-24, restoring the
+literal "height cap unchanged" requirement over kbx.18's tried-and-reverted
+26rem value): `aspect-video` alone would put a 1344px-wide hero at roughly
+756px tall, so the cap plus `object-cover` keeps the page usable at the new
+width. The cap binds at every column wider than 768px, so wide-column hero
+images are center-cropped.
 
 **Accepted consequence.** kbx.18 reverted this exact `max-h-[26rem]` +
 `object-cover` full-width treatment because it cropped roughly 11 of the
