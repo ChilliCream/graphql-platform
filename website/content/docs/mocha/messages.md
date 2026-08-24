@@ -201,4 +201,4 @@ Now that you understand message structure, learn the three messaging patterns.
 
 - [**Messaging Patterns**](./messaging-patterns.md) - Pub/sub events, point-to-point commands, and request/reply.
 
-> **Full demo:** [Demo.Contracts](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.Contracts) contains a complete set of message contracts for an e-commerce system - events (`OrderPlacedEvent`, `PaymentCompletedEvent`), send messages (`ProcessRefundCommand`, `ReserveInventoryCommand`), and request/reply pairs used by sagas.
+> **Full demo:** [Demo.Contracts](https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo/Demo.Contracts) contains a complete set of message contracts for an e-commerce system - events (`OrderPlacedEvent`, `PaymentCompletedEvent`), send messages (`ProcessRefundCommand`, `ReserveInventoryCommand`), and request/reply pairs used by sagas.

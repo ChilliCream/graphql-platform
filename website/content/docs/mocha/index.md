@@ -203,6 +203,6 @@ Choose an entry point based on how you learn best:
 - **Evaluating Mocha for a specific broker:** [Transports](./transports/index.md) - understand the transport abstraction and what is available.
 - **In-process CQRS:** [Mediator](./mediator/index.md) - dispatch commands, queries, and notifications within a single service using the source-generated mediator.
 
-- **See a real-world system:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo) is a complete e-commerce system with three services (Catalog, Billing, Shipping) that demonstrates event-driven communication, sagas, batch processing, the transactional outbox, and .NET Aspire orchestration.
+- **See a real-world system:** The [Demo application](https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo) is a complete e-commerce system with three services (Catalog, Billing, Shipping) that demonstrates event-driven communication, sagas, batch processing, the transactional outbox, and .NET Aspire orchestration.
 
 Ready to build? Start with the [Quick Start](./quick-start.md).
