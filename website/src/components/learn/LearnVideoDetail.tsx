@@ -7,6 +7,7 @@ import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { SolidButton } from "@/src/design-system/Button";
 import { Link } from "@/src/design-system/Link";
 import { formatDate } from "@/src/helpers/formatDate";
+import { GitHubIcon } from "@/src/icons/GitHub";
 import { ArticleBreadcrumb } from "./ArticleLayout";
 import { Detail } from "./Detail";
 import { LearnCard } from "./LearnCard";
@@ -63,27 +64,27 @@ function TopicsDetail({ video }: { readonly video: VideoItem }) {
 }
 
 /**
- * The metadata rail to the right of the player: the example-code download as
+ * The metadata rail to the right of the player: the example repository link as
  * the primary action at the top, then every other piece of video metadata
- * below it (learn-editorial.md section 20, amended per website-kbx.19).
- * Follows `TemplateDetail`'s sticky sidebar-card treatment (website-8s5.3)
- * so the two detail types feel consistent.
+ * below it (learn-editorial.md section 20, amended per website-kbx.19 and
+ * website-kbx.23). Follows `TemplateDetail`'s sticky sidebar-card treatment
+ * (website-8s5.3) so the two detail types feel consistent.
  */
 function VideoRail({ video }: { readonly video: VideoItem }) {
   return (
     <div className="border-cc-card-border bg-cc-card-bg overflow-hidden rounded-2xl border backdrop-blur-sm">
       <div className="p-5">
-        {video.exampleUrl && (
+        {video.exampleRepoUrl && (
           <>
             <p className="text-cc-heading font-heading text-lg font-semibold">Example code</p>
             <p className="text-cc-prose mt-2 text-sm leading-relaxed">The complete project built in this video.</p>
-            <SolidButton href={video.exampleUrl} download className="mt-4 w-full">
-              Download example
+            <SolidButton href={video.exampleRepoUrl} className="mt-4 w-full">
+              <GitHubIcon className="mr-2 size-4 fill-current" />
+              View source
             </SolidButton>
-            <p className="text-cc-ink-dim mt-3 text-sm">Free download, no signup</p>
           </>
         )}
-        <dl className={`space-y-4 text-sm ${video.exampleUrl ? "border-cc-card-border mt-6 border-t pt-5" : ""}`}>
+        <dl className={`space-y-4 text-sm ${video.exampleRepoUrl ? "border-cc-card-border mt-6 border-t pt-5" : ""}`}>
           {video.publishedAt && <Detail label="Published" value={formatDate(video.publishedAt)} />}
           {video.duration && <Detail label="Duration" value={video.duration} />}
           {video.level && <Detail label="Level" value={video.level} className="capitalize" />}
@@ -102,11 +103,11 @@ function VideoRail({ video }: { readonly video: VideoItem }) {
 
 /**
  * Video detail page composition (learn-editorial.md section 20, amended by
- * learn-harmonization.md D2/D9 and website-kbx.19): breadcrumb-only header,
- * click-to-load embed, description, and a metadata rail (example-code
- * download, publish date, duration, level, topics, products) to the right of
- * the player. The page loads data and picks related items; this component
- * only renders the props it's given.
+ * learn-harmonization.md D2/D9, website-kbx.19, and website-kbx.23):
+ * breadcrumb-only header, click-to-load embed, description, and a metadata
+ * rail (example repository link, publish date, duration, level, topics,
+ * products) to the right of the player. The page loads data and picks
+ * related items; this component only renders the props it's given.
  *
  * Each piece (player, rail, description) renders once; explicit grid
  * placement (not a duplicated `lg:hidden` / `hidden lg:block` pair) puts them

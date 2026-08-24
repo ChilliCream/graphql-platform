@@ -94,8 +94,8 @@ export interface VideoItem extends LearnItemBase {
   readonly description?: string;
   /** ISO 8601 publish timestamp, when known. */
   readonly publishedAt?: string;
-  /** Downloadable example-code archive for the video, when one is hosted by the site. */
-  readonly exampleUrl?: string;
+  /** GitHub repository URL for the complete project built in the video, when one exists. */
+  readonly exampleRepoUrl?: string;
 }
 
 export interface TutorialItem extends LearnItemBase {

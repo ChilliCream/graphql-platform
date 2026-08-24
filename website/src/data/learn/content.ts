@@ -742,8 +742,10 @@ const getStartedGraphqlBlazorVideo: VideoItem = {
 // GraphQL API. Descriptions are cleaned of the repeated social-links/support
 // boilerplate and the dead "Source Code" link every TV description carried
 // (it pointed back at the retired site); the intro paragraphs, Courses
-// link, and Hot Chocolate version note are kept. exampleUrl points at local
-// archives under /files/learn-examples/ (wired by website-hnm.3).
+// link, and Hot Chocolate version note are kept. exampleRepoUrl follows the
+// template githubUrl convention (github.com/ChilliCream/<repo>/tree/main/<slug>),
+// pointing at github.com/ChilliCream/examples; these repos are a placeholder
+// the same way template repos are and still need to be created (website-kbx.23).
 
 const dataLoaderStateContextVideo: VideoItem = {
   type: "video",
@@ -759,7 +761,7 @@ const dataLoaderStateContextVideo: VideoItem = {
   duration: "15:52",
   publishedAt: "2025-05-01T09:51:56.995282Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/dataloader-state-context-aware-fetching.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/dataloader-state-context-aware-fetching",
 };
 
 const efCoreProjectionsVideo: VideoItem = {
@@ -775,7 +777,7 @@ const efCoreProjectionsVideo: VideoItem = {
   duration: "15:28",
   publishedAt: "2025-04-01T09:17:50.285112Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/ef-core-projections-graphql-performance.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/ef-core-projections-graphql-performance",
 };
 
 const openTelemetryForServicesVideo: VideoItem = {
@@ -794,7 +796,7 @@ const openTelemetryForServicesVideo: VideoItem = {
   duration: "12:45",
   publishedAt: "2025-03-24T23:38:17.186856Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/opentelemetry-for-services.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/opentelemetry-for-services",
 };
 
 const relativeCursorsVsOffsetPaginationVideo: VideoItem = {
@@ -810,7 +812,7 @@ const relativeCursorsVsOffsetPaginationVideo: VideoItem = {
   duration: "16:02",
   publishedAt: "2025-03-17T22:53:33.686727Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/relative-cursors-vs-offset-pagination.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/relative-cursors-vs-offset-pagination",
 };
 
 const dataLoaderInLayeredArchitectureVideo: VideoItem = {
@@ -826,7 +828,7 @@ const dataLoaderInLayeredArchitectureVideo: VideoItem = {
   duration: "18:26",
   publishedAt: "2025-03-05T11:41:17.926764Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/dataloader-in-layered-architecture.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/dataloader-in-layered-architecture",
 };
 
 const greenDonutInActionVideo: VideoItem = {
@@ -843,7 +845,7 @@ const greenDonutInActionVideo: VideoItem = {
   duration: "41:28",
   publishedAt: "2025-02-27T08:38:58.355214Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/greendonut-in-action.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/greendonut-in-action",
 };
 
 const dataLoaderExplainedVideo: VideoItem = {
@@ -859,7 +861,7 @@ const dataLoaderExplainedVideo: VideoItem = {
   duration: "12:19",
   publishedAt: "2025-02-19T10:23:44.273404Z",
   updatedRelative: "over a year ago",
-  exampleUrl: "/files/learn-examples/dataloader-explained.txt",
+  exampleRepoUrl: "https://github.com/ChilliCream/examples/tree/main/dataloader-explained",
 };
 
 // Resolved once here (rather than per-consumer) so every surface that reads

@@ -1,1 +1,0 @@
-Placeholder for the ef-core-projections-graphql-performance example archive. The real archive will replace this file later; wire the download link against this filename pattern.
