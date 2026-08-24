@@ -156,6 +156,23 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   kbx.15 (out of that ticket's file scope) and still needs the D5 number
   reconciled separately if TemplateDetail is revisited.
 
+  **ArticleLayout measure removed entirely by website-kbx.18 (2026-08-24),
+  superseding the kbx.15 paragraph above:** user ruling rejected the
+  reading-measure direction outright, articles must use the same width
+  every other learn page gives its content. `ArticleLayout` no longer caps
+  running prose at any `max-w-*` value; breadcrumb through `Related`
+  (including the hero, title, and body) render at the full `1fr` main
+  column of the shared `[1fr_20rem]` grid (1280px at `2xl` and above). D5's
+  original premise, that unbounded prose is a defect to fix with a measure
+  cap, no longer holds for `ArticleLayout`: the fix here is the opposite
+  direction, remove the cap kbx.15 installed. The hero keeps a `max-h-[26rem]`
+  height cap as the one deliberate exception (kbx.7's regression risk), but
+  it is a height cap, not a prose-measure cap, and does not reintroduce a
+  reading-column width. See learn-editorial.md section 4.1's kbx.18
+  amendment for the measured before/after. TemplateDetail is still
+  untouched (out of kbx.18's file scope too) and still carries D5's
+  `max-w-[46rem]` / `lg:grid-cols-[minmax(0,46rem)_19rem]` figures.
+
 ### D6 (high): heading hierarchy inversion across the hub
 
 - **Page**: all four routes
@@ -529,7 +546,7 @@ unless noted.
 | Featured story headline | `text-h4 sm:text-h3` (cap 44px)         | `LearnFeaturedStory` h2; the `xl:text-h2` step is dropped so no index headline exceeds a page h1                                                                      |
 | Section h2              | `text-h5 sm:text-h4` (cap 32px)         | All landing sections (current), TemplateDetail content sections (current), **and** "More from Learn" and the subscribe band (both currently one step too big, D6/D18) |
 | Row/card title          | `text-h6` (18px)                        | `LearnCard` h3 (current) **and** `LearnListRow` titles (currently unsized 16px body): one voice for one content class                                                 |
-| Body                    | 16px / `leading-7`, measure-capped      | Prose at `max-w-[46rem]` (D5)                                                                                                                                         |
+| Body                    | 16px / `leading-7`, full column width   | Prose spans the `1fr` main column, no measure cap (D5, superseded by website-kbx.18)                                                                                  |
 | Meta                    | `text-caption` (14px) `text-cc-ink-dim` | Author lines, descriptions in rows                                                                                                                                    |
 | Kicker                  | `font-mono text-xs uppercase` (12px)    | The only mono label voice besides the badge                                                                                                                           |
 | Badge                   | `text-[0.6875rem]` (11px)               | `ContentTypeBadge`, facet legends/counts, TemplateDetail `dt` labels, `LearnCard` meta: every current `text-[0.6rem]` and `text-[0.65rem]`                            |
@@ -604,14 +621,15 @@ six equal hairline-topped bands.
 
 ### 2.7 Per-section layout prescriptions: reading pages
 
-1. **`/learn/articles/[slug]`** (`ArticleLayout.tsx`): article shell keeps
-   `max-w-5xl`, but only as a wide frame for `Related`; the reading column
-   (breadcrumb through body, hero included) is `max-w-2xl` (672px,
-   ~73.5ch) centered inside it, no code/figure breakout exists today
-   (website-kbx.15, superseding this D5 line's `max-w-[46rem]` figure and
-   its breakout claim, and the kbx.7 cross-reference below); the title
-   takes the page-h1 recipe (D6); related items render at card weight or in
-   even counts (D16). Language chips render through `Tag` (D14).
+1. **`/learn/articles/[slug]`** (`ArticleLayout.tsx`): no article shell or
+   reading-column cap; breadcrumb through `Related` (hero included) render
+   at the full `1fr` main column of the shared `[1fr_20rem]` grid
+   (website-kbx.18, superseding kbx.15's `max-w-2xl` reading column, this
+   D5 line's `max-w-[46rem]` figure, and both their breakout claims; the
+   kbx.7 cross-reference below still governs the hero, now via a
+   `max-h-[26rem]` height cap instead of a width cap); the title takes the
+   page-h1 recipe (D6); related items render at card weight or in even
+   counts (D16). Language chips render through `Tag` (D14).
 2. **`/learn/templates/[slug]`** (`TemplateDetail.tsx`): header
    `py-10 sm:py-12` with the art column capped at
    `lg:grid-cols-[1fr_minmax(0,28rem)]` (D17); body grid
@@ -627,7 +645,7 @@ six equal hairline-topped bands.
 | Part II section                                                                                                         | Disposition here                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 11 (row 3.6) and 15.3, Explainers stands                                                                                | **Superseded**: section does not render below 3 items; item folds into an adjacent band (section 2.5.4, D1).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| 11 (row 4) and 16.3, ArticleLayout stands                                                                               | **Amended**: shell stands; inner prose measure capped at 46rem, title moves to the heading voice at page-h1 rank (D5, D6).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 11 (row 4) and 16.3, ArticleLayout stands                                                                               | **Amended**: no shell or prose measure cap (website-kbx.18 removed it entirely); title moves to the heading voice at page-h1 rank (D5, D6).                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 14.1 `LearnListRow` recipe                                                                                              | **Amended**: title gains `font-heading text-h6 font-semibold`; thumbnail loses its border; rows `py-5`; compact density variant added; kicker rule per D19.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 14.2 `LearnFeaturedStory` headline                                                                                      | **Amended**: `xl:text-h2` step dropped; image frame border dropped; category chip renders through `Tag`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | 14.3 promo tile image frame                                                                                             | **Amended**: image border dropped (divider policy).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |

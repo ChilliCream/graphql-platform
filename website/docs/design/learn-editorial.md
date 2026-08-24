@@ -295,10 +295,13 @@ published date, optional updated date, reading time); optional hero image
 src; share url/title; tags; the compiled MDX `ReactNode`; a related-items
 slot (`ReactNode`).
 
-Composition, top to bottom, inside a `max-w-5xl` article column. **Amended
-by website-kbx.15** (see the amendment after item 9): items 1 to 8 (all but
-`Related`) render inside a `max-w-2xl` reading column centered inside the
-`max-w-5xl` shell; only `Related` (item 9) uses the full shell width.
+Composition, top to bottom, spanning the full `1fr` main column of the
+shared `[1fr_20rem]` grid (the TOC rail keeps its `20rem` track where it
+renders). **Amended by website-kbx.18 (2026-08-24), superseding
+website-kbx.15's `max-w-5xl` shell / `max-w-2xl` reading column** (see the
+amendment after item 9): no article-shell or reading-column width cap
+applies; items 1 to 9, including `Related`, all render at the full main
+column width.
 
 1. **Breadcrumb**: mono caption voice (`font-mono text-xs uppercase
 tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
@@ -310,22 +313,26 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
 3. **Hero image**: `Picture`, `aspect-video rounded-lg object-cover`,
    `priority`. Optional; explainers typically omit it.
 
-   **Amended by website-kbx.7 (2026-08-24), numbers superseded by
-   website-kbx.15 (2026-08-24):** the hero no longer breaks out to the full
-   `max-w-5xl` shell width (superseding learn-harmonization.md D5's
-   breakout rule for the hero specifically; D5 still governs code blocks
-   and other figures). On widescreen the full-width hero read as oversized
-   next to the prose it introduces, and the fix is a treatment change, not
-   a shrink: the hero is capped at the same text-column measure as the rest
-   of the reading column, so it reads as part of that column rather than a
-   wider banner above it. `aspect-video` (16:9) is kept, which bounds the
-   rendered height at any viewport and keeps the ratio stable, so there is
-   no layout shift. Small screens are unchanged: the hero was already
-   effectively full-width there, well under the cap. kbx.7 shipped this at
-   `max-w-[46rem]` (736px); kbx.15 lowered the cap to `max-w-2xl` (672px,
-   see the amendment after item 9) and, because the hero now shares the
-   same `max-w-2xl` wrapper as the rest of the reading column instead of
-   carrying its own `max-w-[…]` class, the two can no longer drift apart.
+   **Amended by website-kbx.7 (2026-08-24), width numbers superseded by
+   website-kbx.15 (2026-08-24), treatment superseded again by
+   website-kbx.18 (2026-08-24):** kbx.18 removed the reading-column width
+   cap entirely (see the amendment after item 9), so the hero can no longer
+   share a `max-w-[…]` wrapper with the rest of the header, and kbx.7's
+   original complaint, that an uncapped hero reads as oversized next to the
+   text, is live again since the hero would otherwise stretch to the full
+   ~1280px main column. The fix keeps kbx.7's principle (cap the hero, not
+   the prose) but switches the mechanism from a width cap to a height cap:
+   the hero now renders at the full main-column width (`w-full`) with
+   `max-h-[26rem]` (416px) and `object-cover`, so it is visually capped
+   without reintroducing any width constraint. 26rem approximates the
+   rendered height of kbx.7's original 736px-wide 16:9 hero
+   (736 × 9/16 ≈ 414px), so the hero's on-page footprint is unchanged even
+   though its width now matches the header and body. `aspect-video` is kept
+   alongside `max-h-[26rem]` so narrow viewports (where the 16:9 height is
+   already under the cap) still scale the image proportionally; only wide
+   viewports hit the height cap and crop via `object-cover`. Small screens
+   are unaffected either way, since the hero was already effectively
+   full-width there.
 
 4. **Title**: `Typography variant="h1"` (`src/design-system/Typography.tsx`),
    unchanged from the blog page.
@@ -428,6 +435,53 @@ inline in the meta row next to `BlogMetadata` (item 6) rather than becoming
 a separate rail; the design doc never specified a standalone share rail, so
 none was added.
 
+**Amendment (website-kbx.18, 2026-08-24): full-width ruling, superseding
+the kbx.15 reading measure above.** User ruling: article detail pages must
+use the same width every other learn page gives its content, not a boxed
+reading column. kbx.15's `max-w-2xl` (672px) column centered inside the
+`max-w-5xl` shell is removed entirely, and so is the `max-w-5xl` shell
+itself: items 1 through 9 (breadcrumb through `Related`) all render at the
+shared `[1fr_20rem]` grid's `1fr` main column width, no `mx-auto`/`max-w-*`
+wrapper anywhere in `ArticleLayout`. This matches the width `/learn`,
+`/learn/browse`, and the other learn detail pages already give their
+content; the two-tier shell/measure split kbx.7, D5, and kbx.15 each
+iterated on is gone, not narrowed further.
+
+Measured with a standalone Playwright script (own Chromium, explicit
+viewport) on three representative articles, two `kind: article` migrated
+posts (`/learn/articles/fusion-16-5`, `/learn/articles/directives-all-the-way-down`,
+D5's own evidence page) and one comparison
+(`/learn/articles/fusion-vs-apollo-router`; no `kind: explainer` content
+exists in `content/learn/articles/` yet to check), at 1440/1920/2560:
+
+| Viewport | Main column (`1fr`) | Body paragraph width | Indent (viewport edge → paragraph) | TOC rail |
+| -------- | ------------------- | -------------------- | ---------------------------------- | -------- |
+| 1440     | 1344px              | 1344px               | 48px                               | absent   |
+| 1920     | 1280px              | 1280px               | 160px                              | present  |
+| 2560     | 1280px              | 1280px               | 480px                              | present  |
+
+Body paragraph width equals the main column width exactly at all three
+viewports and across all three articles (no side padding is added inside
+`article`; the only inset is the page shell's own `px-5 sm:px-12` plus its
+`max-w-8xl` (100rem/1600px) container, matching the figures
+learn-editorial.md section 12 gives for every other `/learn` page). Below
+`2xl` (1440) there is no TOC rail, so the main column is the full container
+width (1440 − 96px shell padding = 1344px); at `2xl` and above (1920, 2560)
+the `20rem` (320px) TOC rail takes a fixed slice out of the `max-w-8xl`
+container, so the main column holds steady at 1280px, and the indent grows
+because the container centers inside the wider viewport, not because the
+main column itself changes width. All three articles measured identically
+at a given viewport, confirming the width comes from the shared grid, not
+per-article content. Hero: measured `1344×416` at 1440 and `1280×416` at
+1920/2560, confirming `max-h-[26rem]` (416px) holds the height cap while
+the width tracks the main column exactly as item 3's amendment describes.
+
+The hero's `max-h-[26rem]` cap (item 3's amendment above) is a deliberate
+exception to this ruling, not an oversight: the ruling is about the reading
+measure, not about every element filling the column uncapped, and a
+full-bleed, uncropped hero at 1280px tall-by-aspect-ratio is exactly the
+regression website-kbx.7 was filed to fix.
+
 ### 4.2 Page chrome around the shell
 
 - **TOC**: `TableOfContents` in the `2xl:grid-cols-[1fr_20rem]` side
@@ -454,13 +508,14 @@ All from the `@theme` scale in `app/globals.css`; no ad-hoc sizes:
 - Standfirst: `text-lg`; body: `text-body` via the prose defaults; captions,
   breadcrumbs, and kind chips: mono caption voice
   (`font-mono text-xs uppercase tracking-wider`).
-- Measure: the `max-w-5xl` shell with the existing prose line-height; the
-  running reading column (breadcrumb through body) is `max-w-2xl` centered
-  inside it (~73.5ch at the rendered 16px body size), per the section 4.1
-  item 9 kbx.15 amendment, superseding D5's `max-w-[46rem]` (~80ch) figure
-  here. Wide elements (comparison tables, code) scroll horizontally inside
-  their own wrapper at the reading-column width; neither currently breaks
-  out to the full shell (no component implements a breakout today).
+- Measure: no width cap; breadcrumb through `Related` render at the full
+  `1fr` main column width (1280px at `2xl` and above, up to 1344px below
+  it), per the section 4.1 kbx.18 amendment, superseding D5's
+  `max-w-[46rem]` (~80ch) figure and kbx.15's `max-w-2xl` (~73.5ch) figure
+  both. The existing prose line-height (`leading-7`) is unchanged; wide
+  elements (comparison tables, code) scroll horizontally inside their own
+  wrapper when they exceed the (now much wider) column, and no component
+  implements a breakout today since none is needed.
 
 ### 4.4 Behavior under each blog ruling
 
@@ -752,10 +807,12 @@ max-w-8xl">{children}</div></div>`. The existing `(content)` layout
   1280px viewport gives 1184px, 1440px gives 1344px, 1728px gives 1600px.
   Today the landing wastes 224px per side at 1728px (measured: 1280px
   container in a 1728px viewport).
-- **Inner measures are unchanged**: the article column keeps `max-w-5xl`
-  (`ArticleLayout`), and reading pages simply gain rail/TOC breathing room.
-  The articles index drops its double gutter instead of inheriting it
-  (cleanup item 17.6).
+- **Inner measures**: `ArticleLayout` no longer caps its own width (section
+  4.1's kbx.18 amendment supersedes this line's original "unchanged, keeps
+  `max-w-5xl`" claim); the article column fills this section's `max-w-8xl`
+  gutter like every other `/learn` page, and reading pages simply gain
+  rail/TOC breathing room. The articles index drops its double gutter
+  instead of inheriting it (cleanup item 17.6).
 
 ---
 
@@ -1107,9 +1164,12 @@ The uniform `BlogTeaserGrid` page is replaced by the editorial treatments
 
 ### 16.3 `/learn/articles/[slug]`
 
-`ArticleLayout` stands as shipped. v2 adds the subnav above it and unifies
-the breadcrumb style (17.5). The wider container affects only the whitespace
-around the `max-w-5xl` article column and the `2xl` TOC rail.
+**Amended by learn-harmonization.md D5 and website-kbx.18 (2026-08-24):**
+`ArticleLayout` no longer stands as shipped; it has no article-column width
+cap (section 4.1's kbx.18 amendment). v2 adds the subnav above it and
+unifies the breadcrumb style (17.5). The wider container affects the
+whitespace around the article column (now the full `max-w-8xl` gutter, not
+a `max-w-5xl` inner cap) and the `2xl` TOC rail.
 
 ---
 
