@@ -120,7 +120,7 @@ internal sealed class PingSessionExecutor(
             }
 
             return await WriteResultAsync(
-                harness, sessionId, attemptId, transportOutcome.Reason, transportOutcome.Detail);
+                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

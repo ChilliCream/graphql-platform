@@ -144,10 +144,15 @@ public sealed class ClaudePeerClientTests : IDisposable
         // from any exception text. Skipped where this OS trick cannot
         // reproduce a real EACCES: Windows has no matching mechanism, and a
         // process running as root bypasses the directory permission check
-        // entirely.
+        // entirely, which is checked independently of the outcome under test.
         if (OperatingSystem.IsWindows())
         {
             Assert.Skip("Unix directory-permission denial has no Windows equivalent.");
+        }
+
+        if (Environment.IsPrivilegedProcess)
+        {
+            Assert.Skip("Running as root bypasses the directory permission check.");
         }
 
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -160,21 +165,29 @@ public sealed class ClaudePeerClientTests : IDisposable
             // act
             var outcome = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
 
-            if (outcome.Reason != ClaudePeerSendReason.AccessDenied)
-            {
-                Assert.Skip(
-                    "The OS did not deny the connect (likely running as root); "
-                    + $"got {outcome.Reason} instead.");
-            }
-
             // assert
-            Assert.False(outcome.Retryable);
-            Assert.NotNull(outcome.Detail);
+            Assert.Equal(ClaudePeerSendOutcome.AccessDenied, outcome);
         }
         finally
         {
             RestoreParentSearchable(deniedSocketPath);
         }
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ReturnRetryableTransportError_When_RegistryIsMalformed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await File.WriteAllTextAsync(
+            Path.Combine(_sessionDirectory, $"{Pid}.json"), "{ not json", cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(Pid, SessionId, "hello", cancellationToken);
+
+        // assert: JsonDocument.Parse throws the derived JsonReaderException,
+        // whose runtime type name is what ends up in Detail.
+        Assert.Equal(ClaudePeerSendOutcome.TransportError("JsonReaderException"), outcome);
     }
 
     private async Task<(ClaudePeerSendOutcome Outcome, IReadOnlyList<JsonDocument> Frames)>

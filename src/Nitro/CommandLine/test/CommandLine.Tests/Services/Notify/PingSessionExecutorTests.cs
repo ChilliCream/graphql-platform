@@ -242,6 +242,8 @@ public sealed class PingSessionExecutorTests : IDisposable
         Assert.Equal(PingAttemptReason.AccessDenied, outcome.Reason);
         Assert.False(outcome.Retryable);
         Assert.Equal(ClaudePeerSendOutcome.AccessDenied.Detail, outcome.Detail);
+        var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        Assert.Equal(row!.LastPingDetail, outcome.Detail);
     }
 
     [Fact]
