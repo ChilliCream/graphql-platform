@@ -103,11 +103,11 @@ function VideoRail({ video }: { readonly video: VideoItem }) {
 
 /**
  * Video detail page composition (learn-editorial.md section 20, amended by
- * learn-harmonization.md D2/D9, website-kbx.19, and website-kbx.23):
- * breadcrumb-only header, click-to-load embed, description, and a metadata
- * rail (example repository link, publish date, duration, level, topics,
- * products) to the right of the player. The page loads data and picks
- * related items; this component only renders the props it's given.
+ * learn-harmonization.md D2/D9, website-kbx.19, website-kbx.23, and
+ * website-kbx.24): breadcrumb-only header, click-to-load embed, description,
+ * and a metadata rail (example repository link, publish date, duration,
+ * level, topics, products) to the right of the player. The page loads data
+ * and picks related items; this component only renders the props it's given.
  *
  * Each piece (player, rail, description) renders once; explicit grid
  * placement (not a duplicated `lg:hidden` / `hidden lg:block` pair) puts them
@@ -143,10 +143,9 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
         <h1 className="font-heading text-cc-heading text-h3 font-semibold tracking-[-0.02em] text-balance">
           {video.title}
         </h1>
-        <p className="text-cc-prose mt-5 max-w-2xl text-lg leading-relaxed">{video.tagline}</p>
       </header>
 
-      <div className="border-cc-card-border grid gap-10 border-t py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-x-16 lg:gap-y-10">
+      <div className="grid gap-10 pb-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-x-16 lg:gap-y-10">
         <div className="order-1 min-w-0 lg:order-none lg:col-start-1 lg:row-start-1">
           <LearnVideoPlayer videoId={video.youtubeId} title={video.title} />
         </div>
