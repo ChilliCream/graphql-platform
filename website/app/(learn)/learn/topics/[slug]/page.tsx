@@ -149,10 +149,8 @@ export default async function LearnHubPage({ params }: PageProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <div className="pt-6 sm:pt-8">
-        <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: hub.label }]} />
-      </div>
-      <LearnMasthead title={hub.label} teaser={hub.description} />
+      <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: hub.label }]} />
+      <LearnMasthead title={hub.label} teaser={hub.description} showEyebrow={false} />
       <LearnEditorialBand
         latestPosts={latestPosts}
         featuredPost={featuredPost}

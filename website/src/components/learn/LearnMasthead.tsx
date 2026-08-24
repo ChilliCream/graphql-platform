@@ -3,6 +3,8 @@ import { Eyebrow } from "@/src/design-system/Eyebrow";
 interface LearnMastheadProps {
   readonly title: string;
   readonly teaser: string;
+  /** Renders the "Learn" eyebrow above the title. Defaults to `true`; pages that already show a breadcrumb above the masthead pass `false` to avoid the redundant label (website-kbx.10). */
+  readonly showEyebrow?: boolean;
 }
 
 /**
@@ -12,10 +14,10 @@ interface LearnMastheadProps {
  * title, so this carries roughly half `PageHero`'s vertical weight and stays
  * left-aligned.
  */
-export function LearnMasthead({ title, teaser }: LearnMastheadProps) {
+export function LearnMasthead({ title, teaser, showEyebrow = true }: LearnMastheadProps) {
   return (
     <header className="py-6 sm:py-8">
-      <Eyebrow color="ink-dim">Learn</Eyebrow>
+      {showEyebrow ? <Eyebrow color="ink-dim">Learn</Eyebrow> : null}
       <h1 className="font-heading text-cc-heading text-h3 mt-3 font-semibold text-balance">{title}</h1>
       <p className="text-cc-ink-dim mt-4 max-w-2xl text-lg">{teaser}</p>
     </header>
