@@ -31,7 +31,7 @@ function RailFeature({ post }: { readonly post: BlogPostSummary }) {
   return (
     <Link href={post.href} className="group/rail flex flex-col no-underline">
       {post.featuredImage ? (
-        <div className="aspect-video overflow-hidden rounded-2xl">
+        <div className="h-40 overflow-hidden rounded-2xl">
           <Picture
             src={post.featuredImage}
             alt=""
@@ -41,7 +41,7 @@ function RailFeature({ post }: { readonly post: BlogPostSummary }) {
         </div>
       ) : null}
       <span
-        className={`font-heading text-cc-heading text-h4 group-hover/rail:text-cc-accent font-semibold text-balance transition-colors ${post.featuredImage ? "mt-5" : ""}`}
+        className={`font-heading text-cc-heading text-h5 group-hover/rail:text-cc-accent font-semibold text-balance transition-colors ${post.featuredImage ? "mt-5" : ""}`}
       >
         {post.title}
       </span>
