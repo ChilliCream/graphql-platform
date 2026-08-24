@@ -14,7 +14,7 @@ const COMPARISON = [
         label: "Monthly price",
         free: "$0",
         payg: "$20 / month",
-        dedicated: "from $400 / month",
+        dedicated: "From $400 / month",
         self: "Custom",
       },
       {
@@ -189,7 +189,7 @@ export function CompareTable() {
       id="compare"
       className="mt-24 scroll-mt-24 sm:mt-28"
       eyebrow="Compare plans"
-      heading="Feature comparison"
+      heading="Compare Nitro plans, usage, and deployment"
       columns={columns}
       groups={groups}
     />

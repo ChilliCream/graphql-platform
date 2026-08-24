@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Josefin_Sans } from "next/font/google";
 import { Analytics } from "@/src/components/Analytics";
 import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
@@ -7,6 +7,7 @@ import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import { StructuredData } from "@/src/components/StructuredData";
+import { WebVitals } from "@/src/components/WebVitals";
 import {
   SITE_NAME,
   SITE_TITLE,
@@ -28,7 +29,7 @@ const josefinSans = Josefin_Sans({
 });
 
 const DESCRIPTION =
-  "The ChilliCream GraphQL Platform: build, connect, and observe GraphQL APIs with Hot Chocolate, Fusion, Strawberry Shake, and Nitro.";
+  "Build, federate, observe, and evolve GraphQL APIs with open-source Hot Chocolate, Fusion, Strawberry Shake, and Mocha, plus the Nitro control plane.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -42,6 +43,7 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   applicationName: SITE_NAME,
+  manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -60,6 +62,11 @@ export const metadata: Metadata = {
       ],
     },
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#0b0f1a",
 };
 
 export default function RootLayout({
@@ -85,6 +92,7 @@ export default function RootLayout({
         <main className="flex-1 overflow-x-clip">{children}</main>
         <Footer />
         <Analytics />
+        <WebVitals />
       </body>
     </html>
   );

@@ -32,7 +32,8 @@ internal static class DirectiveTools
                 continue;
             }
 
-            if (FusionBuiltIns.IsBuiltInDirective(directiveNode.Name.Value))
+            if (FusionBuiltIns.IsBuiltInDirective(directiveNode.Name.Value)
+                && !FusionBuiltIns.Tag.Equals(directiveNode.Name.Value, StringComparison.Ordinal))
             {
                 continue;
             }

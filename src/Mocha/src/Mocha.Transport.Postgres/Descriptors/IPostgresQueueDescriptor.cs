@@ -20,6 +20,14 @@ public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDe
     IPostgresQueueDescriptor AutoDelete(bool autoDelete = true);
 
     /// <summary>
+    /// Marks this queue's receive endpoint as temporary, signaling that its underlying
+    /// infrastructure is scoped to the lifetime of the consuming process rather than provisioned
+    /// durably. Enables auto-deletion of the backing queue.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IPostgresQueueDescriptor Temporary();
+
+    /// <summary>
     /// Registers a handler type on this queue's receive endpoint.
     /// </summary>
     /// <typeparam name="THandler">The handler type.</typeparam>

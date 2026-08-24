@@ -1,6 +1,9 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Logging.Contracts;
 
 namespace HotChocolate.Fusion;
 
@@ -9,6 +12,12 @@ namespace HotChocolate.Fusion;
 /// </summary>
 internal sealed partial class SettingsComposer
 {
+    private const string TransportsPropertyName = "transports";
+    private const string HttpTransportName = "http";
+    private const string WebSocketsTransportName = "websockets";
+    private const string UrlPropertyName = "url";
+    private const string DevUrlPropertyName = "devUrl";
+
     private static readonly Regex s_variablePattern = VariablePatternRegex();
 
     /// <summary>
@@ -16,14 +25,30 @@ internal sealed partial class SettingsComposer
     /// </summary>
     /// <param name="gatewaySettings">Buffer to write the composed gateway settings to</param>
     /// <param name="sourceSchemaSettings">Source schema settings documents to compose</param>
-    /// <param name="environment">Target environment for variable resolution</param>
+    /// <param name="environment">
+    /// The environment that every source schema resolves its variables against.
+    /// </param>
+    /// <param name="urlOverrides">
+    /// HTTP transport URLs that replace the configured URLs, keyed by source schema name. The
+    /// configured <c>url</c> and <c>devUrl</c> of a source schema with an entry are ignored.
+    /// </param>
+    /// <param name="preferDevUrls">
+    /// When <c>true</c>, the <c>devUrl</c> of a source schema that has no URL override takes
+    /// precedence over its <c>url</c>.
+    /// </param>
+    /// <param name="compositionLog">Log that receives the composition diagnostics</param>
     public void Compose(
         IBufferWriter<byte> gatewaySettings,
         ReadOnlySpan<JsonElement> sourceSchemaSettings,
-        string environment)
+        string environment,
+        IReadOnlyDictionary<string, Uri> urlOverrides,
+        bool preferDevUrls,
+        ICompositionLog compositionLog)
     {
         ArgumentNullException.ThrowIfNull(gatewaySettings);
         ArgumentException.ThrowIfNullOrEmpty(environment);
+        ArgumentNullException.ThrowIfNull(urlOverrides);
+        ArgumentNullException.ThrowIfNull(compositionLog);
 
         if (sourceSchemaSettings.IsEmpty)
         {
@@ -40,7 +65,13 @@ internal sealed partial class SettingsComposer
 
         foreach (var sourceSchema in sourceSchemaSettings)
         {
-            ComposeSourceSchema(writer, sourceSchema, environment);
+            ComposeSourceSchema(
+                writer,
+                sourceSchema,
+                environment,
+                urlOverrides,
+                preferDevUrls,
+                compositionLog);
         }
 
         writer.WriteEndObject();
@@ -48,10 +79,38 @@ internal sealed partial class SettingsComposer
         writer.Flush();
     }
 
+    /// <summary>
+    /// Resolves the variables in the specified value against the variables that the source schema
+    /// settings define for the specified environment.
+    /// </summary>
+    /// <param name="value">The value that may contain variable references</param>
+    /// <param name="sourceSchemaSettings">The source schema settings document</param>
+    /// <param name="environment">Target environment for variable resolution</param>
+    /// <param name="resolvedValue">The value with all variable references replaced</param>
+    /// <returns>
+    /// <c>true</c> if all variable references could be resolved; otherwise <c>false</c>.
+    /// </returns>
+    public static bool TryResolveVariables(
+        string value,
+        JsonElement sourceSchemaSettings,
+        string environment,
+        [NotNullWhen(true)] out string? resolvedValue)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentException.ThrowIfNullOrEmpty(environment);
+
+        var environmentVariables = ExtractEnvironmentVariables(sourceSchemaSettings, environment);
+
+        return TryResolveVariablesInString(value, environmentVariables, out resolvedValue);
+    }
+
     private static void ComposeSourceSchema(
         Utf8JsonWriter writer,
         JsonElement settings,
-        string environment)
+        string environment,
+        IReadOnlyDictionary<string, Uri> urlOverrides,
+        bool preferDevUrls,
+        ICompositionLog compositionLog)
     {
         // first we will get the source schema name.
         if (!settings.TryGetProperty("name", out var nameElement))
@@ -68,9 +127,25 @@ internal sealed partial class SettingsComposer
         // next we collect the variables
         var environmentVariables = ExtractEnvironmentVariables(settings, environment);
 
+        // a source schema with a URL override is reached through that URL instead of its
+        // configured URL.
+        var localUrlOverride = urlOverrides.TryGetValue(schemaName, out var urlOverride)
+            ? urlOverride.AbsoluteUri
+            : null;
+
+        var context = new SourceSchemaContext(
+            schemaName,
+            environment,
+            environmentVariables,
+            localUrlOverride,
+            preferDevUrls,
+            compositionLog);
+
         // now that we have all the context in memory we can start with the settings composition.
         writer.WritePropertyName(schemaName);
         writer.WriteStartObject();
+
+        var hasTransports = false;
 
         foreach (var property in settings.EnumerateObject())
         {
@@ -81,12 +156,231 @@ internal sealed partial class SettingsComposer
                 continue;
             }
 
+            if (property.Name is TransportsPropertyName)
+            {
+                hasTransports = true;
+
+                if (property.Value.ValueKind is JsonValueKind.Object)
+                {
+                    writer.WritePropertyName(property.Name);
+                    WriteTransports(writer, property.Value, context);
+                    continue;
+                }
+            }
+
             writer.WritePropertyName(property.Name);
             WriteJsonElementWithVariableSubstitution(writer, property.Value, environmentVariables);
         }
 
+        // the local URL must reach the gateway configuration even when the source schema
+        // settings do not configure a transport at all.
+        if (!hasTransports && localUrlOverride is not null)
+        {
+            writer.WritePropertyName(TransportsPropertyName);
+            writer.WriteStartObject();
+            writer.WritePropertyName(HttpTransportName);
+            WriteHttpTransport(writer, localUrlOverride);
+            writer.WriteEndObject();
+        }
+
         writer.WriteEndObject();
     }
+
+    private static void WriteTransports(
+        Utf8JsonWriter writer,
+        JsonElement transports,
+        in SourceSchemaContext context)
+    {
+        writer.WriteStartObject();
+
+        var hasHttpTransport = false;
+
+        foreach (var property in transports.EnumerateObject())
+        {
+            var isHttpTransport = property.Name is HttpTransportName;
+            hasHttpTransport |= isHttpTransport;
+
+            writer.WritePropertyName(property.Name);
+
+            if (property.Value.ValueKind is JsonValueKind.Object
+                && property.Name is HttpTransportName or WebSocketsTransportName)
+            {
+                WriteTransport(writer, property.Value, isHttpTransport, context);
+                continue;
+            }
+
+            WriteJsonElementWithVariableSubstitution(
+                writer,
+                property.Value,
+                context.EnvironmentVariables);
+        }
+
+        if (!hasHttpTransport && context.LocalUrlOverride is not null)
+        {
+            writer.WritePropertyName(HttpTransportName);
+            WriteHttpTransport(writer, context.LocalUrlOverride);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteHttpTransport(Utf8JsonWriter writer, string url)
+    {
+        writer.WriteStartObject();
+        writer.WriteString(UrlPropertyName, url);
+        writer.WriteEndObject();
+    }
+
+    private static void WriteTransport(
+        Utf8JsonWriter writer,
+        JsonElement transport,
+        bool isHttpTransport,
+        in SourceSchemaContext context)
+    {
+        var resolvedUrl = ResolveTransportUrl(transport, isHttpTransport, context);
+        var hasUrl = false;
+
+        writer.WriteStartObject();
+
+        foreach (var property in transport.EnumerateObject())
+        {
+            // the development URL is a source schema concern and never survives the composition.
+            if (property.Name is DevUrlPropertyName)
+            {
+                continue;
+            }
+
+            if (property.Name is UrlPropertyName && resolvedUrl is not null)
+            {
+                writer.WriteString(UrlPropertyName, resolvedUrl);
+                hasUrl = true;
+                continue;
+            }
+
+            writer.WritePropertyName(property.Name);
+            WriteJsonElementWithVariableSubstitution(
+                writer,
+                property.Value,
+                context.EnvironmentVariables);
+        }
+
+        if (!hasUrl && resolvedUrl is not null)
+        {
+            writer.WriteString(UrlPropertyName, resolvedUrl);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    /// <summary>
+    /// Determines the URL of a transport. Returns <c>null</c> when the configured <c>url</c> is
+    /// composed as it is.
+    /// </summary>
+    private static string? ResolveTransportUrl(
+        JsonElement transport,
+        bool isHttpTransport,
+        in SourceSchemaContext context)
+    {
+        if (context.LocalUrlOverride is { } localUrlOverride)
+        {
+            return isHttpTransport ? localUrlOverride : null;
+        }
+
+        if (!context.PreferDevUrls)
+        {
+            return null;
+        }
+
+        var url = GetStringPropertyOrNull(transport, UrlPropertyName);
+        var devUrl = GetDevUrlOrNull(transport);
+
+        if (devUrl is not null)
+        {
+            if (TryResolveVariablesInString(devUrl, context.EnvironmentVariables, out var resolved))
+            {
+                return resolved;
+            }
+
+            WriteUnresolvedUrlWarning(context, DevUrlPropertyName);
+
+            // an unresolvable development URL falls back to the configured URL.
+            if (url is null)
+            {
+                return devUrl;
+            }
+        }
+        else if (url is not null && isHttpTransport)
+        {
+            WriteDevUrlMissingWarning(context);
+        }
+
+        if (url is null)
+        {
+            return null;
+        }
+
+        if (TryResolveVariablesInString(url, context.EnvironmentVariables, out var resolvedUrl))
+        {
+            return resolvedUrl;
+        }
+
+        WriteUnresolvedUrlWarning(context, UrlPropertyName);
+
+        return url;
+    }
+
+    private static void WriteDevUrlMissingWarning(in SourceSchemaContext context)
+    {
+        context.CompositionLog.Write(
+            LogEntryBuilder.New()
+                .SetMessage(
+                    "The source schema '{0}' does not specify a 'devUrl' for its HTTP transport. "
+                    + "The composed configuration uses its 'url', which might not be reachable "
+                    + "from the local development environment.",
+                    context.SchemaName)
+                .SetCode(LogEntryCodes.SourceSchemaDevUrlMissing)
+                .SetSeverity(LogSeverity.Warning)
+                .Build());
+    }
+
+    private static void WriteUnresolvedUrlWarning(
+        in SourceSchemaContext context,
+        string propertyName)
+    {
+        var fallback = propertyName is DevUrlPropertyName
+            ? "The 'url' is used instead."
+            : "The configured value is composed as it is.";
+
+        context.CompositionLog.Write(
+            LogEntryBuilder.New()
+                .SetMessage(
+                    "The '{0}' of the source schema '{1}' contains variables that are not defined "
+                    + "for the environment '{2}'. {3}",
+                    propertyName,
+                    context.SchemaName,
+                    context.Environment,
+                    fallback)
+                .SetCode(LogEntryCodes.SourceSchemaUrlVariableUnresolved)
+                .SetSeverity(LogSeverity.Warning)
+                .Build());
+    }
+
+    /// <summary>
+    /// Gets the development URL of a transport. A development URL that is not set or blank counts
+    /// as not defined, which lets the resolution fall through to the configured <c>url</c>.
+    /// </summary>
+    private static string? GetDevUrlOrNull(JsonElement transport)
+    {
+        var devUrl = GetStringPropertyOrNull(transport, DevUrlPropertyName);
+
+        return string.IsNullOrWhiteSpace(devUrl) ? null : devUrl;
+    }
+
+    private static string? GetStringPropertyOrNull(JsonElement element, string propertyName)
+        => element.TryGetProperty(propertyName, out var value)
+            && value.ValueKind is JsonValueKind.String
+                ? value.GetString()
+                : null;
 
     private static Dictionary<string, JsonElement> ExtractEnvironmentVariables(
         JsonElement settings,
@@ -94,8 +388,11 @@ internal sealed partial class SettingsComposer
     {
         var variables = new Dictionary<string, JsonElement>();
 
-        if (settings.TryGetProperty("environments", out var environmentsElement)
-            && environmentsElement.TryGetProperty(environment, out var targetEnvElement))
+        if (settings.ValueKind is JsonValueKind.Object
+            && settings.TryGetProperty("environments", out var environmentsElement)
+            && environmentsElement.ValueKind is JsonValueKind.Object
+            && environmentsElement.TryGetProperty(environment, out var targetEnvElement)
+            && targetEnvElement.ValueKind is JsonValueKind.Object)
         {
             foreach (var variable in targetEnvElement.EnumerateObject())
             {
@@ -219,21 +516,64 @@ internal sealed partial class SettingsComposer
 
             if (environmentVariables.TryGetValue(variableName, out var variableValue))
             {
-                return variableValue.ValueKind switch
-                {
-                    JsonValueKind.String => variableValue.GetString()!,
-                    JsonValueKind.Number => variableValue.GetRawText(),
-                    JsonValueKind.True => "true",
-                    JsonValueKind.False => "false",
-                    JsonValueKind.Null => "null",
-                    _ => variableValue.GetRawText()
-                };
+                return FormatVariableValue(variableValue);
             }
 
             throw new InvalidOperationException($"Variable '{variableName}' not found in environment");
         });
     }
 
+    private static bool TryResolveVariablesInString(
+        string input,
+        Dictionary<string, JsonElement> environmentVariables,
+        [NotNullWhen(true)] out string? resolvedValue)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            resolvedValue = input;
+            return true;
+        }
+
+        var isResolved = true;
+
+        var result = s_variablePattern.Replace(input, match =>
+        {
+            var variableName = match.Groups[1].Value;
+
+            if (environmentVariables.TryGetValue(variableName, out var variableValue))
+            {
+                return FormatVariableValue(variableValue);
+            }
+
+            isResolved = false;
+
+            return match.Value;
+        });
+
+        resolvedValue = isResolved ? result : null;
+
+        return isResolved;
+    }
+
+    private static string FormatVariableValue(JsonElement variableValue)
+        => variableValue.ValueKind switch
+        {
+            JsonValueKind.String => variableValue.GetString()!,
+            JsonValueKind.Number => variableValue.GetRawText(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.Null => "null",
+            _ => variableValue.GetRawText()
+        };
+
     [GeneratedRegex(@"\{\{([a-zA-Z0-9_-]+)\}\}")]
     private static partial Regex VariablePatternRegex();
+
+    private readonly record struct SourceSchemaContext(
+        string SchemaName,
+        string Environment,
+        Dictionary<string, JsonElement> EnvironmentVariables,
+        string? LocalUrlOverride,
+        bool PreferDevUrls,
+        ICompositionLog CompositionLog);
 }

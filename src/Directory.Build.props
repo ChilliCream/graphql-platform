@@ -42,9 +42,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net11.0; net10.0; net9.0; net8.0</TargetFrameworks>
-    <ExtendedTargetFrameworks>net11.0; net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
-    <OpenApiTargetFrameworks>net11.0; net10.0; net9.0</OpenApiTargetFrameworks>
+    <TargetFrameworks>net11.0;net10.0;net9.0;net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net11.0;net10.0;net9.0;net8.0;netstandard2.0</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>net11.0;net10.0;net9.0</OpenApiTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -67,7 +67,7 @@
 
   <ItemGroup Condition="'$(PackageIcon)' != ''">
     <None
-      Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)"
+      Include="$(MSBuildThisFileDirectory)..\website\public\resources\$(PackageIcon)"
       Pack="true"
       PackagePath="$(PackageIcon)"
       Visible="false"
@@ -76,6 +76,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
+    <PackageReference Include="ChilliCream.AnalyzerConfig.Libraries">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Roslynator.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

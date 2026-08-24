@@ -4,13 +4,16 @@ import {
   type ComponentPropsWithoutRef,
   type ReactNode,
 } from "react";
-import { codeToHtml } from "shiki";
+import { codeToHtml, type BundledTheme } from "shiki";
+import { ClipboardButton } from "@/src/components/ClipboardButton";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
-const THEME = "github-dark";
+const DEFAULT_THEME: BundledTheme = "github-dark";
 
-type CodeBlockProps = ComponentPropsWithoutRef<"pre">;
+type CodeBlockProps = ComponentPropsWithoutRef<"pre"> & {
+  theme?: BundledTheme;
+};
 
 type ExtractedCode = {
   code: string;
@@ -38,7 +41,11 @@ function extract(children: ReactNode): ExtractedCode | null {
   return { code, language, meta };
 }
 
-export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
+export async function CodeBlock({
+  children,
+  className = "",
+  theme = DEFAULT_THEME,
+}: CodeBlockProps) {
   const extracted = extract(children);
   if (!extracted) {
     return <pre className={className}>{children}</pre>;
@@ -54,7 +61,7 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
   try {
     html = await codeToHtml(code, {
       lang: shikiLang,
-      theme: THEME,
+      theme,
       transformers: [
         {
           line(node, line) {
@@ -120,13 +127,22 @@ export async function CodeBlock({ children, className = "" }: CodeBlockProps) {
       ],
     });
   } catch {
-    html = await codeToHtml(code, { lang: "text", theme: THEME });
+    html = await codeToHtml(code, { lang: "text", theme });
   }
 
   return (
-    <figure className="ring-cc-card-border bg-cc-code-bg my-6 overflow-hidden rounded-lg shadow-md ring-1">
+    <figure className="ring-cc-card-border bg-cc-code-bg relative my-6 overflow-hidden rounded-lg shadow-md ring-1">
+      <ClipboardButton
+        value={code}
+        label="Copy code"
+        copiedLabel="Code copied"
+        errorLabel="Could not copy code"
+        analyticsEventName="copy_code_example"
+        analyticsParameters={{ code_language: language }}
+        className="border-cc-card-border bg-cc-code-header text-cc-ink-dim hover:text-cc-ink absolute top-2 right-2 z-10 size-7 border"
+      />
       {(descriptor || parsed.filename) && (
-        <figcaption className="border-cc-card-border bg-cc-code-header flex items-center gap-3 border-b px-4 py-2 text-xs">
+        <figcaption className="border-cc-card-border bg-cc-code-header flex min-h-11 items-center gap-3 border-b px-4 py-2 pr-12 text-xs">
           {descriptor ? (
             <span
               className="rounded px-2 py-0.5 font-semibold tracking-wider uppercase"

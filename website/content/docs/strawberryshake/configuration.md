@@ -4,7 +4,7 @@ description: "Configure the Strawberry Shake code generator through `.graphqlrc.
 ---
 
 Strawberry Shake is configured by altering the `.graphqlrc.json` at the root of your project.
-All settings to into `extensions.strawberryShake` object.
+All settings go into the `extensions.strawberryShake` object.
 Here is a full configuration with all possibilities:
 
 ```json

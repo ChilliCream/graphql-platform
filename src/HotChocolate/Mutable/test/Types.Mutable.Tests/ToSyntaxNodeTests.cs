@@ -222,6 +222,89 @@ public class ToSyntaxNodeTests
     }
 
     [Fact]
+    public void DirectiveType_Deprecated_ToSyntaxNode_Should_OmitTheReasonArgument_When_ReasonIsTheDefault()
+    {
+        // arrange
+        var directiveDefinition = new MutableDirectiveDefinition("foo")
+        {
+            Locations = DirectiveLocation.Object,
+            DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason
+        };
+
+        // act
+        var syntaxNode = directiveDefinition.ToSyntaxNode();
+
+        // assert
+        syntaxNode.ToString().MatchInlineSnapshot(
+            """
+            directive @foo @deprecated on OBJECT
+            """);
+    }
+
+    [Fact]
+    public void ObjectType_Deprecated_ToSyntaxNode_Should_PrintDeprecatedOnce_When_SchemaIsParsed()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo {
+                field(argument: Int @deprecated(reason: "Use argument2")): String @deprecated
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var syntaxNode = ((MutableObjectTypeDefinition)schema.Types["Foo"]).ToSyntaxNode();
+
+        // assert
+        syntaxNode.ToString().MatchInlineSnapshot(
+            """
+            type Foo {
+                field(argument: Int @deprecated(reason: "Use argument2")): String @deprecated
+            }
+            """);
+    }
+
+    [Fact]
+    public void InputField_Deprecated_ToSyntaxNode_Should_PrintDeprecatedOnce_When_SchemaIsParsed()
+    {
+        // arrange
+        const string sdl =
+            """
+            input Foo {
+                field: String @deprecated
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var syntaxNode = ((MutableInputObjectTypeDefinition)schema.Types["Foo"]).Fields["field"].ToSyntaxNode();
+
+        // assert
+        syntaxNode.ToString().MatchInlineSnapshot("field: String @deprecated");
+    }
+
+    [Fact]
+    public void EnumValue_Deprecated_ToSyntaxNode_Should_PrintDeprecatedOnce_When_SchemaIsParsed()
+    {
+        // arrange
+        const string sdl =
+            """
+            enum Example {
+                A @deprecated(reason: "Use B")
+                B
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var syntaxNode = ((MutableEnumTypeDefinition)schema.Types["Example"]).Values["A"].ToSyntaxNode();
+
+        // assert
+        syntaxNode.ToString().MatchInlineSnapshot("""A @deprecated(reason: "Use B")""");
+    }
+
+    [Fact]
     public void ArgumentAssignment_ToSyntaxNode()
     {
         // arrange

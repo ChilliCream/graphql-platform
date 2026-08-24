@@ -33,7 +33,11 @@ internal sealed class LaunchCommand : Command
 
         var url = ResolveUrl(sessionService.Session);
 
-        browser.Open(url);
+        if (!browser.TryOpen(url))
+        {
+            throw new ExitException($"Could not open a browser at {url.EscapeMarkup()}.");
+        }
+
         console.OkLine($"[link={url.EscapeMarkup()}]Nitro[/] is launched!");
 
         return Task.FromResult(ExitCodes.Success);

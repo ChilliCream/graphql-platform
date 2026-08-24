@@ -130,6 +130,39 @@ label. A raw Markdown viewer (e.g. GitHub) still shows a clickable link.
 
 A YouTube link inside surrounding prose is left as a normal inline link.
 
+### Version badges
+
+Put a `key: value` version line **alone in the paragraph directly below a
+heading** to render version badges next to that heading. The `headingTags`
+remark plugin picks it up; raw Markdown viewers still show a readable line.
+
+```markdown
+# `nitro fusion publish`
+
+Since: 16.6.0, Nitro: 10.3.0
+```
+
+Supported keys (any subset, in any order, always rendered in the same order):
+
+| Key     | Badge           | Meaning                                                                     |
+| ------- | --------------- | --------------------------------------------------------------------------- |
+| `Since` | `16.6.0+`       | Minimum package or tool version required for the documented feature.        |
+| `Nitro` | `Nitro 10.3.0+` | Minimum self-hosted Nitro backend version (hovering the badge explains it). |
+
+A paragraph is only converted when every pair uses a supported key, so ordinary
+prose such as `Note: this is fine, really` is left alone.
+
+The same line as the **first block of a document** (directly below the
+frontmatter) puts the badges on the page title instead:
+
+```markdown
+---
+title: "fusion Command"
+---
+
+Since: 16.6.0
+```
+
 ### Admonitions
 
 Use GitHub-style alert blockquotes. Supported kinds: `NOTE`, `TIP`, `WARNING`,
@@ -169,3 +202,12 @@ flowchart LR
   them rendering.
 - A range of MDX components is available (e.g. `Tabs`, `ExampleTabs`,
   `PackageInstallation`); see `mdx-components.tsx` for the full set.
+
+### Generated Markdown copies
+
+Every published documentation page has a generated `.md` alternate used by the
+**Copy as Markdown** action. The export is derived from the rendered article, so
+it preserves headings, prose, links, lists, admonitions, tables, and code while
+excluding frontmatter, navigation, buttons, forms, SVG/canvas diagrams, and
+elements marked with `data-llms-ignore`. Interactive MDX components contribute
+their rendered textual content; purely visual components are omitted.

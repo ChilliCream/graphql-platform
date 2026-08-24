@@ -43,7 +43,7 @@ nodes:
     targets:
       - $.second
       - $.first
-    batchingGroupId: 2
+    batchingGroupId: 6
     requirements:
       - name: __fusion_1_id
         selectionMap: >-
@@ -63,7 +63,7 @@ nodes:
     targets:
       - $.second
       - $.first
-    batchingGroupId: 3
+    batchingGroupId: 7
     requirements:
       - name: __fusion_2_id
         selectionMap: >-

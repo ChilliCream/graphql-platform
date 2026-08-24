@@ -136,6 +136,37 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
+    public void DiscoverTopology_Should_MaterializeNonDurableAutoDeleteQueue_When_RouteIsReply()
+    {
+        // arrange
+        // The generated reply endpoint sets IsTemporary, and the reply queue must go through the
+        // same non-durable, auto-delete lifecycle path as any other temporary endpoint.
+        var services = new ServiceCollection();
+        services.AddInMemorySagas();
+        var builder = services.AddMessageBus();
+        builder.AddSaga<StockCheckSaga>();
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                t.BindImplicitly();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var replyEndpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Kind == ReceiveEndpointKind.Reply);
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == replyEndpoint.Queue.Name);
+
+        // assert
+        Assert.False(queue.Durable);
+        Assert.True(queue.AutoDelete);
+    }
+
+    [Fact]
     public void DiscoverTopology_Should_SuppressQueueBind_When_QueueBindExplicit()
     {
         // arrange

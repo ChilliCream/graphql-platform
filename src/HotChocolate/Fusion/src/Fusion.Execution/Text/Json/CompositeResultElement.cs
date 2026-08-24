@@ -508,6 +508,18 @@ public readonly partial struct CompositeResultElement
     }
 
     /// <summary>
+    /// Classifies this element in one step. Returns <c>false</c> for an undefined slot
+    /// that still needs to be initialized, returns <c>true</c> with the object context
+    /// for an object, and throws for any other value kind.
+    /// </summary>
+    internal bool TryGetObjectContext(out CompositeObjectContext objectContext)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetObjectContext(_cursor, out objectContext);
+    }
+
+    /// <summary>
     /// Gets the value as a <see cref="bool"/>.
     /// </summary>
     /// <returns>The boolean value.</returns>
@@ -1042,11 +1054,11 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
-    internal void SetLeafValue(SourceResultElement source, SourceResultDocument.DbRow row)
+    internal void SetLeafValue(SourceResultElementSnapshot source)
     {
         CheckValidInstance();
 
-        _parent.AssignSourceValue(this, source, row);
+        _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
     }
 
     internal void SetNullValue()

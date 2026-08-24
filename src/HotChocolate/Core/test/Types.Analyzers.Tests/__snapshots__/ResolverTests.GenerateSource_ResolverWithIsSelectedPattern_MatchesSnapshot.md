@@ -78,6 +78,12 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetTest_isSelected(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetTest();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -95,6 +101,15 @@ namespace TestNamespace
             {
                 _isSelected_GetTest_isSelected = global::HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet("{ email category { name } }");
             }
+
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetTest_isSelected()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "isSelected",
+                    typeof(bool),
+                    isNullable: false,
+                    [
+                        new global::HotChocolate.Types.IsSelectedAttribute("email category { name }")
+                    ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetTest()
             {

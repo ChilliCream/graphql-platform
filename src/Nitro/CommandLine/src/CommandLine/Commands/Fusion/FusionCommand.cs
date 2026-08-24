@@ -20,6 +20,7 @@ internal sealed class FusionCommand : Command
         Subcommands.Add(new FusionPublishCommand());
         Subcommands.Add(new FusionRunCommand());
         Subcommands.Add(new FusionSettingsCommand());
+        Subcommands.Add(new FusionSourceSchemaCommand());
         Subcommands.Add(new FusionValidateCommand());
         Subcommands.Add(new FusionUploadCommand());
     }

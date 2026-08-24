@@ -30,6 +30,18 @@ internal static class Messages
     public static string SourceSchemaUrlInvalid()
         => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
 
+    public static string TransportUrlInvalid(string optionName)
+        => $"The value for '{optionName}' must be an absolute HTTP URL without user information or a fragment, "
+            + "or reference an environment variable such as '{{API_URL}}'.";
+
+    public static string SourceSchemaSettingsFileNotAnObject(string path)
+        => $"Source schema settings file '{path}' does not contain a JSON object. "
+            + $"Remove it or write to a different path with '{OptionalSettingsFileOption.OptionName}'.";
+
+    public static string ApolloFederationVersionRequiresKind()
+        => $"The option '{OptionalApolloFederationVersionOption.OptionName}' requires "
+            + $"'{SourceSchemaKindOption.OptionName} {SourceSchemaKindOption.ApolloFederation}'.";
+
     public static string SourceSchemaUrlSettingsCountMismatch()
         => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
             + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";
@@ -55,6 +67,11 @@ internal static class Messages
 
     public static string FailedToOpenLegacyArchive(string filePath, string detail)
         => $"Failed to open legacy v1 archive '{filePath}': {detail}";
+
+    public static string FailedToDownloadCompositionSettings(string stageName, string? detail = null)
+        => detail is null
+            ? $"Failed to download the composition settings from stage '{stageName}'."
+            : $"Failed to download the composition settings from stage '{stageName}': {detail}";
 
     public static string LegacyArchiveRequiredForFgpStage(string stageName)
         => $"Stage '{stageName.EscapeMarkup()}' currently has a Fusion v1 archive but no '{OptionalLegacyFusionArchiveFileOption.OptionName}' was provided. "
@@ -96,6 +113,9 @@ internal static class Messages
 
     public const string RequestApproved =
         "Your request has been approved.";
+
+    public const string SelfHostLatestVersionReminder =
+        "If you are targeting a self-hosted instance, make sure it's running the latest version.";
 
     public static string QueuedAtPosition(int position)
         => $"Your request is queued at position {position}.";

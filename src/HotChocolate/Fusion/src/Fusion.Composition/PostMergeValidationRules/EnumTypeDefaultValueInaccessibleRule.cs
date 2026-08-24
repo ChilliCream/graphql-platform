@@ -70,10 +70,23 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
     {
         inaccessibleCoordinate = null;
 
+        // Spec list input coercion: a non-list value on a list type is treated as a singleton list.
+        if (defaultType.NullableType() is ListType coercedListType
+            && defaultValue.Kind is not (SyntaxKind.ListValue or SyntaxKind.NullValue or SyntaxKind.Variable))
+        {
+            return ValidateDefaultValue(
+                defaultValue,
+                coercedListType.ElementType,
+                out inaccessibleCoordinate);
+        }
+
         switch (defaultValue)
         {
             case EnumValueNode enumValue:
-                var enumType = (MutableEnumTypeDefinition)defaultType.NullableType();
+                if (defaultType.NullableType() is not MutableEnumTypeDefinition enumType)
+                {
+                    return true;
+                }
 
                 if (!enumType.Values.TryGetValue(enumValue.Value, out var value)
                     || value.HasFusionInaccessibleDirective())
@@ -86,13 +99,14 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
                 return true;
 
             case ListValueNode listValue:
-                var listType = (ListType)defaultType.NullableType();
+                if (defaultType.NullableType() is not ListType listType)
+                {
+                    return true;
+                }
 
                 foreach (var item in listValue.Items)
                 {
-                    defaultType = listType.ElementType;
-
-                    if (!ValidateDefaultValue(item, defaultType, out inaccessibleCoordinate))
+                    if (!ValidateDefaultValue(item, listType.ElementType, out inaccessibleCoordinate))
                     {
                         return false;
                     }
@@ -101,13 +115,19 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
                 return true;
 
             case ObjectValueNode objectValue:
-                var inputObjectType = (MutableInputObjectTypeDefinition)defaultType.NullableType();
+                if (defaultType.NullableType() is not MutableInputObjectTypeDefinition inputObjectType)
+                {
+                    return true;
+                }
 
                 foreach (var field in objectValue.Fields)
                 {
-                    defaultType = inputObjectType.Fields[field.Name.Value].Type;
+                    if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var inputField))
+                    {
+                        continue;
+                    }
 
-                    if (!ValidateDefaultValue(field.Value, defaultType, out inaccessibleCoordinate))
+                    if (!ValidateDefaultValue(field.Value, inputField.Type, out inaccessibleCoordinate))
                     {
                         return false;
                     }

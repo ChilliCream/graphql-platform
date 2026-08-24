@@ -37,6 +37,29 @@ internal static partial class TestHelper
         string? assemblyName = "Tests",
         bool enableInterceptors = false,
         bool enableAnalyzers = false)
+        => GetGeneratedSourceSnapshot(
+            sourceTexts,
+            assemblyName,
+            enableInterceptors,
+            enableAnalyzers,
+            inspectCompilation: null);
+
+    public static Snapshot GetGeneratedSourceSnapshot(
+        [StringSyntax("csharp")] string sourceText,
+        Action<CSharpCompilation> inspectCompilation)
+        => GetGeneratedSourceSnapshot(
+            [sourceText],
+            "Tests",
+            enableInterceptors: false,
+            enableAnalyzers: false,
+            inspectCompilation: inspectCompilation);
+
+    private static Snapshot GetGeneratedSourceSnapshot(
+        string[] sourceTexts,
+        string? assemblyName,
+        bool enableInterceptors,
+        bool enableAnalyzers,
+        Action<CSharpCompilation>? inspectCompilation)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -155,6 +178,8 @@ internal static partial class TestHelper
                 .OrderBy(gs => gs.HintName)
                 .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
         );
+
+        inspectCompilation?.Invoke(updatedCompilation);
 
         using var dllStream = new MemoryStream();
         var emitResult = updatedCompilation.Emit(dllStream);

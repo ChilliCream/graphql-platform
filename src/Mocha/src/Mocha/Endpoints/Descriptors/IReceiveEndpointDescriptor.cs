@@ -80,6 +80,13 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> MaxConcurrency(int maxConcurrency);
 
     /// <summary>
+    /// Marks this receive endpoint as temporary, signaling that its underlying infrastructure
+    /// is scoped to the lifetime of the consuming process rather than provisioned durably.
+    /// </summary>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Temporary();
+
+    /// <summary>
     /// Adds a receive middleware to this endpoint's receive pipeline. Optionally positions it
     /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>

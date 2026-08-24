@@ -26,7 +26,7 @@ export function KeyValueChipCard({
       className={`border-cc-card-border bg-cc-card-bg flex flex-col gap-2 rounded-xl border p-3 ${className}`.trim()}
     >
       <div className="flex items-center justify-between gap-1.5">
-        <span className="text-cc-nav-label min-w-0 truncate font-mono text-[0.55rem] tracking-[0.12em] uppercase">
+        <span className="text-cc-ink-dim min-w-0 truncate font-mono text-[0.55rem] tracking-[0.12em] uppercase">
           {label}
         </span>
         {icon}

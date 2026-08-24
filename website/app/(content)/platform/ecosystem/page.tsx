@@ -1,109 +1,84 @@
-import { CardGrid } from "@/src/components/CardGrid";
-import { ContentSection } from "@/src/components/ContentSection";
+import { FromOurBlog } from "@/src/components/FromOurBlog";
 import { NextStepsSection } from "@/src/components/NextStepsSection";
-import { PageHero } from "@/src/components/PageHero";
-import { Section } from "@/src/components/Section";
-import { Card } from "@/src/design-system/Card";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
+import { RevealOnScroll } from "@/src/components/RevealOnScroll";
+import { TOOLS } from "@/src/components/header/navData";
+import commitActivity from "@/src/data/githubCommitActivity.json";
+import { getGitHubContributors } from "@/src/helpers/githubContributors";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { schemaId, schemaRef } from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
-  title: "Ecosystem",
+import { CommunityGrid } from "./CommunityGrid";
+import { Hero } from "./Hero";
+import { ProofBand } from "./ProofBand";
+import { StandardsBand } from "./StandardsBand";
+
+const PAGE = {
+  title: "Open-Source GraphQL Ecosystem for .NET",
   description:
-    "Explore the ChilliCream ecosystem: GraphQL tooling with authentication flows, document sync, subscriptions, and a fast IDE built for your API journey.",
+    "Explore the open-source .NET GraphQL ecosystem behind Hot Chocolate, Fusion, Mocha and Strawberry Shake: public code, standards work, docs, and community.",
   path: "/platform/ecosystem",
-});
+  keywords: [
+    "open-source .NET GraphQL ecosystem",
+    ".NET GraphQL open source",
+    "HotChocolate GraphQL server",
+    "GraphQL standards",
+    "GraphQL Foundation",
+    "GitHub contributors",
+    "public roadmap",
+    "community channels",
+    "Fusion GraphQL",
+    "Strawberry Shake",
+    "Mocha Messaging",
+  ],
+} as const;
 
-interface FeatureCard {
-  title: string;
-  description: string;
-}
+export const metadata = pageMetadata(PAGE);
 
-const FEATURES: FeatureCard[] = [
-  {
-    title: "Authentication Flows",
-    description:
-      "Choose between various authentication flows like basic, bearer or OAuth 2.",
-  },
-  {
-    title: "Organization Workspaces",
-    description:
-      "Organize your GraphQL APIs and collaborate with colleagues across your organization with ease.",
-  },
-  {
-    title: "Document Synchronization",
-    description:
-      "Keep your documents safe across all your devices and your teams.",
-  },
-  {
-    title: "PWA Support",
-    description:
-      "Use your favorite Browser to install Nitro as a PWA on your Device without requiring administrative privileges.",
-  },
-  {
-    title: "Beautiful Themes",
-    description:
-      "Choose your single preferred theme or let the system automatically switch between dark and light theme.",
-  },
-  {
-    title: "GraphQL File Upload",
-    description:
-      "Implements the latest version of the GraphQL multipart request spec.",
-  },
-  {
-    title: "Subscriptions over SSE",
-    description: "Supports GraphQL subscriptions over Server-Sent Events.",
-  },
-  {
-    title: "Performant GraphQL IDE",
-    description:
-      "Lagging apps can be frustrating. We do not accept that and keep always an eye on performance so that you can get your task done fast.",
-  },
-  {
-    title: "Subscriptions over WS",
-    description:
-      "Supports GraphQL subscriptions over WebSocket as well as the Apollo subscription protocol.",
-  },
-];
+const HIDDEN_CONTRIBUTOR_LOGINS = new Set(["artola"]);
 
-export default function EcosystemPage() {
+export default async function EcosystemPage() {
+  const contributors = await getGitHubContributors();
+  const heroContributors =
+    contributors?.filter(
+      (contributor) => !HIDDEN_CONTRIBUTOR_LOGINS.has(contributor.login),
+    ) ?? null;
+
   return (
     <>
-      <PageHero
-        title="An Ecosystem You Love"
-        teaser="A harmonious blend of tools and community, dedicated to enhancing your API journey. Experience simplicity, efficiency, and collaborative innovation."
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        pageType="CollectionPage"
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Platform", path: "/platform" },
+          { name: "Ecosystem" },
+        ]}
+        about={[
+          schemaRef(schemaId("/products/hotchocolate", "software")),
+          schemaRef(schemaId("/products/strawberryshake", "software")),
+          schemaRef(schemaId("/products/mocha", "software")),
+        ]}
       />
-      <NextStepsSection
-        title="Lead by Intuition"
-        text="A framework built by developers for developers. Combining ease of use with high-speed performance, it's designed to elevate your projects effortlessly."
-        primaryLink="/docs/hotchocolate"
-        primaryLinkText="Get Started"
-        secondaryLink="https://nitro.chillicream.com"
-        secondaryLinkText="Launch"
-      />
-      <Section title="Batteries Included">
-        <p className="text-cc-ink-dim -mt-4 mb-8 text-center text-base sm:text-lg">
-          Everything you need to build great APIs &mdash; and more
-        </p>
-        <CardGrid cols={3} step="progressive" gap={6}>
-          {FEATURES.map((feature) => (
-            <Card key={feature.title} variant="tile">
-              <h3 className="text-cc-ink text-lg font-semibold">
-                {feature.title}
-              </h3>
-              <p className="text-cc-ink-dim mt-2 text-sm">
-                {feature.description}
-              </p>
-            </Card>
-          ))}
-        </CardGrid>
-      </Section>
-      <ContentSection
-        title="Continuous Evolution"
-        text="Embracing the latest GraphQL specification drafts and future updates, this platform ensures users are always at the cutting edge. Experience an evolving GraphQL journey, where innovation and up-to-date features converge seamlessly."
-        imageSrc="/images/ecosystem/continuous-evolution.png"
-        imageAlt="Continuous Evolution"
-        imageMaxWidth={1200}
-      />
+      <Hero contributors={heroContributors} />
+      <ProofBand commitActivity={commitActivity.weeks} />
+      <StandardsBand />
+      <CommunityGrid />
+      <RevealOnScroll>
+        <FromOurBlog limit={3} className="py-10 sm:py-14" />
+      </RevealOnScroll>
+      <RevealOnScroll>
+        <NextStepsSection
+          title="See whether it fits your architecture."
+          text="Read the docs, run a focused evaluation, and talk to a maintainer about your architecture. Then decide."
+          primaryLink="/docs"
+          primaryLinkText="Read the docs"
+          secondaryLink={TOOLS.slack}
+          secondaryLinkText="Talk to a maintainer"
+        />
+      </RevealOnScroll>
     </>
   );
 }

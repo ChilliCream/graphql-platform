@@ -84,4 +84,16 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
         REPO: ${{ inputs.repo }}
         RUN_ID: ${{ steps.dispatch.outputs.run-id }}
-      run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact
+      run: |
+        set -euo pipefail
+
+        # A single transient API error kills `gh run watch`, so retry it. Re-watching a run that
+        # really failed costs nothing, because watching a completed run returns immediately.
+        for attempt in 1 2 3; do
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact && exit 0
+          echo "Watch attempt $attempt/3 failed."
+          sleep 10
+        done
+
+        echo "::error::Run $RUN_ID failed, or its status could not be read."
+        exit 1

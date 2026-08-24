@@ -27,6 +27,11 @@ internal readonly struct CompositeObjectContext
         _numberOfRows = numberOfRows;
     }
 
+    /// <summary>
+    /// Gets the selection set of the object, or <c>null</c> for a raw object.
+    /// </summary>
+    public SelectionSet? SelectionSet => _selectionSet;
+
     public bool TryGetProperty(
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value,

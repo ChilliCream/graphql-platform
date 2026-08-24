@@ -1,31 +1,37 @@
 import { FaqSection } from "@/src/components/FaqSection";
 
-const FAQ = [
+export const SUPPORT_FAQ_ITEMS = [
   {
-    q: "What counts as a critical incident?",
-    a: "An incident is critical when a production system you run on Hot Chocolate, Fusion, or Nitro is down, returning wrong data, or otherwise hard-blocked. Anything that degrades a live user experience qualifies. Local dev issues and questions are non-critical.",
+    question: "What counts as a critical incident?",
+    answer:
+      "An incident is critical when a production system you run on Hot Chocolate, Fusion, or Nitro is down, returning wrong data, or otherwise hard-blocked. Anything that degrades a live user experience qualifies. Local dev issues and questions are non-critical.",
   },
   {
-    q: "How fast do you respond?",
-    a: "Startup and Business respond to critical incidents the next business day. Enterprise responds to critical incidents within 24 hours, any day. Non-critical incidents are 3 business days on Business and next business day on Enterprise. The Community plan is best-effort in public Slack with no guarantee.",
+    question: "How fast do you respond?",
+    answer:
+      "Startup and Business respond to critical incidents by the next business day. Enterprise responds to critical incidents within 24 hours. Business responds to non-critical incidents within 3 business days, while Enterprise responds by the next business day. Community Slack is best effort.",
   },
   {
-    q: "How is an incident opened and tracked?",
-    a: "Paid plans get a private Slack channel staffed by ChilliCream engineers. Business and Enterprise additionally get a private issue tracking board so every incident has a ticket, an owner, and a written history you can audit.",
+    question: "How is an incident opened and tracked?",
+    answer:
+      "Startup, Business, and Enterprise include a private Slack channel. Business and Enterprise also include a private issue tracking board. Enterprise adds email and phone support to the listed channels.",
   },
   {
-    q: "What happens when I use up my incidents in a month?",
-    a: "We do not cut you off mid-fire. We keep working the incident and reach out to discuss either a one-time top-up or moving to the next plan. Incidents do not roll over month to month.",
+    question: "Which paid support plan should we choose?",
+    answer:
+      "Startup fits a team that needs a private channel and limited critical-incident coverage. Business adds non-critical incidents, email support, and private issue tracking. Enterprise adds tailored terms, more channels, status reviews, and a dedicated account manager.",
   },
   {
-    q: "Do you support self-hosted Nitro and on-prem deployments?",
-    a: "Yes. Business and Enterprise both support self-hosted Nitro, Fusion gateways, and Hot Chocolate services running in your own cloud or on-prem. Enterprise adds tailored response times and a named account manager who knows your topology.",
+    question: "What products can a plan cover?",
+    answer:
+      "The support page covers Hot Chocolate, Fusion, and Nitro. Tell us which products and deployment models are on your critical path so the commercial agreement can reflect the systems your team operates.",
   },
   {
-    q: "Can we change plans later?",
-    a: "Yes. You can upgrade at any time and the new response time takes effect immediately. Downgrades take effect at the start of the next billing month so an in-flight incident never falls between plans.",
+    question: "How is support different from an advisory engagement?",
+    answer:
+      "A support plan provides ongoing channels, incident allowances, and response terms. Advisory is scoped around a design decision, review, troubleshooting session, or implementation. Teams can use either service or combine them.",
   },
-];
+] as const;
 
 /**
  * The support FAQ, rendered with the shared `FaqSection` disclosure list.
@@ -37,7 +43,7 @@ export function SupportFaq() {
       className="py-16"
       eyebrow="FAQ"
       heading="Common questions"
-      items={FAQ.map((item) => ({ question: item.q, answer: item.a }))}
+      items={SUPPORT_FAQ_ITEMS}
     />
   );
 }

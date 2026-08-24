@@ -3,5 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
     <TargetFrameworks>net11.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>

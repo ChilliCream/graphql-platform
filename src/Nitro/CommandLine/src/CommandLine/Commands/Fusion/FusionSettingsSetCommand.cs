@@ -79,9 +79,22 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
                 break;
 
+            case FusionSettingsNameArgument.EnumValuesMergeBehavior:
+                if (!EnumValuesMergeBehaviorParser.TryParse(settingValue, out var enumValuesMergeBehavior))
+                {
+                    throw new ExitException(
+                        $"Expected one of the following values for setting '{settingName}': "
+                        + $"{string.Join(", ", EnumValuesMergeBehaviorParser.Values)}");
+                }
+
+                compositionSettings.Merger.EnumValuesMergeBehavior = enumValuesMergeBehavior;
+                break;
+
             case FusionSettingsNameArgument.ExcludeByTag:
-                var tags = settingValue
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var tags = settingValue.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries
+                        | StringSplitOptions.TrimEntries);
 
                 compositionSettings.Preprocessor.ExcludeByTag = tags.ToHashSet();
                 break;

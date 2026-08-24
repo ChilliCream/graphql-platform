@@ -1220,6 +1220,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupArchiveFile();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
@@ -1268,10 +1269,288 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_NullStageCompositionSettings_ArchiveSettingsPreserved()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_PartialStageCompositionSettings_OnlyOverridesProvidedSettings()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                ExcludeByTag = ["fromStage"],
+                TagMergeBehavior = CompositionDirectiveMergeBehavior.IncludePrivate
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromStage"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "IncludePrivate"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to download the composition settings from stage 'dev': Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to download the composition settings from stage 'dev'.
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! Failed to download the composition settings from stage 'dev': If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_FarInRegistry_WithLegacyArchive_ReturnsSuccess()
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
@@ -1371,6 +1650,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
@@ -1428,6 +1708,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
@@ -1482,6 +1763,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
@@ -1539,6 +1821,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
@@ -1598,6 +1881,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // deployment slot request and the claim mutations.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
@@ -1665,6 +1949,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // publish must request a new deployment slot as usual.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -1720,6 +2005,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
 
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -1961,6 +2247,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFileWithInvalidSchema();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2014,6 +2301,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2060,6 +2348,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2109,6 +2398,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2185,6 +2475,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2264,6 +2555,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(waitForApproval: true);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2311,6 +2603,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(waitForApproval: true);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2375,6 +2668,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(waitForApproval: true);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2444,6 +2738,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2495,6 +2790,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2549,6 +2845,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2803,6 +3100,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -2856,6 +3154,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
@@ -2959,6 +3258,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
@@ -3015,6 +3315,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupReviewsSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaReviewsVersions);
         SetupRequestDeploymentSlotSubscription();
@@ -3071,6 +3372,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
@@ -3127,6 +3429,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupReviewsSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaReviewsVersions);
         SetupRequestDeploymentSlotSubscription();
@@ -3188,6 +3491,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // deployment slot request and the claim mutations.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
@@ -3257,6 +3561,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // publish must request a new deployment slot as usual.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3314,6 +3619,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
 
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3362,6 +3668,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // arrange
         const string sourceSchemaVersion = "1.2.3";
         SetupSourceSchemaDownload(version: sourceSchemaVersion);
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(
             sourceSchemaVersions: [new SourceSchemaVersion(SourceSchema, sourceSchemaVersion)]);
         SetupRequestDeploymentSlotSubscription();
@@ -3576,6 +3883,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownloadWithInvalidSchema();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3669,6 +3977,287 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
+    [Fact]
+    public async Task WithSourceSchema_NullStageCompositionSettings_ArchiveSettingsPreserved()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_PartialStageCompositionSettings_OnlyOverridesProvidedSettings()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                ExcludeByTag = ["fromStage"],
+                TagMergeBehavior = CompositionDirectiveMergeBehavior.IncludePrivate
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromArchive"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "fromStage"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Include",
+                "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "IncludePrivate"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": null,
+                "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_StageCompositionSettingsThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to download the composition settings from stage 'dev': Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to download the composition settings from stage 'dev'.
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! Failed to download the composition settings from stage 'dev': If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertComposedFusionSchema(schema);
+    }
+
     [Theory]
     [MemberData(nameof(GetValidationErrors))]
     public async Task WithSourceSchema_ValidationHasErrors_ReturnsError(
@@ -3677,6 +4266,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3725,6 +4315,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3777,6 +4368,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3855,6 +4447,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3936,6 +4529,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(waitForApproval: true, sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -3985,6 +4579,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(waitForApproval: true, sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -4051,6 +4646,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(waitForApproval: true, sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -4122,6 +4718,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -4175,6 +4772,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -4231,6 +4829,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
+        SetupStageCompositionSettings();
         SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
@@ -4929,7 +5528,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync();
+        var names = sourceSchemaNames.ToArray();
         Assert.Equal(
             new[] { SourceSchemaReviews, SourceSchema }.OrderBy(x => x),
             names.OrderBy(x => x));
@@ -4957,7 +5557,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync();
+        var names = sourceSchemaNames.ToArray();
         Assert.Equal(new[] { SourceSchemaReviews }, names);
 
         var reviews = await archive.TryGetSourceSchemaConfigurationAsync(SourceSchemaReviews);
@@ -5495,6 +6096,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         if (input is not PublishInput.Archive)
         {
             SetupFusionConfigurationDownload();
+            SetupStageCompositionSettings();
         }
         SetupFusionConfigurationValidationMutation(CreateValidationRequestNotFoundError());
         SetupReleaseDeploymentSlotMutation();
@@ -5512,6 +6114,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         if (input is not PublishInput.Archive)
         {
             SetupFusionConfigurationDownload();
+            SetupStageCompositionSettings();
         }
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();

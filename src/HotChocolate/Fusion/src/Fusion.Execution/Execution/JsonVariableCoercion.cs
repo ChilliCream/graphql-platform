@@ -401,7 +401,7 @@ internal ref struct JsonVariableCoercion
         {
             value = ParseLiteral(element, depth);
 
-            if (!scalarType.IsValueCompatible(value))
+            if (!((IScalarTypeDefinition)scalarType).IsValueCompatible(value))
             {
                 error = ErrorBuilder.New()
                     .SetMessage(

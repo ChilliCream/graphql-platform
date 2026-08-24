@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 type CommonProps = {
   children: ReactNode;
   className?: string;
+  /** Native browser tooltip shown on hover. */
+  title?: string;
 };
 
 type LinkTagProps = CommonProps & {
@@ -22,7 +24,7 @@ const INTERACTIVE_CLASSES =
   "hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover";
 
 export function Tag(props: TagProps) {
-  const { children, className } = props;
+  const { children, className, title } = props;
   const cls = [
     BASE_CLASSES,
     props.href ? INTERACTIVE_CLASSES : "",
@@ -33,10 +35,14 @@ export function Tag(props: TagProps) {
 
   if (props.href) {
     return (
-      <Link href={props.href} prefetch={false} className={cls}>
+      <Link href={props.href} prefetch={false} className={cls} title={title}>
         {children}
       </Link>
     );
   }
-  return <span className={cls}>{children}</span>;
+  return (
+    <span className={cls} title={title}>
+      {children}
+    </span>
+  );
 }

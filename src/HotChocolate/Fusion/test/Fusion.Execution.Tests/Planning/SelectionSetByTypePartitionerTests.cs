@@ -275,6 +275,64 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
     }
 
     [Fact]
+    public void Selections_On_Interface_Skips_Implementors_That_Are_Not_Possible_Types()
+    {
+        // arrange
+        var source1 = new TestSourceSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                draft: Draft
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            interface Votable {
+              viewerHasUpvoted: Boolean!
+            }
+
+            type Discussion implements Node & Votable {
+              id: ID!
+              title: String!
+              viewerHasUpvoted: Boolean!
+            }
+
+            type Draft implements Votable {
+              name: String!
+              viewerHasUpvoted: Boolean!
+            }
+            """);
+        var schema = ComposeSchema(source1);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($id: ID!) {
+                node(id: $id) {
+                    ... on Votable {
+                        viewerHasUpvoted
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: null
+
+            Discussion: {
+              viewerHasUpvoted
+            }
+            """);
+    }
+
+    [Fact]
     public void Concrete_Type_Selections_Within_Interface()
     {
         // arrange
@@ -395,6 +453,71 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
 
             Author: {
               viewerHasUpvoted
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Interface_Selections_Skip_Implementors_Outside_Outer_Interface()
+    {
+        // arrange
+        // Announcement is a Node and Commentable, but not Votable, so the nested Commentable
+        // fragment must not produce an Announcement branch.
+        var source1 = new TestSourceSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            interface Votable {
+              viewerHasUpvoted: Boolean!
+            }
+
+            interface Commentable {
+              commentCount: Int!
+            }
+
+            type Discussion implements Node & Votable & Commentable {
+              id: ID!
+              viewerHasUpvoted: Boolean!
+              commentCount: Int!
+            }
+
+            type Announcement implements Node & Commentable {
+              id: ID!
+              commentCount: Int!
+            }
+            """);
+        var schema = ComposeSchema(source1);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($id: ID!) {
+                node(id: $id) {
+                    ... on Votable {
+                        ... on Commentable {
+                            commentCount
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: null
+
+            Discussion: {
+              commentCount
             }
             """);
     }
@@ -673,7 +796,9 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-    private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
+    private static SelectionSetByTypePartitionerResult Partition(
+        FusionSchemaDefinition schema,
+        DocumentNode document)
     {
         var rewriter = new DocumentRewriter(schema);
         var operation = rewriter.RewriteDocument(document).Definitions
