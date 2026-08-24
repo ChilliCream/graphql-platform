@@ -318,24 +318,25 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
    pending a design call (2026-08-24), design call made and the width cap
    removed by website-kbx.22 (2026-08-24):** kbx.18 removed the
    reading-column width cap for the header and body, but a `max-h-[26rem]`
-   - `object-cover` height-cap treatment for the hero was found to crop
-     roughly 11 of the 27 article heroes (title text or focal subjects cut
-     off, in both directions depending on where the source art places them),
-     regressing the same "must compose, not regress" requirement website-kbx.7
-     was filed under, so kbx.18 shipped with the hero kept at kbx.7's original
-     `max-w-3xl` width cap instead, pending Pascal's design call. **USER
-     RULING (website-kbx.22, 2026-08-24) supersedes that pending state and
-     the same-day 'keep 768px cap' answer recorded on kbx.18:** the hero goes
-     full content column width like every other element in this list. The
-     `max-w-3xl` cap is removed; the hero is a direct, unwrapped child of the
-     full `1fr` main column, `aspect-video max-h-[26rem] w-full object-cover
-rounded-lg`. The `max-h-[26rem]` cap is unchanged from the kbx.18
-     attempt: it is what keeps a 16:9 image usable once its width can reach
-     1344px (aspect-video alone would put it at roughly 756px tall). The
-     crop consequence kbx.18 reverted for is now accepted by the ruling: at
-     full column width, `object-cover` center-crops the same roughly 11 of 27
-     heroes with baked-in title art. See the kbx.22 amendment after item 9
-     for the measurements and the accepted-consequence rationale.
+   plus `object-cover` height-cap treatment for the hero was found to crop
+   roughly 11 of the 27 article heroes (title text or focal subjects cut
+   off, in both directions depending on where the source art places them),
+   regressing the same "must compose, not regress" requirement website-kbx.7
+   was filed under, so kbx.18 shipped with the hero kept at kbx.7's original
+   `max-w-3xl` width cap instead, pending Pascal's design call. **USER
+   RULING (website-kbx.22, 2026-08-24) supersedes that pending state and
+   the same-day 'keep 768px cap' answer recorded on kbx.18:** the hero goes
+   full content column width like every other element in this list. The
+   `max-w-3xl` cap is removed; the hero is a direct, unwrapped child of the
+   full `1fr` main column,
+   `aspect-video max-h-[26rem] w-full object-cover rounded-lg`. The
+   `max-h-[26rem]` cap is carried over from the kbx.18 attempt: it is what
+   keeps a 16:9 image usable once its width can reach 1344px (aspect-video
+   alone would put it at roughly 756px tall). The crop consequence kbx.18
+   reverted for is now accepted by the ruling: at full column width,
+   `object-cover` center-crops the same roughly 11 of 27 heroes with
+   baked-in title art. See the kbx.22 amendment after item 9 for the
+   measurements and the accepted-consequence rationale.
 
 4. **Title**: `Typography variant="h1"` (`src/design-system/Typography.tsx`),
    unchanged from the blog page.
