@@ -7,10 +7,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// Pure JSON-text editing for a Codex CLI <c>hooks.json</c>: no file I/O, no
 /// sidecar persistence, matching <see cref="ClaudeHooksEditor"/>'s
 /// no-side-effects contract. The one structural difference from
-/// <c>settings.json</c>: <c>hooks.json</c> IS the hooks map at its top
-/// level (no wrapping <c>"hooks"</c> key - <c>settings.json</c> needs that
-/// key because hooks are one section of a broader file; <c>hooks.json</c>
-/// is dedicated to hooks entirely, spike S1). Foreign structure (other
+/// <c>settings.json</c>: both files use a top-level <c>"hooks"</c> map.
+/// Foreign structure (other
 /// events, other hook groups under our three managed events, e.g. the
 /// pre-existing <c>herdr</c> <c>SessionStart</c> entry S1 observed
 /// live) round-trips through <see cref="JsonNode"/> untouched; only the
@@ -44,13 +42,14 @@ internal static class CodexHooksEditor
         DateTimeOffset now)
     {
         var root = ParseOrEmpty(existingHooksJson);
+        var hooks = GetOrCreateHooks(root);
 
         var outcomes = new List<HookInstallEventResult>(CodexHooksTemplate.Events.Count);
         var sidecar = new Dictionary<string, CodexHooksSidecarEntry>();
 
         foreach (var codexEvent in CodexHooksTemplate.Events)
         {
-            var eventArray = GetOrCreateEventArray(root, codexEvent);
+            var eventArray = GetOrCreateEventArray(hooks, codexEvent);
             var desiredCommand = CodexHooksTemplate.BuildCommand(descriptor, codexEvent);
             const int desiredTimeout = CodexHooksTemplate.TimeoutSeconds;
 
@@ -96,12 +95,13 @@ internal static class CodexHooksEditor
         string? existingHooksJson, LaunchDescriptor descriptor)
     {
         var root = ParseOrEmpty(existingHooksJson);
+        var hooks = GetHooks(root);
 
         var results = new List<HookStatusEventResult>(CodexHooksTemplate.Events.Count);
 
         foreach (var codexEvent in CodexHooksTemplate.Events)
         {
-            var eventArray = root[codexEvent] as JsonArray;
+            var eventArray = hooks?[codexEvent] as JsonArray;
             var ownedIndex = eventArray is null ? -1 : FindOwnedGroupIndex(eventArray);
 
             if (ownedIndex < 0)
@@ -132,12 +132,13 @@ internal static class CodexHooksEditor
         IReadOnlyDictionary<string, CodexHooksSidecarEntry> priorSidecar)
     {
         var root = ParseOrEmpty(existingHooksJson);
+        var hooks = GetHooks(root);
 
         var outcomes = new List<HookUninstallEventResult>(CodexHooksTemplate.Events.Count);
 
         foreach (var codexEvent in CodexHooksTemplate.Events)
         {
-            var eventArray = root[codexEvent] as JsonArray;
+            var eventArray = hooks?[codexEvent] as JsonArray;
 
             if (eventArray is null)
             {
@@ -165,7 +166,7 @@ internal static class CodexHooksEditor
 
             if (eventArray.Count == 0)
             {
-                root.Remove(codexEvent);
+                hooks!.Remove(codexEvent);
             }
         }
 
@@ -212,6 +213,45 @@ internal static class CodexHooksEditor
         root[codexEvent] = created;
 
         return created;
+    }
+
+    private static JsonObject GetOrCreateHooks(JsonObject root)
+    {
+        if (root[GroupHooksKey] is JsonObject hooks)
+        {
+            MigrateLegacyManagedEvents(root, hooks);
+            return hooks;
+        }
+
+        var created = new JsonObject();
+        root[GroupHooksKey] = created;
+        MigrateLegacyManagedEvents(root, created);
+        return created;
+    }
+
+    private static JsonObject? GetHooks(JsonObject root) => root[GroupHooksKey] as JsonObject;
+
+    // Nitro versions before the Codex hooks schema was corrected wrote these
+    // events beside the hooks map. Move only Nitro's managed event names so an
+    // upgrade repairs that invalid layout without touching unrelated data.
+    private static void MigrateLegacyManagedEvents(JsonObject root, JsonObject hooks)
+    {
+        foreach (var codexEvent in CodexHooksTemplate.Events)
+        {
+            if (root[codexEvent] is not JsonArray legacy)
+            {
+                continue;
+            }
+
+            var target = GetOrCreateEventArray(hooks, codexEvent);
+
+            foreach (var group in legacy)
+            {
+                target.Add(group?.DeepClone());
+            }
+
+            root.Remove(codexEvent);
+        }
     }
 
     private static void AppendGroup(JsonArray array, JsonObject group)

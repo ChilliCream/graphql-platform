@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <c>hooks.json</c> fixtures under <c>test/fixtures/hooks/codex/install/</c>
 /// and <c>test/fixtures/hooks/codex/uninstall/</c>, mirroring
 /// <c>ClaudeHooksEditorTests</c>. The one structural difference exercised
-/// here: <c>hooks.json</c> IS the events map at its top level, no wrapping
+/// here: <c>hooks.json</c> contains its event map under a top-level
 /// <c>"hooks"</c> key.
 /// </summary>
 public sealed class CodexHooksEditorTests
@@ -35,8 +35,7 @@ public sealed class CodexHooksEditorTests
         Assert.Equal(3, result.Sidecar.Count);
         Assert.All(result.Sidecar.Values, e => Assert.Equal(DateTimeOffset.UnixEpoch, e.InstalledAt));
 
-        // No wrapping "hooks" key: hooks.json IS the events map.
-        Assert.Null(root["hooks"]);
+        Assert.NotNull(root["hooks"]);
     }
 
     [Fact]
@@ -44,14 +43,14 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "foreign-only.json");
         var beforeRoot = Parse(before);
-        var herdrBefore = ((JsonArray)beforeRoot["SessionStart"]!)[0];
+        var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
         var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
 
         var afterRoot = Parse(result.HooksJson);
-        var sessionStart = (JsonArray)afterRoot["SessionStart"]!;
+        var sessionStart = (JsonArray)Hooks(afterRoot)["SessionStart"]!;
 
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
@@ -66,7 +65,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "mixed.json");
         var beforeRoot = Parse(before);
-        var herdrBefore = ((JsonArray)beforeRoot["SessionStart"]!)[0];
+        var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
         var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
 
@@ -77,7 +76,7 @@ public sealed class CodexHooksEditorTests
 
         var afterRoot = Parse(result.HooksJson);
 
-        var sessionStart = (JsonArray)afterRoot["SessionStart"]!;
+        var sessionStart = (JsonArray)Hooks(afterRoot)["SessionStart"]!;
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
@@ -176,7 +175,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("uninstall", "with-foreign.json");
         var beforeRoot = Parse(before);
-        var herdrBefore = ((JsonArray)beforeRoot["SessionStart"]!)[0];
+        var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
         var sidecar = SidecarFor(before);
 
@@ -187,8 +186,8 @@ public sealed class CodexHooksEditorTests
 
         var afterRoot = Parse(result.HooksJson);
 
-        Assert.Equal(["SessionStart"], afterRoot.Select(kv => kv.Key));
-        var sessionStart = (JsonArray)afterRoot["SessionStart"]!;
+        Assert.Equal(["hooks"], afterRoot.Select(kv => kv.Key));
+        var sessionStart = (JsonArray)Hooks(afterRoot)["SessionStart"]!;
         var herdrAfter = Assert.Single(sessionStart);
 
         Assert.True(JsonNode.DeepEquals(herdrBefore, herdrAfter));
@@ -227,14 +226,14 @@ public sealed class CodexHooksEditorTests
     }
 
     private static JsonObject SingleOwnedGroup(JsonObject root, string codexEvent)
-        => (JsonObject)((JsonArray)root[codexEvent]!)
+        => (JsonObject)((JsonArray)Hooks(root)[codexEvent]!)
             .Single(g => ((JsonObject)g!)["hooks"]!.AsArray()
                 .All(h => ((JsonObject)h!)["command"]!.GetValue<string>()
                     .Contains(CodexHooksTemplate.CommandMarker, StringComparison.Ordinal)))!;
 
     private static JsonObject SingleGroup(JsonObject root, string codexEvent)
     {
-        var array = (JsonArray)root[codexEvent]!;
+        var array = (JsonArray)Hooks(root)[codexEvent]!;
         return (JsonObject)Assert.Single(array)!;
     }
 
@@ -249,4 +248,6 @@ public sealed class CodexHooksEditorTests
     }
 
     private static JsonObject Parse(string json) => (JsonObject)JsonNode.Parse(json)!;
+
+    private static JsonObject Hooks(JsonObject root) => (JsonObject)root["hooks"]!;
 }
