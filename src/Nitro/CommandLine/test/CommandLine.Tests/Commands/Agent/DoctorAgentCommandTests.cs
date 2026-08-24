@@ -21,6 +21,14 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
     public DoctorAgentCommandTests(NitroCommandFixture fixture) : base(fixture)
     {
         SetupInstanceId(FixedHost);
+
+        // Doctor checks the Claude user-scope hook entries unconditionally,
+        // with no --scope flag to opt out; without this override it reads
+        // whatever happens to be installed at the real ~/.claude/settings.json
+        // on the machine running the test, not this fixture's sandbox.
+        SetupClaudeSettingsPathResolver(
+            userScopePath: Path.Combine(WorkingDirectory, "..", "claude-home", ".claude", "settings.json"),
+            projectScopePath: Path.Combine(WorkingDirectory, ".claude", "settings.json"));
     }
 
     [Fact]
@@ -198,7 +206,7 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
     {
         // arrange: one session the notifier has already pinged (an ordinary
         // outcome) and one with no transport for its endpoint kind
-        // (last_ping_result 'unsupported', e.g. claude-peer), mirroring the
+        // (last_ping_result 'unsupported', e.g. copilot-extension), mirroring the
         // distinction `agent session list` surfaces.
         await InitWorkspaceAsync();
         await InsertSessionRowAsync(

@@ -43,9 +43,9 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List registered agents.
               session       Manage this workspace's live harness session presence.
               hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
+              ping-worker   Internal: performs one already-leased ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
@@ -79,9 +79,9 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List registered agents.
               session       Manage this workspace's live harness session presence.
               hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
+              ping-worker   Internal: performs one already-leased ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
@@ -118,9 +118,9 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List registered agents.
               session       Manage this workspace's live harness session presence.
               hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
+              ping-worker   Internal: performs one already-leased ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
@@ -157,9 +157,9 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List registered agents.
               session       Manage this workspace's live harness session presence.
               hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
-              hooks         Install, inspect, and remove Nitro's Claude Code hook entries.
+              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased codex-thread ping attempt. Spawned by the notifier; not for direct use.
+              ping-worker   Internal: performs one already-leased ping attempt. Spawned by the notifier; not for direct use.
             """);
     }
 
