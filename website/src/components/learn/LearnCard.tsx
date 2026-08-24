@@ -126,14 +126,7 @@ export function LearnCard({ item }: LearnCardProps) {
               const art = PRODUCT_ART[product];
               const label = productLabel(product);
               return (
-                <span
-                  key={product}
-                  role="img"
-                  tabIndex={0}
-                  title={label}
-                  aria-label={label}
-                  className="focus-visible:outline-cc-accent rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                >
+                <span key={product} title={label} className="rounded-md">
                   <DrinkIcon Icon={art.Drink} name={art.drinkName} base={28} />
                 </span>
               );
@@ -146,11 +139,8 @@ export function LearnCard({ item }: LearnCardProps) {
                 return (
                   <span
                     key={key}
-                    role="img"
-                    tabIndex={0}
                     title={label}
-                    aria-label={label}
-                    className="bg-cc-white/8 focus-visible:outline-cc-accent flex size-7 items-center justify-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    className="bg-cc-white/8 flex size-7 items-center justify-center rounded-lg"
                   >
                     <Icon className="size-4" />
                   </span>
@@ -173,7 +163,11 @@ export function LearnCard({ item }: LearnCardProps) {
 
   const className =
     "border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover group flex h-full flex-col rounded-2xl border p-6 no-underline backdrop-blur-sm transition-[border-color,transform] duration-200 hover:-translate-y-1";
-  const ariaLabel = `Open: ${item.title}`;
+  const techLabels = [
+    ...item.products.map(productLabel),
+    ...(item.type === "template" ? item.stack.map((key) => STACK_ICONS[key].label) : []),
+  ];
+  const ariaLabel = `Open: ${item.title}${techLabels.length > 0 ? ` (${techLabels.join(", ")})` : ""}`;
 
   if (external) {
     return (

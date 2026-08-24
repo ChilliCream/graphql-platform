@@ -45,9 +45,10 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
 - **Fix**: immediate: add `self-start` to the `ContentTypeBadge` (or
   `items-start` on the `Link`). Acceptance: badge width equals content width
   (~66 to 90px). Structural: see section 2.5 (the section does not render
-  below 3 items; the single item folds into an adjacent band as a
-  `LearnListRow`). This supersedes Part II sections 11 (row 3.6) and 15.3,
-  which keep `LearnExplainerList` standing.
+  below 3 items; website-kbx.21 removed the fold into an adjacent band, so a
+  sub-threshold explainer is simply omitted from /learn). This supersedes
+  Part II sections 11 (row 3.6) and 15.3, which keep `LearnExplainerList`
+  standing.
 
 ### D2 (high): section-shell rhythm, 5:1 outer-to-inner spacing ratio
 
@@ -593,10 +594,10 @@ six equal hairline-topped bands.
    `TemplateStackArt.tsx` / `productArt.ts` assets; the remaining cards
    stay 1x1.
 4. **Explainers** (`LearnExplainerList.tsx`): does not render as its own
-   section below 3 items (supersedes Part II 11/15.3 "stands"). The current
-   single item folds into an adjacent band as a `LearnListRow` with an
-   "Explainer" kicker. Whenever the section returns, it is single-column
-   below 3 items and its badge carries `self-start` (D1).
+   section below 3 items (supersedes Part II 11/15.3 "stands"). website-kbx.21
+   dropped the fold into an adjacent band; a sub-threshold item is simply
+   omitted. Whenever the section returns, it is single-column below 3 items
+   and its badge carries `self-start` (D1).
 5. **"Watch"** (`LearnVideoSection.tsx`): keeps its card grid and its
    `border-t` (the one card-grid section without row dividers), on the
    section 2.1 padding token.
@@ -651,7 +652,7 @@ six equal hairline-topped bands.
 
 | Part II section                                                                                                         | Disposition here                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 11 (row 3.6) and 15.3, Explainers stands                                                                                | **Superseded**: section does not render below 3 items; item folds into an adjacent band (section 2.5.4, D1).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 11 (row 3.6) and 15.3, Explainers stands                                                                                | **Superseded**: section does not render below 3 items; the fold into an adjacent band was removed (website-kbx.21), sub-threshold explainers are omitted.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 11 (row 4) and 16.3, ArticleLayout stands                                                                               | **Amended**: no shell or prose measure cap (website-kbx.18 removed it entirely); title moves to the heading voice at page-h1 rank (D5, D6).                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 14.1 `LearnListRow` recipe                                                                                              | **Amended**: title gains `font-heading text-h6 font-semibold`; thumbnail loses its border; rows `py-5`; compact density variant added; kicker rule per D19.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 14.2 `LearnFeaturedStory` headline                                                                                      | **Amended**: `xl:text-h2` step dropped; image frame border dropped; category chip renders through `Tag`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
