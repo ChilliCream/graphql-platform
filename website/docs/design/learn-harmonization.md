@@ -139,6 +139,23 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   ArticleLayout "stands as shipped": the shell stands, the inner measure is
   corrected.
 
+  **ArticleLayout number superseded by website-kbx.15 (2026-08-24):** the
+  shipped `max-w-[46rem]` measure (this D5 fix) was never `mx-auto`
+  centered as prescribed here; it rendered flush against the shell's left
+  edge with a 288px dead gutter on the right, which user review flagged as
+  stale/wrong-padding on the wide v2 container. kbx.15 re-measured the
+  rendered body font (16px `system-ui`, `1ch` = 9.140625px in-browser) and
+  lowered the cap to `max-w-2xl` (672px, ~73.5ch, down from 736px/~80.5ch)
+  with `mx-auto` centering applied for real, and folded the breadcrumb,
+  kind chip, hero, title, standfirst, meta row, and tags into that same
+  centered `max-w-2xl` wrapper rather than leaving them at the full shell
+  width. `Related` is the one piece that keeps the full `max-w-5xl` shell
+  width (it is a card grid, not running text). See
+  learn-editorial.md section 4.1's kbx.15 amendment for the full
+  before/after table. TemplateDetail's `max-w-[…]` figure is untouched by
+  kbx.15 (out of that ticket's file scope) and still needs the D5 number
+  reconciled separately if TemplateDetail is revisited.
+
 ### D6 (high): heading hierarchy inversion across the hub
 
 - **Page**: all four routes
@@ -588,10 +605,11 @@ six equal hairline-topped bands.
 ### 2.7 Per-section layout prescriptions: reading pages
 
 1. **`/learn/articles/[slug]`** (`ArticleLayout.tsx`): article shell keeps
-   `max-w-5xl`; running prose wraps at `max-w-[46rem]` with code blocks and
-   figures breaking out to the shell width (D5); the hero no longer breaks
-   out: it is capped to the 46rem prose measure per the kbx.7 amendment in
-   learn-editorial.md 4.1 item 3; the title
+   `max-w-5xl`, but only as a wide frame for `Related`; the reading column
+   (breadcrumb through body, hero included) is `max-w-2xl` (672px,
+   ~73.5ch) centered inside it, no code/figure breakout exists today
+   (website-kbx.15, superseding this D5 line's `max-w-[46rem]` figure and
+   its breakout claim, and the kbx.7 cross-reference below); the title
    takes the page-h1 recipe (D6); related items render at card weight or in
    even counts (D16). Language chips render through `Tag` (D14).
 2. **`/learn/templates/[slug]`** (`TemplateDetail.tsx`): header

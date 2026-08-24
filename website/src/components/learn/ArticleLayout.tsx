@@ -45,15 +45,18 @@ interface ArticleLayoutProps {
 /**
  * Presentational article reading shell shared by blog posts, comparisons,
  * and explainers (learn-editorial.md section 4.1, amended by
- * learn-harmonization.md D5/D6). Takes plain props only: no blog imports, no
- * filesystem reads.
+ * learn-harmonization.md D5/D6 and website-kbx.15). Takes plain props only:
+ * no blog imports, no filesystem reads.
  *
- * The shell stays `max-w-5xl` (header included), but running prose and the
- * hero image are both capped at `max-w-[46rem]` (~80ch): the shell's full
- * 1024px was measuring 123 to 139ch, well past the 45 to 90ch readable
- * band, and a hero breaking out to the full shell width read as oversized
- * on widescreen relative to that measure (website-kbx.7, amending
- * learn-harmonization.md D5's breakout for the hero specifically).
+ * The outer shell stays `max-w-5xl` so the `related` slot keeps room for its
+ * card grid, but the reading column, breadcrumb through body, shares one
+ * `max-w-2xl` (42rem, ~73.5ch at the rendered 16px body size) measure
+ * centered inside that shell (website-kbx.15, superseding the `max-w-5xl`
+ * header / `max-w-[46rem]` (~80ch) prose split of website-kbx.7 and
+ * learn-harmonization.md D5). The hero image now shares the same box
+ * instead of carrying its own cap, so it composes with the measure by
+ * construction. See learn-editorial.md section 4.1's kbx.15 amendment for
+ * the before/after measurements.
  */
 export function ArticleLayout({
   breadcrumb,
@@ -72,44 +75,44 @@ export function ArticleLayout({
     <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0">
         <article className="mx-auto max-w-5xl">
-          <ArticleBreadcrumb items={breadcrumb} />
-          {kind ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <ContentTypeBadge type={kind} />
-              {meta.updatedDate && meta.updatedDate !== meta.publishedDate ? (
-                <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
-                  Updated {meta.updatedDate}
-                </span>
-              ) : null}
+          <div className="mx-auto max-w-2xl">
+            <ArticleBreadcrumb items={breadcrumb} />
+            {kind ? (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <ContentTypeBadge type={kind} />
+                {meta.updatedDate && meta.updatedDate !== meta.publishedDate ? (
+                  <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
+                    Updated {meta.updatedDate}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+            {heroImageSrc ? (
+              <Picture
+                src={heroImageSrc}
+                alt=""
+                priority
+                sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 719px) min(calc(100vw - 6rem), 42rem), 42rem"
+                className="mt-6 mb-6 aspect-video w-full rounded-lg object-cover"
+              />
+            ) : null}
+            <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
+              {title}
+            </h1>
+            {standfirst ? <p className="text-cc-ink-dim my-4 text-lg leading-relaxed">{standfirst}</p> : null}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <BlogMetadata
+                author={meta.author}
+                authorUrl={meta.authorUrl}
+                authorImageUrl={meta.authorImageUrl}
+                date={meta.publishedDate}
+                readingTime={meta.readingTime}
+              />
+              <BlogShareBar url={shareUrl} title={title} />
             </div>
-          ) : null}
-          {heroImageSrc ? (
-            <Picture
-              src={heroImageSrc}
-              alt=""
-              priority
-              sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1119px) min(calc(100vw - 6rem), 46rem), 46rem"
-              className="mt-6 mb-6 aspect-video w-full max-w-[46rem] rounded-lg object-cover"
-            />
-          ) : null}
-          <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
-            {title}
-          </h1>
-          {standfirst ? (
-            <p className="text-cc-ink-dim my-4 max-w-[46rem] text-lg leading-relaxed">{standfirst}</p>
-          ) : null}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <BlogMetadata
-              author={meta.author}
-              authorUrl={meta.authorUrl}
-              authorImageUrl={meta.authorImageUrl}
-              date={meta.publishedDate}
-              readingTime={meta.readingTime}
-            />
-            <BlogShareBar url={shareUrl} title={title} />
+            <BlogTags tags={tags ? [...tags] : undefined} />
+            <div>{children}</div>
           </div>
-          <BlogTags tags={tags ? [...tags] : undefined} />
-          <div className="max-w-[46rem]">{children}</div>
           {related}
         </article>
       </main>

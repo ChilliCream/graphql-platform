@@ -295,7 +295,10 @@ published date, optional updated date, reading time); optional hero image
 src; share url/title; tags; the compiled MDX `ReactNode`; a related-items
 slot (`ReactNode`).
 
-Composition, top to bottom, inside a `max-w-5xl` article column:
+Composition, top to bottom, inside a `max-w-5xl` article column. **Amended
+by website-kbx.15** (see the amendment after item 9): items 1 to 8 (all but
+`Related`) render inside a `max-w-2xl` reading column centered inside the
+`max-w-5xl` shell; only `Related` (item 9) uses the full shell width.
 
 1. **Breadcrumb**: mono caption voice (`font-mono text-xs uppercase
 tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
@@ -307,19 +310,22 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
 3. **Hero image**: `Picture`, `aspect-video rounded-lg object-cover`,
    `priority`. Optional; explainers typically omit it.
 
-   **Amended by website-kbx.7 (2026-08-24):** the hero no longer breaks out
-   to the full `max-w-5xl` shell width (superseding
-   learn-harmonization.md D5's breakout rule for the hero specifically; D5
-   still governs code blocks and other figures). On widescreen the
-   full-width hero read as oversized next to the `max-w-[46rem]` prose it
-   introduces, and the fix is a treatment change, not a shrink: the hero is
-   now capped at that same `max-w-[46rem]` text-column measure, so it reads
-   as part of the same reading column as the standfirst and body rather
-   than a wider banner above them. `aspect-video` (16:9) is kept, which
-   bounds the rendered height at any viewport (414px at the 736px cap) and
-   keeps the ratio stable, so there is no layout shift. Small screens are
-   unchanged: the hero was already effectively full-width there, well
-   under the 46rem cap.
+   **Amended by website-kbx.7 (2026-08-24), numbers superseded by
+   website-kbx.15 (2026-08-24):** the hero no longer breaks out to the full
+   `max-w-5xl` shell width (superseding learn-harmonization.md D5's
+   breakout rule for the hero specifically; D5 still governs code blocks
+   and other figures). On widescreen the full-width hero read as oversized
+   next to the prose it introduces, and the fix is a treatment change, not
+   a shrink: the hero is capped at the same text-column measure as the rest
+   of the reading column, so it reads as part of that column rather than a
+   wider banner above it. `aspect-video` (16:9) is kept, which bounds the
+   rendered height at any viewport and keeps the ratio stable, so there is
+   no layout shift. Small screens are unchanged: the hero was already
+   effectively full-width there, well under the cap. kbx.7 shipped this at
+   `max-w-[46rem]` (736px); kbx.15 lowered the cap to `max-w-2xl` (672px,
+   see the amendment after item 9) and, because the hero now shares the
+   same `max-w-2xl` wrapper as the rest of the reading column instead of
+   carrying its own `max-w-[…]` class, the two can no longer drift apart.
 
 4. **Title**: `Typography variant="h1"` (`src/design-system/Typography.tsx`),
    unchanged from the blog page.
@@ -343,6 +349,84 @@ tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
    `SimilarPosts` (`src/components/SimilarPosts.tsx`) as today; comparisons
    and explainers pass a `CardGrid` of `LearnCard`s / `BlogTeaser`s chosen
    by topic overlap (wiring owned by website-5yo.12).
+
+**Amendment (website-kbx.15, 2026-08-24): reading measure and centering.**
+User review of the shipped page flagged the `max-w-[46rem]` prose cap
+(kbx.7/D5) as stale for the wide-container layout, with wrong-looking
+padding. Measured on `/learn/articles/fusion-16-5` (a `kind: article` post,
+the article shell's `2xl:grid-cols-[1fr_20rem]` TOC column present at 1920
+and 2560, absent below `2xl`) with a standalone Playwright script (own
+Chromium, explicit viewport), before any change:
+
+| Viewport | Article shell (`max-w-5xl`)  | Old prose column (`max-w-[46rem]`, no `mx-auto`) | Side padding (viewport edge → prose)                      |
+| -------- | ---------------------------- | ------------------------------------------------ | --------------------------------------------------------- |
+| 1440     | 1024px, left=208, right=1232 | 736px, left=208 (flush with shell, not centered) | left 208px / right 208px (shell only; no TOC below `2xl`) |
+| 1920     | 1024px, left=288, right=1312 | 736px, left=288 (flush)                          | left 288px / right 608px (includes the 320px TOC column)  |
+| 2560     | 1024px, left=608, right=1632 | 736px, left=608 (flush)                          | left 608px / right 928px (includes the 320px TOC column)  |
+
+Header/meta/body gaps (unaffected by this amendment, recorded for
+completeness): breadcrumb → hero 24px (`Picture` `mt-6`), hero → title 40px,
+title → meta row 16px (`h1 mb-4`), meta row → tags → body 75px aggregate
+(`BlogTags` `my-6` plus its own row height). The old prose column was left
+flush against the shell's left edge (no `mx-auto`), leaving a fixed 288px
+dead gutter on the right of every paragraph, the concrete shape of the
+"wrong padding" complaint.
+
+**Measure math.** Body paragraphs render at `text-base leading-7`: 16px
+font-size (`--text-body: 1rem` in `app/globals.css`), `system-ui` stack. The
+`ch` unit for that font, measured in-browser via
+`getComputedStyle` after setting an element to `width: 1ch`, resolves to
+**9.140625px**. The old 736px (`max-w-[46rem]`) cap is 736 / 9.140625 ≈
+**80.5ch**, above the 65 to 75ch target band this ticket set and above the
+"~70 to 80ch" band D5 originally cited. The new cap is Tailwind's
+`max-w-2xl` (42rem, 672px): 672 / 9.140625 ≈ **73.5ch**, inside the target
+band, and a standard scale token rather than an arbitrary value.
+
+**Layout change.** Items 1 to 8 above (breadcrumb through body) now render
+inside one `<div className="mx-auto max-w-2xl">` wrapper nested in the
+`max-w-5xl` article shell, instead of the shell rendering breadcrumb/kind
+chip/title/meta/tags at the full 1024px shell width with only standfirst,
+hero, and body separately (and inconsistently, none `mx-auto`) capped at
+46rem. Effects:
+
+- The reading column (breadcrumb through body, including the hero image)
+  is one measure, `max-w-2xl` (672px, ~73.5ch), centered inside the shell:
+  176px indent on each side at every measured viewport (672px column
+  centered in the 1024px shell), instead of flush-left with a 288px dead
+  gutter on the right only.
+- The hero image no longer carries its own `max-w-[…]` cap (kbx.7's
+  amendment above): it is a direct child of the `max-w-2xl` wrapper and so
+  is always exactly the reading-column width, closing the "hero cap and
+  prose cap can drift apart" gap that a duplicated arbitrary value left
+  open.
+- `Related` (item 9, `SimilarPosts` or a `CardGrid`) stays outside the
+  `max-w-2xl` wrapper, at the full `max-w-5xl` (1024px) shell width, since
+  it is a card grid, not running text, and needs the room (a `CardGrid
+cols={3}` at 672px would run roughly 200px cards, well under the design
+  system's card sizing elsewhere). This is the one place the shell's outer
+  1024px width still does work; the two-tier shell (wide shell /
+  narrower body measure) from D5 is kept for exactly this case, not
+  removed.
+- Vertical rhythm (the header/meta/body/related gaps in the before table)
+  is unchanged: all values were already on the existing 4px spacing
+  scale (`mt-10`/`mb-4`/`my-4`/`mt-6`/`mb-6`/`my-6`), so nothing there
+  needed correction.
+
+After, measured the same way at the same three viewports (all figures
+identical across 1440/1920/2560 since the reading column's width no longer
+depends on viewport, only its centering offset within the shell does):
+
+| Viewport | Reading column (`max-w-2xl`, centered) | Indent inside shell (both sides) | Hero width |
+| -------- | -------------------------------------- | -------------------------------- | ---------- |
+| 1440     | 672px, left=384, right=1056            | 176px                            | 672px      |
+| 1920     | 672px, left=464, right=1136            | 176px                            | 672px      |
+| 2560     | 672px, left=784, right=1456            | 176px                            | 672px      |
+
+TOC and share bar are unchanged by this amendment: `TableOfContents` stays
+the `2xl` side rail (section 4.2, untouched), and `BlogShareBar` stays
+inline in the meta row next to `BlogMetadata` (item 6) rather than becoming
+a separate rail; the design doc never specified a standalone share rail, so
+none was added.
 
 ### 4.2 Page chrome around the shell
 
@@ -370,9 +454,13 @@ All from the `@theme` scale in `app/globals.css`; no ad-hoc sizes:
 - Standfirst: `text-lg`; body: `text-body` via the prose defaults; captions,
   breadcrumbs, and kind chips: mono caption voice
   (`font-mono text-xs uppercase tracking-wider`).
-- Measure: the `max-w-5xl` column with the existing prose line-height. Wide
-  elements (comparison tables, code) may extend to the full column width
-  and scroll horizontally inside their own wrapper.
+- Measure: the `max-w-5xl` shell with the existing prose line-height; the
+  running reading column (breadcrumb through body) is `max-w-2xl` centered
+  inside it (~73.5ch at the rendered 16px body size), per the section 4.1
+  item 9 kbx.15 amendment, superseding D5's `max-w-[46rem]` (~80ch) figure
+  here. Wide elements (comparison tables, code) scroll horizontally inside
+  their own wrapper at the reading-column width; neither currently breaks
+  out to the full shell (no component implements a breakout today).
 
 ### 4.4 Behavior under each blog ruling
 
