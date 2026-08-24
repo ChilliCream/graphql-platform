@@ -8,7 +8,7 @@ import { LearnPromoTile } from "./LearnPromoTile";
 import { LearnTagCloud } from "./LearnTagCloud";
 
 interface LearnEditorialBandProps {
-  /** Up to 5 posts for the Latest column, newest first, excluding `featuredPost`. */
+  /** Up to 8 posts for the Latest column, newest first, excluding `featuredPost`. */
   readonly latestPosts: readonly BlogPostSummary[];
   readonly featuredPost: BlogPostSummary;
   /** Rail's "Latest videos" rows, newest first, up to 4. */
@@ -57,7 +57,7 @@ export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, ta
         </div>
 
         <div className="xl:border-cc-card-border order-1 xl:order-2 xl:border-l xl:px-8">
-          <LearnFeaturedStory post={featuredPost} priority stretch />
+          <LearnFeaturedStory post={featuredPost} priority />
         </div>
 
         <div className="xl:border-cc-card-border order-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:order-2 lg:grid-cols-1 xl:order-3 xl:border-l xl:px-8">

@@ -120,7 +120,7 @@ export default function LearnPage() {
   // at most once in the band, and every post the band shows is excluded from
   // the topic sections below it.
   const postsExcludingFeatured = allPosts.filter((post) => post.stem !== featured?.stem);
-  const latestPosts = postsExcludingFeatured.slice(0, 5);
+  const latestPosts = postsExcludingFeatured.slice(0, 8);
   const bandStems = new Set<string>([...(featured ? [featured.stem] : []), ...latestPosts.map((post) => post.stem)]);
 
   const topicPostPool = allPosts.filter((post) => !bandStems.has(post.stem));
