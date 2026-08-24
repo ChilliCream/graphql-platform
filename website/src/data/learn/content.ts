@@ -1049,7 +1049,7 @@ const fusionDemoExample: ExampleItem = {
   githubUrl: "https://github.com/ChilliCream/fusion-demo",
   updatedRelative: "this week",
   cli: [
-    { key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/fusion-demo" },
+    { key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/fusion-demo && cd fusion-demo" },
     { key: "run", label: "run the AppHost", code: "dotnet run --project src/AppHost/Demo.AppHost.csproj" },
   ],
   body: [
@@ -1062,13 +1062,13 @@ const fusionDemoExample: ExampleItem = {
     {
       heading: "What you build",
       paragraphs: [
-        "The Aspire AppHost wires up Postgres (one database per subgraph), NATS with JetStream backing the Reviews subgraph's event stream, and Keycloak for authentication, then composes all eight subgraphs' schemas into the Gateway project with global object identification enabled. A frontend project and a load generator project round out the solution.",
+        "The Aspire AppHost wires up Postgres (a database per subgraph, except Shipping), NATS with JetStream backing the Reviews subgraph's event stream, and Keycloak for authentication, then composes all eight subgraphs' schemas into the Gateway project with global object identification enabled. A frontend project and a load generator project round out the solution.",
       ],
     },
     {
       heading: "How to run it",
       paragraphs: [
-        "Clone the repo and run the AppHost project; Aspire starts every subgraph, the gateway, and their infrastructure dependencies together and waits on each one before the gateway comes up.",
+        "Clone the repo and run the AppHost project; Aspire starts every subgraph, the gateway, and their infrastructure dependencies together; each subgraph waits on its database and messaging dependencies before serving.",
       ],
     },
   ],
