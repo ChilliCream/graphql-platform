@@ -985,6 +985,7 @@ const strawberryShakeBlazorTutorial: TutorialItem = {
   externalUrl: "/docs/strawberryshake/get-started",
   updatedRelative: "2 months ago",
   cli: [
+    { key: "manifest", label: "create a tool manifest", code: "dotnet new tool-manifest" },
     { key: "tools", label: "install the tools", code: "dotnet tool install StrawberryShake.Tools --local" },
     {
       key: "init",
@@ -1084,7 +1085,14 @@ const mochaEcommerceDemoExample: ExampleItem = {
   externalUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
   githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo",
   updatedRelative: "this week",
-  cli: [{ key: "run", label: "run the AppHost", code: "dotnet run --project Demo.AppHost" }],
+  cli: [
+    {
+      key: "clone",
+      label: "clone the platform repo",
+      code: "git clone https://github.com/ChilliCream/graphql-platform.git && cd graphql-platform/src/Mocha/examples/Demo",
+    },
+    { key: "run", label: "run the AppHost", code: "dotnet run --project Demo.AppHost" },
+  ],
   body: [
     {
       heading: "Overview",
@@ -1095,7 +1103,7 @@ const mochaEcommerceDemoExample: ExampleItem = {
     {
       heading: "What you build",
       paragraphs: [
-        "Three included .http files (for the VS Code REST Client extension) walk through the saga flows step by step: a basic place-order-then-pay-then-ship sequence, a quick refund with no physical return, and a full return saga with inspection and parallel processing. Sample product IDs are seeded so requests chain together without extra setup.",
+        "Included .http files (for the VS Code REST Client extension) walk through the saga flows step by step: a basic place-order-then-pay-then-ship sequence, a quick refund with no physical return, a full return saga with inspection and parallel processing, and batch-processing runs. Sample product IDs are seeded so requests chain together without extra setup.",
       ],
       code: {
         language: "text",
@@ -1130,7 +1138,7 @@ const hotChocolateExamplesExample: ExampleItem = {
     {
       heading: "Overview",
       paragraphs: [
-        "A collection of small, independent Hot Chocolate projects rather than one app: each folder under misc/ is a standalone sample with its own README and .csproj, focused on one topic. WebsocketAuthentication demonstrates authenticating a subscription over the GraphQL WebSocket protocol; other folders cover DataLoader, persisted queries, Relay-style schemas, type extensions, OpenTelemetry, schema stitching, and integrations with MongoDB, RavenDB, and Marten.",
+        "A collection of small, independent Hot Chocolate projects rather than one app: alongside larger Telemetry, Fusion, and workshop directories, each folder under misc/ is a standalone sample with its own README and .csproj, focused on one topic. WebsocketAuthentication demonstrates authenticating a subscription over the GraphQL WebSocket protocol; other folders cover DataLoader, persisted queries, Relay-style schemas, type extensions, OpenTelemetry, schema stitching, and integrations with MongoDB, RavenDB, and Marten.",
       ],
     },
     {
