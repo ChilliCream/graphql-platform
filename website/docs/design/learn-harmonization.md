@@ -582,9 +582,10 @@ six equal hairline-topped bands.
    render with thumbnail and the rest without, giving the column a lead.
 2. **Topic rails** (`LearnTopicRail.tsx`): each rail gains a lead-story
    slot: the first (or editorially flagged) post renders as a
-   feature (16:9 image, `text-h4` headline, one-line standfirst) filling
-   one column of the `lg:grid-cols-2` grid; the remaining 3 posts are
-   compact rows in the other column. Rails alternate lead-left and
+   feature (16:9 image capped at one column width, `text-h5` headline per
+   the kbx.20/kbx.28 amendments in learn-editorial.md 15.2) filling one
+   column of the `lg:grid-cols-3` grid; the remaining posts are compact
+   rows in a single `lg:col-span-2` stack. Rails alternate lead-left and
    lead-right (A-B-A). This amends Part II section 15.2 ("rows only"): rows
    remain the only secondary treatment, but each rail leads with a feature.
 3. **"Start building"** (`LearnCollectionSection.tsx`): becomes the tinted

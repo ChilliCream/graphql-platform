@@ -40,7 +40,7 @@ function RailFeature({ post }: { readonly post: BlogPostSummary }) {
           <Picture
             src={post.featuredImage}
             alt=""
-            sizes="(max-width: 1023px) 100vw, 33vw"
+            sizes="(max-width: 1023px) 100vw, min(29vw, 507px)"
             className="h-full w-full object-cover"
           />
         </div>
