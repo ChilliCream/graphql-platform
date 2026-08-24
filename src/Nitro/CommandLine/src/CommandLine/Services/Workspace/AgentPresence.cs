@@ -11,6 +11,7 @@ internal static class AgentPresenceState
     public const string Offline = "offline";
     public const string Online = AgentSessionState.Online;
     public const string Unreachable = AgentSessionState.Unreachable;
+    public const string Unobservable = AgentSessionState.Unobservable;
     public const string Remote = AgentSessionState.Remote;
 }
 
@@ -35,7 +36,12 @@ internal sealed record AgentPresence(
     /// most-actionable state first (see <see cref="Compute"/>).
     /// </summary>
     private static readonly string[] StatePriority =
-        [AgentSessionState.Online, AgentSessionState.Unreachable, AgentSessionState.Remote];
+    [
+        AgentSessionState.Online,
+        AgentSessionState.Unreachable,
+        AgentSessionState.Unobservable,
+        AgentSessionState.Remote
+    ];
 
     /// <summary>
     /// The presence of an agent with no live sessions at all.

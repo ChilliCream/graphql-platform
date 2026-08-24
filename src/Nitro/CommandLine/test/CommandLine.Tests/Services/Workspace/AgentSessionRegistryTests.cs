@@ -93,7 +93,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
-    public async Task StartAsync_Should_DefaultRoleHarnessVersionAndProcessScope_When_RowIsCreated()
+    public async Task StartAsync_Should_DefaultRoleAndHarnessVersion_And_CaptureProcessScope_When_RowIsCreated()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -105,10 +105,12 @@ public sealed class AgentSessionRegistryTests : IDisposable
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
 
-        // assert
+        // assert: role and harness_version are not captured yet (a later
+        // bead's job), but process_scope is captured at StartAsync time -
+        // this test process's own scope, since it is also the writer here.
         Assert.Equal("", record.Role);
         Assert.Equal("", record.HarnessVersion);
-        Assert.Equal("", record.ProcessScope);
+        Assert.Equal(new ProcessInfoProvider().GetProcessScope(), record.ProcessScope);
     }
 
     [Fact]
@@ -176,10 +178,12 @@ public sealed class AgentSessionRegistryTests : IDisposable
             restartedGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
 
-        // assert
+        // assert: role and harness_version reset to blank (not re-captured
+        // yet); process_scope is re-captured fresh rather than left at the
+        // old generation's recorded value.
         Assert.Equal("", record.Role);
         Assert.Equal("", record.HarnessVersion);
-        Assert.Equal("", record.ProcessScope);
+        Assert.Equal(new ProcessInfoProvider().GetProcessScope(), record.ProcessScope);
     }
 
     [Fact]
@@ -564,6 +568,126 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.DoesNotContain(views, v => v.Session.SessionId == "session-dead");
     }
 
+    [Fact]
+    public async Task ReapAsync_Should_NotDeleteRow_When_ObservationIsUnobservable()
+    {
+        // arrange: the registry-level outcome is identical whether the
+        // process is unobservable because of a different PID namespace than
+        // the row's writer recorded or a permission failure reading the
+        // target - both collapse to the same
+        // ProcessObservationResult.Unobservable classification, which this
+        // reader must never treat as proof of death.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var fakeProcessInfo = new FakeProcessInfoProvider();
+        var sessions = NewRegistry(fakeProcessInfo);
+        var generation = DeadGeneration("session-1");
+        await sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        fakeProcessInfo.SetObservation(generation.Pid, ProcessObservationResult.Unobservable);
+
+        // act
+        var reaped = await sessions.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(generation, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ListAsync_Should_ReportUnobservableState_When_CurrentInstanceRowCannotBeObserved()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var fakeProcessInfo = new FakeProcessInfoProvider();
+        var sessions = NewRegistry(fakeProcessInfo);
+        var generation = AliveGeneration("session-1");
+        await sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.ClaudePeer, "peer-a",
+            envActor: null, cancellationToken);
+        fakeProcessInfo.SetObservation(generation.Pid, ProcessObservationResult.Unobservable);
+
+        // act
+        var views = await sessions.ListAsync(cancellationToken);
+
+        // assert: the row survives (not reaped) and is reported distinctly
+        // from online/unreachable/remote.
+        var view = Assert.Single(views);
+        Assert.Equal(AgentSessionState.Unobservable, view.State);
+    }
+
+    // ---------- TouchAsync ----------
+
+    [Fact]
+    public async Task TouchAsync_Should_AdvanceLastBeatAt_Without_ChangingOtherFields()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        var started = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(generation, "pascal", forceRebind: false, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var touched = await _sessions.TouchAsync(generation, cancellationToken);
+
+        // assert
+        Assert.True(touched);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.True(row!.LastBeatAt > started.LastBeatAt);
+        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
+        Assert.Equal("pascal", row.AgentName);
+        Assert.Equal(0, row.BlockBudgetUsed);
+    }
+
+    [Fact]
+    public async Task TouchAsync_Should_ReturnFalse_When_SessionHasAlreadyEnded()
+    {
+        // arrange: heartbeat-after-end - a late touch for a generation whose
+        // row SessionEnd already deleted.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.EndAsync(generation, cancellationToken);
+
+        // act
+        var touched = await _sessions.TouchAsync(generation, cancellationToken);
+
+        // assert
+        Assert.False(touched);
+    }
+
+    [Fact]
+    public async Task TouchAsync_Should_ReturnFalse_When_GenerationIsStale()
+    {
+        // arrange: a generation change superseded the row; a late touch for
+        // the OLD generation must not affect the row a newer generation now
+        // owns.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var originalGeneration = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            originalGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.StartAsync(
+            originalGeneration with { Pid = DeadPid }, "/work", "/work/.nitro/agents",
+            AgentSessionEndpointKind.None, "", envActor: null, cancellationToken);
+
+        // act
+        var touched = await _sessions.TouchAsync(originalGeneration, cancellationToken);
+
+        // assert
+        Assert.False(touched);
+    }
+
     // ---------- ListParticipantsAsync ----------
 
     [Fact]
@@ -780,6 +904,32 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Equal("session-mine", row.SessionId);
     }
 
+    [Fact]
+    public async Task FindLiveClaimedByAgentNameAsync_Should_NotDeleteALiveHostRow_When_ReadFromAForeignScope()
+    {
+        // arrange: simulates the notifier or `nitro agent ping` running
+        // inside a sandbox that cannot see the host pid its own row
+        // recorded - a foreign-scope read must still return the row as a
+        // ping candidate, not silently delete it as dead.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var fakeProcessInfo = new FakeProcessInfoProvider();
+        var sessions = NewRegistry(fakeProcessInfo);
+        var generation = AliveGeneration("session-1");
+        await sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: null, cancellationToken);
+        await sessions.ClaimAsync(generation, "pascal", forceRebind: false, cancellationToken);
+        fakeProcessInfo.SetObservation(generation.Pid, ProcessObservationResult.Unobservable);
+
+        // act
+        var live = await sessions.FindLiveClaimedByAgentNameAsync("pascal", cancellationToken);
+
+        // assert
+        Assert.Single(live);
+        Assert.Equal(1, await CountSessionRowsAsync(generation, cancellationToken));
+    }
+
     // ---------- TryClaimPingCooldownAsync ----------
 
     [Fact]
@@ -972,6 +1122,22 @@ public sealed class AgentSessionRegistryTests : IDisposable
     private AgentSessionGeneration DeadGeneration(string sessionId) => new(
         Harness, sessionId, CurrentHost, DeadPid, _timeProvider.GetUtcNow());
 
+    /// <summary>
+    /// A registry instance identical to <see cref="_sessions"/> except for
+    /// its <see cref="IProcessInfoProvider"/>, for scenarios a real OS
+    /// process cannot deterministically induce (a different PID namespace,
+    /// a permission failure).
+    /// </summary>
+    private AgentSessionRegistry NewRegistry(IProcessInfoProvider processInfoProvider) => new(
+        _fileSystem,
+        _timeProvider,
+        _database,
+        _agentRegistry,
+        new FixedInstanceIdProvider(CurrentHost),
+        new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
+        processInfoProvider,
+        new FixedAncestorSessionResolver(null));
+
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
         await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
@@ -1068,4 +1234,36 @@ public sealed class AgentSessionRegistryTests : IDisposable
 internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? session) : IClaudeAncestorSessionResolver
 {
     public ClaudeAncestorSession? Resolve() => session;
+}
+
+/// <summary>
+/// A controllable <see cref="IProcessInfoProvider"/> for liveness scenarios
+/// a real OS process cannot deterministically induce: an explicit <see
+/// cref="SetObservation"/> pins <see cref="Observe"/>'s result for a pid
+/// regardless of its actual liveness. A pid neither registered alive nor
+/// pinned observes as <see cref="ProcessObservationResult.Dead"/>.
+/// </summary>
+internal sealed class FakeProcessInfoProvider : IProcessInfoProvider
+{
+    private readonly Dictionary<int, DateTimeOffset> _aliveStartTimes = [];
+    private readonly Dictionary<int, string> _observations = [];
+
+    public string ProcessScope { get; set; } = "";
+
+    public void SetAlive(int pid, DateTimeOffset startTime) => _aliveStartTimes[pid] = startTime;
+
+    public void SetObservation(int pid, string observation) => _observations[pid] = observation;
+
+    public DateTimeOffset? GetStartTime(int pid)
+        => _aliveStartTimes.TryGetValue(pid, out var start) ? start : null;
+
+    public bool IsAlive(int pid, DateTimeOffset expectedStart)
+        => _aliveStartTimes.TryGetValue(pid, out var start) && start == expectedStart;
+
+    public string GetProcessScope() => ProcessScope;
+
+    public string Observe(int pid, DateTimeOffset expectedStart, string recordedProcessScope)
+        => _observations.TryGetValue(pid, out var observation)
+            ? observation
+            : IsAlive(pid, expectedStart) ? ProcessObservationResult.Alive : ProcessObservationResult.Dead;
 }

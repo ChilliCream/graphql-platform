@@ -1,8 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The <c>agent_sessions</c> lifecycle: bind, claim, reap, and list, all
-/// predicated on the full generation identity in
+/// The <c>agent_sessions</c> lifecycle: bind, claim, heartbeat, reap, and
+/// list, all predicated on the full generation identity in
 /// <see cref="AgentSessionGeneration"/> so a stale caller can never mutate a
 /// row a newer generation now owns. Backend-agnostic: no member exposes
 /// ADO.NET or SQLite types.
@@ -97,17 +97,32 @@ internal interface IAgentSessionRegistry
     Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Deletes every row on the CURRENT Nitro instance whose process is no
-    /// longer alive at its recorded generation. Rows recorded by a different
-    /// instance id are never touched. Returns the rows that were reaped.
+    /// Deletes every row on the CURRENT Nitro instance this reader can PROVE
+    /// dead in the same observable process scope as its recorded generation
+    /// (see <see cref="IProcessInfoProvider.Observe"/>). A row this reader
+    /// cannot observe, typically a different PID namespace than the row's
+    /// writer recorded, is left untouched, the same as a row still alive.
+    /// Rows recorded by a different instance id are never touched. Returns
+    /// the rows that were reaped.
     /// </summary>
     Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reaps dead current-instance rows, then returns every surviving row
-    /// with its computed <see cref="AgentSessionState"/>.
+    /// Reaps provably dead current-instance rows, then returns every
+    /// surviving row with its computed <see cref="AgentSessionState"/>,
+    /// including <see cref="AgentSessionState.Unobservable"/> for a
+    /// current-instance row this reader cannot verify.
     /// </summary>
     Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Advances <c>last_beat_at</c> to now for the row matching <paramref
+    /// name="generation"/> exactly, without changing binding, role,
+    /// counters, endpoints, or delivery ledgers. A generation that matches
+    /// no row (already ended or superseded) is a no-op. Returns whether a
+    /// row was actually touched.
+    /// </summary>
+    Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
     /// Reaps dead current-instance rows, then returns every surviving row

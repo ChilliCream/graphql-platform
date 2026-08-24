@@ -101,8 +101,9 @@ internal sealed record AgentSessionRecord
 
     /// <summary>
     /// The PID/boot namespace visibility scope the process that wrote this
-    /// row observed, captured once for the row's lifetime. Blank until a
-    /// caller captures it.
+    /// row observed (see <see cref="IProcessInfoProvider.GetProcessScope"/>),
+    /// captured once for the row's lifetime. Blank on a platform or
+    /// environment that exposes no such signal.
     /// </summary>
     public required string ProcessScope { get; init; }
 }

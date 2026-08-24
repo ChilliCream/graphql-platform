@@ -99,4 +99,101 @@ public sealed class ProcessInfoProviderTests
         // act & assert
         Assert.False(_provider.IsAlive(999_999, DateTimeOffset.UtcNow));
     }
+
+    [Fact]
+    public void GetProcessScope_Should_ReturnAPidNamespaceValue_When_RunningOnLinux()
+    {
+        // arrange & act
+        var scope = _provider.GetProcessScope();
+
+        // assert
+        if (OperatingSystem.IsLinux())
+        {
+            Assert.Matches("^pidns:[0-9]+$", scope);
+        }
+        else
+        {
+            Assert.Equal("", scope);
+        }
+    }
+
+    [Fact]
+    public void GetProcessScope_Should_ReturnTheSameValue_When_CalledTwice()
+    {
+        // arrange & act
+        var first = _provider.GetProcessScope();
+        var second = _provider.GetProcessScope();
+
+        // assert: this process's own PID namespace does not change mid-run.
+        Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public void Observe_Should_ReturnAlive_When_PidIsRunning_And_RecordedScopeMatchesReaderScope()
+    {
+        // arrange
+        using var self = Process.GetCurrentProcess();
+        var expectedStart = self.StartTime.ToUniversalTime();
+        var recordedScope = _provider.GetProcessScope();
+
+        // act & assert
+        Assert.Equal(
+            ProcessObservationResult.Alive, _provider.Observe(self.Id, expectedStart, recordedScope));
+    }
+
+    [Fact]
+    public void Observe_Should_ReturnDead_When_NoProcessHasThatPid_And_RecordedScopeMatchesReaderScope()
+    {
+        // arrange
+        var recordedScope = _provider.GetProcessScope();
+
+        // act & assert
+        Assert.Equal(
+            ProcessObservationResult.Dead,
+            _provider.Observe(999_999, DateTimeOffset.UtcNow, recordedScope));
+    }
+
+    [Fact]
+    public void Observe_Should_ReturnDead_When_StartTimeIsOffByMoreThanTolerance()
+    {
+        // arrange: the alive pid-reuse ambiguity Observe must still close,
+        // exactly like IsAlive.
+        using var self = Process.GetCurrentProcess();
+        var nearMissStart = self.StartTime.ToUniversalTime().AddSeconds(5);
+        var recordedScope = _provider.GetProcessScope();
+
+        // act & assert
+        Assert.Equal(
+            ProcessObservationResult.Dead, _provider.Observe(self.Id, nearMissStart, recordedScope));
+    }
+
+    [Fact]
+    public void Observe_Should_ReturnUnobservable_When_RecordedScopeDiffersFromReaderScope()
+    {
+        // arrange: the process is genuinely alive, but a positive scope
+        // mismatch (a different PID namespace than the row's writer
+        // recorded) means this reader cannot trust that fact.
+        using var self = Process.GetCurrentProcess();
+        var expectedStart = self.StartTime.ToUniversalTime();
+        var foreignScope = _provider.GetProcessScope() + "-foreign";
+
+        // act & assert
+        Assert.Equal(
+            ProcessObservationResult.Unobservable, _provider.Observe(self.Id, expectedStart, foreignScope));
+    }
+
+    [Fact]
+    public void Observe_Should_FallBackToALivenessCheck_When_RecordedScopeIsBlank()
+    {
+        // arrange: a row from before process_scope was captured (or a
+        // platform with no scope signal) carries no writer-side scope to
+        // compare against, so Observe falls back to a direct liveness check
+        // exactly like the pre-scope-aware behavior.
+        using var self = Process.GetCurrentProcess();
+        var expectedStart = self.StartTime.ToUniversalTime();
+
+        // act & assert
+        Assert.Equal(
+            ProcessObservationResult.Alive, _provider.Observe(self.Id, expectedStart, recordedProcessScope: ""));
+    }
 }

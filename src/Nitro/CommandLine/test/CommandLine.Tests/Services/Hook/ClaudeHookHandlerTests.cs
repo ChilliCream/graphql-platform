@@ -597,6 +597,9 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
     public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
         => inner.ListAsync(cancellationToken);
 
+    public Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.TouchAsync(generation, cancellationToken);
+
     public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken)
         => inner.FindLiveClaimedByAgentNameAsync(agentName, cancellationToken);

@@ -54,10 +54,10 @@ internal sealed class AgentSessionRegistry(
                 INSERT INTO agent_sessions (
                     harness, session_id, agent_name, binding_kind, host, pid, proc_start,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used
+                    block_budget_used, process_scope
                 ) VALUES (
                     @harness, @sessionId, @agentName, @bindingKind, @host, @pid, @procStart,
-                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0
+                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @processScope
                 );
                 """,
                 new
@@ -74,6 +74,7 @@ internal sealed class AgentSessionRegistry(
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
+                    processScope = processInfoProvider.GetProcessScope(),
                     cancellationToken
                 },
                 transaction);
@@ -136,7 +137,7 @@ internal sealed class AgentSessionRegistry(
                     last_ping_detail = NULL,
                     role = '',
                     harness_version = '',
-                    process_scope = ''
+                    process_scope = @processScope
                 WHERE harness = @harness AND session_id = @sessionId
                     AND pid = @oldPid AND proc_start = @oldProcStart AND host = @oldHost;
                 """,
@@ -154,6 +155,7 @@ internal sealed class AgentSessionRegistry(
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
+                    processScope = processInfoProvider.GetProcessScope(),
                     oldPid = existing.Pid,
                     oldProcStart = existing.ProcStart,
                     oldHost = existing.Host,
@@ -478,7 +480,12 @@ internal sealed class AgentSessionRegistry(
         {
             var record = candidate.ToRecord();
 
-            if (processInfoProvider.IsAlive(record.Pid, record.ProcStart))
+            // Only a row this reader can PROVE dead in the same observable
+            // process scope is reaped: unobservable (a different PID
+            // namespace than the writer recorded, or a permission failure)
+            // is left untouched, the same as alive.
+            if (processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcessScope)
+                != ProcessObservationResult.Dead)
             {
                 continue;
             }
@@ -526,12 +533,38 @@ internal sealed class AgentSessionRegistry(
 
             var state = record.Host != host
                 ? AgentSessionState.Remote
-                : record.EndpointKind == AgentSessionEndpointKind.None
-                    ? AgentSessionState.Unreachable
-                    : AgentSessionState.Online;
+                : processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcessScope)
+                    == ProcessObservationResult.Unobservable
+                    ? AgentSessionState.Unobservable
+                    : record.EndpointKind == AgentSessionEndpointKind.None
+                        ? AgentSessionState.Unreachable
+                        : AgentSessionState.Online;
 
             return new AgentSessionView(record, state);
         }).ToList();
+    }
+
+    public async Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET last_beat_at = @now "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        command.Parameters.AddWithValue("@now", now);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@pid", generation.Pid);
+        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
     }
 
     /// <summary>
