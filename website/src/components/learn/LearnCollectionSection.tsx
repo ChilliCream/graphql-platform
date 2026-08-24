@@ -47,11 +47,14 @@ export function LearnCollectionSection({
 
   return (
     // Breaks out of the `(learn)` layout's `max-w-8xl` gutter so the tint
-    // reaches the viewport edge (learn-harmonization.md section 2.5.3); the
-    // inner div reapplies that same gutter so the content column still
-    // lines up with every section above and below it.
-    <section className="bg-cc-card-bg relative left-1/2 w-screen -translate-x-1/2 py-10 sm:py-12">
-      <div className="max-w-8xl mx-auto px-5 sm:px-12">
+    // reaches the viewport edge (learn-harmonization.md section 2.5.3). The
+    // horizontal padding is applied here, on the full-viewport section,
+    // before the `max-w-8xl` centering below, mirroring the layout's own
+    // `px-5 py-8 sm:px-12` -> `max-w-8xl mx-auto` order (website-kbx.5): that
+    // is what keeps this section's content edge lined up with every other
+    // section's, at every viewport width the `max-w-8xl` cap can bind at.
+    <section className="bg-cc-card-bg relative left-1/2 w-screen -translate-x-1/2 px-5 py-10 sm:px-12 sm:py-12">
+      <div className="max-w-8xl mx-auto">
         <div className="mb-8 flex items-center justify-between gap-4">
           <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Start building</h2>
           <ArrowLink href={browseHref}>Browse the catalog</ArrowLink>

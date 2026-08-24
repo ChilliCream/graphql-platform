@@ -19,7 +19,7 @@ export interface LatestVideoRailItem {
 }
 
 interface LearnLatestVideosProps {
-  /** Up to 4 rows, newest first; the caller has already filtered to videos with a youtubeId. */
+  /** Up to 2 rows, newest first; the caller has already filtered to videos with a youtubeId. */
   readonly videos: readonly LatestVideoRailItem[];
 }
 

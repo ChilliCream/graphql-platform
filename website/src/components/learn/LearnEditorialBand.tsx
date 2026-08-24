@@ -4,14 +4,13 @@ import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { LearnFeaturedStory } from "./LearnFeaturedStory";
 import { LearnLatestVideos, type LatestVideoRailItem } from "./LearnLatestVideos";
 import { LearnListRow } from "./LearnListRow";
-import { LearnPromoTile } from "./LearnPromoTile";
 import { LearnTagCloud } from "./LearnTagCloud";
 
 interface LearnEditorialBandProps {
-  /** Up to 8 posts for the Latest column, newest first, excluding `featuredPost`. */
+  /** Up to 5 posts for the Latest column, newest first, excluding `featuredPost`. */
   readonly latestPosts: readonly BlogPostSummary[];
   readonly featuredPost: BlogPostSummary;
-  /** Rail's "Latest videos" rows, newest first, up to 4. */
+  /** Rail's "Latest videos" rows, newest first, up to 2. */
   readonly latestVideos: readonly LatestVideoRailItem[];
   readonly tags: readonly string[];
 }
@@ -28,7 +27,7 @@ interface LearnEditorialBandProps {
  */
 export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, tags }: LearnEditorialBandProps) {
   return (
-    <div className="pt-8 sm:pt-10">
+    <div>
       <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)] xl:gap-x-0 xl:gap-y-0 2xl:grid-cols-[minmax(16rem,24rem)_minmax(37.5rem,1fr)_minmax(16rem,24rem)]">
         <div className="order-2 lg:order-3 lg:col-span-2 xl:order-1 xl:col-span-1 xl:pr-8">
           <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Latest</h2>
@@ -63,15 +62,6 @@ export function LearnEditorialBand({ latestPosts, featuredPost, latestVideos, ta
         <div className="xl:border-cc-card-border order-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:order-2 lg:grid-cols-1 xl:order-3 xl:border-l xl:px-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <LearnLatestVideos videos={latestVideos} />
-          </div>
-          <div className="sm:col-span-2 lg:col-span-1">
-            <LearnPromoTile
-              variant="cta"
-              href="/learn#subscribe"
-              kicker="Subscribe"
-              title="Never miss a release"
-              description="New releases, guides, and deep dives on GraphQL for .NET, via RSS or YouTube."
-            />
           </div>
           <div className="sm:col-span-2 lg:col-span-1">
             <LearnTagCloud tags={tags} />

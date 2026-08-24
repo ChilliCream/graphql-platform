@@ -92,10 +92,10 @@ function selectLatestVideos(videos: readonly VideoItem[]): readonly VideoItem[] 
 }
 
 /**
- * Rail's "Latest videos" block (website-kbx.2): only videos with a
+ * Rail's "Latest videos" block (website-kbx.5): only videos with a
  * `youtubeId` qualify, since the rail links to the internal
  * `/learn/videos/<slug>` page, not out to YouTube; newest `publishedAt`
- * first, capped at 4. Resolves each row's self-hosted optimized poster here,
+ * first, capped at 2. Resolves each row's self-hosted optimized poster here,
  * at the page's server boundary (website-kbx.4), so `LearnLatestVideos`
  * itself stays free of the `node:fs`-based image manifest.
  */
@@ -103,7 +103,7 @@ function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRai
   return videos
     .filter((video): video is VideoItem & { youtubeId: string } => Boolean(video.youtubeId))
     .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
-    .slice(0, 4)
+    .slice(0, 2)
     .map(({ slug, title, youtubeId, duration, poster, products, hubs }) => ({
       slug,
       title,
@@ -123,7 +123,7 @@ export default function LearnPage() {
   // at most once in the band, and every post the band shows is excluded from
   // the topic sections below it.
   const postsExcludingFeatured = allPosts.filter((post) => post.stem !== featured?.stem);
-  const latestPosts = postsExcludingFeatured.slice(0, 8);
+  const latestPosts = postsExcludingFeatured.slice(0, 5);
   const bandStems = new Set<string>([...(featured ? [featured.stem] : []), ...latestPosts.map((post) => post.stem)]);
 
   const topicPostPool = allPosts.filter((post) => !bandStems.has(post.stem));
