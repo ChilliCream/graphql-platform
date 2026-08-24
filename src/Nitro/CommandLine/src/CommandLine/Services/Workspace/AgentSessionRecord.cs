@@ -22,7 +22,8 @@ internal sealed record AgentSessionRecord
         + "endpoint_addr AS EndpointAddr, started_at AS StartedAt, last_beat_at AS LastBeatAt, "
         + "block_budget_used AS BlockBudgetUsed, last_ping_at AS LastPingAt, "
         + "last_ping_attempt AS LastPingAttempt, last_ping_result AS LastPingResult, "
-        + "last_ping_detail AS LastPingDetail";
+        + "last_ping_detail AS LastPingDetail, role AS Role, harness_version AS HarnessVersion, "
+        + "process_scope AS ProcessScope";
 
     public required string Harness { get; init; }
     public required string SessionId { get; init; }
@@ -74,8 +75,8 @@ internal sealed record AgentSessionRecord
     /// <summary>
     /// One of <c>ok</c>, <c>spawn-failed</c>, <c>endpoint-gone</c>,
     /// <c>timeout</c>, <c>capacity-dropped</c>, <c>error</c>, or
-    /// <c>unsupported</c> (an endpoint kind the notifier has no transport
-    /// for). Null before any ping attempt.
+    /// <c>unsupported</c> (an endpoint kind or protocol the notifier cannot
+    /// transport). Null before any ping attempt.
     /// </summary>
     public string? LastPingResult { get; init; }
 
@@ -84,4 +85,24 @@ internal sealed record AgentSessionRecord
     /// 200 characters.
     /// </summary>
     public string? LastPingDetail { get; init; }
+
+    /// <summary>
+    /// The mutable participant role, normalized the way
+    /// <see cref="AgentRole.Normalize"/> normalizes an agent's durable role.
+    /// Blank until a caller promotes it.
+    /// </summary>
+    public required string Role { get; init; }
+
+    /// <summary>
+    /// The exact harness version, captured once for the row's lifetime.
+    /// Blank until a caller captures it.
+    /// </summary>
+    public required string HarnessVersion { get; init; }
+
+    /// <summary>
+    /// The PID/boot namespace visibility scope the process that wrote this
+    /// row observed, captured once for the row's lifetime. Blank until a
+    /// caller captures it.
+    /// </summary>
+    public required string ProcessScope { get; init; }
 }

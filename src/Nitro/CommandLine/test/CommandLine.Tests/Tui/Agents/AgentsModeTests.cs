@@ -82,7 +82,10 @@ public sealed class AgentsModeTests
                 EndpointAddr = state == "unreachable" ? "" : "peer",
                 StartedAt = Now,
                 LastBeatAt = Now,
-                BlockBudgetUsed = 0
+                BlockBudgetUsed = 0,
+                Role = "",
+                HarnessVersion = "",
+                ProcessScope = ""
             },
             state);
 

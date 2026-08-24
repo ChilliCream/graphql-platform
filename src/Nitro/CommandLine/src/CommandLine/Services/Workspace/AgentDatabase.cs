@@ -19,18 +19,22 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
     /// rather than rejected: v2 (before the agents table gained its role and
-    /// implicit columns) and v3 (after those columns and the client column,
-    /// before the v4 <see cref="AgentSessionSchema"/> tables). A v3
-    /// database's agents table already carries every column
-    /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only means
-    /// applying the new v4 tables and bumping the stamped version.
+    /// implicit columns), v3 (after those columns and the client column,
+    /// before the v4 <see cref="AgentSessionSchema"/> tables), and v4
+    /// (before <c>agent_sessions</c> gained its v5 role, harness_version, and
+    /// process_scope columns). A v3 database's agents table already carries
+    /// every column <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading
+    /// it only means applying the new v4 tables and bumping the stamped
+    /// version. A v4 database's <c>agent_sessions</c> table already carries
+    /// every column except the three
+    /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> adds.
     /// </summary>
-    private static readonly int[] UpgradableVersions = [2, 3];
+    private static readonly int[] UpgradableVersions = [2, 3, 4];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -50,10 +54,11 @@ internal sealed class AgentDatabase
     /// transaction since it needs foreign key enforcement off), then, in one
     /// further transaction, applies the task, mail, and agent registry
     /// schemas, upgrades the agents table's role, implicit, and client
-    /// columns in place when any of them predate the database on hand, and
-    /// stamps the current schema version. Returns the open connection so
-    /// callers, including test seeding helpers, can write against it
-    /// directly. Throws <see cref="ExitException"/> when the existing
+    /// columns and the agent_sessions table's role, harness_version, and
+    /// process_scope columns in place when any of them predate the database
+    /// on hand, and stamps the current schema version. Returns the open
+    /// connection so callers, including test seeding helpers, can write
+    /// against it directly. Throws <see cref="ExitException"/> when the existing
     /// database's version is anything other than 0 (a genuinely new file),
     /// one of <see cref="UpgradableVersions"/>, or <see cref="CurrentVersion"/>,
     /// checked before either transaction touches the file.
@@ -91,9 +96,11 @@ internal sealed class AgentDatabase
         // rebuilding unconditionally, the same one-code-path shape as the
         // column upgrades, covers a brand new file (no agent_sessions table
         // yet, so a no-op), an already-current file predating 'unsupported',
-        // and an upgradable v2 or v3 file (neither has an agent_sessions
-        // table yet either) alike, without a version-keyed branch for a
-        // change that never had its own version number.
+        // an upgradable v2 or v3 file (neither has an agent_sessions table
+        // yet either), and an upgradable v4 file (has the table, rebuilt or
+        // not depending on when it was created) alike, without a
+        // version-keyed branch for a change that never had its own version
+        // number.
         await RebuildAgentSessionsCheckConstraintIfStaleAsync(connection, cancellationToken);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -112,6 +119,12 @@ internal sealed class AgentDatabase
         // file, and a v3 file that predates client alike, with one code
         // path instead of a version-keyed branch per column ever added.
         await UpgradeAgentsTableAsync(connection, transaction);
+
+        // Same unconditional, column-checked shape as UpgradeAgentsTableAsync
+        // above: every existing v4 database predates these three columns, so
+        // this is what actually carries out the v4-to-v5 migration this
+        // bead adds.
+        await UpgradeAgentSessionsMetadataColumnsAsync(connection, transaction);
 
         await connection.ExecuteAsync(
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
@@ -153,6 +166,43 @@ internal sealed class AgentDatabase
         {
             await connection.ExecuteAsync(
                 "ALTER TABLE agents ADD COLUMN client TEXT NOT NULL DEFAULT '';",
+                transaction: transaction);
+        }
+    }
+
+    /// <summary>
+    /// Adds the <c>agent_sessions</c> table's v5 <c>role</c>,
+    /// <c>harness_version</c>, and <c>process_scope</c> columns when the
+    /// database on hand's table predates any of them, checked column by
+    /// column so this is safe to run against a table that already carries
+    /// all three.
+    /// </summary>
+    private static async Task UpgradeAgentSessionsMetadataColumnsAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+    {
+        var columns = (await connection.QueryAsync<string>(
+                "SELECT name FROM pragma_table_info('agent_sessions');", transaction: transaction))
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (!columns.Contains("role"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN role TEXT NOT NULL DEFAULT '';",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("harness_version"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN harness_version TEXT NOT NULL DEFAULT '';",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("process_scope"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN process_scope TEXT NOT NULL DEFAULT '';",
                 transaction: transaction);
         }
     }

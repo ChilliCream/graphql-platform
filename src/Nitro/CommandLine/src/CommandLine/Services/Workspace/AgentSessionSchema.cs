@@ -1,18 +1,22 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Schema v4: agent presence and mail delivery/ping bookkeeping, added
+/// Schema v5: agent presence and mail delivery/ping bookkeeping, added
 /// alongside the identity table in <see cref="AgentRegistrySchema"/>. Three
-/// tables: <c>agent_sessions</c> (one row per live harness session, claimed
-/// or not, keyed by (harness, session_id)); <c>session_deliveries</c> (the
-/// at-most-once-per-channel notification ledger, cascading with its owning
-/// session); and <c>ping_leases</c> (the fixed four-slot concurrency cap on
-/// outstanding ping children). Statements are idempotent so applying them to
-/// an existing database is non-destructive. <c>last_ping_result</c> carries
+/// tables: <c>agent_sessions</c> (the canonical active-membership table, one
+/// row per live harness session, claimed or not, keyed by
+/// (harness, session_id)); <c>session_deliveries</c> (the at-most-once-per-
+/// channel notification ledger, cascading with its owning session); and
+/// <c>ping_leases</c> (the fixed four-slot concurrency cap on outstanding
+/// ping children). Statements are idempotent so applying them to an
+/// existing database is non-destructive. <c>last_ping_result</c> carries
 /// <c>unsupported</c> for an endpoint kind the notifier has no transport
 /// for (<c>claude-peer</c>, currently): a distinct diagnostic from
 /// <c>endpoint_kind = 'none'</c>, which means the session simply has no
-/// endpoint to attempt at all.
+/// endpoint to attempt at all. <c>agent_sessions</c> also carries the
+/// mutable participant <c>role</c>, the exact <c>harness_version</c>, and
+/// the <c>process_scope</c> that distinguishes PID/boot namespace
+/// visibility, added in v5.
 /// </summary>
 internal static class AgentSessionSchema
 {
@@ -46,6 +50,9 @@ internal static class AgentSessionSchema
             last_ping_attempt TEXT NULL,
             last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
             last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+            role TEXT NOT NULL DEFAULT '',
+            harness_version TEXT NOT NULL DEFAULT '',
+            process_scope TEXT NOT NULL DEFAULT '',
             -- Table-level CHECK constraints must follow every column
             -- definition (SQLite rejects one interleaved between columns),
             -- so both cross-column checks live here instead of next to the

@@ -170,10 +170,11 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess(
-            """
-            ✓ Upgraded agent workspace schema at '.nitro/agents' to v4.
+            $"""
+            ✓ Upgraded agent workspace schema at '.nitro/agents' to v{AgentDatabase.CurrentVersion}.
             """);
-        Assert.Equal("4", await QueryScalarAsync("PRAGMA user_version;"));
+        Assert.Equal(
+            AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync(
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'"));
         Assert.Equal("legacy3", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
@@ -423,7 +424,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, registerResult.ExitCode);
         Assert.Equal(0, sendResult.ExitCode);
-        Assert.Equal("4", await QueryScalarAsync("PRAGMA user_version;"));
+        Assert.Equal(
+            AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM messages"));
 
         var listResult = await ExecuteCommandAsync("agent", "tasks", "list");

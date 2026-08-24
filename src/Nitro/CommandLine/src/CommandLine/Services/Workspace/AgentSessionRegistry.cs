@@ -133,7 +133,10 @@ internal sealed class AgentSessionRegistry(
                     last_ping_at = NULL,
                     last_ping_attempt = NULL,
                     last_ping_result = NULL,
-                    last_ping_detail = NULL
+                    last_ping_detail = NULL,
+                    role = '',
+                    harness_version = '',
+                    process_scope = ''
                 WHERE harness = @harness AND session_id = @sessionId
                     AND pid = @oldPid AND proc_start = @oldProcStart AND host = @oldHost;
                 """,
@@ -531,6 +534,50 @@ internal sealed class AgentSessionRegistry(
         }).ToList();
     }
 
+    /// <summary>
+    /// Reaps dead current-instance rows, then returns one
+    /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
+    /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when
+    /// the session is claimed. Not yet part of <see cref="IAgentSessionRegistry"/>:
+    /// no command consumes this yet.
+    /// </summary>
+    public async Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(
+        CancellationToken cancellationToken)
+    {
+        await ReapAsync(cancellationToken);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions ORDER BY harness, session_id");
+
+        var resolvedAgents = new Dictionary<string, AgentRecord>(StringComparer.Ordinal);
+        var participants = new List<AgentSessionParticipant>();
+
+        foreach (var row in rows)
+        {
+            var session = row.ToRecord();
+            AgentRecord? agent = null;
+
+            if (session.AgentName is { } agentName)
+            {
+                if (!resolvedAgents.TryGetValue(agentName, out agent))
+                {
+                    agent = await agentRegistry.GetAsync(agentName, cancellationToken);
+
+                    if (agent is not null)
+                    {
+                        resolvedAgents[agentName] = agent;
+                    }
+                }
+            }
+
+            participants.Add(new AgentSessionParticipant(session, agent));
+        }
+
+        return participants;
+    }
+
     public async Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken)
     {
@@ -661,6 +708,9 @@ internal sealed class AgentSessionRegistry(
         public string? LastPingAttempt { get; init; }
         public string? LastPingResult { get; init; }
         public string? LastPingDetail { get; init; }
+        public required string Role { get; init; }
+        public required string HarnessVersion { get; init; }
+        public required string ProcessScope { get; init; }
 
         /// <summary>
         /// Maps a row from a <see cref="AgentSessionRecord.Columns"/> query
@@ -696,7 +746,10 @@ internal sealed class AgentSessionRegistry(
                 : reader.GetString(reader.GetOrdinal("LastPingResult")),
             LastPingDetail = reader.IsDBNull(reader.GetOrdinal("LastPingDetail"))
                 ? null
-                : reader.GetString(reader.GetOrdinal("LastPingDetail"))
+                : reader.GetString(reader.GetOrdinal("LastPingDetail")),
+            Role = reader.GetString(reader.GetOrdinal("Role")),
+            HarnessVersion = reader.GetString(reader.GetOrdinal("HarnessVersion")),
+            ProcessScope = reader.GetString(reader.GetOrdinal("ProcessScope"))
         };
 
         public AgentSessionRecord ToRecord() => new()
@@ -718,7 +771,10 @@ internal sealed class AgentSessionRegistry(
             LastPingAt = LastPingAt is null ? null : DateTimeOffset.Parse(LastPingAt, CultureInfo.InvariantCulture),
             LastPingAttempt = LastPingAttempt,
             LastPingResult = LastPingResult,
-            LastPingDetail = LastPingDetail
+            LastPingDetail = LastPingDetail,
+            Role = Role,
+            HarnessVersion = HarnessVersion,
+            ProcessScope = ProcessScope
         };
     }
 }

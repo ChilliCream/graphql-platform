@@ -7,11 +7,15 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="AgentSessionRegistry"/>'s lifecycle: SessionStart
-/// binding rules and same/different-generation handling, the claim state
-/// machine's five transitions plus force-rebind, conditional SessionEnd,
-/// reaping (current-instance dead rows only, remote rows untouched), and
-/// TOCTOU safety when a generation changes between a reader's observation
-/// and its mutation.
+/// binding rules and same/different-generation handling, the v5
+/// role/harness_version/process_scope columns defaulting on creation,
+/// surviving a same-generation duplicate SessionStart, and resetting on a
+/// different-generation rebind, the claim state machine's five transitions
+/// plus force-rebind, conditional SessionEnd, reaping (current-instance dead
+/// rows only, remote rows untouched), the one-row-per-session participant
+/// read model joining durable agent identity when bound, and TOCTOU safety
+/// when a generation changes between a reader's observation and its
+/// mutation.
 /// </summary>
 public sealed class AgentSessionRegistryTests : IDisposable
 {
@@ -86,6 +90,96 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // assert
         Assert.Equal("pascal", record.AgentName);
         Assert.Equal(AgentSessionBindingKind.Env, record.BindingKind);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_DefaultRoleHarnessVersionAndProcessScope_When_RowIsCreated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+
+        // act
+        var record = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // assert
+        Assert.Equal("", record.Role);
+        Assert.Equal("", record.HarnessVersion);
+        Assert.Equal("", record.ProcessScope);
+    }
+
+    [Fact]
+    public async Task FindByGenerationAsync_Should_RoundTripRoleHarnessVersionAndProcessScope()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await SetSessionMetadataAsync(generation, "frontend", "1.2.3-beta", "pidns:4242", cancellationToken);
+
+        // act
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+
+        // assert
+        Assert.Equal("frontend", row!.Role);
+        Assert.Equal("1.2.3-beta", row.HarnessVersion);
+        Assert.Equal("pidns:4242", row.ProcessScope);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_PreserveHarnessMetadataAndRole_When_SameGenerationDuplicateSessionStart()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await SetSessionMetadataAsync(generation, "backend", "2.1.0", "scope-a", cancellationToken);
+
+        // act: a duplicate SessionStart for the exact same generation must
+        // not reset metadata captured after the row was first created.
+        var record = await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // assert
+        Assert.Equal("backend", record.Role);
+        Assert.Equal("2.1.0", record.HarnessVersion);
+        Assert.Equal("scope-a", record.ProcessScope);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_ResetHarnessMetadataAndRole_When_GenerationChanges()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var firstGeneration = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            firstGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await SetSessionMetadataAsync(firstGeneration, "backend", "2.1.0", "scope-a", cancellationToken);
+
+        var restartedGeneration = firstGeneration with { Pid = DeadPid };
+
+        // act: a new process replaced the one the row remembered - metadata
+        // observed under the OLD generation must not leak into the new one.
+        var record = await _sessions.StartAsync(
+            restartedGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // assert
+        Assert.Equal("", record.Role);
+        Assert.Equal("", record.HarnessVersion);
+        Assert.Equal("", record.ProcessScope);
     }
 
     [Fact]
@@ -470,6 +564,102 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.DoesNotContain(views, v => v.Session.SessionId == "session-dead");
     }
 
+    // ---------- ListParticipantsAsync ----------
+
+    [Fact]
+    public async Task ListParticipantsAsync_Should_ReturnOneRowPerSession_When_MultipleSessionsExist()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var first = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            first, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        var second = AliveGeneration("session-2");
+        await _sessions.StartAsync(
+            second, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        var participants = await _sessions.ListParticipantsAsync(cancellationToken);
+
+        // assert
+        Assert.Equal(["session-1", "session-2"], participants.Select(p => p.Session.SessionId).Order());
+    }
+
+    [Fact]
+    public async Task ListParticipantsAsync_Should_JoinDurableAgentIdentity_When_SessionIsClaimed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var claimed = AliveGeneration("session-claimed");
+        await _sessions.StartAsync(
+            claimed, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(claimed, "pascal", forceRebind: false, cancellationToken);
+
+        var unclaimed = AliveGeneration("session-unclaimed");
+        await _sessions.StartAsync(
+            unclaimed, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        var participants = await _sessions.ListParticipantsAsync(cancellationToken);
+
+        // assert
+        var claimedParticipant = Assert.Single(participants, p => p.Session.SessionId == "session-claimed");
+        Assert.Equal("pascal", claimedParticipant.Agent?.Name);
+
+        var unclaimedParticipant = Assert.Single(participants, p => p.Session.SessionId == "session-unclaimed");
+        Assert.Null(unclaimedParticipant.Agent);
+    }
+
+    [Fact]
+    public async Task ListParticipantsAsync_Should_ResolveSharedAgentIdentity_When_MultipleSessionsBindTheSameAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var first = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            first, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(first, "pascal", forceRebind: false, cancellationToken);
+
+        var second = AliveGeneration("session-2");
+        await _sessions.StartAsync(
+            second, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(second, "pascal", forceRebind: false, cancellationToken);
+
+        // act
+        var participants = await _sessions.ListParticipantsAsync(cancellationToken);
+
+        // assert
+        Assert.Equal(2, participants.Count);
+        Assert.All(participants, p => Assert.Equal("pascal", p.Agent?.Name));
+    }
+
+    [Fact]
+    public async Task ListParticipantsAsync_Should_ReapDeadCurrentInstanceRow_Before_Listing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var dead = DeadGeneration("session-dead");
+        await _sessions.StartAsync(
+            dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        var participants = await _sessions.ListParticipantsAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(participants);
+    }
+
     // ---------- SelfClaimAsync ----------
 
     [Fact]
@@ -801,6 +991,36 @@ public sealed class AgentSessionRegistryTests : IDisposable
         command.Parameters.AddWithValue("$sessionId", generation.SessionId);
         command.Parameters.AddWithValue("$messageId", messageId);
         command.Parameters.AddWithValue("$now", _timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets the v5 role/harness_version/process_scope columns directly via
+    /// raw SQL, standing in for the not-yet-written production caller (a
+    /// later bead) that will populate them.
+    /// </summary>
+    private async Task SetSessionMetadataAsync(
+        AgentSessionGeneration generation,
+        string role,
+        string harnessVersion,
+        string processScope,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET role = $role, harness_version = $harnessVersion, "
+            + "process_scope = $processScope WHERE harness = $harness AND session_id = $sessionId "
+            + "AND pid = $pid AND proc_start = $procStart AND host = $host;";
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
+        command.Parameters.AddWithValue("$processScope", processScope);
+        command.Parameters.AddWithValue("$harness", generation.Harness);
+        command.Parameters.AddWithValue("$sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("$pid", generation.Pid);
+        command.Parameters.AddWithValue("$procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("$host", generation.Host);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
