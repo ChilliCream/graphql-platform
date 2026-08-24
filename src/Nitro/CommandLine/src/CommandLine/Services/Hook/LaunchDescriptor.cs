@@ -3,15 +3,13 @@ using System.Text;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// How this running <c>nitro</c> process was launched: an absolute
-/// executable path plus the argv prefix (if any) needed to reach the
-/// <c>nitro</c> entry point through it. A self-contained build or a
-/// global-tool shim needs no prefix; <c>dotnet nitro.dll ...</c> needs the
-/// managed assembly path as the prefix, because <see cref="Executable"/>
-/// alone (the <c>dotnet</c> muxer) would launch nothing on its own. Hook
-/// entries embed this descriptor instead of a bare <c>nitro</c> command
-/// name: a bare name depends on the harness's own <c>PATH</c> at hook-run
-/// time, which is not guaranteed to match this install's launch mode.
+/// How this running <c>nitro</c> process should be launched again: an
+/// executable plus the argv prefix (if any) needed to reach the
+/// <c>nitro</c> entry point through it. A .NET global-tool shim is recorded
+/// as the portable command name <c>nitro</c> with no prefix. A direct
+/// <c>dotnet nitro.dll ...</c> development invocation needs the managed
+/// assembly path as the prefix because the <c>dotnet</c> muxer alone would
+/// launch nothing.
 /// </summary>
 internal sealed record LaunchDescriptor(string Executable, IReadOnlyList<string> ArgumentPrefix)
 {
@@ -92,20 +90,34 @@ internal sealed class LaunchDescriptorResolver : ILaunchDescriptorResolver
         var args = Environment.GetCommandLineArgs();
         var arg0 = args.Length > 0 ? args[0] : null;
 
+        return Resolve(processPath, arg0);
+    }
+
+    internal static LaunchDescriptor Resolve(string processPath, string? arg0)
+    {
+        var processName = Path.GetFileNameWithoutExtension(processPath);
+
+        // A framework-dependent .NET global tool runs through its `nitro`
+        // shim while argv[0] points at the package's internal .store DLL.
+        // The shim already selects that DLL, so appending argv[0] would pass
+        // it to Nitro as a user argument and break every installed hook.
+        // Store the stable command name instead; it also survives tool
+        // updates that replace the versioned .store directory.
+        if (string.Equals(processName, "nitro", StringComparison.OrdinalIgnoreCase)
+            && arg0?.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return new LaunchDescriptor("nitro", []);
+        }
+
         // Framework-dependent invocation ("dotnet nitro.dll ..."): the
         // running process is the dotnet muxer, and argv[0] is the managed
-        // assembly path, distinct from the muxer executable itself. A
-        // global-tool shim or a self-contained/apphost build IS nitro, so
-        // argv[0] resolves to the same executable as ProcessPath.
+        // assembly path, distinct from the muxer executable itself.
         if (arg0?.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) == true
-            && !PathsEqual(arg0, processPath))
+            && string.Equals(processName, "dotnet", StringComparison.OrdinalIgnoreCase))
         {
             return new LaunchDescriptor(processPath, [Path.GetFullPath(arg0)]);
         }
 
         return new LaunchDescriptor(processPath, []);
     }
-
-    private static bool PathsEqual(string a, string b)
-        => string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
 }
