@@ -15,6 +15,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
     private const string TransportsPropertyName = "transports";
     private const string HttpPropertyName = "http";
     private const string CapabilitiesPropertyName = "capabilities";
+    private const string BatchingPropertyName = "batching";
     private const string ExtensionsPropertyName = "extensions";
     private const string ChilliCreamPropertyName = "chillicream";
     private const string ApolloFederationSupportPropertyName = "apolloFederationSupport";
@@ -36,22 +37,14 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         Options.Add(Opt<OptionalTransportDevUrlOption>.Instance);
         Options.Add(Opt<OptionalTransportClientNameOption>.Instance);
         Options.Add(Opt<OptionalApiIdOption>.Instance);
-        Options.Add(Opt<SourceSchemaKindOption>.Instance);
-        Options.Add(Opt<OptionalApolloFederationVersionOption>.Instance);
+        Options.Add(Opt<SourceSchemaTypeOption>.Instance);
+        Options.Add(Opt<OptionalVariableBatchingOption>.Instance);
+        Options.Add(Opt<OptionalRequestBatchingOption>.Instance);
+        Options.Add(Opt<OptionalAliasBatchingOption>.Instance);
+        Options.Add(Opt<OptionalBatchingFormatListOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
 
         this.AddGlobalNitroOptions();
-
-        Validators.Add(result =>
-        {
-            var kind = result.GetValue(Opt<SourceSchemaKindOption>.Instance);
-            var version = result.GetValue(Opt<OptionalApolloFederationVersionOption>.Instance);
-
-            if (version is not null && kind != SourceSchemaKindOption.ApolloFederation)
-            {
-                result.AddError(Messages.ApolloFederationVersionRequiresKind());
-            }
-        });
 
         this.AddExamples(
             """
@@ -104,6 +97,18 @@ internal sealed class FusionSourceSchemaInitCommand : Command
                 Messages.TransportUrlInvalid(OptionalTransportUrlOption.OptionName));
         }
 
+        var schemaType = await ResolveSchemaTypeAsync(
+            console,
+            parseResult,
+            exists,
+            cancellationToken);
+
+        var batching = await ResolveBatchingSettingsAsync(
+            console,
+            parseResult,
+            exists,
+            cancellationToken);
+
         settings ??= new JsonObject();
 
         ApplySettings(
@@ -113,8 +118,12 @@ internal sealed class FusionSourceSchemaInitCommand : Command
             parseResult.GetValue(Opt<OptionalTransportDevUrlOption>.Instance),
             parseResult.GetValue(Opt<OptionalTransportClientNameOption>.Instance),
             parseResult.GetValue(Opt<OptionalApiIdOption>.Instance),
-            parseResult.GetValue(Opt<SourceSchemaKindOption>.Instance),
-            parseResult.GetValue(Opt<OptionalApolloFederationVersionOption>.Instance));
+            schemaType,
+            batching.VariableBatching,
+            batching.RequestBatching,
+            batching.AliasBatching,
+            batching.Formats,
+            applyBatchingDefaults: !exists);
 
         // composition rejects a settings file without a name, so an existing file that never had
         // one is not silently written back in the same broken state.
@@ -133,6 +142,79 @@ internal sealed class FusionSourceSchemaInitCommand : Command
                 : $"Created '{settingsFile.EscapeMarkup()}'.");
 
         return ExitCodes.Success;
+    }
+
+    private static bool? GetBooleanOption(ParseResult parseResult, Option<string> option)
+        => parseResult.GetValue(option) is { } value ? bool.Parse(value) : null;
+
+    private static async Task<BatchingSettings> ResolveBatchingSettingsAsync(
+        INitroConsole console,
+        ParseResult parseResult,
+        bool settingsExist,
+        CancellationToken cancellationToken)
+    {
+        var variableBatching =
+            GetBooleanOption(parseResult, Opt<OptionalVariableBatchingOption>.Instance);
+        var requestBatching =
+            GetBooleanOption(parseResult, Opt<OptionalRequestBatchingOption>.Instance);
+        var aliasBatching =
+            GetBooleanOption(parseResult, Opt<OptionalAliasBatchingOption>.Instance);
+        IReadOnlyList<string>? formats =
+            parseResult.GetResult(Opt<OptionalBatchingFormatListOption>.Instance)
+                is { Implicit: false }
+                ? parseResult.GetValue(Opt<OptionalBatchingFormatListOption>.Instance)
+                : null;
+
+        if (settingsExist || !console.IsInteractive)
+        {
+            return new(variableBatching, requestBatching, aliasBatching, formats);
+        }
+
+        variableBatching ??= await console.ConfirmAsync(
+            "Variable batching",
+            defaultValue: false,
+            cancellationToken);
+        requestBatching ??= await console.ConfirmAsync(
+            "Request batching",
+            defaultValue: false,
+            cancellationToken);
+        aliasBatching ??= await console.ConfirmAsync(
+            "Alias batching",
+            defaultValue: true,
+            cancellationToken);
+
+        return new(variableBatching, requestBatching, aliasBatching, formats);
+    }
+
+    private static async Task<string?> ResolveSchemaTypeAsync(
+        INitroConsole console,
+        ParseResult parseResult,
+        bool settingsExist,
+        CancellationToken cancellationToken)
+    {
+        var schemaType = parseResult.GetValue(Opt<SourceSchemaTypeOption>.Instance);
+
+        if (schemaType is not null || settingsExist)
+        {
+            return schemaType;
+        }
+
+        if (!console.IsInteractive)
+        {
+            return SourceSchemaTypeOption.GraphQLFederation;
+        }
+
+        var selected = await console.PromptAsync(
+            "Source schema type",
+            ["GraphQL Federation", "Apollo Federation 1", "Apollo Federation 2"],
+            cancellationToken);
+
+        return selected switch
+        {
+            "Apollo Federation 1" => SourceSchemaTypeOption.ApolloFederation1,
+            "Apollo Federation 2" => SourceSchemaTypeOption.ApolloFederation2,
+            _ => SourceSchemaTypeOption.GraphQLFederation
+        };
     }
 
     /// <summary>
@@ -244,7 +326,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
 
     /// <summary>
     /// Applies the values that were passed as options. A value that was not passed keeps whatever
-    /// the settings already hold, except for the settings that <paramref name="kind"/> owns.
+    /// the settings already hold, except when new-file defaults are requested.
     /// </summary>
     private static void ApplySettings(
         JsonObject settings,
@@ -253,17 +335,19 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         string? devUrl,
         string? clientName,
         string? apiId,
-        string? kind,
-        string? apolloFederationVersion)
+        string? schemaType,
+        bool? variableBatching,
+        bool? requestBatching,
+        bool? aliasBatching,
+        IReadOnlyList<string>? batchingFormats,
+        bool applyBatchingDefaults)
     {
         if (name is not null)
         {
             settings[NamePropertyName] = name;
         }
 
-        var isHotChocolate = kind is SourceSchemaKindOption.HotChocolate;
-
-        if (url is not null || devUrl is not null || clientName is not null || isHotChocolate)
+        if (url is not null || devUrl is not null || clientName is not null)
         {
             var http = GetOrAddObject(
                 GetOrAddObject(settings, TransportsPropertyName),
@@ -283,18 +367,41 @@ internal sealed class FusionSourceSchemaInitCommand : Command
             {
                 http["clientName"] = clientName;
             }
+        }
 
-            if (isHotChocolate)
+        if (applyBatchingDefaults
+            || variableBatching is not null
+            || requestBatching is not null
+            || aliasBatching is not null
+            || batchingFormats is not null)
+        {
+            var batching = GetOrAddObject(
+                GetOrAddObject(
+                    GetOrAddObject(
+                        GetOrAddObject(settings, TransportsPropertyName),
+                        HttpPropertyName),
+                    CapabilitiesPropertyName),
+                BatchingPropertyName);
+
+            if (variableBatching is not null || applyBatchingDefaults)
             {
-                // a Hot Chocolate source schema implements these transport extensions, so the
-                // gateway is told about them instead of being left on the defaults.
-                var capabilities = GetOrAddObject(http, CapabilitiesPropertyName);
-                var batching = GetOrAddObject(capabilities, "batching");
+                batching["variableBatching"] = variableBatching ?? false;
+            }
 
-                batching["variableBatching"] = true;
-                batching["requestBatching"] = true;
-                batching["aliasBatching"] = true;
-                capabilities["onError"] = "propagate";
+            if (requestBatching is not null || applyBatchingDefaults)
+            {
+                batching["requestBatching"] = requestBatching ?? false;
+            }
+
+            if (aliasBatching is not null || applyBatchingDefaults)
+            {
+                batching["aliasBatching"] = aliasBatching ?? true;
+            }
+
+            if (batchingFormats is not null)
+            {
+                batching["formats"] = new JsonArray(
+                    batchingFormats.Select(static format => JsonValue.Create(format)).ToArray());
             }
         }
 
@@ -304,36 +411,21 @@ internal sealed class FusionSourceSchemaInitCommand : Command
                 apiId;
         }
 
-        if (kind is SourceSchemaKindOption.ApolloFederation)
+        if (schemaType is SourceSchemaTypeOption.ApolloFederation1
+            or SourceSchemaTypeOption.ApolloFederation2)
         {
-            // the settings reader rejects this object unless 'version' is its only property, so it
-            // is replaced rather than merged into.
-            var version = apolloFederationVersion
-                ?? GetApolloFederationVersion(settings)
-                ?? OptionalApolloFederationVersionOption.Version2;
+            var version = schemaType is SourceSchemaTypeOption.ApolloFederation1
+                ? "1.0"
+                : "2.0";
 
             GetOrAddObject(GetOrAddObject(settings, ExtensionsPropertyName), ChilliCreamPropertyName)
                 [ApolloFederationSupportPropertyName] = new JsonObject { ["version"] = version };
         }
-        else if (kind is not null)
+        else if (schemaType is SourceSchemaTypeOption.GraphQLFederation)
         {
             RemoveApolloFederationSupport(settings);
         }
-
-        if (kind is not null && !isHotChocolate)
-        {
-            RemoveTransportCapabilities(settings);
-        }
     }
-
-    private static string? GetApolloFederationVersion(JsonObject settings)
-        => settings[ExtensionsPropertyName] is JsonObject extensions
-            && extensions[ChilliCreamPropertyName] is JsonObject chilliCream
-            && chilliCream[ApolloFederationSupportPropertyName] is JsonObject support
-            && support["version"] is JsonValue version
-            && version.TryGetValue<string>(out var value)
-                ? value
-                : null;
 
     private static void RemoveApolloFederationSupport(JsonObject settings)
     {
@@ -353,15 +445,6 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         if (extensions.Count == 0)
         {
             settings.Remove(ExtensionsPropertyName);
-        }
-    }
-
-    private static void RemoveTransportCapabilities(JsonObject settings)
-    {
-        if (settings[TransportsPropertyName] is JsonObject transports
-            && transports[HttpPropertyName] is JsonObject http)
-        {
-            http.Remove(CapabilitiesPropertyName);
         }
     }
 
@@ -397,4 +480,10 @@ internal sealed class FusionSourceSchemaInitCommand : Command
         settings.WriteTo(writer);
         await writer.FlushAsync(cancellationToken);
     }
+
+    private readonly record struct BatchingSettings(
+        bool? VariableBatching,
+        bool? RequestBatching,
+        bool? AliasBatching,
+        IReadOnlyList<string>? Formats);
 }
