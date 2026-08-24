@@ -1188,7 +1188,7 @@ const mochaPostgresTransportExample: ExampleItem = {
     {
       heading: "How to run it",
       paragraphs: [
-        "Run the AppHost from the repo root, then exercise OrderService's demo endpoints: /api/demo/publish, /api/demo/send, and /api/demo/request-reply.",
+        "From the example directory, run the AppHost, then exercise OrderService's demo endpoints: /api/demo/publish, /api/demo/send, and /api/demo/request-reply.",
       ],
     },
   ],
@@ -1212,7 +1212,11 @@ const mochaAotExample: ExampleItem = {
     },
     { key: "rabbitmq", label: "start RabbitMQ", code: "docker compose up -d" },
     { key: "run-order", label: "run OrderService", code: "dotnet run --project AotExample.OrderService" },
-    { key: "run-fulfillment", label: "run FulfillmentService", code: "dotnet run --project AotExample.FulfillmentService" },
+    {
+      key: "run-fulfillment",
+      label: "run FulfillmentService",
+      code: "dotnet run --project AotExample.FulfillmentService",
+    },
   ],
   body: [
     {
@@ -1240,7 +1244,8 @@ const mochaExceptionPoliciesExample: ExampleItem = {
   type: "example",
   slug: "mocha-exception-policies",
   title: "Mocha Exception Policies",
-  tagline: "Dead-lettering, discarding, retrying, redelivering, and chained resilience policies keyed on exception state.",
+  tagline:
+    "Dead-lettering, discarding, retrying, redelivering, and chained resilience policies keyed on exception state.",
   products: ["mocha"],
   level: "intermediate",
   externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
