@@ -104,10 +104,10 @@ public static class GraphQLJavaScriptAppResourceBuilderExtensions
                 .Any(endpoint => endpoint.UriScheme is "http" or "https"))
             {
                 builder.WithHttpEndpoint(
-                    name: endpointName,
                     port: environmentUrl is { IsLoopback: true, IsDefaultPort: false }
                         ? environmentUrl.Port
                         : null,
+                    name: endpointName,
                     env: "PORT");
             }
 
