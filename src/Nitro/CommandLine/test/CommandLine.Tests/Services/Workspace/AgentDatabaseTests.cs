@@ -15,7 +15,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// (newer-than-current) rejection (including re-initializing an
 /// already-current file, the shape --force reinit takes), the agent_sessions
 /// table's foreign-key and cross-column CHECK constraints under
-/// foreign_keys=ON, and that task and mail data coexist in one file.
+/// foreign_keys=ON, a v4 database whose last_ping_result CHECK constraint
+/// predates 'unsupported' gaining the rebuilt constraint in place without
+/// losing rows or its session_deliveries cascade, and that task and mail
+/// data coexist in one file.
 /// </summary>
 public sealed class AgentDatabaseTests : IDisposable
 {
@@ -209,6 +212,188 @@ public sealed class AgentDatabaseTests : IDisposable
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'",
             cancellationToken);
         Assert.Equal(1, agentSessionsTableCount);
+    }
+
+    /// <summary>
+    /// Seeds a v4 database whose <c>agent_sessions</c> table carries the
+    /// original CHECK constraint on <c>last_ping_result</c>, from before
+    /// <c>unsupported</c> was added to the enum, with one row already
+    /// present and a <c>session_deliveries</c> row that cascades from it.
+    /// SQLite cannot ALTER a CHECK constraint in place, so
+    /// InitializeAsync must detect the stale constraint and rebuild the
+    /// table: the existing row must survive, the new value must be
+    /// writable afterward where it was rejected before, the cascade to
+    /// session_deliveries must still fire, and the constraint must still
+    /// reject a genuinely invalid value.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_RebuildAgentSessionsCheckConstraint_When_ExistingV4DatabasePredatesUnsupported()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL REFERENCES agents (name),
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    pid INTEGER NOT NULL CHECK (pid > 0),
+                    proc_start TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                CREATE INDEX idx_agent_sessions_name ON agent_sessions (agent_name);
+                CREATE INDEX idx_agent_sessions_pid ON agent_sessions (host, pid);
+
+                CREATE TABLE session_deliveries (
+                    harness TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    message_id TEXT NOT NULL,
+                    channel TEXT NOT NULL CHECK (channel IN ('digest', 'gate', 'ping')),
+                    delivered_at TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id, message_id, channel),
+                    FOREIGN KEY (harness, session_id)
+                        REFERENCES agent_sessions (harness, session_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE ping_leases (
+                    slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 1 AND 4),
+                    attempt_id TEXT NOT NULL,
+                    acquired_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                );
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    last_ping_result
+                ) VALUES (
+                    'claude-code', 'session-old', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
+                    '2026-01-10T12:00:00+00:00', 'ok'
+                );
+
+                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
+                VALUES ('claude-code', 'session-old', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
+
+                PRAGMA user_version = 4;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert: version unchanged (this was never a version-keyed gap), row and cascade-owned
+        // delivery survive, and the constraint now accepts 'unsupported'.
+        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
+        Assert.Equal(AgentDatabase.CurrentVersion, version);
+
+        var existingLastPingResult = await QueryScalarStringAsync(
+            connection2,
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-old'",
+            cancellationToken);
+        Assert.Equal("ok", existingLastPingResult);
+
+        var deliveryCount = await QueryScalarLongAsync(
+            connection2,
+            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-old'",
+            cancellationToken);
+        Assert.Equal(1, deliveryCount);
+
+        await ExecuteAsync(
+            connection2,
+            "UPDATE agent_sessions SET last_ping_result = 'unsupported' WHERE session_id = 'session-old';",
+            cancellationToken);
+        var updatedLastPingResult = await QueryScalarStringAsync(
+            connection2,
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-old'",
+            cancellationToken);
+        Assert.Equal("unsupported", updatedLastPingResult);
+
+        // The FK to agent_sessions must still enforce (not left dangling by the rebuild):
+        // cascading the delivery row still works, and a bad reference still fails.
+        await ExecuteAsync(
+            connection2, "DELETE FROM agent_sessions WHERE session_id = 'session-old';", cancellationToken);
+        var deliveryCountAfterCascade = await QueryScalarLongAsync(
+            connection2,
+            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-old'",
+            cancellationToken);
+        Assert.Equal(0, deliveryCountAfterCascade);
+
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection2,
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                last_ping_result
+            ) VALUES (
+                'claude-code', 'session-invalid', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
+                '2026-01-10T12:00:00+00:00', 'not-a-real-result'
+            );
+            """,
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// A freshly created database is unaffected by the constraint-rebuild
+    /// path: <see cref="AgentSessionSchema.Create"/> already carries
+    /// <c>unsupported</c>, so InitializeAsync detects the current
+    /// constraint and skips the rebuild, and the value is writable on the
+    /// first attempt.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AcceptUnsupportedLastPingResult_When_DatabaseIsFreshlyCreated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await InsertAgentSessionAsync(connection, "session-fresh", cancellationToken);
+
+        // act
+        await ExecuteAsync(
+            connection,
+            "UPDATE agent_sessions SET last_ping_result = 'unsupported' WHERE session_id = 'session-fresh';",
+            cancellationToken);
+
+        // assert
+        var lastPingResult = await QueryScalarStringAsync(
+            connection,
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-fresh'",
+            cancellationToken);
+        Assert.Equal("unsupported", lastPingResult);
     }
 
     [Fact]

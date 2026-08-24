@@ -16,9 +16,18 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// </summary>
 internal static class AgentSessionSchema
 {
-    public const string Create =
+    /// <summary>
+    /// The <c>agent_sessions</c> column and constraint list, shared between
+    /// <see cref="Create"/> (which applies it under the live table name) and
+    /// <see cref="CreateAgentSessionsTable"/> (which <see cref="AgentDatabase"/>
+    /// applies under a temporary name to rebuild the table for a database
+    /// whose <c>last_ping_result</c> CHECK constraint predates
+    /// <c>unsupported</c>: SQLite cannot ALTER a CHECK constraint in place,
+    /// so the rebuild recreates the table under a fresh name, copies every
+    /// row across, then swaps it in for the live one).
+    /// </summary>
+    private const string AgentSessionsColumns =
         """
-        CREATE TABLE IF NOT EXISTS agent_sessions (
             harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
             session_id TEXT NOT NULL,
             agent_name TEXT NULL REFERENCES agents (name),
@@ -44,6 +53,15 @@ internal static class AgentSessionSchema
             CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
             CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
             PRIMARY KEY (harness, session_id)
+        """;
+
+    public const string Create =
+        """
+        CREATE TABLE IF NOT EXISTS agent_sessions (
+        """
+        + AgentSessionsColumns
+        + """
+
         );
 
         CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);
@@ -65,6 +83,22 @@ internal static class AgentSessionSchema
             attempt_id TEXT NOT NULL,
             acquired_at TEXT NOT NULL,
             expires_at TEXT NOT NULL
+        );
+        """;
+
+    /// <summary>
+    /// The same <c>agent_sessions</c> column and constraint list as
+    /// <see cref="Create"/>, applied under <paramref name="tableName"/>
+    /// instead of the live table name. <see cref="AgentDatabase"/> uses this
+    /// to build a replacement table carrying the current CHECK constraint,
+    /// copy every row from the live table into it, then swap it in under the
+    /// live name, the standard SQLite rebuild for a CHECK constraint change
+    /// no in-place ALTER can express.
+    /// </summary>
+    public static string CreateAgentSessionsTable(string tableName) =>
+        $"""
+        CREATE TABLE "{tableName}" (
+        {AgentSessionsColumns}
         );
         """;
 }
