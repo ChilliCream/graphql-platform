@@ -87,11 +87,11 @@ export function LearnEditorialBand({
         ) : null}
 
         {showRail ? (
-          <div className="xl:border-cc-card-border order-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:order-2 lg:grid-cols-1 xl:order-3 xl:border-l xl:px-8">
+          <div className="xl:border-cc-card-border order-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:order-2 lg:grid-cols-1 xl:order-3 xl:flex xl:flex-col xl:border-l xl:px-8">
             <div className="sm:col-span-2 lg:col-span-1">
               <LearnLatestVideos videos={latestVideos} />
             </div>
-            <div className="sm:col-span-2 lg:col-span-1">
+            <div className="sm:col-span-2 lg:col-span-1 xl:mt-auto">
               <LearnTagCloud tags={tags} />
             </div>
           </div>
