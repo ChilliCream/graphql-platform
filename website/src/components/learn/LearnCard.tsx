@@ -128,6 +128,7 @@ export function LearnCard({ item }: LearnCardProps) {
               return (
                 <span
                   key={product}
+                  role="img"
                   tabIndex={0}
                   title={label}
                   aria-label={label}
@@ -145,6 +146,7 @@ export function LearnCard({ item }: LearnCardProps) {
                 return (
                   <span
                     key={key}
+                    role="img"
                     tabIndex={0}
                     title={label}
                     aria-label={label}

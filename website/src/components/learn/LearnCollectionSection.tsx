@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CardGrid } from "@/src/components/CardGrid";
-import type { ArticleSummary } from "@/src/helpers/articles";
 import type { LearnItemSummary } from "@/src/data/learn/types";
 import { LearnCard } from "./LearnCard";
-import { LearnListRow } from "./LearnListRow";
 
 interface CollectionSubLink {
   readonly label: string;
@@ -16,14 +14,6 @@ interface LearnCollectionSectionProps {
   readonly subLinks: readonly CollectionSubLink[];
   /** Target for the "Browse the catalog" link; defaults to the unfiltered catalog. A topic hub page passes its own pre-filtered `/learn/browse` href. */
   readonly browseHref?: string;
-  /**
-   * Explainer/comparison articles folded in here as `LearnListRow`s when
-   * there are fewer than 3 (learn-harmonization.md section 2.5.4, D1):
-   * `LearnExplainerList` does not render its own section below that count.
-   * Every sub-threshold article folds, not just the first, so a 2-article
-   * pool loses none of its content.
-   */
-  readonly foldedExplainers?: readonly ArticleSummary[];
 }
 
 /**
@@ -34,12 +24,7 @@ interface LearnCollectionSectionProps {
  * `border-t` seam, and a uniform `LearnCard` grid (website-kbx.21: the
  * former full-width lead card made the section too heavy).
  */
-export function LearnCollectionSection({
-  items,
-  subLinks,
-  browseHref = "/learn/browse",
-  foldedExplainers = [],
-}: LearnCollectionSectionProps) {
+export function LearnCollectionSection({ items, subLinks, browseHref = "/learn/browse" }: LearnCollectionSectionProps) {
   if (items.length === 0) {
     return null;
   }
@@ -73,22 +58,6 @@ export function LearnCollectionSection({
               >
                 {link.label}
               </Link>
-            ))}
-          </div>
-        ) : null}
-        {foldedExplainers.length > 0 ? (
-          <div className="border-cc-card-border mt-8 flex flex-col border-t pt-6">
-            {foldedExplainers.map((article) => (
-              <LearnListRow
-                key={article.slug}
-                href={article.href}
-                title={article.title}
-                kicker="Explainer"
-                featuredImage={article.featuredImage}
-                product={article.products[0] ?? null}
-                author={article.author}
-                date={article.date}
-              />
             ))}
           </div>
         ) : null}
