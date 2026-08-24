@@ -6,7 +6,8 @@ using System.Text.RegularExpressions;
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 internal sealed partial class ProcessInfoProvider(
-    Func<int, string?>? startTicksReader = null) : IProcessInfoProvider
+    Func<int, string?>? startTicksReader = null,
+    ProcessInfoProvider.StartTicksReader? observeReader = null) : IProcessInfoProvider
 {
     // Legacy-only: rows migrated from schema v5, whose recorded proc_start
     // is still the old DateTimeOffset text a pre-v6 writer captured, fall
@@ -21,7 +22,27 @@ internal sealed partial class ProcessInfoProvider(
     // equality instead (see <see cref="Observe"/>).
     private static readonly TimeSpan LegacyStartTimeTolerance = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// Reads a pid's raw start ticks like <see cref="Func{Int32, String}"/>
+    /// but also reports, through <paramref name="permissionDenied"/>,
+    /// whether a null result came from an access failure rather than the
+    /// pid simply having no such process. Test-only injection point: the
+    /// public constructor parameter <c>startTicksReader</c> cannot express a
+    /// permission-denied result, so tests that need one pass this delegate
+    /// instead.
+    /// </summary>
+    internal delegate string? StartTicksReader(int pid, out bool permissionDenied);
+
     private readonly Func<int, string?> _startTicksReader = startTicksReader ?? (pid => ProcStat.ReadStartTicks(pid));
+
+    private readonly StartTicksReader _observeReader = observeReader
+        ?? (startTicksReader is not null
+            ? (int pid, out bool permissionDenied) =>
+            {
+                permissionDenied = false;
+                return startTicksReader(pid);
+            }
+            : ProcStat.ReadStartTicks);
 
     public string? GetStartTicks(int pid) => _startTicksReader(pid);
 
@@ -86,7 +107,12 @@ internal sealed partial class ProcessInfoProvider(
             return alive ? ProcessObservationResult.Alive : ProcessObservationResult.Dead;
         }
 
-        var actualTicks = _startTicksReader(pid);
+        var actualTicks = _observeReader(pid, out var ticksPermissionDenied);
+
+        if (ticksPermissionDenied)
+        {
+            return ProcessObservationResult.Unobservable;
+        }
 
         return actualTicks is not null && actualTicks == expectedProcStart
             ? ProcessObservationResult.Alive

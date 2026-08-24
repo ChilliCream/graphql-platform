@@ -119,7 +119,10 @@ internal sealed record AgentSessionRecord
     /// observed generation. Callers checking liveness (<see
     /// cref="IProcessInfoProvider.Observe"/>) must pass this through so a
     /// legacy row falls back to the pre-migration wall-clock comparison
-    /// instead of being compared as raw ticks.
+    /// instead of being compared as raw ticks. A generation-predicated
+    /// mutation (claim, heartbeat, ping, delete) matches <c>proc_start</c>
+    /// by SQL equality against raw ticks, so it no-ops on a legacy row until
+    /// its next SessionStart rewrites it.
     /// </summary>
     public required bool ProcStartLegacy { get; init; }
 }

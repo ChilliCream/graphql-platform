@@ -163,16 +163,36 @@ public sealed class ProcessInfoProviderTests
     [Fact]
     public void Observe_Should_ReturnDead_When_TicksDiffer_DespiteIdenticalWallClockStart()
     {
-        // arrange: the non-legacy branch never reads wall-clock start time
-        // at all, so a boot-time-estimate drift that could previously
-        // misclassify a live process as dead (or vice versa) has nothing to
-        // act on - only an exact ticks mismatch drives this result.
+        // arrange: with a stubbed reader that always returns the same
+        // ticks, an expected value one digit off is still an exact-string
+        // mismatch, and the non-legacy branch drives Dead purely from that
+        // mismatch, with no wall-clock reasoning involved.
         var provider = new ProcessInfoProvider(startTicksReader: _ => "39270330");
 
         // act & assert
         Assert.Equal(
             ProcessObservationResult.Dead,
             provider.Observe(107466, "39270331", legacy: false, recordedProcessScope: ""));
+    }
+
+    [Fact]
+    public void Observe_Should_ReturnUnobservable_When_TicksReadIsPermissionDenied()
+    {
+        // arrange: an unreadable-but-live pid (e.g. a process running as
+        // another user) must not be classified Dead and reaped - the
+        // permission failure has to surface as Unobservable, the same as
+        // the legacy branch already does.
+        var provider = new ProcessInfoProvider(
+            observeReader: (int _, out bool permissionDenied) =>
+            {
+                permissionDenied = true;
+                return null;
+            });
+
+        // act & assert
+        Assert.Equal(
+            ProcessObservationResult.Unobservable,
+            provider.Observe(107466, "1", legacy: false, recordedProcessScope: ""));
     }
 
     [Fact]

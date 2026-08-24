@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -880,16 +879,14 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task ReapAsync_Should_NotDeleteRow_When_TicksMatchExactly_AcrossTwoIndependentReaders()
     {
-        // arrange: two independent ProcessInfoProvider instances reading the
-        // SAME real kernel ticks for the same live pid - proving the
-        // non-legacy comparison is immune to the cross-process boot-time-
-        // estimate drift that could previously misclassify a live process as
-        // dead, since it never reads wall-clock time at all.
+        // arrange: two independent ProcessInfoProvider instances, each doing
+        // its own real /proc/<pid>/stat read for the same live pid, agree on
+        // its raw kernel start ticks exactly.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var writerProvider = new ProcessInfoProvider(startTicksReader: _ => "1000000");
+        var writerProvider = new ProcessInfoProvider();
         var writer = NewRegistry(writerProvider);
-        const int pid = 555_556;
+        var pid = CurrentAlivePid();
         var generation = new AgentSessionGeneration(
             Harness, "session-1", CurrentHost, pid, writerProvider.GetStartTicks(pid)!);
         await writer.StartAsync(
@@ -897,7 +894,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             envActor: null, cancellationToken);
 
         // act
-        var readerProvider = new ProcessInfoProvider(startTicksReader: _ => "1000000");
+        var readerProvider = new ProcessInfoProvider();
         var reader = NewRegistry(readerProvider);
         var reaped = await reader.ReapAsync(cancellationToken);
 
@@ -997,6 +994,34 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
+    public async Task TouchAsync_Should_ReturnFalse_When_RowIsLegacy_And_GenerationCarriesRawTicks()
+    {
+        // arrange: a legacy row's proc_start is still the pre-v6
+        // DateTimeOffset text; every generation-predicated mutation matches
+        // proc_start by SQL equality against raw ticks, so it can never
+        // match a legacy row until that row's own next SessionStart
+        // rewrites it with fresh ticks.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var pid = CurrentAlivePid();
+        var wallClockStart = Process.GetCurrentProcess().StartTime.ToUniversalTime().ToString("O");
+        await InsertLegacySessionRowAsync("session-legacy", pid, wallClockStart, cancellationToken);
+        var rawTicksGeneration = new AgentSessionGeneration(
+            Harness, "session-legacy", CurrentHost, pid, new ProcessInfoProvider().GetStartTicks(pid)!);
+
+        // act
+        var touched = await _sessions.TouchAsync(rawTicksGeneration, cancellationToken);
+
+        // assert
+        Assert.False(touched);
+        Assert.Equal(
+            1,
+            await CountSessionRowsAsync(
+                new AgentSessionGeneration(Harness, "session-legacy", CurrentHost, pid, wallClockStart),
+                cancellationToken));
+    }
+
+    [Fact]
     public async Task ReapAsync_Should_NotDeleteRow_When_ObservationIsUnobservable()
     {
         // arrange: the registry-level outcome is identical whether the
@@ -1014,6 +1039,38 @@ public sealed class AgentSessionRegistryTests : IDisposable
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
         fakeProcessInfo.SetObservation(generation.Pid, ProcessObservationResult.Unobservable);
+
+        // act
+        var reaped = await sessions.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(generation, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_NotDeleteRow_When_TicksReadIsPermissionDenied()
+    {
+        // arrange: the same Unobservable-not-Dead guarantee, but exercised
+        // through the real ProcessInfoProvider (not FakeProcessInfoProvider)
+        // so the non-legacy Observe branch itself is under test: an
+        // unreadable-but-live pid (e.g. a process running as another user)
+        // must not be classified Dead and reaped.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var pid = CurrentAlivePid();
+        var permissionDeniedProvider = new ProcessInfoProvider(
+            observeReader: (int _, out bool permissionDenied) =>
+            {
+                permissionDenied = true;
+                return null;
+            });
+        var sessions = NewRegistry(permissionDeniedProvider);
+        var generation = new AgentSessionGeneration(
+            Harness, "session-1", CurrentHost, pid, new ProcessInfoProvider().GetStartTicks(pid)!);
+        await sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
 
         // act
         var reaped = await sessions.ReapAsync(cancellationToken);

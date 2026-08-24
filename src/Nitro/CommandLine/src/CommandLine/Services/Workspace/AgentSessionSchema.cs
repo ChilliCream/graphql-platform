@@ -23,7 +23,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// writing host's boot time is unknown here), so it is marked
 /// <c>proc_start_legacy = 1</c> and read with the old wall-clock rule until
 /// its own next SessionStart rewrites it with fresh ticks and clears the
-/// marker.
+/// marker. A generation-predicated mutation (claim, heartbeat, ping,
+/// delete) matches <c>proc_start</c> by SQL equality against raw ticks, so
+/// it no-ops on a legacy row until that same rewrite happens.
 /// </summary>
 internal static class AgentSessionSchema
 {
