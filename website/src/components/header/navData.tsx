@@ -137,6 +137,10 @@ export const NAV_ITEMS: NavItem[] = [
           },
         ],
       },
+      {
+        title: "Help",
+        links: [{ href: "/help", label: "Help" }],
+      },
     ],
   },
   {
@@ -177,7 +181,6 @@ export const NAV_ITEMS: NavItem[] = [
       },
     ],
   },
-  { href: "/learn", label: "Learn" },
   {
     href: "/resources",
     label: "Company",
@@ -223,7 +226,7 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   { href: "/pricing", label: "Pricing" },
-  { href: "/help", label: "Help" },
+  { href: "/learn", label: "Learn" },
 ];
 
 export const MOBILE_ITEMS = NAV_ITEMS.map((i) => ({
