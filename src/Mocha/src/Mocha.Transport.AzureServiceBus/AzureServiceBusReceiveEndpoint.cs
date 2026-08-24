@@ -97,8 +97,9 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
     /// <summary>
     /// Starts when the messaging runtime activates this endpoint. The endpoint selects and starts
-    /// the appropriate session or non-session processor, and starts a heartbeat for reply queues.
-    /// If startup fails, it disposes any resources created during the attempt before propagating the failure.
+    /// the appropriate session or non-session processor, and starts a heartbeat for queues that
+    /// have an idle deletion window configured. If startup fails, it disposes any resources created
+    /// during the attempt before propagating the failure.
     /// </summary>
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
@@ -119,10 +120,10 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
             await _processor.StartProcessingAsync(cancellationToken);
 
-            if (Configuration.Kind == ReceiveEndpointKind.Reply)
+            if (Queue.AutoDeleteOnIdle is { } autoDeleteOnIdle)
             {
                 var receiver = transport.ClientManager.CreateReceiver(Queue.Name);
-                _heartbeat = new QueueHeartbeat(receiver, _logger, Queue.Name);
+                _heartbeat = new QueueHeartbeat(receiver, autoDeleteOnIdle, _logger, Queue.Name);
             }
         }
         catch
@@ -218,7 +219,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
     /// <summary>
     /// Stops when the messaging runtime deactivates this endpoint, then disposes the processor and
-    /// heartbeat resources.
+    /// heartbeat resources. For a temporary endpoint, also removes the Mocha-owned, auto-provisioned
+    /// forwarding subscriptions that route to this endpoint's queue.
     /// </summary>
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
@@ -229,6 +231,11 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             if (_processor is not null)
             {
                 await _processor.StopProcessingAsync(cancellationToken);
+            }
+
+            if (Configuration.IsTemporary)
+            {
+                await CleanupTemporaryResourcesAsync(cancellationToken);
             }
         }
         finally
@@ -244,6 +251,54 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
                 await _processor.DisposeAsync();
                 _processor = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Removes convention forwarding subscriptions for this temporary endpoint. The queue is
+    /// removed when no provisioned declared subscriptions remain and all convention cleanup succeeds.
+    /// </summary>
+    private async Task CleanupTemporaryResourcesAsync(CancellationToken cancellationToken)
+    {
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var canDeleteQueue = true;
+
+        foreach (var subscription in Queue.Subscriptions)
+        {
+            if (!(subscription.AutoProvision ?? topology.AutoProvision))
+            {
+                continue;
+            }
+
+            if (subscription.Origin != TopologyOrigin.Convention)
+            {
+                canDeleteQueue = false;
+                continue;
+            }
+
+            try
+            {
+                await subscription.DeprovisionAsync(transport.ClientManager, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                canDeleteQueue = false;
+                _logger.ForwardingSubscriptionCleanupFailed(ex, subscription.Source.Name, subscription.Name);
+            }
+        }
+
+        if (!canDeleteQueue || !(Queue.AutoProvision ?? topology.AutoProvision))
+        {
+            return;
+        }
+
+        try
+        {
+            await Queue.DeprovisionAsync(transport.ClientManager, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.TemporaryQueueCleanupFailed(ex, Queue.Name);
         }
     }
 
@@ -307,4 +362,19 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Warning, "Reply queue keep-alive peek failed for {EntityPath}")]
     public static partial void ReplyQueueKeepAliveFailed(this ILogger logger, Exception exception, string entityPath);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Failed to delete Azure Service Bus forwarding subscription '{SubscriptionName}' on topic '{TopicName}'")]
+    public static partial void ForwardingSubscriptionCleanupFailed(
+        this ILogger logger,
+        Exception exception,
+        string topicName,
+        string subscriptionName);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to delete temporary Azure Service Bus queue '{QueueName}'")]
+    public static partial void TemporaryQueueCleanupFailed(
+        this ILogger logger,
+        Exception exception,
+        string queueName);
 }

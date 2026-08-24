@@ -11,13 +11,35 @@ public class QueueHeartbeatTests
     private const string FakeConnectionString =
         "Endpoint=sb://fake.servicebus.windows.net/;SharedAccessKeyName=k;SharedAccessKey=a2V5";
 
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(4)]
+    public async Task Constructor_Should_Throw_When_AutoDeleteOnIdleBelowMinimum(int minutes)
+    {
+        // arrange
+        await using var client = new ServiceBusClient(FakeConnectionString);
+        await using var receiver = client.CreateReceiver("test-queue");
+
+        // act
+        var exception = Record.Exception(() =>
+            new QueueHeartbeat(
+                receiver,
+                TimeSpan.FromMinutes(minutes),
+                NullLogger.Instance,
+                "test-queue"));
+
+        // assert
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+    }
+
     [Fact]
     public async Task DisposeAsync_Should_DisposeUnderlyingReceiver_When_Constructed()
     {
         // arrange
         await using var client = new ServiceBusClient(FakeConnectionString);
         var receiver = client.CreateReceiver("test-queue");
-        var heartbeat = new QueueHeartbeat(receiver, NullLogger.Instance, "test-queue");
+        var heartbeat = new QueueHeartbeat(receiver, TimeSpan.FromHours(24), NullLogger.Instance, "test-queue");
 
         // act
         await heartbeat.DisposeAsync();
@@ -32,7 +54,7 @@ public class QueueHeartbeatTests
         // arrange
         await using var client = new ServiceBusClient(FakeConnectionString);
         var receiver = client.CreateReceiver("test-queue");
-        var heartbeat = new QueueHeartbeat(receiver, NullLogger.Instance, "test-queue");
+        var heartbeat = new QueueHeartbeat(receiver, TimeSpan.FromHours(24), NullLogger.Instance, "test-queue");
 
         // act
         await heartbeat.DisposeAsync();

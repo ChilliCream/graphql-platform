@@ -127,6 +127,15 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        Configuration.Queue.Durable = false;
+        Configuration.Queue.AutoDelete = true;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQQueueDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
