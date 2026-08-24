@@ -36,18 +36,28 @@ internal sealed class TuiApplication
     private static readonly TimeSpan DefaultTickInterval = TimeSpan.FromMilliseconds(100);
     private static readonly TimeSpan DefaultKeyPollInterval = TimeSpan.FromMilliseconds(15);
 
+    /// <summary>
+    /// The fixed bound the shutdown path waits for the key-reader, tick, and
+    /// additional event-source tasks before giving up on them. Matches the
+    /// coordinator/effect shutdown wait used elsewhere in the TUI runtime.
+    /// </summary>
+    private static readonly TimeSpan DefaultShutdownDrainBound = TimeSpan.FromSeconds(5);
+
     private readonly IAnsiConsole _console;
     private readonly TimeSpan _tickInterval;
     private readonly TimeSpan _keyPollInterval;
+    private readonly TimeSpan _shutdownDrainBound;
 
     public TuiApplication(
         IAnsiConsole console,
         TimeSpan? tickInterval = null,
-        TimeSpan? keyPollInterval = null)
+        TimeSpan? keyPollInterval = null,
+        TimeSpan? shutdownDrainBound = null)
     {
         _console = console ?? throw new ArgumentNullException(nameof(console));
         _tickInterval = tickInterval ?? DefaultTickInterval;
         _keyPollInterval = keyPollInterval ?? DefaultKeyPollInterval;
+        _shutdownDrainBound = shutdownDrainBound ?? DefaultShutdownDrainBound;
     }
 
     /// <summary>
@@ -143,11 +153,21 @@ internal sealed class TuiApplication
 
                 try
                 {
-                    await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks]).ConfigureAwait(false);
+                    // Bounded so a noncooperative task (one that does not observe
+                    // cancellation) cannot block terminal restoration indefinitely;
+                    // it is abandoned once the fixed shutdown bound elapses.
+                    await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks])
+                        .WaitAsync(_shutdownDrainBound, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
                     // Expected once loopCts is cancelled.
+                }
+                catch (TimeoutException)
+                {
+                    // The shutdown bound elapsed with a task still running; abandon it
+                    // rather than block the terminal from being restored.
                 }
             }
         }

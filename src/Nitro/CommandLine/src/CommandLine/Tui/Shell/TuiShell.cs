@@ -29,6 +29,8 @@ internal sealed class TuiShell
     private const string FooterEllipsis = "…";
     private const string TabStripSeparator = " ";
 
+    private static readonly TimeSpan QuitGateDrainBound = TimeSpan.FromSeconds(5);
+
     private readonly IReadOnlyList<TuiTab> _tabs;
     private readonly TuiTab _tasksTab;
     private readonly Toaster _toaster = new();
@@ -37,8 +39,10 @@ internal sealed class TuiShell
     private readonly ITaskStore? _store;
     private readonly IMailStore? _mailStore;
     private readonly string? _actor;
+    private readonly IReadOnlyList<TuiQuitGate> _quitGates;
 
     private int _activeTabIndex;
+    private bool _quitGateResolved;
     private BoardDetailMode? _detailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
@@ -63,7 +67,8 @@ internal sealed class TuiShell
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
         string? actor = null,
-        IMailStore? mailStore = null)
+        IMailStore? mailStore = null,
+        IReadOnlyList<TuiQuitGate>? quitGates = null)
         : this(
             [new TuiTab(
                 string.Empty,
@@ -77,7 +82,8 @@ internal sealed class TuiShell
             treeView,
             store,
             actor,
-            mailStore)
+            mailStore,
+            quitGates)
     {
     }
 
@@ -90,6 +96,12 @@ internal sealed class TuiShell
     /// status and priority quick pickers, and the task create form): that machinery
     /// only activates while the tab at that index is active. A one-row tab strip
     /// renders above the content region whenever more than one tab is hosted.
+    /// <paramref name="quitGates"/> runs before a confirmed normal quit is allowed to
+    /// raise <see cref="QuitConfirmed"/>: each stops its own feature's new submissions
+    /// and bounded-drains what is already in flight, and a nonzero pending or
+    /// outcome-unknown count reported back turns the confirmation into a second
+    /// prompt naming those counts rather than quitting immediately. Omitted, quitting
+    /// behaves exactly as before.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
@@ -103,7 +115,8 @@ internal sealed class TuiShell
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
         string? actor = null,
-        IMailStore? mailStore = null)
+        IMailStore? mailStore = null,
+        IReadOnlyList<TuiQuitGate>? quitGates = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
 
@@ -126,6 +139,7 @@ internal sealed class TuiShell
         _store = store;
         _mailStore = mailStore;
         _actor = actor;
+        _quitGates = quitGates ?? [];
         _width = initialWidth;
         _height = initialHeight;
 
@@ -679,12 +693,11 @@ internal sealed class TuiShell
                 return true;
 
             case TuiMessage.ConfirmQuit:
-                _confirmDialog = null;
-                QuitConfirmed?.Invoke();
-                return true;
+                return HandleConfirmQuit();
 
             case TuiMessage.CancelQuit:
                 _confirmDialog = null;
+                _quitGateResolved = false;
                 return true;
 
             case TuiMessage.ShowToast showToast:
@@ -741,6 +754,59 @@ internal sealed class TuiShell
                 return true;
         }
     }
+
+    /// <summary>
+    /// Runs the pre-cancellation quit gate: on the first confirmation, every
+    /// registered <see cref="TuiQuitGate"/> stops its feature's new submissions and
+    /// bounded-drains what is already in flight. With nothing left unresolved,
+    /// <see cref="QuitConfirmed"/> fires immediately, exactly as it would with no
+    /// gates registered. Otherwise a second confirmation naming the pending and
+    /// outcome-unknown counts is shown, and only confirming that fires
+    /// <see cref="QuitConfirmed"/>; gates are not re-run for that second confirmation.
+    /// </summary>
+    private bool HandleConfirmQuit()
+    {
+        _confirmDialog = null;
+
+        if (_quitGateResolved || _quitGates.Count == 0)
+        {
+            _quitGateResolved = false;
+            QuitConfirmed?.Invoke();
+            return true;
+        }
+
+        var report = RunQuitGates();
+
+        if (!report.HasUnresolvedWork)
+        {
+            QuitConfirmed?.Invoke();
+            return true;
+        }
+
+        _quitGateResolved = true;
+        _confirmDialog = new ConfirmDialog(FormatQuitGateMessage(report));
+        return true;
+    }
+
+    private TuiQuitGateReport RunQuitGates()
+    {
+        var pendingCount = 0;
+        var outcomeUnknownCount = 0;
+        var operationIds = new List<TuiOperationId>();
+
+        foreach (var gate in _quitGates)
+        {
+            var report = gate(QuitGateDrainBound, CancellationToken.None).GetAwaiter().GetResult();
+            pendingCount += report.PendingCount;
+            outcomeUnknownCount += report.OutcomeUnknownCount;
+            operationIds.AddRange(report.DiscoverableOperationIds);
+        }
+
+        return new TuiQuitGateReport(pendingCount, outcomeUnknownCount, operationIds);
+    }
+
+    private static string FormatQuitGateMessage(TuiQuitGateReport report) =>
+        $"Exit with {report.PendingCount} stored-but-pending, {report.OutcomeUnknownCount} outcome-unknown? (y/n)";
 
     /// <summary>
     /// Switches to the board's task detail mode, rooted on the board's
