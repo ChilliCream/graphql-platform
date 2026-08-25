@@ -14,28 +14,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task HookHelp_ReturnsSuccess()
+    public async Task HookHelp_ShouldBeInvisible()
     {
         // arrange & act
         var result = await ExecuteCommandAsync("agent", "hook", "--help");
 
         // assert
-        result.AssertHelpOutput(
-            """
-            Description:
-              Translate harness turn-boundary hook payloads into digest and gate behavior.
-
-            Usage:
-              nitro agent hook [command] [options]
-
-            Options:
-              -?, -h, --help  Show help and usage information
-
-            Commands:
-              claude   Adapt Claude Code turn-boundary hook events.
-              codex    Adapt Codex CLI turn-boundary hook and notify events.
-              copilot  Adapt GitHub Copilot CLI turn-boundary hook events.
-            """);
+        result.AssertHelpOutput(string.Empty);
     }
 
     [Fact]

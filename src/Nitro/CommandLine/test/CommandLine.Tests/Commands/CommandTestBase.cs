@@ -55,7 +55,6 @@ public abstract class CommandTestBase
         new FixedCopilotAncestorSessionResolver(null);
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
-    private Services.Notify.IPingWorkerLauncher? _pingWorkerLauncherOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
     protected readonly FakeTimeProvider FakeTime =
@@ -171,16 +170,6 @@ public abstract class CommandTestBase
     private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
     {
         _codexPathResolverOverride = new FixedCodexPathResolver(hooksJsonPath, configTomlPath);
-    }
-
-    /// <summary>
-    /// Replaces the real detached-process ping worker launcher with the
-    /// given fake, so tests exercising auto-ping through the CLI (mail
-    /// send/reply/broadcast) never spawn a real OS process.
-    /// </summary>
-    private protected void SetupPingWorkerLauncher(Services.Notify.IPingWorkerLauncher launcher)
-    {
-        _pingWorkerLauncherOverride = launcher;
     }
 
     /// <summary>
@@ -396,11 +385,6 @@ public abstract class CommandTestBase
         if (_codexPathResolverOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_codexPathResolverOverride));
-        }
-
-        if (_pingWorkerLauncherOverride is not null)
-        {
-            services.Replace(ServiceDescriptor.Singleton(_pingWorkerLauncherOverride));
         }
 
         if (_codexQueueClientOverride is not null)

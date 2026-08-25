@@ -34,7 +34,6 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
         Subcommands.Add(new PingAgentCommand());
-        Subcommands.Add(new PingWorkerCommand());
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

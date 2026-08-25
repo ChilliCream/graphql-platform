@@ -14,6 +14,7 @@ internal sealed class HookCommand : Command
     public HookCommand() : base("hook")
     {
         Description = "Translate harness turn-boundary hook payloads into digest and gate behavior.";
+        Hidden = true;
 
         Subcommands.Add(new ClaudeHookCommand());
         Subcommands.Add(new CodexHookCommand());

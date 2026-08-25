@@ -42,10 +42,8 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami        Print the resolved actor identity and whether it is registered in this workspace.
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
-              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased ping attempt. Not spawned by the notifier; kept only for an explicit, non-mail out-of-process caller.
             """);
     }
 
@@ -78,10 +76,8 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami        Print the resolved actor identity and whether it is registered in this workspace.
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
-              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased ping attempt. Not spawned by the notifier; kept only for an explicit, non-mail out-of-process caller.
             """);
     }
 
@@ -117,10 +113,8 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami        Print the resolved actor identity and whether it is registered in this workspace.
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
-              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased ping attempt. Not spawned by the notifier; kept only for an explicit, non-mail out-of-process caller.
             """);
     }
 
@@ -156,10 +150,8 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               whoami        Print the resolved actor identity and whether it is registered in this workspace.
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
-              hook          Translate harness turn-boundary hook payloads into digest and gate behavior.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
               ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
-              ping-worker   Internal: performs one already-leased ping attempt. Not spawned by the notifier; kept only for an explicit, non-mail out-of-process caller.
             """);
     }
 
