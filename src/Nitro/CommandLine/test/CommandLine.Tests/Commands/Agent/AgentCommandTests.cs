@@ -33,16 +33,15 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init          Initialize an agent workspace in the current directory.
-              doctor        Check the agent workspace's schema and session presence for problems.
-              tasks         Create and manage tasks for coding agents.
-              mail          Send and receive mail between coding agents.
-              memory        Save and recall durable agent memory.
-              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami        Print the resolved actor identity and whether it is registered in this workspace.
-              list          List live agent participants: one row per harness session, including unbound sessions.
-              session       Manage this workspace's live harness session presence.
-              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
+              init      Initialize an agent workspace in the current directory.
+              tasks     Create and manage tasks for coding agents.
+              mail      Send and receive mail between coding agents.
+              memory    Save and recall durable agent memory.
+              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami    Print the resolved actor identity and whether it is registered in this workspace.
+              list      List live agent participants: one row per harness session, including unbound sessions.
+              session   Manage this workspace's live harness session presence.
+              hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
 
@@ -66,16 +65,15 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init          Initialize an agent workspace in the current directory.
-              doctor        Check the agent workspace's schema and session presence for problems.
-              tasks         Create and manage tasks for coding agents.
-              mail          Send and receive mail between coding agents.
-              memory        Save and recall durable agent memory.
-              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami        Print the resolved actor identity and whether it is registered in this workspace.
-              list          List live agent participants: one row per harness session, including unbound sessions.
-              session       Manage this workspace's live harness session presence.
-              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
+              init      Initialize an agent workspace in the current directory.
+              tasks     Create and manage tasks for coding agents.
+              mail      Send and receive mail between coding agents.
+              memory    Save and recall durable agent memory.
+              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami    Print the resolved actor identity and whether it is registered in this workspace.
+              list      List live agent participants: one row per harness session, including unbound sessions.
+              session   Manage this workspace's live harness session presence.
+              hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
 
@@ -102,16 +100,15 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init          Initialize an agent workspace in the current directory.
-              doctor        Check the agent workspace's schema and session presence for problems.
-              tasks         Create and manage tasks for coding agents.
-              mail          Send and receive mail between coding agents.
-              memory        Save and recall durable agent memory.
-              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami        Print the resolved actor identity and whether it is registered in this workspace.
-              list          List live agent participants: one row per harness session, including unbound sessions.
-              session       Manage this workspace's live harness session presence.
-              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
+              init      Initialize an agent workspace in the current directory.
+              tasks     Create and manage tasks for coding agents.
+              mail      Send and receive mail between coding agents.
+              memory    Save and recall durable agent memory.
+              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami    Print the resolved actor identity and whether it is registered in this workspace.
+              list      List live agent participants: one row per harness session, including unbound sessions.
+              session   Manage this workspace's live harness session presence.
+              hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
 
@@ -138,16 +135,15 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               -?, -h, --help  Show help and usage information
 
             Commands:
-              init          Initialize an agent workspace in the current directory.
-              doctor        Check the agent workspace's schema and session presence for problems.
-              tasks         Create and manage tasks for coding agents.
-              mail          Send and receive mail between coding agents.
-              memory        Save and recall durable agent memory.
-              register      Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
-              whoami        Print the resolved actor identity and whether it is registered in this workspace.
-              list          List live agent participants: one row per harness session, including unbound sessions.
-              session       Manage this workspace's live harness session presence.
-              hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
+              init      Initialize an agent workspace in the current directory.
+              tasks     Create and manage tasks for coding agents.
+              mail      Send and receive mail between coding agents.
+              memory    Save and recall durable agent memory.
+              register  Register the resolved actor as an agent, with an optional role. --actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.
+              whoami    Print the resolved actor identity and whether it is registered in this workspace.
+              list      List live agent participants: one row per harness session, including unbound sessions.
+              session   Manage this workspace's live harness session presence.
+              hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
 

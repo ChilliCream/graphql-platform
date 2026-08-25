@@ -1,6 +1,6 @@
 // nitro-mail-extension-version: 3
 //
-// Installed by `nitro agent hooks copilot extension install --scope project`
+// Installed by `nitro agent hooks copilot install --scope project`
 // into <repo>/.github/extensions/nitro-mail/extension.mjs. Loaded by the
 // Copilot CLI's extension host as a project-scope extension: the host forks
 // `extension_bootstrap.mjs` with `EXTENSION_PATH` set to this file's path and
@@ -17,15 +17,13 @@
 // maps that specifier to `extension.js`, which exports `joinSession`; the
 // bare `@github/copilot-sdk` specifier maps to `index.js`, which does not),
 // and the hook/type shapes below (`types.d.ts` `SessionHooks`:1202,
-// `onAgentStop`:1250, `MessageOptions`:2405). The pure state machine is tested
-// independently of the SDK (see
-// `test/fixtures/copilot-extension/state-machine.m10.test.mjs`) is the pure
-// state machine below, independent of the SDK: idle/busy/draining/restart
-// transitions, the durable cursor, and the injection-loop guard.
+// `onAgentStop`:1250, `MessageOptions`:2405). The pure state machine below,
+// including idle/busy/draining/restart transitions, the durable cursor, and
+// the injection-loop guard, is tested independently of the SDK; see
+// `test/fixtures/copilot-extension/state-machine.m10.test.mjs`.
 //
-// This extension has no gate or blocking behavior. It
-// extension only ever calls `session.send`, it never returns a blocking
-// hook decision.
+// This extension has no gate or blocking behavior: it only calls
+// `session.send`; it never returns a blocking hook decision.
 
 import { spawn } from 'node:child_process';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
@@ -203,7 +201,7 @@ export function afterFlushFailed(state) {
 
 // ---------------------------------------------------------------------------
 // Injection-safe digest envelope. Deliberately duplicated, not shared, from
-// `ClaudeHookDigestFormatter`/`CopilotHookHandler`'s C# formatter: this file
+// `ClaudeHookDigestFormatter`'s C# formatter: this file
 // ships standalone JS with no access to the .NET assembly. Both must be kept
 // in the same shape (unread count, id + from only, 2KB byte ceiling,
 // newest-first, "and N more" trailer) by hand.

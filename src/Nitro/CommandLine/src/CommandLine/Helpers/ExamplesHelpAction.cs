@@ -49,7 +49,7 @@ internal sealed class ExamplesHelpAction : SynchronousCommandLineAction
 
         if (CommandExamples.TryGetExamples(command, out var examples) && examples is not null)
         {
-            var console = CommandExecutionContext.s_services.Value
+            var console = CommandExecutionContext.TryGetServices()
                 ?.GetRequiredService<INitroConsole>();
 
             if (console is not null)

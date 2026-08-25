@@ -151,8 +151,7 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Points Claude Code <c>settings.json</c> resolution at fixed paths
-    /// instead of the real machine's home directory, so tests that exercise
-    /// <c>agent doctor</c>'s unconditional user-scope Claude hooks check
+    /// instead of the real machine's home directory, so hook command tests
     /// never read whatever happens to be installed on the machine running
     /// the test.
     /// </summary>
@@ -163,9 +162,8 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Points Codex CLI config resolution at fixed paths instead of the
-    /// real machine's <c>CODEX_HOME</c>, so tests that exercise <code>agent
-    /// doctor</code>'s unconditional Codex hooks check never read whatever
-    /// happens to be installed on the machine running the test.
+    /// real machine's <c>CODEX_HOME</c>, so hook command tests never read
+    /// whatever happens to be installed on the machine running the test.
     /// </summary>
     private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
     {
