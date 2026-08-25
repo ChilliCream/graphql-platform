@@ -36,12 +36,6 @@ internal sealed class InstallCopilotExtensionCommand : Command
         var installer = services.GetRequiredService<ICopilotExtensionInstallerService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        // Parsed but not branched on: the option's AcceptOnlyFromAmong
-        // already rejects every value except "project" at parse time, so
-        // there is nothing else to resolve here. It stays a required,
-        // explicit flag on the command line rather than being dropped
-        // entirely, so a caller must always state the scope they mean.
-        _ = parseResult.GetRequiredValue(Opt<CopilotExtensionScopeOption>.Instance);
         var force = parseResult.GetValue(Opt<ForceCopilotExtensionOption>.Instance);
 
         var report = await installer.InstallAsync(force, cancellationToken);
