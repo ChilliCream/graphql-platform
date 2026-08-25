@@ -1769,9 +1769,7 @@ public class DeferTests : FusionTestBase
     public async Task Defer_ListAnchor_Should_PlanKeyedLookup_When_UsersFieldHasSiblingLookup()
     {
         // arrange
-        // users and userById live on the same subgraph. The deferred fields must be
-        // fetched per item through userById, keyed off the id the parent's own users
-        // request already carries, never through a second request re-fetching users.
+        // users and userById share a subgraph; deferred fields fetch per item by id.
         using var server1 = CreateSourceSchema(
             "A",
             """
@@ -1809,8 +1807,7 @@ public class DeferTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        // One users request carrying id, one userById request per item, no second users
-        // request; the initial payload items are just { "__typename": "User" }.
+        // One users request carrying id, one userById request per item, no second users request.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
@@ -1818,9 +1815,7 @@ public class DeferTests : FusionTestBase
     public async Task Defer_MixedSubgraphFields_Should_KeepBothFields_When_SameAndForeignSubgraphSplit()
     {
         // arrange
-        // birthdate is same-subgraph with the parent's own key on accounts; reviewCount
-        // is only reachable on reviews through the entity's key. Both must arrive in the
-        // incremental payload; birthdate must never come back null.
+        // birthdate is same-subgraph on accounts; reviewCount requires reviews via the entity key.
         using var server1 = CreateSourceSchema(
             "accounts",
             """
@@ -1877,8 +1872,7 @@ public class DeferTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        // The incremental payload must carry both birthdate and reviewCount; birthdate
-        // must be non-null, not silently dropped as it was before this fix.
+        // The incremental payload carries both birthdate and reviewCount, with birthdate non-null.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 }
