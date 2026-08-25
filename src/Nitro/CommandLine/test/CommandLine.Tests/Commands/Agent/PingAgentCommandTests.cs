@@ -1,4 +1,7 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
@@ -6,7 +9,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Runs <c>nitro agent ping</c> against a real workspace database. The
 /// codex-thread transport call goes through a fake <c>ICodexQueueClient</c>
 /// substituted via <c>SetupCodexQueueClient</c>, so no scenario here ever
-/// shells out to a real <c>codex</c> binary.
+/// shells out to a real <c>codex</c> binary. The cooldown/capacity/mutual
+/// exclusion coverage here exercises <c>ISessionGateCoordinator</c> only
+/// through this command's own observable outcomes (its unit-level
+/// correctness is <c>SessionGateCoordinatorTests</c>'s job); "daemon-shaped
+/// ownership" is simulated by inserting a <c>session_ping_gates</c> row
+/// directly, standing in for a concurrent foreground-mail dispatch or a
+/// future out-of-process daemon without needing a second live process.
 /// </summary>
 public sealed class PingAgentCommandTests : AgentCommandTestBase
 {
@@ -168,5 +177,126 @@ public sealed class PingAgentCommandTests : AgentCommandTestBase
             """
             No agent workspace found. Run `nitro agent init` first.
             """);
+    }
+
+    [Fact]
+    public async Task SuccessfulPing_Should_EnforceCooldown_OnAnImmediateSecondAttempt()
+    {
+        // arrange
+        var peerClient = new FakeClaudePeerClient();
+        SetupClaudePeerClient(peerClient);
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", agentName: "bob", endpointKind: "claude-peer", endpointAddr: "peer-a");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.", "--no-ping");
+
+        // act: two manual pings at the exact same instant - FakeTime never
+        // advances between calls unless a test advances it itself.
+        var first = await ExecuteCommandAsync("agent", "ping", "bob");
+        var second = await ExecuteCommandAsync("agent", "ping", "bob");
+
+        // assert: the first attempt reaches the transport and its success
+        // starts the session gate's cooldown; the second finds the gate
+        // busy and never reaches the transport at all.
+        first.AssertSuccess("claude-code  session-1  claude-peer  ok");
+        second.AssertSuccess("claude-code  session-1  claude-peer  skipped-cooldown");
+        Assert.Single(peerClient.Calls);
+    }
+
+    [Fact]
+    public async Task FailedPing_Should_BeImmediatelyReclaimable_OnAnImmediateSecondAttempt()
+    {
+        // arrange
+        var peerClient = new FakeClaudePeerClient { NextOutcome = ClaudePeerSendOutcome.AccessDenied };
+        SetupClaudePeerClient(peerClient);
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", agentName: "bob", endpointKind: "claude-peer", endpointAddr: "peer-a");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.", "--no-ping");
+
+        // act: two manual pings at the exact same instant.
+        var first = await ExecuteCommandAsync("agent", "ping", "bob");
+        var second = await ExecuteCommandAsync("agent", "ping", "bob");
+
+        // assert: an access-denied (manual failure) attempt never starts a
+        // cooldown, so the very next attempt reaches the transport again
+        // instead of finding the gate busy.
+        first.AssertSuccess("claude-code  session-1  claude-peer  error");
+        second.AssertSuccess("claude-code  session-1  claude-peer  error");
+        Assert.Equal(2, peerClient.Calls.Count);
+    }
+
+    [Fact]
+    public async Task ManualPing_Should_SkipTheSession_When_ADaemonShapedOwnerAlreadyHoldsTheGate()
+    {
+        // arrange: a live claude-peer session, and a concurrent owner
+        // (standing in for a foreground-mail dispatch or a future
+        // out-of-process daemon) already holding this exact session
+        // generation's ping gate.
+        var peerClient = new FakeClaudePeerClient();
+        SetupClaudePeerClient(peerClient);
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", agentName: "bob", endpointKind: "claude-peer", endpointAddr: "peer-a");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.", "--no-ping");
+        await InsertSessionPingGateRowAsync(FixedHost, "session-1", "daemon-attempt-1", FakeTime.GetUtcNow());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "ping", "bob");
+
+        // assert: skipped, no transport call at all, and the concurrent
+        // owner's reservation is untouched - exactly one owner can ever
+        // hold this session's gate at a time, and it was not this attempt.
+        result.AssertSuccess("claude-code  session-1  claude-peer  skipped-cooldown");
+        Assert.Empty(peerClient.Calls);
+
+        var gateAttemptId = await QueryScalarAsync(
+            "SELECT attempt_id FROM session_ping_gates WHERE session_id = 'session-1'");
+        Assert.Equal("daemon-attempt-1", gateAttemptId);
+
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Null(pingResult);
+    }
+
+    /// <summary>
+    /// Inserts a <c>session_ping_gates</c> row for the current test
+    /// process's own pid and start time (matching <see cref="AgentCommandTestBase.InsertAliveSessionRowAsync"/>'s
+    /// generation), simulating a concurrent attempt already holding the
+    /// exact session generation's gate.
+    /// </summary>
+    private async Task InsertSessionPingGateRowAsync(
+        string host, string sessionId, string attemptId, DateTimeOffset now)
+    {
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        var pid = process.Id;
+        var procStart = ProcStat.ReadStartTicks(pid)!;
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO session_ping_gates (
+                harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at
+            ) VALUES (
+                'claude-code', $sessionId, $host, $pid, $procStart, $attemptId, $now, $expiresAt
+            );
+            """;
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$host", host);
+        command.Parameters.AddWithValue("$pid", pid);
+        command.Parameters.AddWithValue("$procStart", procStart);
+        command.Parameters.AddWithValue("$attemptId", attemptId);
+        command.Parameters.AddWithValue("$now", now);
+        command.Parameters.AddWithValue("$expiresAt", now + TimeSpan.FromSeconds(30));
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 }
