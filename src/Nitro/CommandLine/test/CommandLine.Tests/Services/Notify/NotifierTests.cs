@@ -25,7 +25,7 @@ public sealed class NotifierTests
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var dispatcher = new FakeActorWakeDispatcher();
-        var notifier = new Notifier(dispatcher);
+        var notifier = new Notifier(dispatcher, TimeProvider.System);
 
         // act
         await notifier.NotifyAsync(["agent-a", "agent-b", "agent-a"], cancellationToken);
@@ -40,7 +40,7 @@ public sealed class NotifierTests
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var dispatcher = new FakeActorWakeDispatcher { ThrowingActor = "agent-a" };
-        var notifier = new Notifier(dispatcher);
+        var notifier = new Notifier(dispatcher, TimeProvider.System);
 
         // act & assert: never throws, and still reaches "agent-b".
         await notifier.NotifyAsync(["agent-a", "agent-b"], cancellationToken);
@@ -52,10 +52,29 @@ public sealed class NotifierTests
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var notifier = new Notifier(new FakeActorWakeDispatcher());
+        var notifier = new Notifier(new FakeActorWakeDispatcher(), TimeProvider.System);
 
         // act & assert
         await notifier.NotifyAsync([], cancellationToken);
+    }
+
+    [Fact]
+    public async Task NotifyAsync_Should_ShareOneDeadline_Across_EveryRecipient()
+    {
+        // arrange: three recipients, one shared 21s budget fixed once at the
+        // start of the call, not a fresh one per recipient.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+        var dispatcher = new FakeActorWakeDispatcher();
+        var notifier = new Notifier(dispatcher, timeProvider);
+        var expectedDeadline = timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;
+
+        // act
+        await notifier.NotifyAsync(["agent-a", "agent-b", "agent-c"], cancellationToken);
+
+        // assert
+        Assert.Equal(3, dispatcher.ReceivedDeadlines.Count);
+        Assert.All(dispatcher.ReceivedDeadlines, deadline => Assert.Equal(expectedDeadline, deadline));
     }
 
     [Fact]
@@ -106,7 +125,7 @@ public sealed class NotifierTests
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(tempRoot.FullName),
                 timeProvider);
-            var notifier = new Notifier(dispatcher);
+            var notifier = new Notifier(dispatcher, timeProvider);
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
@@ -152,11 +171,15 @@ internal sealed class FakeActorWakeDispatcher : IActorWakeDispatcher
 {
     public List<string> DispatchedActors { get; } = [];
 
+    public List<DateTimeOffset> ReceivedDeadlines { get; } = [];
+
     public string? ThrowingActor { get; set; }
 
-    public Task<ActorWakeReceipt?> DispatchAsync(string actor, CancellationToken cancellationToken)
+    public Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         DispatchedActors.Add(actor);
+        ReceivedDeadlines.Add(deadline);
 
         if (actor == ThrowingActor)
         {

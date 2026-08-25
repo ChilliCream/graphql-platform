@@ -17,7 +17,11 @@ internal interface IActorWakeDispatcher
     /// already holds a live active batch for this actor. Never throws
     /// except <see cref="OperationCanceledException"/> for
     /// <paramref name="cancellationToken"/> itself; every per-target failure
-    /// is recorded, not thrown.
+    /// is recorded, not thrown. <paramref name="deadline"/> is the absolute
+    /// post-commit budget every target this call dispatches shares; the
+    /// caller fixes it once and reuses it across every recipient of one
+    /// notification, so a broadcast to many recipients is never bounded by
+    /// a multiple of it.
     /// </summary>
-    Task<ActorWakeReceipt?> DispatchAsync(string actor, CancellationToken cancellationToken);
+    Task<ActorWakeReceipt?> DispatchAsync(string actor, DateTimeOffset deadline, CancellationToken cancellationToken);
 }

@@ -447,6 +447,81 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         Assert.False(recorded);
     }
 
+    [Fact]
+    public async Task TryClaimAsync_Should_YieldAnIndependentClaim_When_ADifferentNitroInstanceClaimsTheSameActor()
+    {
+        // arrange: mail_wake_outbox is keyed by (nitro_instance_id, actor),
+        // so two different instances can each hold their own outstanding
+        // generation for the same actor name at the same time.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        const string otherInstanceId = "instance-b";
+        await using (var connection = await InitializeWorkspaceAsync(cancellationToken))
+        {
+            await SeedActorAsync(connection, cancellationToken);
+            await SeedOutboxAsync(connection, requestedGeneration: 1, settledGeneration: 0, dueAt: now, cancellationToken);
+            await SeedOutboxAsync(
+                connection, requestedGeneration: 1, settledGeneration: 0, dueAt: now, cancellationToken,
+                instanceId: otherInstanceId);
+        }
+        var claimA = await _batches.TryClaimAsync(
+            InstanceId, Actor, "owner-a", "attempt-a", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+
+        // act
+        var claimB = await _batches.TryClaimAsync(
+            otherInstanceId, Actor, "owner-b", "attempt-b", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+
+        // assert: two independent batches, and instance-b's owner cannot
+        // renew or complete instance-a's batch.
+        Assert.NotNull(claimA);
+        Assert.NotNull(claimB);
+        Assert.NotEqual(claimA.BatchId, claimB.BatchId);
+
+        var crossRenewed = await _batches.TryRenewAsync(
+            claimA.BatchId, "owner-b", "attempt-b", now, TimeSpan.FromSeconds(30), cancellationToken);
+        Assert.False(crossRenewed);
+
+        var crossCompleted = await _batches.TryCompleteAsync(
+            claimA.BatchId, "owner-b", "attempt-b", now, cancellationToken);
+        Assert.False(crossCompleted);
+
+        // instance-a's own owner still completes its own batch normally.
+        var completedA = await _batches.TryCompleteAsync(claimA.BatchId, "owner-a", "attempt-a", now, cancellationToken);
+        Assert.True(completedA);
+    }
+
+    [Fact]
+    public async Task TryRecordTargetOutcomeAsync_Should_LeaveTheRowFailed_When_ATerminalFailureRacesAPriorAcceptance()
+    {
+        // arrange: an earlier call already recorded this target Delivered
+        // with an accepted generation (a successful transport observed and
+        // accepted), then a later call for the same owner/attempt records a
+        // terminal Failed for the same target - terminal status must take
+        // precedence over the historical acceptance, never be silently
+        // superseded by it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(30), cancellationToken, requestedGeneration: 5);
+
+        var deliveredRecorded = await _batches.TryRecordTargetOutcomeAsync(
+            claim.BatchId, Target, "owner-1", "attempt-1", "delivered",
+            offeredGeneration: null, acceptedGeneration: 5, lastError: null, now, cancellationToken);
+
+        // act
+        var failedRecorded = await _batches.TryRecordTargetOutcomeAsync(
+            claim.BatchId, Target, "owner-1", "attempt-1", "failed",
+            offeredGeneration: null, acceptedGeneration: null, lastError: "endpoint-gone",
+            now + TimeSpan.FromSeconds(1), cancellationToken);
+
+        // assert
+        Assert.True(deliveredRecorded);
+        Assert.True(failedRecorded);
+        await using var connection = await ConnectAsync(cancellationToken);
+        var status = await ExecuteScalarStringAsync(
+            connection, $"SELECT status FROM mail_wake_targets WHERE batch_id = '{claim.BatchId}'", cancellationToken);
+        Assert.Equal("failed", status);
+    }
+
     private async Task<MailWakeBatchClaim> SeedClaimedBatchAsync(
         DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken, long requestedGeneration = 1)
     {
@@ -480,7 +555,8 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         long requestedGeneration,
         long settledGeneration,
         DateTimeOffset dueAt,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string instanceId = InstanceId)
     {
         // dueAt is bound as a parameter, not a string-interpolated literal:
         // TryReleaseAsync compares it in SQL against another
@@ -492,7 +568,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
             VALUES (@instanceId, @actor, @requestedGeneration, @settledGeneration, @dueAt, @dueAt);
             """;
-        command.Parameters.AddWithValue("@instanceId", InstanceId);
+        command.Parameters.AddWithValue("@instanceId", instanceId);
         command.Parameters.AddWithValue("@actor", Actor);
         command.Parameters.AddWithValue("@requestedGeneration", requestedGeneration);
         command.Parameters.AddWithValue("@settledGeneration", settledGeneration);

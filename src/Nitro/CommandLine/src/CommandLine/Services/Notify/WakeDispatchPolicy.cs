@@ -14,8 +14,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal static class WakeDispatchPolicy
 {
     /// <summary>
-    /// The absolute budget, fixed once at claim time, that every target in
-    /// one claimed batch is dispatched under.
+    /// The absolute budget one <see cref="INotifier.NotifyAsync"/> call
+    /// fixes once and shares across every recipient actor and every target
+    /// within each of their batches, so a broadcast to many recipients is
+    /// never bounded by a multiple of this value.
     /// </summary>
     public static readonly TimeSpan BatchDeadline = TimeSpan.FromSeconds(21);
 

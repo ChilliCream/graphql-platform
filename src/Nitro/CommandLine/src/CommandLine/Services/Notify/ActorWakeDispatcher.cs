@@ -45,7 +45,8 @@ internal sealed class ActorWakeDispatcher(
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     TimeProvider timeProvider) : IActorWakeDispatcher
 {
-    public async Task<ActorWakeReceipt?> DispatchAsync(string actor, CancellationToken cancellationToken)
+    public async Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         var normalizedActor = MailAgentName.Normalize(actor);
         var nitroInstanceId = await instanceIdProvider.GetIdAsync(
@@ -84,7 +85,8 @@ internal sealed class ActorWakeDispatcher(
                 normalizedActor, claim, ownerId, batchAttemptId, cancellationToken);
         }
 
-        return await DispatchTargetsAsync(normalizedActor, claim, ownerId, batchAttemptId, now, cancellationToken);
+        return await DispatchTargetsAsync(
+            normalizedActor, claim, ownerId, batchAttemptId, deadline, cancellationToken);
     }
 
     private async Task<IReadOnlyList<AgentSessionGeneration>> ResolveCandidatesAsync(
@@ -132,11 +134,9 @@ internal sealed class ActorWakeDispatcher(
         MailWakeBatchClaim claim,
         string ownerId,
         string batchAttemptId,
-        DateTimeOffset claimedAt,
+        DateTimeOffset batchDeadline,
         CancellationToken cancellationToken)
     {
-        var batchDeadline = claimedAt + WakeDispatchPolicy.BatchDeadline;
-
         using var renewalDoneSource = new CancellationTokenSource();
         using var renewalLossSource = new CancellationTokenSource();
         using var dispatchSource = CancellationTokenSource.CreateLinkedTokenSource(
@@ -153,17 +153,29 @@ internal sealed class ActorWakeDispatcher(
                 concurrencyGate, dispatchSource.Token, cancellationToken))
             .ToList();
 
-        var receipts = await Task.WhenAll(targetTasks);
-
-        await renewalDoneSource.CancelAsync();
+        ActorWakeTargetReceipt[] receipts;
 
         try
         {
-            await renewalTask;
+            receipts = await Task.WhenAll(targetTasks);
         }
-        catch (OperationCanceledException)
+        finally
         {
-            // Expected once renewalDoneSource signals dispatch is over.
+            // Always drained before the `using` CTSs above dispose, even
+            // when Task.WhenAll itself throws (the caller's own token was
+            // cancelled): RenewLoopAsync must never observe a disposed
+            // CancellationTokenSource through lossSource or stopToken.
+            await renewalDoneSource.CancelAsync();
+
+            try
+            {
+                await renewalTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected once renewalDoneSource signals dispatch is over,
+                // or the caller's own token was cancelled.
+            }
         }
 
         if (!renewalLossSource.IsCancellationRequested)
@@ -229,6 +241,15 @@ internal sealed class ActorWakeDispatcher(
         {
             // Dispatch finished normally (stopToken), or the caller's own
             // token was cancelled: either way, nothing more to renew.
+        }
+        catch (Exception)
+        {
+            // A renewal whose result is unknown (the store call itself
+            // threw, not merely reported false) is treated the same as a
+            // lost renewal: in-flight targets are left Pending and the
+            // batch row is left for lease-expiry reclaim, so no non-OCE
+            // exception ever escapes RenewLoopAsync past this point.
+            await lossSource.CancelAsync();
         }
     }
 
