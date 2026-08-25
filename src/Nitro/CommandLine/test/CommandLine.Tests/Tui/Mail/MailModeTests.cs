@@ -1223,22 +1223,36 @@ public sealed class MailModeTests
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
-        // act
+        // act: the intermediate "Stored" notice now signals its own wake, so
+        // the channel can deliver an EffectCompletedEvent for it strictly
+        // ahead of the terminal completion's own event; poll channel events
+        // into Handle until a non-Info (terminal) toast surfaces, rather
+        // than assuming the first event read is already the terminal one.
         using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         readCts.CancelAfter(TimeSpan.FromSeconds(5));
-        var effectEvent = await channel.Reader.ReadAsync(readCts.Token);
-        var followUp = mode.Handle(new TuiMessage.EffectCompleted());
+        TuiMessage.ShowToast? toast = null;
+
+        while (toast is null)
+        {
+            var effectEvent = await channel.Reader.ReadAsync(readCts.Token);
+            Assert.IsType<TuiEvent.EffectCompletedEvent>(effectEvent);
+            var followUp = mode.Handle(new TuiMessage.EffectCompleted());
+
+            foreach (var message in followUp)
+            {
+                var shown = Assert.IsType<TuiMessage.ShowToast>(message);
+
+                if (shown.Style != ToastStyle.Info)
+                {
+                    toast = shown;
+                }
+            }
+        }
+
         await eventSourceCts.CancelAsync();
         await eventSourceTask;
 
-        // assert: the intermediate "Stored" notice (posted before the wake
-        // dispatch-and-observe step even starts) is already queued by the
-        // time the terminal completion is, since both are enqueued in
-        // program order on the same background task - but DrainEffectQueue
-        // drops a stored notice superseded by a terminal completion in the
-        // same drain, so only the terminal toast surfaces here.
-        Assert.IsType<TuiEvent.EffectCompletedEvent>(effectEvent);
-        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        // assert
         Assert.Contains("Notification pending", toast.Text, StringComparison.Ordinal);
     }
 

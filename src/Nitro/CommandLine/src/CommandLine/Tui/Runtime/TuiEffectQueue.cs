@@ -135,9 +135,18 @@ internal sealed class TuiEffectQueue<TResult>
     }
 
     /// <summary>
-    /// Relays one wake event per completed effect onto <paramref name="writer"/>.
-    /// Matches <see cref="TuiEventSource"/>, so it merges into
-    /// <see cref="TuiApplication.RunAsync"/> the same way a data watcher does.
+    /// Releases one pending wake signal without enqueuing a completion, so
+    /// <see cref="RunAsync"/> relays a <see cref="TuiEvent.EffectCompletedEvent"/>
+    /// for a state change an in-flight effect wants observed before it
+    /// reaches its own terminal completion.
+    /// </summary>
+    public void SignalWake() => _wakeSignal.Release();
+
+    /// <summary>
+    /// Relays one wake event per completed effect, and per <see cref="SignalWake"/>
+    /// call, onto <paramref name="writer"/>. Matches <see cref="TuiEventSource"/>,
+    /// so it merges into <see cref="TuiApplication.RunAsync"/> the same way a
+    /// data watcher does.
     /// </summary>
     public async Task RunAsync(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken)
     {

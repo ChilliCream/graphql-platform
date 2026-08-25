@@ -473,7 +473,15 @@ public sealed class TuiShellTabsTests
         // asynchronously on the inactive mail tab, so poll DataChangedEvent
         // until the outcome toast renders instead of waiting on the wake
         // observer's call count, which increments before the effect queue
-        // has anything to drain.
+        // has anything to drain. An intermediate "Stored" toast can win the
+        // Toaster's single slot ahead of the terminal one, and Toaster.Tick
+        // only advances past it on a TickEvent, so every poll first drives a
+        // TickEvent far enough in the future to expire whatever toast a
+        // prior poll left showing, ahead of that same poll's DataChangedEvent
+        // drain; otherwise a drain landing in the commit-to-completion window
+        // could leave "Stored" showing forever and stall this loop, and
+        // ticking after the drain instead would just as wrongly expire the
+        // terminal toast this loop is waiting to observe.
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
         var dirty = false;
@@ -481,6 +489,7 @@ public sealed class TuiShellTabsTests
 
         while (!rendered.Contains("Notification pending", StringComparison.Ordinal))
         {
+            shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow + Toaster.Duration));
             dirty = shell.Handle(new TuiEvent.DataChangedEvent());
             rendered = RenderToText(shell);
 

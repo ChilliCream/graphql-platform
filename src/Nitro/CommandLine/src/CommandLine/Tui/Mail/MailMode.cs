@@ -184,10 +184,14 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// One <see cref="MailSendOutcome.Stored"/> notice per submitted send,
     /// posted by <see cref="RunSendEffectAsync"/>/<see cref="RunReplyEffectAsync"/>
     /// right after the store commit and before <see cref="ReconcileWakeAsync"/>
-    /// begins. <see cref="_sendEffects"/> only reports an effect's terminal
-    /// completion, so this side channel is what lets <see cref="DrainEffectQueue"/>
-    /// surface a truthful "Stored" toast ahead of the terminal outcome, which
-    /// can take up to <see cref="WakeDispatchPolicy.BatchDeadline"/> longer to
+    /// begins, alongside a <see cref="TuiEffectQueue{TResult}.SignalWake"/>
+    /// call on <see cref="_sendEffects"/> so this side channel's own wake
+    /// reaches the event loop through the same path a terminal completion
+    /// does, rather than depending on some unrelated event (a key press, a
+    /// tick, or a database watcher notification) to surface it. This side
+    /// channel is what lets <see cref="DrainEffectQueue"/> surface a
+    /// truthful "Stored" toast ahead of the terminal outcome, which can take
+    /// up to <see cref="WakeDispatchPolicy.BatchDeadline"/> longer to
     /// resolve.
     /// </summary>
     private readonly ConcurrentQueue<MailSendOutcome.Stored> _storedNotices = new();
@@ -832,6 +836,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         }
 
         _storedNotices.Enqueue(new MailSendOutcome.Stored(message));
+        _sendEffects.SignalWake();
         return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
     }
 
@@ -855,6 +860,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         }
 
         _storedNotices.Enqueue(new MailSendOutcome.Stored(message));
+        _sendEffects.SignalWake();
         return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
     }
 
