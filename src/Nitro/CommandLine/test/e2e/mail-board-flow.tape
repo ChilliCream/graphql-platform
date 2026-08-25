@@ -3,7 +3,7 @@
 # from fixtures/mail-seed.sql, both in the one out/fixture/acme agents.db),
 # mirroring board-flow.tape's structure for the task board.
 #
-# Launched via bare `nitro agent` (not `agent mail board`), landing on the
+# Launched via bare `nitro agent`, landing on the
 # Tasks tab first, then TabSwitchKeys (']') moves to Mail -- the same
 # round trip board-flow.tape demonstrates in the other direction, and the
 # tab strip is on screen throughout.

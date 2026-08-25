@@ -1,8 +1,7 @@
 # End-to-end recording of bare `nitro agent`, keystroke-driven, against the
 # fixture workspace: the tape that proves the unified tabbed TUI mount at the
-# bare group command end to end (bd-agent-unify-814.4), not just via the
-# `agent tasks board`/`agent mail board` single-tab entry points the other
-# TUI flows drive.
+# bare group command end to end (bd-agent-unify-814.4). This is the only
+# interactive TUI entry point.
 #
 # Bare `nitro agent` against an existing agent workspace launches the
 # tabbed shell on the Tasks tab (AgentCommand.ExecuteAsync ->

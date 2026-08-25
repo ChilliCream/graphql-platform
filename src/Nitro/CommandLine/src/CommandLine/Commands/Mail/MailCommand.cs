@@ -6,7 +6,6 @@ internal sealed class MailCommand : Command
     {
         Description = "Send and receive mail between coding agents.";
 
-        Subcommands.Add(new BoardMailCommand());
         Subcommands.Add(new SendMailCommand());
         Subcommands.Add(new ReplyMailCommand());
         Subcommands.Add(new BroadcastMailCommand());

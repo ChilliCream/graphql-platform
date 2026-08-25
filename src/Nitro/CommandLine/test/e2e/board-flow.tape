@@ -20,7 +20,7 @@
 # "Blocked"; acme-a1b is blocked by acme-epic1.2. That leaves the "Ready"
 # column empty for this fixture.
 #
-# Launched via bare `nitro agent` (not `agent tasks board`) so the tab strip
+# Launched via bare `nitro agent` so the tab strip
 # is on screen throughout, and closes by demonstrating the epic's visible
 # feature: TabSwitchKeys ('[' / ']') moves to the Mail tab and back, landing
 # on the same "In Progress" selection the board-only recording used to end

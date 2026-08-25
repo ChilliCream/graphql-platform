@@ -35,7 +35,7 @@ internal static class AgentTuiLauncher
 
     /// <summary>
     /// How often the unified dashboard's live board presence row is touched
-    /// while it stays open, mirroring the standalone board's own interval.
+    /// while it stays open.
     /// </summary>
     private static readonly TimeSpan BoardSessionTouchInterval = TimeSpan.FromSeconds(30);
 
@@ -207,9 +207,8 @@ internal static class AgentTuiLauncher
             // on most of these paths).
             await mailWakeDaemonCoordinator.StopAsync(CancellationToken.None);
 
-            // Unconditional, mirroring BoardMailCommand: covers the
-            // Ctrl+C/host-cancellation path the interactive quit gate above
-            // never runs for.
+            // Unconditional: covers the Ctrl+C/host-cancellation path the
+            // interactive quit gate above never runs for.
             if (mailMode is not null)
             {
                 await mailMode.ShieldPendingSendsAsync(SendShieldBound, CancellationToken.None);

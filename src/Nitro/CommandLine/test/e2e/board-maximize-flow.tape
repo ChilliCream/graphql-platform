@@ -12,7 +12,7 @@
 # full-screen layout: changing it requires `--update` of every board-flow*
 # golden.
 #
-# Launched via bare `nitro agent` (not `agent tasks board`), same as
+# Launched via bare `nitro agent`, same as
 # board-flow.tape, so the tab strip is on screen throughout; this flow's own
 # job is the maximize toggle, so it does not also drive a tab switch.
 # Produces board-maximize-flow.gif + board-maximize-flow.txt.

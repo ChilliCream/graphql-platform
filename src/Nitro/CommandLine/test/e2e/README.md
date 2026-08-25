@@ -28,7 +28,7 @@ layer: a handful of representative flows, not exhaustive.
 | `list` / `show` / `create` / `close-reopen` / `dep-tree` / `error` | `nitro agent tasks <cmd>` over the fixture | the non-interactive task commands |
 | `board` | the Tasks tab (bare `nitro agent`) | column/row navigation, and a tab switch to Mail and back |
 | `board-maximize` | the Tasks tab's maximize toggle (`z`) | the single-column maximized layout |
-| `search` | search mode (`/`) via `agent tasks board`, no tab strip (see below) | live query filtering and opening a result's detail pane |
+| `search` | search mode (`/`) in the Tasks tab (bare `nitro agent`) | live query filtering and opening a result's detail pane |
 | `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
 | `mail-send` | `nitro agent init` then `agent register/mail send/inbox/reply/read --thread` | the mail send/inbox/reply/read round trip in a live workspace, one actor registered with a role |
 | `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
@@ -47,17 +47,10 @@ tabbed TUI on the Tasks tab and, driven with no other arguments, is the tape
 that proves that mount end to end.
 
 The task board/detail flows (`board`, `board-maximize`, `detail`) and the
-mail board flow (`mail-board`) all launch via bare `nitro agent` rather than
-`agent tasks board`/`agent mail board`, so the tab strip renders throughout;
+mail board flow (`mail-board`) all launch via bare `nitro agent`, so the tab
+strip renders throughout;
 `board` and `mail-board` each demonstrate switching tabs with `[`/`]` in one
 direction, together covering the round trip.
-
-`search` is the one exception: launched via `agent tasks board` (no tab
-strip), not bare `nitro agent`. Typing a query into the search box while the
-Mail tab is also hosted never applies -- a Mail-tab refresh loop races out
-and always wins against `SearchMode`'s own debounced query reset -- tracked
-as bd-agent-unify-814.7. Revert this one flow to bare `nitro agent` once
-that lands.
 
 The `mail-*` flows are a handful of representative mail flows, not
 exhaustive per-command coverage (that is the unit tier's job): `mail-send`

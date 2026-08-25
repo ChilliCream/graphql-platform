@@ -11,9 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// and observe it through <see cref="IMailWakeReceiptObserver"/>. Running a
 /// second, competing dispatch attempt from the same process would only add
 /// claim contention for no benefit, since the daemon's own admission loop
-/// already claims and dispatches every actor with outstanding wake work; see
-/// <see cref="MailMode"/>'s remarks on why the standalone board (which never
-/// starts a daemon) is wired with the real dispatcher instead.
+/// already claims and dispatches every actor with outstanding wake work.
 /// </summary>
 internal sealed class DaemonOwnedActorWakeDispatcher : IActorWakeDispatcher
 {

@@ -870,8 +870,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task CreateQuitGate_Should_CountOutcomeUnknown_ForACompletionTheDrainItselfObserves_When_TheWakeStepFaults()
     {
-        // arrange: the standalone board's real dispatcher failing after the
-        // commit reconciles to an unknown outcome (see ReconcileWakeAsync),
+        // arrange: a foreground dispatcher failing after the commit
+        // reconciles to an unknown outcome (see ReconcileWakeAsync),
         // never a failure - the gate must report that as outcome-unknown,
         // not pending.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -931,14 +931,11 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_When_TheStandaloneDispatcherFails()
+    public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_When_TheForegroundDispatcherFails()
     {
-        // arrange: the standalone board's real dispatcher (never a daemon)
-        // throwing after the store write already committed must still be
-        // reported as sent, only with its wake outcome unresolved - this is
-        // the foreground-failure path BoardMailCommandTests cannot drive,
-        // since there is no interactive loop there to submit a compose
-        // through.
+        // arrange: the foreground dispatcher throwing after the store write
+        // already committed must still be reported as sent, only with its
+        // wake outcome unresolved.
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         var mode = CreateMode(store, wakeDispatcher: new ThrowingActorWakeDispatcher());
@@ -1203,9 +1200,9 @@ public sealed class MailModeTests
     [Fact]
     public async Task RunSendEffectEventsAsync_Should_EmitAnEffectCompletedEvent_ThatHandleDrainsIntoTheOutcomeToast()
     {
-        // arrange: proves the wiring registered at BoardMailCommand.cs and
-        // AgentTuiLauncher.cs (mailMode.RunSendEffectEventsAsync feeding the
-        // hosting shell's own event channel) delivers a send completion
+        // arrange: proves the wiring registered at AgentTuiLauncher.cs
+        // (mailMode.RunSendEffectEventsAsync feeding the hosting shell's own
+        // event channel) delivers a send completion
         // without a keypress or db-watcher tick to drive it.
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();

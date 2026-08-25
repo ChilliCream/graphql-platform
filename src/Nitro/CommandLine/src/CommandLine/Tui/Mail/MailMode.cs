@@ -234,13 +234,12 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <param name="actor">The acting agent.</param>
     /// <param name="agentRegistry">Resolves every registered agent's client attribution.</param>
     /// <param name="wakeDispatcher">
-    /// Attempts direct dispatch for a compose or reply's recipients, run as
-    /// part of <see cref="MailWakeDispatch.RunAsync"/> off the input thread.
-    /// The standalone board is expected to pass the real dispatcher (never
-    /// starting a daemon of its own); the unified dashboard, where a
+    /// Dispatches or defers wake work for a compose or reply's recipients,
+    /// run as part of <see cref="MailWakeDispatch.RunAsync"/> off the input
+    /// thread. The unified dashboard passes
+    /// <see cref="DaemonOwnedActorWakeDispatcher"/> because its
     /// <see cref="IMailWakeDaemonCoordinator"/> already owns dispatch for the
-    /// whole session, is expected to pass <see cref="DaemonOwnedActorWakeDispatcher"/>
-    /// instead, so this mode only observes what the running daemon settles.
+    /// whole session, so this mode only observes what the daemon settles.
     /// </param>
     /// <param name="wakeObserver">Reads back a submission's durable wake outcome.</param>
     /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>.</param>
@@ -867,10 +866,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// Runs the actor-wake dispatch-and-observe step for an already-committed
     /// <paramref name="message"/>: <see cref="_wakeDispatcher"/> and
-    /// <see cref="_wakeObserver"/> decide, between the standalone board and
-    /// the unified dashboard, whether this call attempts direct dispatch or
-    /// only observes what a running daemon settles (see the constructor's
-    /// remarks on <c>wakeDispatcher</c>). <paramref name="message"/> is
+    /// <see cref="_wakeObserver"/> either dispatch wake work or observe what
+    /// the running daemon settles (see the constructor's remarks on
+    /// <c>wakeDispatcher</c>). <paramref name="message"/> is
     /// already known and durable by the time this runs, so any failure here,
     /// cancellation included, can never mean the message itself was not
     /// sent - only that its wake outcome could not be reconciled this time,

@@ -1,6 +1,6 @@
 # End-to-end recording of the Tasks tab's search mode against the fixture
-# workspace, launched via bare `nitro agent` (not `agent tasks board`) so
-# the tab strip is on screen throughout, same as
+# workspace, launched via the only interactive entry point, bare
+# `nitro agent`, so the tab strip is on screen throughout, same as
 # board-flow.tape/detail-flow.tape. Proves the bd-agent-unify-814.7 fix:
 # typing a query into the search box while the Mail tab is also hosted now
 # applies (previously a Mail-tab refresh loop raced out and always won

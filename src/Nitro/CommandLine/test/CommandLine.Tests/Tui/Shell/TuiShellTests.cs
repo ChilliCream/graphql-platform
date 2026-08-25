@@ -1263,8 +1263,8 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_OmitActorIdentity_When_ActorIsNull()
     {
-        // arrange: the other TuiShell constructor (used by BoardMailCommand)
-        // can be built without an actor.
+        // arrange: the other TuiShell constructor can be built without an
+        // actor.
         var shell = CreateShell(new FakeTuiMode(), actor: null);
 
         // act

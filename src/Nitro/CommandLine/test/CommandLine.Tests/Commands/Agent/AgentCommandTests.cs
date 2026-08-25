@@ -147,32 +147,20 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
             """);
     }
 
-    [Fact]
-    public async Task Dispatch_Should_StillReachTheTasksBoardLeaf_NotTheGroupAction()
+    [Theory]
+    [InlineData("tasks")]
+    [InlineData("mail")]
+    public async Task StandaloneBoardCommand_Should_NotBeAvailable(string command)
     {
-        // arrange
-        await InitWorkspaceAsync();
-
-        // act: non-interactive, so if the group's own action ran instead of
-        // dispatching to the leaf, this would print the bare-group
-        // guidance instead of the board command's own error.
-        var result = await ExecuteCommandAsync("agent", "tasks", "board");
-
-        // assert
-        result.AssertError("agent tasks board requires an interactive terminal.");
-    }
-
-    [Fact]
-    public async Task Dispatch_Should_StillReachTheMailBoardLeaf_NotTheGroupAction()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "board");
+        var result = await ExecuteCommandAsync("agent", command, "board");
 
         // assert
-        result.AssertError("agent mail board requires an interactive terminal.");
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "Unrecognized command or argument 'board'.",
+            result.StdOut + result.StdErr,
+            StringComparison.Ordinal);
     }
 
     [Fact]

@@ -2,8 +2,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
 /// Registers, heartbeats, and tears down the live presence row for one
-/// running Nitro board process (the standalone mail board or the unified
-/// agent TUI): resolves the workspace once, binds the given durable human
+/// running unified Nitro agent TUI: resolves the workspace once, binds the
+/// given durable human
 /// mail actor as the operator participant on a <see
 /// cref="AgentSessionHarness.NitroBoard"/> session, and reports process
 /// liveness through <see cref="AgentSessionEndpointKind.DbWatch"/> rather

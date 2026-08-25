@@ -1,11 +1,11 @@
 # End-to-end recording of the Tasks tab's task detail view and dependency
 # tree explorer against the fixture workspace, launched via bare
-# `nitro agent` (not `agent tasks board`) so the tab strip is on screen
+# `nitro agent` so the tab strip is on screen
 # throughout, same as board-flow.tape/search-flow.tape.
 #
-# There is no dedicated interactive "detail" entry command (BoardTaskCommand
-# and AgentTuiLauncher are the only TuiShell construction sites, see
-# agent-root-flow.tape's header); the detail view and the tree explorer are both
+# There is no dedicated interactive "detail" entry command
+# (AgentTuiLauncher is the TuiShell construction site, see
+# agent-root-flow.tape's header); the detail view and tree explorer are both
 # reached through search mode, same as search-flow.tape: '/' into search,
 # Tab Tab from the query input to the detail pane. From there this flow
 # exercises what search-flow.tape does not: the detail body's dependency

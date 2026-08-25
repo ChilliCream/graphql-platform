@@ -11,9 +11,8 @@ internal static class AgentSessionHarness
     public const string Copilot = "copilot";
 
     /// <summary>
-    /// A running Nitro board process (the standalone mail board or the
-    /// unified agent TUI), bound to the durable human mail actor as an
-    /// operator participant rather than to a coding-harness hook. See
+    /// A running unified Nitro agent TUI, bound to the durable human mail
+    /// actor as an operator participant rather than to a coding-harness hook. See
     /// <see cref="AgentSessionEndpointKind.DbWatch"/>.
     /// </summary>
     public const string NitroBoard = "nitro-board";

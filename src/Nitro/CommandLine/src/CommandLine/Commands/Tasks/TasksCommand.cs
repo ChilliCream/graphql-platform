@@ -7,7 +7,6 @@ internal sealed class TasksCommand : Command
         Description = "Create and manage tasks for coding agents.";
 
         Subcommands.Add(new BlockedTaskCommand());
-        Subcommands.Add(new BoardTaskCommand());
         Subcommands.Add(new CloseTaskCommand());
         Subcommands.Add(new TaskCommentCommand());
         Subcommands.Add(new TaskConfigCommand());

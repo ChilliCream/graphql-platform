@@ -4,7 +4,7 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Builds the mail board's key table, for the mail command's own
+/// Builds the Mail tab's key table, for its own
 /// <see cref="KeyDispatcher"/> in place of <see cref="KeyMap.CreateDefaultGlobal"/>:
 /// vim-style navigation (j/k/h/l and arrow keys, g/G for edges), Enter to
 /// focus the detail pane, Tab to switch panes, u to toggle read/unread, a
