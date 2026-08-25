@@ -56,6 +56,13 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
         services.TryAddSingleton<IMailWakeReceiptObserver, MailWakeReceiptObserver>();
         services.TryAddSingleton<INotifier, Notifier>();
+        services.TryAddSingleton<IMailWakeDaemonLeaderStore, MailWakeDaemonLeaderStore>();
+        services.TryAddSingleton(MailWakeDaemonPolicy.Default);
+
+        // Inert until a caller (the dashboard launcher) invokes
+        // IMailWakeDaemonCoordinator.StartAsync; registering it here never
+        // starts any background work on its own.
+        services.TryAddSingleton<IMailWakeDaemonCoordinator, MailWakeDaemonCoordinator>();
         services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
