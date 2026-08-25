@@ -1764,4 +1764,121 @@ public class DeferTests : FusionTestBase
         // assert
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
+
+    [Fact]
+    public async Task Defer_ListAnchor_Should_PlanKeyedLookup_When_UsersFieldHasSiblingLookup()
+    {
+        // arrange
+        // users and userById live on the same subgraph. The deferred fields must be
+        // fetched per item through userById, keyed off the id the parent's own users
+        // request already carries, never through a second request re-fetching users.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server1)]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                users {
+                    ... @defer {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // One users request carrying id, one userById request per item, no second users
+        // request; the initial payload items are just { "__typename": "User" }.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_MixedSubgraphFields_Should_KeepBothFields_When_SameAndForeignSubgraphSplit()
+    {
+        // arrange
+        // birthdate is same-subgraph with the parent's own key on accounts; reviewCount
+        // is only reachable on reviews through the entity's key. Both must arrive in the
+        // incremental payload; birthdate must never come back null.
+        using var server1 = CreateSourceSchema(
+            "accounts",
+            """
+            type Query {
+                users: [User!]!
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                birthdate: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "reviews",
+            """
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviewCount: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("accounts", server1),
+            ("reviews", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                users {
+                    name
+                    ... @defer {
+                        birthdate
+                        reviewCount
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The incremental payload must carry both birthdate and reviewCount; birthdate
+        // must be non-null, not silently dropped as it was before this fix.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
 }

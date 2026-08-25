@@ -1,7 +1,7 @@
 operation:
   - document: |
       {
-        user(id: "1") {
+        users {
           name
           id @fusion__requirement
         }
@@ -12,21 +12,17 @@ operation:
 nodes:
   - id: 1
     type: Operation
-    schema: a
+    schema: accounts
     operation: |
       query Op_123456789101112_1 {
-        user(id: "1") {
+        users {
           name
           id
         }
       }
 deliveryGroups:
   - id: 0
-    path: $.user
-    label: contact
-  - id: 1
-    path: $.user
-    label: location
+    path: $.users
 incrementalPlans:
   - deliveryGroupIds:
       - 0
@@ -35,46 +31,42 @@ incrementalPlans:
       - name: __fusion_1_id
         selectionMap: >-
           id
-    nodes:
-      - id: 1
-        type: Operation
-        schema: b
-        operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              email
-            }
-          }
-        source: $.userById
-        target: $.user
-        requirements:
-          - name: __fusion_1_id
-            selectionMap: >-
-              id
-        dependencies:
-          - parentNodeId: 1
-  - deliveryGroupIds:
-      - 1
-    parentNodeId: 1
-    requirements:
-      - name: __fusion_1_id
+      - name: __fusion_2_id
         selectionMap: >-
           id
     nodes:
       - id: 1
         type: Operation
-        schema: b
+        schema: reviews
         operation: |
           query Op_defer_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
-              address
+              reviewCount
+              id
             }
           }
         source: $.userById
-        target: $.user
+        target: $.users
         requirements:
           - name: __fusion_1_id
             selectionMap: >-
               id
         dependencies:
           - parentNodeId: 1
+      - id: 2
+        type: Operation
+        schema: accounts
+        operation: |
+          query Op_defer_2($__fusion_2_id: ID!) {
+            userById(id: $__fusion_2_id) {
+              birthdate
+            }
+          }
+        source: $.userById
+        target: $.users
+        requirements:
+          - name: __fusion_2_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 1

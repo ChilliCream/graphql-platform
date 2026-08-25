@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
@@ -144,23 +145,98 @@ public sealed partial class OperationPlanner
 
         var index = SelectionSetIndexer.Create(deferredOperation);
 
-        var (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
-
-        if (node.Backlog.IsEmpty)
-        {
-            return new DeferIncrementalPlanResult([], null);
-        }
-
         var possiblePlans = new PlanQueue(_schema);
+        PlanNode node;
 
-        foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+        if (descriptor.Path.IsRoot)
         {
-            possiblePlans.Enqueue(
-                node with
+            // A defer anchored at the operation root has nothing to key a lookup off of;
+            // it is planned like a normal root-rooted operation.
+            SelectionSet selectionSet;
+            (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
+
+            if (node.Backlog.IsEmpty)
+            {
+                return new DeferIncrementalPlanResult([], null);
+            }
+
+            foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+            {
+                possiblePlans.Enqueue(
+                    node with
+                    {
+                        SchemaName = schemaName,
+                        ResolutionCost = resolutionCost
+                    });
+            }
+        }
+        else
+        {
+            // A defer anchored directly on the root's `node(id: ...)` field cannot be
+            // planned as an ordinary keyed lookup: `Node` is not an entity with its own
+            // lookup, its concrete type is only known once the id is decoded, and that
+            // decoding, per-concrete-type schema resolution, and shared-selection
+            // handling all live in the dedicated NodeFieldWorkItem path that
+            // CreateQueryPlanBase also uses for a root-anchored `node` selection. Reuse
+            // that same path here instead of seeding a Lookup work item for the `Node`
+            // interface, which the ordinary lookup machinery cannot serve.
+            Backlog backlog;
+
+            if (TryLocateNodeFieldAnchor(deferredOperation, descriptor.Path, out var nodeFieldNode))
+            {
+                backlog = Backlog.Empty.Push(
+                    new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
+            }
+            else
+            {
+                // A defer anchored inside a parent result (a list item, an object) is
+                // planned as a keyed lookup rooted at the anchor's own type rather than a
+                // fresh operation re-rooted at Query. Seeding a Lookup work item (instead
+                // of a Root work item) lets PlanQueue.EnqueueLookupPlanNodes pick a direct
+                // lookup for the anchor type when one exists; when none exists it falls
+                // back to walking the path up to the root
+                // (EnqueueParentPathLookupPlanNodes), which reproduces the previous root
+                // re-fetch behavior.
+                if (!TryLocateIncrementalPlanAnchor(
+                    deferredOperation,
+                    descriptor.Path,
+                    out var anchorSelectionSet,
+                    out var anchorType))
                 {
-                    SchemaName = schemaName,
-                    ResolutionCost = resolutionCost
-                });
+                    throw new InvalidOperationException(
+                        $"Unable to locate the defer anchor selection set at path '{descriptor.Path}' "
+                        + "inside the incremental plan operation.");
+                }
+
+                var anchorSet = new SelectionSet(
+                    index.GetId(anchorSelectionSet),
+                    anchorSelectionSet,
+                    anchorType,
+                    descriptor.Path);
+
+                backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
+            }
+
+            var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
+                _options,
+                currentMaxDepth: 0,
+                ImmutableDictionary<int, int>.Empty,
+                backlog.Cost);
+
+            node = new PlanNode
+            {
+                OperationDefinition = deferredOperation,
+                InternalOperationDefinition = deferredOperation,
+                ShortHash = "defer",
+                SchemaName = Planning.PlanNode.UnresolvedSchemaName,
+                Options = _options,
+                SelectionSetIndex = index,
+                Backlog = backlog,
+                RemainingCost = remainingCost,
+                OperationStepCount = 0
+            };
+
+            possiblePlans.EnqueueBranches(node);
         }
 
         if (possiblePlans.Count < 1)
@@ -181,6 +257,62 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Walks <paramref name="operation"/>'s selection set from its root type to locate
+    /// the selection set at <paramref name="path"/> and resolves its GraphQL type. Used
+    /// to find the anchor selection set for a non-root-anchored incremental plan, whose
+    /// operation is a full path replica from <c>Query</c> down to the deferred fields.
+    /// </summary>
+    private bool TryLocateIncrementalPlanAnchor(
+        OperationDefinitionNode operation,
+        SelectionPath path,
+        out SelectionSetNode anchorSelectionSet,
+        out ITypeDefinition anchorType)
+        => TryLocateSelectionSetAtPath(
+            operation.SelectionSet,
+            _schema.GetOperationType(operation.Operation),
+            path,
+            startIndex: 0,
+            out anchorSelectionSet,
+            out anchorType);
+
+    /// <summary>
+    /// Determines whether <paramref name="path"/> is exactly the root's own
+    /// <c>node(id: ...)</c> field (Global Object Identification's <c>Node</c> interface
+    /// field, which only ever appears directly on <c>Query</c>) and, if so, locates that
+    /// field within <paramref name="operation"/>.
+    /// </summary>
+    private bool TryLocateNodeFieldAnchor(
+        OperationDefinitionNode operation,
+        SelectionPath path,
+        out FieldNode nodeField)
+    {
+        nodeField = null!;
+
+        if (path.Length != 1
+            || path[0].Kind != SelectionPathSegmentKind.Field
+            || !_schema.QueryType.Fields.TryGetField(
+                path[0].Name,
+                allowInaccessibleFields: true,
+                out var field)
+            || field is not { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+        {
+            return false;
+        }
+
+        foreach (var selection in operation.SelectionSet.Selections)
+        {
+            if (selection is FieldNode candidate
+                && (candidate.Alias?.Value == path[0].Name || candidate.Name.Value == path[0].Name))
+            {
+                nodeField = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Moves requirements that can be satisfied by the enclosing plan scope out
     /// of the incremental plan and records them as parent-scope dependencies.
     /// </summary>
@@ -194,23 +326,46 @@ public sealed partial class OperationPlanner
         ParentPlanContext parentContext,
         PlanContextGraph contextGraph)
     {
-        // Parent-scope requirements can only be moved when an initial step has
-        // dependent steps.
-        if (incrementalPlanSteps.Count < 2
-            || incrementalPlanSteps[0] is not OperationPlanStep selfFetch
-            || selfFetch.SchemaName is null
-            || selfFetch.Dependents.IsEmpty)
+        if (incrementalPlanSteps.Count < 2)
         {
             return incrementalPlanSteps;
         }
 
-        // Collect steps that depend directly on the initial requirement step.
-        var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
-        foreach (var dependentStepId in selfFetch.Dependents)
+        // A producer step exists purely to supply another incremental-plan step's
+        // requirement: it targets the defer's own anchor (the same entity the
+        // enclosing scope already fetches down to) and every field it selects is
+        // consumed as a requirement by its dependents, so it never carries
+        // client-visible deferred output of its own. Such a step's data can always
+        // be routed to the enclosing scope instead of being fetched a second time
+        // inside this incremental plan. Earlier seeding always produced exactly one
+        // such step at index 0; a lookup-anchored seed may produce it anywhere in
+        // the list (or several, chained through each other), so every step is
+        // considered.
+        var producers = FindDeferRequirementProducers(incrementalPlanSteps, descriptor.Path);
+
+        if (producers.IsEmpty)
         {
-            if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
+            return incrementalPlanSteps;
+        }
+
+        var producerIds = new HashSet<int>();
+        foreach (var producer in producers)
+        {
+            producerIds.Add(producer.Id);
+        }
+
+        // Collect every step that depends directly on a producer; that is exactly
+        // the set of steps whose requirements need to be routed to the enclosing
+        // scope.
+        var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
+        foreach (var producer in producers)
+        {
+            foreach (var dependentStepId in producer.Dependents)
             {
-                downstreamByStepId[dependentStepId] = dependentStep;
+                if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
+                {
+                    downstreamByStepId[dependentStepId] = dependentStep;
+                }
             }
         }
 
@@ -252,17 +407,37 @@ public sealed partial class OperationPlanner
         {
             foreach (var (_, requirement) in downstreamStep.Requirements)
             {
-                // Requirements whose resolving path sits outside the
-                // self-fetch's target are not our business; the self-fetch
-                // shape is an existence proof that every requirement it
-                // satisfies is reachable through its own target path.
-                if (!selfFetch.Target.IsParentOfOrSame(requirement.Path))
+                // A requirement must sit at or above the defer's own anchor: at the
+                // anchor itself (the common case), or at an ancestor of it (a nested
+                // defer bootstrapping a key at the enclosing defer's own anchor, several
+                // path segments above its own, to reach its deeper one). A requirement
+                // anchored below or beside the defer's own path would mean a producer
+                // reaches somewhere this defer's own tree does not, which should not
+                // happen given every producer's target is at or above this same path.
+                if (!requirement.Path.IsParentOfOrSame(descriptor.Path))
                 {
                     throw CreateUnsatisfiableDeferRequirementException(
-                        selfFetch,
+                        producers[0],
                         requirement,
-                        "requirement path lies outside the defer's self-fetch target");
+                        "requirement path lies outside the defer's anchor");
                 }
+
+                // See through a chain of producers that do nothing but relay this same
+                // field from one subgraph to the next (a key value bootstrapped across
+                // several subgraphs before the entity that actually needs the deferred
+                // field is reached) to the step that truly grounds it, so both the
+                // same-subgraph inline attempt and a cross-subgraph promotion target
+                // the real origin instead of an intermediate pass-through hop.
+                var (sourceStep, sourceRequirement) = ResolveDeferRequirementSource(
+                    incrementalPlanSteps,
+                    downstreamStep,
+                    requirement,
+                    producerIds);
+                var schemaHint =
+                    (sourceStep is not null
+                        ? TryFindDeferRequirementProvider(incrementalPlanSteps, sourceStep, sourceRequirement)?.SchemaName
+                        : null)
+                    ?? producers[0].SchemaName!;
 
                 var resolved = false;
                 var walkScope = parentContext;
@@ -275,8 +450,8 @@ public sealed partial class OperationPlanner
                     // selection into an existing parent-scope step that
                     // already targets the path on the same source schema.
                     if (TryInlineDeferRequirementInScope(
-                        requirement,
-                        selfFetch.SchemaName,
+                        sourceRequirement,
+                        schemaHint,
                         resolver,
                         scopeState,
                         out var parentStepId))
@@ -290,8 +465,8 @@ public sealed partial class OperationPlanner
                     // requirement, add a dedicated step to the enclosing scope.
                     var (stepsAfterPromotion, newStepId, promotedIncrementalPlanStepId) =
                         PlanCrossSubgraphDeferRequirement(
-                            requirement,
-                            downstreamStep,
+                            sourceRequirement,
+                            sourceStep ?? downstreamStep,
                             incrementalPlanSteps,
                             scopeState.Steps);
 
@@ -318,7 +493,7 @@ public sealed partial class OperationPlanner
                 if (!resolved)
                 {
                     throw CreateUnsatisfiableDeferRequirementException(
-                        selfFetch,
+                        producers[0],
                         requirement,
                         "no parent-reachable subgraph provides the required field");
                 }
@@ -330,13 +505,20 @@ public sealed partial class OperationPlanner
             return incrementalPlanSteps;
         }
 
-        // Remove moved steps from the incremental plan and record parent-scope
-        // dependencies on the remaining steps.
+        // Drop every producer step (its data now comes from the enclosing scope)
+        // along with any incremental-plan step that got promoted wholesale into
+        // the enclosing scope, and record parent-scope dependencies on the
+        // remaining steps.
+        var droppedStepIds = new HashSet<int>(promotedIncrementalPlanStepIds);
+        foreach (var producer in producers)
+        {
+            droppedStepIds.Add(producer.Id);
+        }
+
         var rewrittenIncrementalPlan = RewriteIncrementalPlanAfterDeferRequirementRouting(
             incrementalPlanSteps,
-            selfFetch,
             lifted,
-            promotedIncrementalPlanStepIds);
+            droppedStepIds);
 
         // Record the parent-scope requirements on the descriptor.
         foreach (var step in rewrittenIncrementalPlan)
@@ -424,7 +606,7 @@ public sealed partial class OperationPlanner
 
             var stepIndex = SelectionSetIndexer.Create(parentStep.Definition).ToBuilder();
             var targetId = stepIndex.GetId(
-                LocateSelectionSetAtPath(parentStep.Definition.SelectionSet, requirement.Path, parentStep.Target.Length));
+                LocateSelectionSetAtPath(GetStepEntitySelectionSet(parentStep), requirement.Path, parentStep.Target.Length));
 
             var dependentsBeforeInline = parentStep.Dependents;
 
@@ -590,6 +772,62 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Resolves the schema a same-subgraph inline attempt should try first for
+    /// <paramref name="requirement"/>, owed by <paramref name="downstreamStep"/>. When the
+    /// in-plan provider is itself a producer being dropped and does nothing but relay the
+    /// very same field it required upstream (a key value bootstrapped through several
+    /// subgraphs before the entity that actually needs the deferred field is reached,
+    /// each hop just re-fetching the same field under a different schema), the walk
+    /// continues past it to whatever ultimately grounds that field, so the enclosing
+    /// scope is asked for the true origin instead of promoting a pass-through hop. A
+    /// producer that transforms its input into a different field (an "id" argument
+    /// producing "productSku", say) is the true, final provider of that field and is
+    /// never skipped past.
+    /// </summary>
+    private static (OperationPlanStep? ConsumingStep, OperationRequirement Requirement) ResolveDeferRequirementSource(
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        OperationPlanStep downstreamStep,
+        OperationRequirement requirement,
+        HashSet<int> producerIds)
+    {
+        var current = downstreamStep;
+        var currentRequirement = requirement;
+        var visited = new HashSet<int>();
+
+        while (true)
+        {
+            if (TryFindDeferRequirementProvider(incrementalPlanSteps, current, currentRequirement)
+                is not { } provider)
+            {
+                return (null, currentRequirement);
+            }
+
+            if (!producerIds.Contains(provider.Id)
+                || provider.Requirements.Count != 1
+                || !visited.Add(provider.Id))
+            {
+                return (current, currentRequirement);
+            }
+
+            var neededFieldName =
+                currentRequirement.InternalAlias ?? ExtractRootFieldName(currentRequirement.Map.ToString());
+            var upstreamRequirement = provider.Requirements.Values.Single();
+            var upstreamFieldName =
+                upstreamRequirement.InternalAlias ?? ExtractRootFieldName(upstreamRequirement.Map.ToString());
+
+            if (neededFieldName is null
+                || upstreamFieldName is null
+                || !neededFieldName.Equals(upstreamFieldName, StringComparison.Ordinal))
+            {
+                return (current, currentRequirement);
+            }
+
+            current = provider;
+            currentRequirement = upstreamRequirement;
+        }
+    }
+
+    /// <summary>
     /// Locates the incremental plan step that produces <paramref name="requirement"/>'s
     /// value for <paramref name="consumingStep"/>. The provider is a step the
     /// consuming step depends on whose target is a parent-of-or-same ancestor
@@ -635,14 +873,124 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Finds every step in <paramref name="incrementalPlanSteps"/> that exists purely to
+    /// supply another incremental-plan step's requirement: it targets either the defer's
+    /// own <paramref name="anchorPath"/> (the entity the enclosing scope already fetches
+    /// down to) or the operation root (a bootstrap key value reconstructed by replaying
+    /// the client's own root-field access), and every field it selects is consumed as a
+    /// requirement by its dependents, so dropping it and routing its data through the
+    /// enclosing scope loses no client-visible output. A key value can be bootstrapped
+    /// through a short chain of such steps (each re-fetching the key on a different
+    /// subgraph before the entity that actually needs the deferred field is reached), so
+    /// every step is considered, not just the first.
+    /// </summary>
+    private static ImmutableArray<OperationPlanStep> FindDeferRequirementProducers(
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
+    {
+        var producers = ImmutableArray.CreateBuilder<OperationPlanStep>();
+
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is OperationPlanStep operationStep
+                && operationStep.SchemaName is not null
+                && !operationStep.Dependents.IsEmpty
+                && (operationStep.Target.Equals(anchorPath) || operationStep.Target.IsRoot)
+                && IsPureRequirementProducer(operationStep, incrementalPlanSteps))
+            {
+                producers.Add(operationStep);
+            }
+        }
+
+        return producers.ToImmutable();
+    }
+
+    /// <summary>
+    /// Determines whether every field <paramref name="step"/> selects is consumed as a
+    /// requirement by one of its dependents, meaning the step carries no output of its
+    /// own beyond what those dependents need from it.
+    /// </summary>
+    private static bool IsPureRequirementProducer(
+        OperationPlanStep step,
+        ImmutableList<PlanStep> incrementalPlanSteps)
+    {
+        var ownFields = new HashSet<string>(StringComparer.Ordinal);
+        CollectLeafFieldNames(step.Definition.SelectionSet, ownFields);
+
+        if (ownFields.Count == 0)
+        {
+            return false;
+        }
+
+        var consumed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var dependentStepId in step.Dependents)
+        {
+            if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
+            {
+                continue;
+            }
+
+            foreach (var (_, requirement) in dependentStep.Requirements)
+            {
+                var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
+
+                if (fieldName is not null)
+                {
+                    consumed.Add(fieldName);
+                }
+            }
+        }
+
+        foreach (var fieldName in ownFields)
+        {
+            if (!consumed.Contains(fieldName))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Collects the response names of every leaf field selection within
+    /// <paramref name="selectionSet"/>, descending through composite fields and inline
+    /// fragments (a composite field wraps a lookup or entity boundary, not output of its
+    /// own). The <c>__typename</c> discriminator is ignored; it never satisfies a
+    /// requirement.
+    /// </summary>
+    private static void CollectLeafFieldNames(SelectionSetNode selectionSet, HashSet<string> names)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode { SelectionSet: { } nested }:
+                    CollectLeafFieldNames(nested, names);
+                    break;
+
+                case FieldNode field:
+                    if (!field.Name.Value.Equals("__typename", StringComparison.Ordinal))
+                    {
+                        names.Add(field.Alias?.Value ?? field.Name.Value);
+                    }
+                    break;
+
+                case InlineFragmentNode fragment:
+                    CollectLeafFieldNames(fragment.SelectionSet, names);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
     /// Removes steps that moved to the parent scope and records parent
     /// dependencies on the remaining steps.
     /// </summary>
     private static ImmutableList<PlanStep> RewriteIncrementalPlanAfterDeferRequirementRouting(
         ImmutableList<PlanStep> incrementalPlanSteps,
-        OperationPlanStep selfFetch,
         List<LiftedDeferRequirement> lifted,
-        HashSet<int> promotedIncrementalPlanStepIds)
+        HashSet<int> droppedStepIds)
     {
         var parentRefsByStepId = new Dictionary<int, ImmutableHashSet<ParentStepRef>.Builder>();
         foreach (var entry in lifted)
@@ -656,7 +1004,6 @@ public sealed partial class OperationPlanner
             builder.Add(new ParentStepRef(entry.ParentStepId));
         }
 
-        var droppedStepIds = new HashSet<int>(promotedIncrementalPlanStepIds) { selfFetch.Id };
         var survivors = new List<PlanStep>(incrementalPlanSteps.Count - droppedStepIds.Count);
         var oldToNewId = new Dictionary<int, int>(incrementalPlanSteps.Count - droppedStepIds.Count);
 
@@ -729,6 +1076,32 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Returns the selection set that holds <paramref name="step"/>'s own entity-level
+    /// fields. A keyed-lookup step's <see cref="OperationPlanStep.Definition"/> wraps
+    /// those fields inside a synthetic lookup field (for example
+    /// <c>userById(id: $x) { ... }</c>) that has no corresponding <see cref="SelectionPath"/>
+    /// segment; the entity's own fields start one level inside that wrapper. A step with
+    /// no lookup (a root fetch, or a step reusing the client's own path) has no such
+    /// wrapper, so its definition's top-level selection set already sits at
+    /// <see cref="OperationPlanStep.Target"/>.
+    /// </summary>
+    private static SelectionSetNode GetStepEntitySelectionSet(OperationPlanStep step)
+        => step.Lookup is not null
+            && step.Definition.SelectionSet.Selections is [FieldNode { SelectionSet: { } lookupSelectionSet }]
+                ? lookupSelectionSet
+                : step.Definition.SelectionSet;
+
+    /// <summary>
+    /// Returns the GraphQL type of <paramref name="step"/>'s own entity-level selection
+    /// set (see <see cref="GetStepEntitySelectionSet"/>).
+    /// </summary>
+    private ITypeDefinition GetStepEntityType(OperationPlanStep step)
+        => step.Lookup is not null
+            && step.Definition.SelectionSet.Selections is [FieldNode { SelectionSet: not null }]
+                ? step.Type
+                : _schema.GetOperationType(step.Definition.Operation);
+
+    /// <summary>
     /// Walks <paramref name="parentStep"/>'s definition to locate the selection
     /// set at <paramref name="path"/> and resolves its GraphQL type.
     /// </summary>
@@ -737,11 +1110,29 @@ public sealed partial class OperationPlanner
         SelectionPath path,
         out SelectionSetNode targetSelectionSet,
         out ITypeDefinition targetType)
-    {
-        var currentSet = parentStep.Definition.SelectionSet;
-        ITypeDefinition currentType = _schema.GetOperationType(parentStep.Definition.Operation);
+        => TryLocateSelectionSetAtPath(
+            GetStepEntitySelectionSet(parentStep),
+            GetStepEntityType(parentStep),
+            path,
+            startIndex: parentStep.Target.Length,
+            out targetSelectionSet,
+            out targetType);
 
-        var startIndex = parentStep.Target.Length;
+    /// <summary>
+    /// Walks <paramref name="startSet"/> from <paramref name="path"/>'s <paramref name="startIndex"/>
+    /// segment onward, following fields and inline fragments, to locate the selection set at
+    /// <paramref name="path"/> and resolve its GraphQL type.
+    /// </summary>
+    private bool TryLocateSelectionSetAtPath(
+        SelectionSetNode startSet,
+        ITypeDefinition startType,
+        SelectionPath path,
+        int startIndex,
+        out SelectionSetNode targetSelectionSet,
+        out ITypeDefinition targetType)
+    {
+        var currentSet = startSet;
+        var currentType = startType;
 
         for (var i = startIndex; i < path.Length; i++)
         {

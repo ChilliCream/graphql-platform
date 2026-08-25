@@ -1,0 +1,83 @@
+operation:
+  - document: |
+      query t($productId: ID!) {
+        products {
+          nodes {
+            id
+            name
+          }
+        }
+        productById(id: $productId) {
+          id
+        }
+        users {
+          nodes {
+            __typename
+            id @fusion__requirement
+          }
+        }
+      }
+    name: t
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query t_123456789101112_1($productId: ID!) {
+        products {
+          nodes {
+            id
+            name
+          }
+        }
+        productById(id: $productId) {
+          id
+        }
+      }
+    forwardedVariables:
+      - productId
+  - id: 2
+    type: Operation
+    schema: users
+    operation: |
+      query t_123456789101112_2 {
+        users {
+          nodes {
+            __typename
+            id
+          }
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.users.nodes
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: users
+        operation: |
+          query t_defer_1($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              id
+              name
+            }
+          }
+        source: $.userById
+        target: $.users.nodes
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 2

@@ -1662,4 +1662,273 @@ public class DeferPlannerTests : FusionTestBase
                 + "every node's requirements are either all imported or all local.");
         }
     }
+
+    [Fact]
+    public void Defer_ListAnchor_Should_PlanKeyedLookup_When_MultipleRootFieldsPrecedeIt()
+    {
+        // arrange
+        // Three root fields on two subgraphs. The users field (and its defer anchor)
+        // is neither the first nor the only root field, which exercises parentNodeId
+        // resolution alongside the keyed-lookup planning.
+        var schema = ComposeSchema(
+            """
+            # name: products
+            type Query {
+                products: ProductConnection!
+                productById(id: ID!): Product
+            }
+
+            type ProductConnection {
+                nodes: [Product!]!
+            }
+
+            type Product {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: users
+            type Query {
+                users: UserConnection!
+                userById(id: ID!): User @lookup
+            }
+
+            type UserConnection {
+                nodes: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query t($productId: ID!) {
+                products {
+                    nodes {
+                        id
+                        name
+                    }
+                }
+                productById(id: $productId) {
+                    id
+                }
+                users {
+                    nodes {
+                        ... @defer {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+
+        // The node the incremental node's own dependencies point to and the
+        // IncrementalPlan's own ParentNodeId must agree: both name the users node,
+        // never the products node that happens to come first.
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var deferredNode = incrementalPlan.RootNodes[0];
+        Assert.Equal(incrementalPlan.ParentNodeId, deferredNode.ParentDependencies[0]);
+    }
+
+    [Fact]
+    public void Defer_ListAnchor_Should_PlanOneKeyedLookupPerField_When_FieldsSplitAcrossSameAndForeignSubgraph()
+    {
+        // arrange
+        // birthdate is same-subgraph with the parent's own key; reviewCount lives on a
+        // second subgraph reached only through the entity's key. Both must survive as
+        // keyed lookups off the parent; neither may be silently dropped.
+        var schema = ComposeSchema(
+            """
+            # name: accounts
+            type Query {
+                users: [User!]!
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                birthdate: String!
+            }
+            """,
+            """
+            # name: reviews
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviewCount: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    name
+                    ... @defer {
+                        birthdate
+                        reviewCount
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_ObjectAnchor_Should_KeepRootRefetch_When_AnchorTypeHasNoLookup()
+    {
+        // arrange
+        // Viewer is not an entity: it has neither @key nor a @lookup field anywhere, so no
+        // keyed lookup can ever reach it. The defer must fall back to the pre-existing
+        // root re-fetch behavior instead of failing to plan.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                viewer: Viewer!
+            }
+
+            type Viewer {
+                displayName: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                viewer {
+                    __typename
+                    ... @defer {
+                        displayName
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_RootAnchor_Should_PlanRootFetch_When_DeferSitsAtOperationRoot()
+    {
+        // arrange
+        // The @defer fragment is a root-level sibling, not nested inside a parent field,
+        // so it has nothing to key a lookup off of; this shape is unaffected by
+        // lookup-anchored defer planning and must keep planning as a root fetch.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                viewer: Viewer!
+            }
+
+            type Viewer {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                viewer {
+                    __typename
+                }
+                ... @defer {
+                    users {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_KeyOnlyField_Should_KeepRootRefetch_When_OnlyReachableLookupIsSelfCyclic()
+    {
+        // arrange
+        // The only deferred field is the entity's own key, and the only lookup for the
+        // type is keyed by that same field (PlanQueue.IsSelfCyclicLookup): it needs id
+        // as input to produce id, making no progress on its own. The planner already
+        // discards a self-cyclic lookup whose own bootstrap resolves to that same
+        // unresolved selection (PlanLookupSelections), since accepting it would plan a
+        // subgraph call that cannot be given a value from anywhere within this
+        // incremental plan's own closed-world search. With that branch discarded the
+        // root re-fetch is the only complete plan left; pin it explicitly rather than
+        // leave this shape unobserved.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    ... @defer {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
 }

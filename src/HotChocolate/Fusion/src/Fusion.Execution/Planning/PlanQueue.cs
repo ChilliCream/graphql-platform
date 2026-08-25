@@ -140,13 +140,33 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 type);
         }
 
+        // Materialized once: the self-reentry exclusion below can leave every candidate
+        // schema excluded (see the comment at that check), and detecting that requires
+        // knowing the full candidate set up front rather than discovering it one schema
+        // at a time as the loop below walks it.
+        var candidateSchemas = schema.GetPossibleSchemas(workItem.SelectionSet).ToArray();
+
+        // True only when the sole schema able to serve this selection at all is also the
+        // one the self-reentry rule excludes (a single subgraph exposing both a list field
+        // and a keyed lookup for its own item type, with no other subgraph in play). Kept
+        // this narrow on purpose: widening the parent-path walk to every self-reentry
+        // exclusion regardless of whether another candidate schema exists measurably
+        // blows up the search for abstract-type lookup fanout (concrete-type branches
+        // multiplied by schemas multiplied by re-attempted parent-path walks), so it is
+        // reserved for the one case where skipping the schema outright would otherwise
+        // leave zero candidate plans.
+        var onlyCandidateIsExcludedSelf = !workItem.AllowSourceSchemaReentry
+            && candidateSchemas is [(var soleSchema, _)]
+            && soleSchema.Equals(workItem.FromSchema, StringComparison.Ordinal);
+
         // Each branch starts from the same popped template and mutates a local copy
         // of backlog state. This avoids recomputing backlog shape from collections
         // for every candidate.
-        foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (toSchema, resolutionCost) in candidateSchemas)
         {
             if (!workItem.AllowSourceSchemaReentry
-                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal)
+                && !onlyCandidateIsExcludedSelf)
             {
                 continue;
             }

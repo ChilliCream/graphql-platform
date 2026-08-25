@@ -1,19 +1,14 @@
-title: Defer_With_Forwarded_Variable_Over_List_Anchor
+title: Defer_MixedSubgraphFields_Should_KeepBothFields_When_SameAndForeignSubgraphSplit
 request:
   document: |
-    query GetUsersPosts($limit: Int!) {
+    {
       users {
-        id
-        ... @defer(label: "posts") {
-          posts(first: $limit) {
-            id
-          }
+        name
+        ... @defer {
+          birthdate
+          reviewCount
         }
       }
-    }
-  variables: |
-    {
-      "limit": 5
     }
 stableResponseStream: |
   {
@@ -23,13 +18,13 @@ stableResponseStream: |
       "data": {
         "users": [
           {
-            "id": "VXNlcjox"
+            "name": "User: VXNlcjox"
           },
           {
-            "id": "VXNlcjoy"
+            "name": "User: VXNlcjoy"
           },
           {
-            "id": "VXNlcjoz"
+            "name": "User: VXNlcjoz"
           }
         ]
       }
@@ -39,8 +34,7 @@ stableResponseStream: |
         "id": "0",
         "path": [
           "users"
-        ],
-        "label": "posts"
+        ]
       }
     ],
     "incremental": [
@@ -53,17 +47,8 @@ stableResponseStream: |
           0
         ],
         "data": {
-          "posts": [
-            {
-              "id": "UG9zdDox"
-            },
-            {
-              "id": "UG9zdDoy"
-            },
-            {
-              "id": "UG9zdDoz"
-            }
-          ]
+          "birthdate": "User: VXNlcjox",
+          "reviewCount": 123
         }
       },
       {
@@ -75,17 +60,8 @@ stableResponseStream: |
           1
         ],
         "data": {
-          "posts": [
-            {
-              "id": "UG9zdDo0"
-            },
-            {
-              "id": "UG9zdDo1"
-            },
-            {
-              "id": "UG9zdDo2"
-            }
-          ]
+          "birthdate": "User: VXNlcjoy",
+          "reviewCount": 123
         }
       },
       {
@@ -97,17 +73,8 @@ stableResponseStream: |
           2
         ],
         "data": {
-          "posts": [
-            {
-              "id": "UG9zdDo3"
-            },
-            {
-              "id": "UG9zdDo4"
-            },
-            {
-              "id": "UG9zdDo5"
-            }
-          ]
+          "birthdate": "User: VXNlcjoz",
+          "reviewCount": 123
         }
       }
     ],
@@ -120,53 +87,26 @@ stableResponseStream: |
       "data": {
         "users": [
           {
-            "id": "VXNlcjox",
-            "posts": [
-              {
-                "id": "UG9zdDox"
-              },
-              {
-                "id": "UG9zdDoy"
-              },
-              {
-                "id": "UG9zdDoz"
-              }
-            ]
+            "birthdate": "User: VXNlcjox",
+            "name": "User: VXNlcjox",
+            "reviewCount": 123
           },
           {
-            "id": "VXNlcjoy",
-            "posts": [
-              {
-                "id": "UG9zdDo0"
-              },
-              {
-                "id": "UG9zdDo1"
-              },
-              {
-                "id": "UG9zdDo2"
-              }
-            ]
+            "birthdate": "User: VXNlcjoy",
+            "name": "User: VXNlcjoy",
+            "reviewCount": 123
           },
           {
-            "id": "VXNlcjoz",
-            "posts": [
-              {
-                "id": "UG9zdDo3"
-              },
-              {
-                "id": "UG9zdDo4"
-              },
-              {
-                "id": "UG9zdDo5"
-              }
-            ]
+            "birthdate": "User: VXNlcjoz",
+            "name": "User: VXNlcjoz",
+            "reviewCount": 123
           }
         ]
       }
     }
   }
 sourceSchemas:
-  - name: A
+  - name: accounts
     schema: |
       schema {
         query: Query
@@ -174,17 +114,21 @@ sourceSchemas:
 
       type Query {
         users: [User!]!
+        userById(id: ID!): User @lookup
       }
 
       type User @key(fields: "id") {
         id: ID!
+        name: String!
+        birthdate: String!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUsersPosts_711d06f0_1 {
+            query Op_dd49dded_1 {
               users {
+                name
                 id
               }
             }
@@ -195,58 +139,100 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
+                      "name": "User: VXNlcjox",
                       "id": "VXNlcjox"
                     },
                     {
+                      "name": "User: VXNlcjoy",
                       "id": "VXNlcjoy"
                     },
                     {
+                      "name": "User: VXNlcjoz",
                       "id": "VXNlcjoz"
                     }
                   ]
                 }
               }
-  - name: B
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
+                birthdate
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "VXNlcjox"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoy"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "birthdate": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "birthdate": "User: VXNlcjoy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "birthdate": "User: VXNlcjoz"
+                  }
+                }
+              }
+  - name: reviews
     schema: |
       schema {
         query: Query
       }
 
       type Query {
-        userById(id: ID!): User @lookup
-      }
-
-      type Post {
-        id: ID!
+        userById(id: ID!): User @lookup @internal
       }
 
       type User @key(fields: "id") {
         id: ID!
-        posts(first: Int!): [Post!]!
+        reviewCount: Int!
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
-                }
+                reviewCount
+                id
               }
             }
           variables: |
             [
               {
-                "limit": 5,
                 "__fusion_1_id": "VXNlcjox"
               },
               {
-                "limit": 5,
                 "__fusion_1_id": "VXNlcjoy"
               },
               {
-                "limit": 5,
                 "__fusion_1_id": "VXNlcjoz"
               }
             ]
@@ -257,17 +243,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDox"
-                      },
-                      {
-                        "id": "UG9zdDoy"
-                      },
-                      {
-                        "id": "UG9zdDoz"
-                      }
-                    ]
+                    "reviewCount": 123,
+                    "id": "VXNlcjox"
                   }
                 }
               }
@@ -275,17 +252,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDo0"
-                      },
-                      {
-                        "id": "UG9zdDo1"
-                      },
-                      {
-                        "id": "UG9zdDo2"
-                      }
-                    ]
+                    "reviewCount": 123,
+                    "id": "VXNlcjoy"
                   }
                 }
               }
@@ -293,47 +261,37 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDo3"
-                      },
-                      {
-                        "id": "UG9zdDo4"
-                      },
-                      {
-                        "id": "UG9zdDo5"
-                      }
-                    ]
+                    "reviewCount": 123,
+                    "id": "VXNlcjoz"
                   }
                 }
               }
 operationPlan:
   operation:
     - document: |
-        query GetUsersPosts($limit: Int!) {
+        {
           users {
-            id
+            name
             id @fusion__requirement
           }
         }
-      name: GetUsersPosts
-      hash: 711d06f0c0ec248b4b3b51d0eac9311e
+      hash: dd49dded91f543a2b995f3b26da18a2d
       searchSpace: 1
       expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
-      schema: A
+      schema: accounts
       operation: |
-        query GetUsersPosts_711d06f0_1 {
+        query Op_dd49dded_1 {
           users {
+            name
             id
           }
         }
   deliveryGroups:
     - id: 0
       path: $.users
-      label: posts
   incrementalPlans:
     - deliveryGroupIds:
         - 0
@@ -342,16 +300,18 @@ operationPlan:
         - name: __fusion_1_id
           selectionMap: >-
             id
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
       nodes:
         - id: 1
           type: Operation
-          schema: B
+          schema: reviews
           operation: |
-            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
-                }
+                reviewCount
+                id
               }
             }
           source: $.userById
@@ -360,7 +320,22 @@ operationPlan:
             - name: __fusion_1_id
               selectionMap: >-
                 id
-          forwardedVariables:
-            - limit
           dependencies:
             - parentNodeId: 1
+        - id: 2
+          type: Operation
+          schema: accounts
+          operation: |
+            query Op_defer_2($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
+                birthdate
+              }
+            }
+          source: $.userById
+          target: $.users
+          requirements:
+            - name: __fusion_2_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1

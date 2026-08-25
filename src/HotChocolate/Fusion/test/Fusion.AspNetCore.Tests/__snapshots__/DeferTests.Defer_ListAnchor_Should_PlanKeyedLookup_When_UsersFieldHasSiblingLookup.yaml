@@ -1,19 +1,13 @@
-title: Defer_With_Forwarded_Variable_Over_List_Anchor
+title: Defer_ListAnchor_Should_PlanKeyedLookup_When_UsersFieldHasSiblingLookup
 request:
   document: |
-    query GetUsersPosts($limit: Int!) {
+    {
       users {
-        id
-        ... @defer(label: "posts") {
-          posts(first: $limit) {
-            id
-          }
+        ... @defer {
+          id
+          name
         }
       }
-    }
-  variables: |
-    {
-      "limit": 5
     }
 stableResponseStream: |
   {
@@ -23,13 +17,13 @@ stableResponseStream: |
       "data": {
         "users": [
           {
-            "id": "VXNlcjox"
+            "__typename": "User"
           },
           {
-            "id": "VXNlcjoy"
+            "__typename": "User"
           },
           {
-            "id": "VXNlcjoz"
+            "__typename": "User"
           }
         ]
       }
@@ -39,8 +33,7 @@ stableResponseStream: |
         "id": "0",
         "path": [
           "users"
-        ],
-        "label": "posts"
+        ]
       }
     ],
     "incremental": [
@@ -53,17 +46,8 @@ stableResponseStream: |
           0
         ],
         "data": {
-          "posts": [
-            {
-              "id": "UG9zdDox"
-            },
-            {
-              "id": "UG9zdDoy"
-            },
-            {
-              "id": "UG9zdDoz"
-            }
-          ]
+          "id": "VXNlcjox",
+          "name": "User: VXNlcjox"
         }
       },
       {
@@ -75,17 +59,8 @@ stableResponseStream: |
           1
         ],
         "data": {
-          "posts": [
-            {
-              "id": "UG9zdDo0"
-            },
-            {
-              "id": "UG9zdDo1"
-            },
-            {
-              "id": "UG9zdDo2"
-            }
-          ]
+          "id": "VXNlcjoy",
+          "name": "User: VXNlcjoy"
         }
       },
       {
@@ -97,17 +72,8 @@ stableResponseStream: |
           2
         ],
         "data": {
-          "posts": [
-            {
-              "id": "UG9zdDo3"
-            },
-            {
-              "id": "UG9zdDo4"
-            },
-            {
-              "id": "UG9zdDo5"
-            }
-          ]
+          "id": "VXNlcjoz",
+          "name": "User: VXNlcjoz"
         }
       }
     ],
@@ -120,46 +86,19 @@ stableResponseStream: |
       "data": {
         "users": [
           {
+            "__typename": "User",
             "id": "VXNlcjox",
-            "posts": [
-              {
-                "id": "UG9zdDox"
-              },
-              {
-                "id": "UG9zdDoy"
-              },
-              {
-                "id": "UG9zdDoz"
-              }
-            ]
+            "name": "User: VXNlcjox"
           },
           {
+            "__typename": "User",
             "id": "VXNlcjoy",
-            "posts": [
-              {
-                "id": "UG9zdDo0"
-              },
-              {
-                "id": "UG9zdDo1"
-              },
-              {
-                "id": "UG9zdDo2"
-              }
-            ]
+            "name": "User: VXNlcjoy"
           },
           {
+            "__typename": "User",
             "id": "VXNlcjoz",
-            "posts": [
-              {
-                "id": "UG9zdDo3"
-              },
-              {
-                "id": "UG9zdDo4"
-              },
-              {
-                "id": "UG9zdDo5"
-              }
-            ]
+            "name": "User: VXNlcjoz"
           }
         ]
       }
@@ -174,17 +113,20 @@ sourceSchemas:
 
       type Query {
         users: [User!]!
+        userById(id: ID!): User @lookup
       }
 
       type User @key(fields: "id") {
         id: ID!
+        name: String!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUsersPosts_711d06f0_1 {
+            query Op_ffeee14c_1 {
               users {
+                __typename
                 id
               }
             }
@@ -195,58 +137,38 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
+                      "__typename": "User",
                       "id": "VXNlcjox"
                     },
                     {
+                      "__typename": "User",
                       "id": "VXNlcjoy"
                     },
                     {
+                      "__typename": "User",
                       "id": "VXNlcjoz"
                     }
                   ]
                 }
               }
-  - name: B
-    schema: |
-      schema {
-        query: Query
-      }
-
-      type Query {
-        userById(id: ID!): User @lookup
-      }
-
-      type Post {
-        id: ID!
-      }
-
-      type User @key(fields: "id") {
-        id: ID!
-        posts(first: Int!): [Post!]!
-      }
-    interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
-                }
+                id
+                name
               }
             }
           variables: |
             [
               {
-                "limit": 5,
                 "__fusion_1_id": "VXNlcjox"
               },
               {
-                "limit": 5,
                 "__fusion_1_id": "VXNlcjoy"
               },
               {
-                "limit": 5,
                 "__fusion_1_id": "VXNlcjoz"
               }
             ]
@@ -257,17 +179,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDox"
-                      },
-                      {
-                        "id": "UG9zdDoy"
-                      },
-                      {
-                        "id": "UG9zdDoz"
-                      }
-                    ]
+                    "id": "VXNlcjox",
+                    "name": "User: VXNlcjox"
                   }
                 }
               }
@@ -275,17 +188,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDo0"
-                      },
-                      {
-                        "id": "UG9zdDo1"
-                      },
-                      {
-                        "id": "UG9zdDo2"
-                      }
-                    ]
+                    "id": "VXNlcjoy",
+                    "name": "User: VXNlcjoy"
                   }
                 }
               }
@@ -293,31 +197,21 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDo3"
-                      },
-                      {
-                        "id": "UG9zdDo4"
-                      },
-                      {
-                        "id": "UG9zdDo5"
-                      }
-                    ]
+                    "id": "VXNlcjoz",
+                    "name": "User: VXNlcjoz"
                   }
                 }
               }
 operationPlan:
   operation:
     - document: |
-        query GetUsersPosts($limit: Int!) {
+        {
           users {
-            id
+            __typename
             id @fusion__requirement
           }
         }
-      name: GetUsersPosts
-      hash: 711d06f0c0ec248b4b3b51d0eac9311e
+      hash: ffeee14c444e77d0dd957d6a13459bf0
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -325,15 +219,15 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUsersPosts_711d06f0_1 {
+        query Op_ffeee14c_1 {
           users {
+            __typename
             id
           }
         }
   deliveryGroups:
     - id: 0
       path: $.users
-      label: posts
   incrementalPlans:
     - deliveryGroupIds:
         - 0
@@ -345,13 +239,12 @@ operationPlan:
       nodes:
         - id: 1
           type: Operation
-          schema: B
+          schema: A
           operation: |
-            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
-                }
+                id
+                name
               }
             }
           source: $.userById
@@ -360,7 +253,5 @@ operationPlan:
             - name: __fusion_1_id
               selectionMap: >-
                 id
-          forwardedVariables:
-            - limit
           dependencies:
             - parentNodeId: 1
