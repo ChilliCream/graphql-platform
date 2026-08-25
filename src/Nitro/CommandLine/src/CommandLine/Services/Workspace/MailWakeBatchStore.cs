@@ -38,6 +38,19 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             return null;
         }
 
+        // Reclaim an expired active batch before checking for a live one:
+        // a crashed owner's lease never gets renewed, so without this an
+        // expired row would wedge the actor's queue forever. Mirrors the
+        // steal-if-expired shape in MailWakeDaemonLeaderStore.TryAcquireAsync.
+        await connection.ExecuteAsync(
+            """
+            UPDATE mail_wake_batches SET status = 'released', last_error = 'lease expired'
+            WHERE nitro_instance_id = @nitroInstanceId AND actor = @actor AND status = 'active'
+              AND expires_at <= @now
+            """,
+            new { nitroInstanceId, actor, now, cancellationToken },
+            transaction);
+
         // Belt-and-braces alongside idx_mail_wake_batches_one_active_per_actor:
         // checked explicitly so a losing caller gets a clean null instead of
         // a thrown constraint-violation exception from the insert below.

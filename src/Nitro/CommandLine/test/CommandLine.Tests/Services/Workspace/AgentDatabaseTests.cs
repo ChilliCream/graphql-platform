@@ -85,6 +85,19 @@ public sealed class AgentDatabaseTests : IDisposable
             Assert.Equal(1, sessionTableCount);
         }
 
+        foreach (var index in new[]
+        {
+            "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
+            "idx_mail_wake_batches_expires", "idx_session_ping_gates_expires"
+        })
+        {
+            var indexCount = await QueryScalarLongAsync(
+                connection,
+                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = '{index}'",
+                cancellationToken);
+            Assert.Equal(1, indexCount);
+        }
+
         var columns = (await QueryColumnNamesAsync(connection, "agents", cancellationToken))
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", columns);
@@ -1238,6 +1251,19 @@ public sealed class AgentDatabaseTests : IDisposable
                 $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{newTable}'",
                 cancellationToken);
             Assert.Equal(1, tableCount);
+        }
+
+        foreach (var index in new[]
+        {
+            "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
+            "idx_mail_wake_batches_expires", "idx_session_ping_gates_expires"
+        })
+        {
+            var indexCount = await QueryScalarLongAsync(
+                connection2,
+                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = '{index}'",
+                cancellationToken);
+            Assert.Equal(1, indexCount);
         }
 
         var agentCount = await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM agents", cancellationToken);

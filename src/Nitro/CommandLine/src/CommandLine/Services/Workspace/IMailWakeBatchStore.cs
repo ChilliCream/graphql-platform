@@ -20,11 +20,14 @@ internal interface IMailWakeBatchStore
     /// <c>mail_wake_targets</c> rows. Returns null when there is no
     /// outstanding generation (<c>settled_generation</c> already equals
     /// <c>requested_generation</c>), the outbox row's <c>due_at</c> has not
-    /// yet arrived, or an active batch already exists for this actor (at
-    /// most one active batch per actor at a time). The returned claim's
-    /// <see cref="MailWakeBatchClaim.ClaimedGeneration"/> is fixed for this
-    /// batch's whole lifetime, snapshotted from <c>requested_generation</c>
-    /// at claim time.
+    /// yet arrived, or a live active batch already exists for this actor (at
+    /// most one active batch per actor at a time). An active batch whose
+    /// lease has expired is released and superseded by this claim first, so
+    /// its old owner's subsequent renew, complete, release, or
+    /// record-outcome calls then fail their fencing as a no-op. The returned
+    /// claim's <see cref="MailWakeBatchClaim.ClaimedGeneration"/> is fixed
+    /// for this batch's whole lifetime, snapshotted from
+    /// <c>requested_generation</c> at claim time.
     /// </summary>
     Task<MailWakeBatchClaim?> TryClaimAsync(
         string nitroInstanceId,
@@ -54,7 +57,7 @@ internal interface IMailWakeBatchStore
     /// <summary>
     /// Marks an active batch completed and settles the outbox row's
     /// <c>settled_generation</c> up to (never past) this batch's own
-    /// <see cref="MailWakeBatchRecord.ClaimedGeneration"/>: a wake requested
+    /// <c>mail_wake_batches.claimed_generation</c>: a wake requested
     /// after this batch was claimed is never settled by this completion,
     /// regardless of how far <c>requested_generation</c> has since advanced.
     /// Returns false, changing nothing, under the same fencing as

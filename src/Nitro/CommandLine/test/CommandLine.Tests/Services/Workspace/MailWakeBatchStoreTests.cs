@@ -149,6 +149,71 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task TryClaimAsync_Should_ReturnNull_When_TheActiveBatchLeaseHasNotExpiredYet()
+    {
+        // arrange: a batch claimed with a 10s lease.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
+
+        // act: a second owner tries to claim 5s later, before expiry.
+        var secondClaim = await _batches.TryClaimAsync(
+            InstanceId, Actor, "owner-2", "attempt-2", [Target], now + TimeSpan.FromSeconds(5),
+            TimeSpan.FromSeconds(10), cancellationToken);
+
+        // assert
+        Assert.NotNull(firstClaim);
+        Assert.Null(secondClaim);
+    }
+
+    [Fact]
+    public async Task TryClaimAsync_Should_ReclaimTheActor_When_TheActiveBatchLeaseHasExpired()
+    {
+        // arrange: a batch claimed with a 10s lease.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
+
+        // act: a new owner claims 11s later, after the lease expired.
+        var secondClaim = await _batches.TryClaimAsync(
+            InstanceId, Actor, "owner-2", "attempt-2", [Target], now + TimeSpan.FromSeconds(11),
+            TimeSpan.FromSeconds(10), cancellationToken);
+
+        // assert
+        Assert.NotNull(secondClaim);
+        Assert.NotEqual(firstClaim.BatchId, secondClaim.BatchId);
+        await using var connection = await ConnectAsync(cancellationToken);
+        var oldStatus = await ExecuteScalarStringAsync(
+            connection, $"SELECT status FROM mail_wake_batches WHERE batch_id = '{firstClaim.BatchId}'", cancellationToken);
+        Assert.Equal("released", oldStatus);
+    }
+
+    [Fact]
+    public async Task TryCompleteAsync_Should_ReturnFalse_When_BatchWasReclaimedAfterExpiry()
+    {
+        // arrange: the original batch's lease expires and a new owner reclaims the actor.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
+        await _batches.TryClaimAsync(
+            InstanceId, Actor, "owner-2", "attempt-2", [Target], now + TimeSpan.FromSeconds(11),
+            TimeSpan.FromSeconds(10), cancellationToken);
+
+        // act: the stale owner tries to complete the batch it no longer holds.
+        var completed = await _batches.TryCompleteAsync(
+            firstClaim.BatchId, "owner-1", "attempt-1", now + TimeSpan.FromSeconds(12), cancellationToken);
+
+        // assert
+        Assert.False(completed);
+        await using var connection = await ConnectAsync(cancellationToken);
+        var settledGeneration = await ExecuteScalarLongAsync(
+            connection,
+            $"SELECT settled_generation FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            cancellationToken);
+        Assert.Equal(0, settledGeneration);
+    }
+
+    [Fact]
     public async Task TryClaimAsync_Should_ClaimExactlyOnce_When_ConcurrentCallersRaceTheSameActor()
     {
         // arrange: separate connections (Pooling=False, matching production)

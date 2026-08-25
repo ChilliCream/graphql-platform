@@ -15,7 +15,7 @@ internal interface IMailWakeDaemonLeaderStore
     /// <c>expires_at &gt; now</c>, not by owner identity, so a would-be
     /// leader waiting out a live lease from its own prior attempt also
     /// fails, not just a different owner). Succeeding increments
-    /// <see cref="MailWakeDaemonRecord.Epoch"/> from whatever it was before
+    /// <c>mail_wake_daemons.epoch</c> from whatever it was before
     /// (1 on first creation), so every successive owner, including the same
     /// one reclaiming after its own expiry, gets a fresh epoch a stale write
     /// under the old one can no longer fence past.
