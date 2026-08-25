@@ -400,7 +400,12 @@ public sealed class TuiShellTabsTests
         // arrange
         var mailStore = new FakeMailStore();
         mailStore.Messages.Add(MailMessageBuilder.Create("m1"));
-        var mailMode = new MailMode(mailStore, "actor", new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
+        var mailMode = new MailMode(
+            mailStore,
+            "actor",
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new DaemonOwnedActorWakeDispatcher(),
+            new FakeMailWakeReceiptObserver());
         var mailTab = new TuiTab(
             () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
             mnemonic: 'M',

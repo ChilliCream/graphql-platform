@@ -1,7 +1,10 @@
+using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
+using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
@@ -112,6 +115,26 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         "Fold only applies to threaded view. Press Shift+V for threaded view.";
 
     /// <summary>
+    /// The <see cref="TuiEffectQueue{TResult}.TrySubmit"/> dedupe key every
+    /// compose and reply submission shares: only one send may be in flight
+    /// at a time, regardless of which form it came from.
+    /// </summary>
+    private const string SendDedupeKey = "mail.send";
+
+    private const string SendingToastText = "Sending…";
+    private const string SendInFlightToastText = "A message is already sending. Try again shortly.";
+
+    /// <summary>
+    /// Shown for a <see cref="TuiEffectCompletion{TResult}.Faulted"/> or
+    /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> completion: both
+    /// mean the send effect itself never reached a <see cref="MailSendOutcome"/>
+    /// at all, which only happens before the store write is attempted (every
+    /// path after it is shielded into a definite outcome; see
+    /// <see cref="ReconcileWakeAsync"/>), so nothing was stored.
+    /// </summary>
+    private const string SendDidNotStartToastText = "Sending did not complete; the message was not stored.";
+
+    /// <summary>
     /// The <see cref="CapturingHints"/> shown while the fold prefix (z) is
     /// pending its second key.
     /// </summary>
@@ -135,10 +158,21 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     private readonly IMailStore _store;
     private readonly IAgentRegistry _agentRegistry;
+    private readonly IActorWakeDispatcher _wakeDispatcher;
+    private readonly IMailWakeReceiptObserver _wakeObserver;
     private readonly MailState _state;
     private readonly MailDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
+    private readonly CancellationToken _effectCancellationToken;
     private readonly Viewport _listViewport = new(0, 0);
+
+    /// <summary>
+    /// Runs a compose or reply submission's store-plus-wake workflow off the
+    /// input/render thread; see <see cref="SubmitCompose"/>, <see cref="SubmitReply"/>,
+    /// and <see cref="CreateQuitGate"/>. At most one submission is in flight
+    /// at a time (see <see cref="SendDedupeKey"/>).
+    /// </summary>
+    private readonly TuiEffectQueue<MailSendOutcome> _sendEffects = new();
 
     /// <summary>
     /// Every registered agent's <see cref="AgentRecord.Client"/>, keyed by
@@ -159,16 +193,51 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private QuickPicker? _agentPicker;
     private bool _foldPrefixPending;
 
-    public MailMode(IMailStore store, string actor, IAgentRegistry agentRegistry, TimeProvider? timeProvider = null)
+    /// <summary>
+    /// Builds a mail board over <paramref name="store"/> for <paramref name="actor"/>.
+    /// </summary>
+    /// <param name="store">The mail store every read and write goes through.</param>
+    /// <param name="actor">The acting agent.</param>
+    /// <param name="agentRegistry">Resolves every registered agent's client attribution.</param>
+    /// <param name="wakeDispatcher">
+    /// Attempts direct dispatch for a compose or reply's recipients, run as
+    /// part of <see cref="MailWakeDispatch.RunAsync"/> off the input thread.
+    /// The standalone board is expected to pass the real dispatcher (never
+    /// starting a daemon of its own); the unified dashboard, where a
+    /// <see cref="IMailWakeDaemonCoordinator"/> already owns dispatch for the
+    /// whole session, is expected to pass <see cref="DaemonOwnedActorWakeDispatcher"/>
+    /// instead, so this mode only observes what the running daemon settles.
+    /// </param>
+    /// <param name="wakeObserver">Reads back a submission's durable wake outcome.</param>
+    /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>.</param>
+    /// <param name="effectCancellationToken">
+    /// Cancels a pending send's post-commit wake dispatch/observe step (see
+    /// <see cref="ReconcileWakeAsync"/>); the store write itself is always
+    /// shielded from it. Defaults to <see cref="CancellationToken.None"/>
+    /// for a caller with no shutdown signal to plumb through.
+    /// </param>
+    public MailMode(
+        IMailStore store,
+        string actor,
+        IAgentRegistry agentRegistry,
+        IActorWakeDispatcher wakeDispatcher,
+        IMailWakeReceiptObserver wakeObserver,
+        TimeProvider? timeProvider = null,
+        CancellationToken effectCancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(actor);
         ArgumentNullException.ThrowIfNull(agentRegistry);
+        ArgumentNullException.ThrowIfNull(wakeDispatcher);
+        ArgumentNullException.ThrowIfNull(wakeObserver);
 
         _store = store;
         _agentRegistry = agentRegistry;
+        _wakeDispatcher = wakeDispatcher;
+        _wakeObserver = wakeObserver;
         _state = new MailState(actor, new MailDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _effectCancellationToken = effectCancellationToken;
     }
 
     /// <summary>
@@ -237,7 +306,22 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<TuiMessage> Handle(TuiMessage message) => message switch
+    /// <remarks>
+    /// Drains <see cref="_sendEffects"/> ahead of dispatching
+    /// <paramref name="message"/> itself, so any compose or reply completion
+    /// persisted since the last call surfaces as a toast the moment any
+    /// message reaches this mode - most reliably <see cref="TuiMessage.RefreshRequested"/>,
+    /// which the workspace database watcher raises on the same write this
+    /// mode's own send effect just made (see <see cref="DrainEffectQueue"/>).
+    /// </remarks>
+    public IReadOnlyList<TuiMessage> Handle(TuiMessage message)
+    {
+        var completions = DrainEffectQueue();
+        var handled = HandleCore(message);
+        return completions.Count == 0 ? handled : [.. completions, .. handled];
+    }
+
+    private IReadOnlyList<TuiMessage> HandleCore(TuiMessage message) => message switch
     {
         TuiMessage.MoveCursor(CursorDirection.Up) => MoveOrScroll(-1),
         TuiMessage.MoveCursor(CursorDirection.Down) => MoveOrScroll(1),
@@ -611,20 +695,28 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         return [];
     }
 
+    /// <summary>
+    /// Snapshots the compose form's validated values on this, the input
+    /// thread, then submits the whole store-plus-wake workflow to
+    /// <see cref="_sendEffects"/> so it runs off-thread. Duplicate submits
+    /// (a second send already in flight under <see cref="SendDedupeKey"/>)
+    /// are refused with a toast, leaving the form open with its values
+    /// intact rather than losing them; a successful submit closes the form
+    /// immediately; see <see cref="DrainEffectQueue"/> for how its eventual
+    /// outcome surfaces.
+    /// </summary>
     private IReadOnlyList<TuiMessage> SubmitCompose(FormResult.Submitted submitted)
     {
-        var outcome = _composeForm!.SubmitAsync(_store, submitted.Values, _state.Actor, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var creation = MailComposeForm.BuildCreation(submitted.Values, _state.Actor);
 
-        if (outcome is not MailSendOutcome.Succeeded)
+        if (!_sendEffects.TrySubmit(
+            SendDedupeKey, (_, ct) => RunSendEffectAsync(creation, ct), _effectCancellationToken, out _))
         {
-            return [outcome.ToShowToast()];
+            return [new TuiMessage.ShowToast(SendInFlightToastText, ToastStyle.Warn)];
         }
 
         _composeForm = null;
-        RefreshBlocking();
-
-        return [outcome.ToShowToast()];
+        return [new TuiMessage.ShowToast(SendingToastText, ToastStyle.Info)];
     }
 
     private IReadOnlyList<TuiMessage> HandleReplyFormKey(ConsoleKeyInfo info)
@@ -654,21 +746,189 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         return [];
     }
 
+    /// <summary>
+    /// The reply form's counterpart to <see cref="SubmitCompose"/>: same
+    /// snapshot-then-submit-off-thread shape, sharing <see cref="SendDedupeKey"/>
+    /// with compose so at most one send of either kind is ever in flight.
+    /// </summary>
     private IReadOnlyList<TuiMessage> SubmitReply(FormResult.Submitted submitted)
     {
-        var outcome = _replyForm!.SubmitAsync(_store, submitted.Values, _state.Actor, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var request = _replyForm!.BuildRequest(submitted.Values, _state.Actor);
 
-        if (outcome is not MailSendOutcome.Succeeded)
+        if (!_sendEffects.TrySubmit(
+            SendDedupeKey, (_, ct) => RunReplyEffectAsync(request, ct), _effectCancellationToken, out _))
         {
-            return [outcome.ToShowToast()];
+            return [new TuiMessage.ShowToast(SendInFlightToastText, ToastStyle.Warn)];
         }
 
         _replyForm = null;
-        RefreshBlocking();
-
-        return [outcome.ToShowToast()];
+        return [new TuiMessage.ShowToast(SendingToastText, ToastStyle.Info)];
     }
+
+    /// <summary>
+    /// The compose send effect body: writes the message, then hands off to
+    /// <see cref="ReconcileWakeAsync"/>. The store write itself uses
+    /// <see cref="CancellationToken.None"/>, never <paramref name="cancellationToken"/>:
+    /// a submitted send must always either fully commit or fully roll back
+    /// on its own terms, never be left ambiguous by an unrelated shutdown
+    /// signal arriving mid-write (see the type remarks on
+    /// <see cref="MailSendOutcome"/>). Only <see cref="ExitException"/> means
+    /// the store rejected the write outright; every other exception (a
+    /// genuine bug) is left to propagate and reach the effect queue as
+    /// <see cref="TuiEffectCompletion{TResult}.Faulted"/>, which
+    /// <see cref="DrainEffectQueue"/> also reports as unsent.
+    /// </summary>
+    private async Task<MailSendOutcome> RunSendEffectAsync(
+        MailMessageCreation creation, CancellationToken cancellationToken)
+    {
+        MailMessage message;
+
+        try
+        {
+            message = await _store.SendMessageAsync(creation, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (ExitException ex)
+        {
+            return new MailSendOutcome.Failed(ex.Message);
+        }
+
+        return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// The reply form's counterpart to <see cref="RunSendEffectAsync"/>.
+    /// </summary>
+    private async Task<MailSendOutcome> RunReplyEffectAsync(
+        MailReplyRequest request, CancellationToken cancellationToken)
+    {
+        MailMessage message;
+
+        try
+        {
+            message = await _store.ReplyMessageAsync(
+                    request.InReplyToId, request.Actor, request.Body, MailWakePolicy.Enqueue, CancellationToken.None)
+                .ConfigureAwait(false);
+        }
+        catch (ExitException ex)
+        {
+            return new MailSendOutcome.Failed(ex.Message);
+        }
+
+        return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Runs the actor-wake dispatch-and-observe step for an already-committed
+    /// <paramref name="message"/>: <see cref="_wakeDispatcher"/> and
+    /// <see cref="_wakeObserver"/> decide, between the standalone board and
+    /// the unified dashboard, whether this call attempts direct dispatch or
+    /// only observes what a running daemon settles (see the constructor's
+    /// remarks on <c>wakeDispatcher</c>). <paramref name="message"/> is
+    /// already known and durable by the time this runs, so any failure here,
+    /// cancellation included, can never mean the message itself was not
+    /// sent - only that its wake outcome could not be reconciled this time,
+    /// reported as <see cref="MailSendOutcome.Reconciled"/> rather than
+    /// letting the exception reach the effect queue as a
+    /// <see cref="TuiEffectCompletion{TResult}.Faulted"/> or
+    /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> completion, which
+    /// would obscure that the store write itself already succeeded.
+    /// </summary>
+    private async Task<MailSendOutcome> ReconcileWakeAsync(MailMessage message, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var notification = await MailWakeDispatch.RunAsync(
+                    message, noPing: false, _wakeDispatcher, _wakeObserver, _timeProvider, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new MailSendOutcome.Succeeded(message, notification);
+        }
+        catch (Exception)
+        {
+            return new MailSendOutcome.Reconciled(message);
+        }
+    }
+
+    /// <summary>
+    /// Drains every compose/reply completion persisted to
+    /// <see cref="_sendEffects"/> since the last call, turning each into its
+    /// toast (<see cref="MailSendOutcome.ToShowToast"/> for a completed
+    /// effect; <see cref="SendDidNotStartToastText"/> for the
+    /// <see cref="TuiEffectCompletion{TResult}.Faulted"/> or
+    /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> cases a submitted
+    /// effect can, in principle, still reach before its store write is even
+    /// attempted). A committed completion also refreshes this mode's loaded
+    /// data, so the new message appears without waiting for the next
+    /// database-watcher tick.
+    /// </summary>
+    private IReadOnlyList<TuiMessage> DrainEffectQueue()
+    {
+        var completions = _sendEffects.DrainCompletions();
+
+        if (completions.Count == 0)
+        {
+            return [];
+        }
+
+        var toasts = new List<TuiMessage>(completions.Count);
+        var committed = false;
+
+        foreach (var completion in completions)
+        {
+            switch (completion)
+            {
+                case TuiEffectCompletion<MailSendOutcome>.Completed completed:
+                    toasts.Add(completed.Result.ToShowToast());
+                    committed |= completed.Result is MailSendOutcome.Succeeded or MailSendOutcome.Reconciled;
+                    break;
+
+                default:
+                    toasts.Add(new TuiMessage.ShowToast(SendDidNotStartToastText, ToastStyle.Error));
+                    break;
+            }
+        }
+
+        if (committed)
+        {
+            RefreshBlocking();
+        }
+
+        return toasts;
+    }
+
+    /// <summary>
+    /// Builds the <see cref="TuiQuitGate"/> a hosting command registers with
+    /// <see cref="TuiShell"/>: stops accepting new sends, bounded-drains
+    /// whatever is already in flight, and reports what remained. A cancelled
+    /// second confirmation must call <see cref="ResumeSendAcceptance"/>, per
+    /// <see cref="TuiQuitGate"/>'s own contract.
+    /// </summary>
+    public TuiQuitGate CreateQuitGate() => async (bound, cancellationToken) =>
+    {
+        _sendEffects.StopAccepting();
+        await _sendEffects.DrainPendingAsync(bound, cancellationToken).ConfigureAwait(false);
+        return new TuiQuitGateReport(_sendEffects.PendingCount, OutcomeUnknownCount: 0, _sendEffects.PendingOperationIds);
+    };
+
+    /// <summary>
+    /// Reverses <see cref="CreateQuitGate"/>'s <c>StopAccepting</c> after a
+    /// cancelled second quit confirmation, per <see cref="TuiShell.QuitCancelled"/>'s
+    /// own contract.
+    /// </summary>
+    public void ResumeSendAcceptance() => _sendEffects.ResumeAccepting();
+
+    /// <summary>
+    /// A final, unconditional, bounded chance for a send still in flight to
+    /// land before the host process exits: unlike <see cref="CreateQuitGate"/>,
+    /// this never runs interactively and never blocks a normal quit, so it
+    /// is the only shield a Ctrl+C or host-cancelled exit gets. A submitted
+    /// send's own store write is itself un-cancellable (see <see cref="RunSendEffectAsync"/>),
+    /// so this bound only needs to cover that commit landing, not the
+    /// (separately bounded, and safely abandonable) wake dispatch that
+    /// follows it.
+    /// </summary>
+    public Task ShieldPendingSendsAsync(TimeSpan bound, CancellationToken cancellationToken)
+        => _sendEffects.DrainPendingAsync(bound, cancellationToken);
 
     private IReadOnlyList<TuiMessage> HandleDiscardDialogKey(ConsoleKeyInfo info)
     {

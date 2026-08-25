@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
@@ -35,8 +36,18 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
 
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _registry = new AgentRegistry(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
+
+        // The instance id and global config directory providers are only
+        // required for MailWakePolicy.Enqueue (see MailStore.SendMessageAsync/
+        // ReplyMessageAsync's remarks); MailMode always sends and replies
+        // with Enqueue, matching the CLI's own send/reply commands.
         _store = new MailStore(
-            new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase(), _registry);
+            new TestFileSystem(_workingDirectory),
+            _timeProvider,
+            new AgentDatabase(),
+            _registry,
+            new FixedInstanceIdProvider("host-1"),
+            new FixedGlobalConfigDirectoryProvider(_workingDirectory));
     }
 
     public async ValueTask DisposeAsync()
@@ -65,7 +76,37 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         await _store.InitializeWorkspaceAsync(_workspaceDirectory, cancellationToken);
     }
 
-    private MailMode CreateMode(string actor) => new(_store, actor, _registry, _timeProvider);
+    private MailMode CreateMode(string actor, FakeMailWakeReceiptObserver? wakeObserver = null) => new(
+        _store,
+        actor,
+        _registry,
+        new DaemonOwnedActorWakeDispatcher(),
+        wakeObserver ?? new FakeMailWakeReceiptObserver(),
+        _timeProvider);
+
+    /// <summary>
+    /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/>
+    /// until a compose/reply outcome toast drains; see the identical helper
+    /// in <c>MailModeTests</c>.
+    /// </summary>
+    private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
+        MailMode mode, CancellationToken cancellationToken)
+    {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+
+        while (true)
+        {
+            var result = mode.Handle(new TuiMessage.RefreshRequested());
+
+            if (result.Count > 0)
+            {
+                return Assert.IsType<TuiMessage.ShowToast>(Assert.Single(result));
+            }
+
+            await Task.Delay(5, timeoutCts.Token);
+        }
+    }
 
     [Fact]
     public async Task OpenSelected_Should_MarkMessageRead_AgainstTheRealStore()
@@ -126,13 +167,16 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ComposeForm_Submit_Should_ShowSuccessToast_And_CreateImplicitRow_When_RecipientIsUnknown()
+    public async Task ComposeForm_Submit_Should_CreateImplicitRow_When_RecipientIsUnknown()
     {
         // arrange: bd-agent-unify-814.9 replaced the store's hard fail on an
         // unknown recipient with mailbox-on-first-message: the send now
         // succeeds and implicit-creates the recipient's agent row, so the
         // compose form (which has no client-side recipient check of its own
-        // and only surfaces the store's ExitException) now sees a success.
+        // and only surfaces the store's ExitException) now sees the write
+        // itself succeed (the wake status, observed Pending here by the
+        // default fake observer, is reported separately, truthfully, not
+        // rolled into whether the store write itself succeeded).
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
         await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
@@ -146,14 +190,12 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         Type(mode, "Status");
         mode.HandleRawKey(Key(ConsoleKey.Tab));
         Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
         // act
-        var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+        await WaitForOutcomeToastAsync(mode, cancellationToken);
 
         // assert
-        var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
-
         var ghost = await _registry.GetAsync("ghost", cancellationToken);
         Assert.True(ghost?.Implicit);
     }
@@ -184,9 +226,9 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
 
         var replyForm = new MailReplyForm(tuiOriginal);
         var values = new Dictionary<string, FormValue> { [MailReplyForm.BodyFieldId] = new FormValue.Text("TUI reply") };
-        var outcome = await replyForm.SubmitAsync(_store, values, "alice", cancellationToken);
-        var succeeded = Assert.IsType<MailSendOutcome.Succeeded>(outcome);
-        var tuiReply = await _store.GetRequiredMessageAsync(succeeded.MessageId, cancellationToken);
+        var request = replyForm.BuildRequest(values, "alice");
+        var tuiReply = await _store.ReplyMessageAsync(
+            request.InReplyToId, request.Actor, request.Body, MailWakePolicy.Enqueue, cancellationToken);
 
         // assert
         var cliRecipientNames = cliReply.Recipients.Select(r => r.Name).OrderBy(n => n, StringComparer.Ordinal);

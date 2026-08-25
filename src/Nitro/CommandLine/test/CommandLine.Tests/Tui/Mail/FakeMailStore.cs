@@ -91,7 +91,12 @@ internal sealed class FakeMailStore : IMailStore
     /// Sends a message: every given recipient becomes a "to" recipient.
     /// Unlike the real store, no unknown-recipient validation happens here;
     /// that store-owned behavior is covered against a real
-    /// <see cref="Services.Mail.MailStore"/> instead.
+    /// <see cref="Services.Mail.MailStore"/> instead. When
+    /// <see cref="MailMessageCreation.WakePolicy"/> is
+    /// <see cref="MailWakePolicy.Enqueue"/>, every recipient gets a
+    /// <see cref="MailWakeReceipt"/> (an incrementing generation, mirroring
+    /// the real store's own per-recipient counter), matching the shape
+    /// <see cref="Commands.Mail.MailWakeDispatch.RunAsync"/> expects.
     /// </summary>
     public Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
     {
@@ -113,7 +118,8 @@ internal sealed class FakeMailStore : IMailStore
             Subject = creation.Subject,
             Body = creation.Body,
             CreatedAt = DateTimeOffset.UtcNow,
-            Recipients = recipients
+            Recipients = recipients,
+            WakeReceipts = BuildWakeReceipts(creation.WakePolicy, recipients)
         };
 
         Messages.Add(message);
@@ -125,7 +131,7 @@ internal sealed class FakeMailStore : IMailStore
     /// message's sender. Unlike the real store, cc recipients and the
     /// actor-exclusion rule are not reproduced here; that store-owned
     /// behavior is covered against a real <see cref="Services.Mail.MailStore"/>
-    /// instead.
+    /// instead. See <see cref="SendMessageAsync"/> for <paramref name="wakePolicy"/>.
     /// </summary>
     public Task<MailMessage> ReplyMessageAsync(
         string inReplyToId, string sender, string body, MailWakePolicy wakePolicy, CancellationToken cancellationToken)
@@ -134,6 +140,11 @@ internal sealed class FakeMailStore : IMailStore
             ?? throw new ExitException($"Message '{inReplyToId}' not found.");
 
         var id = NextId();
+        var recipients = new List<MailRecipient>
+        {
+            new() { Name = original.Sender, Kind = MailRecipientKinds.To, Ordinal = 0 }
+        };
+
         var message = new MailMessage
         {
             Id = id,
@@ -143,12 +154,20 @@ internal sealed class FakeMailStore : IMailStore
             Subject = original.Subject,
             Body = body,
             CreatedAt = DateTimeOffset.UtcNow,
-            Recipients = [new MailRecipient { Name = original.Sender, Kind = MailRecipientKinds.To, Ordinal = 0 }]
+            Recipients = recipients,
+            WakeReceipts = BuildWakeReceipts(wakePolicy, recipients)
         };
 
         Messages.Add(message);
         return Task.FromResult(message);
     }
+
+    private long _nextGeneration = 1;
+
+    private IReadOnlyList<MailWakeReceipt> BuildWakeReceipts(MailWakePolicy wakePolicy, IReadOnlyList<MailRecipient> recipients)
+        => wakePolicy == MailWakePolicy.Enqueue
+            ? recipients.Select(r => new MailWakeReceipt { Actor = r.Name, Generation = _nextGeneration++ }).ToList()
+            : [];
 
     public Task<MailMessage> GetRequiredMessageAsync(string id, CancellationToken cancellationToken)
         => throw new NotSupportedException();

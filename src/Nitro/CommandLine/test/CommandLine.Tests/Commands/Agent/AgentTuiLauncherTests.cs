@@ -80,7 +80,8 @@ public sealed class AgentTuiLauncherTests
         // act
         var taskActor = TaskActor.Resolve(null, environment.Object);
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object);
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object,
+            new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
         // assert: each actor came from its own variable, not the other's.
         Assert.Equal("task-actor", taskActor);
@@ -101,7 +102,8 @@ public sealed class AgentTuiLauncherTests
         // act
         var taskActor = TaskActor.Resolve(null, environment.Object);
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object);
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object,
+            new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
         // assert: the tasks actor is unaffected by the mail actor's
         // validation failure, and the mail tab hosts the error state
@@ -120,12 +122,74 @@ public sealed class AgentTuiLauncherTests
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object);
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object,
+            new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
         // assert: today's behavior, unchanged: a working MailMode, badge-free
         // title until a refresh reports unread messages.
         Assert.IsType<MailMode>(mailTab.RootMode);
         Assert.Equal("Mail", mailTab.Title);
+    }
+
+    [Fact]
+    public async Task BuildMailTab_Should_NeverDispatchDirectly_Relying_OnTheRunningDaemonInstead()
+    {
+        // arrange: the unified dashboard's mail tab is wired with
+        // DaemonOwnedActorWakeDispatcher (see BuildMailTab's remarks), so a
+        // compose only enqueues and observes; it must never fault even
+        // though nothing here ever actually dispatches, and its wake status
+        // is reported exactly as the observer says (Pending by default).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var environment = CreateEnvironment(mailActor: "alice").Object;
+        var store = new FakeMailStore();
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment,
+            new FakeMailWakeReceiptObserver(), cancellationToken);
+        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
+        mailMode.OnEnter();
+        mailMode.Handle(new TuiMessage.SelectInboxRequested());
+        mailMode.Handle(new TuiMessage.ComposeRequested());
+        foreach (var c in "bob")
+        {
+            mailMode.HandleRawKey(new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false));
+        }
+
+        mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.Tab, false, false, false));
+
+        foreach (var c in "Status")
+        {
+            mailMode.HandleRawKey(new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false));
+        }
+
+        mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.Tab, false, false, false));
+
+        foreach (var c in "Body")
+        {
+            mailMode.HandleRawKey(new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false));
+        }
+
+        mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.S, false, false, true));
+
+        // act
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+        IReadOnlyList<TuiMessage> outcome = [];
+
+        while (outcome.Count == 0)
+        {
+            outcome = mailMode.Handle(new TuiMessage.RefreshRequested());
+
+            if (outcome.Count == 0)
+            {
+                await Task.Delay(5, timeoutCts.Token);
+            }
+        }
+
+        // assert
+        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(outcome));
+        Assert.Equal(ToastStyle.Warn, toast.Style);
+        Assert.Contains("pending", toast.Text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(store.Messages, m => m.Sender == "alice" && m.Subject == "Status");
     }
 
     [Fact]
@@ -160,7 +224,9 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 timeProvider,
-                environment);
+                environment,
+                new FakeMailWakeReceiptObserver(),
+                TestContext.Current.CancellationToken);
 
             var shell = new TuiShell(
                 tabs,
@@ -201,7 +267,9 @@ public sealed class AgentTuiLauncherTests
             new FakeMailStore(),
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
             new FakeTimeProvider(Now),
-            environment.Object);
+            environment.Object,
+            new FakeMailWakeReceiptObserver(),
+            TestContext.Current.CancellationToken);
 
         // act: construction alone must not throw despite the Mail tab's
         // actor resolution failure.
@@ -300,6 +368,7 @@ public sealed class AgentTuiLauncherTests
                 CreateEnvironment(mailActor: "alice").Object,
                 workspaceDirectory,
                 coordinator.Object,
+                new FakeMailWakeReceiptObserver(),
                 runCts.Token);
 
             await Task.Delay(TimeSpan.FromMilliseconds(150), cancellationToken);
@@ -370,6 +439,7 @@ public sealed class AgentTuiLauncherTests
                 CreateEnvironment(mailActor: "alice").Object,
                 workspaceDirectory,
                 coordinator.Object,
+                new FakeMailWakeReceiptObserver(),
                 alreadyCancelled.Token).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
             // assert

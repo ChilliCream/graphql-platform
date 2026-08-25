@@ -14,8 +14,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// CLI's reply command calls, so the recipient set for a given message is
 /// identical whether the reply was sent from the CLI or here. The host is
 /// expected to feed it raw key input via <see cref="HandleKey"/> and call
-/// <see cref="SubmitAsync"/> once it returns <see cref="FormResult.Submitted"/>
-/// on the primary button.
+/// <see cref="BuildRequest"/> once it returns <see cref="FormResult.Submitted"/>
+/// on the primary button; the actual store write and actor-wake dispatch run
+/// off the input thread through <see cref="MailMode"/>'s own send effect,
+/// not synchronously from here.
 /// </summary>
 internal sealed class MailReplyForm
 {
@@ -75,32 +77,19 @@ internal sealed class MailReplyForm
     public IRenderable Render(int width, int height) => _form.Render(width, height);
 
     /// <summary>
-    /// Sends the reply from the submitted <paramref name="values"/> through
-    /// the mail store, carrying the message id this form was built with.
+    /// Snapshots the submitted <paramref name="values"/>, together with the
+    /// message id this form was built with, into a <see cref="MailReplyRequest"/>
+    /// ready for <see cref="IMailStore.ReplyMessageAsync(string, string, string, MailWakePolicy, CancellationToken)"/>.
+    /// Pure and synchronous; the body is already validated by the time a
+    /// <see cref="FormResult.Submitted"/> carries these values, so this does
+    /// no I/O and cannot fail.
     /// </summary>
-    public async Task<MailSendOutcome> SubmitAsync(
-        IMailStore store,
-        IReadOnlyDictionary<string, FormValue> values,
-        string actor,
-        CancellationToken cancellationToken)
+    public MailReplyRequest BuildRequest(IReadOnlyDictionary<string, FormValue> values, string actor)
     {
-        ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(values);
         ArgumentException.ThrowIfNullOrEmpty(actor);
 
-        var body = Text(values, BodyFieldId);
-
-        try
-        {
-            var message = await store.ReplyMessageAsync(_inReplyToId, actor, body, cancellationToken)
-                .ConfigureAwait(false);
-
-            return new MailSendOutcome.Succeeded(message.Id, $"Sent '{message.Id}'.");
-        }
-        catch (ExitException ex)
-        {
-            return new MailSendOutcome.Failed(ex.Message);
-        }
+        return new MailReplyRequest(_inReplyToId, actor, Text(values, BodyFieldId));
     }
 
     private static string? RequireBody(FormValue value)
@@ -114,3 +103,12 @@ internal sealed class MailReplyForm
     private static string Text(IReadOnlyDictionary<string, FormValue> values, string id)
         => values[id] is FormValue.Text { Value: var value } ? value : "";
 }
+
+/// <summary>
+/// A <see cref="MailReplyForm"/> submission snapshot: the message it replies
+/// to, the acting agent, and the reply body, ready for
+/// <see cref="IMailStore.ReplyMessageAsync(string, string, string, MailWakePolicy, CancellationToken)"/>
+/// with <see cref="MailWakePolicy.Enqueue"/>, matching the CLI's own reply
+/// command.
+/// </summary>
+internal sealed record MailReplyRequest(string InReplyToId, string Actor, string Body);

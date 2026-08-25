@@ -27,6 +27,13 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 internal static class AgentTuiLauncher
 {
     /// <summary>
+    /// The bound for the final, unconditional shield drain in
+    /// <see cref="RunAsync"/>'s <c>finally</c> block; see
+    /// <see cref="MailMode.ShieldPendingSendsAsync"/>.
+    /// </summary>
+    private static readonly TimeSpan SendShieldBound = TimeSpan.FromSeconds(2);
+
+    /// <summary>
     /// Runs the tabbed shell until the user quits or
     /// <paramref name="cancellationToken"/> is cancelled, returning the
     /// shell's exit code. Owns <paramref name="mailWakeDaemonCoordinator"/>'s
@@ -52,12 +59,19 @@ internal static class AgentTuiLauncher
         IEnvironmentVariableProvider environmentVariableProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
+        IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken cancellationToken)
     {
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
 
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
+
+        // Built ahead of BuildTabs so the mail tab's own send effects can be
+        // plumbed the same shutdown signal (Ctrl+C or the caller's own
+        // cancellation) this loop itself runs on; see MailMode's
+        // constructor remarks.
+        using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var tabs = BuildTabs(
             taskStore,
@@ -67,7 +81,14 @@ internal static class AgentTuiLauncher
             agentSessionRegistry,
             activityReader,
             timeProvider,
-            environmentVariableProvider);
+            environmentVariableProvider,
+            mailWakeReceiptObserver,
+            quitCts.Token);
+
+        // A working Mail tab hosts a MailMode (an invalid actor hosts
+        // MailUnavailableMode instead, see BuildMailTab); only the former
+        // needs a quit gate.
+        var mailMode = tabs.Select(t => t.RootMode).OfType<MailMode>().FirstOrDefault();
 
         var shell = new TuiShell(
             tabs,
@@ -79,12 +100,17 @@ internal static class AgentTuiLauncher
             taskStore,
             actor,
             mailStore,
-            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State);
+            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
+            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
-        using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();
+
+        if (mailMode is not null)
+        {
+            shell.QuitCancelled += mailMode.ResumeSendAcceptance;
+        }
 
         // Started outside TuiApplication's own loop, after the shell exists
         // but before it runs, so a startup failure building the shell above
@@ -107,6 +133,14 @@ internal static class AgentTuiLauncher
             // method's cancellation token (already cancelled or cancelling
             // on most of these paths).
             await mailWakeDaemonCoordinator.StopAsync(CancellationToken.None);
+
+            // Unconditional, mirroring BoardMailCommand: covers the
+            // Ctrl+C/host-cancellation path the interactive quit gate above
+            // never runs for.
+            if (mailMode is not null)
+            {
+                await mailMode.ShieldPendingSendsAsync(SendShieldBound, CancellationToken.None);
+            }
         }
 
         return ExitCodes.Success;
@@ -124,13 +158,17 @@ internal static class AgentTuiLauncher
         IAgentSessionRegistry agentSessionRegistry,
         IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
-        IEnvironmentVariableProvider environmentVariableProvider)
+        IEnvironmentVariableProvider environmentVariableProvider,
+        IMailWakeReceiptObserver mailWakeReceiptObserver,
+        CancellationToken effectCancellationToken = default)
     {
         var loader = new BoardDataLoader(taskStore, timeProvider);
         var boardMode = new BoardMode(loader);
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-        var mailTab = BuildMailTab(mailStore, agentRegistry, timeProvider, environmentVariableProvider);
+        var mailTab = BuildMailTab(
+            mailStore, agentRegistry, timeProvider, environmentVariableProvider, mailWakeReceiptObserver,
+            effectCancellationToken);
 
         var agentsMode = new AgentsMode(taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
@@ -148,18 +186,33 @@ internal static class AgentTuiLauncher
     /// <see cref="MailActor.Resolve"/>), the tab hosts a static
     /// <see cref="MailUnavailableMode"/> instead, so the shell still opens
     /// on the Tasks tab with a working Mail tab title and no unread
-    /// polling.
+    /// polling. A working tab's <see cref="MailMode"/> is wired with
+    /// <see cref="DaemonOwnedActorWakeDispatcher"/> rather than a real
+    /// <see cref="IActorWakeDispatcher"/>: the unified dashboard's own
+    /// <see cref="IMailWakeDaemonCoordinator"/> already owns dispatch for
+    /// the whole session, so a compose or reply here only needs to enqueue
+    /// and observe, never dispatch directly; see <see cref="MailMode"/>'s
+    /// constructor remarks.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,
         IAgentRegistry agentRegistry,
         TimeProvider timeProvider,
-        IEnvironmentVariableProvider environmentVariableProvider)
+        IEnvironmentVariableProvider environmentVariableProvider,
+        IMailWakeReceiptObserver mailWakeReceiptObserver,
+        CancellationToken effectCancellationToken = default)
     {
         try
         {
             var mailActor = MailActor.Resolve(null, environmentVariableProvider);
-            var mailMode = new MailMode(mailStore, mailActor, agentRegistry, timeProvider);
+            var mailMode = new MailMode(
+                mailStore,
+                mailActor,
+                agentRegistry,
+                new DaemonOwnedActorWakeDispatcher(),
+                mailWakeReceiptObserver,
+                timeProvider,
+                effectCancellationToken);
 
             return new TuiTab(
                 () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",

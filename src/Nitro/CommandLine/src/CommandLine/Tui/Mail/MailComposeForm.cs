@@ -7,48 +7,16 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The outcome of submitting a <see cref="MailComposeForm"/> or
-/// <see cref="MailReplyForm"/> against the mail store.
-/// </summary>
-internal abstract record MailSendOutcome
-{
-    private MailSendOutcome()
-    {
-    }
-
-    /// <summary>
-    /// The message was sent, carrying the id the store allocated for it.
-    /// </summary>
-    public sealed record Succeeded(string MessageId, string ToastText) : MailSendOutcome;
-
-    /// <summary>
-    /// The store rejected the write, carrying its <see cref="ExitException"/>
-    /// message: for the compose form, this is how an unknown recipient
-    /// surfaces.
-    /// </summary>
-    public sealed record Failed(string ToastText) : MailSendOutcome;
-
-    /// <summary>
-    /// The shell toast this outcome should show: success styled for
-    /// <see cref="Succeeded"/>, error styled for <see cref="Failed"/>.
-    /// </summary>
-    public TuiMessage.ShowToast ToShowToast() => this switch
-    {
-        Succeeded succeeded => new TuiMessage.ShowToast(succeeded.ToastText, ToastStyle.Success),
-        Failed failed => new TuiMessage.ShowToast(failed.ToastText, ToastStyle.Error),
-        _ => throw new NotSupportedException()
-    };
-}
-
-/// <summary>
 /// The compose form: recipients, subject, and body. Recipients are parsed
 /// as a comma-separated list and validated by
 /// <see cref="IMailStore.SendMessageAsync"/>, the same store member the
 /// CLI's send command calls, so an unknown recipient surfaces as its
 /// <see cref="ExitException"/> message rather than a client-side check. The
 /// host is expected to feed it raw key input via <see cref="HandleKey"/>
-/// and call <see cref="SubmitAsync"/> once it returns
-/// <see cref="FormResult.Submitted"/> on the primary button.
+/// and call <see cref="BuildCreation"/> once it returns
+/// <see cref="FormResult.Submitted"/> on the primary button; the actual
+/// store write and actor-wake dispatch run off the input thread through
+/// <see cref="MailMode"/>'s own send effect, not synchronously from here.
 /// </summary>
 internal sealed class MailComposeForm
 {
@@ -114,41 +82,28 @@ internal sealed class MailComposeForm
     public IRenderable Render(int width, int height) => _form.Render(width, height);
 
     /// <summary>
-    /// Sends the message from the submitted <paramref name="values"/>
-    /// through the mail store.
+    /// Snapshots the submitted <paramref name="values"/> into a
+    /// <see cref="MailMessageCreation"/> ready for <see cref="IMailStore.SendMessageAsync"/>,
+    /// with <see cref="MailMessageCreation.WakePolicy"/> set to
+    /// <see cref="MailWakePolicy.Enqueue"/> so a board send behaves like the
+    /// CLI's own send command: a live recipient is woken, not merely stored.
+    /// Pure and synchronous; every field is already validated by the time a
+    /// <see cref="FormResult.Submitted"/> carries these values, so this does
+    /// no I/O and cannot fail.
     /// </summary>
-    public async Task<MailSendOutcome> SubmitAsync(
-        IMailStore store,
-        IReadOnlyDictionary<string, FormValue> values,
-        string actor,
-        CancellationToken cancellationToken)
+    public static MailMessageCreation BuildCreation(IReadOnlyDictionary<string, FormValue> values, string actor)
     {
-        ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(values);
         ArgumentException.ThrowIfNullOrEmpty(actor);
 
-        var to = ParseRecipients(Text(values, ToFieldId));
-        var subject = Text(values, SubjectFieldId);
-        var body = Text(values, BodyFieldId);
-
-        try
+        return new MailMessageCreation
         {
-            var message = await store.SendMessageAsync(
-                new MailMessageCreation
-                {
-                    Sender = actor,
-                    Subject = subject,
-                    Body = body,
-                    To = to
-                },
-                cancellationToken).ConfigureAwait(false);
-
-            return new MailSendOutcome.Succeeded(message.Id, $"Sent '{message.Id}'.");
-        }
-        catch (ExitException ex)
-        {
-            return new MailSendOutcome.Failed(ex.Message);
-        }
+            Sender = actor,
+            Subject = Text(values, SubjectFieldId),
+            Body = Text(values, BodyFieldId),
+            To = ParseRecipients(Text(values, ToFieldId)),
+            WakePolicy = MailWakePolicy.Enqueue
+        };
     }
 
     private static IReadOnlyList<string> ParseRecipients(string value)
