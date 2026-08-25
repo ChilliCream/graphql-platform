@@ -419,7 +419,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var sendResult = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "Merged.");
+            "agent", "mail", "send", "bob", "--no-ping", "--subject", "Status", "--body", "Merged.");
 
         // assert
         Assert.Equal(0, registerResult.ExitCode);

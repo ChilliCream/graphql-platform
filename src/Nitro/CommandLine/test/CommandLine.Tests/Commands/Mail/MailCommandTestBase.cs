@@ -1,7 +1,5 @@
 using System.Diagnostics;
-using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
-using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
@@ -221,29 +219,5 @@ public abstract class MailCommandTestBase : CommandTestBase
     {
         await base.DisposeAsync();
         _tempRoot.Delete(recursive: true);
-    }
-}
-
-/// <summary>
-/// Reports every launch as failed, without spawning anything - proves the
-/// notifier's spawn-failure recording without a real detached process.
-/// </summary>
-internal sealed class FailingPingWorkerLauncher : IPingWorkerLauncher
-{
-    public bool TryLaunch(LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs) => false;
-}
-
-/// <summary>
-/// Records every launch it is asked to perform, without spawning anything -
-/// proves a suppressed notify path never reaches the launcher at all.
-/// </summary>
-internal sealed class RecordingPingWorkerLauncher : IPingWorkerLauncher
-{
-    public List<IReadOnlyList<string>> Calls { get; } = [];
-
-    public bool TryLaunch(LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs)
-    {
-        Calls.Add(workerArgs);
-        return false;
     }
 }

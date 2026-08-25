@@ -41,7 +41,9 @@ internal sealed class BroadcastMailCommand : Command
         var store = services.GetRequiredService<IMailStore>();
         var registry = services.GetRequiredService<IAgentRegistry>();
         var sessions = services.GetRequiredService<IAgentSessionRegistry>();
-        var notifier = services.GetRequiredService<INotifier>();
+        var dispatcher = services.GetRequiredService<IActorWakeDispatcher>();
+        var wakeObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
@@ -72,32 +74,37 @@ internal sealed class BroadcastMailCommand : Command
                 Sender = actor,
                 Subject = subject,
                 Body = body,
-                To = to
+                To = to,
+                WakePolicy = noPing ? MailWakePolicy.Skip : MailWakePolicy.Enqueue
             },
             cancellationToken);
 
-        if (!noPing)
-        {
-            try
-            {
-                await notifier.NotifyAsync(
-                    message.Recipients.Select(recipient => recipient.Name).ToArray(), cancellationToken);
-            }
-            catch
-            {
-                // A failed ping is a non-event.
-            }
-        }
+        // Strictly post-commit: the message is already durably written above,
+        // and nothing from here on can make it not exist. It can still make
+        // this command's own exit code and output report the wake truthfully.
+        var notification = await MailWakeDispatch.RunAsync(
+            message, noPing, dispatcher, wakeObserver, timeProvider, cancellationToken);
+        var delivered = WakeReceiptAggregator.IsZero(notification.Status);
+
+        var result = MailMessageResult.Create(message, notification);
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(MailMessageResult.Create(message)));
-            return ExitCodes.Success;
+            resultHolder.SetResult(new ObjectResult(result));
+            return delivered ? ExitCodes.Success : ExitCodes.Error;
+        }
+
+        if (!delivered)
+        {
+            MailWakeHumanText.WriteStoredButUnconfirmed(console, message, notification, []);
+            return ExitCodes.Error;
         }
 
         console.OkLine(
             $"Sent '{message.Id.EscapeMarkup()}' to "
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
+
+        MailWakeHumanText.WriteDelivered(console, notification);
 
         return ExitCodes.Success;
     }

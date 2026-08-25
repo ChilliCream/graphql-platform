@@ -39,7 +39,9 @@ internal sealed class SendMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
-        var notifier = services.GetRequiredService<INotifier>();
+        var dispatcher = services.GetRequiredService<IActorWakeDispatcher>();
+        var wakeObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
@@ -60,31 +62,30 @@ internal sealed class SendMailCommand : Command
                 Subject = subject,
                 Body = body,
                 To = to,
-                Cc = cc
+                Cc = cc,
+                WakePolicy = noPing ? MailWakePolicy.Skip : MailWakePolicy.Enqueue
             },
             cancellationToken);
 
         // Strictly post-commit: the message is already durably written above,
-        // and nothing from here on may alter this command's own exit code or
-        // output (the notifier contract - Notifier.NotifyAsync never throws
-        // on its own, but this call is wrapped anyway as defense in depth).
-        if (!noPing)
-        {
-            try
-            {
-                await notifier.NotifyAsync(
-                    message.Recipients.Select(recipient => recipient.Name).ToArray(), cancellationToken);
-            }
-            catch
-            {
-                // A failed ping is a non-event.
-            }
-        }
+        // and nothing from here on can make it not exist. It can still make
+        // this command's own exit code and output report the wake truthfully.
+        var notification = await MailWakeDispatch.RunAsync(
+            message, noPing, dispatcher, wakeObserver, timeProvider, cancellationToken);
+        var delivered = WakeReceiptAggregator.IsZero(notification.Status);
+
+        var result = MailSendResult.Create(message, notification);
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(MailSendResult.Create(message)));
-            return ExitCodes.Success;
+            resultHolder.SetResult(new ObjectResult(result));
+            return delivered ? ExitCodes.Success : ExitCodes.Error;
+        }
+
+        if (!delivered)
+        {
+            MailWakeHumanText.WriteStoredButUnconfirmed(console, message, notification, message.Unregistered);
+            return ExitCodes.Error;
         }
 
         console.OkLine(
@@ -95,6 +96,8 @@ internal sealed class SendMailCommand : Command
         {
             console.WriteLine($"note: '{name}' has never registered.");
         }
+
+        MailWakeHumanText.WriteDelivered(console, notification);
 
         return ExitCodes.Success;
     }

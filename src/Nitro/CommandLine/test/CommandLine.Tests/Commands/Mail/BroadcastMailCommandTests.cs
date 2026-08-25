@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
 
@@ -48,7 +49,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+            "agent", "mail", "broadcast", "--no-ping", "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
@@ -81,12 +82,12 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
         await ExecuteCommandAsync(
-            "agent", "mail", "send", "implicit-agent", "--actor", "test-agent",
+            "agent", "mail", "send", "implicit-agent", "--actor", "test-agent", "--no-ping",
             "--subject", "seed", "--body", "seed");
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+            "agent", "mail", "broadcast", "--no-ping", "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
         var id = await QueryScalarAsync(
@@ -109,7 +110,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--role", "backend",
+            "agent", "mail", "broadcast", "--role", "backend", "--no-ping",
             "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
@@ -181,7 +182,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "agent", "mail", "broadcast", "--role", "orchestrator", "--no-ping",
             "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
@@ -228,7 +229,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "agent", "mail", "broadcast", "--role", "orchestrator", "--no-ping",
             "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
@@ -257,7 +258,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "broadcast", "--role", "backend",
             "--subject", "backend broadcast", "--body", "Deploying.");
         var orchestratorResult = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "agent", "mail", "broadcast", "--role", "orchestrator", "--no-ping",
             "--subject", "orchestrator broadcast", "--body", "Deploying.");
 
         // assert
@@ -330,11 +331,11 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task RoleFilter_ResolvesTheLiveSession_And_LeavesItUntouched_When_NoWakeGenerationIsOutstanding()
+    public async Task RoleFilter_ResolvesTheLiveSession_And_LeavesItUntouched_When_TheWakeIsSkipped()
     {
-        // arrange: proves notifier fan-out still fires for a recipient
-        // resolved through the role-targeted, live-participant path, and
-        // stays clean since broadcast still defaults to MailWakePolicy.Skip.
+        // arrange: proves broadcast still resolves and reaches a recipient
+        // found through the role-targeted, live-participant path even when
+        // --no-ping leaves last_ping_result completely untouched.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-role-ping-test");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
@@ -345,7 +346,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--role", "orchestrator",
+            "agent", "mail", "broadcast", "--role", "orchestrator", "--no-ping",
             "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
@@ -384,7 +385,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+            "agent", "mail", "broadcast", "--no-ping", "--subject", "Heads up", "--body", "Deploying.");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -394,39 +395,108 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("test-agent", root.GetProperty("from").GetString());
         Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
+        Assert.True(root.GetProperty("messageStored").GetBoolean());
+        Assert.Equal("skipped", root.GetProperty("notification").GetProperty("status").GetString());
     }
 
     [Fact]
-    public async Task JsonOutput_Should_ReturnCleanJson_When_TheRecipientHasNoOutstandingWakeGeneration()
+    public async Task JsonOutput_Should_ReturnCleanJson_And_ExitNonzero_When_TheRecipientHasNoLiveSession()
     {
-        // arrange: two recipients with live claimed codex-thread sessions,
-        // but broadcast still defaults to MailWakePolicy.Skip, so the
-        // direct-first dispatcher finds nothing outstanding and never
-        // touches the row.
+        // arrange: two recipients, neither with a live claimed session, so
+        // the direct-first dispatcher has nobody to address for either - the
+        // message is durably stored but the wake is a confirmed failure for
+        // both.
         await InitWorkspaceAsync();
-        SetupInstanceId("host-broadcast-test");
+        SetupInstanceId("host-broadcast-nolive-test");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
-        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", "host-broadcast-test");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
         var result = await ExecuteCommandAsync(
             "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
 
-        // assert: the notifier never alters mail's own exit code or stdout -
-        // a single clean JSON result, nothing else.
+        // assert: exactly one clean JSON object on stdout, nothing on
+        // stderr, even though the command exits nonzero.
         Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(1, result.ExitCode);
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
         var root = document.RootElement;
         Assert.Equal(
             ["bob", "zeta"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
+        Assert.True(root.GetProperty("messageStored").GetBoolean());
+        var notification = root.GetProperty("notification");
+        Assert.Equal("failed", notification.GetProperty("status").GetString());
+        var recipients = notification.GetProperty("recipients").EnumerateArray().ToArray();
+        Assert.Equal(2, recipients.Length);
+        Assert.All(recipients, recipient => Assert.Equal("failed", recipient.GetProperty("status").GetString()));
 
         var pingResult = await QueryScalarAsync(
             "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
         Assert.Null(pingResult);
+    }
+
+    [Fact]
+    public async Task JsonOutput_Should_ReportPartial_When_OneRecipientDeliversAndAnotherHasNoLiveSession()
+    {
+        // arrange: bob has a live claimed codex-thread session that
+        // delivers, zeta has none at all - a mixed multi-recipient outcome
+        // must control the command's own exit while every recipient's own
+        // outcome remains visible in the receipt.
+        await InitWorkspaceAsync();
+        const string host = "host-broadcast-partial-test";
+        SetupInstanceId(host);
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        var notification = root.GetProperty("notification");
+        Assert.Equal("partial", notification.GetProperty("status").GetString());
+        var recipients = notification.GetProperty("recipients").EnumerateArray()
+            .ToDictionary(recipient => recipient.GetProperty("actor").GetString()!);
+        Assert.Equal("delivered", recipients["bob"].GetProperty("status").GetString());
+        Assert.Equal("failed", recipients["zeta"].GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task HumanOutput_Should_ListEveryFailingRecipient_When_Partial()
+    {
+        // arrange: same mixed scenario as the JSON partial test, asserting
+        // the human-readable rendering instead.
+        await InitWorkspaceAsync();
+        const string host = "host-broadcast-partial-human-test";
+        SetupInstanceId(host);
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertError(
+            $"""
+            Stored '{id}' to bob, zeta.
+            message stored, but wake failed: no-live-session.
+              zeta: failed (no-live-session)
+            """);
     }
 
     [Fact]

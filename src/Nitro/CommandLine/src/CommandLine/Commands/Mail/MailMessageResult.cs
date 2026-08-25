@@ -17,7 +17,20 @@ internal sealed record MailMessageResult
     public required string Subject { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
 
-    public static MailMessageResult Create(MailMessage message) => new()
+    /// <summary>
+    /// Always true: this result exists only after the message durably
+    /// committed. Storage failures never produce a <see cref="MailMessageResult"/>;
+    /// they surface through the ordinary command error path instead.
+    /// </summary>
+    public required bool MessageStored { get; init; }
+
+    /// <summary>
+    /// The actor-wake notification outcome for this message's recipients,
+    /// separate from and never overriding <see cref="MessageStored"/>.
+    /// </summary>
+    public required MailNotificationResult Notification { get; init; }
+
+    public static MailMessageResult Create(MailMessage message, MailNotificationResult notification) => new()
     {
         Id = message.Id,
         ThreadId = message.ThreadId,
@@ -34,6 +47,8 @@ internal sealed record MailMessageResult
             .Select(recipient => recipient.Name)
             .ToArray(),
         Subject = message.Subject,
-        CreatedAt = message.CreatedAt
+        CreatedAt = message.CreatedAt,
+        MessageStored = true,
+        Notification = notification
     };
 }
