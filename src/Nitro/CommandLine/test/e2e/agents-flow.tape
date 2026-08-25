@@ -13,21 +13,22 @@
 # AgentRowBadge.PresenceGlyph: offline, online, unreachable, remote)
 # but no e2e tape ever exercised the Agents tab at all (that ticket's own
 # assumption otherwise was wrong; authoring one was routed to perles-net-02r
-# via its comment 64). AgentSessionRegistry.ListAsync only
-# derives online/unreachable from a real, live process matching the
-# fixture's own machine and PID at read time, which a static SQL fixture
-# applied before any tape process runs cannot fake; remote, by contrast,
-# needs only a session row whose host differs from the current machine's
-# resolved instance id, with no liveness check at all (fixtures/agents-seed.sql's
-# header explains why). This tape therefore covers exactly the two states a
-# static fixture CAN pin byte-stably: offline (the default for an agent with
-# no session row: alice, e2e-agent) and remote (bob, via the seeded session).
+# via its comment 64). The list is now built from AgentsState.RefreshAsync
+# calling AgentSessionRegistry.ListParticipantsAsync, one row per live
+# agent_sessions row (harness, session id), not one row per registered
+# agent: an agent with no session row simply has no participant row and so
+# never appears in the tab at all, offline or otherwise. The fixture seeds
+# exactly one session (bob, remote), so the tab shows exactly one row.
+# alice and e2e-agent, which have no session row, are absent from the list
+# entirely (fixtures/agents-seed.sql's header explains the remote-vs-live
+# distinction that made bob the one state a static SQL fixture can pin
+# byte-stably).
 #
-# Drives: land on Agents, selection on the alphabetically-first row (alice,
-# offline, AgentRegistry.ListAsync's own ORDER BY name), Identity/Tasks/Sent
-# mail all populated in the detail pane; Down onto bob (remote), whose
-# detail pane has no Tasks section (unassigned) but does have Sent mail
-# (m-fix006, shared with the mail board tape's own fixture data).
+# Drives: land on Agents, the fixture's one row (bob, remote) selected by
+# default; its detail pane shows the new Session section (session id, host,
+# started/last-heard) ahead of Identity, then Sent mail (m-fix006, shared
+# with the mail board tape's own fixture data); no Tasks section, since bob
+# is nobody's task assignee.
 #
 # Produces agents-flow.gif + agents-flow.txt.
 
@@ -61,23 +62,18 @@ Type `nitro agent` Enter
 Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
 
 # Shift+A: TabSwitchKeys.ResolveMnemonic jumps straight to the Agents tab.
-# Selection defaults to row 0, alphabetically-first (alice), offline (no
-# session row in the fixture).
+# The fixture seeds exactly one agent_sessions row (bob, remote), so the
+# list holds exactly one row and it is selected by default.
 Type "A"
-Wait+Screen@30s /Agents \(3\)/
-Wait+Screen@30s /alice\s+○/
-Wait+Screen@30s /Identity/
-Wait+Screen@30s /Name: alice/
-Wait+Screen@30s /Tasks/
-Wait+Screen@30s /Draft new pricing/
-
-# Down: onto bob, the fixture's one remote agent (fixtures/agents-seed.sql).
-# Unlike alice, bob is nobody's task assignee, so the Tasks section is
-# omitted entirely (AgentDetailBody.Build drops an empty section, header
-# included) - the detail pane goes straight from Identity to Sent mail.
-Down
+Wait+Screen@30s /Agents \(1\)/
 Wait+Screen@30s /─bob─/
 Wait+Screen@30s /bob\s+◇/
+Wait+Screen@30s /Session/
+Wait+Screen@30s /Host: e2e-remote-host-fixture/
+
+# bob is nobody's task assignee, so the Tasks section is omitted entirely
+# (AgentDetailBody.Build drops an empty section, header included) - the
+# detail pane goes straight from Identity to Sent mail.
 Wait+Screen@30s /Name: bob/
 Wait+Screen@30s /Billing review/
 

@@ -150,7 +150,7 @@ FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
 # number. The binary is still the schema owner: this stays a version-number
 # guard, never a schema-shape comparison.
 AGENT_DATABASE_CS="$REPO_ROOT/src/Nitro/CommandLine/src/CommandLine/Services/Workspace/AgentDatabase.cs"
-FIXTURE_SCHEMA_VERSION="$(grep -oP 'public const int CurrentVersion = \K[0-9]+(?=;)' "$AGENT_DATABASE_CS")"
+FIXTURE_SCHEMA_VERSION="$(sed -n 's/^[[:space:]]*public const int CurrentVersion = \([0-9][0-9]*\);.*/\1/p' "$AGENT_DATABASE_CS" 2>/dev/null || true)"
 if [[ -z "$FIXTURE_SCHEMA_VERSION" ]]; then
   echo "==> fixture prepare FAILED: could not read AgentDatabase.CurrentVersion from $AGENT_DATABASE_CS" >&2
   exit 2

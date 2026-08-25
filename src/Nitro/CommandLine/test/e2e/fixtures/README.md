@@ -20,9 +20,13 @@ Before recording any flow, `run.sh` prepares `out/fixture/acme/` on the host
    `acme` directory name, matching `TasksCommandTestBase`).
 3. Assert `PRAGMA user_version` on the fresh database equals
    `AgentDatabase.CurrentVersion`, read straight out of `AgentDatabase.cs` so
-   the guard cannot drift out of sync with a hardcoded number. A mismatch
-   means the seed files themselves need reviewing against the new schema
-   shape, not silently seeding against the wrong shape.
+   the guard cannot drift out of sync with a hardcoded number. Since the
+   expected value comes from the same source tree the fixture binary was
+   just published from, a mismatch here means the published `bin/nitro` is
+   stale relative to that tree (rebuild with `REBUILD=1` or `--update`), not
+   that the seed files are out of date. Seed drift against a real schema
+   change is instead caught by the `sqlite3` apply step failing on a missing
+   column and by the `FIXTURE_*_MARKER` guard queries below.
 4. Apply `seed.sql`, then `mail-seed.sql`, then `agents-seed.sql`, with the
    `sqlite3` CLI against `out/fixture/acme/.nitro/agents/agents.db`.
    `seed.sql` (`tasks`/`dependencies`/`labels`/`comments`/`events`/
