@@ -887,8 +887,9 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"),
             TestContext.Current.CancellationToken);
 
-        // assert: the mutation must run exactly once on schema A (see the "interactions" in
-        // the snapshot); the deferred "price" is delivered via a keyed lookup on schema B.
+        // assert
+        // The mutation must run exactly once on schema A (see the "interactions" in the
+        // snapshot); the deferred "price" is delivered via a keyed lookup on schema B.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 

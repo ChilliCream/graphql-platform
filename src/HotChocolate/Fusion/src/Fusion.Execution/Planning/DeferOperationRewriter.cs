@@ -312,7 +312,7 @@ internal sealed class DeferOperationRewriter
         {
             variableDefinitions = [];
         }
-        else if (usedVariables.Count != rootOperation.VariableDefinitions.Count)
+        else
         {
             var kept = new List<VariableDefinitionNode>(usedVariables.Count);
 
@@ -324,15 +324,15 @@ internal sealed class DeferOperationRewriter
                 }
             }
 
-            variableDefinitions = kept;
+            if (kept.Count != rootOperation.VariableDefinitions.Count)
+            {
+                variableDefinitions = kept;
+            }
         }
 
-        // The incremental plan's operation keeps the root operation's own type
-        // (Query, Mutation, or Subscription). It only ever serves as a result
-        // skeleton: BuildIncrementalPlans compiles it and
-        // OperationPlanExecutor.CreateDeliveryPath walks it from
-        // operation.RootType, so forcing it to Query broke root-type
-        // resolution and anchor lookups for a mutation-anchored defer.
+        // The incremental plan operation keeps the root operation's own type (Query,
+        // Mutation, or Subscription); it serves only as a result skeleton for
+        // BuildIncrementalPlans and OperationPlanExecutor.CreateDeliveryPath.
         return rootOperation
             .WithDirectives([])
             .WithVariableDefinitions(variableDefinitions)
@@ -341,11 +341,7 @@ internal sealed class DeferOperationRewriter
 
     /// <summary>
     /// Collects the names of all variables referenced by field arguments and
-    /// directives within <paramref name="selectionSet"/>, so the incremental
-    /// plan operation only declares the variable definitions it actually uses.
-    /// The <c>@defer(if: $var)</c> directive is stripped before this runs (its
-    /// variable belongs to the <see cref="DeliveryGroup"/>, not the incremental
-    /// plan operation), so it never keeps a definition alive on its own.
+    /// directives within <paramref name="selectionSet"/>.
     /// </summary>
     private static void CollectUsedVariables(SelectionSetNode selectionSet, HashSet<string> usedVariables)
     {
@@ -367,6 +363,10 @@ internal sealed class DeferOperationRewriter
                 case InlineFragmentNode inlineFragment:
                     CollectUsedVariables(inlineFragment.Directives, usedVariables);
                     CollectUsedVariables(inlineFragment.SelectionSet, usedVariables);
+                    break;
+
+                case FragmentSpreadNode fragmentSpread:
+                    CollectUsedVariables(fragmentSpread.Directives, usedVariables);
                     break;
             }
         }
