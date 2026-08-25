@@ -62,25 +62,26 @@ public enum OperationPlannerGuardrailReason
 
 /// <summary>
 /// Thrown when a <c>@defer</c>d fragment is anchored on a mutation result whose
-/// type cannot be re-resolved through any lookup in the composite schema. The
-/// incremental plan would have no way to source the deferred fields other than
-/// re-running the mutation root field a second time, which would duplicate its
-/// side effects, so planning fails instead of doing that silently.
+/// anchor type has no lookup in the composite schema.
 /// </summary>
 public sealed class DeferredMutationLookupRequiredException : Exception
 {
     public DeferredMutationLookupRequiredException(SelectionPath path, string typeName)
-        : base(
-            $"The @defer fragment at path '{path}' cannot be planned: its anchor type "
-            + $"'{typeName}' has no lookup in the composite schema, so the deferred fields "
-            + "could only be sourced by re-running the mutation root field a second time, "
-            + "which would duplicate its side effects.")
+        : base(FormatMessage(path, typeName))
+    {
+        Path = path;
+        TypeName = typeName;
+    }
+
+    private static string FormatMessage(SelectionPath path, string typeName)
     {
         ArgumentNullException.ThrowIfNull(path);
         ArgumentException.ThrowIfNullOrEmpty(typeName);
 
-        Path = path;
-        TypeName = typeName;
+        return string.Format(
+            DeferredMutationLookupRequiredException_NoLookupAvailable,
+            path,
+            typeName);
     }
 
     /// <summary>

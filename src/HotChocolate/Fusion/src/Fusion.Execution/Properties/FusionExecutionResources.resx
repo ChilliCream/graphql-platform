@@ -42,6 +42,9 @@
   <data name="OperationPlannerGuardrailException_GuardrailExceeded" xml:space="preserve">
     <value>Planner guardrail exceeded for operation '{0}': {1} (Limit={2}, Observed={3}).</value>
   </data>
+  <data name="DeferredMutationLookupRequiredException_NoLookupAvailable" xml:space="preserve">
+    <value>The @defer fragment at path '{0}' cannot be planned: its anchor type '{1}' has no lookup in the composite schema, so the deferred fields could only be sourced by re-running the mutation root field a second time, which would duplicate its side effects.</value>
+  </data>
   <data name="SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup" xml:space="preserve">
     <value>The execution node with id '{0}' is registered to be part of batching group '{1}', but no request was submitted for that node.</value>
   </data>

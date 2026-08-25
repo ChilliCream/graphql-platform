@@ -51,22 +51,24 @@ public sealed partial class OperationPlanner
                 parentContext,
                 contextGraph);
 
-            // For a mutation-anchored defer, ApplyDeferRequirementsToParent drops every step
-            // that exists purely to feed another step's lookup key, routing it to the parent
-            // scope instead. A mutation-typed step surviving that pass carries real deferred
-            // output of its own rather than just a key, meaning the only way to have produced
-            // it was to invoke the mutation's root field a second time inside this incremental
-            // plan. That would duplicate the mutation's side effects, so it is rejected here
-            // instead of ever reaching the executor.
+            // A mutation-typed step surviving ApplyDeferRequirementsToParent carries real
+            // deferred output of its own, meaning the only way to have produced it was to
+            // invoke the mutation's root field a second time inside this incremental plan.
             if (descriptor.Operation.Operation != OperationType.Query)
             {
                 foreach (var step in rewrittenIncrementalPlan)
                 {
                     if (step is OperationPlanStep { Definition.Operation: OperationType.Mutation })
                     {
-                        throw new DeferredMutationLookupRequiredException(
+                        var anchorTypeName = TryLocateIncrementalPlanAnchor(
+                            descriptor.Operation,
                             descriptor.Path,
-                            _schema.GetOperationType(descriptor.Operation.Operation).Name);
+                            out _,
+                            out var anchorType)
+                                ? anchorType.Name
+                                : _schema.GetOperationType(descriptor.Operation.Operation).Name;
+
+                        throw new DeferredMutationLookupRequiredException(descriptor.Path, anchorTypeName);
                     }
                 }
             }
@@ -169,25 +171,17 @@ public sealed partial class OperationPlanner
         var possiblePlans = new PlanQueue(_schema);
         PlanNode node;
 
-        // Set only on the mutation, non-root branch below. When the search there fails to
-        // find any complete plan, it means no reachable subgraph can re-resolve this anchor
-        // type by key, so the deferred fields could only ever be sourced by re-running the
-        // mutation root field a second time; the failure is then reported as the guardrail
-        // below instead of silently dropping the incremental plan.
+        // The anchor type for the mutation, non-root branch below, used to report
+        // DeferredMutationLookupRequiredException when no incremental plan is found.
         ITypeDefinition? mutationAnchorType = null;
 
         if (descriptor.Path.IsRoot)
         {
             if (isMutation)
             {
-                // Deferring the operation's own top-level field(s) leaves nothing to key
-                // a lookup off of: the operation root type is never an entity with its own
-                // lookup. The only way to source the deferred data would be to re-run the
-                // mutation root field a second time from the incremental plan, duplicating
-                // its side effects, so planning fails clearly instead (see
-                // DeferredMutationLookupRequiredException) rather than forcing
-                // OperationType.Query on the incremental operation and reaching a
-                // KeyNotFoundException deep in the query-root machinery.
+                // Deferring the operation's own top-level field(s) leaves nothing to key a
+                // lookup off of, so producing them would require re-running the mutation root
+                // field a second time. Fail explicitly instead of duplicating its side effects.
                 throw new DeferredMutationLookupRequiredException(
                     descriptor.Path,
                     _schema.GetOperationType(deferredOperation.Operation).Name);
@@ -247,16 +241,9 @@ public sealed partial class OperationPlanner
                 mutationAnchorType = anchorType;
 
                 // A defer anchored inside a mutation's own result cannot walk back to the
-                // operation root to source a lookup key the way a query-anchored defer does
-                // below: PlannerExtensions.GetPossibleLookupsThroughPath refuses that walk for
-                // non-Query operations to avoid re-running the mutation root field a second
-                // time. Instead the incremental plan is seeded as a normal mutation root fetch
-                // (the same shape CreateMutationPlanBase gives the main plan): PlanRootSelections
-                // resolves the anchor's key field directly on the mutation's own step and any
-                // cross-subgraph fields through the ordinary lookup machinery. The resulting
-                // "key-only" producer step is still recognized and dropped by
-                // ApplyDeferRequirementsToParent afterwards, which routes it to the parent scope
-                // so the mutation itself runs exactly once.
+                // operation root to source a lookup key, so the incremental plan is seeded as
+                // a normal mutation root fetch instead. The resulting key-only producer step is
+                // later dropped and routed to the parent scope so the mutation runs exactly once.
                 SelectionSet mutationSelectionSet;
                 (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
 

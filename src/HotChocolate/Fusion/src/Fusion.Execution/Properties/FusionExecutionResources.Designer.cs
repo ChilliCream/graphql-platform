@@ -93,6 +93,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string DeferredMutationLookupRequiredException_NoLookupAvailable {
+            get {
+                return ResourceManager.GetString("DeferredMutationLookupRequiredException_NoLookupAvailable", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup", resourceCulture);

@@ -1341,7 +1341,72 @@ public class DeferPlannerTests : FusionTestBase
 
         // assert
         Assert.Equal("$.createUser", error.Path.ToString());
-        Assert.Equal("Mutation", error.TypeName);
+        Assert.Equal("User", error.TypeName);
+    }
+
+    [Fact]
+    public void Defer_NestedBelowMutationRootField_Should_ProduceKeyedLookup_When_AnchorHasLookup()
+    {
+        // arrange
+        // The defer sits one level below the mutation's own root field (createUser.child),
+        // not on the root field itself, and its anchor type (Child) has a lookup.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                child(id: ID!): Child @lookup
+            }
+
+            type Mutation {
+                createUser(name: String!): Parent!
+            }
+
+            type Parent {
+                id: ID!
+                child: Child!
+            }
+
+            type Child @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                childById(id: ID!): Child @lookup
+            }
+
+            type Child @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            mutation {
+                createUser(name: "test") {
+                    child {
+                        name
+                        ... @defer {
+                            email
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+
+        Assert.Single(plan.IncrementalPlans);
+
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var deferredNode = incrementalPlan.RootNodes[0];
+        Assert.Equal(incrementalPlan.ParentNodeId, deferredNode.ParentDependencies[0]);
     }
 
     [Fact]
