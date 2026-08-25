@@ -6,47 +6,14 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The persistent, cross-process mail-wake daemon: one leader per
-/// <c>(workspace database, nitro_instance_id)</c>, elected and renewed over
-/// <see cref="IMailWakeDaemonLeaderStore"/>, running two independent loops
-/// while <see cref="MailWakeDaemonState.Ready"/>.
-/// <list type="bullet">
-/// <item>A heartbeat loop renews the held lease every
-/// <see cref="MailWakeDaemonPolicy.HeartbeatInterval"/>; a lost or failed
-/// renewal demotes to <see cref="MailWakeDaemonState.Standby"/> and cancels
-/// the admission loop and every in-flight actor dispatch.</item>
-/// <item>An admission loop polls <c>mail_wake_outbox</c> every
-/// <see cref="MailWakeDaemonPolicy.AdmissionPollInterval"/> for actors whose
-/// generation is due, and hands each newly due actor to its own concurrent
-/// execution task (bounded by <see cref="MailWakeDaemonPolicy.MaxConcurrentActorExecutions"/>)
-/// that calls the reused <see cref="IActorWakeDispatcher.DispatchAsync"/>.
-/// Because discovery and per-actor dispatch run as independent tasks, a
-/// newly due actor is admitted without waiting for another actor's own
-/// in-flight transport to finish.</item>
-/// </list>
-/// A non-leader instance never writes a probe: it reads the lease row
-/// read-only every <see cref="MailWakeDaemonPolicy.StandbyPollInterval"/> and
-/// only calls <see cref="IMailWakeDaemonLeaderStore.TryAcquireAsync"/> once it
-/// observes the row as expired.
-///
-/// If this coordinator's own dispatch of an actor is itself denied Claude
-/// socket access, this instance can never serve that endpoint class: it
-/// releases leadership immediately, demotes to
-/// <see cref="MailWakeDaemonState.Degraded"/>, cancels every other in-flight
-/// execution through the same leadership-scoped cancellation token, and
-/// withholds its own re-acquisition attempts for
-/// <see cref="MailWakeDaemonRetryPolicy.MaxDelay"/> so a differently
-/// privileged standby can take over without contention. This backoff lives
-/// only in this instance's own memory; it never suppresses another
-/// coordinator instance.
-///
-/// Reuses <see cref="IMailWakeDaemonLeaderStore"/> and
-/// <see cref="IActorWakeDispatcher"/> exactly as merged: every claim,
-/// materialization, target resolution, and retry-timing decision below the
-/// actor level belongs to <see cref="ActorWakeDispatcher"/> already. This
-/// coordinator is only responsible for deciding, cross-process, who is
-/// allowed to call it and for which actors, and for doing so quickly and
-/// safely even while another actor's dispatch is still running.
+/// The cross-process mail-wake daemon leader for one
+/// <c>(workspace database, nitro_instance_id)</c>, running a heartbeat, an
+/// admission loop, and an execution loop while
+/// <see cref="MailWakeDaemonState.Ready"/>. A lost or failed lease renewal
+/// demotes to <see cref="MailWakeDaemonState.Standby"/> and cancels every
+/// in-flight actor dispatch; a daemon-side Claude access denial on this
+/// instance's own dispatch releases leadership and demotes to
+/// <see cref="MailWakeDaemonState.Degraded"/> instead.
 /// </summary>
 internal sealed class MailWakeDaemonCoordinator(
     IMailWakeDaemonLeaderStore leaderStore,
@@ -103,7 +70,7 @@ internal sealed class MailWakeDaemonCoordinator(
             return;
         }
 
-        SetStatus(Status with { State = MailWakeDaemonState.Stopping });
+        UpdateStatus(s => s with { State = MailWakeDaemonState.Stopping });
 
         try
         {
@@ -112,28 +79,26 @@ internal sealed class MailWakeDaemonCoordinator(
         }
         catch (TimeoutException)
         {
-            // A noncooperative in-flight task outlived the shutdown budget:
-            // this call still returns rather than blocking forever, and the
-            // orphaned task is left to lose its lease/claims to expiry.
         }
         catch (OperationCanceledException)
         {
-            // cancellationToken itself fired while waiting for the loop to
-            // wind down.
         }
         catch (Exception ex)
         {
-            // A faulted run loop (a non-OperationCanceledException that
-            // escaped RunAsync despite its own fault recovery) must never
-            // propagate out of StopAsync/DisposeAsync: it is recorded and
-            // swallowed here instead.
-            SetStatus(Status with { LastError = Bound(ex.Message) });
+            UpdateStatus(s => s with { LastError = Bound(ex.Message) });
         }
         finally
         {
             lifetime.Dispose();
-            _lifetime = null;
-            _runTask = null;
+
+            // _lifetime/_runTask are cleared only once the run loop has
+            // actually finished, so StartAsync's guard keeps throwing while
+            // it is still alive.
+            if (runTask.IsCompleted)
+            {
+                _lifetime = null;
+                _runTask = null;
+            }
         }
     }
 
@@ -161,16 +126,11 @@ internal sealed class MailWakeDaemonCoordinator(
             }
             catch (OperationCanceledException)
             {
-                // Graceful shutdown.
                 return;
             }
             catch (Exception ex)
             {
-                // A non-busy fault on the election path (for example the
-                // leader store itself throwing) must not silently kill this
-                // instance's participation: it is recorded and the loop
-                // retries after a standby poll interval instead.
-                SetStatus(Status with { State = MailWakeDaemonState.Standby, LastError = Bound(ex.Message) });
+                UpdateStatus(s => s with { State = MailWakeDaemonState.Standby, LastError = Bound(ex.Message) });
 
                 try
                 {
@@ -191,19 +151,12 @@ internal sealed class MailWakeDaemonCoordinator(
             var now = timeProvider.GetUtcNow();
             var selfDenied = _selfDeniedUntil is { } deniedUntil && now < deniedUntil;
 
-            // Keep reporting Degraded, not Standby, for the whole
-            // self-denial backoff window: this instance is not merely idly
-            // waiting its turn, it deliberately withholds every acquisition
-            // attempt below so a differently privileged standby can win
-            // instead. Never overwrite a concurrent StopAsync's Stopping
-            // status: it can land between this loop's cancellation check and
-            // this write.
-            if (Status.State != MailWakeDaemonState.Stopping)
-            {
-                SetStatus(new MailWakeDaemonStatus(
+            // Never overwrite a concurrent StopAsync's Stopping status.
+            UpdateStatus(s => s.State == MailWakeDaemonState.Stopping
+                ? s
+                : new MailWakeDaemonStatus(
                     selfDenied ? MailWakeDaemonState.Degraded : MailWakeDaemonState.Standby,
-                    null, null, null, Status.LastError));
-            }
+                    null, null, null, s.LastError));
 
             if (!selfDenied)
             {
@@ -250,10 +203,6 @@ internal sealed class MailWakeDaemonCoordinator(
 
         if (stopToken.IsCancellationRequested && Status.State != MailWakeDaemonState.Degraded)
         {
-            // Graceful shutdown while still holding leadership: release
-            // immediately rather than waiting out the lease, so a standby
-            // can take over right away. A self-inflicted degradation already
-            // released leadership itself before cancelling these loops.
             await leaderStore.TryReleaseAsync(
                 nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), CancellationToken.None);
         }
@@ -267,8 +216,6 @@ internal sealed class MailWakeDaemonCoordinator(
         }
         catch (OperationCanceledException)
         {
-            // Expected: leaderSource was cancelled, either by graceful stop,
-            // heartbeat loss, or this instance's own degradation.
         }
     }
 
@@ -293,21 +240,23 @@ internal sealed class MailWakeDaemonCoordinator(
             }
             catch (Exception ex)
             {
-                // A renewal whose result is unknown (the store call itself
-                // threw) is treated exactly like a lost renewal.
-                SetStatus(Status with { State = MailWakeDaemonState.Standby, LastError = Bound(ex.Message) });
+                UpdateStatus(_ => new MailWakeDaemonStatus(
+                    MailWakeDaemonState.Standby, null, null, null, Bound(ex.Message)));
                 await degradedSource.CancelAsync();
                 return;
             }
 
             if (!renewed)
             {
-                SetStatus(Status with { State = MailWakeDaemonState.Standby });
+                UpdateStatus(s => new MailWakeDaemonStatus(
+                    MailWakeDaemonState.Standby, null, null, null, s.LastError));
                 await degradedSource.CancelAsync();
                 return;
             }
 
-            SetStatus(Status with { LeaseExpiresAt = now + policy.LeaderLeaseDuration });
+            UpdateStatus(s => s.State == MailWakeDaemonState.Ready
+                ? s with { LeaseExpiresAt = now + policy.LeaderLeaseDuration }
+                : s);
         }
     }
 
@@ -353,9 +302,7 @@ internal sealed class MailWakeDaemonCoordinator(
                 }
                 catch (Exception ex)
                 {
-                    // An unexpected admission-tick failure must not crash
-                    // the whole loop; the next tick simply tries again.
-                    SetStatus(Status with { LastError = Bound(ex.Message) });
+                    UpdateStatus(s => s with { LastError = Bound(ex.Message) });
                 }
 
                 await Task.Delay(policy.AdmissionPollInterval, timeProvider, loopToken);
@@ -402,12 +349,8 @@ internal sealed class MailWakeDaemonCoordinator(
 
                 if (deniedByThisAttempt)
                 {
-                    // This instance's own dispatch was itself denied Claude
-                    // socket access: it can never accept this endpoint class
-                    // for itself, so it stops admission and degrades rather
-                    // than retrying an offer it can never fulfil.
                     _selfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
-                    SetStatus(Status with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
+                    UpdateStatus(s => s with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
                     await leaderStore.TryReleaseAsync(
                         nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), CancellationToken.None);
                     await degradedSource.CancelAsync();
@@ -433,20 +376,10 @@ internal sealed class MailWakeDaemonCoordinator(
         }
         catch (OperationCanceledException)
         {
-            // Leadership ended (graceful stop, heartbeat loss, or this
-            // instance's own degradation) while this actor's dispatch was in
-            // flight; ActorWakeDispatcher never asserts an outcome for a
-            // target abandoned this way, so there is nothing further to
-            // record here.
         }
         catch (Exception ex)
         {
-            // A non-OperationCanceledException fault for this one actor (for
-            // example TryReleaseAsync itself throwing) must never fault the
-            // admission loop's Task.WhenAll and escape AwaitLoopAsync: it is
-            // recorded and the next admission tick simply retries this
-            // actor.
-            SetStatus(Status with { LastError = Bound(ex.Message) });
+            UpdateStatus(s => s with { LastError = Bound(ex.Message) });
         }
         finally
         {
@@ -462,6 +395,14 @@ internal sealed class MailWakeDaemonCoordinator(
         lock (_statusLock)
         {
             _status = status;
+        }
+    }
+
+    private void UpdateStatus(Func<MailWakeDaemonStatus, MailWakeDaemonStatus> update)
+    {
+        lock (_statusLock)
+        {
+            _status = update(_status);
         }
     }
 
@@ -560,13 +501,9 @@ internal sealed class MailWakeDaemonCoordinator(
     }
 
     /// <summary>
-    /// Tracks, per actor and only in this coordinator instance's memory, how
-    /// many consecutive dispatches in a row left durable offered (busy,
-    /// capacity, or access-denied) work behind, and the earliest time this
-    /// instance will attempt that actor again under
-    /// <see cref="MailWakeDaemonRetryPolicy"/>. Thread-safe: written from
-    /// concurrent per-actor execution tasks, read from the single admission
-    /// loop.
+    /// Per-actor, in-memory retry eligibility under
+    /// <see cref="MailWakeDaemonRetryPolicy"/>, thread-safe across concurrent
+    /// callers.
     /// </summary>
     private sealed class ConcurrentDictionaryBackoff
     {

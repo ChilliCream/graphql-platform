@@ -1,15 +1,10 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The capped exponential backoff the mail-wake daemon coordinator applies
-/// to its own operational retries: a transient SQLite busy/locked error on
-/// its admission or leader-lease reads, and a per-actor cooldown after a
-/// dispatch attempt leaves durable offered work behind (busy, capacity, or
-/// an access-denied handoff). Starts at <see cref="InitialDelay"/> and
-/// doubles per consecutive failure, never exceeding <see cref="MaxDelay"/>.
-/// This governs only how eagerly the coordinator re-attempts an actor beyond
-/// what <c>mail_wake_outbox.due_at</c> already schedules; it can delay a
-/// retry further than that, never sooner.
+/// The capped exponential backoff for the mail-wake daemon coordinator's
+/// SQLite busy/locked retries and per-actor transient-offer cooldown.
+/// Starts at <see cref="InitialDelay"/> and doubles per consecutive failure,
+/// never exceeding <see cref="MaxDelay"/>.
 /// </summary>
 internal static class MailWakeDaemonRetryPolicy
 {
@@ -17,9 +12,7 @@ internal static class MailWakeDaemonRetryPolicy
     public static readonly TimeSpan MaxDelay = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// A hard ceiling on how many times the delay is doubled: past this many
-    /// consecutive failures the result is already pinned to
-    /// <see cref="MaxDelay"/>, so further doubling would only waste cycles.
+    /// The maximum number of times <see cref="ComputeDelay"/> doubles the delay.
     /// </summary>
     private const int MaxDoublings = 32;
 
@@ -47,13 +40,8 @@ internal static class MailWakeDaemonRetryPolicy
     }
 
     /// <summary>
-    /// Whether <paramref name="lastError"/> is one of the safe
-    /// transient/scheduling reasons a pending target or an offered actor
-    /// generation can be retried for (a busy or cooldown-held session gate,
-    /// exhausted shared transport capacity, or an accepted Claude
-    /// access-denied handoff). Deterministic protocol, authentication,
-    /// malformed-endpoint, and generic terminal transport failures are never
-    /// retried by this policy.
+    /// Whether <paramref name="lastError"/> is a busy session gate, exhausted
+    /// transport capacity, or an accepted Claude access-denied handoff.
     /// </summary>
     public static bool IsTransientOffer(string? lastError) =>
         lastError is "busy" or "capacity-dropped" or "access-denied";
