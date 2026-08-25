@@ -5,9 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// machine-generated digest envelope for the bound actor's unread mail,
 /// fires it at the endpoint bounded by the caller's absolute deadline,
 /// writes the outcome, and always releases the lease slot, however the
-/// attempt ends. Shared by the foreground <c>nitro agent ping</c> command
-/// so manual and automatic pings go through the exact same
-/// cooldown/lease/result-write contract.
+/// attempt ends. Used by automatic mail wake delivery.
 /// </summary>
 internal interface IPingSessionExecutor
 {

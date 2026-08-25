@@ -43,7 +43,6 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
-              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
             """);
     }
 
@@ -77,7 +76,6 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
-              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
             """);
     }
 
@@ -114,7 +112,6 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
-              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
             """);
     }
 
@@ -151,7 +148,6 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               list          List live agent participants: one row per harness session, including unbound sessions.
               session       Manage this workspace's live harness session presence.
               hooks         Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
-              ping <actor>  Fire the best-effort wake ping at every live session an agent has claimed.
             """);
     }
 

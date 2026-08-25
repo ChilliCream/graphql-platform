@@ -1,7 +1,6 @@
 using System.CommandLine.Help;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Ping;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Session;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Memory;
@@ -33,7 +32,6 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new SessionCommand());
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
-        Subcommands.Add(new PingAgentCommand());
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

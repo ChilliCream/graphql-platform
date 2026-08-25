@@ -477,7 +477,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         Assert.True(recipient.GetProperty("wakeGeneration").GetInt64() > 0);
 
         // the wake-driven ping never touches last_ping_result - that column
-        // stays owned by `nitro agent ping`.
+        // stays owned by the wake dispatcher.
         var pingResult = await QueryScalarAsync(
             "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
         Assert.Null(pingResult);

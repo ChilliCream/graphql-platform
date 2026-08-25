@@ -1632,7 +1632,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task FindLiveClaimedByAgentNameAsync_Should_NotDeleteALiveHostRow_When_ReadFromAForeignScope()
     {
-        // arrange: simulates the notifier or `nitro agent ping` running
+        // arrange: simulates the notifier running
         // inside a sandbox that cannot see the host pid its own row
         // recorded - a foreign-scope read must still return the row as a
         // ping candidate, not silently delete it as dead.

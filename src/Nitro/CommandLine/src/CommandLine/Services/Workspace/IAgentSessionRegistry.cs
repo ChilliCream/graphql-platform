@@ -207,9 +207,9 @@ internal interface IAgentSessionRegistry
     /// <summary>
     /// Reaps dead current-instance rows, then returns every surviving row
     /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
-    /// rows are never returned: a ping fired from here cannot reach a
-    /// session another Nitro instance owns). Used by the notifier and
-    /// <c>nitro agent ping</c> to resolve which sessions to fire at.
+    /// rows are never returned: a wake fired from here cannot reach a
+    /// session another Nitro instance owns). Used by the notifier to
+    /// resolve which sessions to fire at.
     /// </summary>
     Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken);

@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Ping;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Session;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
@@ -87,7 +86,6 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(ClaimSessionCommand.SessionClaimResult))]
 [JsonSerializable(typeof(ListResult<ListSessionCommand.SessionRowResult>))]
 [JsonSerializable(typeof(StatusSessionCommand.SessionStatusResult))]
-[JsonSerializable(typeof(ListResult<PingAgentCommand.PingSessionResult>))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(MailSendResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]
