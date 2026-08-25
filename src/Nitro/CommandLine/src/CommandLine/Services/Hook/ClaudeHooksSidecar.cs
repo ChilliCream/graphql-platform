@@ -80,9 +80,10 @@ internal interface IClaudeHooksSidecarStore
     /// hash against <paramref name="hashAtRead"/>, the one captured by the
     /// caller's earlier <see cref="ReadWithHashAsync"/>. A mismatch means a
     /// concurrent install or uninstall wrote to the sidecar in between; this
-    /// aborts rather than clobbering that write.
+    /// reports the mismatch to the caller instead of writing, returning
+    /// <see langword="false"/>.
     /// </summary>
-    Task WriteIfUnchangedAsync(ClaudeHooksSidecarFile file, string hashAtRead, CancellationToken cancellationToken);
+    Task<bool> WriteIfUnchangedAsync(ClaudeHooksSidecarFile file, string hashAtRead, CancellationToken cancellationToken);
 }
 
 internal sealed class ClaudeHooksSidecarStore(
@@ -107,7 +108,7 @@ internal sealed class ClaudeHooksSidecarStore(
         return (Parse(text), Hash(text));
     }
 
-    public async Task WriteIfUnchangedAsync(
+    public async Task<bool> WriteIfUnchangedAsync(
         ClaudeHooksSidecarFile file, string hashAtRead, CancellationToken cancellationToken)
     {
         var path = ResolvePath();
@@ -117,8 +118,7 @@ internal sealed class ClaudeHooksSidecarStore(
 
         if (Hash(currentText) != hashAtRead)
         {
-            throw new ExitException(
-                $"'{path}' changed since it was read; nothing was written. Re-run the command.");
+            return false;
         }
 
         var directory = globalConfigDirectoryProvider.GetDirectory();
@@ -131,6 +131,8 @@ internal sealed class ClaudeHooksSidecarStore(
         var json = JsonSerializer.Serialize(file, ClaudeHooksSidecarJsonContext.Default.ClaudeHooksSidecarFile);
 
         await fileSystem.ReplaceFileAtomicAsync(path, json, cancellationToken);
+
+        return true;
     }
 
     private static ClaudeHooksSidecarFile Parse(string? text)

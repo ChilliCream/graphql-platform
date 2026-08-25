@@ -43,9 +43,9 @@ internal sealed class ClaudeHooksInstallerService(
 
         await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
 
-        var (sidecar, sidecarHashAtRead) = await sidecarStore.ReadWithHashAsync(cancellationToken);
-        sidecar.Files[path] = new Dictionary<string, ClaudeHooksSidecarEntry>(result.Sidecar);
-        await sidecarStore.WriteIfUnchangedAsync(sidecar, sidecarHashAtRead, cancellationToken);
+        await UpdateSidecarAsync(
+            s => s.Files[path] = new Dictionary<string, ClaudeHooksSidecarEntry>(result.Sidecar),
+            cancellationToken);
 
         return new ClaudeHooksInstallReport(path, result.Outcomes);
     }
@@ -66,15 +66,13 @@ internal sealed class ClaudeHooksInstallerService(
 
         var (textAtRead, hashAtRead) = await ReadWithHashAsync(path, cancellationToken);
 
-        var (sidecar, sidecarHashAtRead) = await sidecarStore.ReadWithHashAsync(cancellationToken);
-        var priorEntries = sidecar.EntriesFor(path);
+        var priorEntries = (await sidecarStore.ReadAsync(cancellationToken)).EntriesFor(path);
 
         var result = ClaudeHooksEditor.Uninstall(textAtRead, priorEntries);
 
         await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
 
-        sidecar.Files.Remove(path);
-        await sidecarStore.WriteIfUnchangedAsync(sidecar, sidecarHashAtRead, cancellationToken);
+        await UpdateSidecarAsync(s => s.Files.Remove(path), cancellationToken);
 
         return new ClaudeHooksUninstallReport(path, result.Outcomes);
     }
@@ -132,4 +130,31 @@ internal sealed class ClaudeHooksInstallerService(
 
     private static string Hash(string? text)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
+
+    /// <summary>
+    /// Applies <paramref name="mutate"/> to the sidecar and writes it back,
+    /// retrying the read-modify-write cycle when a concurrent install or
+    /// uninstall changed the sidecar between this call's read and its
+    /// write. Gives up after a bounded number of attempts.
+    /// </summary>
+    private async Task UpdateSidecarAsync(
+        Action<ClaudeHooksSidecarFile> mutate, CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 5;
+
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            var (file, hash) = await sidecarStore.ReadWithHashAsync(cancellationToken);
+            mutate(file);
+
+            if (await sidecarStore.WriteIfUnchangedAsync(file, hash, cancellationToken))
+            {
+                return;
+            }
+        }
+
+        throw new ExitException(
+            "The settings file was updated, but the claude-hooks-sidecar.json record could not be "
+            + "written because it kept changing concurrently. Re-run the command to repair the record.");
+    }
 }

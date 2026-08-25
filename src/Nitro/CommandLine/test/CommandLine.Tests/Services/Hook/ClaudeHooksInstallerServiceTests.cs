@@ -154,7 +154,9 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         // install's own sidecar read and its pre-write re-check: the SECOND
         // ReadAllTextAsync call for the sidecar runs B's install to
         // completion first, then reads the sidecar it left behind - exactly
-        // what this install's own re-read would observe.
+        // what this install's own re-read would observe. B's install only
+        // ever triggers on the first attempt's re-check read, so the retry
+        // then observes a stable sidecar and succeeds.
         var injectingFileSystem = new RunOnSecondReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
@@ -165,29 +167,57 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        var exception = await Assert.ThrowsAsync<ExitException>(
-            () => serviceA.InstallAsync(HookInstallScopes.User, ct));
-        Assert.Contains("changed since it was read", exception.Message, StringComparison.Ordinal);
+        await serviceA.InstallAsync(HookInstallScopes.User, ct);
 
-        // B's concurrent install landed untouched: A aborted instead of
-        // overwriting the sidecar with a copy that only knows about itself.
-        var filesAfterAbort = SidecarFiles(await File.ReadAllTextAsync(sidecarPath, ct));
-        Assert.True(filesAfterAbort.ContainsKey(settingsPathB));
-        Assert.False(filesAfterAbort.ContainsKey(settingsPathA));
+        var filesAfter = SidecarFiles(await File.ReadAllTextAsync(sidecarPath, ct));
+        Assert.True(filesAfter.ContainsKey(settingsPathA));
+        Assert.True(filesAfter.ContainsKey(settingsPathB));
+        Assert.True(File.Exists(settingsPathA));
+    }
 
-        // Re-running the aborted install, as the error instructs, now
-        // succeeds because nothing races it - both entries survive.
-        var serviceARetry = new ClaudeHooksInstallerService(
+    [Fact]
+    public async Task UninstallAsync_InterleavedInstall_KeepsConcurrentSidecarEntry()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var settingsPathA = Path.Combine(_tempRoot.FullName, "claude-home-a", ".claude", "settings.json");
+        var settingsPathB = Path.Combine(_tempRoot.FullName, "claude-home-b", ".claude", "settings.json");
+        var sidecarPath = Path.Combine(_sidecarDirectory, "claude-hooks-sidecar.json");
+
+        var preInstallService = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
             new FixedLaunchDescriptorResolver(Descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
-        await serviceARetry.InstallAsync(HookInstallScopes.User, ct);
+        await preInstallService.InstallAsync(HookInstallScopes.User, ct);
 
-        var filesAfterRetry = SidecarFiles(await File.ReadAllTextAsync(sidecarPath, ct));
-        Assert.True(filesAfterRetry.ContainsKey(settingsPathA));
-        Assert.True(filesAfterRetry.ContainsKey(settingsPathB));
+        var serviceB = new ClaudeHooksInstallerService(
+            _fileSystem,
+            new FixedClaudeSettingsPathResolver(settingsPathB),
+            new FixedLaunchDescriptorResolver(Descriptor),
+            new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
+            _timeProvider);
+
+        // Simulates a second, fully concurrent install landing in the window
+        // between this uninstall's own sidecar read and its pre-write
+        // re-check: the SECOND ReadAllTextAsync call for the sidecar runs
+        // B's install to completion first, then reads the sidecar it left
+        // behind - exactly what this uninstall's own re-read would observe.
+        var injectingFileSystem = new RunOnSecondReadFileSystem(
+            _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
+
+        var serviceA = new ClaudeHooksInstallerService(
+            injectingFileSystem,
+            new FixedClaudeSettingsPathResolver(settingsPathA),
+            new FixedLaunchDescriptorResolver(Descriptor),
+            new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
+            _timeProvider);
+
+        await serviceA.UninstallAsync(HookInstallScopes.User, ct);
+
+        var filesAfter = SidecarFiles(await File.ReadAllTextAsync(sidecarPath, ct));
+        Assert.False(filesAfter.ContainsKey(settingsPathA));
+        Assert.True(filesAfter.ContainsKey(settingsPathB));
     }
 
     private static JsonObject SidecarFiles(string sidecarJson)
