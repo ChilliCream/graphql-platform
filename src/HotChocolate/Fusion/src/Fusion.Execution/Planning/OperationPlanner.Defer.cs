@@ -51,6 +51,26 @@ public sealed partial class OperationPlanner
                 parentContext,
                 contextGraph);
 
+            // For a mutation-anchored defer, ApplyDeferRequirementsToParent drops every step
+            // that exists purely to feed another step's lookup key, routing it to the parent
+            // scope instead. A mutation-typed step surviving that pass carries real deferred
+            // output of its own rather than just a key, meaning the only way to have produced
+            // it was to invoke the mutation's root field a second time inside this incremental
+            // plan. That would duplicate the mutation's side effects, so it is rejected here
+            // instead of ever reaching the executor.
+            if (descriptor.Operation.Operation != OperationType.Query)
+            {
+                foreach (var step in rewrittenIncrementalPlan)
+                {
+                    if (step is OperationPlanStep { Definition.Operation: OperationType.Mutation })
+                    {
+                        throw new DeferredMutationLookupRequiredException(
+                            descriptor.Path,
+                            _schema.GetOperationType(descriptor.Operation.Operation).Name);
+                    }
+                }
+            }
+
             var registeredInternalOp = incrementalPlanResult.InternalOperationDefinition ?? descriptor.Operation;
             contextGraph.RegisterDeferContext(
                 descriptor,
@@ -142,14 +162,37 @@ public sealed partial class OperationPlanner
         CancellationToken cancellationToken)
     {
         var deferredOperation = descriptor.Operation;
+        var isMutation = deferredOperation.Operation != OperationType.Query;
 
         var index = SelectionSetIndexer.Create(deferredOperation);
 
         var possiblePlans = new PlanQueue(_schema);
         PlanNode node;
 
+        // Set only on the mutation, non-root branch below. When the search there fails to
+        // find any complete plan, it means no reachable subgraph can re-resolve this anchor
+        // type by key, so the deferred fields could only ever be sourced by re-running the
+        // mutation root field a second time; the failure is then reported as the guardrail
+        // below instead of silently dropping the incremental plan.
+        ITypeDefinition? mutationAnchorType = null;
+
         if (descriptor.Path.IsRoot)
         {
+            if (isMutation)
+            {
+                // Deferring the operation's own top-level field(s) leaves nothing to key
+                // a lookup off of: the operation root type is never an entity with its own
+                // lookup. The only way to source the deferred data would be to re-run the
+                // mutation root field a second time from the incremental plan, duplicating
+                // its side effects, so planning fails clearly instead (see
+                // DeferredMutationLookupRequiredException) rather than forcing
+                // OperationType.Query on the incremental operation and reaching a
+                // KeyNotFoundException deep in the query-root machinery.
+                throw new DeferredMutationLookupRequiredException(
+                    descriptor.Path,
+                    _schema.GetOperationType(deferredOperation.Operation).Name);
+            }
+
             // A defer anchored at the operation root has nothing to key a lookup off of;
             // it is planned like a normal root-rooted operation.
             SelectionSet selectionSet;
@@ -170,7 +213,7 @@ public sealed partial class OperationPlanner
                     });
             }
         }
-        else
+        else if (TryLocateNodeFieldAnchor(deferredOperation, descriptor.Path, out var nodeFieldNode))
         {
             // A defer anchored directly on the root's `node(id: ...)` field cannot be
             // planned as an ordinary keyed lookup: `Node` is not an entity with its own
@@ -180,12 +223,57 @@ public sealed partial class OperationPlanner
             // CreateQueryPlanBase also uses for a root-anchored `node` selection. Reuse
             // that same path here instead of seeding a Lookup work item for the `Node`
             // interface, which the ordinary lookup machinery cannot serve.
-            Backlog backlog;
+            var backlog = Backlog.Empty.Push(
+                new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
 
-            if (TryLocateNodeFieldAnchor(deferredOperation, descriptor.Path, out var nodeFieldNode))
+            node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+            possiblePlans.EnqueueBranches(node);
+        }
+        else
+        {
+            if (!TryLocateIncrementalPlanAnchor(
+                deferredOperation,
+                descriptor.Path,
+                out var anchorSelectionSet,
+                out var anchorType))
             {
-                backlog = Backlog.Empty.Push(
-                    new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
+                throw new InvalidOperationException(
+                    $"Unable to locate the defer anchor selection set at path '{descriptor.Path}' "
+                    + "inside the incremental plan operation.");
+            }
+
+            if (isMutation)
+            {
+                mutationAnchorType = anchorType;
+
+                // A defer anchored inside a mutation's own result cannot walk back to the
+                // operation root to source a lookup key the way a query-anchored defer does
+                // below: PlannerExtensions.GetPossibleLookupsThroughPath refuses that walk for
+                // non-Query operations to avoid re-running the mutation root field a second
+                // time. Instead the incremental plan is seeded as a normal mutation root fetch
+                // (the same shape CreateMutationPlanBase gives the main plan): PlanRootSelections
+                // resolves the anchor's key field directly on the mutation's own step and any
+                // cross-subgraph fields through the ordinary lookup machinery. The resulting
+                // "key-only" producer step is still recognized and dropped by
+                // ApplyDeferRequirementsToParent afterwards, which routes it to the parent scope
+                // so the mutation itself runs exactly once.
+                SelectionSet mutationSelectionSet;
+                (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
+
+                if (node.Backlog.IsEmpty)
+                {
+                    return new DeferIncrementalPlanResult([], null);
+                }
+
+                foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(mutationSelectionSet))
+                {
+                    possiblePlans.Enqueue(
+                        node with
+                        {
+                            SchemaName = schemaName,
+                            ResolutionCost = resolutionCost
+                        });
+                }
             }
             else
             {
@@ -197,46 +285,17 @@ public sealed partial class OperationPlanner
                 // back to walking the path up to the root
                 // (EnqueueParentPathLookupPlanNodes), which reproduces the previous root
                 // re-fetch behavior.
-                if (!TryLocateIncrementalPlanAnchor(
-                    deferredOperation,
-                    descriptor.Path,
-                    out var anchorSelectionSet,
-                    out var anchorType))
-                {
-                    throw new InvalidOperationException(
-                        $"Unable to locate the defer anchor selection set at path '{descriptor.Path}' "
-                        + "inside the incremental plan operation.");
-                }
-
                 var anchorSet = new SelectionSet(
                     index.GetId(anchorSelectionSet),
                     anchorSelectionSet,
                     anchorType,
                     descriptor.Path);
 
-                backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
+                var backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
+
+                node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+                possiblePlans.EnqueueBranches(node);
             }
-
-            var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
-                _options,
-                currentMaxDepth: 0,
-                ImmutableDictionary<int, int>.Empty,
-                backlog.Cost);
-
-            node = new PlanNode
-            {
-                OperationDefinition = deferredOperation,
-                InternalOperationDefinition = deferredOperation,
-                ShortHash = "defer",
-                SchemaName = Planning.PlanNode.UnresolvedSchemaName,
-                Options = _options,
-                SelectionSetIndex = index,
-                Backlog = backlog,
-                RemainingCost = remainingCost,
-                OperationStepCount = 0
-            };
-
-            possiblePlans.EnqueueBranches(node);
         }
 
         if (possiblePlans.Count < 1)
@@ -248,12 +307,50 @@ public sealed partial class OperationPlanner
 
         if (!plan.HasValue)
         {
+            if (mutationAnchorType is not null)
+            {
+                // The mutation root fetch could not resolve the deferred fields through any
+                // reachable subgraph: the anchor type has no lookup that lets the incremental
+                // plan reach them without re-running the mutation root field. Fail clearly
+                // instead of silently dropping the incremental plan.
+                throw new DeferredMutationLookupRequiredException(descriptor.Path, mutationAnchorType.Name);
+            }
+
             return new DeferIncrementalPlanResult([], null);
         }
 
         return new DeferIncrementalPlanResult(
             plan.Value.Steps,
             plan.Value.InternalOperationDefinition);
+    }
+
+    /// <summary>
+    /// Builds the initial <see cref="PlanNode"/> for a non-root-anchored incremental
+    /// plan search seeded with <paramref name="backlog"/>.
+    /// </summary>
+    private PlanNode CreateIncrementalPlanNode(
+        OperationDefinitionNode deferredOperation,
+        ISelectionSetIndex index,
+        Backlog backlog)
+    {
+        var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
+            _options,
+            currentMaxDepth: 0,
+            ImmutableDictionary<int, int>.Empty,
+            backlog.Cost);
+
+        return new PlanNode
+        {
+            OperationDefinition = deferredOperation,
+            InternalOperationDefinition = deferredOperation,
+            ShortHash = "defer",
+            SchemaName = Planning.PlanNode.UnresolvedSchemaName,
+            Options = _options,
+            SelectionSetIndex = index,
+            Backlog = backlog,
+            RemainingCost = remainingCost,
+            OperationStepCount = 0
+        };
     }
 
     /// <summary>

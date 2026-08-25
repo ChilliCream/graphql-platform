@@ -680,7 +680,7 @@ public class DeferPlannerTests : FusionTestBase
         Assert.True(planBothInactive.IncrementalPlans.IsEmpty);
     }
 
-    [Fact(Skip = "Known bug: BuildDeferredOperation forces OperationType.Query, causing KeyNotFoundException for mutation fields")]
+    [Fact]
     public void Defer_OnMutationResult_Should_ProduceDeferredGroup()
     {
         // arrange
@@ -727,11 +727,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.IncrementalPlans);
-
-        var incrementalPlan = plan.IncrementalPlans[0];
-        Assert.False(incrementalPlan.RootNodes.IsEmpty);
-        Assert.False(incrementalPlan.AllNodes.IsEmpty);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -1246,6 +1242,106 @@ public class DeferPlannerTests : FusionTestBase
         // invariant is that the throw is logically unreachable for any
         // schema whose deferred incremental plan succeeds at plan time.
         Assert.True(true);
+    }
+
+    [Fact]
+    public void Defer_OnMutationRoot_Should_ThrowPlannerError_When_NoLookupAvailable()
+    {
+        // arrange
+        // The defer wraps the mutation's own top-level field, which has no lookup to key a re-fetch off of.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type Mutation {
+                createUser(name: String!): User!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var error = Assert.Throws<DeferredMutationLookupRequiredException>(() => PlanOperation(
+            schema,
+            """
+            mutation {
+                ... @defer {
+                    createUser(name: "test") {
+                        name
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("$", error.Path.ToString());
+        Assert.Equal("Mutation", error.TypeName);
+    }
+
+    [Fact]
+    public void Defer_OnMutationResult_Should_ThrowPlannerError_When_DeferredFieldNeedsSecondMutationCall()
+    {
+        // arrange
+        // "email" is real deferred output on the mutation's own subgraph, and User has no
+        // lookup anywhere, so producing it would require calling createUser a second time.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                ping: String
+            }
+
+            type Mutation {
+                createUser(name: String!): User!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                other: String
+            }
+            """);
+
+        // act
+        var error = Assert.Throws<DeferredMutationLookupRequiredException>(() => PlanOperation(
+            schema,
+            """
+            mutation {
+                createUser(name: "test") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("$.createUser", error.Path.ToString());
+        Assert.Equal("Mutation", error.TypeName);
     }
 
     [Fact]

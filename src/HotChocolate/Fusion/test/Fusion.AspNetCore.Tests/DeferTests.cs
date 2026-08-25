@@ -827,7 +827,7 @@ public class DeferTests : FusionTestBase
         }
     }
 
-    [Fact(Skip = "Known limitation: @defer on mutations forces Query operation type in deferred plan")]
+    [Fact]
     public async Task Defer_On_Mutation_Result_Should_Return_Incremental_Response()
     {
         // arrange
@@ -835,7 +835,7 @@ public class DeferTests : FusionTestBase
             "A",
             """
             type Query {
-                productById(id: ID!): Product @lookup
+                product(id: ID!): Product @lookup
             }
 
             type Mutation {
@@ -887,38 +887,9 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"),
             TestContext.Current.CancellationToken);
 
-        // assert — initial payload should have the mutation result with name,
-        // deferred payload should deliver the price from source B.
-        var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        var payloads = rawBody
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(line => JsonDocument.Parse(line))
-            .ToList();
-
-        Assert.Equal(2, payloads.Count);
-
-        // --- Initial payload ---
-        var initial = payloads[0].RootElement;
-        Assert.True(initial.TryGetProperty("data", out var data));
-        Assert.True(data.TryGetProperty("createProduct", out var product));
-        Assert.Equal("Product: UHJvZHVjdDox", product.GetProperty("name").GetString());
-        Assert.True(initial.GetProperty("hasNext").GetBoolean());
-
-        // --- Deferred payload ---
-        var deferred = payloads[1].RootElement;
-        Assert.True(deferred.TryGetProperty("incremental", out var incremental));
-        Assert.Equal(1, incremental.GetArrayLength());
-
-        var incrementalData = incremental[0].GetProperty("data");
-        Assert.True(
-            incrementalData.GetProperty("createProduct").TryGetProperty("price", out _));
-
-        Assert.False(deferred.GetProperty("hasNext").GetBoolean());
-
-        foreach (var doc in payloads)
-        {
-            doc.Dispose();
-        }
+        // assert: the mutation must run exactly once on schema A (see the "interactions" in
+        // the snapshot); the deferred "price" is delivered via a keyed lookup on schema B.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]

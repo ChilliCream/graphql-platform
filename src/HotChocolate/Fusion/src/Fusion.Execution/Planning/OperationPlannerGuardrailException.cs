@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Planning;
@@ -57,4 +58,38 @@ public enum OperationPlannerGuardrailReason
     MaxExpandedNodesExceeded,
     MaxQueueSizeExceeded,
     MaxGeneratedOptionsPerWorkItemExceeded
+}
+
+/// <summary>
+/// Thrown when a <c>@defer</c>d fragment is anchored on a mutation result whose
+/// type cannot be re-resolved through any lookup in the composite schema. The
+/// incremental plan would have no way to source the deferred fields other than
+/// re-running the mutation root field a second time, which would duplicate its
+/// side effects, so planning fails instead of doing that silently.
+/// </summary>
+public sealed class DeferredMutationLookupRequiredException : Exception
+{
+    public DeferredMutationLookupRequiredException(SelectionPath path, string typeName)
+        : base(
+            $"The @defer fragment at path '{path}' cannot be planned: its anchor type "
+            + $"'{typeName}' has no lookup in the composite schema, so the deferred fields "
+            + "could only be sourced by re-running the mutation root field a second time, "
+            + "which would duplicate its side effects.")
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
+
+        Path = path;
+        TypeName = typeName;
+    }
+
+    /// <summary>
+    /// Gets the selection path of the unresolvable defer anchor.
+    /// </summary>
+    public SelectionPath Path { get; }
+
+    /// <summary>
+    /// Gets the name of the anchor type that has no lookup.
+    /// </summary>
+    public string TypeName { get; }
 }

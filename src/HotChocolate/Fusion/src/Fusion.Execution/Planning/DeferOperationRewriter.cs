@@ -303,8 +303,13 @@ internal sealed class DeferOperationRewriter
             rootOperation.SelectionSet,
             parentPath: []);
 
+        // The incremental plan's operation keeps the root operation's own type
+        // (Query, Mutation, or Subscription). It only ever serves as a result
+        // skeleton: BuildIncrementalPlans compiles it and
+        // OperationPlanExecutor.CreateDeliveryPath walks it from
+        // operation.RootType, so forcing it to Query broke root-type
+        // resolution and anchor lookups for a mutation-anchored defer.
         return rootOperation
-            .WithOperation(OperationType.Query)
             .WithDirectives([])
             .WithSelectionSet(rootSelectionSet);
     }
