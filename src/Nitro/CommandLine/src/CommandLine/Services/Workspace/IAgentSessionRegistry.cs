@@ -141,6 +141,17 @@ internal interface IAgentSessionRegistry
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Sets the mutable participant <c>role</c> for the row matching
+    /// <paramref name="generation"/> exactly, without changing binding,
+    /// counters, endpoints, harness_version, or delivery ledgers, and
+    /// without touching the durable identity's own role (see
+    /// <see cref="AgentRecord.Role"/>). A generation that matches no row
+    /// (already ended or superseded) is a no-op. Returns whether a row was
+    /// actually updated.
+    /// </summary>
+    Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Reaps provably dead current-instance rows, then returns one
     /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
     /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when

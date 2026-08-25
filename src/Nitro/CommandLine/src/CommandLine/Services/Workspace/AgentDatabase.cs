@@ -19,7 +19,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 7;
+    public const int CurrentVersion = 8;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -28,9 +28,12 @@ internal sealed class AgentDatabase
     /// before the v4 <see cref="AgentSessionSchema"/> tables), v4 (before
     /// <c>agent_sessions</c> gained its v5 role, harness_version, and
     /// process_scope columns), v5 (before <c>agent_sessions</c> gained its
-    /// v6 <c>proc_start_legacy</c> column), and v6 (before the v7
+    /// v6 <c>proc_start_legacy</c> column), v6 (before the v7
     /// <see cref="MailWakeSchema"/> and <see cref="SessionPingGateSchema"/>
-    /// tables). A v3 database's agents table already carries every column
+    /// tables), and v7 (before <c>agent_sessions</c>' <c>harness</c> and
+    /// <c>endpoint_kind</c> CHECK constraints accepted the v8
+    /// <c>nitro-board</c> and <c>db-watch</c> values). A v3 database's
+    /// agents table already carries every column
     /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
     /// means applying the new v4 tables and bumping the stamped version. A
     /// v4 database's <c>agent_sessions</c> table already carries every
@@ -44,9 +47,11 @@ internal sealed class AgentDatabase
     /// stamped version, the same unconditional <c>CREATE TABLE IF NOT EXISTS</c>
     /// shape the v4 session tables used when they were added: there is no
     /// existing column data to carry forward, so no dedicated upgrade
-    /// method is needed for this step.
+    /// method is needed for this step. A v7 database's <c>agent_sessions</c>
+    /// CHECK constraints predate <c>nitro-board</c>/<c>db-watch</c>, rebuilt
+    /// in place by <see cref="RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync"/>.
     /// </summary>
-    private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6];
+    private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6, 7];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -156,6 +161,17 @@ internal sealed class AgentDatabase
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
 
         await transaction.CommitAsync(cancellationToken);
+
+        // Run after the transaction above commits, not inside it: like the
+        // last_ping_result rebuild above, this needs foreign key enforcement
+        // off for the moment agent_sessions is dropped, which PRAGMA
+        // foreign_keys cannot do with a transaction pending. Running it here
+        // rather than alongside that earlier rebuild also guarantees every
+        // column the current schema carries (v5's role/harness_version/
+        // process_scope, v6's proc_start_legacy) already exists on the
+        // source table by the time it runs, so every row's real values are
+        // copied through unchanged instead of being re-defaulted.
+        await RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync(connection, cancellationToken);
 
         return connection;
     }
@@ -345,6 +361,95 @@ internal sealed class AgentDatabase
             // name and were dropped along with it; agent_sessions itself
             // was never renamed, so session_deliveries' foreign key still
             // resolves.
+            await connection.ExecuteAsync(
+                """
+                CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);
+                CREATE INDEX IF NOT EXISTS idx_agent_sessions_pid ON agent_sessions (host, pid);
+                """,
+                transaction: transaction);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        finally
+        {
+            await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds <c>agent_sessions</c> in place when its stamped CHECK
+    /// constraints on <c>harness</c> or <c>endpoint_kind</c> predate the v8
+    /// <c>nitro-board</c> harness value or <c>db-watch</c> endpoint kind,
+    /// detected the same way <see cref="RebuildAgentSessionsCheckConstraintIfStaleAsync"/>
+    /// detects a stale <c>last_ping_result</c> constraint: by inspecting the
+    /// table's own recorded SQL in <c>sqlite_master</c>, since SQLite has no
+    /// ALTER for a CHECK constraint. A no-op when the constraints already
+    /// list both new values (including every freshly created table, and any
+    /// table the rebuild above already recreated under the current column
+    /// template) or when the table does not exist yet. Every column the
+    /// current schema carries is copied through unchanged rather than
+    /// re-defaulted: unlike the rebuild above, this one only ever runs after
+    /// every column-upgrade step in <see cref="InitializeAsync"/> has
+    /// already applied, so v5's role/harness_version/process_scope and v6's
+    /// proc_start_legacy are guaranteed present on the source table.
+    /// </summary>
+    /// <remarks>
+    /// Follows the same drop-under-a-fresh-name-then-rename procedure as
+    /// <see cref="RebuildAgentSessionsCheckConstraintIfStaleAsync"/>, for the
+    /// same reason (a foreign key <c>session_deliveries</c> holds against
+    /// this table, and foreign key enforcement must be off for the moment
+    /// the live table is dropped): see that method's remarks for the full
+    /// rationale. Run in its own transaction with foreign keys off, since
+    /// <c>PRAGMA foreign_keys</c> cannot be toggled with a transaction
+    /// pending, so this cannot share <see cref="InitializeAsync"/>'s main
+    /// transaction and instead runs immediately after it commits.
+    /// </remarks>
+    private static async Task RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var createTableSql = await connection.ExecuteScalarAsync<string?>(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions';");
+
+        if (createTableSql is null
+            || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
+                && createTableSql.Contains("'db-watch'", StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
+
+        try
+        {
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            const string rebuildTableName = "agent_sessions_harness_rebuild";
+
+            await connection.ExecuteAsync(
+                $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
+            await connection.ExecuteAsync(
+                AgentSessionSchema.CreateAgentSessionsTable(rebuildTableName), transaction: transaction);
+            await connection.ExecuteAsync(
+                $"""
+                INSERT INTO "{rebuildTableName}" (
+                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                    role, harness_version, process_scope, proc_start_legacy
+                )
+                SELECT
+                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                    role, harness_version, process_scope, proc_start_legacy
+                FROM agent_sessions;
+                """,
+                transaction: transaction);
+            await connection.ExecuteAsync("DROP TABLE agent_sessions;", transaction: transaction);
+            await connection.ExecuteAsync(
+                $"""ALTER TABLE "{rebuildTableName}" RENAME TO agent_sessions;""", transaction: transaction);
+
             await connection.ExecuteAsync(
                 """
                 CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);

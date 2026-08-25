@@ -25,7 +25,13 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// its own next SessionStart rewrites it with fresh ticks and clears the
 /// marker. A generation-predicated mutation (claim, heartbeat, ping,
 /// delete) matches <c>proc_start</c> by SQL equality against raw ticks, so
-/// it no-ops on a legacy row until that same rewrite happens.
+/// it no-ops on a legacy row until that same rewrite happens. v8 adds
+/// <c>nitro-board</c> to the <c>harness</c> CHECK constraint (a running
+/// board process, bound to the durable human mail actor as an operator
+/// participant instead of a coding-harness hook) and <c>db-watch</c> to the
+/// <c>endpoint_kind</c> CHECK constraint (the shared workspace database
+/// file itself as the delivery endpoint, with no routable address and no
+/// transport ever fired against it).
 /// </summary>
 internal static class AgentSessionSchema
 {
@@ -41,7 +47,7 @@ internal static class AgentSessionSchema
     /// </summary>
     private const string AgentSessionsColumns =
         """
-            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
             session_id TEXT NOT NULL,
             agent_name TEXT NULL REFERENCES agents (name),
             binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
@@ -50,7 +56,7 @@ internal static class AgentSessionSchema
             proc_start TEXT NOT NULL,
             cwd TEXT NOT NULL,
             workspace_path TEXT NOT NULL,
-            endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'none')),
+            endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'db-watch', 'none')),
             endpoint_addr TEXT NOT NULL,
             started_at TEXT NOT NULL,
             last_beat_at TEXT NOT NULL,

@@ -782,6 +782,9 @@ internal sealed class AlwaysGoneSessionRegistryDecorator(IAgentSessionRegistry i
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
         => inner.RecordHarnessVersionAsync(generation, harnessVersion, cancellationToken);
 
+    public Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken)
+        => inner.SetRoleAsync(generation, role, cancellationToken);
+
     public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
         => inner.ListParticipantsAsync(cancellationToken);
 
@@ -878,6 +881,9 @@ internal sealed class ReboundOnFindSessionRegistryDecorator(
     public Task<bool> RecordHarnessVersionAsync(
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
         => inner.RecordHarnessVersionAsync(generation, harnessVersion, cancellationToken);
+
+    public Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken)
+        => inner.SetRoleAsync(generation, role, cancellationToken);
 
     public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
         => inner.ListParticipantsAsync(cancellationToken);

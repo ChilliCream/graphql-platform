@@ -1354,6 +1354,64 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.False(touched);
     }
 
+    // ---------- SetRoleAsync ----------
+
+    [Fact]
+    public async Task SetRoleAsync_Should_SetTheSessionsOwnRole_Without_TouchingBindingOrCounters()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "pascal", cancellationToken);
+
+        // act
+        var updated = await _sessions.SetRoleAsync(generation, "operator", cancellationToken);
+
+        // assert
+        Assert.True(updated);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal("operator", row!.Role);
+        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.Equal("pascal", row.AgentName);
+    }
+
+    [Fact]
+    public async Task SetRoleAsync_Should_Normalize_TheSameWayAgentRoleNormalizeDoes()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+
+        // act
+        await _sessions.SetRoleAsync(generation, "  Operator  ", cancellationToken);
+
+        // assert
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.Equal("operator", row!.Role);
+    }
+
+    [Fact]
+    public async Task SetRoleAsync_Should_ReturnFalse_When_GenerationMatchesNoRow()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-missing");
+
+        // act
+        var updated = await _sessions.SetRoleAsync(generation, "operator", cancellationToken);
+
+        // assert
+        Assert.False(updated);
+    }
+
     // ---------- ListParticipantsAsync ----------
 
     [Fact]

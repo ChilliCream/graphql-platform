@@ -1010,6 +1010,30 @@ internal sealed class AgentSessionRegistry(
             new { result, detail, harness, sessionId, attemptId, cancellationToken });
     }
 
+    public async Task<bool> SetRoleAsync(
+        AgentSessionGeneration generation, string role, CancellationToken cancellationToken)
+    {
+        var normalizedRole = AgentRole.Normalize(role);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET role = @role "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+        command.Parameters.AddWithValue("@role", normalizedRole);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@pid", generation.Pid);
+        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
     private async Task<string> ResolveHostAsync(CancellationToken cancellationToken)
         => await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 

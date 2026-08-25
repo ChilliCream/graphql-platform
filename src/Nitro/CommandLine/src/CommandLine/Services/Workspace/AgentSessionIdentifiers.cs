@@ -9,6 +9,14 @@ internal static class AgentSessionHarness
     public const string ClaudeCode = "claude-code";
     public const string Codex = "codex";
     public const string Copilot = "copilot";
+
+    /// <summary>
+    /// A running Nitro board process (the standalone mail board or the
+    /// unified agent TUI), bound to the durable human mail actor as an
+    /// operator participant rather than to a coding-harness hook. See
+    /// <see cref="AgentSessionEndpointKind.DbWatch"/>.
+    /// </summary>
+    public const string NitroBoard = "nitro-board";
 }
 
 /// <summary>
@@ -31,6 +39,16 @@ internal static class AgentSessionEndpointKind
     public const string ClaudePeer = "claude-peer";
     public const string CodexThread = "codex-thread";
     public const string CopilotExtension = "copilot-extension";
+
+    /// <summary>
+    /// A Nitro board session's endpoint: the shared workspace SQLite file
+    /// itself. A message addressed to this endpoint's actor is already
+    /// delivered the moment it commits - the board's own db-file watcher
+    /// observes the change and refreshes - so it carries no routable peer
+    /// or thread id and no transport ever fires against it.
+    /// </summary>
+    public const string DbWatch = "db-watch";
+
     public const string None = "none";
 }
 

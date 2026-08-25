@@ -5,15 +5,29 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 /// <summary>
 /// An in-memory <see cref="IAgentSessionRegistry"/> exercising the surface
 /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentsState"/> consumes
-/// (<see cref="ListParticipantsAsync"/>). Every other member throws
-/// <see cref="NotSupportedException"/>.
+/// (<see cref="ListParticipantsAsync"/>) and <see cref="FindLiveClaimedByAgentNameAsync"/>,
+/// configurable via <see cref="LiveSessionsByAgentName"/>. Every other member
+/// throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
 {
     public List<AgentSessionParticipant> Participants { get; } = [];
 
+    /// <summary>
+    /// The rows <see cref="FindLiveClaimedByAgentNameAsync"/> returns, keyed
+    /// by agent name; an agent name with no entry gets an empty list.
+    /// </summary>
+    public Dictionary<string, IReadOnlyList<AgentSessionRecord>> LiveSessionsByAgentName { get; } =
+        new(StringComparer.Ordinal);
+
     public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<AgentSessionParticipant>>(Participants);
+
+    public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
+        string agentName, CancellationToken cancellationToken)
+        => Task.FromResult(LiveSessionsByAgentName.TryGetValue(agentName, out var sessions)
+            ? sessions
+            : (IReadOnlyList<AgentSessionRecord>)[]);
 
     public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
@@ -49,6 +63,9 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<AgentSessionRegisterResult> RegisterAsync(
         AgentSessionGeneration generation,
         string actor,
@@ -74,10 +91,6 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         => throw new NotSupportedException();
 
     public Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
-        string agentName, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<bool> TryClaimPingCooldownAsync(

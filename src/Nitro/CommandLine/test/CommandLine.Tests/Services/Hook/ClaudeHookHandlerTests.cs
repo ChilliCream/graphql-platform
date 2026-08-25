@@ -774,6 +774,9 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)
         => inner.RecordHarnessVersionAsync(generation, harnessVersion, cancellationToken);
 
+    public Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken)
+        => inner.SetRoleAsync(generation, role, cancellationToken);
+
     public Task<AgentSessionRegisterResult> RegisterAsync(
         AgentSessionGeneration generation,
         string actor,
