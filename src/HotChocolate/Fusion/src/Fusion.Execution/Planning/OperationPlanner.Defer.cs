@@ -741,15 +741,10 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Detects an incremental plan whose entire deferred output is already available from
-    /// the enclosing plan scope, either because the deferred selection is exactly the
-    /// anchor type's own key fields (every schema that exposes an entity resolves its own
-    /// key fields, so extending the enclosing step's existing fetch of the same entity
-    /// costs nothing extra) or because every deferred field is already selected there as a
-    /// requirement for an unrelated reason. In both cases the incremental delivery
-    /// specification allows serving the data immediately instead of deferring it (no
-    /// pending entry, no label): the fields are made visible on the enclosing step and its
-    /// internal operation, and the caller skips producing an incremental plan for
-    /// <paramref name="descriptor"/> entirely.
+    /// the enclosing plan scope, either as the anchor type's own key fields or as fields
+    /// already selected there for an unrelated reason, and if so makes those fields visible
+    /// on the enclosing step instead of producing an incremental plan for
+    /// <paramref name="descriptor"/>.
     /// </summary>
     private bool TryAbsorbFullyRedundantDefer(
         IncrementalPlanDescriptor descriptor,
@@ -901,7 +896,8 @@ public sealed partial class OperationPlanner
         }
         else
         {
-            contextGraph.UpdateDeferContext(parentContext.OwnerDescriptor!, updatedParentSteps, updatedInternalOperation);
+            contextGraph.UpdateDeferContext(
+                parentContext.OwnerDescriptor!, updatedParentSteps, updatedInternalOperation);
         }
 
         return true;
@@ -936,13 +932,7 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Collects the names of every unaliased, unconditionally selected top-level field in
-    /// <paramref name="selectionSet"/>, marked with <c>fusion__requirement</c> or not. An
-    /// aliased field is excluded: renaming it away from its alias to make it client-visible
-    /// could collide with unrelated bookkeeping keyed by that alias. A field guarded by
-    /// <c>@skip</c>/<c>@include</c> (the eager copy a variable-conditioned <c>@defer</c>
-    /// keeps in the main operation for when the condition disables the defer) is excluded
-    /// too: it is only actually fetched in one branch of the condition, so its presence here
-    /// does not make the deferred fetch redundant.
+    /// <paramref name="selectionSet"/>, marked with <c>fusion__requirement</c> or not.
     /// </summary>
     private static HashSet<string> CollectPlainFieldNames(SelectionSetNode selectionSet)
     {
@@ -971,9 +961,7 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Collects the field names every possible lookup for <paramref name="anchorType"/>
-    /// requires as input. Every schema that exposes an entity type resolves its own key
-    /// fields, so these names identify data that is available wherever the entity itself
-    /// is fetched, without needing a dedicated lookup call.
+    /// requires as input.
     /// </summary>
     private ImmutableHashSet<string> GetEntityKeyFieldNames(ITypeDefinition anchorType)
     {
@@ -997,9 +985,7 @@ public sealed partial class OperationPlanner
     /// Returns a copy of <paramref name="selectionSet"/> where every field named in
     /// <paramref name="fieldNames"/> is a plain, client-visible selection: an existing
     /// unaliased field has its <c>fusion__requirement</c> marker removed, and a field not
-    /// yet selected is added. A lone, unmarked <c>__typename</c> placeholder (inserted by
-    /// the defer split to keep an otherwise-empty selection set valid) is replaced rather
-    /// than kept alongside the newly visible fields.
+    /// yet selected is added.
     /// </summary>
     private static SelectionSetNode MakeFieldsVisible(SelectionSetNode selectionSet, List<string> fieldNames)
     {
