@@ -1,9 +1,9 @@
  [T]asks   [M]ail (2)   [A]gents   M[e]mory
-╭─Agents (1)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
-│ >   bob ◇ claude-code  started 2026-01-01   ││ Session                                      │
-│ heard 2026-01-01                            ││                                              │
-│                                             ││ Actor: bob                                   │
-│                                             ││ Role: -                                      │
+╭─Agents (2)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
+│ >   bob       ◇ claude-code  started        ││ Session                                      │
+│ 2026-01-01 heard 2026-01-01                 ││                                              │
+│     e2e-agent ● nitro-board  started AGE    ││ Actor: bob                                   │
+│  heard AGE                                  ││ Role: -                                      │
 │                                             ││ State: remote                                │
 │                                             ││ Harness: claude-code                         │
 │                                             ││ Session id: e2e-remote-session               │

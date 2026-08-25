@@ -15,17 +15,43 @@
 # agent_sessions row (harness, session id), not one row per registered
 # agent: an agent with no session row simply has no participant row and so
 # never appears in the tab at all, offline or otherwise. The fixture seeds
-# exactly one session (bob, remote), so the tab shows exactly one row.
-# alice and e2e-agent, which have no session row, are absent from the list
-# entirely (fixtures/agents-seed.sql's header explains the remote-vs-live
-# distinction that made bob the one state a static SQL fixture can pin
-# byte-stably).
+# exactly one session (bob, remote); alice and e2e-agent, which have no
+# session row, are absent from the list entirely (fixtures/agents-seed.sql's
+# header explains the remote-vs-live distinction that made bob the one state
+# a static SQL fixture can pin byte-stably).
 #
-# Drives: land on Agents, the fixture's one row (bob, remote) selected by
+# perles-net-nhs (feat(nitro-agent): register both board entry points as
+# live operator sessions) now starts a live nitro-board session for bare
+# `nitro agent` itself, before the shell even opens: this tape's own launch
+# registers a second, real agent_sessions row for the resolved mail actor
+# (NITRO_MAIL_ACTOR, falling back to NITRO_TASK_ACTOR=e2e-agent below), so
+# the tab shows two rows, not one. ListParticipantsAsync orders by harness
+# then session id, and "claude-code" sorts ahead of "nitro-board", so bob
+# stays row 0 and selected by default; the board's own row lands second.
+# That row's fields are all deterministic except its two ages: actor
+# e2e-agent (the resolved mail actor), harness nitro-board, state online
+# (its host always matches the current instance, and the process is,
+# definitionally, alive). Started/Last heard are MailAges.Format's relative
+# ages, computed against wall-clock time; the board session starts moments
+# before this frame is captured, so they read "now" in a fast run but can
+# drift to "{n}m" if recording is slow, so run.sh's SCRUBS[agents] entry
+# normalizes both to AGE before diffing. Its role (operator,
+# BoardSessionLifecycle.OperatorRole) is set the same way, but
+# AgentRowBadge.Render truncates the role column to
+# nothing at this tape's fixed 1100-wide geometry once a second, wider
+# ("nitro-board") harness value is on screen - the same truncation bob's
+# own row already carries in the pre-existing golden, role "-" included.
+# Confirmed against a live run of the published binary, not guessed from
+# source.
+#
+# Drives: land on Agents, two rows, the fixture's bob (remote) selected by
 # default; its detail pane shows the new Session section (session id, host,
 # started/last-heard) ahead of Identity, then Sent mail (m-fix006, shared
 # with the mail board tape's own fixture data); no Tasks section, since bob
-# is nobody's task assignee.
+# is nobody's task assignee. The board's own row is asserted from the list
+# line alone (actor, presence glyph, harness) - its detail pane is never
+# opened, so the real session id/host/pid a live process carries never
+# needs to be pinned.
 #
 # Produces agents-flow.gif + agents-flow.txt.
 
@@ -59,12 +85,15 @@ Type `nitro agent` Enter
 Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
 
 # Shift+A: TabSwitchKeys.ResolveMnemonic jumps straight to the Agents tab.
-# The fixture seeds exactly one agent_sessions row (bob, remote), so the
-# list holds exactly one row and it is selected by default.
+# Two live agent_sessions rows now exist (fixture-seeded bob, plus this
+# launch's own live board session), sorted harness-then-session-id: bob
+# (claude-code) stays row 0 and selected by default, the board session
+# (nitro-board, actor e2e-agent, role operator, state online) is row 1.
 Type "A"
-Wait+Screen@30s /Agents \(1\)/
+Wait+Screen@30s /Agents \(2\)/
 Wait+Screen@30s /─bob─/
 Wait+Screen@30s /bob\s+◇/
+Wait+Screen@30s /e2e-agent\s+●\s+nitro-board/
 Wait+Screen@30s /Session/
 Wait+Screen@30s /Host: e2e-remote-host-fixture/
 
