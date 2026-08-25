@@ -832,6 +832,15 @@ internal sealed class TuiShell
                 outcomeUnknownCount++;
                 continue;
             }
+            catch (Exception)
+            {
+                // A gate that faults, whether it throws synchronously or returns a
+                // faulted task, is reported as outcome-unknown for that gate. The
+                // runtime does not guess the feature's commit state and never lets
+                // a gate fault tear down the TUI.
+                outcomeUnknownCount++;
+                continue;
+            }
 
             pendingCount += report.PendingCount;
             outcomeUnknownCount += report.OutcomeUnknownCount;

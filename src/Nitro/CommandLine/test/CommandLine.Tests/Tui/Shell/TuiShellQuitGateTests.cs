@@ -8,7 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 /// <summary>
 /// Covers the pre-cancellation quit gate contract: <see cref="TuiShell"/> runs every
 /// registered <see cref="TuiQuitGate"/> before a confirmed normal quit is allowed to
-/// raise <see cref="TuiShell.QuitConfirmed"/>.
+/// raise <see cref="TuiShell.QuitConfirmed"/>. Includes shell-level coverage of a real
+/// <see cref="TuiEffectQueue{TResult}"/> wired in as a gate, with its effect completing
+/// before, during, and after the gate's bounded drain.
 /// </summary>
 public sealed class TuiShellQuitGateTests
 {
@@ -286,6 +288,90 @@ public sealed class TuiShellQuitGateTests
         Assert.True(dirty);
         Assert.False(confirmed);
         Assert.Contains("1 outcome-unknown", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_TreatGateAsOutcomeUnknown_When_GateReturnsFaultedTask()
+    {
+        // arrange
+        TuiQuitGate gate = (_, _) => Task.FromException<TuiQuitGateReport>(new InvalidOperationException("boom"));
+        var shell = CreateShell(new FakeTuiMode(), gate);
+        var confirmed = false;
+        shell.QuitConfirmed += () => confirmed = true;
+        shell.Handle(QuitKey);
+
+        // act
+        var dirty = shell.Handle(YesKey);
+
+        // assert
+        Assert.True(dirty);
+        Assert.False(confirmed);
+        Assert.Contains("1 outcome-unknown", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_TreatGateAsOutcomeUnknown_When_GateThrowsSynchronously()
+    {
+        // arrange
+        TuiQuitGate gate = (_, _) => throw new ObjectDisposedException("store");
+        var shell = CreateShell(new FakeTuiMode(), gate);
+        var confirmed = false;
+        shell.QuitConfirmed += () => confirmed = true;
+        shell.Handle(QuitKey);
+
+        // act
+        var dirty = shell.Handle(YesKey);
+
+        // assert
+        Assert.True(dirty);
+        Assert.False(confirmed);
+        Assert.Contains("1 outcome-unknown", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_NotSuppressHealthyGatePendingCount_When_AnotherGateFaults()
+    {
+        // arrange
+        var healthy = new TuiQuitGateReport(1, 0, [TuiOperationId.New()]);
+        TuiQuitGate faulting = (_, _) => throw new InvalidOperationException("boom");
+        var shell = CreateShell(new FakeTuiMode(), FixedGate(healthy), faulting);
+        shell.Handle(QuitKey);
+
+        // act
+        shell.Handle(YesKey);
+
+        // assert
+        var text = RenderToText(shell);
+        Assert.Contains("1 stored-but-pending", text);
+        Assert.Contains("1 outcome-unknown", text);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ConfirmQuit_When_QueuedEffectCompletedBeforeTheGate()
+    {
+        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
+        // the effect already resolved BEFORE the gate ever runs.
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var queue = new TuiEffectQueue<string>();
+
+        static Task<string> Effect(TuiOperationId id, CancellationToken ct) => Task.FromResult("done");
+
+        queue.TrySubmit("compose", Effect, testToken, out _);
+        await WaitUntilAsync(() => queue.PendingCount == 0, testToken);
+
+        var shell = CreateShell(new FakeTuiMode(), QueueGate(queue));
+        var confirmed = false;
+        shell.QuitConfirmed += () => confirmed = true;
+        shell.Handle(QuitKey);
+
+        // act
+        var dirty = shell.Handle(YesKey);
+
+        // assert
+        Assert.True(dirty);
+        Assert.True(confirmed);
+        Assert.DoesNotContain("stored-but-pending", RenderToText(shell));
     }
 
     [Fact]
