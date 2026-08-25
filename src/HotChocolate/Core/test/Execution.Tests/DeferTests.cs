@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +7,123 @@ namespace HotChocolate.Execution;
 
 public class DeferTests
 {
+    [Fact]
+    public async Task VariableBatch_Defer_Should_Deliver_Each_Items_Payloads_When_Executed()
+    {
+        // arrange
+        // the timeout turns a lost-coordinator hang into a test failure instead of a block.
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(
+                """
+                query ($id: ID!) {
+                    person(id: $id) {
+                        id
+                        ... @defer {
+                            name
+                        }
+                    }
+                }
+                """)
+            .SetVariableValues(
+                new List<IReadOnlyDictionary<string, object?>>
+                {
+                    new Dictionary<string, object?> { ["id"] = "UGVyc29uOjE=" },
+                    new Dictionary<string, object?> { ["id"] = "UGVyc29uOjI=" }
+                })
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, cts.Token);
+
+        var summaries = new List<string>();
+        foreach (var item in result.ExpectOperationResultBatch().Results)
+        {
+            summaries.Add(await SummarizeStreamAsync(item.ExpectResponseStream(), cts.Token));
+        }
+
+        // assert
+        summaries.MatchInlineSnapshots(
+        [
+            "person.id=UGVyc29uOjE=; name=Pascal; hasNext=True,False",
+            "person.id=UGVyc29uOjI=; name=Rafi; hasNext=True,False"
+        ]);
+    }
+
+    // Reads a single item's response stream to completion and projects it to a delivery-shape
+    // summary that pins the initial data, the deferred data, and the per-payload hasNext sequence
+    // without depending on the non-deterministic branch identifiers in the incremental envelope.
+    private static async Task<string> SummarizeStreamAsync(
+        ResponseStream stream,
+        CancellationToken cancellationToken)
+    {
+        string? personId = null;
+        string? name = null;
+        var hasNext = new List<bool>();
+
+        await foreach (var payload in stream.ReadResultsAsync().WithCancellation(cancellationToken))
+        {
+            await using var payloadCleanup = payload;
+            using var document = JsonDocument.Parse(payload.ToJson());
+            var root = document.RootElement;
+
+            hasNext.Add(root.TryGetProperty("hasNext", out var hasNextValue) && hasNextValue.GetBoolean());
+
+            if (root.TryGetProperty("data", out var data)
+                && data.ValueKind is JsonValueKind.Object
+                && data.TryGetProperty("person", out var person)
+                && person.TryGetProperty("id", out var id))
+            {
+                personId = id.GetString();
+            }
+
+            // The deferred name must arrive inside an incremental entry's data (the deferred
+            // payload), never in the initial data. Reading only incremental[].data keeps the
+            // non-deterministic branch identifiers carried elsewhere in the envelope out of
+            // the summary.
+            if (root.TryGetProperty("incremental", out var incremental)
+                && incremental.ValueKind is JsonValueKind.Array)
+            {
+                foreach (var entry in incremental.EnumerateArray())
+                {
+                    if (entry.TryGetProperty("data", out var incrementalData)
+                        && TryFindName(incrementalData, out var deferredName))
+                    {
+                        name = deferredName;
+                    }
+                }
+            }
+        }
+
+        return $"person.id={personId}; name={name}; hasNext={string.Join(",", hasNext)}";
+    }
+
+    private static bool TryFindName(JsonElement element, out string? name)
+    {
+        if (element.ValueKind is JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                if (property.Name is "name" && property.Value.ValueKind is JsonValueKind.String)
+                {
+                    name = property.Value.GetString();
+                    return true;
+                }
+
+                if (TryFindName(property.Value, out name))
+                {
+                    return true;
+                }
+            }
+        }
+
+        name = null;
+        return false;
+    }
+
     [Fact]
     public async Task InlineFragment_Defer()
     {
