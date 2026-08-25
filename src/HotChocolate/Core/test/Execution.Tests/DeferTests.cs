@@ -8,7 +8,7 @@ namespace HotChocolate.Execution;
 public class DeferTests
 {
     [Fact]
-    public async Task VariableBatch_Defer_Should_Deliver_Each_Items_Payloads_When_Executed()
+    public async Task VariableBatch_Defer_Should_Deliver_Payloads_Per_Item_When_Executed()
     {
         // arrange
         // the timeout turns a lost-coordinator hang into a test failure instead of a block.
