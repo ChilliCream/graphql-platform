@@ -37,4 +37,39 @@ public class FusionOptionsTests : FusionTestBase
         Assert.NotNull(options);
         Assert.True(options.EnableOptInFeatures);
     }
+
+    [Fact]
+    public void Clone_CopiesConfiguredValues()
+    {
+        // arrange
+        var options = new FusionOptions
+        {
+            EvictionTimeout = TimeSpan.FromSeconds(90),
+            OperationDocumentCacheSize = 1024,
+            EnableDefer = false,
+            EnableObjectDeprecation = true
+        };
+
+        // act
+        var clone = options.Clone();
+
+        // assert
+        clone.MatchInlineSnapshot(
+            """
+            {
+              "EvictionTimeout": "00:01:30",
+              "OperationExecutionPlanCacheSize": 256,
+              "OperationExecutionPlanCacheDiagnostics": null,
+              "OperationDocumentCacheSize": 1024,
+              "PathSegmentLocalPoolCapacity": 64,
+              "LazyInitialization": false,
+              "NodeIdSerializerFormat": "Base64",
+              "ApplySerializeAsToScalars": false,
+              "EnableDefer": false,
+              "EnableObjectDeprecation": true,
+              "EnableOptInFeatures": false,
+              "EnableSemanticIntrospection": true
+            }
+            """);
+    }
 }

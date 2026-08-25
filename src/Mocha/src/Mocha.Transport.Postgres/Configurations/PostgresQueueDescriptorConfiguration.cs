@@ -22,6 +22,12 @@ public sealed class PostgresQueueDescriptorConfiguration : MessagingConfiguratio
     public PostgresQueueConfiguration Queue { get; }
 
     /// <summary>
+    /// Gets or sets whether this queue's receive endpoint is temporary, matching the shared
+    /// lifecycle intent exposed by <see cref="IReceiveEndpointDescriptor{T}.Temporary"/>.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
     /// Gets the consumer identity types explicitly bound to this queue.
     /// </summary>
     public List<Type> ConsumerIdentities { get; } = [];

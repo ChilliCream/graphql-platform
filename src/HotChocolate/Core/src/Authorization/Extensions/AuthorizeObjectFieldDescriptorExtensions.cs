@@ -80,6 +80,62 @@ public static class AuthorizeObjectFieldDescriptorExtensions
     }
 
     /// <summary>
+    /// Adds authorization to a field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor.</param>
+    /// <param name="roles">The roles for which this field shall be accessible.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor Authorize(
+        this IObjectFieldDescriptor descriptor,
+        IReadOnlyList<string> roles,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        if (apply is ApplyPolicy.Validation)
+        {
+            descriptor.Extend().Context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
+        }
+
+        return descriptor.Directive(new AuthorizeDirective(roles, apply));
+    }
+
+    /// <summary>
+    /// Adds authorization to a field.
+    /// </summary>
+    /// <param name="descriptor">The field descriptor.</param>
+    /// <param name="policy">The authorization policy name.</param>
+    /// <param name="roles">The roles for which this field shall be accessible.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor Authorize(
+        this IObjectFieldDescriptor descriptor,
+        string policy,
+        IReadOnlyList<string> roles,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        if (apply is ApplyPolicy.Validation)
+        {
+            descriptor.Extend().Context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
+        }
+
+        return descriptor.Directive(new AuthorizeDirective(policy, roles, apply));
+    }
+
+    /// <summary>
     /// Allows anonymous access to this field.
     /// </summary>
     /// <param name="descriptor">

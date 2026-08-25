@@ -8,11 +8,12 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal static class OperationPlanExecutor
+internal static partial class OperationPlanExecutor
 {
     public static async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
@@ -105,6 +106,7 @@ internal static class OperationPlanExecutor
             // @defer(if:) evaluates to true) and the incremental plans that will actually run.
             // An incremental plan is active if at least one of its delivery groups is active.
             var activeDeliveryGroupIds = new HashSet<int>();
+            var deliveryPaths = CreateDeliveryPaths(operationPlan);
             foreach (var deliveryGroup in operationPlan.DeliveryGroups)
             {
                 if (IsDeliveryGroupActive(deliveryGroup, variables))
@@ -131,7 +133,7 @@ internal static class OperationPlanExecutor
 
                 pendingResults.Add(new PendingResult(
                     deliveryGroup.Id,
-                    BuildPath(deliveryGroup.Path ?? SelectionPath.Root),
+                    deliveryPaths[deliveryGroup.Id].PendingPath,
                     deliveryGroup.Label));
             }
 
@@ -159,6 +161,7 @@ internal static class OperationPlanExecutor
                     operationPlan,
                     initialResult,
                     activeDeliveryGroupIds,
+                    deliveryPaths,
                     rootContext,
                     cancellationToken),
                 ExecutionResultKind.DeferredResult);
@@ -186,6 +189,7 @@ internal static class OperationPlanExecutor
         OperationPlan operationPlan,
         OperationResult initialResult,
         HashSet<int> activeDeliveryGroupIds,
+        IReadOnlyDictionary<int, DeliveryPath> deliveryPaths,
         OperationPlanContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -349,7 +353,7 @@ internal static class OperationPlanExecutor
 
                         childPending.Add(new PendingResult(
                             deliveryGroup.Id,
-                            BuildPath(deliveryGroup.Path ?? SelectionPath.Root),
+                            deliveryPaths[deliveryGroup.Id].PendingPath,
                             deliveryGroup.Label));
                     }
                 }
@@ -387,6 +391,7 @@ internal static class OperationPlanExecutor
                         && TryCreateIncrementalResults(
                             result.Data.Value,
                             bestDeliveryGroup,
+                            deliveryPaths[bestDeliveryGroup.Id].PendingFieldCount,
                             result.Errors.Count > 0 ? result.Errors : null,
                             out var incrementalResults))
                     {
@@ -731,21 +736,170 @@ internal static class OperationPlanExecutor
         }
     }
 
-    private static Path BuildPath(SelectionPath selectionPath)
+    private static Dictionary<int, DeliveryPath> CreateDeliveryPaths(OperationPlan operationPlan)
+    {
+        var deliveryPaths = new Dictionary<int, DeliveryPath>();
+
+        foreach (var incrementalPlan in operationPlan.IncrementalPlans)
+        {
+            foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
+            {
+                deliveryPaths.TryAdd(
+                    deliveryGroup.Id,
+                    CreateDeliveryPath(
+                        incrementalPlan.Operation,
+                        deliveryGroup.Path ?? SelectionPath.Root));
+            }
+        }
+
+        return deliveryPaths;
+    }
+
+    private static DeliveryPath CreateDeliveryPath(
+        Operation operation,
+        SelectionPath selectionPath)
     {
         var path = Path.Root;
+        var pendingFieldCount = 0;
+        var currentSelectionSet = operation.Definition.SelectionSet;
+        IOutputTypeDefinition currentType = operation.RootType;
 
         for (var i = 0; i < selectionPath.Length; i++)
         {
             var segment = selectionPath[i];
 
-            if (segment.Kind is SelectionPathSegmentKind.Field)
+            if (segment.Kind is SelectionPathSegmentKind.Root)
             {
-                path = path.Append(segment.Name);
+                continue;
+            }
+
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                if (!TryFindInlineFragment(currentSelectionSet, segment.Name, out var inlineFragment)
+                    || !operation.Schema.Types.TryGetType<IOutputTypeDefinition>(segment.Name, out var fragmentType))
+                {
+                    throw new InvalidOperationException(
+                        $"Could not resolve selection path segment '{segment.Name}'.");
+                }
+
+                currentSelectionSet = inlineFragment.SelectionSet;
+                currentType = fragmentType;
+                continue;
+            }
+
+            if (!TryFindField(
+                operation.Schema,
+                currentSelectionSet,
+                currentType,
+                segment.Name,
+                out var fieldNode,
+                out var field))
+            {
+                throw new InvalidOperationException(
+                    $"Could not resolve selection path segment '{segment.Name}'.");
+            }
+
+            path = path.Append(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+            pendingFieldCount++;
+
+            if (field.Type.IsListType())
+            {
+                break;
+            }
+
+            currentSelectionSet = fieldNode.SelectionSet
+                ?? throw new InvalidOperationException(
+                    $"Selection path segment '{segment.Name}' has no selection set.");
+            currentType = field.Type.NamedType<IOutputTypeDefinition>();
+        }
+
+        return new DeliveryPath(path, pendingFieldCount);
+    }
+
+    private static bool TryFindField(
+        ISchemaDefinition schema,
+        SelectionSetNode selectionSet,
+        IOutputTypeDefinition typeContext,
+        string responseName,
+        out FieldNode fieldNode,
+        out IOutputFieldDefinition field)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode candidate
+                && (candidate.Alias?.Value ?? candidate.Name.Value) == responseName
+                && typeContext is IComplexTypeDefinition complexType
+                && complexType.Fields.TryGetField(candidate.Name.Value, out var resolvedField)
+                && resolvedField is not null)
+            {
+                fieldNode = candidate;
+                field = resolvedField;
+                return true;
+            }
+
+            if (selection is InlineFragmentNode inlineFragment)
+            {
+                IOutputTypeDefinition fragmentType;
+                if (inlineFragment.TypeCondition?.Name.Value is not { } typeName)
+                {
+                    fragmentType = typeContext;
+                }
+                else if (schema.Types.TryGetType<IOutputTypeDefinition>(
+                    typeName,
+                    out var resolvedType)
+                    && resolvedType is not null)
+                {
+                    fragmentType = resolvedType;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (TryFindField(
+                    schema,
+                    inlineFragment.SelectionSet,
+                    fragmentType,
+                    responseName,
+                    out fieldNode,
+                    out field))
+                {
+                    return true;
+                }
             }
         }
 
-        return path;
+        fieldNode = null!;
+        field = null!;
+        return false;
+    }
+
+    private static bool TryFindInlineFragment(
+        SelectionSetNode selectionSet,
+        string typeName,
+        out InlineFragmentNode inlineFragment)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not InlineFragmentNode candidate)
+            {
+                continue;
+            }
+
+            if (candidate.TypeCondition?.Name.Value == typeName)
+            {
+                inlineFragment = candidate;
+                return true;
+            }
+
+            if (TryFindInlineFragment(candidate.SelectionSet, typeName, out inlineFragment))
+            {
+                return true;
+            }
+        }
+
+        inlineFragment = null!;
+        return false;
     }
 
     /// <summary>
@@ -753,101 +907,147 @@ internal static class OperationPlanExecutor
     /// is the subtree at the best delivery group's path within the deferred
     /// plan's composite result. The incremental delivery contract requires
     /// <c>incremental.data</c> to be a map of fields to merge at the pending
-    /// path, not the fully rooted result. When the pending path points at a list,
-    /// each list element is emitted as a separate incremental result with a
-    /// relative index <c>subPath</c>.
+    /// path, not the fully rooted result. When the delivery path crosses a list,
+    /// the pending path ends at the first list and each concrete descendant is
+    /// emitted with a relative field-and-index <c>subPath</c>.
     /// </summary>
     private static bool TryCreateIncrementalResults(
         OperationResultData rootData,
         DeliveryGroup bestDeliveryGroup,
+        int pendingFieldCount,
         ImmutableList<IError>? errors,
         out ImmutableList<IIncrementalResult> incrementalResults)
     {
         if (rootData.Value is not CompositeResultDocument document)
         {
-            // Unknown backing value: fall through to the default behavior and
-            // emit the result as-is.
-            incrementalResults =
-            [
-                new IncrementalObjectResult(
-                    bestDeliveryGroup.Id,
-                    errors,
-                    data: rootData)
-            ];
-            return true;
+            throw new InvalidOperationException(
+                "Deferred result data must be backed by a composite result document.");
         }
 
-        var element = document.Data;
         var selectionPath = bestDeliveryGroup.Path ?? SelectionPath.Root;
+        var builder = ImmutableList.CreateBuilder<IIncrementalResult>();
 
-        for (var i = 0; i < selectionPath.Length; i++)
+        CollectIncrementalResults(
+            document,
+            document.Data,
+            selectionPath,
+            segmentIndex: 0,
+            fieldIndex: 0,
+            pendingFieldCount,
+            Path.Root,
+            bestDeliveryGroup.Id,
+            errors,
+            builder);
+
+        incrementalResults = builder.ToImmutable();
+        return incrementalResults.Count > 0;
+    }
+
+    private static void CollectIncrementalResults(
+        CompositeResultDocument document,
+        CompositeResultElement element,
+        SelectionPath selectionPath,
+        int segmentIndex,
+        int fieldIndex,
+        int pendingFieldCount,
+        Path subPath,
+        int deliveryGroupId,
+        ImmutableList<IError>? errors,
+        ImmutableList<IIncrementalResult>.Builder results)
+    {
+        if (element.IsNullMarker)
         {
-            var segment = selectionPath[i];
-
-            // Inline fragments/type-conditions do not introduce an extra level
-            // in the result tree, so we only walk field segments.
-            if (segment.Kind is not SelectionPathSegmentKind.Field)
+            if (HasRemainingFieldSegments(selectionPath, segmentIndex))
             {
-                continue;
+                return;
             }
-
-            if (!element.TryGetProperty(segment.Name, out var next)
-                || next.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            {
-                // The path could not be resolved or is null; nothing to merge.
-                incrementalResults = [];
-                return false;
-            }
-
-            element = next;
-
-            if (element.IsNullMarker)
-            {
-                for (var j = i + 1; j < selectionPath.Length; j++)
-                {
-                    if (selectionPath[j].Kind is SelectionPathSegmentKind.Field)
-                    {
-                        incrementalResults = [];
-                        return false;
-                    }
-                }
-            }
+        }
+        else if (element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return;
         }
 
         if (element.ValueKind is JsonValueKind.Array && !element.IsNullMarker)
         {
-            var builder = ImmutableList.CreateBuilder<IIncrementalResult>();
             var length = element.GetArrayLength();
 
             for (var i = 0; i < length; i++)
             {
-                var item = element[i];
-
-                if (item.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                {
-                    continue;
-                }
-
-                builder.Add(
-                    new IncrementalObjectResult(
-                        bestDeliveryGroup.Id,
-                        errors,
-                        subPath: Path.Root.Append(i),
-                        data: CreateIncrementalData(document, item)));
+                CollectIncrementalResults(
+                    document,
+                    element[i],
+                    selectionPath,
+                    segmentIndex,
+                    fieldIndex,
+                    pendingFieldCount,
+                    subPath.Append(i),
+                    deliveryGroupId,
+                    errors,
+                    results);
             }
 
-            incrementalResults = builder.ToImmutable();
-            return true;
+            return;
         }
 
-        incrementalResults =
-        [
-            new IncrementalObjectResult(
-                bestDeliveryGroup.Id,
+        if (segmentIndex == selectionPath.Length)
+        {
+            results.Add(
+                new IncrementalObjectResult(
+                    deliveryGroupId,
+                    errors,
+                    subPath.IsRoot ? null : subPath,
+                    CreateIncrementalData(document, element)));
+            return;
+        }
+
+        var segment = selectionPath[segmentIndex];
+
+        if (segment.Kind is not SelectionPathSegmentKind.Field)
+        {
+            CollectIncrementalResults(
+                document,
+                element,
+                selectionPath,
+                segmentIndex + 1,
+                fieldIndex,
+                pendingFieldCount,
+                subPath,
+                deliveryGroupId,
                 errors,
-                data: CreateIncrementalData(document, element))
-        ];
-        return true;
+                results);
+            return;
+        }
+
+        if (element.ValueKind is not JsonValueKind.Object
+            || !element.TryGetProperty(segment.Name, out var next))
+        {
+            return;
+        }
+
+        CollectIncrementalResults(
+            document,
+            next,
+            selectionPath,
+            segmentIndex + 1,
+            fieldIndex + 1,
+            pendingFieldCount,
+            fieldIndex < pendingFieldCount ? subPath : subPath.Append(segment.Name),
+            deliveryGroupId,
+            errors,
+            results);
+    }
+
+    private static bool HasRemainingFieldSegments(SelectionPath selectionPath, int segmentIndex)
+    {
+        for (var i = segmentIndex; i < selectionPath.Length; i++)
+        {
+            if (selectionPath[i].Kind is SelectionPathSegmentKind.Field)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static OperationResultData CreateIncrementalData(
@@ -1114,6 +1314,17 @@ internal static class OperationPlanExecutor
 
                 var gateAcquired = false;
 
+                // An error reported between events (a failed source read) can null-propagate
+                // to the root and cancel the shared event source before this event is armed.
+                // A cancelled source cannot be reset, so swap in a fresh one (and re-link
+                // client-abort / shutdown) so that the event starts with a live timeout budget.
+                if (eventCts.IsCancellationRequested && !executionCancellationToken.IsCancellationRequested)
+                {
+                    await eventCtsRegistration.DisposeAsync();
+                    eventCts.Dispose();
+                    (eventCts, eventCtsRegistration) = CreateEventCancellation();
+                }
+
                 // Arm the shared CTS for this event and derive the per-event token so
                 // that each event is bounded by the configured execution timeout.
                 eventCts.CancelAfter(eventTimeout);
@@ -1240,6 +1451,18 @@ internal static class OperationPlanExecutor
                 }
 
                 yield return result;
+
+                // Execution resumes here only after the consumer finished writing the
+                // yielded result to the client and asked for the next event. Record the
+                // delivery before the event scope is disposed at the end of this loop
+                // iteration, so a client abort that races the resume cannot erase the
+                // delivered event's success status. An event whose write failed never
+                // resumes the stream and therefore is never reported as delivered.
+                context.DiagnosticEvents.SubscriptionEventDelivered(
+                    context,
+                    subscriptionNode,
+                    schemaName,
+                    subscriptionResult.Id);
             }
         }
         finally
@@ -1294,9 +1517,3 @@ internal static class OperationPlanExecutor
         => subscriptionNode.SchemaName
             ?? (subscriptionNode is EventStreamExecutionNode ? "event-stream" : context.GetDynamicSchemaName(subscriptionNode));
 }
-
-internal readonly record struct IncrementalPlanResult(
-    IncrementalPlan IncrementalPlan,
-    OperationPlanContext? Context,
-    OperationResult? Result,
-    Exception? Error);

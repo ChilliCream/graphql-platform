@@ -452,8 +452,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requirements,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -469,8 +469,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 selectionSet,
                 variableValues,
                 requirements,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
 
         var importedMatchCount = CountImportedRequirementKeys(requirements);
@@ -482,8 +482,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 selectionSet,
                 variableValues,
                 requirements,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
 
         if (importedMatchCount != requirements.Length)
@@ -501,8 +501,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             _requirementKeys!,
             variableValuesFromSnapshot,
             requirements,
-            entityTypeName,
-            shape);
+            requiredShape,
+            entityTypeName);
     }
 
     private InvalidOperationException CreateMixedScopeException(

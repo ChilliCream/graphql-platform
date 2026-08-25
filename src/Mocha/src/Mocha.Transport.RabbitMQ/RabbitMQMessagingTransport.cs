@@ -375,10 +375,37 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
+        List<Exception>? exceptions = null;
+
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (ConsumerManager is not null)
         {
-            await ConsumerManager.DisposeAsync();
+            try
+            {
+                await ConsumerManager.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                (exceptions ??= []).Add(ex);
+            }
+        }
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (Dispatcher is not null)
+        {
+            try
+            {
+                await Dispatcher.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                (exceptions ??= []).Add(ex);
+            }
+        }
+
+        if (exceptions is not null)
+        {
+            throw new AggregateException(exceptions);
         }
     }
 }

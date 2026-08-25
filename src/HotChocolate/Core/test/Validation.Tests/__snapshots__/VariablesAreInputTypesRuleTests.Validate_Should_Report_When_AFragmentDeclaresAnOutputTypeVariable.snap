@@ -1,0 +1,37 @@
+---------------
+{
+  "message": "The type of variable \u0060bad\u0060 is not an input type.",
+  "locations": [
+    {
+      "line": 7,
+      "column": 23
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "variable": "bad",
+    "variableType": "Dog",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The following variables of fragment \u0060withVariable\u0060 were not used: bad.",
+  "locations": [
+    {
+      "line": 7,
+      "column": 1
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variables-Used"
+  }
+}
+---------------

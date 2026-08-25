@@ -2008,6 +2008,7 @@ public class OperationCompilerTests
                     baz,
                     [new FieldSelectionNode(bazSelection, 0)],
                     [],
+                    isProjectionRequirement: false,
                     isInternal: true,
                     resolverPipeline: bazPipeline);
 

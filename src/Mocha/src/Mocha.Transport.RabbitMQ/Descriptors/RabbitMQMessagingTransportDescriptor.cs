@@ -311,6 +311,11 @@ public sealed class RabbitMQMessagingTransportDescriptor
             target.MaxPrefetch = configuration.MaxPrefetch.Value;
         }
 
+        if (configuration.IsTemporary)
+        {
+            target.IsTemporary = true;
+        }
+
         target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
         CopyFaultEndpointFeature(configuration, target);

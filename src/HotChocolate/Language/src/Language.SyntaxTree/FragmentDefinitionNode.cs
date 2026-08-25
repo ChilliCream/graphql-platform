@@ -86,6 +86,12 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
+
+        foreach (var variableDefinition in VariableDefinitions)
+        {
+            yield return variableDefinition;
+        }
+
         yield return TypeCondition;
 
         foreach (var directive in Directives)

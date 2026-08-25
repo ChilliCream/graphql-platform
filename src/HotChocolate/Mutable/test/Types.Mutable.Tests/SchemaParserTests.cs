@@ -121,6 +121,124 @@ public class SchemaParserTests
     }
 
     [Fact]
+    public void Parse_Object_Type_With_Deprecated_Directive()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo @deprecated(reason: "Use Bar.") { id: ID }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var fooType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Foo"]);
+        Assert.True(fooType.IsDeprecated);
+        Assert.Equal("Use Bar.", fooType.DeprecationReason);
+    }
+
+    [Theory]
+    [InlineData("@deprecated")]
+    [InlineData("@deprecated(reason: \"\")")]
+    [InlineData("@deprecated(reason: \"   \")")]
+    public void Parse_Should_UseDefaultReason_When_DeprecatedDirectiveHasNoReason(string directive)
+    {
+        // arrange
+        var sdl =
+            $$"""
+            type Query {
+              id: String {{directive}}
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = queryType.Fields["id"];
+        Assert.True(field.IsDeprecated);
+        Assert.Equal(DirectiveNames.Deprecated.Arguments.DefaultReason, field.DeprecationReason);
+    }
+
+    [Fact]
+    public void Parse_Should_PreserveDeprecatedDirective_When_SchemaIsPrinted()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              id: String @deprecated
+              name: String @deprecated(reason: "Use id.")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              id: String @deprecated
+              name: String @deprecated(reason: "Use id.")
+            }
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_PrintDeprecatedDirectiveWithoutArguments_When_ReasonIsTheDefault()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              id: String @deprecated(reason: "No longer supported")
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              id: String @deprecated
+            }
+            """);
+    }
+
+    [Fact]
+    public void Parse_Object_Type_Extension_With_Deprecated_Directive()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo { id: ID }
+
+            extend type Foo @deprecated(reason: "Use Bar.")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var fooType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Foo"]);
+        Assert.True(fooType.IsDeprecated);
+        Assert.Equal("Use Bar.", fooType.DeprecationReason);
+    }
+
+    [Fact]
     public void Parse_With_Custom_BuiltIn_Scalar_Type()
     {
         // arrange
@@ -647,9 +765,10 @@ public class SchemaParserTests
     }
 
     [Fact]
-    public void Parse_Should_Throw_When_ExtensionAppliesNonRepeatableDirectiveAlreadyApplied()
+    public void Parse_Should_AppendBothDirectives_When_ExtensionAppliesNonRepeatableDirectiveAlreadyApplied()
     {
         // arrange
+        // the schema is invalid; the parser represents it and DirectiveIsUniqueRule reports it
         const string sdl =
             """
             type Query {
@@ -662,13 +781,40 @@ public class SchemaParserTests
             """;
 
         // act
-        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        Assert.Equal(
-            "The non-repeatable directive '@deprecated' was already applied to 'Query.id' "
-            + "and cannot be applied again by an extension.",
-            Assert.Throws<SchemaInitializationException>(Action).Message);
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        Assert.Equal(2, field.Directives["deprecated"].Count());
+        Assert.Equal("first", field.DeprecationReason);
+    }
+
+    [Fact]
+    public void Parse_Should_AppendBothDirectives_When_ExtensionArgumentAppliesNonRepeatableDirectiveAlreadyApplied()
+    {
+        // arrange
+        // the schema is invalid; the parser represents it and DirectiveIsUniqueRule reports it
+        const string sdl =
+            """
+            type Query {
+                user(id: String @deprecated(reason: "first")): String
+            }
+
+            extend type Query {
+                user(id: String @deprecated(reason: "second")): String
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        var queryType = Assert.IsType<MutableObjectTypeDefinition>(schema.Types["Query"]);
+        var field = Assert.Single(queryType.Fields.AsEnumerable());
+        var argument = Assert.Single(field.Arguments.AsEnumerable());
+        Assert.Equal(2, argument.Directives["deprecated"].Count());
+        Assert.Equal("first", argument.DeprecationReason);
     }
 
     [Fact]
@@ -866,9 +1012,10 @@ public class SchemaParserTests
     }
 
     [Fact]
-    public void Parse_Should_Throw_When_DirectiveExtensionAppliesNonRepeatableDirectiveAlreadyApplied()
+    public void Parse_Should_AppendBothDirectives_When_DirectiveExtensionAppliesNonRepeatableDirectiveAlreadyApplied()
     {
         // arrange
+        // the schema is invalid; the parser represents it and DirectiveIsUniqueRule reports it
         const string sdl =
             """
             directive @meta(value: String) on DIRECTIVE_DEFINITION
@@ -879,13 +1026,11 @@ public class SchemaParserTests
             """;
 
         // act
-        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        Assert.Equal(
-            "The non-repeatable directive '@meta' was already applied to '@foo' "
-            + "and cannot be applied again by an extension.",
-            Assert.Throws<SchemaInitializationException>(Action).Message);
+        var directiveDefinition = schema.DirectiveDefinitions["foo"];
+        Assert.Equal(2, directiveDefinition.Directives["meta"].Count());
     }
 
     [Fact]
@@ -906,5 +1051,198 @@ public class SchemaParserTests
         var directiveDefinition = schema.DirectiveDefinitions["foo"];
         Assert.True(directiveDefinition.Directives.ContainsName("meta"));
         Assert.NotNull(directiveDefinition.Features.Get<TypeExtensionMarker>());
+    }
+
+    [Theory]
+    [InlineData(
+        """
+        schema {
+            query: Query
+        }
+        """,
+        "query",
+        "Query")]
+    [InlineData(
+        """
+        schema {
+            query: Query
+            mutation: Mutation
+        }
+
+        type Query {
+            a: String
+        }
+        """,
+        "mutation",
+        "Mutation")]
+    [InlineData(
+        """
+        schema {
+            query: Query
+            subscription: Subscription
+        }
+
+        type Query {
+            a: String
+        }
+        """,
+        "subscription",
+        "Subscription")]
+    public void Parse_Should_ThrowSchemaInitializationException_When_SchemaDefinitionNamesUndefinedRootType(
+        string sdl,
+        string operation,
+        string typeName)
+    {
+        // arrange
+        var bytes = Encoding.UTF8.GetBytes(sdl);
+
+        // act
+        void Action() => SchemaParser.Parse(bytes);
+
+        // assert
+        Assert.Equal(
+            $"The {operation} root type '{typeName}' is not defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_RootTypeIsOnlyReferencedByField()
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+                query: Query
+            }
+
+            type Foo {
+                bar: Query
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The query root type 'Query' is not defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_RootTypeIsNotAnObjectType()
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+                query: Foo
+            }
+
+            scalar Foo
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The query root type 'Foo' must be an Object type.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_SchemaExtensionNamesUndefinedRootType()
+    {
+        // arrange
+        const string sdl =
+            """
+            extend schema {
+                query: Query
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The query root type 'Query' is not defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionMemberTypeIsUndefined()
+    {
+        // arrange
+        const string sdl = "union Foo = Bar";
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the undefined type 'Bar'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionMemberTypeIsOnlyReferencedByField()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Baz {
+                qux: Bar
+            }
+
+            union Foo = Bar
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the undefined type 'Bar'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionExtensionMemberTypeIsUndefined()
+    {
+        // arrange
+        const string sdl =
+            """
+            type A {
+                id: ID
+            }
+
+            union Foo = A
+
+            extend union Foo = Undefined
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the undefined type 'Undefined'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionMemberTypeIsSpecScalar()
+    {
+        // arrange
+        const string sdl = "union Foo = String";
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the type 'String'. Unions can only contain Object types.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
     }
 }

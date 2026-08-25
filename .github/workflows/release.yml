@@ -272,8 +272,8 @@ jobs:
       - name: 🖋️ Set up signing resources (macOS)
         if: runner.os == 'macOS'
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_PASSWORD }}
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.TEMPORARY_KEYCHAIN_PASSWORD }}
         run: |
           # create variables
@@ -438,7 +438,7 @@ jobs:
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-22.04
-    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops]
+    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -528,7 +528,7 @@ jobs:
               echo "Skipping ${name}@${version} (already published)"
               return 0
             fi
-            npm publish "$tarball" \
+            npm publish "./$tarball" \
               --access public \
               --registry="$REGISTRY" \
               --tag "$PRIMARY_BAND"
@@ -587,7 +587,6 @@ jobs:
           stage: Dev
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
 
       - name: 🚀 Publish Nitro CLI client (Prod)
         uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
@@ -596,7 +595,57 @@ jobs:
           stage: Prod
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           api-key: ${{ secrets.NITRO_API_KEY }}
-          force: true
+
+  publish-aspire-nitro-ops:
+    name: 🚀 Publish Fusion Aspire Nitro operations
+    runs-on: ubuntu-22.04
+    needs: [compute-release-context, pack-nuget]
+    permissions:
+      contents: read
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          show-progress: false
+
+      - name: 🛠 Install .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: |
+            10.x
+            11.0.100-preview.6.26359.118
+
+      - name: 🔍 Verify hashes and create operations manifest
+        run: >
+          .github/scripts/nitro-aspire-operations.sh verify
+          --output "${{ runner.temp }}/nitro-aspire-operations.json"
+
+      - name: 📤 Upload Fusion Aspire client operations
+        uses: ChilliCream/nitro-client-upload@a783713782de320181e63a16e46b65fa45eedafe # v16.1.3
+        with:
+          tag: ${{ env.GIT_TAG }}
+          operations-file: ${{ runner.temp }}/nitro-aspire-operations.json
+          client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+
+      - name: 🚀 Publish Fusion Aspire client (Dev)
+        uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
+        with:
+          tag: ${{ env.GIT_TAG }}
+          stage: Dev
+          client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+
+      - name: 🚀 Publish Fusion Aspire client (Prod)
+        uses: ChilliCream/nitro-client-publish@f6c3f4187804f89ee11c4f06feb8b87818be413e # v16.1.3
+        with:
+          tag: ${{ env.GIT_TAG }}
+          stage: Prod
+          client-id: ${{ secrets.NITRO_ASPIRE_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
 
   publish-release:
     name: 🚀 Publish Release
@@ -607,6 +656,7 @@ jobs:
       - publish-nuget
       - publish-npm
       - publish-nitro-ops
+      - publish-aspire-nitro-ops
     permissions:
       contents: write
     env:
@@ -688,6 +738,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
     strategy:
+      fail-fast: false
       matrix:
         repo:
           - nitro-client-publish
@@ -808,4 +859,16 @@ jobs:
           REPO: ChilliCream/nitro-azure-pipelines-tasks
           RUN_ID: ${{ steps.dispatch.outputs.run-id }}
         shell: bash
-        run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact
+        run: |
+          set -euo pipefail
+
+          # A single transient API error kills `gh run watch`, so retry it. Re-watching a run that
+          # really failed costs nothing, because watching a completed run returns immediately.
+          for attempt in 1 2 3; do
+            gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact && exit 0
+            echo "Watch attempt $attempt/3 failed."
+            sleep 10
+          done
+
+          echo "::error::Run $RUN_ID failed, or its status could not be read."
+          exit 1

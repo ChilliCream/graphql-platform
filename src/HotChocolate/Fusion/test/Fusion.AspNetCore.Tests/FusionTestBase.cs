@@ -74,6 +74,7 @@ public abstract partial class FusionTestBase : IDisposable
                     new Uri("http://localhost:5000/graphql"),
                     capabilities: sourceSchemaOptions.Capabilities,
                     onError: sourceSchemaOptions.OnError,
+                    subscriptionReadTimeout: sourceSchemaOptions.SubscriptionReadTimeout,
                     defaultAcceptHeaderValues: sourceSchemaOptions.DefaultAcceptHeaderValues,
                     batchingAcceptHeaderValues: sourceSchemaOptions.BatchingAcceptHeaderValues,
                     subscriptionAcceptHeaderValues: sourceSchemaOptions.SubscriptionAcceptHeaderValues,
@@ -345,13 +346,15 @@ public abstract partial class FusionTestBase : IDisposable
 
         public Func<HttpRequestMessage, Task<HttpResponseMessage>>? MockHttpResponse { get; set; }
 
-        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.All;
+        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.Default;
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? DefaultAcceptHeaderValues { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? BatchingAcceptHeaderValues { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? SubscriptionAcceptHeaderValues { get; set; }
+
+        public TimeSpan? SubscriptionReadTimeout { get; set; }
 
         public ErrorHandlingMode? OnError { get; set; }
     }

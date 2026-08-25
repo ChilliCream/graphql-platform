@@ -45,7 +45,7 @@ Hot Chocolate 14 brings a host of new features and improvements designed to make
 
 For a detailed overview of these (and more) new features and improvements, please read our in-depth blog post:
 
-🔗 **[Sneak Peek at Hot Chocolate 14](https://chillicream.com/blog/2024/08/30/hot-chocolate-14)**
+🔗 **[Sneak Peek at Hot Chocolate 14](./2024-08-30-hot-chocolate-14.md)**
 
 ---
 
@@ -71,7 +71,7 @@ As our products evolved, we wanted a name that reflects our commitment to delive
 
 For details on migrating to Nitro and the changes to our NuGet and NPM packages, please refer to our blog post:
 
-🔗 **[Introducing Nitro: A New Name, A Unified GraphQL Ecosystem](https://chillicream.com/blog/2024/10/07/introducing-nitro)**
+🔗 **[Introducing Nitro: A New Name, A Unified GraphQL Ecosystem](./2024-10-07-introducing-nitro.md)**
 
 ## Full Open Telemetry
 

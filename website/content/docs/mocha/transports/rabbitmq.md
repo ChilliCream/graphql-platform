@@ -320,6 +320,20 @@ builder.Services
 
 All declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
 
+# Temporary receive endpoints
+
+Call `Temporary()` on a queue or receive endpoint descriptor to scope its backing queue to the lifetime of the consuming process:
+
+```csharp
+transport.Queue($"tenant-events-{instanceId}")
+    .Temporary()
+    .Receives<TenantEvent>();
+```
+
+`Temporary()` marks the queue non-durable and auto-delete (`Durable = false`, `AutoDelete = true`). The broker removes the queue once its last consumer disconnects, independent of any idle-time window.
+
+If the queue is already explicitly declared as durable or non-auto-delete, for example through `DeclareQueue(...)` without matching settings, startup fails with an explicit configuration error instead of silently ignoring `Temporary()`.
+
 # Control auto-provisioning
 
 By default, the transport auto-provisions all topology resources (exchanges, queues, bindings) on the broker at startup. In production environments where infrastructure is managed externally - for example by Terraform, Ansible, or the [RabbitMQ Messaging Topology Operator](https://www.rabbitmq.com/kubernetes/operator/install-topology-operator) on Kubernetes - you can disable auto-provisioning so the transport expects resources to already exist.

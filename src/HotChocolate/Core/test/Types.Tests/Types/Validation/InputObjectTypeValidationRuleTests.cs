@@ -183,4 +183,16 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
           }
         """);
     }
+
+    [Fact]
+    public void RejectInputFieldWithIncompatibleDefaultValue()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input FooInput {
+              a: Int = "abc"
+          }
+        """);
+    }
 }

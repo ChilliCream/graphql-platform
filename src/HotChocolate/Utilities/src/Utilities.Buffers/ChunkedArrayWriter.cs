@@ -44,13 +44,57 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     public int Position
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (_currentChunk << BufferShift) | _currentChunkOffset;
+        get => (_currentChunk << BufferShift) + _currentChunkOffset;
     }
 
     /// <summary>
     /// Gets the total number of bytes written.
     /// </summary>
     public int Length => Position;
+
+    internal bool IsDisposed => _disposed;
+
+    /// <summary>
+    /// Overwrites an already advanced segment without changing the current write position.
+    /// Handles segments that span chunk boundaries.
+    /// </summary>
+    public void WriteAt(int location, ReadOnlySpan<byte> source)
+    {
+#if NETSTANDARD2_0
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName!);
+        }
+#else
+        ObjectDisposedException.ThrowIf(_disposed, this);
+#endif
+
+        if ((uint)location > (uint)Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(location));
+        }
+
+        if (source.Length > Length - location)
+        {
+            throw new ArgumentException(
+                "The source does not fit within the advanced range.",
+                nameof(source));
+        }
+
+        var remaining = source;
+        var chunkIndex = location >> BufferShift;
+        var offsetInChunk = location & BufferMask;
+
+        while (!remaining.IsEmpty)
+        {
+            var length = Math.Min(remaining.Length, BufferSize - offsetInChunk);
+            remaining.Slice(0, length).CopyTo(
+                _chunks[chunkIndex].AsSpan(offsetInChunk, length));
+            remaining = remaining.Slice(length);
+            chunkIndex++;
+            offsetInChunk = 0;
+        }
+    }
 
     /// <inheritdoc />
     public Span<byte> GetSpan(int sizeHint = 0)
@@ -164,6 +208,29 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         start = (chunkIndex + 1) << BufferShift;
         length -= available;
         return _chunks[chunkIndex].AsSpan(offsetInChunk, available);
+    }
+
+    /// <summary>
+    /// Reads as much data as possible from the chunk at the given location, mirroring
+    /// <see cref="Read"/> for callers that hand the data to an API that takes memory.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
+    {
+        var chunkIndex = start >> BufferShift;
+        var offsetInChunk = start & BufferMask;
+        var available = BufferSize - offsetInChunk;
+
+        if (available >= length)
+        {
+            var memory = _chunks[chunkIndex].AsMemory(offsetInChunk, length);
+            length = 0;
+            return memory;
+        }
+
+        start = (chunkIndex + 1) << BufferShift;
+        length -= available;
+        return _chunks[chunkIndex].AsMemory(offsetInChunk, available);
     }
 
     /// <summary>

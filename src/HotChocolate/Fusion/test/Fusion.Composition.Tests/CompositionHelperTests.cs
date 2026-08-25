@@ -11,12 +11,12 @@ public sealed class CompositionHelperTests
     {
         // arrange
         using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
-        var products = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var products = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText("Products", "type Query { product: String }"),
-                productsSettings)
+                productsSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
 
@@ -27,6 +27,7 @@ public sealed class CompositionHelperTests
                 products,
                 archive,
                 "Development",
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -36,12 +37,12 @@ public sealed class CompositionHelperTests
 
         stream.Position = 0;
         using var reviewsSettings = JsonDocument.Parse("""{ "name": "Reviews" }""");
-        var reviews = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var reviews = new Dictionary<string, LocalSourceSchema>
         {
-            ["Reviews"] =
-            (
+            ["Reviews"] = new(
                 new SourceSchemaText("Reviews", "type Query { review: String }"),
-                reviewsSettings)
+                reviewsSettings,
+                urlOverride: null)
         };
 
         // act
@@ -55,6 +56,7 @@ public sealed class CompositionHelperTests
                 reviews,
                 archive,
                 "Development",
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -93,10 +95,9 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText(
                     "Products",
                     """
@@ -111,7 +112,8 @@ public sealed class CompositionHelperTests
                       id: ID!
                     }
                     """),
-                sourceSettings)
+                sourceSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -124,6 +126,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -168,10 +171,9 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText(
                     "Products",
                     """
@@ -194,7 +196,8 @@ public sealed class CompositionHelperTests
                       id: ID! @external
                     }
                     """),
-                sourceSettings)
+                sourceSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -206,6 +209,7 @@ public sealed class CompositionHelperTests
             sourceSchemas,
             archive,
             "Development",
+            preferDevUrls: false,
             compositionSettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
@@ -240,10 +244,9 @@ public sealed class CompositionHelperTests
               }
             }
             """);
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
         {
-            ["Products"] =
-            (
+            ["Products"] = new(
                 new SourceSchemaText(
                     "Products",
                     """
@@ -266,7 +269,8 @@ public sealed class CompositionHelperTests
                       id: ID!
                     }
                     """),
-                sourceSettings)
+                sourceSettings,
+                urlOverride: null)
         };
         var stream = new MemoryStream();
         var log = new CompositionLog();
@@ -279,6 +283,7 @@ public sealed class CompositionHelperTests
                 sourceSchemas,
                 archive,
                 "Development",
+                preferDevUrls: false,
                 compositionSettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
@@ -345,6 +350,98 @@ public sealed class CompositionHelperTests
                       },
                       "vendor": {
                         "mode": "test"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeAsync_Should_ComposeLocalUrl_When_LocalSchemaCarriesUrlOverride()
+    {
+        // arrange
+        using var sourceSettings = JsonDocument.Parse(
+            """
+            {
+              "name": "Products",
+              "transports": {
+                "http": {
+                  "url": "https://products.internal.example.com/graphql",
+                  "devUrl": "https://products.dev.example.com/graphql"
+                }
+              }
+            }
+            """);
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                sourceSettings,
+                urlOverride: new Uri("http://localhost:5001/graphql"))
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            var result = await CompositionHelper.ComposeAsync(
+                log,
+                sourceSchemas,
+                archive,
+                "Development",
+                preferDevUrls: true,
+                compositionSettings: null,
+                legacyArchive: null,
+                TestContext.Current.CancellationToken);
+
+            Assert.True(
+                result.IsSuccess,
+                string.Join(Environment.NewLine, log.Select(entry => entry.Message)));
+        }
+
+        stream.Position = 0;
+
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        using var sourceConfiguration = Assert.IsType<SourceSchemaConfiguration>(
+            await readArchive.TryGetSourceSchemaConfigurationAsync(
+                "Products",
+                TestContext.Current.CancellationToken));
+        using var gatewayConfiguration = Assert.IsType<GatewayConfiguration>(
+            await readArchive.TryGetGatewayConfigurationAsync(
+                WellKnownVersions.LatestGatewayFormatVersion,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        var snapshot = new
+        {
+            ArchivedSourceSettings = sourceConfiguration.Settings.RootElement,
+            RuntimeGatewaySettings = gatewayConfiguration.Settings.RootElement
+        };
+
+        JsonSerializer.Serialize(
+            snapshot,
+            new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
+            """
+            {
+              "ArchivedSourceSettings": {
+                "name": "Products",
+                "transports": {
+                  "http": {
+                    "url": "https://products.internal.example.com/graphql",
+                    "devUrl": "https://products.dev.example.com/graphql"
+                  }
+                }
+              },
+              "RuntimeGatewaySettings": {
+                "sourceSchemas": {
+                  "Products": {
+                    "transports": {
+                      "http": {
+                        "url": "http://localhost:5001/graphql"
                       }
                     }
                   }

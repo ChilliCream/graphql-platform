@@ -129,6 +129,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.UseConnectionAttribute());
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_AddProductsAsync_productService(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 

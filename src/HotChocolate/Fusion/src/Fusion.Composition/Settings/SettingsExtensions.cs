@@ -21,6 +21,9 @@ internal static class SettingsExtensions
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
+                    EnumValuesMergeBehavior =
+                        compositionSettings.Merger.EnumValuesMergeBehavior
+                        ?? settings.Merger.EnumValuesMergeBehavior,
                     NodeResolution =
                         compositionSettings.Merger.NodeResolution
                         ?? settings.Merger.NodeResolution,
@@ -111,6 +114,11 @@ internal static class SettingsExtensions
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)
             {
                 mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            }
+
+            if (mergerSettings.EnumValuesMergeBehavior is { } enumValuesMergeBehavior)
+            {
+                mergerOptions.EnumValuesMergeBehavior = enumValuesMergeBehavior;
             }
 
             if (mergerSettings.NodeResolution is { } nodeResolution)

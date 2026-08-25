@@ -1,5 +1,6 @@
 ---
 title: "Scalars"
+metaTitle: "GraphQL Scalars in Hot Chocolate for .NET"
 description: "Reference for GraphQL scalars in Hot Chocolate: built-in types like ID and DateTime, the NodaTime package, binding behavior, and custom scalar definitions."
 ---
 

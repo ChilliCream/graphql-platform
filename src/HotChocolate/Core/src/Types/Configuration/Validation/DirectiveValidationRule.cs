@@ -26,6 +26,7 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
                 EnsureDirectiveNameIsValid(directiveDefinition, errors);
                 EnsureArgumentNamesAreValid(directiveDefinition, errors);
                 EnsureArgumentDeprecationIsValid(directiveDefinition, errors);
+                EnsureDefaultValuesAreValid(directiveDefinition, errors);
                 EnsureNoSelfApplication(directiveDefinition, errors);
             }
         }

@@ -109,6 +109,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetBooleanExplicitValue_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetBooleanExplicitValue();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -148,6 +154,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetBooleanExplicitNull_bar(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetBooleanExplicitNull();
                 },
@@ -189,6 +201,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetBooleanExplicitDefault_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetBooleanExplicitDefault();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -228,6 +246,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetLongExplicitValue_bar(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetLongExplicitValue();
                 },
@@ -269,6 +293,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetLongExplicitValueWithSuffix_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetLongExplicitValueWithSuffix();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -308,6 +338,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetLongExplicitNull_bar(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetLongExplicitNull();
                 },
@@ -349,6 +385,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetLongExplicitDefault_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetLongExplicitDefault();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -388,6 +430,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetCharExplicitValue_bar(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetCharExplicitValue();
                 },
@@ -429,6 +477,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetCharExplicitNull_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetCharExplicitNull();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -468,6 +522,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetCharExplicitDefault_bar(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetCharExplicitDefault();
                 },
@@ -509,6 +569,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetEnumExplicitValue_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetEnumExplicitValue();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -549,6 +615,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetEnumExplicitNull_bar(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetEnumExplicitNull();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -588,6 +660,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetEnumExplicitDefault_bar(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetEnumExplicitDefault();
                 },

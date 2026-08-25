@@ -552,6 +552,7 @@ AST:
                                   },
                                   {
                                     "Kind": "FragmentSpread",
+                                    "Arguments": [],
                                     "Location": {
                                       "Start": 481,
                                       "End": 498,

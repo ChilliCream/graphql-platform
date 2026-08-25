@@ -11,6 +11,7 @@ export interface CountUpProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -23,11 +24,12 @@ export function CountUp({
   progress,
   playWindow,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
 }: CountUpProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const display = useTransform(t, (p) => format(from + (value - from) * p));
 

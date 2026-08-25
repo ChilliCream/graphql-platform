@@ -1511,6 +1511,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The merged field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the deprecated type &apos;{2}&apos;. Either deprecate the field or change its return type..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToDeprecatedType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToDeprecatedType", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument {

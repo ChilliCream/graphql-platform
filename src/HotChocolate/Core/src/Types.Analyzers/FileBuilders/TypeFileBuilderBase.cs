@@ -546,16 +546,74 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
+        var canApplyParameterFieldConfiguration = CanApplyParameterFieldConfiguration(resolver);
+
+        if (resolver.DescriptorAttributes.Length > 0
+            || resolver.IsNodeResolver
+            || resolver.Kind is ResolverKind.ConnectionResolver)
+        {
+            Writer.WriteLine();
+            Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(
+                    "\"{0}\",",
+                    resolver.Member.Name);
+                Writer.WriteIndentedLine(
+                    "global::{0},",
+                    resolver.IsStatic
+                        ? WellKnownTypes.StaticMemberFlags
+                        : WellKnownTypes.InstanceMemberFlags);
+                if (resolver.Parameters.Length == 0)
+                {
+                    Writer.WriteIndentedLine("global::System.Array.Empty<global::System.Type>());");
+                }
+                else
+                {
+                    var resolverMethods = (IMethodSymbol)resolver.Member;
+
+                    Writer.WriteIndentedLine("new global::System.Type[]");
+                    Writer.WriteIndentedLine("{");
+                    using (Writer.IncreaseIndent())
+                    {
+                        for (var i = 0; i < resolver.Parameters.Length; i++)
+                        {
+                            var parameter = resolver.Parameters[i];
+
+                            if (i > 0)
+                            {
+                                Writer.Write(',');
+                                Writer.WriteLine();
+                            }
+
+                            Writer.WriteIndented(
+                                "typeof({0})",
+                                ToFullyQualifiedString(parameter.Type, resolverMethods, typeLookup));
+                        }
+                    }
+
+                    Writer.WriteLine();
+                    Writer.WriteIndentedLine("})!;");
+                }
+            }
+        }
+
         var needsUseConnection = resolver.Kind is ResolverKind.ConnectionResolver
             && !resolver.DescriptorAttributes.Any(a =>
                 a.AttributeClass?.ToDisplayString() == WellKnownAttributes.UseConnectionAttribute);
 
-        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
+        if (resolver.DescriptorAttributes.Length > 0
+            || needsUseConnection
+            || canApplyParameterFieldConfiguration)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine(
                 "var fieldDescriptor = global::{0}.From(field.Context, configuration);",
                 OutputFieldDescriptorType);
+        }
+
+        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
+        {
             Writer.WriteIndentedLine(
                 "{0}.ApplyConfiguration(",
                 WellKnownTypes.ConfigurationHelper);
@@ -587,6 +645,36 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 }
 
                 Writer.WriteLine([')', ';']);
+            }
+        }
+
+        if (canApplyParameterFieldConfiguration)
+        {
+            foreach (var parameter in resolver.Parameters)
+            {
+                if (!CanApplyParameterFieldConfiguration(parameter))
+                {
+                    continue;
+                }
+
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("bindingResolver.ApplyConfiguration(");
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine(
+                        "context.Resolvers.CreateParameterDescriptor_{0}_{1}(),",
+                        resolver.Member.Name,
+                        parameter.Name);
+                    Writer.WriteIndentedLine("fieldDescriptor);");
+                }
+            }
+        }
+
+        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
+        {
+            if (canApplyParameterFieldConfiguration)
+            {
+                Writer.WriteLine();
             }
 
             Writer.WriteIndentedLine("configuration.ConfigurationsAreApplied = true;");
@@ -857,11 +945,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected void WriteResolver(Resolver resolver, ILocalTypeLookup typeLookup)
     {
-        if (resolver.RequiresParameterBindings)
+        var canApplyParameterFieldConfiguration =
+            CanApplyParameterFieldConfiguration(resolver);
+        var hasParameterDescriptors = resolver.RequiresParameterBindings
+            || canApplyParameterFieldConfiguration;
+
+        if (hasParameterDescriptors)
         {
             foreach (var parameter in resolver.Parameters)
             {
-                if (parameter.RequiresBinding)
+                if (parameter.RequiresBinding
+                    || CanApplyParameterFieldConfiguration(parameter))
                 {
                     Writer.WriteIndentedLine(
                         "public global::{0} CreateParameterDescriptor_{1}_{2}()",
@@ -948,6 +1042,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 break;
         }
     }
+
+    private bool CanApplyParameterFieldConfiguration(Resolver resolver)
+        => OutputFieldDescriptorType == WellKnownTypes.ObjectFieldDescriptor
+            && resolver.Kind is not ResolverKind.NodeResolver
+            && resolver.Parameters.Any(CanApplyParameterFieldConfiguration);
+
+    private static bool CanApplyParameterFieldConfiguration(ResolverParameter parameter)
+        => parameter.Type.TypeKind is not TypeKind.Error
+            && (parameter.RequiresBinding
+                || (parameter.Kind is ResolverParameterKind.IsSelected
+                    && GetIsSelectedInfo(parameter).Variant is IsSelectedVariant.Pattern));
 
     private void WriteResolver(
         Resolver resolver,

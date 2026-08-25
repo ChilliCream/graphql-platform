@@ -19,7 +19,8 @@ namespace HotChocolate.Transport.Http;
 #endif
 
 #if FUSION
-internal class JsonLinesReader(HttpResponseMessage message, IMemoryArenaSource arenaSource) : IAsyncEnumerable<SourceResultDocument>
+internal class JsonLinesReader(HttpResponseMessage message, IMemoryArenaSource arenaSource, TimeSpan readTimeout)
+    : IAsyncEnumerable<SourceResultDocument>
 #else
 internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
 #endif
@@ -42,7 +43,14 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 #endif
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var responseStream = await message.Content.ReadAsStreamAsync(cancellationToken);
+        await using var stream = readTimeout == Timeout.InfiniteTimeSpan
+            ? responseStream
+            : new ReadTimeoutStream(responseStream, readTimeout);
+#else
         await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken);
+#endif
         var reader = PipeReader.Create(stream, s_options);
 
         try

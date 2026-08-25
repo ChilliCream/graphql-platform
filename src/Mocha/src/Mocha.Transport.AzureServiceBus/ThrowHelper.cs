@@ -1,0 +1,156 @@
+namespace Mocha.Transport.AzureServiceBus;
+
+internal static class ThrowHelper
+{
+    // Connection
+    public static Exception ConnectionStringOrCredentialRequired()
+        => new InvalidOperationException(
+            "Either ConnectionString or FullyQualifiedNamespace + Credential must be provided");
+
+    public static Exception ConnectionStringAndNamespaceCredentialMutuallyExclusive()
+        => new InvalidOperationException(
+            "ConnectionString is mutually exclusive with FullyQualifiedNamespace + Credential. "
+            + "Configure only one connection mode.");
+
+    // Convention
+    public static Exception ReceiveEndpointQueueNameRequired()
+        => new InvalidOperationException("Queue name is required");
+
+    public static Exception DeadLetterForwardingConflict(
+        string endpointName,
+        string queueName,
+        string existingForwardTarget)
+        => new InvalidOperationException(
+            $"Endpoint '{endpointName}' configured UseNativeDeadLetterForwarding() but "
+            + $"queue '{queueName}' already forwards dead-lettered messages to "
+            + $"'{existingForwardTarget}'. Choose one.");
+
+    // ReceiveFeature
+    public static Exception ReceiveFeatureArgsNotSet()
+        => new InvalidOperationException("Receive feature has no args set");
+
+    // Context
+    public static Exception EndpointIsSessionBound()
+        => new InvalidOperationException(
+            "The current Azure Service Bus endpoint is session-bound. "
+            + "Call GetAzureServiceBusSessionEventArgs() instead.");
+
+    public static Exception ProcessMessageEventArgsUnavailable()
+        => new InvalidOperationException(
+            "The current message context is not running on a non-session Azure Service Bus endpoint. "
+            + "ProcessMessageEventArgs is only available for handlers receiving from ASB.");
+
+    public static Exception ProcessSessionMessageEventArgsUnavailable()
+        => new InvalidOperationException(
+            "The current message context is not running on a session-bound Azure Service Bus endpoint. "
+            + "ProcessSessionMessageEventArgs is only available for handlers receiving from a session-required queue.");
+
+    // ScheduledMessageStore
+    public static Exception ScheduledMessageStoreRequiresAsbEndpoint(string actualEndpointType)
+        => new InvalidOperationException(
+            "AzureServiceBusScheduledMessageStore requires an AzureServiceBusDispatchEndpoint, "
+            + $"but the dispatch context carries a '{actualEndpointType}'.");
+
+    public static Exception ScheduledMessageStoreRequiresEnvelope()
+        => new InvalidOperationException(
+            "AzureServiceBusScheduledMessageStore requires a serialized envelope on the dispatch context.");
+
+    public static Exception ScheduledMessageStoreRequiresScheduledTime()
+        => new InvalidOperationException(
+            "AzureServiceBusScheduledMessageStore requires the envelope to carry a scheduled time.");
+
+    public static Exception ScheduledMessageStoreRequiresMatchingTransport()
+        => new InvalidOperationException(
+            "AzureServiceBusScheduledMessageStore requires the dispatch context and endpoint "
+            + "to belong to its registered Azure Service Bus transport.");
+
+    // Routing
+    public static Exception ExplicitDestinationTargetsAnotherNamespace(Uri destination, Uri topologyAddress)
+        => new InvalidOperationException(
+            $"Explicit destination '{destination}' targets Azure Service Bus namespace "
+            + $"'{destination.Authority}', but this transport is connected to namespace "
+            + $"'{topologyAddress.Authority}'. Route the message through a transport connected to "
+            + "that namespace, or omit the host to target the current namespace implicitly.");
+
+    // Topology
+    public static Exception TopicAlreadyExists(string topicName)
+        => new InvalidOperationException($"Topic '{topicName}' already exists");
+
+    public static Exception QueueAlreadyExists(string queueName)
+        => new InvalidOperationException($"Queue '{queueName}' already exists");
+
+    public static Exception TopologyTopicNotFound(string topicName)
+        => new InvalidOperationException($"Topic '{topicName}' not found in topology");
+
+    public static Exception TopologyQueueNotFound(string queueName)
+        => new InvalidOperationException($"Queue '{queueName}' not found in topology");
+
+    public static Exception TemporaryEndpointQueueAutoDeleteOnIdleConflict(
+        string endpointName,
+        string queueName,
+        TimeSpan? declaredAutoDeleteOnIdle)
+        => new InvalidOperationException(
+            $"Endpoint '{endpointName}' is marked Temporary(), but queue '{queueName}' was already declared "
+            + $"with AutoDeleteOnIdle '{declaredAutoDeleteOnIdle?.ToString() ?? "unset"}', which does not "
+            + "match the endpoint's resolved idle timeout. Align the queue declaration's AutoDeleteOnIdle "
+            + "with the endpoint's Temporary() idle timeout.");
+
+    public static Exception SubscriptionAlreadyExists(string source, string destination)
+        => new InvalidOperationException(
+            $"Subscription from topic '{source}' to queue '{destination}' already exists");
+
+    public static Exception TopicCannotEnablePartitioningWithOrdering(string topicName)
+        => new InvalidOperationException(
+            $"Azure Service Bus topic '{topicName}' cannot enable partitioning and support ordering.");
+
+    // DispatchEndpoint
+    public static Exception DispatchEndpointTopicOrQueueNameRequired()
+        => new InvalidOperationException("Topic name or queue name is required");
+
+    public static Exception DispatchEndpointEnvelopeNotSet()
+        => new InvalidOperationException("Envelope is not set");
+
+    public static Exception DispatchEndpointDestinationAddressInvalidUri()
+        => new InvalidOperationException("Destination address is not a valid URI");
+
+    public static Exception DispatchEndpointCannotDetermineDestinationName(Uri destinationAddress)
+    {
+        var address = destinationAddress.ToString();
+        return new InvalidOperationException(
+            $"Cannot determine topic or queue name from destination address {address}");
+    }
+
+    public static Exception DispatchEndpointDestinationNotConfigured()
+        => new InvalidOperationException("Destination not configured");
+
+    public static Exception PartitionKeyMustEqualSessionId()
+        => new InvalidOperationException(
+            "PartitionKey must equal SessionId when both are set on an Azure Service Bus message.");
+
+    public static Exception DispatchEndpointTopicNotFound()
+        => new InvalidOperationException("Topic not found");
+
+    public static Exception DispatchEndpointQueueNotFound()
+        => new InvalidOperationException("Queue not found");
+
+    public static Exception DispatchEndpointDestinationNotSet()
+        => new InvalidOperationException("Destination is not set");
+
+    // ReceiveEndpoint
+    public static Exception ReceiveEndpointQueueNotFound()
+        => new InvalidOperationException("Queue not found");
+
+    public static Exception ReceiveEndpointHasSessionOnlyOptionsOnNonSessionQueue(
+        string endpointName,
+        string queueName,
+        string sessionOnlyOptionsList)
+        => new InvalidOperationException(
+            $"Receive endpoint '{endpointName}' targets queue '{queueName}', "
+                + $"which does not require sessions ({nameof(AzureServiceBusQueue.RequiresSession)}=false). "
+                + "The following session-only options are set and would have no effect: "
+                + $"{sessionOnlyOptionsList}. Either remove these options, or call "
+                + "RequiresSession() on the queue declaration.");
+
+    public static Exception TransportIsNotAzureServiceBus()
+        => new InvalidOperationException("Transport is not an AzureServiceBusMessagingTransport");
+}

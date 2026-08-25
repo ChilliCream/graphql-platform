@@ -60,10 +60,16 @@
   <data name="SchemaParser_InvalidInputObjectFieldType" xml:space="preserve">
     <value>The Input Object field '{0}' must accept an input type.</value>
   </data>
+  <data name="SchemaParser_InvalidRootType" xml:space="preserve">
+    <value>The {0} root type '{1}' must be an Object type.</value>
+  </data>
   <data name="SchemaParser_InvalidUnionMemberType" xml:space="preserve">
     <value>The Union type '{0}' cannot include the type '{1}'. Unions can only contain Object types.</value>
   </data>
-  <data name="SchemaParser_NonRepeatableDirectiveAlreadyApplied" xml:space="preserve">
-    <value>The non-repeatable directive '@{0}' was already applied to '{1}' and cannot be applied again by an extension.</value>
+  <data name="SchemaParser_RootTypeNotDefined" xml:space="preserve">
+    <value>The {0} root type '{1}' is not defined.</value>
+  </data>
+  <data name="SchemaParser_UnionMemberTypeNotDefined" xml:space="preserve">
+    <value>The Union type '{0}' cannot include the undefined type '{1}'.</value>
   </data>
 </root>

@@ -1,31 +1,37 @@
 import { FaqSection } from "@/src/components/FaqSection";
 
-const FAQ = [
+export const HELP_FAQ_ITEMS = [
   {
-    q: "Which option gets me unblocked fastest?",
-    a: "For a defined problem with a deadline, Consultancy is the most reliable path. You bring a defined question to a ChilliCream engineer and work through it together. For lighter or open-ended questions, Slack is faster than you might expect because the community is large and active.",
+    question: "Where should I start?",
+    answer:
+      "Start with the docs, GitHub, or community Slack when the question can be handled in public and does not need a response guarantee. Choose advisory for a defined technical problem or review. Choose a support plan when your production team needs ongoing channels, incident allowances, and response terms.",
   },
   {
-    q: "What response time can I expect on Slack?",
-    a: "Slack is best effort. Answers are usually quick during European working hours, but there is no guarantee. If your team has a hard deadline, do not rely on Slack alone. Take the Consultancy route or move to a Support plan with a contractual SLA.",
+    question: "What response time can I expect on Slack?",
+    answer:
+      "Community Slack is best effort and does not include a response guarantee. If response terms matter to your team, compare the paid support plans and choose the incident coverage that matches your production needs.",
   },
   {
-    q: "When should we move from Consultancy to a Support plan?",
-    a: "Consultancy is great for one-off questions and design reviews. A Support plan makes sense once GraphQL is on a critical path in production and you need a named contact, a private Slack channel, and a response time you can write into an internal runbook.",
+    question: "When should we choose advisory instead of a support plan?",
+    answer:
+      "Advisory fits a scoped question, architecture review, troubleshooting need, or implementation. A support plan fits ongoing production coverage with plan-specific channels, incident allowances, and response times. Teams can also use both.",
   },
   {
-    q: "How do I escalate something urgent in production?",
-    a: "Customers on a Support plan escalate through their dedicated account manager and private Slack channel, following the SLA in their plan. Without a Support plan, the fastest path is to take the Consultancy route and post a clear repro in the public Slack in parallel.",
+    question: "How do I escalate something urgent in production?",
+    answer:
+      "Use the channels and escalation process defined in your support agreement. Without a paid support plan, community channels remain best effort and should not be treated as an incident-response commitment.",
   },
   {
-    q: "Can ChilliCream help us design a schema or migration?",
-    a: "Yes. Design reviews, schema audits, and migration planning are common Consultancy topics. For larger engagements, our advisory service wraps that work in a structured engagement with deliverables.",
+    question: "Can ChilliCream help us design a schema or migration?",
+    answer:
+      "Schema design, reviews, Fusion rollout planning, and migration guidance can be scoped as advisory work. For an implementation, discuss a contracting engagement with defined deliverables and milestones.",
   },
   {
-    q: "Is the community Slack the right place for bug reports?",
-    a: "Slack is good for triage and reproductions. Once a bug is confirmed, please file it on GitHub so it gets a tracking issue, a label, and a place to land the fix.",
+    question: "Is the community Slack the right place for bug reports?",
+    answer:
+      "Slack is good for triage and reproductions. Once a bug is confirmed, please file it on GitHub so it gets a tracking issue, a label, and a place to land the fix.",
   },
-];
+] as const;
 
 /**
  * The help FAQ, rendered with the shared `FaqSection` disclosure list.
@@ -37,7 +43,7 @@ export function HelpFaq() {
       className="py-16"
       eyebrow="FAQ"
       heading="Answers to common questions."
-      items={FAQ.map((item) => ({ question: item.q, answer: item.a }))}
+      items={HELP_FAQ_ITEMS}
     />
   );
 }

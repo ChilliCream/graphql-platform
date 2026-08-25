@@ -163,4 +163,4 @@ There is also a dedicated dashboard that shows all of your adapter endpoints and
 
 So the next time someone asks you for a REST endpoint, ask yourself: can my graph already provide this? If it can, don't go off and build a separate API. Plug in the OpenAPI adapter, author an endpoint document, and let your graph do the rest.
 
-If you want to go deeper, check out the [OpenAPI Adapter guide](../docs/hotchocolate/build/adapters/openapi.md).
+If you want to go deeper, check out the [OpenAPI Adapter guide](../docs/hotchocolate/adapters/openapi.md).

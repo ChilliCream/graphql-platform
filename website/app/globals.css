@@ -530,6 +530,79 @@ svg[role="graphics-document"][id^="mermaid-"] {
   }
 }
 
+@keyframes ellipsis-blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes beam-drop-fall {
+  0% {
+    left: 24%;
+    transform: translateY(-80px);
+    opacity: 0;
+  }
+  2% {
+    opacity: 0.45;
+  }
+  24% {
+    opacity: 0.45;
+  }
+  28% {
+    left: 24%;
+    transform: translateY(1900px);
+    opacity: 0;
+  }
+  33% {
+    left: 50%;
+    transform: translateY(-80px);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.45;
+  }
+  57% {
+    opacity: 0.45;
+  }
+  61% {
+    left: 50%;
+    transform: translateY(1900px);
+    opacity: 0;
+  }
+  66% {
+    left: 92%;
+    transform: translateY(-80px);
+    opacity: 0;
+  }
+  68% {
+    opacity: 0.45;
+  }
+  90% {
+    opacity: 0.45;
+  }
+  94% {
+    left: 92%;
+    transform: translateY(1900px);
+    opacity: 0;
+  }
+  100% {
+    left: 92%;
+    transform: translateY(1900px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .beam-drop {
+    animation: beam-drop-fall 15s linear infinite;
+  }
+}
+
 @keyframes logo-in {
   from {
     opacity: 0;

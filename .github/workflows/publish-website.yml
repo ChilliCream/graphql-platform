@@ -72,6 +72,10 @@ jobs:
         run: yarn generate-git-metadata
         working-directory: website
 
+      - name: Generate Agent Skills
+        run: yarn generate-agent-skills
+        working-directory: website
+
       - name: Build Website
         run: yarn build
         working-directory: website

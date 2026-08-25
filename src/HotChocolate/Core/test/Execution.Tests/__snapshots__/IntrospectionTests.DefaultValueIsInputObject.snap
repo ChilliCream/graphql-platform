@@ -1375,7 +1375,7 @@
                 "name": "String",
                 "ofType": null
               },
-              "defaultValue": "\"No longer supported.\"",
+              "defaultValue": "\"No longer supported\"",
               "isDeprecated": false,
               "deprecationReason": null
             }

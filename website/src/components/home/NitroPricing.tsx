@@ -5,28 +5,24 @@ import { OfferingGrid } from "@/src/components/OfferingGrid";
 import { PageSection } from "@/src/components/PageSection";
 import type { TierId } from "@/src/components/pricing/pricingData";
 import { TIERS } from "@/src/components/pricing/pricingData";
-import { OutlineButton } from "@/src/design-system/Button";
-import { Card } from "@/src/design-system/Card";
 import { DripBrewer } from "@/src/icons/DripBrewer";
 import { FrenchPress } from "@/src/icons/FrenchPress";
+import { MokaPot } from "@/src/icons/MokaPot";
 import { PourOver } from "@/src/icons/PourOver";
 
-// Coffee-brew icon per cloud tier, lightest brew to strongest.
-const ICONS: Partial<
-  Record<TierId, ComponentType<{ readonly className?: string }>>
-> = {
+// Coffee-brew icon per tier, lightest brew to strongest.
+const ICONS: Record<TierId, ComponentType<{ readonly className?: string }>> = {
   free: FrenchPress,
   payg: DripBrewer,
   dedicated: PourOver,
+  self: MokaPot,
 };
 
-const CLOUD_TIERS = TIERS.filter((tier) => tier.id !== "self");
-const SELF_HOSTED = TIERS.find((tier) => tier.id === "self");
-
 /**
- * Nitro pricing: the three cloud tiers (Free, Pay as you go, Dedicated) framed
- * as coffee brews, with Dedicated highlighted as the popular pick, and a
- * self-hosted option below. All data comes from the shared pricing module.
+ * Nitro pricing: all four tiers (Free, Pay as you go, Dedicated, Self-Hosted)
+ * framed as coffee brews, with Dedicated highlighted as the popular pick.
+ * Self-Hosted is a full card in the row so it reads as a peer of the cloud
+ * tiers. All data comes from the shared pricing module.
  */
 export function NitroPricing() {
   return (
@@ -40,8 +36,8 @@ export function NitroPricing() {
         gaining insights into your API environments.
       </p>
 
-      <OfferingGrid columns="mt-14 md:grid-cols-3">
-        {CLOUD_TIERS.map((tier) => (
+      <OfferingGrid columns="mt-14 sm:grid-cols-2 lg:grid-cols-4">
+        {TIERS.map((tier) => (
           <Offering
             key={tier.id}
             Icon={ICONS[tier.id]}
@@ -55,29 +51,6 @@ export function NitroPricing() {
           />
         ))}
       </OfferingGrid>
-
-      {SELF_HOSTED && (
-        <Card
-          variant="panel"
-          className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div>
-            <h3 className="font-heading text-cc-heading text-h6 font-semibold">
-              {SELF_HOSTED.name}
-            </h3>
-            <p className="text-cc-ink mt-2 text-sm text-pretty">
-              {SELF_HOSTED.tagline} Run on your own infrastructure, air-gapped
-              or on-prem, with configurable retention and priority support.
-            </p>
-          </div>
-          <OutlineButton
-            href={SELF_HOSTED.ctaHref}
-            className="shrink-0 sm:w-auto"
-          >
-            {SELF_HOSTED.cta}
-          </OutlineButton>
-        </Card>
-      )}
     </PageSection>
   );
 }

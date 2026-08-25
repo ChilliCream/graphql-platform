@@ -90,6 +90,13 @@ internal sealed class InMemoryQueueDescriptor
     }
 
     /// <inheritdoc />
+    public IInMemoryQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IInMemoryQueueDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,

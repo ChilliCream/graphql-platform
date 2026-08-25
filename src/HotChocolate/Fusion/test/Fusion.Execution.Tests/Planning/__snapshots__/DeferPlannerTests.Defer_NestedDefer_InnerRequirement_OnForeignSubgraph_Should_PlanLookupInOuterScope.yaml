@@ -37,6 +37,15 @@ incrementalPlans:
         selectionMap: >-
           id
     nodes:
+      - id: 2
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_1 {
+            user(id: "1") {
+              id
+            }
+          }
       - id: 1
         type: Operation
         schema: b
@@ -48,7 +57,7 @@ incrementalPlans:
           }
         source: $.userById
         target: $.user
-        batchingGroupId: 1
+        batchingGroupId: 4
         requirements:
           - name: __fusion_1_id
             selectionMap: >-
@@ -66,20 +75,11 @@ incrementalPlans:
           }
         source: $.userById
         target: $.user
-        batchingGroupId: 1
+        batchingGroupId: 4
         requirements:
           - name: __fusion_4_id
             selectionMap: >-
               id
-      - id: 2
-        type: Operation
-        schema: a
-        operation: |
-          query Op_defer_1 {
-            user(id: "1") {
-              id
-            }
-          }
   - deliveryGroupIds:
       - 1
     parentNodeId: 2

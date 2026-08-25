@@ -3,6 +3,7 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
 import { KeyValueChip } from "@/src/components/KeyValueChip";
 import { PageHero } from "@/src/components/PageHero";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
@@ -10,24 +11,27 @@ import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 import { ReviewSection } from "./ReviewSection";
 
-export const metadata = pageMetadata({
-  title: "Agentic Coding",
+const PAGE = {
+  title: "Agentic Development for .NET GraphQL",
   description:
-    "Build with AI on a platform designed for it. Any coding agent installs the same skills, fills the same Hot Chocolate and Mocha patterns, and gets feedback before the merge.",
+    "Build with agents on a platform designed for agentic development. Skills, .NET patterns, schema checks, and MCP keep humans and agents aligned.",
   path: "/platform/agentic-coding",
   keywords: [
+    "agentic development for .NET GraphQL",
     "agentic coding platform",
     "AI coding agents GraphQL",
     "consistent AI-generated code",
     "agent skills SKILL.md",
-    "skillz agent skills installer",
+    "skills agent skills installer",
     "chillicream/agent-skills",
     ".NET GraphQL agentic coding",
     "client registry feedback for agents",
     "GraphQL MCP server",
     "Claude Codex Copilot Cursor",
   ],
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 /**
  * Brand spectrum (cyan -> violet -> coral), used at most once on the page to
@@ -156,7 +160,7 @@ function Backdrop() {
 function Hero() {
   return (
     <PageHero
-      eyebrow="Agentic coding"
+      eyebrow="Agentic development"
       title={
         <>
           Consistently good code,
@@ -180,7 +184,7 @@ function Hero() {
       }
     >
       <CopyCommand
-        command="dnx skillz add chillicream/agent-skills"
+        command="dnx skills add chillicream/agent-skills"
         className="bg-cc-surface/80 mx-auto mt-10 max-w-md text-left backdrop-blur-sm"
       />
       <p className="text-cc-ink-dim mt-4 text-sm">
@@ -203,7 +207,7 @@ function AgentDirectory() {
         align="center"
         eyebrow="Agent directory"
         title="Bring the agent you already use."
-        description="Every agent plugs into the platform the same two ways: skills teach it your conventions, MCP lets it call your API. Which agent you run is a preference; the quality of the code that comes back is the same."
+        description="Skills teaches supported agents the same conventions. MCP gives compatible agents access to your API. Switch agents without switching architectures, review standards, or your definition of good code."
       />
 
       <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -263,7 +267,7 @@ function SkillsSection() {
         align="center"
         eyebrow="Skills"
         title="Skills give your agent a head start."
-        description="Prototype a feature, derive the contract, evolve the schema: on this platform those are workflows an agent can run, not rituals a developer performs. Skills package that working knowledge so any agent starts productive, and your own conventions ship the same way, reviewed like code."
+        description="Prototype a feature, derive the contract, evolve the schema: on this platform those are workflows an agent can run, not rituals a developer performs. Skills package that working knowledge so agents start productive, and your own conventions ship the same way, reviewed like code."
       />
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -291,7 +295,7 @@ function SkillsSection() {
             <div className="mt-auto pt-5">
               <CopyCommand
                 size="sm"
-                command={`dnx skillz add chillicream/agent-skills --skill ${skill.name}`}
+                command={`dnx skills add chillicream/agent-skills --skill ${skill.name}`}
                 className="bg-cc-surface"
               />
             </div>
@@ -303,7 +307,7 @@ function SkillsSection() {
         <ArrowLink href="https://github.com/chillicream/agent-skills">
           Browse chillicream/agent-skills
         </ArrowLink>
-        <ArrowLink href="/docs/skillz">Read the skillz docs</ArrowLink>
+        <ArrowLink href="/docs/skills">Read the skills docs</ArrowLink>
       </div>
     </section>
   );
@@ -376,8 +380,8 @@ function FeedbackTile() {
         Feedback before the merge.
       </h2>
       <p className="text-cc-ink-dim mt-3 text-sm/relaxed">
-        A schema-first, strongly typed stack turns most bad edits into compile
-        errors. <code className="text-cc-accent">nitro</code> checks the rest in
+        Strong types turn many bad edits into compile errors.{" "}
+        <code className="text-cc-accent">nitro</code> checks schema changes in
         CI against the client registry, so a risky change comes back as feedback
         while the agent can still fix it.
       </p>
@@ -396,6 +400,10 @@ function FeedbackTile() {
           />
         ))}
       </div>
+
+      <ArrowLink href="/platform/release-safety" className="mt-5">
+        Explore GraphQL schema checks
+      </ArrowLink>
     </Card>
   );
 }
@@ -421,21 +429,17 @@ function McpSection() {
             title="Your API is a tool, too."
             description={
               <>
-                The same server that shapes the code agents write also serves
-                them at runtime.{" "}
+                Host the MCP transport with{" "}
                 <code className="text-cc-accent">AddMcp()</code> and{" "}
-                <code className="text-cc-accent">MapGraphQLMcp()</code> expose
-                your operations as MCP tools at{" "}
-                <code className="text-cc-accent">/graphql/mcp</code>, so an
-                agent can query the running API while it works instead of
-                guessing at your data.
+                <code className="text-cc-accent">MapGraphQLMcp()</code>. Supply
+                tool definitions through Nitro or a custom{" "}
+                <code className="text-cc-accent">IMcpStorage</code>.
+                MCP-compatible agents can then call those operation tools at{" "}
+                <code className="text-cc-accent">/graphql/mcp</code>.
               </>
             }
           />
-          <ArrowLink
-            href="/docs/hotchocolate/build/adapters/mcp"
-            className="mt-6"
-          >
+          <ArrowLink href="/docs/hotchocolate/adapters/mcp" className="mt-6">
             Read the MCP adapter docs
           </ArrowLink>
         </div>
@@ -471,12 +475,12 @@ function ClosingCta() {
         Point your agent at the platform.
       </h2>
       <p className="text-cc-ink-dim mx-auto mt-5 max-w-2xl text-base/relaxed">
-        The patterns, the feedback, and the checks are already in place;
-        whatever agent your team uses writes against them. One command installs
-        the helpers, and your conventions ride along the same way.
+        The patterns, the feedback, and the checks give every agent the same
+        rails. One command installs ChilliCream&rsquo;s skills; your own
+        conventions ship the same way.
       </p>
       <CopyCommand
-        command="dnx skillz add chillicream/agent-skills"
+        command="dnx skills add chillicream/agent-skills"
         className="bg-cc-surface/80 mx-auto mt-10 max-w-md text-left"
       />
     </section>
@@ -486,6 +490,16 @@ function ClosingCta() {
 export default function AgenticCodingPage() {
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Platform", path: "/platform" },
+          { name: "Agentic Development" },
+        ]}
+      />
       <Backdrop />
       {/* Positioned so it paints above the document-anchored backdrop. */}
       <div className="relative">

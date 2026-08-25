@@ -4,6 +4,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Results;
@@ -15,7 +16,7 @@ internal sealed partial class FetchResultStore
     /// </summary>
     public void Initialize(
         IMemoryArena arena,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         IErrorHandler errorHandler,
         Operation operation,
         ErrorHandlingMode errorHandlingMode,

@@ -1,9 +1,15 @@
+using System.Text;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
 public class PlannerBehaviorTests : FusionTestBase
 {
+    private const int ProductDetailFieldCount = 20;
+    private const int DetailWindowCount = 7;
+    private const int DetailWindowSize = 16;
+    private const int FragmentGroupCount = 9;
+
     [Fact]
     public void Fragments_Simple_Inline_Fragment()
     {
@@ -58,6 +64,37 @@ public class PlannerBehaviorTests : FusionTestBase
 
         // assert
         MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_Succeed_When_Inlined_Fragment_Expansion_Exceeds_Parser_Field_Limit()
+    {
+        // arrange
+        // the client document stays below the 2048 parser field limit, its fragment-inlined expansion does not
+        var schema = ComposeSchema(CreateWideDetailSchema());
+        var operationText = CreateOperationWithRepeatedFragmentSpreads();
+
+        // act
+        var plan = PlanOperation(schema, operationText);
+
+        // assert
+        Assert.Single(plan.AllNodes);
+    }
+
+    // control: identical fields and fragments, each spread once; the trigger above exercises reuse, not document size
+    [Fact]
+    public void CreatePlan_Should_Succeed_When_Each_Fragment_Is_Spread_Once()
+    {
+        // arrange
+        // with single spreads the fragment-inlined expansion matches the document's field count, below the 2048 limit
+        var schema = ComposeSchema(CreateWideDetailSchema());
+        var operationText = CreateOperationWithSingleFragmentSpreads();
+
+        // act
+        var plan = PlanOperation(schema, operationText);
+
+        // assert
+        Assert.Single(plan.AllNodes);
     }
 
     [Fact]
@@ -333,6 +370,100 @@ public class PlannerBehaviorTests : FusionTestBase
               currency: String!
             }
             """);
+    }
+
+    private static string CreateWideDetailSchema()
+    {
+        var schema = new StringBuilder();
+
+        schema.AppendLine("# name: catalog");
+        schema.AppendLine("schema {");
+        schema.AppendLine("  query: Query");
+        schema.AppendLine("}");
+        schema.AppendLine();
+        schema.AppendLine("type Query {");
+        schema.AppendLine("  products: [Product!]!");
+        schema.AppendLine("}");
+        schema.AppendLine();
+        schema.AppendLine("type Product {");
+
+        for (var i = 1; i <= ProductDetailFieldCount; i++)
+        {
+            schema.AppendLine($"  details{i:00}: Detail!");
+        }
+
+        schema.AppendLine("}");
+        schema.AppendLine();
+        schema.AppendLine("type Detail {");
+
+        for (var i = 1; i <= DetailWindowCount * DetailWindowSize; i++)
+        {
+            schema.AppendLine($"  d{i:000}: String");
+        }
+
+        schema.AppendLine("}");
+
+        return schema.ToString();
+    }
+
+    private static string CreateOperationWithRepeatedFragmentSpreads()
+    {
+        // fragment k selects window k % 7 of the Detail fields, so consecutive
+        // fragments select disjoint field windows and each details field spreads
+        // one fragment group that covers all 7 windows (112 distinct fields).
+        return CreateOperationWithFragmentSpreads(
+            static field => Enumerable.Range(
+                (field % FragmentGroupCount) * DetailWindowCount,
+                DetailWindowCount));
+    }
+
+    private static string CreateOperationWithSingleFragmentSpreads()
+    {
+        // each fragment is spread exactly once, distributed round-robin over the details fields.
+        return CreateOperationWithFragmentSpreads(
+            static field => Enumerable
+                .Range(0, FragmentGroupCount * DetailWindowCount)
+                .Where(fragment => fragment % ProductDetailFieldCount == field));
+    }
+
+    private static string CreateOperationWithFragmentSpreads(Func<int, IEnumerable<int>> spreadsForDetailsField)
+    {
+        var operation = new StringBuilder();
+
+        operation.AppendLine("query {");
+        operation.AppendLine("  products {");
+
+        for (var i = 0; i < ProductDetailFieldCount; i++)
+        {
+            operation.AppendLine($"    details{i + 1:00} {{");
+
+            foreach (var fragment in spreadsForDetailsField(i))
+            {
+                operation.AppendLine($"      ...Details{fragment:00}");
+            }
+
+            operation.AppendLine("    }");
+        }
+
+        operation.AppendLine("  }");
+        operation.AppendLine("}");
+
+        for (var k = 0; k < FragmentGroupCount * DetailWindowCount; k++)
+        {
+            var window = k % DetailWindowCount;
+
+            operation.AppendLine();
+            operation.AppendLine($"fragment Details{k:00} on Detail {{");
+
+            for (var j = 1; j <= DetailWindowSize; j++)
+            {
+                operation.AppendLine($"  d{(window * DetailWindowSize) + j:000}");
+            }
+
+            operation.AppendLine("}");
+        }
+
+        return operation.ToString();
     }
 
     private static FusionSchemaDefinition CreateIncludeSkipSchema()

@@ -99,12 +99,6 @@ namespace HotChocolate.Language.Properties {
             }
         }
         
-        internal static string Utf8Helper_InvalidQuoteEscapeCount {
-            get {
-                return ResourceManager.GetString("Utf8Helper_InvalidQuoteEscapeCount", resourceCulture);
-            }
-        }
-        
         internal static string NewLineMustBeGreaterOrEqualToOne {
             get {
                 return ResourceManager.GetString("NewLineMustBeGreaterOrEqualToOne", resourceCulture);

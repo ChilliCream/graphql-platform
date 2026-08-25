@@ -786,7 +786,7 @@ internal sealed class SelectionExpressionBuilder
         }
 
         var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
-        return nullabilityInfo.WriteState == NullabilityState.Nullable;
+        return nullabilityInfo.ReadState != NullabilityState.NotNull;
     }
 
     private readonly record struct Context(

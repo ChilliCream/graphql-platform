@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  DocSearchHit,
   InternalDocSearchHit,
   StoredDocSearchHit,
 } from "@docsearch/react";
@@ -15,6 +16,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { PRODUCTS } from "@/src/data/products";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 import { SearchIcon } from "@/src/icons/Search";
 
 // The DocSearch modal (and its ~120 KB of JS plus CSS) is code-split into its
@@ -46,6 +49,89 @@ const APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
 const API_KEY = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY;
 const INDEX_NAME = process.env.NEXT_PUBLIC_ALGOLIA_INDEX;
 const IS_CONFIGURED = Boolean(APP_ID && API_KEY && INDEX_NAME);
+
+const PRODUCT_TITLES_BY_SLUG = new Map(
+  PRODUCTS.map(({ slug, title }) => [slug, title] as const),
+);
+const PRODUCT_TITLES = new Set(PRODUCT_TITLES_BY_SLUG.values());
+const DOCS_PATH_PATTERN = /^\/docs\/([^/]+)/;
+
+type ProductSearchHit = Pick<DocSearchHit, "url" | "hierarchy">;
+
+function getProduct(hit: ProductSearchHit): string {
+  try {
+    const pathname = new URL(hit.url, "https://chillicream.com").pathname;
+    const productSlug = DOCS_PATH_PATTERN.exec(pathname)?.[1]?.toLowerCase();
+    const product = productSlug && PRODUCT_TITLES_BY_SLUG.get(productSlug);
+
+    if (product) {
+      return product;
+    }
+  } catch {
+    // Fall back to Algolia's category below.
+  }
+
+  const category = hit.hierarchy?.lvl0?.trim() ?? "";
+  return PRODUCT_TITLES.has(category) ? category : "";
+}
+
+function joinProductContext(pageTitle: string, product: string): string {
+  if (!pageTitle) {
+    return product;
+  }
+
+  if (!product) {
+    return pageTitle;
+  }
+
+  return `${pageTitle} · ${product}`;
+}
+
+function addProductContext(items: DocSearchHit[]): DocSearchHit[] {
+  return items.map((hit) => {
+    const product = getProduct(hit);
+
+    if (!product) {
+      return hit;
+    }
+
+    if (hit.type === "lvl1") {
+      return {
+        ...hit,
+        content: product,
+        _snippetResult: {
+          ...hit._snippetResult,
+          content: {
+            value: product,
+            matchLevel: "none",
+          },
+        },
+      };
+    }
+
+    if (hit.type === "lvl0" || hit.type === "askAI") {
+      return hit;
+    }
+
+    const highlightedPageTitle = hit._snippetResult?.hierarchy?.lvl1;
+    const pageTitleValue = highlightedPageTitle?.value || hit.hierarchy.lvl1;
+
+    return {
+      ...hit,
+      _snippetResult: {
+        ...hit._snippetResult,
+        hierarchy: {
+          ...hit._snippetResult?.hierarchy,
+          lvl1: {
+            ...highlightedPageTitle,
+            value: joinProductContext(pageTitleValue, product),
+            matchLevel: highlightedPageTitle?.matchLevel ?? "none",
+          },
+        },
+      },
+    };
+  });
+}
 
 type HitProps = {
   hit: InternalDocSearchHit | StoredDocSearchHit;
@@ -110,16 +196,6 @@ export function Search({
     onAskAiToggle: () => {},
   });
 
-  function Hit({ hit, children }: HitProps) {
-    let to: string;
-    try {
-      to = new URL(hit.url).pathname + (new URL(hit.url).hash ?? "");
-    } catch {
-      to = hit.url;
-    }
-    return <Link href={to}>{children}</Link>;
-  }
-
   return (
     <>
       <button
@@ -151,6 +227,7 @@ export function Search({
               indices={[INDEX_NAME!]}
               placeholder="Search docs and blog..."
               hitComponent={Hit}
+              transformItems={addProductContext}
               initialScrollY={initialScrollY}
               onClose={onClose}
               onAskAiToggle={() => {}}
@@ -164,5 +241,28 @@ export function Search({
           )
         : null}
     </>
+  );
+}
+
+function Hit({ hit, children }: HitProps) {
+  let to: string;
+  try {
+    to = new URL(hit.url).pathname + (new URL(hit.url).hash ?? "");
+  } catch {
+    to = hit.url;
+  }
+  return (
+    <Link
+      href={to}
+      onClick={() => {
+        sendAnalyticsEvent("search_result_select", {
+          result_path: to,
+          result_product: getProduct(hit) || undefined,
+          page_path: window.location.pathname,
+        });
+      }}
+    >
+      {children}
+    </Link>
   );
 }

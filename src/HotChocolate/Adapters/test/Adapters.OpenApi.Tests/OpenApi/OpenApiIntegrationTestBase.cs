@@ -51,6 +51,52 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task OperationDocument_With_ResponseBody_Field()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetAddress($userId: ID!) @http(method: GET, route: "/users/{userId}/address") {
+              userById(id: $userId) {
+                address @responseBody {
+                  road: street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_Should_Use_Array_Response_When_ResponseBody_Field_Returns_List()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth @responseBody {
+                name
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
     public async Task OperationDocument_With_Default_Value_For_Variable()
     {
         // arrange
@@ -857,6 +903,37 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
               usersWithoutAuth {
                 address {
                   street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task Duplicated_Routes_FirstInvalidSecondValid_UsesValidResponseBodySelection()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query AInvalidFirst @http(method: GET, route: "/users/1") {
+              doesNotExist {
+                id @responseBody
+              }
+            }
+            """,
+            """
+            query BValidSecond @http(method: GET, route: "/users/1") {
+              userById(id: "1") {
+                address @responseBody {
+                  road: street
                 }
               }
             }

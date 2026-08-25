@@ -115,6 +115,11 @@ namespace TestNamespace
                         new global::HotChocolate.Types.UsePagingAttribute(null, 14),
                         new global::HotChocolate.Data.UseFilteringAttribute(null, 16),
                         new global::HotChocolate.Data.UseSortingAttribute(null, 17));
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductsAsync_productService(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 

@@ -140,5 +140,5 @@ public class FusionEnumValueCollectionTests
     }
 
     private static FusionEnumValue Value(string name, bool isInaccessible = false)
-        => new(name, description: null, isDeprecated: false, deprecationReason: null, isInaccessible);
+        => new(name, description: null, deprecationReason: null, isInaccessible);
 }
