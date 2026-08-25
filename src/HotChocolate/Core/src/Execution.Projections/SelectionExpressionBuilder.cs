@@ -513,9 +513,6 @@ internal sealed class SelectionExpressionBuilder
         => (property.PropertyType.IsValueType || property.PropertyType == typeof(string))
             && property.GetMethod?.GetCustomAttribute<CompilerGeneratedAttribute>() is not null;
 
-    // Fields marked as always projected are added to the projection even if they are not part
-    // of the selection set. Only leaf fields backed by a property are injected; forcing object
-    // projections can create invalid EF Core tracking shapes.
     private static void AddAlwaysProjectedFields(
         TypeNode parent,
         ObjectType selectionType)
