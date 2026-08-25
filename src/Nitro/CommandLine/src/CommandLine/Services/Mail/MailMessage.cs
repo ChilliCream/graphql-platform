@@ -35,4 +35,15 @@ internal sealed record MailMessage
     /// this empty.
     /// </summary>
     public IReadOnlyList<string> Unregistered { get; init; } = [];
+
+    /// <summary>
+    /// Each recipient's actor-wake generation token committed alongside this
+    /// message, when the send or reply used <see cref="MailWakePolicy.Enqueue"/>.
+    /// Empty when the policy was <see cref="MailWakePolicy.Skip"/>. Populated
+    /// only by <see cref="IMailStore.SendMessageAsync"/> and
+    /// <see cref="IMailStore.ReplyMessageAsync(string, string, string, MailWakePolicy, CancellationToken)"/>;
+    /// every other path leaves
+    /// this empty.
+    /// </summary>
+    public IReadOnlyList<MailWakeReceipt> WakeReceipts { get; init; } = [];
 }

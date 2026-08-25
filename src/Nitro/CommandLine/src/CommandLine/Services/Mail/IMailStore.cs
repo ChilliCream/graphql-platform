@@ -30,9 +30,15 @@ internal interface IMailStore
     /// never registered gets an implicit agent row rather than failing the
     /// send; the returned message's <see cref="MailMessage.Unregistered"/>
     /// lists every recipient, implicit before or because of this call, that
-    /// has still never registered. Throws <see cref="ExitException"/> when
-    /// the subject is empty, a recipient name is invalid, or no recipient
-    /// remains after dedupe.
+    /// has still never registered. When <see cref="MailMessageCreation.WakePolicy"/>
+    /// is <see cref="MailWakePolicy.Enqueue"/>, the same transaction also
+    /// increments <c>mail_wake_outbox.requested_generation</c> once per
+    /// distinct recipient, and the returned message's
+    /// <see cref="MailMessage.WakeReceipts"/> carries each recipient's
+    /// resulting generation; <see cref="MailWakePolicy.Skip"/> leaves every
+    /// recipient's wake intent untouched and returns no receipts. Throws
+    /// <see cref="ExitException"/> when the subject is empty, a recipient
+    /// name is invalid, or no recipient remains after dedupe.
     /// </summary>
     Task<MailMessage> SendMessageAsync(
         MailMessageCreation creation,
@@ -43,7 +49,9 @@ internal interface IMailStore
     /// recipient of the message being replied to. The reply's recipients
     /// are the original message's sender plus its to and cc recipients,
     /// minus the acting agent; its subject is inherited from the thread
-    /// root and its thread_id copied from the original message. Throws
+    /// root and its thread_id copied from the original message. Follows the
+    /// same wake-enqueue and receipt rules <see cref="SendMessageAsync"/>
+    /// documents for <paramref name="wakePolicy"/>. Throws
     /// <see cref="ExitException"/> when the original message does not
     /// exist, the actor is not authorized to reply, or the computed
     /// recipient set is empty.
@@ -52,7 +60,21 @@ internal interface IMailStore
         string inReplyToId,
         string sender,
         string body,
+        MailWakePolicy wakePolicy,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Back-compat overload for a caller not yet migrated to select a wake
+    /// policy explicitly: forwards to the five-argument overload with
+    /// <see cref="MailWakePolicy.Skip"/>, so no recipient's wake intent
+    /// advances.
+    /// </summary>
+    Task<MailMessage> ReplyMessageAsync(
+        string inReplyToId,
+        string sender,
+        string body,
+        CancellationToken cancellationToken)
+        => ReplyMessageAsync(inReplyToId, sender, body, MailWakePolicy.Skip, cancellationToken);
 
     /// <summary>
     /// Returns the message with the given ID, with its recipients embedded,

@@ -128,7 +128,7 @@ internal sealed class FakeMailStore : IMailStore
     /// instead.
     /// </summary>
     public Task<MailMessage> ReplyMessageAsync(
-        string inReplyToId, string sender, string body, CancellationToken cancellationToken)
+        string inReplyToId, string sender, string body, MailWakePolicy wakePolicy, CancellationToken cancellationToken)
     {
         var original = Messages.FirstOrDefault(m => m.Id == inReplyToId)
             ?? throw new ExitException($"Message '{inReplyToId}' not found.");

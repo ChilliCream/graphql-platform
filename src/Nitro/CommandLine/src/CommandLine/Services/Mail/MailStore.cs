@@ -12,7 +12,9 @@ internal sealed class MailStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     AgentDatabase database,
-    IAgentRegistry agentRegistry) : IMailStore
+    IAgentRegistry agentRegistry,
+    INitroInstanceIdProvider? instanceIdProvider = null,
+    IGlobalConfigDirectoryProvider? globalConfigDirectoryProvider = null) : IMailStore
 {
     private const string IdPrefix = "m-";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -83,6 +85,14 @@ internal sealed class MailStore(
         // above.
         var unregistered = await EnsureRecipientsAsync(recipients, cancellationToken);
 
+        // Resolved before the write transaction opens, mirroring the sender
+        // touch and recipient registration above: reading the machine's
+        // instance id can hit the filesystem, and an open transaction on the
+        // write connection would block a nested connection to the same file.
+        var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
+            ? await ResolveNitroInstanceIdAsync(cancellationToken)
+            : null;
+
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
@@ -124,6 +134,10 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
+        var wakeReceipts = nitroInstanceId is null
+            ? []
+            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+
         await transaction.CommitAsync(cancellationToken);
 
         return new MailMessage
@@ -136,7 +150,8 @@ internal sealed class MailStore(
             Body = creation.Body,
             CreatedAt = now,
             Recipients = recipients,
-            Unregistered = unregistered
+            Unregistered = unregistered,
+            WakeReceipts = wakeReceipts
         };
     }
 
@@ -144,6 +159,14 @@ internal sealed class MailStore(
         string inReplyToId,
         string sender,
         string body,
+        CancellationToken cancellationToken)
+        => await ReplyMessageAsync(inReplyToId, sender, body, MailWakePolicy.Skip, cancellationToken);
+
+    public async Task<MailMessage> ReplyMessageAsync(
+        string inReplyToId,
+        string sender,
+        string body,
+        MailWakePolicy wakePolicy,
         CancellationToken cancellationToken)
     {
         var actor = MailAgentName.Normalize(sender);
@@ -158,6 +181,12 @@ internal sealed class MailStore(
         // open transaction on another connection to the same file blocks it
         // from starting one of its own.
         await agentRegistry.TouchAsync(actor, cancellationToken);
+
+        // Resolved before the write transaction opens, for the same reason
+        // SendMessageAsync resolves it before its own transaction.
+        var nitroInstanceId = wakePolicy == MailWakePolicy.Enqueue
+            ? await ResolveNitroInstanceIdAsync(cancellationToken)
+            : null;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -201,6 +230,10 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
+        var wakeReceipts = nitroInstanceId is null
+            ? []
+            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+
         await transaction.CommitAsync(cancellationToken);
 
         return new MailMessage
@@ -212,8 +245,70 @@ internal sealed class MailStore(
             Subject = root.Subject,
             Body = body,
             CreatedAt = now,
-            Recipients = recipients
+            Recipients = recipients,
+            WakeReceipts = wakeReceipts
         };
+    }
+
+    /// <summary>
+    /// Resolves this machine's Nitro instance id for a
+    /// <see cref="MailWakePolicy.Enqueue"/> send or reply. Throws
+    /// <see cref="InvalidOperationException"/> when this store was
+    /// constructed without the instance id and global config directory
+    /// providers <see cref="MailWakePolicy.Enqueue"/> requires.
+    /// </summary>
+    private async Task<string> ResolveNitroInstanceIdAsync(CancellationToken cancellationToken)
+    {
+        if (instanceIdProvider is null || globalConfigDirectoryProvider is null)
+        {
+            throw new InvalidOperationException(
+                "MailWakePolicy.Enqueue requires this MailStore to be constructed with an "
+                + "INitroInstanceIdProvider and an IGlobalConfigDirectoryProvider.");
+        }
+
+        return await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
+    }
+
+    /// <summary>
+    /// Increments <c>mail_wake_outbox.requested_generation</c> once for each
+    /// distinct recipient, inserting the outbox row when this is its first
+    /// wake for (<paramref name="nitroInstanceId"/>, recipient). Preserves
+    /// the earliest pending <c>due_at</c> across concurrent enqueues to the
+    /// same recipient rather than overwriting it with this call's own
+    /// <paramref name="now"/>. Returns each recipient's resulting
+    /// generation, in recipient order.
+    /// </summary>
+    private static async Task<List<MailWakeReceipt>> EnqueueWakeAsync(
+        SqliteConnection connection,
+        string nitroInstanceId,
+        IReadOnlyList<MailRecipient> recipients,
+        DateTimeOffset now,
+        CancellationToken cancellationToken,
+        DbTransaction transaction)
+    {
+        var receipts = new List<MailWakeReceipt>(recipients.Count);
+
+        foreach (var recipient in recipients)
+        {
+            var generation = await connection.QueryFirstOrDefaultAsync<long>(
+                """
+                INSERT INTO mail_wake_outbox (
+                    nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at
+                )
+                VALUES (@nitroInstanceId, @actor, 1, 0, @now, @now)
+                ON CONFLICT (nitro_instance_id, actor) DO UPDATE SET
+                    requested_generation = requested_generation + 1,
+                    due_at = MIN(due_at, excluded.due_at),
+                    updated_at = excluded.updated_at
+                RETURNING requested_generation
+                """,
+                new { nitroInstanceId, actor = recipient.Name, now, cancellationToken },
+                transaction);
+
+            receipts.Add(new MailWakeReceipt { Actor = recipient.Name, Generation = generation });
+        }
+
+        return receipts;
     }
 
     /// <summary>

@@ -9,7 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// <summary>
 /// The reply form: body only. Recipient computation (reply-all, minus the
 /// acting agent) is entirely owned by
-/// <see cref="IMailStore.ReplyMessageAsync"/>, the same store member the
+/// <see cref="IMailStore.ReplyMessageAsync(string, string, string, CancellationToken)"/>,
+/// the same store member the
 /// CLI's reply command calls, so the recipient set for a given message is
 /// identical whether the reply was sent from the CLI or here. The host is
 /// expected to feed it raw key input via <see cref="HandleKey"/> and call

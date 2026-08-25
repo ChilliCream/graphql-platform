@@ -38,7 +38,8 @@ internal sealed class FakeMailStore : IMailStore
     public Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
-    public Task<MailMessage> ReplyMessageAsync(string inReplyToId, string sender, string body, CancellationToken cancellationToken)
+    public Task<MailMessage> ReplyMessageAsync(
+        string inReplyToId, string sender, string body, MailWakePolicy wakePolicy, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<MailMessage?> GetMessageAsync(string id, CancellationToken cancellationToken)
