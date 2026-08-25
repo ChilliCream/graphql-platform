@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
@@ -28,7 +29,16 @@ internal static class AgentTuiLauncher
     /// <summary>
     /// Runs the tabbed shell until the user quits or
     /// <paramref name="cancellationToken"/> is cancelled, returning the
-    /// shell's exit code.
+    /// shell's exit code. Owns <paramref name="mailWakeDaemonCoordinator"/>'s
+    /// lifetime for exactly this run: started once the shell is built, and
+    /// always stopped again before returning, on every exit path alike
+    /// (normal quit, Ctrl+C, cancellation, or the application loop itself
+    /// throwing), so a noncooperative caller can never observe the
+    /// coordinator still running once this method has returned or thrown.
+    /// The daemon's own leadership and health are never fatal to this run:
+    /// a coordinator that never reaches <see cref="MailWakeDaemonState.Ready"/>
+    /// still leaves every other tab fully usable, only surfaced through the
+    /// shell's own footer badge.
     /// </summary>
     public static async Task<int> RunAsync(
         INitroConsole console,
@@ -41,6 +51,7 @@ internal static class AgentTuiLauncher
         TimeProvider timeProvider,
         IEnvironmentVariableProvider environmentVariableProvider,
         string workspaceDirectory,
+        IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         CancellationToken cancellationToken)
     {
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
@@ -67,14 +78,36 @@ internal static class AgentTuiLauncher
             treeView,
             taskStore,
             actor,
-            mailStore);
+            mailStore,
+            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         shell.QuitConfirmed += () => quitCts.Cancel();
 
-        await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
+        // Started outside TuiApplication's own loop, after the shell exists
+        // but before it runs, so a startup failure building the shell above
+        // never leaves the coordinator running with nothing to report its
+        // status to. StartAsync only launches the background run loop and
+        // returns immediately (it does not wait for an election outcome),
+        // so this never delays the dashboard opening.
+        await mailWakeDaemonCoordinator.StartAsync(cancellationToken);
+
+        try
+        {
+            await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
+        }
+        finally
+        {
+            // Runs on every exit path, including the application loop
+            // itself throwing: stops admission, releases leadership if
+            // held, and cancels every in-flight actor dispatch, bounded by
+            // the coordinator's own shutdown budget rather than this
+            // method's cancellation token (already cancelled or cancelling
+            // on most of these paths).
+            await mailWakeDaemonCoordinator.StopAsync(CancellationToken.None);
+        }
 
         return ExitCodes.Success;
     }

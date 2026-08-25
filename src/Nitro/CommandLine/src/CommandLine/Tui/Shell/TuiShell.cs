@@ -1,5 +1,6 @@
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
@@ -40,6 +41,7 @@ internal sealed class TuiShell
     private readonly ITaskStore? _store;
     private readonly IMailStore? _mailStore;
     private readonly string? _actor;
+    private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
     private readonly IReadOnlyList<TuiQuitGate> _quitGates;
     private readonly TimeSpan _quitGateDrainBound;
 
@@ -70,6 +72,7 @@ internal sealed class TuiShell
         ITaskStore? store = null,
         string? actor = null,
         IMailStore? mailStore = null,
+        Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
         TimeSpan? quitGateDrainBound = null)
         : this(
@@ -86,6 +89,7 @@ internal sealed class TuiShell
             store,
             actor,
             mailStore,
+            mailWakeDaemonState,
             quitGates,
             quitGateDrainBound)
     {
@@ -106,6 +110,11 @@ internal sealed class TuiShell
     /// outcome-unknown count reported back turns the confirmation into a second
     /// prompt naming those counts rather than quitting immediately. Omitted, quitting
     /// behaves exactly as before.
+    /// <paramref name="mailWakeDaemonState"/>, when given, is polled once per render
+    /// and shown as a short badge in the footer's trailing segment (to the left of
+    /// the actor identity), so the mail-wake daemon's Ready/Standby/Degraded/Stopping
+    /// state stays visible while the dashboard is open, never blocking or altering
+    /// any tab's own behavior.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
@@ -120,6 +129,7 @@ internal sealed class TuiShell
         ITaskStore? store = null,
         string? actor = null,
         IMailStore? mailStore = null,
+        Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
         TimeSpan? quitGateDrainBound = null)
     {
@@ -144,6 +154,7 @@ internal sealed class TuiShell
         _store = store;
         _mailStore = mailStore;
         _actor = actor;
+        _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
         _quitGateDrainBound = quitGateDrainBound ?? QuitGateDrainBound;
         _width = initialWidth;
@@ -225,7 +236,8 @@ internal sealed class TuiShell
                                 ? createForm.Render(_width, contentHeight)
                                 : ActiveMode.Render(_width, contentHeight);
 
-        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor));
+        var toastRow = _toaster.Render()
+            ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
 
         if (_tabs.Count <= 1)
         {
@@ -1101,26 +1113,22 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Formats <paramref name="hints"/> and, when <paramref name="actor"/> is
-    /// given, the current agent identity as the footer's single status-row
-    /// line: the hints on the left as <see cref="FormatFooterHints"/> lays
-    /// them out, the identity right-aligned to the row's right edge in the
-    /// <c>footer.identity</c> style so it stands out from the key and action
-    /// styles. The identity never steals width the hints would otherwise
-    /// use: it is fit into whatever room is left over after the hints are
-    /// laid out, truncated with a trailing ellipsis (or omitted entirely on
-    /// widths too narrow for even that) rather than shrinking the hints
-    /// further.
+    /// Formats <paramref name="hints"/>, the mail-wake daemon badge (when
+    /// <paramref name="mailWakeDaemonState"/> is given), and the current agent
+    /// identity (when <paramref name="actor"/> is given) as the footer's single
+    /// status-row line: the hints on the left as <see cref="FormatFooterHints"/>
+    /// lays them out, the badge and identity right-aligned to the row's right
+    /// edge, badge first, so they stand out from the key and action styles. This
+    /// trailing segment never steals width the hints would otherwise use: it is
+    /// fit into whatever room is left over after the hints are laid out. The
+    /// badge is fixed-width and shown whole or not at all; the identity is
+    /// truncated with a trailing ellipsis (or omitted entirely on widths too
+    /// narrow for even that) rather than shrinking the hints further.
     /// </summary>
-    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width, string? actor)
+    private static string FormatFooter(
+        IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)
     {
         var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
-
-        if (string.IsNullOrEmpty(actor))
-        {
-            return hintMarkup;
-        }
-
         var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
 
         if (available <= 0)
@@ -1128,27 +1136,83 @@ internal sealed class TuiShell
             return hintMarkup;
         }
 
-        string identityText;
+        var trailingMarkup = string.Empty;
+        var trailingPlainWidth = 0;
 
-        if (actor.Length <= available)
+        if (mailWakeDaemonState is { } state)
         {
-            identityText = actor;
+            var badgeText = FormatMailWakeDaemonBadge(state);
+
+            if (badgeText.Length <= available)
+            {
+                var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(state)).ToMarkup();
+                trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
+                trailingPlainWidth = badgeText.Length;
+                available -= badgeText.Length;
+            }
         }
-        else if (available > FooterEllipsis.Length)
+
+        if (!string.IsNullOrEmpty(actor))
         {
-            identityText = actor[..(available - FooterEllipsis.Length)] + FooterEllipsis;
+            var separatorNeeded = trailingPlainWidth > 0 ? FooterSeparator.Length : 0;
+            var identityAvailable = available - separatorNeeded;
+
+            string? identityText = null;
+
+            if (actor.Length <= identityAvailable)
+            {
+                identityText = actor;
+            }
+            else if (identityAvailable > FooterEllipsis.Length)
+            {
+                identityText = actor[..(identityAvailable - FooterEllipsis.Length)] + FooterEllipsis;
+            }
+
+            if (identityText is not null)
+            {
+                var identityStyle = ThemeTokens.GetStyle("footer.identity").ToMarkup();
+                var identityMarkup = $"[{identityStyle}]{Markup.Escape(identityText)}[/]";
+
+                trailingMarkup = trailingPlainWidth > 0
+                    ? trailingMarkup + FooterSeparator + identityMarkup
+                    : identityMarkup;
+                trailingPlainWidth += separatorNeeded + identityText.Length;
+            }
         }
-        else
+
+        if (trailingPlainWidth == 0)
         {
             return hintMarkup;
         }
 
-        var identityStyle = ThemeTokens.GetStyle("footer.identity").ToMarkup();
-        var identityMarkup = $"[{identityStyle}]{Markup.Escape(identityText)}[/]";
-        var padding = Math.Max(0, width - hintPlainWidth - identityText.Length);
+        var padding = Math.Max(0, width - hintPlainWidth - trailingPlainWidth);
 
-        return hintMarkup + new string(' ', padding) + identityMarkup;
+        return hintMarkup + new string(' ', padding) + trailingMarkup;
     }
+
+    /// <summary>
+    /// The mail-wake daemon coordinator's current state as a short, fixed-width
+    /// footer badge label.
+    /// </summary>
+    private static string FormatMailWakeDaemonBadge(MailWakeDaemonState state) => state switch
+    {
+        MailWakeDaemonState.Ready => "mail-wake:ready",
+        MailWakeDaemonState.Standby => "mail-wake:standby",
+        MailWakeDaemonState.Degraded => "mail-wake:degraded",
+        MailWakeDaemonState.Stopping => "mail-wake:stopping",
+        _ => "mail-wake:standby"
+    };
+
+    /// <summary>
+    /// The theme token styling <see cref="FormatMailWakeDaemonBadge"/>'s label
+    /// for <paramref name="state"/>.
+    /// </summary>
+    private static string MailWakeDaemonStyleToken(MailWakeDaemonState state) => state switch
+    {
+        MailWakeDaemonState.Ready => "footer.daemon.ready",
+        MailWakeDaemonState.Degraded => "footer.daemon.degraded",
+        _ => "footer.daemon.standby"
+    };
 
     /// <summary>
     /// Formats <paramref name="hints"/> as dimmed key labels and

@@ -131,6 +131,10 @@ internal static class DefaultTheme
 
         ["footer.key"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["footer.action"] = new Style(Color.Grey70),
-        ["footer.identity"] = new Style(Color.Aqua, decoration: Decoration.Bold)
+        ["footer.identity"] = new Style(Color.Aqua, decoration: Decoration.Bold),
+
+        ["footer.daemon.ready"] = new Style(Color.Green),
+        ["footer.daemon.standby"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["footer.daemon.degraded"] = new Style(Color.Red, decoration: Decoration.Bold)
     };
 }

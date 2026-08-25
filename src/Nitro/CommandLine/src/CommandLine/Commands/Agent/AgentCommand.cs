@@ -10,6 +10,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -67,6 +68,12 @@ internal sealed class AgentCommand : Command
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
 
+                // Resolved, and its lifetime owned by AgentTuiLauncher.RunAsync,
+                // only on this interactive-plus-workspace path: a noninteractive
+                // invocation or one with no workspace never reaches here, so it
+                // never starts the mail-wake daemon coordinator.
+                var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
+
                 return await AgentTuiLauncher.RunAsync(
                     console,
                     taskStore,
@@ -78,6 +85,7 @@ internal sealed class AgentCommand : Command
                     timeProvider,
                     environmentVariableProvider,
                     workspaceDirectory,
+                    mailWakeDaemonCoordinator,
                     cancellationToken);
             }
         }
