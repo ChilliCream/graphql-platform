@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -458,6 +459,104 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await coordinator.DisposeAsync();
     }
 
+    [Fact]
+    public async Task RunningLeader_Should_ReleaseLeadership_And_CancelSiblings_When_AccessDeniedReleaseIsBusy()
+    {
+        // arrange: one actor's dispatch is denied Claude socket access, a
+        // second actor's dispatch hangs on transport, and the leader
+        // store's release throws SQLITE_BUSY once before succeeding.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        const string deniedActor = "denied-actor";
+        const string hungActor = "hung-actor";
+        await _agentRegistry.EnsureImplicitAsync(deniedActor, cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync(hungActor, cancellationToken);
+        await InsertDueOutboxRowAsync(InstanceId, cancellationToken, deniedActor);
+        await InsertDueOutboxRowAsync(InstanceId, cancellationToken, hungActor);
+        var events = new ConcurrentQueue<string>();
+        var dispatcher = new DeniedThenHangingDispatcher(deniedActor, events);
+        var busyReleaseStore = new BusyReleaseLeaderStore(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database), busyReleaseCalls: 1, events);
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            busyReleaseStore,
+            dispatcher,
+            _fileSystem,
+            _database,
+            _instanceIdProvider,
+            _globalConfigDirectoryProvider,
+            TimeProvider.System,
+            FastPolicy);
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Degraded, cancellationToken);
+
+        // the busy-retried release only completes ~250ms (the policy's
+        // initial backoff) after the first, busy attempt, so wait for the
+        // actual retry rather than for Degraded alone.
+        await WaitUntilAsync(() => busyReleaseStore.ReleaseCalls >= 2, cancellationToken);
+
+        // assert: the release retried through the busy attempt and
+        // succeeded, and the hung actor's dispatch observed cancellation
+        // strictly before the release was even attempted.
+        Assert.Equal(2, busyReleaseStore.ReleaseCalls);
+        var ordered = events.ToArray();
+        var cancelledIndex = Array.IndexOf(ordered, $"{hungActor}-cancelled");
+        var releasedIndex = Array.IndexOf(ordered, "release-attempted");
+        Assert.True(
+            cancelledIndex >= 0 && releasedIndex >= 0 && cancelledIndex < releasedIndex,
+            $"Expected \"{hungActor}-cancelled\" before \"release-attempted\". Events: [{string.Join(", ", ordered)}]");
+
+        // a differently privileged standby can take over immediately,
+        // proving the release actually reached the database rather than
+        // leaving this instance wedged as leader.
+        await using var standby = CreateCoordinator(new FakePingSessionExecutor());
+        await standby.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => standby.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        Assert.Equal(2, standby.Status.Epoch);
+
+        await coordinator.StopAsync(cancellationToken);
+        await standby.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task RunningLeader_Should_NeverExceedMaxConcurrentActorExecutions_When_MoreActorsAreDueThanTheLimit()
+    {
+        // arrange: five due actors under a policy capped at four concurrent
+        // executions; every dispatch call takes long enough that the fifth
+        // actor can only be admitted once one of the first four completes.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actors = Enumerable.Range(1, 5).Select(i => $"actor-{i}").ToArray();
+
+        foreach (var actor in actors)
+        {
+            await _agentRegistry.EnsureImplicitAsync(actor, cancellationToken);
+            await InsertDueOutboxRowAsync(InstanceId, cancellationToken, actor);
+        }
+
+        var dispatcher = new ConcurrencyTrackingDispatcher();
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database),
+            dispatcher,
+            _fileSystem,
+            _database,
+            _instanceIdProvider,
+            _globalConfigDirectoryProvider,
+            TimeProvider.System,
+            FastPolicy);
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => dispatcher.CompletedActors.Distinct().Count() >= actors.Length, cancellationToken);
+
+        // assert: the gate's own capacity was actually reached, and never
+        // exceeded, while draining all five actors.
+        Assert.Equal(FastPolicy.MaxConcurrentActorExecutions, dispatcher.MaxObservedConcurrency);
+
+        await coordinator.StopAsync(cancellationToken);
+    }
+
     private MailWakeDaemonCoordinator CreateCoordinator(
         FakePingSessionExecutor executor, IMailWakeDaemonLeaderStore? leaderStore = null)
         => new(
@@ -533,7 +632,8 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         return (string?)await command.ExecuteScalarAsync(cancellationToken);
     }
 
-    private async Task InsertDueOutboxRowAsync(string nitroInstanceId, CancellationToken cancellationToken)
+    private async Task InsertDueOutboxRowAsync(
+        string nitroInstanceId, CancellationToken cancellationToken, string actor = Actor)
     {
         await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
         await using var command = connection.CreateCommand();
@@ -545,7 +645,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             VALUES (@nitroInstanceId, @actor, 1, 0, @now, @now)
             """;
         command.Parameters.AddWithValue("@nitroInstanceId", nitroInstanceId);
-        command.Parameters.AddWithValue("@actor", Actor);
+        command.Parameters.AddWithValue("@actor", actor);
         command.Parameters.AddWithValue("@now", DateTimeOffset.UtcNow.AddSeconds(-1));
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -659,6 +759,142 @@ internal sealed class BusyLeaderStore(IMailWakeDaemonLeaderStore inner, int busy
     public Task<bool> TryReleaseAsync(
         string nitroInstanceId, string ownerId, long epoch, DateTimeOffset now, CancellationToken cancellationToken)
         => inner.TryReleaseAsync(nitroInstanceId, ownerId, epoch, now, cancellationToken);
+}
+
+/// <summary>
+/// Delegates every call to <paramref name="inner"/>, except that the first
+/// <paramref name="busyReleaseCalls"/> calls to <see cref="TryReleaseAsync"/>
+/// throw a <see cref="SqliteException"/> for SQLITE_BUSY instead. Each
+/// attempt (busy or not) is optionally logged to <paramref name="events"/>
+/// as <c>"release-attempted"</c>, for asserting ordering against other
+/// recorded events.
+/// </summary>
+internal sealed class BusyReleaseLeaderStore(
+    IMailWakeDaemonLeaderStore inner, int busyReleaseCalls, ConcurrentQueue<string>? events = null)
+    : IMailWakeDaemonLeaderStore
+{
+    private int _releaseCalls;
+
+    public int ReleaseCalls => Volatile.Read(ref _releaseCalls);
+
+    public Task<long?> TryAcquireAsync(
+        string nitroInstanceId, string ownerId, DateTimeOffset now, TimeSpan leaseDuration,
+        CancellationToken cancellationToken)
+        => inner.TryAcquireAsync(nitroInstanceId, ownerId, now, leaseDuration, cancellationToken);
+
+    public Task<bool> TryRenewAsync(
+        string nitroInstanceId, string ownerId, long epoch, DateTimeOffset now, TimeSpan leaseDuration,
+        string? lastError, CancellationToken cancellationToken)
+        => inner.TryRenewAsync(nitroInstanceId, ownerId, epoch, now, leaseDuration, lastError, cancellationToken);
+
+    public Task<bool> TryReleaseAsync(
+        string nitroInstanceId, string ownerId, long epoch, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        events?.Enqueue("release-attempted");
+
+        if (Interlocked.Increment(ref _releaseCalls) <= busyReleaseCalls)
+        {
+            throw new SqliteException("busy", 5); // SQLITE_BUSY
+        }
+
+        return inner.TryReleaseAsync(nitroInstanceId, ownerId, epoch, now, cancellationToken);
+    }
+}
+
+/// <summary>
+/// A per-actor <see cref="IActorWakeDispatcher"/> fake: <paramref name="deniedActor"/>'s
+/// first dispatch waits until every other actor's dispatch has registered
+/// its own cancellation callback, then returns a pending, access-denied
+/// receipt; every other actor hangs until its <see cref="CancellationToken"/>
+/// fires, recording <c>"{actor}-cancelled"</c> into <paramref name="events"/>
+/// from that callback, before observing the cancellation itself.
+/// </summary>
+internal sealed class DeniedThenHangingDispatcher(string deniedActor, ConcurrentQueue<string> events)
+    : IActorWakeDispatcher
+{
+    private readonly TaskCompletionSource _hungRegistered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private int _deniedDispatchCount;
+
+    public async Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+    {
+        if (actor == deniedActor && Interlocked.Increment(ref _deniedDispatchCount) == 1)
+        {
+            // Never race ahead of the sibling actually being in flight.
+            await _hungRegistered.Task;
+
+            var target = new AgentSessionGeneration(
+                AgentSessionHarness.ClaudeCode, "denied-session", "host-1", Environment.ProcessId, "0");
+
+            return new ActorWakeReceipt(
+                actor,
+                "denied",
+                [new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, "access-denied")]);
+        }
+
+        await using var registration = cancellationToken.Register(() => events.Enqueue($"{actor}-cancelled"));
+        _hungRegistered.TrySetResult();
+
+        try
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        return null;
+    }
+}
+
+/// <summary>
+/// Records the peak number of concurrent <see cref="DispatchAsync"/> calls
+/// and every actor a call completed for, without touching any real session,
+/// mail, or dispatch machinery.
+/// </summary>
+internal sealed class ConcurrencyTrackingDispatcher : IActorWakeDispatcher
+{
+    private int _concurrent;
+    private int _maxObservedConcurrency;
+
+    public int MaxObservedConcurrency => Volatile.Read(ref _maxObservedConcurrency);
+
+    public ConcurrentBag<string> CompletedActors { get; } = [];
+
+    public async Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+    {
+        var observed = Interlocked.Increment(ref _concurrent);
+        InterlockedMax(ref _maxObservedConcurrency, observed);
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(80), cancellationToken);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _concurrent);
+        }
+
+        CompletedActors.Add(actor);
+        return null;
+    }
+
+    private static void InterlockedMax(ref int target, int observed)
+    {
+        int current;
+
+        do
+        {
+            current = target;
+
+            if (observed <= current)
+            {
+                return;
+            }
+        }
+        while (Interlocked.CompareExchange(ref target, observed, current) != current);
+    }
 }
 
 /// <summary>

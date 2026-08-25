@@ -36,6 +36,29 @@ internal sealed class MailWakeDaemonCoordinator(
     private Task? _runTask;
     private DateTimeOffset? _selfDeniedUntil;
 
+    /// <summary>
+    /// The end of this instance's own daemon-side access-denied cooldown,
+    /// read and written under <see cref="_statusLock"/> so a concurrent
+    /// election tick never observes a torn or stale value.
+    /// </summary>
+    private DateTimeOffset? SelfDeniedUntil
+    {
+        get
+        {
+            lock (_statusLock)
+            {
+                return _selfDeniedUntil;
+            }
+        }
+        set
+        {
+            lock (_statusLock)
+            {
+                _selfDeniedUntil = value;
+            }
+        }
+    }
+
     public MailWakeDaemonStatus Status
     {
         get
@@ -55,7 +78,7 @@ internal sealed class MailWakeDaemonCoordinator(
         }
 
         _backoff.Clear();
-        _selfDeniedUntil = null;
+        SelfDeniedUntil = null;
         SetStatus(MailWakeDaemonStatus.Initial);
 
         _lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -149,7 +172,7 @@ internal sealed class MailWakeDaemonCoordinator(
         while (!stopToken.IsCancellationRequested)
         {
             var now = timeProvider.GetUtcNow();
-            var selfDenied = _selfDeniedUntil is { } deniedUntil && now < deniedUntil;
+            var selfDenied = SelfDeniedUntil is { } deniedUntil && now < deniedUntil;
 
             // Never overwrite a concurrent StopAsync's Stopping status.
             UpdateStatus(s => s.State == MailWakeDaemonState.Stopping
@@ -189,8 +212,12 @@ internal sealed class MailWakeDaemonCoordinator(
     private async Task RunAsLeaderAsync(string nitroInstanceId, long epoch, CancellationToken stopToken)
     {
         var now = timeProvider.GetUtcNow();
-        SetStatus(new MailWakeDaemonStatus(
-            MailWakeDaemonState.Ready, _ownerId, epoch, now + policy.LeaderLeaseDuration, null));
+
+        // Never overwrite a concurrent StopAsync's Stopping status.
+        UpdateStatus(s => s.State == MailWakeDaemonState.Stopping
+            ? s
+            : new MailWakeDaemonStatus(
+                MailWakeDaemonState.Ready, _ownerId, epoch, now + policy.LeaderLeaseDuration, null));
         _backoff.Clear();
 
         using var degradedSource = new CancellationTokenSource();
@@ -349,11 +376,23 @@ internal sealed class MailWakeDaemonCoordinator(
 
                 if (deniedByThisAttempt)
                 {
-                    _selfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
+                    SelfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
                     UpdateStatus(s => s with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
-                    await leaderStore.TryReleaseAsync(
-                        nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), CancellationToken.None);
-                    await degradedSource.CancelAsync();
+
+                    // Cancel siblings first so they unwind before the lease
+                    // they were fenced under disappears, then release the
+                    // lease in a finally (busy-retried) so a SQLITE_BUSY here
+                    // can never leave this instance wedged as leader while
+                    // reporting Degraded.
+                    try
+                    {
+                        await degradedSource.CancelAsync();
+                    }
+                    finally
+                    {
+                        await ReleaseWithRetryAsync(nitroInstanceId, epoch, CancellationToken.None);
+                    }
+
                     return;
                 }
 
@@ -423,6 +462,12 @@ internal sealed class MailWakeDaemonCoordinator(
         string nitroInstanceId, DateTimeOffset now, CancellationToken cancellationToken)
         => await RunWithBusyRetryAsync<IReadOnlyList<string>>(
             async ct => await FindDueActorsAsync(nitroInstanceId, now, ct), cancellationToken);
+
+    private async Task ReleaseWithRetryAsync(string nitroInstanceId, long epoch, CancellationToken cancellationToken)
+        => await RunWithBusyRetryAsync<bool>(
+            async ct => await leaderStore.TryReleaseAsync(
+                nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), ct),
+            cancellationToken);
 
     private async Task<TResult?> RunWithBusyRetryAsync<TResult>(
         Func<CancellationToken, Task<TResult?>> operation, CancellationToken cancellationToken)
