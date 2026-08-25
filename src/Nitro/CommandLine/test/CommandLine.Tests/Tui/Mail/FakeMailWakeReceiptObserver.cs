@@ -10,10 +10,15 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 /// own truthful default for a generation no batch has claimed yet. Set
 /// <see cref="Gate"/> to make every <see cref="ObserveAsync"/> call await it
 /// first, for exercising cancellation while an observation is in flight.
+/// <see cref="SequenceByActor"/> takes priority over <see cref="StatusByActor"/>
+/// when non-empty for an actor, dequeuing one observation per call, for
+/// exercising a caller that re-observes until a generation settles.
 /// </summary>
 internal sealed class FakeMailWakeReceiptObserver : IMailWakeReceiptObserver
 {
     public Dictionary<string, MailWakeObservation> StatusByActor { get; } = new(StringComparer.Ordinal);
+
+    public Dictionary<string, Queue<MailWakeObservation>> SequenceByActor { get; } = new(StringComparer.Ordinal);
 
     public int ObserveCallCount { get; private set; }
 
@@ -29,6 +34,11 @@ internal sealed class FakeMailWakeReceiptObserver : IMailWakeReceiptObserver
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (SequenceByActor.TryGetValue(receipt.Actor, out var sequence) && sequence.Count > 0)
+        {
+            return sequence.Dequeue();
+        }
 
         if (StatusByActor.TryGetValue(receipt.Actor, out var observation))
         {

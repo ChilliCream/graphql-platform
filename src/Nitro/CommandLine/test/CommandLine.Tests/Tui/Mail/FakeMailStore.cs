@@ -27,6 +27,13 @@ internal sealed class FakeMailStore : IMailStore
 
     public List<MailMessage> Messages { get; } = [];
 
+    /// <summary>
+    /// When set, every <see cref="SendMessageAsync"/> and <see cref="ReplyMessageAsync"/>
+    /// call awaits this before committing, for exercising the write while it
+    /// is still in flight.
+    /// </summary>
+    public TaskCompletionSource? SendGate { get; set; }
+
     public Task<IReadOnlyList<MailMessage>> QueryInboxAsync(
         MailInboxFilter filter,
         CancellationToken cancellationToken)
@@ -98,8 +105,13 @@ internal sealed class FakeMailStore : IMailStore
     /// the real store's own per-recipient counter), matching the shape
     /// <see cref="Commands.Mail.MailWakeDispatch.RunAsync"/> expects.
     /// </summary>
-    public Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
+    public async Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
     {
+        if (SendGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         if (creation.To.Count == 0)
         {
             throw new ExitException("At least one recipient is required.");
@@ -123,7 +135,7 @@ internal sealed class FakeMailStore : IMailStore
         };
 
         Messages.Add(message);
-        return Task.FromResult(message);
+        return message;
     }
 
     /// <summary>
@@ -133,9 +145,14 @@ internal sealed class FakeMailStore : IMailStore
     /// behavior is covered against a real <see cref="Services.Mail.MailStore"/>
     /// instead. See <see cref="SendMessageAsync"/> for <paramref name="wakePolicy"/>.
     /// </summary>
-    public Task<MailMessage> ReplyMessageAsync(
+    public async Task<MailMessage> ReplyMessageAsync(
         string inReplyToId, string sender, string body, MailWakePolicy wakePolicy, CancellationToken cancellationToken)
     {
+        if (SendGate is { } gate)
+        {
+            await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         var original = Messages.FirstOrDefault(m => m.Id == inReplyToId)
             ?? throw new ExitException($"Message '{inReplyToId}' not found.");
 
@@ -159,7 +176,7 @@ internal sealed class FakeMailStore : IMailStore
         };
 
         Messages.Add(message);
-        return Task.FromResult(message);
+        return message;
     }
 
     private long _nextGeneration = 1;

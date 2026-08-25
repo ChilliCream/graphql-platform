@@ -1,8 +1,11 @@
+using System.Diagnostics;
+using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Microsoft.Extensions.Time.Testing;
 using Spectre.Console;
@@ -709,9 +712,48 @@ public sealed class MailModeTests
         // act
         var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
 
-        // assert
+        // assert: the compose form reopens with the typed subject intact
+        // behind the error toast, rather than losing the draft.
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Empty(store.Messages);
+        Assert.True(mode.IsInputCapturing);
+        var console = new TestConsole().Width(100).Height(20);
+        console.Write(mode.Render(100, 20));
+        Assert.Contains("Status", console.Output);
+    }
+
+    [Fact]
+    public async Task ReplyForm_Submit_Should_ShowErrorToast_And_ReopenTheForm_When_StoreRejectsTheWrite()
+    {
+        // arrange: the replied-to message is removed from the store between
+        // opening the reply form and submitting it, so
+        // FakeMailStore.ReplyMessageAsync rejects the write with an
+        // ExitException the same way an unknown message id would against
+        // the real store.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.State.SelectedRow = 0;
+        mode.Handle(new TuiMessage.ReplyRequested());
+        Type(mode, "On it.");
+        store.Messages.Clear();
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
+
+        // assert: the reply form reopens with the typed body intact behind
+        // the error toast, rather than losing the draft.
+        Assert.Equal(ToastStyle.Error, toast.Style);
+        Assert.Empty(store.Messages);
+        Assert.True(mode.IsInputCapturing);
+        var console = new TestConsole().Width(100).Height(20);
+        console.Write(mode.Render(100, 20));
+        Assert.Contains("On it.", console.Output);
     }
 
     [Fact]
@@ -997,6 +1039,115 @@ public sealed class MailModeTests
         {
             await Task.Delay(5, timeoutCts.Token);
         }
+    }
+
+    [Fact]
+    public async Task ShieldPendingSendsAsync_Should_LetACommittedWriteLand_When_TheEffectTokenIsCancelled()
+    {
+        // arrange: the store commit is gated open when the effect token
+        // cancels, mirroring a Ctrl+C landing strictly after a submitted
+        // send's store write has already started; ShieldPendingSendsAsync
+        // is the only drain a host-cancelled exit gets, and the write
+        // itself is never cancelled by the effect token.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var gate = new TaskCompletionSource();
+        var store = new FakeMailStore { SendGate = gate };
+        using var effectCts = new CancellationTokenSource();
+        var mode = new MailMode(
+            store,
+            "alice",
+            new FakeAgentRegistry(),
+            new DaemonOwnedActorWakeDispatcher(),
+            new FakeMailWakeReceiptObserver(),
+            new FakeTimeProvider(Now),
+            effectCts.Token);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        await effectCts.CancelAsync();
+        gate.SetResult();
+        await mode.ShieldPendingSendsAsync(TimeSpan.FromSeconds(2), cancellationToken);
+
+        // assert
+        Assert.Single(store.Messages);
+    }
+
+    [Fact]
+    public async Task ShieldPendingSendsAsync_Should_ReturnWithinTheBound_When_TheWriteHasNotLanded()
+    {
+        // arrange: the gate is never released before the bound elapses, so
+        // ShieldPendingSendsAsync must still return promptly rather than
+        // blocking a host-cancelled exit indefinitely.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var gate = new TaskCompletionSource();
+        var store = new FakeMailStore { SendGate = gate };
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var stopwatch = Stopwatch.StartNew();
+        await mode.ShieldPendingSendsAsync(TimeSpan.FromMilliseconds(200), cancellationToken);
+        stopwatch.Stop();
+
+        // assert
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(2));
+        Assert.Empty(store.Messages);
+
+        // cleanup: release the gate so the still-running write can finish.
+        gate.SetResult();
+    }
+
+    [Fact]
+    public async Task RunSendEffectEventsAsync_Should_EmitAnEffectCompletedEvent_ThatHandleDrainsIntoTheOutcomeToast()
+    {
+        // arrange: proves the wiring registered at BoardMailCommand.cs and
+        // AgentTuiLauncher.cs (mailMode.RunSendEffectEventsAsync feeding the
+        // hosting shell's own event channel) delivers a send completion
+        // without a keypress or db-watcher tick to drive it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var eventSourceCts = new CancellationTokenSource();
+        var eventSourceTask = mode.RunSendEffectEventsAsync(channel.Writer, eventSourceCts.Token);
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        readCts.CancelAfter(TimeSpan.FromSeconds(5));
+        var effectEvent = await channel.Reader.ReadAsync(readCts.Token);
+        var followUp = mode.Handle(new TuiMessage.EffectCompleted());
+        await eventSourceCts.CancelAsync();
+        await eventSourceTask;
+
+        // assert
+        Assert.IsType<TuiEvent.EffectCompletedEvent>(effectEvent);
+        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Contains("Notification pending", toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]

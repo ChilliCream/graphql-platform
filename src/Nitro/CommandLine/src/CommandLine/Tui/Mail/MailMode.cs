@@ -199,6 +199,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private MailMessage? _archiveTarget;
     private MailComposeForm? _composeForm;
     private MailReplyForm? _replyForm;
+    private MailComposeForm? _submittedComposeForm;
+    private MailReplyForm? _submittedReplyForm;
     private ConfirmDialog? _discardDialog;
     private MailDiscardTarget _discardTarget;
     private QuickPicker? _agentPicker;
@@ -717,8 +719,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// (a second send already in flight under <see cref="SendDedupeKey"/>)
     /// are refused with a toast, leaving the form open with its values
     /// intact rather than losing them; a successful submit closes the form
-    /// immediately; see <see cref="DrainEffectQueue"/> for how its eventual
-    /// outcome surfaces.
+    /// immediately but retains it in <see cref="_submittedComposeForm"/> so
+    /// <see cref="DrainEffectQueue"/> can reopen it, values intact, if the
+    /// store ends up rejecting the write.
     /// </summary>
     private IReadOnlyList<TuiMessage> SubmitCompose(FormResult.Submitted submitted)
     {
@@ -730,6 +733,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast(SendInFlightToastText, ToastStyle.Warn)];
         }
 
+        _submittedComposeForm = _composeForm;
         _composeForm = null;
         return [new TuiMessage.ShowToast(SendingToastText, ToastStyle.Info)];
     }
@@ -764,7 +768,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// The reply form's counterpart to <see cref="SubmitCompose"/>: same
     /// snapshot-then-submit-off-thread shape, sharing <see cref="SendDedupeKey"/>
-    /// with compose so at most one send of either kind is ever in flight.
+    /// with compose so at most one send of either kind is ever in flight,
+    /// and the same retain-until-resolved handling of the closed form
+    /// through <see cref="_submittedReplyForm"/>.
     /// </summary>
     private IReadOnlyList<TuiMessage> SubmitReply(FormResult.Submitted submitted)
     {
@@ -776,6 +782,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast(SendInFlightToastText, ToastStyle.Warn)];
         }
 
+        _submittedReplyForm = _replyForm;
         _replyForm = null;
         return [new TuiMessage.ShowToast(SendingToastText, ToastStyle.Info)];
     }
@@ -874,7 +881,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// effect can, in principle, still reach before its store write is even
     /// attempted). A committed completion also refreshes this mode's loaded
     /// data, so the new message appears without waiting for the next
-    /// database-watcher tick.
+    /// database-watcher tick. A <see cref="MailSendOutcome.Failed"/> outcome
+    /// reopens whichever of <see cref="_submittedComposeForm"/> or
+    /// <see cref="_submittedReplyForm"/> the rejected submit retained, so the
+    /// typed values survive behind the error toast; every other outcome
+    /// discards them.
     /// </summary>
     private IReadOnlyList<TuiMessage> DrainEffectQueue()
     {
@@ -906,12 +917,22 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
                 case TuiEffectCompletion<MailSendOutcome>.Completed completed:
                     toasts.Add(completed.Result.ToShowToast());
                     committed |= completed.Result is MailSendOutcome.Succeeded or MailSendOutcome.Reconciled;
+
+                    if (completed.Result is MailSendOutcome.Failed)
+                    {
+                        _composeForm ??= _submittedComposeForm;
+                        _replyForm ??= _submittedReplyForm;
+                    }
+
                     break;
 
                 default:
                     toasts.Add(new TuiMessage.ShowToast(SendDidNotStartToastText, ToastStyle.Error));
                     break;
             }
+
+            _submittedComposeForm = null;
+            _submittedReplyForm = null;
         }
 
         if (committed)

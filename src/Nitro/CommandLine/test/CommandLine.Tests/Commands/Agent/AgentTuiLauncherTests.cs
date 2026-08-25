@@ -137,14 +137,19 @@ public sealed class AgentTuiLauncherTests
         // arrange: the unified dashboard's mail tab is wired with
         // DaemonOwnedActorWakeDispatcher (see BuildMailTab's remarks), so a
         // compose only enqueues and observes; it must never fault even
-        // though nothing here ever actually dispatches, and its wake status
-        // is reported exactly as the observer says (Pending by default).
+        // though nothing here ever actually dispatches, and once the
+        // observer reports the daemon accepted delivery (Delegated), that
+        // is exactly what the toast shows: the unified daemon acceptance
+        // case.
         var cancellationToken = TestContext.Current.CancellationToken;
         var environment = CreateEnvironment(mailActor: "alice").Object;
         var store = new FakeMailStore();
+        var wakeObserver = new FakeMailWakeReceiptObserver();
+        wakeObserver.StatusByActor["bob"] =
+            FakeMailWakeReceiptObserver.Observation("bob", MailWakeTargetStatus.Delegated);
         var mailTab = AgentTuiLauncher.BuildMailTab(
             store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment,
-            new FakeMailWakeReceiptObserver(), cancellationToken);
+            wakeObserver, cancellationToken);
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
         mailMode.OnEnter();
         mailMode.Handle(new TuiMessage.SelectInboxRequested());
@@ -187,9 +192,79 @@ public sealed class AgentTuiLauncherTests
 
         // assert
         var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(outcome));
+        Assert.Equal(ToastStyle.Success, toast.Style);
+        Assert.Contains("a dashboard accepted delivery", toast.Text, StringComparison.Ordinal);
+        Assert.Contains(store.Messages, m => m.Sender == "alice" && m.Subject == "Status");
+    }
+
+    [Fact]
+    public async Task BuildMailTab_Should_ReportPending_When_TheDaemonDoesNotSettleBeforeTheBatchDeadline()
+    {
+        // arrange: the observer is left at its default Pending, so
+        // DaemonSettledMailWakeReceiptObserver keeps re-observing on the
+        // daemon's own admission poll interval; advancing the fake clock
+        // past WakeDispatchPolicy.BatchDeadline lets the wait give up and
+        // report the daemon truthfully did not settle it in time.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var environment = CreateEnvironment(mailActor: "alice").Object;
+        var store = new FakeMailStore();
+        var wakeObserver = new FakeMailWakeReceiptObserver();
+        var timeProvider = new FakeTimeProvider(Now);
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), timeProvider, environment,
+            wakeObserver, cancellationToken);
+        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
+        mailMode.OnEnter();
+        mailMode.Handle(new TuiMessage.SelectInboxRequested());
+        mailMode.Handle(new TuiMessage.ComposeRequested());
+        foreach (var c in "bob")
+        {
+            mailMode.HandleRawKey(new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false));
+        }
+
+        mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.Tab, false, false, false));
+
+        foreach (var c in "Status")
+        {
+            mailMode.HandleRawKey(new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false));
+        }
+
+        mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.Tab, false, false, false));
+
+        foreach (var c in "Body")
+        {
+            mailMode.HandleRawKey(new ConsoleKeyInfo(c, ConsoleKey.NoName, false, false, false));
+        }
+
+        mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.S, false, false, true));
+
+        // act: repeatedly nudges the fake clock forward by the daemon's own
+        // admission poll interval and re-checks for the outcome, rather
+        // than a single jump past WakeDispatchPolicy.BatchDeadline, which
+        // can race ahead of DaemonSettledMailWakeReceiptObserver's own
+        // Task.Delay call registering against the same TimeProvider; enough
+        // iterations cross the deadline regardless of when that timer
+        // actually gets armed.
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+        IReadOnlyList<TuiMessage> outcome = [];
+
+        while (outcome.Count == 0)
+        {
+            timeProvider.Advance(MailWakeDaemonPolicy.Default.AdmissionPollInterval);
+            outcome = mailMode.Handle(new TuiMessage.RefreshRequested());
+
+            if (outcome.Count == 0)
+            {
+                await Task.Delay(5, timeoutCts.Token);
+            }
+        }
+
+        // assert
+        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(outcome));
         Assert.Equal(ToastStyle.Warn, toast.Style);
         Assert.Contains("pending", toast.Text, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains(store.Messages, m => m.Sender == "alice" && m.Subject == "Status");
+        Assert.True(wakeObserver.ObserveCallCount > 1);
     }
 
     [Fact]

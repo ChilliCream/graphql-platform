@@ -199,7 +199,11 @@ internal static class AgentTuiLauncher
     /// <see cref="IMailWakeDaemonCoordinator"/> already owns dispatch for
     /// the whole session, so a compose or reply here only needs to enqueue
     /// and observe, never dispatch directly; see <see cref="MailMode"/>'s
-    /// constructor remarks.
+    /// constructor remarks. <paramref name="mailWakeReceiptObserver"/> is
+    /// wrapped in <see cref="DaemonSettledMailWakeReceiptObserver"/> so an
+    /// observation taken before the daemon's admission loop has claimed the
+    /// generation keeps re-observing rather than reporting pending on a
+    /// single premature read.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,
@@ -217,7 +221,7 @@ internal static class AgentTuiLauncher
                 mailActor,
                 agentRegistry,
                 new DaemonOwnedActorWakeDispatcher(),
-                mailWakeReceiptObserver,
+                new DaemonSettledMailWakeReceiptObserver(mailWakeReceiptObserver, timeProvider),
                 timeProvider,
                 effectCancellationToken);
 

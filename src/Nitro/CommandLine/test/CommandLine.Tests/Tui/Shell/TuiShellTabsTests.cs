@@ -468,26 +468,31 @@ public sealed class TuiShellTabsTests
         }
 
         mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.S, ConsoleModifiers.Control));
-        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, testToken);
 
-        // act: the tasks tab (index 0) is still active; the send completed
-        // on the inactive mail tab.
-        var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+        // act: the tasks tab (index 0) is still active; the send completes
+        // asynchronously on the inactive mail tab, so poll DataChangedEvent
+        // until the outcome toast renders instead of waiting on the wake
+        // observer's call count, which increments before the effect queue
+        // has anything to drain.
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+        var dirty = false;
+        var rendered = RenderToText(shell);
+
+        while (!rendered.Contains("Notification pending", StringComparison.Ordinal))
+        {
+            dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+            rendered = RenderToText(shell);
+
+            if (!rendered.Contains("Notification pending", StringComparison.Ordinal))
+            {
+                await Task.Delay(5, timeoutCts.Token);
+            }
+        }
 
         // assert
         Assert.True(dirty);
-        Assert.Contains("Notification pending", RenderToText(shell));
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
-    {
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-
-        while (!condition())
-        {
-            await Task.Delay(5, timeoutCts.Token);
-        }
+        Assert.Contains("Notification pending", rendered);
     }
 
     [Fact]
