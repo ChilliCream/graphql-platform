@@ -1,9 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Command wiring (help text) for <c>agent hooks claude install/status/uninstall</c>
-/// and their deprecated bare-verb aliases, plus one full functional round
-/// trip run with <c>--scope project</c> through each surface: the deep
+/// Command wiring (help text) for <c>agent hooks claude install/status/uninstall</c>,
+/// plus one full functional round trip run with <c>--scope project</c>
+/// through each surface: the deep
 /// install/status/uninstall behavior (golden fixtures: missing,
 /// foreign-only, mixed, already-installed, outdated, manually-edited,
 /// concurrently-edited) is exercised directly against
@@ -30,9 +30,6 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(
             "Install, inspect, and remove Nitro's turn-boundary hook entries per harness.", result.StdOut);
-        Assert.Contains("install", result.StdOut);
-        Assert.Contains("status", result.StdOut);
-        Assert.Contains("uninstall", result.StdOut);
         Assert.Contains("claude", result.StdOut);
         Assert.Contains("codex", result.StdOut);
         Assert.Contains("copilot", result.StdOut);
@@ -142,84 +139,6 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
     }
 
     [Fact]
-    public async Task Help_HooksInstall_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "install", "--help");
-
-        // assert
-        result.AssertHelpOutput(
-            """
-            Description:
-              Add or update this CLI's Claude Code turn-boundary hook entries. (deprecated, use hooks claude install)
-
-            Usage:
-              nitro agent hooks install [options]
-
-            Options:
-              --scope <project|user>  Where the Claude Code settings file lives: 'user' (~/.claude/settings.json) or 'project' (<workspace>/.claude/settings.json) [default: user]
-              --output <json>         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help          Show help and usage information
-
-            Example:
-              nitro agent hooks install
-              nitro agent hooks install --scope project
-            """);
-    }
-
-    [Fact]
-    public async Task Help_HooksStatus_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "status", "--help");
-
-        // assert
-        result.AssertHelpOutput(
-            """
-            Description:
-              Show whether this CLI's Claude Code hook entries are missing, current, or outdated. (deprecated, use hooks claude status)
-
-            Usage:
-              nitro agent hooks status [options]
-
-            Options:
-              --scope <project|user>  Where the Claude Code settings file lives: 'user' (~/.claude/settings.json) or 'project' (<workspace>/.claude/settings.json) [default: user]
-              --output <json>         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help          Show help and usage information
-
-            Example:
-              nitro agent hooks status
-              nitro agent hooks status --scope project
-            """);
-    }
-
-    [Fact]
-    public async Task Help_HooksUninstall_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "uninstall", "--help");
-
-        // assert
-        result.AssertHelpOutput(
-            """
-            Description:
-              Remove this CLI's Claude Code turn-boundary hook entries. (deprecated, use hooks claude uninstall)
-
-            Usage:
-              nitro agent hooks uninstall [options]
-
-            Options:
-              --scope <project|user>  Where the Claude Code settings file lives: 'user' (~/.claude/settings.json) or 'project' (<workspace>/.claude/settings.json) [default: user]
-              --output <json>         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help          Show help and usage information
-
-            Example:
-              nitro agent hooks uninstall
-              nitro agent hooks uninstall --scope project
-            """);
-    }
-
-    [Fact]
     public async Task InstallStatusUninstall_ClaudeGroup_ProjectScope_RoundTripsThroughTheRealCommandPipeline()
     {
         // arrange: redirect the sidecar's global config directory into this
@@ -265,46 +184,5 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         Assert.Equal(1, statusAfterUninstall.ExitCode);
         Assert.DoesNotContain("outdated", statusAfterUninstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("installed", statusAfterUninstall.StdOut, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task InstallStatusUninstall_BareVerbAliases_ProjectScope_WriteTheSameEntriesAsTheClaudeGroup()
-    {
-        // arrange
-        var sidecarDirectory = Path.Combine(WorkingDirectory, "..", "app-data");
-        SetupGlobalConfigDirectory(sidecarDirectory);
-        await InitWorkspaceAsync();
-
-        // act: install through the deprecated bare verb
-        var install = await ExecuteCommandAsync("agent", "hooks", "install", "--scope", "project");
-
-        // assert: install still writes the same settings entries the claude
-        // group's install writes, and warns on stderr about the alias
-        Assert.Equal(0, install.ExitCode);
-        Assert.Contains(
-            "'nitro agent hooks install' is deprecated; use 'nitro agent hooks claude install' instead.",
-            install.StdErr);
-        var settingsPath = Path.Combine(WorkingDirectory, ".claude", "settings.json");
-        Assert.True(File.Exists(settingsPath));
-
-        // act: status through the deprecated bare verb
-        var status = await ExecuteCommandAsync("agent", "hooks", "status", "--scope", "project");
-
-        // assert: status
-        Assert.Equal(0, status.ExitCode);
-        Assert.Contains(
-            "'nitro agent hooks status' is deprecated; use 'nitro agent hooks claude status' instead.",
-            status.StdErr);
-        Assert.Contains("SessionStart", status.StdOut);
-        Assert.DoesNotContain("missing", status.StdOut, StringComparison.Ordinal);
-
-        // act: uninstall through the deprecated bare verb
-        var uninstall = await ExecuteCommandAsync("agent", "hooks", "uninstall", "--scope", "project");
-
-        // assert: uninstall
-        Assert.Equal(0, uninstall.ExitCode);
-        Assert.Contains(
-            "'nitro agent hooks uninstall' is deprecated; use 'nitro agent hooks claude uninstall' instead.",
-            uninstall.StdErr);
     }
 }

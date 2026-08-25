@@ -28,12 +28,12 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
               <SETTING_VALUE>                                                                                                                                                                                                                                    The value to set
 
             Options:
-              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -e, --env, --environment <environment>               The name of the environment used for value substitution in the schema-settings.json files
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                  The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                       Show help and usage information
+              -a, --archive <archive> (REQUIRED)      The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
+              -e, --env, --environment <environment>  The name of the environment used for value substitution in the schema-settings.json files
+              --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                     The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                          Show help and usage information
 
             Example:
               nitro fusion settings set global-object-identification "true" \

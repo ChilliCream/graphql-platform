@@ -69,7 +69,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
               nitro agent hook codex {eventName} [options]
 
             Options:
-              --dry-run       Pins the row's generation to a fixed sentinel identity (pid 1, epoch proc-start) instead of walking ancestors, so captured payload fixtures can drive the adapter. Dry-run still writes presence/ledger/budget rows to the real workspace database; do not replay it with a live session's session_id
               -?, -h, --help  Show help and usage information
             """);
     }
@@ -83,6 +82,5 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("payload", result.StdOut);
-        Assert.Contains("--dry-run", result.StdOut);
     }
 }

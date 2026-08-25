@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Copilot;
 
 /// <summary>
@@ -13,8 +11,6 @@ internal sealed class SessionEndHookCommand : Command
     {
         Description = "Adapt Copilot CLI's sessionEnd hook: delete this session's presence row.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
-        this.SetCopilotHookAction((handler, payload, dryRun, ct) => handler.HandleSessionEndAsync(payload, dryRun, ct));
+        this.SetCopilotHookAction((handler, payload, ct) => handler.HandleSessionEndAsync(payload, false, ct));
     }
 }

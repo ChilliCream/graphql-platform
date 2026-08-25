@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -22,20 +21,18 @@ internal static class CopilotHookCommandExtensions
 {
     public static Command SetCopilotHookAction(
         this Command command,
-        Func<ICopilotHookHandler, CopilotHookPayload, bool, CancellationToken, Task<CopilotHookOutcome>> handle)
+        Func<ICopilotHookHandler, CopilotHookPayload, CancellationToken, Task<CopilotHookOutcome>> handle)
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            var services = CommandExecutionContext.s_services.Value!;
+            var services = CommandExecutionContext.Services;
             var handler = services.GetRequiredService<ICopilotHookHandler>();
             var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
-            var dryRun = parseResult.GetValue(Opt<DryRunHookOption>.Instance);
-
             return await CopilotHookExecutor.RunAsync(
                 environmentVariables,
                 Console.In,
                 parseResult.InvocationConfiguration.Output,
-                (payload, ct) => handle(handler, payload, dryRun, ct),
+                (payload, ct) => handle(handler, payload, ct),
                 cancellationToken);
         });
 

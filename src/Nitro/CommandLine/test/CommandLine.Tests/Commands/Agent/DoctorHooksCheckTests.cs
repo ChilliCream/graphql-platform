@@ -92,7 +92,7 @@ public sealed class DoctorHooksCheckTests : IDisposable
         // assert: every managed event is outdated, but each is still fully
         // explained by the sidecar (no separate "no sidecar record" or
         // "hand-edited" issue alongside it), and the remediation names the
-        // claude group, not the deprecated bare verb or another harness.
+        // claude group, not another harness.
         Assert.NotNull(result);
         Assert.False(result.Consistent);
         Assert.All(
@@ -200,7 +200,7 @@ public sealed class DoctorHooksCheckTests : IDisposable
         var result = await DoctorHooksCheck.CheckCopilotAsync(installerToday, sidecarStore, ct);
 
         // assert: every managed event is outdated, and the remediation names
-        // the copilot group, not claude or the deprecated bare verb.
+        // the copilot group, not claude.
         Assert.NotNull(result);
         Assert.False(result.Consistent);
         Assert.All(

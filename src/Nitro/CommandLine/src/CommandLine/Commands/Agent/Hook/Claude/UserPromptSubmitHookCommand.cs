@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Claude;
 
 /// <summary>
@@ -14,10 +12,8 @@ internal sealed class UserPromptSubmitHookCommand : Command
         Description = "Adapt Claude Code's UserPromptSubmit hook: reset the block budget and "
             + "inject the unread-mail digest.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         this.SetHookAction(
             "UserPromptSubmit",
-            (handler, payload, dryRun, ct) => handler.HandleUserPromptSubmitAsync(payload, dryRun, ct));
+            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, false, ct));
     }
 }

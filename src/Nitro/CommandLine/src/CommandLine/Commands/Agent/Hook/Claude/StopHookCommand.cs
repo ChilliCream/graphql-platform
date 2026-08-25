@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Claude;
 
 /// <summary>
@@ -14,10 +12,8 @@ internal sealed class StopHookCommand : Command
     {
         Description = "Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         this.SetHookAction(
             "Stop",
-            (handler, payload, dryRun, ct) => handler.HandleStopAsync(payload, dryRun, ct));
+            (handler, payload, ct) => handler.HandleStopAsync(payload, false, ct));
     }
 }

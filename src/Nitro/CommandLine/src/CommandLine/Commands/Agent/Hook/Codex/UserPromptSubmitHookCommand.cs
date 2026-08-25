@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex;
 
 /// <summary>
@@ -13,10 +11,8 @@ internal sealed class UserPromptSubmitHookCommand : Command
     {
         Description = "Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         this.SetCodexHookAction(
             "UserPromptSubmit",
-            (handler, payload, dryRun, ct) => handler.HandleUserPromptSubmitAsync(payload, dryRun, ct));
+            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, false, ct));
     }
 }

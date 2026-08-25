@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -29,20 +28,18 @@ internal static class CodexHookCommandExtensions
     public static Command SetCodexHookAction(
         this Command command,
         string hookEventName,
-        Func<ICodexHookHandler, CodexHookPayload, bool, CancellationToken, Task<CodexHookOutcome>> handle)
+        Func<ICodexHookHandler, CodexHookPayload, CancellationToken, Task<CodexHookOutcome>> handle)
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            var services = CommandExecutionContext.s_services.Value!;
+            var services = CommandExecutionContext.Services;
             var handler = services.GetRequiredService<ICodexHookHandler>();
             var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
-            var dryRun = parseResult.GetValue(Opt<DryRunHookOption>.Instance);
-
             return await CodexHookExecutor.RunAsync(
                 environmentVariables,
                 Console.In,
                 parseResult.InvocationConfiguration.Output,
-                (payload, ct) => handle(handler, payload, dryRun, ct),
+                (payload, ct) => handle(handler, payload, ct),
                 hookEventName,
                 cancellationToken);
         });

@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -16,20 +15,18 @@ internal static class ClaudeHookCommandExtensions
     public static Command SetHookAction(
         this Command command,
         string hookEventName,
-        Func<IClaudeHookHandler, ClaudeHookPayload, bool, CancellationToken, Task<ClaudeHookOutcome>> handle)
+        Func<IClaudeHookHandler, ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle)
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            var services = CommandExecutionContext.s_services.Value!;
+            var services = CommandExecutionContext.Services;
             var handler = services.GetRequiredService<IClaudeHookHandler>();
             var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
-            var dryRun = parseResult.GetValue(Opt<DryRunHookOption>.Instance);
-
             return await ClaudeHookExecutor.RunAsync(
                 environmentVariables,
                 Console.In,
                 parseResult.InvocationConfiguration.Output,
-                (payload, ct) => handle(handler, payload, dryRun, ct),
+                (payload, ct) => handle(handler, payload, ct),
                 hookEventName,
                 cancellationToken);
         });

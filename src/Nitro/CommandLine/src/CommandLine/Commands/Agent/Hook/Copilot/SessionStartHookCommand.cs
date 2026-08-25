@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Copilot;
 
 /// <summary>
@@ -15,8 +13,6 @@ internal sealed class SessionStartHookCommand : Command
         Description = "Adapt Copilot CLI's sessionStart hook: upsert this session's presence row "
             + "and return the initial unread-mail digest.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
-        this.SetCopilotHookAction((handler, payload, dryRun, ct) => handler.HandleSessionStartAsync(payload, dryRun, ct));
+        this.SetCopilotHookAction((handler, payload, ct) => handler.HandleSessionStartAsync(payload, false, ct));
     }
 }

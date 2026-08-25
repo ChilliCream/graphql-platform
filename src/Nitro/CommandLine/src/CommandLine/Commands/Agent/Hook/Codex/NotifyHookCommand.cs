@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex.Options;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -24,14 +23,12 @@ internal sealed class NotifyHookCommand : Command
             + "next turn, then exec any wrapped foreign notify program.";
 
         Arguments.Add(Opt<NotifyPayloadArgument>.Instance);
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         SetAction(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var services = CommandExecutionContext.s_services.Value!;
+        var services = CommandExecutionContext.Services;
         var handler = services.GetRequiredService<ICodexHookHandler>();
         var sidecarStore = services.GetRequiredService<ICodexHooksSidecarStore>();
         var pathResolver = services.GetRequiredService<ICodexPathResolver>();
@@ -39,11 +36,9 @@ internal sealed class NotifyHookCommand : Command
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
 
         var payloadJson = parseResult.GetRequiredValue(Opt<NotifyPayloadArgument>.Instance);
-        var dryRun = parseResult.GetValue(Opt<DryRunHookOption>.Instance);
-
         return await CodexNotifyExecutor.RunAsync(
             environmentVariables,
-            (payload, ct) => handler.HandleNotifyAsync(payload, dryRun, ct),
+            (payload, ct) => handler.HandleNotifyAsync(payload, false, ct),
             ct => ExecForeignAsync(sidecarStore, pathResolver, foreignRunner, payloadJson, ct),
             payloadJson,
             cancellationToken);

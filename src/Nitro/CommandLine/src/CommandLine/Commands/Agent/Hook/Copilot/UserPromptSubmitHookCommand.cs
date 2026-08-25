@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Copilot;
 
 /// <summary>
@@ -15,9 +13,7 @@ internal sealed class UserPromptSubmitHookCommand : Command
         Description = "Adapt Copilot CLI's userPromptSubmitted hook: a documented no-op, "
             + "this event's response body is dropped by Copilot.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         this.SetCopilotHookAction(
-            (handler, payload, dryRun, ct) => handler.HandleUserPromptSubmitAsync(payload, dryRun, ct));
+            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, false, ct));
     }
 }

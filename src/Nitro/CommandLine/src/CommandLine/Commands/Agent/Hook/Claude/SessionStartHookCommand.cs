@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Claude;
 
 /// <summary>
@@ -12,10 +10,8 @@ internal sealed class SessionStartHookCommand : Command
     {
         Description = "Adapt Claude Code's SessionStart hook: upsert this session's presence row.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         this.SetHookAction(
             "SessionStart",
-            (handler, payload, dryRun, ct) => handler.HandleSessionStartAsync(payload, dryRun, ct));
+            (handler, payload, ct) => handler.HandleSessionStartAsync(payload, false, ct));
     }
 }

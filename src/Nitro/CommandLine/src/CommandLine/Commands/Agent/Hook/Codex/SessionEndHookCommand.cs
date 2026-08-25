@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Options;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex;
 
 /// <summary>
@@ -13,10 +11,8 @@ internal sealed class SessionEndHookCommand : Command
     {
         Description = "Adapt Codex CLI's SessionEnd hook: delete this session's presence row.";
 
-        Options.Add(Opt<DryRunHookOption>.Instance);
-
         this.SetCodexHookAction(
             "SessionEnd",
-            (handler, payload, dryRun, ct) => handler.HandleSessionEndAsync(payload, dryRun, ct));
+            (handler, payload, ct) => handler.HandleSessionEndAsync(payload, false, ct));
     }
 }
