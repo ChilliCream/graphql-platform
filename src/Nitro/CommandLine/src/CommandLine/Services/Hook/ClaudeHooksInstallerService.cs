@@ -43,9 +43,9 @@ internal sealed class ClaudeHooksInstallerService(
 
         await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
 
-        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        var (sidecar, sidecarHashAtRead) = await sidecarStore.ReadWithHashAsync(cancellationToken);
         sidecar.Files[path] = new Dictionary<string, ClaudeHooksSidecarEntry>(result.Sidecar);
-        await sidecarStore.WriteAsync(sidecar, cancellationToken);
+        await sidecarStore.WriteIfUnchangedAsync(sidecar, sidecarHashAtRead, cancellationToken);
 
         return new ClaudeHooksInstallReport(path, result.Outcomes);
     }
@@ -66,7 +66,7 @@ internal sealed class ClaudeHooksInstallerService(
 
         var (textAtRead, hashAtRead) = await ReadWithHashAsync(path, cancellationToken);
 
-        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        var (sidecar, sidecarHashAtRead) = await sidecarStore.ReadWithHashAsync(cancellationToken);
         var priorEntries = sidecar.EntriesFor(path);
 
         var result = ClaudeHooksEditor.Uninstall(textAtRead, priorEntries);
@@ -74,7 +74,7 @@ internal sealed class ClaudeHooksInstallerService(
         await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
 
         sidecar.Files.Remove(path);
-        await sidecarStore.WriteAsync(sidecar, cancellationToken);
+        await sidecarStore.WriteIfUnchangedAsync(sidecar, sidecarHashAtRead, cancellationToken);
 
         return new ClaudeHooksUninstallReport(path, result.Outcomes);
     }

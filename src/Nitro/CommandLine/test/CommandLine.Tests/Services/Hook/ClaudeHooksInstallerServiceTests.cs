@@ -131,6 +131,68 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         Assert.DoesNotContain("agent hook claude", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task InstallAsync_TwoInterleavedInstalls_KeepsBothSidecarEntries()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var settingsPathA = Path.Combine(_tempRoot.FullName, "claude-home-a", ".claude", "settings.json");
+        var settingsPathB = Path.Combine(_tempRoot.FullName, "claude-home-b", ".claude", "settings.json");
+        var sidecarPath = Path.Combine(_sidecarDirectory, "claude-hooks-sidecar.json");
+
+        Directory.CreateDirectory(_sidecarDirectory);
+        await File.WriteAllTextAsync(sidecarPath, """{"version":1,"files":{}}""", ct);
+
+        var serviceB = new ClaudeHooksInstallerService(
+            _fileSystem,
+            new FixedClaudeSettingsPathResolver(settingsPathB),
+            new FixedLaunchDescriptorResolver(Descriptor),
+            new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
+            _timeProvider);
+
+        // Simulates a second, fully concurrent 'nitro agent hooks claude
+        // install' (project scope) landing in the window between this
+        // install's own sidecar read and its pre-write re-check: the SECOND
+        // ReadAllTextAsync call for the sidecar runs B's install to
+        // completion first, then reads the sidecar it left behind - exactly
+        // what this install's own re-read would observe.
+        var injectingFileSystem = new RunOnSecondReadFileSystem(
+            _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
+
+        var serviceA = new ClaudeHooksInstallerService(
+            injectingFileSystem,
+            new FixedClaudeSettingsPathResolver(settingsPathA),
+            new FixedLaunchDescriptorResolver(Descriptor),
+            new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
+            _timeProvider);
+
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => serviceA.InstallAsync(HookInstallScopes.User, ct));
+        Assert.Contains("changed since it was read", exception.Message, StringComparison.Ordinal);
+
+        // B's concurrent install landed untouched: A aborted instead of
+        // overwriting the sidecar with a copy that only knows about itself.
+        var filesAfterAbort = SidecarFiles(await File.ReadAllTextAsync(sidecarPath, ct));
+        Assert.True(filesAfterAbort.ContainsKey(settingsPathB));
+        Assert.False(filesAfterAbort.ContainsKey(settingsPathA));
+
+        // Re-running the aborted install, as the error instructs, now
+        // succeeds because nothing races it - both entries survive.
+        var serviceARetry = new ClaudeHooksInstallerService(
+            _fileSystem,
+            new FixedClaudeSettingsPathResolver(settingsPathA),
+            new FixedLaunchDescriptorResolver(Descriptor),
+            new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
+            _timeProvider);
+        await serviceARetry.InstallAsync(HookInstallScopes.User, ct);
+
+        var filesAfterRetry = SidecarFiles(await File.ReadAllTextAsync(sidecarPath, ct));
+        Assert.True(filesAfterRetry.ContainsKey(settingsPathA));
+        Assert.True(filesAfterRetry.ContainsKey(settingsPathB));
+    }
+
+    private static JsonObject SidecarFiles(string sidecarJson)
+        => (JsonObject)JsonNode.Parse(sidecarJson)!.AsObject()["files"]!;
+
     private ClaudeHooksInstallerService CreateService(IFileSystem fileSystem) => new(
         fileSystem,
         new FixedClaudeSettingsPathResolver(_settingsPath),
@@ -177,6 +239,64 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             if (string.Equals(path, watchedPath, StringComparison.Ordinal) && Interlocked.Increment(ref _readCount) == 2)
             {
                 await inner.ReplaceFileAtomicAsync(path, editedContent, ct);
+            }
+
+            return await inner.ReadAllTextAsync(path, ct);
+        }
+
+        public Stream CreateFile(string path) => inner.CreateFile(path);
+
+        public Task WriteAllTextAsync(string path, string content, CancellationToken ct)
+            => inner.WriteAllTextAsync(path, content, ct);
+
+        public Task CreateFileAtomicAsync(string path, string content, CancellationToken ct)
+            => inner.CreateFileAtomicAsync(path, content, ct);
+
+        public Task ReplaceFileAtomicAsync(string path, string content, CancellationToken ct)
+            => inner.ReplaceFileAtomicAsync(path, content, ct);
+
+        public void CleanupAbandonedTempFiles(string directory, TimeSpan olderThan)
+            => inner.CleanupAbandonedTempFiles(directory, olderThan);
+
+        public void DeleteFile(string path) => inner.DeleteFile(path);
+
+        public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+
+        public void CreateDirectory(string path) => inner.CreateDirectory(path);
+
+        public string GetCurrentDirectory() => inner.GetCurrentDirectory();
+
+        public IEnumerable<string> GetFiles(string directory, string pattern, SearchOption searchOption)
+            => inner.GetFiles(directory, pattern, searchOption);
+
+        public IEnumerable<string> GlobMatch(
+            IEnumerable<string> patterns, IEnumerable<string>? excludes = null, string? workingDirectory = null)
+            => inner.GlobMatch(patterns, excludes, workingDirectory);
+    }
+
+    /// <summary>
+    /// Simulates a second, fully concurrent install landing in the window
+    /// between an in-flight install's own read of <paramref name="watchedPath"/>
+    /// and its pre-write re-check: the SECOND <see cref="ReadAllTextAsync"/>
+    /// call for that path runs <paramref name="onSecondRead"/> to completion
+    /// first, then reads whatever it left behind.
+    /// </summary>
+    private sealed class RunOnSecondReadFileSystem(
+        IFileSystem inner, string watchedPath, Func<Task> onSecondRead) : IFileSystem
+    {
+        private int _readCount;
+
+        public bool FileExists(string path) => inner.FileExists(path);
+
+        public Stream OpenReadStream(string path) => inner.OpenReadStream(path);
+
+        public Task<byte[]> ReadAllBytesAsync(string path, CancellationToken ct) => inner.ReadAllBytesAsync(path, ct);
+
+        public async Task<string> ReadAllTextAsync(string path, CancellationToken ct)
+        {
+            if (string.Equals(path, watchedPath, StringComparison.Ordinal) && Interlocked.Increment(ref _readCount) == 2)
+            {
+                await onSecondRead();
             }
 
             return await inner.ReadAllTextAsync(path, ct);

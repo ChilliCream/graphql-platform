@@ -68,7 +68,21 @@ internal interface IClaudeHooksSidecarStore
 {
     Task<ClaudeHooksSidecarFile> ReadAsync(CancellationToken cancellationToken);
 
-    Task WriteAsync(ClaudeHooksSidecarFile file, CancellationToken cancellationToken);
+    /// <summary>
+    /// Reads the sidecar together with a hash of its underlying file text at
+    /// read time, for passing to <see cref="WriteIfUnchangedAsync"/>.
+    /// </summary>
+    Task<(ClaudeHooksSidecarFile File, string Hash)> ReadWithHashAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The concurrency guard for the sidecar's read-modify-write cycle:
+    /// re-reads the sidecar file immediately before writing and compares its
+    /// hash against <paramref name="hashAtRead"/>, the one captured by the
+    /// caller's earlier <see cref="ReadWithHashAsync"/>. A mismatch means a
+    /// concurrent install or uninstall wrote to the sidecar in between; this
+    /// aborts rather than clobbering that write.
+    /// </summary>
+    Task WriteIfUnchangedAsync(ClaudeHooksSidecarFile file, string hashAtRead, CancellationToken cancellationToken);
 }
 
 internal sealed class ClaudeHooksSidecarStore(
@@ -79,28 +93,34 @@ internal sealed class ClaudeHooksSidecarStore(
 
     public async Task<ClaudeHooksSidecarFile> ReadAsync(CancellationToken cancellationToken)
     {
-        var path = ResolvePath();
+        var (file, _) = await ReadWithHashAsync(cancellationToken);
 
-        if (!fileSystem.FileExists(path))
-        {
-            return ClaudeHooksSidecarFile.Empty;
-        }
-
-        try
-        {
-            var json = await fileSystem.ReadAllTextAsync(path, cancellationToken);
-
-            return JsonSerializer.Deserialize(json, ClaudeHooksSidecarJsonContext.Default.ClaudeHooksSidecarFile)
-                ?? ClaudeHooksSidecarFile.Empty;
-        }
-        catch (JsonException)
-        {
-            return ClaudeHooksSidecarFile.Empty;
-        }
+        return file;
     }
 
-    public async Task WriteAsync(ClaudeHooksSidecarFile file, CancellationToken cancellationToken)
+    public async Task<(ClaudeHooksSidecarFile File, string Hash)> ReadWithHashAsync(
+        CancellationToken cancellationToken)
     {
+        var path = ResolvePath();
+        var text = fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+
+        return (Parse(text), Hash(text));
+    }
+
+    public async Task WriteIfUnchangedAsync(
+        ClaudeHooksSidecarFile file, string hashAtRead, CancellationToken cancellationToken)
+    {
+        var path = ResolvePath();
+        var currentText = fileSystem.FileExists(path)
+            ? await fileSystem.ReadAllTextAsync(path, cancellationToken)
+            : null;
+
+        if (Hash(currentText) != hashAtRead)
+        {
+            throw new ExitException(
+                $"'{path}' changed since it was read; nothing was written. Re-run the command.");
+        }
+
         var directory = globalConfigDirectoryProvider.GetDirectory();
 
         if (!fileSystem.DirectoryExists(directory))
@@ -110,8 +130,29 @@ internal sealed class ClaudeHooksSidecarStore(
 
         var json = JsonSerializer.Serialize(file, ClaudeHooksSidecarJsonContext.Default.ClaudeHooksSidecarFile);
 
-        await fileSystem.ReplaceFileAtomicAsync(ResolvePath(), json, cancellationToken);
+        await fileSystem.ReplaceFileAtomicAsync(path, json, cancellationToken);
     }
+
+    private static ClaudeHooksSidecarFile Parse(string? text)
+    {
+        if (text is null)
+        {
+            return ClaudeHooksSidecarFile.Empty;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize(text, ClaudeHooksSidecarJsonContext.Default.ClaudeHooksSidecarFile)
+                ?? ClaudeHooksSidecarFile.Empty;
+        }
+        catch (JsonException)
+        {
+            return ClaudeHooksSidecarFile.Empty;
+        }
+    }
+
+    private static string Hash(string? text)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
 
     private string ResolvePath() => Path.Combine(globalConfigDirectoryProvider.GetDirectory(), FileName);
 }
