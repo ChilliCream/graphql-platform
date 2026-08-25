@@ -171,7 +171,7 @@ internal static class AgentWorkspace
 
             if (fileSystem.FileExists(GetDatabasePath(fallbackDirectory)))
             {
-                return new WorkspaceLocation(directory, fallbackDirectory);
+                return new WorkspaceLocation(directory, directory, fallbackDirectory);
             }
 
             var gitWorkspace = FindGitWorkspaceAt(fileSystem, directory);
@@ -187,12 +187,20 @@ internal static class AgentWorkspace
     }
 
     /// <summary>
-    /// Finds the nearest existing <c>.nitro/agents</c> directory at or above
-    /// the given directory, initialized or not, together with the project
-    /// directory that owns it. Returns null when none exists.
+    /// Resolves where init operates for the given directory: the nearest
+    /// initialized workspace, else, per level walking up, an existing bare
+    /// <c>.nitro/agents</c> directory or a repository's <c>.git/nitro</c>,
+    /// else a fresh <c>.nitro/agents</c> under the start directory.
     /// </summary>
-    public static WorkspaceLocation? FindFallbackDirectory(IFileSystem fileSystem, string startDirectory)
+    public static WorkspaceLocation ResolveForInit(IFileSystem fileSystem, string startDirectory)
     {
+        var initialized = FindLocation(fileSystem, startDirectory);
+
+        if (initialized is not null)
+        {
+            return initialized.Value;
+        }
+
         for (var directory = startDirectory;
             !string.IsNullOrEmpty(directory);
             directory = Path.GetDirectoryName(directory))
@@ -201,11 +209,18 @@ internal static class AgentWorkspace
 
             if (fileSystem.DirectoryExists(fallbackDirectory))
             {
-                return new WorkspaceLocation(directory, fallbackDirectory);
+                return new WorkspaceLocation(directory, directory, fallbackDirectory);
+            }
+
+            var gitWorkspace = FindGitWorkspaceAt(fileSystem, directory);
+
+            if (gitWorkspace is not null)
+            {
+                return gitWorkspace.Value;
             }
         }
 
-        return null;
+        return new WorkspaceLocation(startDirectory, startDirectory, GetDirectory(startDirectory));
     }
 
     /// <summary>
@@ -250,7 +265,8 @@ internal static class AgentWorkspace
                 ? Path.GetDirectoryName(gitCommonDirectory) ?? directory
                 : directory;
 
-        return new WorkspaceLocation(projectDirectory, GetGitWorkspaceDirectory(gitCommonDirectory));
+        return new WorkspaceLocation(
+            projectDirectory, directory, GetGitWorkspaceDirectory(gitCommonDirectory));
     }
 
     /// <summary>
@@ -295,10 +311,12 @@ internal static class AgentWorkspace
             return gitDirectory;
         }
 
-        return Path.GetFullPath(
+        var resolved = Path.GetFullPath(
             Path.IsPathRooted(commonDirectory)
                 ? commonDirectory
                 : Path.Combine(gitDirectory, commonDirectory));
+
+        return fileSystem.DirectoryExists(resolved) ? resolved : null;
     }
 
     /// <summary>
@@ -341,10 +359,12 @@ internal static class AgentWorkspace
 
     /// <summary>
     /// Finds the nearest workspace directory at or above the given directory
-    /// that has either an agent database or project memory markdown.
-    /// Memory storage is markdown-first, so a freshly cloned repository with
-    /// committed curated or journal entries but no database yet still
-    /// counts. Returns null when neither exists.
+    /// that has either an agent database or project memory markdown. An
+    /// initialized database beats markdown-only at each level, so a stale
+    /// restored <c>.nitro/agents</c> memory tree never shadows a migrated
+    /// <c>.git/nitro</c> workspace. Memory storage is markdown-first, so a
+    /// freshly cloned repository with committed curated or journal entries
+    /// but no database yet still counts. Returns null when neither exists.
     /// </summary>
     public static string? FindMemory(IFileSystem fileSystem, string startDirectory)
     {
@@ -354,30 +374,37 @@ internal static class AgentWorkspace
         {
             var fallbackDirectory = GetDirectory(directory);
 
-            if (HasDatabaseOrMemory(fileSystem, fallbackDirectory))
+            if (fileSystem.FileExists(GetDatabasePath(fallbackDirectory)))
             {
                 return fallbackDirectory;
             }
 
-            var gitWorkspace = FindGitWorkspaceAt(fileSystem, directory);
+            var gitWorkspaceDirectory =
+                FindGitWorkspaceAt(fileSystem, directory)?.WorkspaceDirectory;
 
-            if (gitWorkspace is not null
-                && HasDatabaseOrMemory(fileSystem, gitWorkspace.Value.WorkspaceDirectory))
+            if (gitWorkspaceDirectory is not null
+                && fileSystem.FileExists(GetDatabasePath(gitWorkspaceDirectory)))
             {
-                return gitWorkspace.Value.WorkspaceDirectory;
+                return gitWorkspaceDirectory;
+            }
+
+            if (HasMemoryMarkdown(fileSystem, fallbackDirectory))
+            {
+                return fallbackDirectory;
+            }
+
+            if (gitWorkspaceDirectory is not null
+                && HasMemoryMarkdown(fileSystem, gitWorkspaceDirectory))
+            {
+                return gitWorkspaceDirectory;
             }
         }
 
         return null;
     }
 
-    private static bool HasDatabaseOrMemory(IFileSystem fileSystem, string workspaceDirectory)
+    private static bool HasMemoryMarkdown(IFileSystem fileSystem, string workspaceDirectory)
     {
-        if (fileSystem.FileExists(GetDatabasePath(workspaceDirectory)))
-        {
-            return true;
-        }
-
         var memoryDirectory = GetMemoryDirectory(workspaceDirectory);
 
         return fileSystem.DirectoryExists(GetMemoryCuratedDirectory(memoryDirectory))
@@ -415,8 +442,15 @@ internal static class AgentWorkspace
 }
 
 /// <summary>
-/// A resolved workspace location: the workspace directory and the project
-/// directory that owns it (the directory containing <c>.nitro</c>, or the
-/// repository's main checkout root).
+/// A resolved workspace location. <see cref="ProjectDirectory"/> is the
+/// project's identity root (the repository's main checkout for a git
+/// workspace) and drives the default task prefix;
+/// <see cref="CheckoutDirectory"/> is the checkout containing the start
+/// directory, where sibling per-checkout files (such as
+/// <c>.claude/settings.json</c>) belong. Outside git both are the directory
+/// containing <c>.nitro</c>.
 /// </summary>
-internal readonly record struct WorkspaceLocation(string ProjectDirectory, string WorkspaceDirectory);
+internal readonly record struct WorkspaceLocation(
+    string ProjectDirectory,
+    string CheckoutDirectory,
+    string WorkspaceDirectory);

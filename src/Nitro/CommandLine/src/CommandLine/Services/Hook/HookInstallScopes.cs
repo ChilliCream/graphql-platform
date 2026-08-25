@@ -26,15 +26,15 @@ internal sealed class ClaudeSettingsPathResolver(IFileSystem fileSystem) : IClau
     };
 
     /// <summary>
-    /// The project root that owns the workspace (the directory containing
-    /// <c>.nitro</c> or <c>.git</c>), not the workspace directory itself:
-    /// Claude Code's project-scope config lives at
-    /// <c>&lt;repo-root&gt;/.claude/settings.json</c>, a sibling of those,
-    /// not underneath them.
+    /// The checkout root that contains the current directory (the directory
+    /// whose <c>.nitro</c> or <c>.git</c> entry resolved the workspace), not
+    /// the workspace directory itself: Claude Code's project-scope config
+    /// lives at <c>&lt;checkout-root&gt;/.claude/settings.json</c>, so a
+    /// linked worktree gets its own settings, not the main checkout's.
     /// </summary>
     private string ResolveProjectRoot()
         => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory())
-            ?.ProjectDirectory
+            ?.CheckoutDirectory
             ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
     private static string ResolveUserHome()

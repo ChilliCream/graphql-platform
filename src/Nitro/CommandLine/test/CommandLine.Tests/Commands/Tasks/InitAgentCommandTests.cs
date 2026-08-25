@@ -6,9 +6,10 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 
 /// <summary>
-/// Covers the unified <c>nitro agent init</c> command: fresh init, --force,
-/// and migration from a legacy pre-unification <c>.nitro/tasks</c> and/or
-/// <c>.nitro/mail</c> workspace.
+/// Covers the unified <c>nitro agent init</c> command: fresh init in both
+/// the <c>.git/nitro</c> and <c>.nitro/agents</c> layouts, --force,
+/// --migrate, and migration from a legacy pre-unification
+/// <c>.nitro/tasks</c> and/or <c>.nitro/mail</c> workspace.
 /// </summary>
 public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     : TasksCommandTestBase(fixture)
@@ -20,6 +21,10 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     private string LegacyTasksJsonlPath => Path.Combine(LegacyTasksDirectory, "tasks.jsonl");
 
     private string LegacyMailDatabasePath => Path.Combine(WorkingDirectory, ".nitro", "mail", "mail.db");
+
+    private string GitWorkspaceDirectory => Path.Combine(WorkingDirectory, ".git", "nitro");
+
+    private string GitDatabasePath => Path.Combine(GitWorkspaceDirectory, "agents.db");
 
     [Fact]
     public async Task Help_ReturnsSuccess()
@@ -49,10 +54,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
               nitro agent init --migrate
             """);
     }
-
-    private string GitWorkspaceDirectory => Path.Combine(WorkingDirectory, ".git", "nitro");
-
-    private string GitDatabasePath => Path.Combine(GitWorkspaceDirectory, "agents.db");
 
     [Fact]
     public async Task GitRepository_FreshInit_CreatesWorkspaceInGitDirectory()
@@ -103,6 +104,30 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             ✓ Task ID prefix set to 'main'.
             """);
         Assert.True(File.Exists(Path.Combine(mainGitDirectory, "nitro", "agents.db")));
+    }
+
+    [Fact]
+    public async Task GitRepository_BareNitroDirectoryAboveRepo_DoesNotHijackInit()
+    {
+        // arrange: an empty leftover .nitro/agents in an ancestor directory
+        // outside the repository, plus a git repository at the current
+        // directory.
+        var ancestorFallback = Path.Combine(
+            Path.GetDirectoryName(WorkingDirectory)!, ".nitro", "agents");
+        Directory.CreateDirectory(ancestorFallback);
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init");
+
+        // assert: the nearer repository wins over the farther bare directory.
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.git/nitro'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+        Assert.True(File.Exists(GitDatabasePath));
+        Assert.False(File.Exists(Path.Combine(ancestorFallback, "agents.db")));
     }
 
     [Fact]
@@ -188,6 +213,127 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Migrate_TargetDirectoryAlreadyExists_Errors()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        Directory.CreateDirectory(GitWorkspaceDirectory);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        result.AssertError(
+            """
+            '.git/nitro' already exists. Remove it before migrating '.nitro/agents'.
+            """);
+        Assert.True(File.Exists(DatabasePath));
+    }
+
+    [Fact]
+    public async Task Migrate_WithoutWorkspace_Errors()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        result.AssertError(
+            """
+            No agent workspace found. Run `nitro agent init` first.
+            """);
+    }
+
+    [Fact]
+    public async Task Migrate_LeavesNitroRoot_When_LegacyDirectoriesRemain()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        Directory.CreateDirectory(LegacyTasksDirectory);
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert: the workspace moved, the non-empty .nitro root stays for
+        // the legacy cleanup the user still owes.
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(File.Exists(GitDatabasePath));
+        Assert.False(Directory.Exists(WorkspaceDirectory));
+        Assert.True(Directory.Exists(LegacyTasksDirectory));
+    }
+
+    [Fact]
+    public async Task Migrate_RewritesSessionWorkspacePaths()
+    {
+        // arrange: a session row recorded against the pre-migration
+        // workspace path.
+        await InitWorkspaceAsync();
+        await QueryScalarAsync(
+            $"""
+            INSERT INTO agent_sessions (
+                harness, session_id, host, pid, proc_start, cwd, workspace_path,
+                endpoint_kind, endpoint_addr, started_at, last_beat_at)
+            VALUES (
+                'claude-code', 's1', 'host', 1, 'ps', '{WorkingDirectory}', '{WorkspaceDirectory}',
+                'none', '', '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00');
+            """);
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("1", await QueryScalarAsync(
+            $"SELECT COUNT(*) FROM agent_sessions WHERE workspace_path = '{GitWorkspaceDirectory}'",
+            GitDatabasePath));
+    }
+
+    [Fact]
+    public async Task Migrate_JsonOutput_ReportsFromAndTo()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(WorkspaceDirectory, root.GetProperty("from").GetString());
+        Assert.Equal(GitWorkspaceDirectory, root.GetProperty("to").GetString());
+        Assert.Equal(
+            System.Text.Json.JsonValueKind.Null, root.GetProperty("importedCount").ValueKind);
+    }
+
+    [Fact]
+    public async Task PlainInit_Upgrade_PrintsMigrateHint_When_GitRepositoryExists()
+    {
+        // arrange
+        await SeedV3WorkspaceAsync("legacy3");
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Upgraded agent workspace schema at '.nitro/agents' to v{AgentDatabase.CurrentVersion}.
+
+            Run `nitro agent init --migrate` to move this workspace into '.git/nitro'.
+            """);
+    }
+
+    [Fact]
     public async Task Migrate_WithoutGitRepository_Errors()
     {
         // arrange
@@ -221,11 +367,13 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             """);
     }
 
-    [Fact]
-    public async Task Migrate_CannotCombineWithForce()
+    [Theory]
+    [InlineData("--force")]
+    [InlineData("--prefix", "app")]
+    public async Task Migrate_CannotCombineWithForceOrPrefix(params string[] conflictingArgs)
     {
         // arrange & act
-        var result = await ExecuteCommandAsync("agent", "init", "--migrate", "--force");
+        var result = await ExecuteCommandAsync(["agent", "init", "--migrate", .. conflictingArgs]);
 
         // assert
         Assert.Equal(1, result.ExitCode);

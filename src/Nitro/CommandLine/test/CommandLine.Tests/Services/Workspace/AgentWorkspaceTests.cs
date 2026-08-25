@@ -170,6 +170,92 @@ public sealed class AgentWorkspaceTests : IDisposable
         Assert.Equal(_tempRoot.FullName, location?.ProjectDirectory);
     }
 
+    [Fact]
+    public void FindLocation_Should_ResolveThroughWorktreePointer_ToSharedWorkspace()
+    {
+        // arrange: an initialized workspace in the main checkout's .git and
+        // a linked worktree pointing at it.
+        var mainRoot = Path.Combine(_tempRoot.FullName, "main");
+        var mainGitDirectory = Path.Combine(mainRoot, ".git");
+        var worktreeGitDirectory = Path.Combine(mainGitDirectory, "worktrees", "wt");
+        Directory.CreateDirectory(worktreeGitDirectory);
+        File.WriteAllText(Path.Combine(worktreeGitDirectory, "commondir"), "../..\n");
+        var workspaceDirectory = Path.Combine(mainGitDirectory, "nitro");
+        Directory.CreateDirectory(workspaceDirectory);
+        File.WriteAllText(AgentWorkspace.GetDatabasePath(workspaceDirectory), "");
+
+        var worktreeRoot = Path.Combine(_tempRoot.FullName, "wt");
+        Directory.CreateDirectory(worktreeRoot);
+        File.WriteAllText(
+            Path.Combine(worktreeRoot, ".git"),
+            "gitdir: ../main/.git/worktrees/wt\n");
+        var fileSystem = new TestFileSystem(worktreeRoot);
+
+        // act
+        var location = AgentWorkspace.FindLocation(fileSystem, worktreeRoot);
+
+        // assert: the worktree resolves to the shared workspace, with the
+        // main checkout as project root and the worktree as checkout root.
+        Assert.Equal(Path.GetFullPath(workspaceDirectory), location?.WorkspaceDirectory);
+        Assert.Equal(Path.GetFullPath(mainRoot), location?.ProjectDirectory);
+        Assert.Equal(worktreeRoot, location?.CheckoutDirectory);
+    }
+
+    [Fact]
+    public void FindMemory_Should_PreferInitializedGitWorkspace_Over_FallbackMarkdown()
+    {
+        // arrange: a stale restored .nitro/agents memory tree next to an
+        // initialized .git/nitro workspace.
+        var fallbackDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
+        var fallbackMemory = AgentWorkspace.GetMemoryDirectory(fallbackDirectory);
+        Directory.CreateDirectory(AgentWorkspace.GetMemoryCuratedDirectory(fallbackMemory));
+
+        var gitWorkspaceDirectory = Path.Combine(_tempRoot.FullName, ".git", "nitro");
+        Directory.CreateDirectory(gitWorkspaceDirectory);
+        File.WriteAllText(AgentWorkspace.GetDatabasePath(gitWorkspaceDirectory), "");
+        var fileSystem = new TestFileSystem(_tempRoot.FullName);
+
+        // act
+        var found = AgentWorkspace.FindMemory(fileSystem, _tempRoot.FullName);
+
+        // assert
+        Assert.Equal(gitWorkspaceDirectory, found);
+    }
+
+    [Fact]
+    public void ResolveForInit_Should_PreferBareFallbackDirectory_Over_Git_AtSameLevel()
+    {
+        // arrange: an uninitialized .nitro/agents next to a .git directory.
+        var fallbackDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
+        Directory.CreateDirectory(fallbackDirectory);
+        Directory.CreateDirectory(Path.Combine(_tempRoot.FullName, ".git"));
+        var fileSystem = new TestFileSystem(_tempRoot.FullName);
+
+        // act
+        var location = AgentWorkspace.ResolveForInit(fileSystem, _tempRoot.FullName);
+
+        // assert
+        Assert.Equal(fallbackDirectory, location.WorkspaceDirectory);
+    }
+
+    [Fact]
+    public void ResolveForInit_Should_PreferNearerGitRepository_Over_FartherBareFallbackDirectory()
+    {
+        // arrange: an empty leftover .nitro/agents in an ancestor and a git
+        // repository in a nested directory.
+        Directory.CreateDirectory(AgentWorkspace.GetDirectory(_tempRoot.FullName));
+        var repoRoot = Path.Combine(_tempRoot.FullName, "repo");
+        var gitDirectory = Path.Combine(repoRoot, ".git");
+        Directory.CreateDirectory(gitDirectory);
+        var fileSystem = new TestFileSystem(repoRoot);
+
+        // act
+        var location = AgentWorkspace.ResolveForInit(fileSystem, repoRoot);
+
+        // assert
+        Assert.Equal(Path.Combine(gitDirectory, "nitro"), location.WorkspaceDirectory);
+    }
+
     [Theory]
     [InlineData("/repo/.nitro/agents", ".nitro/agents")]
     [InlineData("/repo/.git/nitro", ".git/nitro")]

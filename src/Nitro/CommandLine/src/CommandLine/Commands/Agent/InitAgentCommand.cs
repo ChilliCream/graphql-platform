@@ -72,14 +72,11 @@ internal sealed class InitAgentCommand : Command
 
         // Location resolution: an initialized workspace anywhere above wins
         // (a .nitro/agents database before the repository's .git/nitro at
-        // each level); else an existing bare .nitro/agents directory (a
-        // fresh clone may carry committed memory markdown with no database
-        // yet); else the nearest repository's .git/nitro; else a fresh
+        // each level); else, per level, an existing bare .nitro/agents
+        // directory (a fresh clone may carry committed memory markdown with
+        // no database yet) or the repository's .git/nitro; else a fresh
         // .nitro/agents under the current directory.
-        var location = AgentWorkspace.FindLocation(fileSystem, currentDirectory)
-            ?? AgentWorkspace.FindFallbackDirectory(fileSystem, currentDirectory)
-            ?? AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory)
-            ?? new WorkspaceLocation(currentDirectory, AgentWorkspace.GetDirectory(currentDirectory));
+        var location = AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
 
         var workspaceDirectory = location.WorkspaceDirectory;
         var projectDirectory = location.ProjectDirectory;
@@ -170,10 +167,10 @@ internal sealed class InitAgentCommand : Command
                 migrateAvailable);
         }
 
-        var legacyTasksDirectory = Path.Combine(projectDirectory, ".nitro", "tasks");
+        var legacyTasksDirectory = Path.Combine(location.CheckoutDirectory, ".nitro", "tasks");
         var legacyTasksDatabasePath = Path.Combine(legacyTasksDirectory, "tasks.db");
         var legacyTasksJsonlPath = Path.Combine(legacyTasksDirectory, "tasks.jsonl");
-        var legacyMailDatabasePath = Path.Combine(projectDirectory, ".nitro", "mail", "mail.db");
+        var legacyMailDatabasePath = Path.Combine(location.CheckoutDirectory, ".nitro", "mail", "mail.db");
 
         var hasLegacyTasksDatabase = fileSystem.FileExists(legacyTasksDatabasePath);
         var hasLegacyTasksJsonl = fileSystem.FileExists(legacyTasksJsonlPath);
@@ -372,21 +369,27 @@ internal sealed class InitAgentCommand : Command
         var sourceDisplay = AgentWorkspace.GetDisplayPath(sourceDirectory);
         var targetDisplay = AgentWorkspace.GetDisplayPath(targetDirectory);
 
-        if (string.Equals(
-            Path.GetFullPath(sourceDirectory),
-            Path.GetFullPath(targetDirectory),
-            StringComparison.Ordinal))
+        // Only a .nitro/agents workspace migrates; a workspace already
+        // inside a git common directory (this repository's, or an outer
+        // repository's in a nested-repo setup) stays where it is.
+        if (!AgentWorkspace.IsFallbackLayout(sourceDirectory))
         {
-            console.OkLine($"Workspace already at '{targetDisplay}'; nothing to migrate.");
+            console.OkLine($"Workspace already at '{sourceDisplay}'; nothing to migrate.");
 
             return WriteMigrateResult(
-                console, resultHolder, sourceDirectory, targetDirectory, importedCount: null);
+                console, resultHolder, sourceDirectory, sourceDirectory, importedCount: null);
         }
 
         if (fileSystem.DirectoryExists(targetDirectory))
         {
             throw new ExitException(
                 $"'{targetDisplay}' already exists. Remove it before migrating '{sourceDisplay}'.");
+        }
+
+        // Validate and upgrade the schema at the SOURCE, so a database this
+        // CLI cannot handle fails the command before anything moves.
+        await using (await database.InitializeAsync(sourceDirectory, cancellationToken))
+        {
         }
 
         fileSystem.MoveDirectory(sourceDirectory, targetDirectory);
@@ -401,9 +404,8 @@ internal sealed class InitAgentCommand : Command
 
         TryDeleteEmptyNitroRoot(fileSystem, sourceDirectory);
 
-        await using (await database.InitializeAsync(targetDirectory, cancellationToken))
-        {
-        }
+        await UpdateSessionWorkspacePathsAsync(
+            targetDirectory, sourceDirectory, cancellationToken);
 
         var importedCount = await ImportAndRemoveLegacyJsonlAsync(
             store, fileSystem, AgentWorkspace.GetLegacyJsonlPath(targetDirectory), cancellationToken);
@@ -450,6 +452,33 @@ internal sealed class InitAgentCommand : Command
         catch (IOException)
         {
         }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Rewrites session rows that recorded the pre-migration workspace path,
+    /// so live sessions keep matching the workspace after the move.
+    /// </summary>
+    private static async Task UpdateSessionWorkspacePathsAsync(
+        string workspaceDirectory,
+        string previousWorkspaceDirectory,
+        CancellationToken cancellationToken)
+    {
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
+
+        await using var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+
+        await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET workspace_path = @workspacePath "
+            + "WHERE workspace_path = @previousWorkspacePath;",
+            new
+            {
+                workspacePath = workspaceDirectory,
+                previousWorkspacePath = previousWorkspaceDirectory
+            });
     }
 
     private static int WriteMigrateResult(

@@ -161,7 +161,10 @@ FIXTURE_AGENTS_MARKER="bob  remote"
 
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
-mkdir -p "$FIXTURE_DIR"
+# Pre-create the fallback workspace directory: the fixture lives inside this
+# repository's tree, and without it `nitro agent init` would walk up, find the
+# repo's .git, and initialize .git/nitro instead of the fixture directory.
+mkdir -p "$FIXTURE_DIR/.nitro/agents"
 if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" agent init >/dev/null ); then
   echo "==> fixture prepare FAILED: 'nitro agent init' did not succeed" >&2
   exit 2

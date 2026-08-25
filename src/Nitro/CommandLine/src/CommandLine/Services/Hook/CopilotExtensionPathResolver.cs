@@ -34,15 +34,14 @@ internal sealed class CopilotExtensionPathResolver(IFileSystem fileSystem) : ICo
         => Path.Combine(ResolveProjectRoot(), ".github", "extensions", DirectoryName);
 
     /// <summary>
-    /// The project root that owns the workspace (the directory containing
-    /// <c>.nitro</c> or <c>.git</c>), mirroring
+    /// The checkout root that contains the current directory, mirroring
     /// <c>ClaudeSettingsPathResolver.ResolveProjectRoot</c>: Copilot's own
     /// project-scope extensions directory
-    /// (<c>&lt;repo-root&gt;/.github/extensions/</c>) is a sibling of those,
-    /// not underneath them.
+    /// (<c>&lt;checkout-root&gt;/.github/extensions/</c>) belongs to the
+    /// checkout the user works in, so a linked worktree gets its own.
     /// </summary>
     private string ResolveProjectRoot()
         => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory())
-            ?.ProjectDirectory
+            ?.CheckoutDirectory
             ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 }
