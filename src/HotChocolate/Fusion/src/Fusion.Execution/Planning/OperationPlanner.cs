@@ -253,6 +253,34 @@ public sealed partial class OperationPlanner
                 // the execution tree builder consume below.
                 planSteps = deferContextGraph.RootSteps;
                 internalOperationDefinition = deferContextGraph.RootInternalOperation;
+
+                // A descriptor whose deferred output turned out to be fully redundant with
+                // data the enclosing scope already fetches is routed without producing an
+                // incremental plan (see TryAbsorbFullyRedundantDefer); its own delivery
+                // group(s) must not surface as a pending entry with nothing to complete it.
+                if (deferRoutingStates.Length < deferSplit.Value.IncrementalPlanDescriptors.Length)
+                {
+                    var usedDeliveryGroupIds = new HashSet<int>();
+                    foreach (var routingState in deferRoutingStates)
+                    {
+                        foreach (var group in routingState.Descriptor.DeliveryGroupSet)
+                        {
+                            usedDeliveryGroupIds.Add(group.Id);
+                        }
+                    }
+
+                    var filteredDeliveryGroups = ImmutableArray.CreateBuilder<DeliveryGroup>(
+                        usedDeliveryGroupIds.Count);
+                    foreach (var group in deliveryGroups)
+                    {
+                        if (usedDeliveryGroupIds.Contains(group.Id))
+                        {
+                            filteredDeliveryGroups.Add(group);
+                        }
+                    }
+
+                    deliveryGroups = filteredDeliveryGroups.ToImmutable();
+                }
             }
 
             // Use the latest root operation definition after deferred planning.

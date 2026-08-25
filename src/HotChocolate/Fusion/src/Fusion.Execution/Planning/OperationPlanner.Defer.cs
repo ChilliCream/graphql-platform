@@ -31,6 +31,18 @@ public sealed partial class OperationPlanner
         var routingStates = ImmutableArray.CreateBuilder<DeferRoutingState>(
             splitResult.IncrementalPlanDescriptors.Length);
 
+        // The not-deferred optimization below only ever drops a leaf descriptor (see
+        // TryAbsorbFullyRedundantDefer); a descriptor with nested @defer children keeps
+        // its own registered scope so those children can resolve their enclosing context.
+        var descriptorsWithChildren = new HashSet<IncrementalPlanDescriptor>();
+        foreach (var descriptorWithParent in splitResult.IncrementalPlanDescriptors)
+        {
+            if (descriptorWithParent.Parent is { } parentDescriptor)
+            {
+                descriptorsWithChildren.Add(parentDescriptor);
+            }
+        }
+
         for (var i = 0; i < splitResult.IncrementalPlanDescriptors.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,6 +83,22 @@ public sealed partial class OperationPlanner
                         throw new DeferredMutationLookupRequiredException(descriptor.Path, anchorTypeName);
                     }
                 }
+            }
+
+            // When every field this descriptor would deliver incrementally is already
+            // available from the enclosing scope (the anchor's own key fields, or a field
+            // already fetched there as a requirement for an unrelated reason), the spec
+            // allows serving it in the initial payload instead: the fields are made
+            // visible on the enclosing step and no incremental plan is produced for this
+            // descriptor. Restricted to leaf descriptors; see descriptorsWithChildren.
+            if (!descriptorsWithChildren.Contains(descriptor)
+                && TryAbsorbFullyRedundantDefer(
+                    descriptor,
+                    rewrittenIncrementalPlan,
+                    contextGraph.GetParentContext(descriptor),
+                    contextGraph))
+            {
+                continue;
             }
 
             var registeredInternalOp = incrementalPlanResult.InternalOperationDefinition ?? descriptor.Operation;
@@ -712,6 +740,371 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Detects an incremental plan whose entire deferred output is already available from
+    /// the enclosing plan scope, either because the deferred selection is exactly the
+    /// anchor type's own key fields (every schema that exposes an entity resolves its own
+    /// key fields, so extending the enclosing step's existing fetch of the same entity
+    /// costs nothing extra) or because every deferred field is already selected there as a
+    /// requirement for an unrelated reason. In both cases the incremental delivery
+    /// specification allows serving the data immediately instead of deferring it (no
+    /// pending entry, no label): the fields are made visible on the enclosing step and its
+    /// internal operation, and the caller skips producing an incremental plan for
+    /// <paramref name="descriptor"/> entirely.
+    /// </summary>
+    private bool TryAbsorbFullyRedundantDefer(
+        IncrementalPlanDescriptor descriptor,
+        ImmutableList<PlanStep> rewrittenIncrementalPlan,
+        ParentPlanContext parentContext,
+        PlanContextGraph contextGraph)
+    {
+        if (descriptor.Path.IsRoot || descriptor.Operation.Operation != OperationType.Query)
+        {
+            return false;
+        }
+
+        // Restricted to a single surviving producer: multiple concurrent client-visible
+        // steps split across schemas are outside the scope of this optimization.
+        OperationPlanStep? onlyStep = null;
+
+        foreach (var step in rewrittenIncrementalPlan)
+        {
+            if (step is not OperationPlanStep operationStep || onlyStep is not null)
+            {
+                return false;
+            }
+
+            onlyStep = operationStep;
+        }
+
+        if (onlyStep is null || onlyStep.SchemaName is null)
+        {
+            return false;
+        }
+
+        // The parent step only needs to reach as far as the anchor path; its own
+        // Definition may nest further beyond Target (for example a plain root fetch
+        // whose Target is the operation root but whose Definition still walks all the
+        // way down to the anchor). A conditionally executed step (guarded by @skip or
+        // @include, for example the eager copy a variable-conditioned @defer keeps in
+        // the main operation) is excluded: its data is not unconditionally available.
+        OperationPlanStep? parentStep = null;
+
+        foreach (var step in parentContext.ParentSteps)
+        {
+            if (step is OperationPlanStep candidate
+                && candidate.Target.IsParentOfOrSame(descriptor.Path)
+                && string.Equals(candidate.SchemaName, onlyStep.SchemaName, StringComparison.Ordinal)
+                && candidate.Conditions.Length == 0)
+            {
+                parentStep = candidate;
+                break;
+            }
+        }
+
+        if (parentStep is null)
+        {
+            return false;
+        }
+
+        var deferredFieldsSelectionSet = LocateSelectionSetAtPath(
+            GetStepEntitySelectionSet(onlyStep),
+            descriptor.Path,
+            onlyStep.Target.Length);
+
+        if (!TryCollectFlatFieldNames(deferredFieldsSelectionSet, out var fieldNames) || fieldNames.Count == 0)
+        {
+            return false;
+        }
+
+        var parentTargetSelectionSet = LocateSelectionSetAtPath(
+            GetStepEntitySelectionSet(parentStep),
+            descriptor.Path,
+            parentStep.Target.Length);
+        var alreadyPresent = CollectPlainFieldNames(parentTargetSelectionSet);
+
+        var allAlreadyPresent = true;
+        foreach (var fieldName in fieldNames)
+        {
+            if (!alreadyPresent.Contains(fieldName))
+            {
+                allAlreadyPresent = false;
+                break;
+            }
+        }
+
+        if (!allAlreadyPresent)
+        {
+            // A genuine keyed lookup whose output is not already available at the parent
+            // is a real deferral, not redundant work.
+            if (onlyStep.Lookup is not null)
+            {
+                return false;
+            }
+
+            // The only remaining case is a redundant re-fetch of the parent's own path
+            // (no lookup involved): every field missing from the parent must be a key
+            // field of the anchor type, which any schema exposing the entity resolves
+            // for free alongside whatever it already fetches there.
+            if (!TryLocateIncrementalPlanAnchor(descriptor.Operation, descriptor.Path, out _, out var anchorType))
+            {
+                return false;
+            }
+
+            var keyFieldNames = GetEntityKeyFieldNames(anchorType);
+
+            foreach (var fieldName in fieldNames)
+            {
+                if (!alreadyPresent.Contains(fieldName) && !keyFieldNames.Contains(fieldName))
+                {
+                    return false;
+                }
+            }
+        }
+
+        var updatedTargetSelectionSet = MakeFieldsVisible(parentTargetSelectionSet, fieldNames);
+        var updatedParentStep = ReferenceEquals(updatedTargetSelectionSet, parentTargetSelectionSet)
+            ? parentStep
+            : WithEntitySelectionSet(
+                parentStep,
+                ReplaceSelectionSetAtPath(
+                    GetStepEntitySelectionSet(parentStep),
+                    descriptor.Path,
+                    parentStep.Target.Length,
+                    updatedTargetSelectionSet));
+
+        var updatedParentSteps = ReferenceEquals(updatedParentStep, parentStep)
+            ? parentContext.ParentSteps
+            : parentContext.ParentSteps.SetItem(
+                parentContext.ParentSteps.IndexOf(parentStep),
+                updatedParentStep);
+
+        var updatedInternalOperation = parentContext.ParentInternalOperation;
+
+        if (TryLocateInternalSelectionSetAtPath(
+            updatedInternalOperation.SelectionSet, descriptor.Path, out var internalTargetSelectionSet))
+        {
+            var updatedInternalTargetSelectionSet = MakeFieldsVisible(internalTargetSelectionSet, fieldNames);
+
+            if (!ReferenceEquals(updatedInternalTargetSelectionSet, internalTargetSelectionSet))
+            {
+                updatedInternalOperation = ReplaceInternalSelectionSetAtPath(
+                    updatedInternalOperation,
+                    descriptor.Path,
+                    updatedInternalTargetSelectionSet);
+            }
+        }
+
+        if (parentContext.Kind == ParentScope.Root)
+        {
+            contextGraph.UpdateRootSteps(updatedParentSteps);
+            contextGraph.UpdateRootInternalOperation(updatedInternalOperation);
+        }
+        else
+        {
+            contextGraph.UpdateDeferContext(parentContext.OwnerDescriptor!, updatedParentSteps, updatedInternalOperation);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Collects the response names of every top-level field selected in
+    /// <paramref name="selectionSet"/>, ignoring aliases. Only flat, unaliased field
+    /// selections are supported by <see cref="TryAbsorbFullyRedundantDefer"/>; anything
+    /// else makes the caller decline the optimization.
+    /// </summary>
+    private static bool TryCollectFlatFieldNames(SelectionSetNode selectionSet, out List<string> fieldNames)
+    {
+        fieldNames = new List<string>(selectionSet.Selections.Count);
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode field || field.SelectionSet is not null || field.Alias is not null)
+            {
+                fieldNames = [];
+                return false;
+            }
+
+            if (!field.Name.Value.Equals("__typename", StringComparison.Ordinal))
+            {
+                fieldNames.Add(field.Name.Value);
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Collects the names of every unaliased, unconditionally selected top-level field in
+    /// <paramref name="selectionSet"/>, marked with <c>fusion__requirement</c> or not. An
+    /// aliased field is excluded: renaming it away from its alias to make it client-visible
+    /// could collide with unrelated bookkeeping keyed by that alias. A field guarded by
+    /// <c>@skip</c>/<c>@include</c> (the eager copy a variable-conditioned <c>@defer</c>
+    /// keeps in the main operation for when the condition disables the defer) is excluded
+    /// too: it is only actually fetched in one branch of the condition, so its presence here
+    /// does not make the deferred fetch redundant.
+    /// </summary>
+    private static HashSet<string> CollectPlainFieldNames(SelectionSetNode selectionSet)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode { Alias: null } field && IsUnconditionallySelected(field))
+            {
+                names.Add(field.Name.Value);
+            }
+        }
+
+        return names;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="field"/> carries no directives, or only the
+    /// internal <c>fusion__requirement</c> marker, meaning it is fetched unconditionally
+    /// rather than guarded by <c>@skip</c>/<c>@include</c>.
+    /// </summary>
+    private static bool IsUnconditionallySelected(FieldNode field)
+        => field.Directives.Count == 0
+            || (field.Directives.Count == 1
+                && field.Directives[0].Name.Value.Equals("fusion__requirement", StringComparison.Ordinal));
+
+    /// <summary>
+    /// Collects the field names every possible lookup for <paramref name="anchorType"/>
+    /// requires as input. Every schema that exposes an entity type resolves its own key
+    /// fields, so these names identify data that is available wherever the entity itself
+    /// is fetched, without needing a dedicated lookup call.
+    /// </summary>
+    private ImmutableHashSet<string> GetEntityKeyFieldNames(ITypeDefinition anchorType)
+    {
+        var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+
+        foreach (var lookup in _schema.GetPossibleLookups(anchorType))
+        {
+            foreach (var selection in lookup.Requirements.Selections)
+            {
+                if (selection is FieldNode field)
+                {
+                    builder.Add(field.Name.Value);
+                }
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
+    /// <summary>
+    /// Returns a copy of <paramref name="selectionSet"/> where every field named in
+    /// <paramref name="fieldNames"/> is a plain, client-visible selection: an existing
+    /// unaliased field has its <c>fusion__requirement</c> marker removed, and a field not
+    /// yet selected is added. A lone, unmarked <c>__typename</c> placeholder (inserted by
+    /// the defer split to keep an otherwise-empty selection set valid) is replaced rather
+    /// than kept alongside the newly visible fields.
+    /// </summary>
+    private static SelectionSetNode MakeFieldsVisible(SelectionSetNode selectionSet, List<string> fieldNames)
+    {
+        var selections = selectionSet.Selections;
+        var droppedEmptyPlaceholder = false;
+
+        if (selections is
+            [FieldNode { Name.Value: "__typename", Alias: null, Directives.Count: 0, Arguments.Count: 0 }])
+        {
+            selections = [];
+            droppedEmptyPlaceholder = true;
+        }
+
+        var newSelections = new List<ISelectionNode>(selections.Count + fieldNames.Count);
+        var present = new HashSet<string>(StringComparer.Ordinal);
+        var changed = droppedEmptyPlaceholder;
+
+        foreach (var selection in selections)
+        {
+            if (selection is FieldNode { Alias: null } field)
+            {
+                present.Add(field.Name.Value);
+
+                if (fieldNames.Contains(field.Name.Value)
+                    && TryRemoveRequirementDirective(field.Directives, out var strippedDirectives))
+                {
+                    newSelections.Add(field.WithDirectives(strippedDirectives));
+                    changed = true;
+                    continue;
+                }
+            }
+
+            newSelections.Add(selection);
+        }
+
+        foreach (var fieldName in fieldNames)
+        {
+            if (present.Add(fieldName))
+            {
+                newSelections.Add(new FieldNode(fieldName));
+                changed = true;
+            }
+        }
+
+        return changed ? new SelectionSetNode(newSelections) : selectionSet;
+    }
+
+    /// <summary>
+    /// Replaces the selection set at <paramref name="path"/> within <paramref name="operation"/>
+    /// with <paramref name="replacement"/>.
+    /// </summary>
+    private static OperationDefinitionNode ReplaceInternalSelectionSetAtPath(
+        OperationDefinitionNode operation,
+        SelectionPath path,
+        SelectionSetNode replacement)
+        => operation.WithSelectionSet(ReplaceSelectionSetAtPath(operation.SelectionSet, path, 0, replacement));
+
+    private static SelectionSetNode ReplaceSelectionSetAtPath(
+        SelectionSetNode current,
+        SelectionPath path,
+        int index,
+        SelectionSetNode replacement)
+    {
+        if (index == path.Length)
+        {
+            return replacement;
+        }
+
+        var segment = path[index];
+        var selections = new List<ISelectionNode>(current.Selections.Count);
+        var replaced = false;
+
+        foreach (var selection in current.Selections)
+        {
+            if (!replaced
+                && segment.Kind == SelectionPathSegmentKind.Field
+                && selection is FieldNode { SelectionSet: { } fieldSelectionSet } field
+                && (field.Alias?.Value == segment.Name || field.Name.Value == segment.Name))
+            {
+                selections.Add(
+                    field.WithSelectionSet(
+                        ReplaceSelectionSetAtPath(fieldSelectionSet, path, index + 1, replacement)));
+                replaced = true;
+                continue;
+            }
+
+            if (!replaced
+                && segment.Kind == SelectionPathSegmentKind.InlineFragment
+                && selection is InlineFragmentNode fragment
+                && fragment.TypeCondition?.Name.Value == segment.Name)
+            {
+                selections.Add(
+                    fragment.WithSelectionSet(
+                        ReplaceSelectionSetAtPath(fragment.SelectionSet, path, index + 1, replacement)));
+                replaced = true;
+                continue;
+            }
+
+            selections.Add(selection);
+        }
+
+        return replaced ? new SelectionSetNode(selections) : current;
+    }
+
+    /// <summary>
     /// Tries to inline the field selection implied by a defer's
     /// <paramref name="requirement"/> into a parent-scope step that already
     /// targets the requirement's path on the same source schema. Uses the
@@ -1297,8 +1690,18 @@ public sealed partial class OperationPlanner
             return step;
         }
 
-        var newEntitySelectionSet = new SelectionSetNode(filtered);
+        return WithEntitySelectionSet(step, new SelectionSetNode(filtered));
+    }
 
+    /// <summary>
+    /// Returns a copy of <paramref name="step"/> whose own entity-level selection set (see
+    /// <see cref="GetStepEntitySelectionSet"/>) is replaced with <paramref name="newEntitySelectionSet"/>,
+    /// keeping the step's selection-set index in sync.
+    /// </summary>
+    private static OperationPlanStep WithEntitySelectionSet(
+        OperationPlanStep step,
+        SelectionSetNode newEntitySelectionSet)
+    {
         var newDefinition =
             step.Lookup is not null && step.Definition.SelectionSet.Selections is [FieldNode lookupField]
                 ? step.Definition.WithSelectionSet(
