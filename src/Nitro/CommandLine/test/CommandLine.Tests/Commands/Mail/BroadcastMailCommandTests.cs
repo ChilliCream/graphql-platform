@@ -472,6 +472,33 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task HumanOutput_Should_ReportDelivered_When_TheWakeReachesALiveSession()
+    {
+        // arrange: bob has a live claimed codex-thread session and the fake
+        // codex queue client reports success, so the direct-first dispatcher
+        // delivers the wake in the foreground.
+        await InitWorkspaceAsync();
+        const string host = "host-broadcast-delivered-human-test";
+        SetupInstanceId(host);
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{id}' to bob.
+            wake delivered.
+            """);
+    }
+
+    [Fact]
     public async Task HumanOutput_Should_ListEveryFailingRecipient_When_Partial()
     {
         // arrange: same mixed scenario as the JSON partial test, asserting

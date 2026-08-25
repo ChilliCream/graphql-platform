@@ -190,6 +190,62 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task HumanOutput_Should_ReportFailed_When_TheRecipientHasNoLiveSession()
+    {
+        // arrange: alice has never claimed a live session, so the
+        // direct-first dispatcher has nobody to address at all - the reply
+        // is durably stored but the wake is a confirmed failure.
+        await InitWorkspaceAsync();
+        SetupInstanceId("host-reply-nolive-human-test");
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+
+        // assert
+        var replyId = await QueryScalarAsync(
+            "SELECT id FROM messages WHERE in_reply_to = '" + originalId + "'");
+        result.AssertError(
+            $"""
+            Stored '{replyId}' to alice.
+            message stored, but wake failed: no-live-session.
+              alice: failed (no-live-session)
+            """);
+    }
+
+    [Fact]
+    public async Task HumanOutput_Should_ReportDelivered_When_TheWakeReachesALiveSession()
+    {
+        // arrange: alice has a live claimed codex-thread session and the
+        // fake codex queue client reports success, so the reply's wake
+        // delivers in the foreground.
+        await InitWorkspaceAsync();
+        const string host = "host-reply-delivered-human-test";
+        SetupInstanceId(host);
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("alice", "thread-alice", host);
+        var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+
+        // assert
+        var replyId = await QueryScalarAsync(
+            "SELECT id FROM messages WHERE in_reply_to = '" + originalId + "'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{replyId}' to alice.
+            wake delivered.
+            """);
+    }
+
+    [Fact]
     public async Task JsonOutput_Should_ReportDelivered_When_TheWakeReachesALiveSession()
     {
         // arrange: alice has a live claimed codex-thread session and the

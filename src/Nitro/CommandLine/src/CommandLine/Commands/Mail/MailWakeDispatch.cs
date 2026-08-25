@@ -7,7 +7,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 /// Runs the direct-first actor-wake state machine for every recipient a
 /// send, reply, or broadcast just committed, and turns its durable outcome
 /// into a <see cref="MailNotificationResult"/>. Shared by every mail command
-/// so <c>send</c>, <c>reply</c>, and <c>broadcast</c> report identically.
+/// so <c>send</c>, <c>reply</c>, and <c>broadcast</c> report identically. The
+/// command-level aggregate treats a <see cref="WakeReceiptAggregator.Partial"/>
+/// recipient as a failure-bearing status, so a mixed multi-recipient outcome
+/// never reports as clean regardless of recipient order.
 /// </summary>
 internal static class MailWakeDispatch
 {
@@ -57,7 +60,10 @@ internal static class MailWakeDispatch
             recipients.Add(MailWakeRecipientResult.Create(receipt, observation));
         }
 
-        var status = WakeReceiptAggregator.Aggregate(observations.Select(o => o.Status).ToList());
+        var recipientStatuses = observations.Select(o => o.Status).ToList();
+        var status = recipientStatuses.Any(s => s == WakeReceiptAggregator.Partial)
+            ? WakeReceiptAggregator.Partial
+            : WakeReceiptAggregator.Aggregate(recipientStatuses);
         var deliveryPending = observations.Any(observation =>
             observation.Status is MailWakeTargetStatus.Pending or MailWakeTargetStatus.Delegated
             || observation.Targets.Any(target => target.Status is MailWakeTargetStatus.Pending or MailWakeTargetStatus.Delegated));

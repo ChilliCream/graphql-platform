@@ -489,6 +489,88 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task HumanOutput_Should_ReportDelivered_When_TheWakeReachesALiveSession()
+    {
+        // arrange: bob has a live claimed codex-thread session and the fake
+        // codex queue client reports success, so the direct-first dispatcher
+        // delivers the wake in the foreground.
+        await InitWorkspaceAsync();
+        const string host = "host-send-delivered-human-test";
+        SetupInstanceId(host);
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{id}' to bob.
+            wake delivered.
+            """);
+    }
+
+    [Fact]
+    public async Task JsonOutput_Should_ReportPartial_When_ARecipientHasOneDeliveredAndOneFailingSession()
+    {
+        // arrange: alpha has a single live codex-thread session that
+        // delivers. bob has two live sessions - one codex-thread session
+        // that also delivers and one with no endpoint at all - so bob's own
+        // recipient status aggregates to "partial". Sent in alpha-then-bob
+        // order, this proves the command's own exit is controlled by bob's
+        // partial status even though alpha, listed first, delivered cleanly,
+        // and that the targets array is returned in deterministic
+        // (harness, sessionId) order.
+        await InitWorkspaceAsync();
+        const string host = "host-send-partial-recipient-test";
+        SetupInstanceId(host);
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveSessionAsync(
+            "session-alpha", "alpha", role: "", host,
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alpha");
+        await SeedAliveSessionAsync(
+            "session-bob-1", "bob", role: "", host,
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob");
+        await SeedAliveSessionAsync(
+            "session-bob-2", "bob", role: "", host,
+            endpointKind: AgentSessionEndpointKind.None);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "alpha", "bob", "--subject", "Status", "--body", "All good.");
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        var notification = root.GetProperty("notification");
+        Assert.Equal("partial", notification.GetProperty("status").GetString());
+        var recipients = notification.GetProperty("recipients").EnumerateArray().ToArray();
+        Assert.Equal(2, recipients.Length);
+        Assert.Equal("alpha", recipients[0].GetProperty("actor").GetString());
+        Assert.Equal("delivered", recipients[0].GetProperty("status").GetString());
+        Assert.Equal("bob", recipients[1].GetProperty("actor").GetString());
+        Assert.Equal("partial", recipients[1].GetProperty("status").GetString());
+
+        var targets = recipients[1].GetProperty("targets").EnumerateArray().ToArray();
+        Assert.Equal(2, targets.Length);
+        Assert.Equal("session-bob-1", targets[0].GetProperty("sessionId").GetString());
+        Assert.Equal("delivered", targets[0].GetProperty("status").GetString());
+        Assert.Equal("session-bob-2", targets[1].GetProperty("sessionId").GetString());
+        Assert.Equal("failed", targets[1].GetProperty("status").GetString());
+        Assert.Equal(
+            "no-endpoint", targets[1].GetProperty("lastAttempt").GetProperty("reason").GetString());
+    }
+
+    [Fact]
     public async Task JsonOutput_Should_ReportPending_When_ClaudeAccessIsDeniedWithoutAcknowledgement()
     {
         // arrange: bob has a live claimed Claude peer session, but the peer
@@ -521,6 +603,36 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var recipient = Assert.Single(notification.GetProperty("recipients").EnumerateArray());
         Assert.Equal("pending", recipient.GetProperty("status").GetString());
         Assert.Equal("access-denied", recipient.GetProperty("lastAttempt").GetProperty("reason").GetString());
+    }
+
+    [Fact]
+    public async Task HumanOutput_Should_ReportPending_When_ClaudeAccessIsDeniedWithoutAcknowledgement()
+    {
+        // arrange: bob has a live claimed Claude peer session, but the peer
+        // socket connect itself is denied. With no dashboard leader running
+        // to accept responsibility (out of this ticket's scope), the offer
+        // stays unacknowledged - durably pending, not silently OK.
+        await InitWorkspaceAsync();
+        const string host = "host-send-access-denied-human-test";
+        SetupInstanceId(host);
+        SetupClaudePeerClient(new FakeClaudePeerClient { NextOutcome = ClaudePeerSendOutcome.AccessDenied });
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveSessionAsync(
+            "session-1", "bob", role: "", host,
+            endpointKind: AgentSessionEndpointKind.ClaudePeer, endpointAddr: "peer-a");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
+        result.AssertError(
+            $"""
+            Stored '{id}' to bob.
+            message stored but wake remains unconfirmed.
+              bob: pending (access-denied)
+            """);
     }
 
     [Fact]

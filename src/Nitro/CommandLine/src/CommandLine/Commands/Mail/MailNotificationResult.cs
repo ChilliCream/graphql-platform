@@ -65,7 +65,11 @@ internal sealed record MailWakeRecipientResult
 
     public static MailWakeRecipientResult Create(MailWakeReceipt receipt, MailWakeObservation observation)
     {
-        var targets = observation.Targets.Select(MailWakeTargetResult.Create).ToArray();
+        var targets = observation.Targets
+            .OrderBy(t => t.Target.Harness, StringComparer.Ordinal)
+            .ThenBy(t => t.Target.SessionId, StringComparer.Ordinal)
+            .Select(MailWakeTargetResult.Create)
+            .ToArray();
 
         var attemptSource = targets.FirstOrDefault(t => t.Status is MailWakeTargetStatus.Pending or MailWakeTargetStatus.Failed)
             ?? targets.FirstOrDefault(t => t.LastAttempt is not null);
