@@ -221,7 +221,6 @@ sourceSchemas:
             query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 reviewCount
-                id
               }
             }
           variables: |
@@ -243,8 +242,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "reviewCount": 123,
-                    "id": "VXNlcjox"
+                    "reviewCount": 123
                   }
                 }
               }
@@ -252,8 +250,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "reviewCount": 123,
-                    "id": "VXNlcjoy"
+                    "reviewCount": 123
                   }
                 }
               }
@@ -261,8 +258,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "reviewCount": 123,
-                    "id": "VXNlcjoz"
+                    "reviewCount": 123
                   }
                 }
               }
@@ -311,7 +307,6 @@ operationPlan:
             query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 reviewCount
-                id
               }
             }
           source: $.userById
@@ -338,4 +333,4 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 1
+            - parentNodeId: 1

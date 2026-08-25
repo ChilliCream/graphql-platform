@@ -42,7 +42,6 @@ incrementalPlans:
           query Op_defer_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               reviewCount
-              id
             }
           }
         source: $.userById
@@ -69,4 +68,4 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 1
+          - parentNodeId: 1

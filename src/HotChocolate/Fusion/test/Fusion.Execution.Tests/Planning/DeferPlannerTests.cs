@@ -1667,9 +1667,7 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_ListAnchor_Should_PlanKeyedLookup_When_MultipleRootFieldsPrecedeIt()
     {
         // arrange
-        // Three root fields on two subgraphs. The users field (and its defer anchor)
-        // is neither the first nor the only root field, which exercises parentNodeId
-        // resolution alongside the keyed-lookup planning.
+        // The users field (and its defer anchor) is neither the first nor the only root field.
         var schema = ComposeSchema(
             """
             # name: products
@@ -1744,9 +1742,7 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_ListAnchor_Should_PlanOneKeyedLookupPerField_When_FieldsSplitAcrossSameAndForeignSubgraph()
     {
         // arrange
-        // birthdate is same-subgraph with the parent's own key; reviewCount lives on a
-        // second subgraph reached only through the entity's key. Both must survive as
-        // keyed lookups off the parent; neither may be silently dropped.
+        // birthdate is same-subgraph with the parent's own key; reviewCount is reached only through the entity's key.
         var schema = ComposeSchema(
             """
             # name: accounts
@@ -1796,9 +1792,7 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_ObjectAnchor_Should_KeepRootRefetch_When_AnchorTypeHasNoLookup()
     {
         // arrange
-        // Viewer is not an entity: it has neither @key nor a @lookup field anywhere, so no
-        // keyed lookup can ever reach it. The defer must fall back to the pre-existing
-        // root re-fetch behavior instead of failing to plan.
+        // Viewer is not an entity: it has neither @key nor a @lookup field anywhere.
         var schema = ComposeSchema(
             """
             # name: a
@@ -1833,9 +1827,7 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_RootAnchor_Should_PlanRootFetch_When_DeferSitsAtOperationRoot()
     {
         // arrange
-        // The @defer fragment is a root-level sibling, not nested inside a parent field,
-        // so it has nothing to key a lookup off of; this shape is unaffected by
-        // lookup-anchored defer planning and must keep planning as a root fetch.
+        // The @defer fragment is a root-level sibling, not nested inside a parent field.
         var schema = ComposeSchema(
             """
             # name: a
@@ -1884,15 +1876,7 @@ public class DeferPlannerTests : FusionTestBase
     public void Defer_KeyOnlyField_Should_KeepRootRefetch_When_OnlyReachableLookupIsSelfCyclic()
     {
         // arrange
-        // The only deferred field is the entity's own key, and the only lookup for the
-        // type is keyed by that same field (PlanQueue.IsSelfCyclicLookup): it needs id
-        // as input to produce id, making no progress on its own. The planner already
-        // discards a self-cyclic lookup whose own bootstrap resolves to that same
-        // unresolved selection (PlanLookupSelections), since accepting it would plan a
-        // subgraph call that cannot be given a value from anywhere within this
-        // incremental plan's own closed-world search. With that branch discarded the
-        // root re-fetch is the only complete plan left; pin it explicitly rather than
-        // leave this shape unobserved.
+        // The only deferred field is the entity's own key, and its only lookup is keyed by that same field.
         var schema = ComposeSchema(
             """
             # name: a

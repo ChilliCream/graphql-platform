@@ -277,9 +277,8 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Determines whether <paramref name="path"/> is exactly the root's own
-    /// <c>node(id: ...)</c> field (Global Object Identification's <c>Node</c> interface
-    /// field, which only ever appears directly on <c>Query</c>) and, if so, locates that
-    /// field within <paramref name="operation"/>.
+    /// <c>node(id: ...)</c> field and, if so, locates that field within
+    /// <paramref name="operation"/>.
     /// </summary>
     private bool TryLocateNodeFieldAnchor(
         OperationDefinitionNode operation,
@@ -500,10 +499,91 @@ public sealed partial class OperationPlanner
             }
         }
 
+        // A provider that also carries client-visible output is never a pure
+        // producer, so the loop above never visits its dependents. Every remaining
+        // step's requirement anchored exactly at the defer's own path is retried
+        // against the parent scope directly; the edge and the now-unconsumed field
+        // are cleaned up below once it succeeds.
+        var rerouted = new List<(int ProviderStepId, int DownstreamStepId, string FieldName)>();
+
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is not OperationPlanStep downstreamStep || producerIds.Contains(downstreamStep.Id))
+            {
+                continue;
+            }
+
+            foreach (var (_, requirement) in downstreamStep.Requirements)
+            {
+                if (!requirement.Path.Equals(descriptor.Path))
+                {
+                    continue;
+                }
+
+                if (TryFindDeferRequirementProvider(incrementalPlanSteps, downstreamStep, requirement)
+                        is not { } providerStep
+                    || producerIds.Contains(providerStep.Id))
+                {
+                    // No in-plan provider (already parent-sourced), or already
+                    // handled by the pure-producer routing above.
+                    continue;
+                }
+
+                // The provider must reach exactly the same entity as this defer's own
+                // anchor (or be a root re-fetch), matching FindDeferRequirementProducers'
+                // own restriction above; a provider targeting a shallower ancestor path
+                // only shares this requirement's field name by coincidence.
+                if (!providerStep.Target.Equals(descriptor.Path) && !providerStep.Target.IsRoot)
+                {
+                    continue;
+                }
+
+                var scopeState = ScopeStateFor(parentContext);
+                var resolvedParentStepId = (int?)null;
+
+                foreach (var candidateSchema in scopeState.Steps
+                    .OfType<OperationPlanStep>()
+                    .Select(candidate => candidate.SchemaName)
+                    .Where(schemaName => schemaName is not null)
+                    .Distinct(StringComparer.Ordinal))
+                {
+                    if (TryInlineDeferRequirementInScope(
+                        requirement,
+                        candidateSchema!,
+                        resolver,
+                        scopeState,
+                        out var parentStepId))
+                    {
+                        resolvedParentStepId = parentStepId;
+                        break;
+                    }
+                }
+
+                if (resolvedParentStepId is not { } resolvedId)
+                {
+                    // The immediate parent scope cannot serve it either; fall back to
+                    // the existing in-plan chaining onto providerStep.
+                    continue;
+                }
+
+                lifted.Add(new LiftedDeferRequirement(requirement, downstreamStep.Id, resolvedId));
+
+                var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
+                if (fieldName is not null)
+                {
+                    rerouted.Add((providerStep.Id, downstreamStep.Id, fieldName));
+                }
+            }
+        }
+
         if (lifted.Count == 0)
         {
             return incrementalPlanSteps;
         }
+
+        // Sever the in-plan edges that were rerouted to the parent scope and
+        // drop the provider's field once nothing else consumes it.
+        incrementalPlanSteps = RemoveReroutedInPlanEdges(incrementalPlanSteps, rerouted);
 
         // Drop every producer step (its data now comes from the enclosing scope)
         // along with any incremental-plan step that got promoted wholesale into
@@ -772,17 +852,8 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Resolves the schema a same-subgraph inline attempt should try first for
-    /// <paramref name="requirement"/>, owed by <paramref name="downstreamStep"/>. When the
-    /// in-plan provider is itself a producer being dropped and does nothing but relay the
-    /// very same field it required upstream (a key value bootstrapped through several
-    /// subgraphs before the entity that actually needs the deferred field is reached,
-    /// each hop just re-fetching the same field under a different schema), the walk
-    /// continues past it to whatever ultimately grounds that field, so the enclosing
-    /// scope is asked for the true origin instead of promoting a pass-through hop. A
-    /// producer that transforms its input into a different field (an "id" argument
-    /// producing "productSku", say) is the true, final provider of that field and is
-    /// never skipped past.
+    /// Walks past any in-plan producer that does nothing but relay the same field under
+    /// a different schema, returning the step and requirement that first ground it.
     /// </summary>
     private static (OperationPlanStep? ConsumingStep, OperationRequirement Requirement) ResolveDeferRequirementSource(
         ImmutableList<PlanStep> incrementalPlanSteps,
@@ -873,16 +944,9 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Finds every step in <paramref name="incrementalPlanSteps"/> that exists purely to
-    /// supply another incremental-plan step's requirement: it targets either the defer's
-    /// own <paramref name="anchorPath"/> (the entity the enclosing scope already fetches
-    /// down to) or the operation root (a bootstrap key value reconstructed by replaying
-    /// the client's own root-field access), and every field it selects is consumed as a
-    /// requirement by its dependents, so dropping it and routing its data through the
-    /// enclosing scope loses no client-visible output. A key value can be bootstrapped
-    /// through a short chain of such steps (each re-fetching the key on a different
-    /// subgraph before the entity that actually needs the deferred field is reached), so
-    /// every step is considered, not just the first.
+    /// Finds every step in <paramref name="incrementalPlanSteps"/> that targets either
+    /// <paramref name="anchorPath"/> or the operation root and whose every selected field
+    /// is consumed as a requirement by one of its dependents.
     /// </summary>
     private static ImmutableArray<OperationPlanStep> FindDeferRequirementProducers(
         ImmutableList<PlanStep> incrementalPlanSteps,
@@ -981,6 +1045,132 @@ public sealed partial class OperationPlanner
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Removes each <paramref name="rerouted"/> provider-to-dependent dependency edge and
+    /// drops the provider's field once no remaining dependent still consumes it.
+    /// </summary>
+    private static ImmutableList<PlanStep> RemoveReroutedInPlanEdges(
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        List<(int ProviderStepId, int DownstreamStepId, string FieldName)> rerouted)
+    {
+        if (rerouted.Count == 0)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var removalsByProvider = new Dictionary<int, List<(int DownstreamStepId, string FieldName)>>();
+        foreach (var entry in rerouted)
+        {
+            if (!removalsByProvider.TryGetValue(entry.ProviderStepId, out var removals))
+            {
+                removals = [];
+                removalsByProvider[entry.ProviderStepId] = removals;
+            }
+
+            removals.Add((entry.DownstreamStepId, entry.FieldName));
+        }
+
+        var updated = ImmutableList.CreateBuilder<PlanStep>();
+
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is OperationPlanStep providerStep
+                && removalsByProvider.TryGetValue(providerStep.Id, out var removals))
+            {
+                var removedDependentIds = new HashSet<int>();
+                foreach (var (downstreamStepId, _) in removals)
+                {
+                    removedDependentIds.Add(downstreamStepId);
+                }
+
+                var remainingDependents = providerStep.Dependents.Except(removedDependentIds);
+
+                var stillConsumedFieldNames = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var remainingDependentId in remainingDependents)
+                {
+                    if (incrementalPlanSteps.ById(remainingDependentId) is not OperationPlanStep remainingStep)
+                    {
+                        continue;
+                    }
+
+                    foreach (var (_, requirement) in remainingStep.Requirements)
+                    {
+                        var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
+                        if (fieldName is not null)
+                        {
+                            stillConsumedFieldNames.Add(fieldName);
+                        }
+                    }
+                }
+
+                var updatedProviderStep = providerStep with { Dependents = remainingDependents };
+
+                foreach (var fieldName in removals.Select(r => r.FieldName).Distinct(StringComparer.Ordinal))
+                {
+                    if (!stillConsumedFieldNames.Contains(fieldName))
+                    {
+                        updatedProviderStep = RemoveUnconsumedEntityField(updatedProviderStep, fieldName);
+                    }
+                }
+
+                updated.Add(updatedProviderStep);
+            }
+            else
+            {
+                updated.Add(step);
+            }
+        }
+
+        return updated.ToImmutable();
+    }
+
+    /// <summary>
+    /// Removes a single top-level field from <paramref name="step"/>'s own entity-level
+    /// selection set (see <see cref="GetStepEntitySelectionSet"/>) once nothing consumes
+    /// it any longer, keeping the step's selection-set index in sync.
+    /// </summary>
+    private static OperationPlanStep RemoveUnconsumedEntityField(OperationPlanStep step, string fieldName)
+    {
+        var entitySelectionSet = GetStepEntitySelectionSet(step);
+        var filtered = new List<ISelectionNode>(entitySelectionSet.Selections.Count);
+        var removed = false;
+
+        foreach (var selection in entitySelectionSet.Selections)
+        {
+            if (!removed
+                && selection is FieldNode field
+                && (field.Alias?.Value ?? field.Name.Value).Equals(fieldName, StringComparison.Ordinal))
+            {
+                removed = true;
+                continue;
+            }
+
+            filtered.Add(selection);
+        }
+
+        if (!removed || filtered.Count == 0)
+        {
+            return step;
+        }
+
+        var newEntitySelectionSet = new SelectionSetNode(filtered);
+
+        var newDefinition =
+            step.Lookup is not null && step.Definition.SelectionSet.Selections is [FieldNode lookupField]
+                ? step.Definition.WithSelectionSet(
+                    new SelectionSetNode([lookupField.WithSelectionSet(newEntitySelectionSet)]))
+                : step.Definition.WithSelectionSet(newEntitySelectionSet);
+
+        var index = SelectionSetIndexer.Create(newDefinition);
+
+        return step with
+        {
+            Definition = newDefinition,
+            SelectionSets = SelectionSetIndexer.CreateIdSet(newDefinition.SelectionSet, index),
+            RootSelectionSetId = index.GetId(newDefinition.SelectionSet)
+        };
     }
 
     /// <summary>
