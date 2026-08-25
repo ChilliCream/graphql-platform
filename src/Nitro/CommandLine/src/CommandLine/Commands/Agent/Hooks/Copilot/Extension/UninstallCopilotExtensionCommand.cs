@@ -14,7 +14,7 @@ internal sealed class UninstallCopilotExtensionCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent hooks copilot extension uninstall");
+        this.AddExamples("agent hooks copilot uninstall");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Claude;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Copilot;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 
@@ -18,6 +17,5 @@ internal sealed class HookCommand : Command
 
         Subcommands.Add(new ClaudeHookCommand());
         Subcommands.Add(new CodexHookCommand());
-        Subcommands.Add(new CopilotHookCommand());
     }
 }

@@ -2,18 +2,14 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Command wiring (help text) only for <c>agent hooks copilot
-/// install/status/uninstall</c>, same reasoning as
-/// <c>CodexHooksCommandTests</c>: this test harness has no plumbing to
-/// redirect <c>COPILOT_HOME</c> away from the real <c>~/.copilot</c>, so
-/// nothing here ever actually installs. The deep install/status/uninstall
-/// behavior is exercised directly against
-/// <c>CopilotHooksEditor</c>/<c>CopilotHooksInstallerService</c> in their own
-/// dedicated test classes, all fixture- and temp-directory-driven.
+/// install/status/uninstall</c>. The extension's file behavior is exercised
+/// directly against <c>CopilotExtensionInstallerService</c> in its dedicated
+/// temp-directory-driven test class.
 /// </summary>
 public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task Help_Hooks_ListsCopilotAlongsideTheExistingClaudeAndCodexVerbs()
+    public async Task Help_Hooks_ListsCopilotAlongsideTheExistingClaudeAndCodexHarnesses()
     {
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "--help");
@@ -37,70 +33,10 @@ public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : Agen
         result.AssertHelpOutput(
             """
             Description:
-              Install, inspect, and remove Nitro's Copilot CLI hook entries.
-
-            Usage:
-              nitro agent hooks copilot [command] [options]
-
-            Options:
-              -?, -h, --help  Show help and usage information
-
-            Commands:
-              install    Add or update this CLI's Copilot CLI turn-boundary hook entries.
-              status     Show whether this CLI's Copilot CLI hook entries are missing, current, or outdated.
-              uninstall  Remove this CLI's Copilot CLI turn-boundary hook entries.
-              extension  Install, inspect, and remove the nitro-mail Copilot CLI extension asset.
-            """);
-    }
-
-    [Fact]
-    public async Task Help_HooksCopilotInstall_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "install", "--help");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Contains("Add or update this CLI's Copilot CLI turn-boundary hook entries.", result.StdOut);
-    }
-
-    [Fact]
-    public async Task Help_HooksCopilotStatus_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "status", "--help");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Contains(
-            "Show whether this CLI's Copilot CLI hook entries are missing, current, or outdated.", result.StdOut);
-    }
-
-    [Fact]
-    public async Task Help_HooksCopilotUninstall_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "uninstall", "--help");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Contains("Remove this CLI's Copilot CLI turn-boundary hook entries.", result.StdOut);
-    }
-
-    [Fact]
-    public async Task Help_HooksCopilotExtension_ReturnsSuccess()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "extension", "--help");
-
-        // assert
-        result.AssertHelpOutput(
-            """
-            Description:
               Install, inspect, and remove the nitro-mail Copilot CLI extension asset.
 
             Usage:
-              nitro agent hooks copilot extension [command] [options]
+              nitro agent hooks copilot [command] [options]
 
             Options:
               -?, -h, --help  Show help and usage information
@@ -113,10 +49,10 @@ public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : Agen
     }
 
     [Fact]
-    public async Task Help_HooksCopilotExtensionInstall_ReturnsSuccess()
+    public async Task Help_HooksCopilotInstall_ReturnsSuccess()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "extension", "install", "--help");
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "install", "--help");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -126,10 +62,33 @@ public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : Agen
     }
 
     [Fact]
+    public async Task Help_HooksCopilotStatus_ReturnsSuccess()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "status", "--help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains(
+            "Show whether the nitro-mail Copilot CLI extension asset is missing, current, outdated, or unrecognized.", result.StdOut);
+    }
+
+    [Fact]
+    public async Task Help_HooksCopilotUninstall_ReturnsSuccess()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "uninstall", "--help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("Remove the nitro-mail Copilot CLI extension asset and its config.", result.StdOut);
+    }
+
+    [Fact]
     public async Task ExtensionInstall_MissingScope_FailsWithAMissingOptionError()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "extension", "install");
+        var result = await ExecuteCommandAsync("agent", "hooks", "copilot", "install");
 
         // assert
         Assert.NotEqual(0, result.ExitCode);
@@ -141,7 +100,7 @@ public sealed class CopilotHooksCommandTests(NitroCommandFixture fixture) : Agen
     {
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "hooks", "copilot", "extension", "install", "--scope", "user");
+            "agent", "hooks", "copilot", "install", "--scope", "user");
 
         // assert
         Assert.NotEqual(0, result.ExitCode);

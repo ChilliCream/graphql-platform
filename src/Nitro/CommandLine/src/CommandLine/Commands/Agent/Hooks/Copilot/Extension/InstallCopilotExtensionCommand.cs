@@ -22,7 +22,7 @@ internal sealed class InstallCopilotExtensionCommand : Command
         Options.Add(Opt<ForceCopilotExtensionOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent hooks copilot extension install --scope project");
+        this.AddExamples("agent hooks copilot install --scope project");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

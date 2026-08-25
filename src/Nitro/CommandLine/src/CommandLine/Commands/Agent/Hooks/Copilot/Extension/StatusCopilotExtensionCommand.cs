@@ -14,7 +14,7 @@ internal sealed class StatusCopilotExtensionCommand : Command
 
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent hooks copilot extension status");
+        this.AddExamples("agent hooks copilot status");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
