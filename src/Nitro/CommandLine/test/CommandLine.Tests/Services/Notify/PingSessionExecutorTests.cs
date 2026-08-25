@@ -85,6 +85,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(ThreadId, call.ThreadId);
         Assert.Contains(message.Id, call.Message);
+        Assert.Contains("check", call.Message);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
     }
@@ -186,6 +187,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         Assert.Equal(42, call.Pid);
         Assert.Equal(SessionId, call.SessionId);
         Assert.Contains(message.Id, call.Message);
+        Assert.Contains("check", call.Message);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
     }

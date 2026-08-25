@@ -154,6 +154,8 @@ public sealed class CopilotHookHandlerTests : IDisposable
         Assert.NotNull(outcome.AdditionalContext);
         Assert.Contains("1 unread message.", outcome.AdditionalContext);
         Assert.Contains("from bob", outcome.AdditionalContext);
+        Assert.Contains("status", outcome.AdditionalContext);
+        Assert.Contains("please check", outcome.AdditionalContext);
     }
 
     [Fact]

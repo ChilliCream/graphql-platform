@@ -131,7 +131,7 @@ internal sealed class CopilotHookHandler(
         // filtering preserves that order.
         var newEntries = unread
             .Where(m => reservedIds.Contains(m.Id))
-            .Select(m => (m.Id, m.Sender))
+            .Select(m => (m.Id, m.Sender, m.Subject, m.Body))
             .ToList();
 
         var totalUnread = await mailStore.CountUnreadAsync(actor, cancellationToken);
