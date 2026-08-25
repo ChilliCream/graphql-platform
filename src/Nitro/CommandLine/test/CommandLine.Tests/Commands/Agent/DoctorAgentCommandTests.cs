@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 
@@ -36,6 +35,20 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         SetupCodexPathResolver(
             hooksJsonPath: Path.Combine(WorkingDirectory, "..", "codex-home", ".codex", "hooks.json"),
             configTomlPath: Path.Combine(WorkingDirectory, "..", "codex-home", ".codex", "config.toml"));
+
+        // The Claude hooks sidecar (which doctor's hooks-consistency check
+        // reads and cross-references against the installed settings.json
+        // entries) lives under the real machine's application-data
+        // directory by default. Without this override every test here that
+        // installs hooks reads and writes that one real, shared file
+        // concurrently with every other parallel test process and TFM host
+        // doing the same, so one test's freshly written sidecar entry can
+        // be silently lost to another test's concurrent, unguarded
+        // read-modify-write (ClaudeHooksInstallerService.InstallAsync has
+        // no concurrency guard on the sidecar write, unlike its
+        // settings.json write). That surfaces here as a spurious "no
+        // matching sidecar record" finding, flipping healthy to false.
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "global-config"));
     }
 
     [Fact]
