@@ -53,6 +53,8 @@ internal sealed class MailWakeDaemonCoordinator(
     IActorWakeDispatcher dispatcher,
     IFileSystem fileSystem,
     AgentDatabase database,
+    INitroInstanceIdProvider instanceIdProvider,
+    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     TimeProvider timeProvider,
     MailWakeDaemonPolicy policy) : IMailWakeDaemonCoordinator
 {
@@ -78,7 +80,7 @@ internal sealed class MailWakeDaemonCoordinator(
         }
     }
 
-    public Task StartAsync(string nitroInstanceId, CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         if (_runTask is not null)
         {
@@ -90,7 +92,7 @@ internal sealed class MailWakeDaemonCoordinator(
         SetStatus(MailWakeDaemonStatus.Initial);
 
         _lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _runTask = RunAsync(nitroInstanceId, _lifetime.Token);
+        _runTask = RunAsync(_lifetime.Token);
         return Task.CompletedTask;
     }
 
@@ -119,33 +121,66 @@ internal sealed class MailWakeDaemonCoordinator(
             // cancellationToken itself fired while waiting for the loop to
             // wind down.
         }
-
-        lifetime.Dispose();
-        _lifetime = null;
-        _runTask = null;
+        catch (Exception ex)
+        {
+            // A faulted run loop (a non-OperationCanceledException that
+            // escaped RunAsync despite its own fault recovery) must never
+            // propagate out of StopAsync/DisposeAsync: it is recorded and
+            // swallowed here instead.
+            SetStatus(Status with { LastError = Bound(ex.Message) });
+        }
+        finally
+        {
+            lifetime.Dispose();
+            _lifetime = null;
+            _runTask = null;
+        }
     }
 
     public async ValueTask DisposeAsync() => await StopAsync(CancellationToken.None);
 
-    private async Task RunAsync(string nitroInstanceId, CancellationToken stopToken)
+    private async Task RunAsync(CancellationToken stopToken)
     {
-        try
+        string? nitroInstanceId = null;
+
+        while (!stopToken.IsCancellationRequested)
         {
-            while (!stopToken.IsCancellationRequested)
+            try
             {
+                nitroInstanceId ??= await instanceIdProvider.GetIdAsync(
+                    globalConfigDirectoryProvider.GetDirectory(), stopToken);
+
                 var epoch = await StandbyUntilLeaderAsync(nitroInstanceId, stopToken);
 
                 if (epoch is null)
                 {
-                    break;
+                    return;
                 }
 
                 await RunAsLeaderAsync(nitroInstanceId, epoch.Value, stopToken);
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // Graceful shutdown.
+            catch (OperationCanceledException)
+            {
+                // Graceful shutdown.
+                return;
+            }
+            catch (Exception ex)
+            {
+                // A non-busy fault on the election path (for example the
+                // leader store itself throwing) must not silently kill this
+                // instance's participation: it is recorded and the loop
+                // retries after a standby poll interval instead.
+                SetStatus(Status with { State = MailWakeDaemonState.Standby, LastError = Bound(ex.Message) });
+
+                try
+                {
+                    await Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+            }
         }
     }
 
@@ -160,10 +195,15 @@ internal sealed class MailWakeDaemonCoordinator(
             // self-denial backoff window: this instance is not merely idly
             // waiting its turn, it deliberately withholds every acquisition
             // attempt below so a differently privileged standby can win
-            // instead.
-            SetStatus(new MailWakeDaemonStatus(
-                selfDenied ? MailWakeDaemonState.Degraded : MailWakeDaemonState.Standby,
-                null, null, null, Status.LastError));
+            // instead. Never overwrite a concurrent StopAsync's Stopping
+            // status: it can land between this loop's cancellation check and
+            // this write.
+            if (Status.State != MailWakeDaemonState.Stopping)
+            {
+                SetStatus(new MailWakeDaemonStatus(
+                    selfDenied ? MailWakeDaemonState.Degraded : MailWakeDaemonState.Standby,
+                    null, null, null, Status.LastError));
+            }
 
             if (!selfDenied)
             {
@@ -398,6 +438,15 @@ internal sealed class MailWakeDaemonCoordinator(
             // flight; ActorWakeDispatcher never asserts an outcome for a
             // target abandoned this way, so there is nothing further to
             // record here.
+        }
+        catch (Exception ex)
+        {
+            // A non-OperationCanceledException fault for this one actor (for
+            // example TryReleaseAsync itself throwing) must never fault the
+            // admission loop's Task.WhenAll and escape AwaitLoopAsync: it is
+            // recorded and the next admission tick simply retries this
+            // actor.
+            SetStatus(Status with { LastError = Bound(ex.Message) });
         }
         finally
         {
