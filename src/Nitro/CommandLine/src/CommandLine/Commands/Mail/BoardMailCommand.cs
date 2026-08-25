@@ -22,6 +22,13 @@ internal sealed class BoardMailCommand : Command
     /// </summary>
     private static readonly TimeSpan SendShieldBound = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// How often the standalone board's live presence row is touched while
+    /// it stays open, so <c>lastHeardAt</c> stays meaningful for a long-running
+    /// session without needing a write on every keystroke.
+    /// </summary>
+    private static readonly TimeSpan BoardSessionTouchInterval = TimeSpan.FromSeconds(30);
+
     public BoardMailCommand() : base("board")
     {
         Description = "Open the interactive mail board.";
@@ -43,6 +50,7 @@ internal sealed class BoardMailCommand : Command
         var wakeObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var boardSessionLifecycle = services.GetRequiredService<IBoardSessionLifecycle>();
 
         if (!console.IsInteractive)
         {
@@ -59,36 +67,80 @@ internal sealed class BoardMailCommand : Command
 
         var actor = MailActor.Resolve(null, environmentVariableProvider);
 
-        // The standalone board never starts a daemon of its own, so it is
-        // wired with the real dispatcher (the same one the CLI's send/reply
-        // commands use) rather than MailMode's dashboard-only no-op.
-        var mode = new MailMode(
-            store, actor, agentRegistry, wakeDispatcher, wakeObserver, timeProvider, quitCts.Token);
-        var dispatcher = new KeyDispatcher(MailKeyMap.CreateDefault());
-        var shell = new TuiShell(
-            dispatcher,
-            mode,
-            console.Profile.Width,
-            console.Profile.Height,
-            quitGates: [mode.CreateQuitGate()]);
-        var application = new TuiApplication(console);
-        var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
-
-        shell.QuitConfirmed += () => quitCts.Cancel();
-        shell.QuitCancelled += mode.ResumeSendAcceptance;
+        // Live board presence, started before the TUI loop opens and always
+        // ended again below (normal quit, cancellation, or this method
+        // itself failing) in the outer finally, so the board never leaves a
+        // stale live row behind. Closing the board removes only this live
+        // row; the durable actor identity and mail history are untouched.
+        var boardSession = await boardSessionLifecycle.StartAsync(actor, cancellationToken);
 
         try
         {
-            await application.RunAsync(
-                shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync, mode.RunSendEffectEventsAsync]);
+            // The standalone board never starts a daemon of its own, so it is
+            // wired with the real dispatcher (the same one the CLI's send/reply
+            // commands use) rather than MailMode's dashboard-only no-op.
+            var mode = new MailMode(
+                store, actor, agentRegistry, wakeDispatcher, wakeObserver, timeProvider, quitCts.Token);
+            var dispatcher = new KeyDispatcher(MailKeyMap.CreateDefault());
+            var shell = new TuiShell(
+                dispatcher,
+                mode,
+                console.Profile.Width,
+                console.Profile.Height,
+                actor: $"{actor} ({BoardSessionLifecycle.OperatorRole})",
+                quitGates: [mode.CreateQuitGate()]);
+            var application = new TuiApplication(console);
+            var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
+
+            shell.QuitConfirmed += () => quitCts.Cancel();
+            shell.QuitCancelled += mode.ResumeSendAcceptance;
+
+            try
+            {
+                await application.RunAsync(
+                    shell.Handle,
+                    shell.Render,
+                    quitCts.Token,
+                    [
+                        dbWatcher.RunAsync,
+                        mode.RunSendEffectEventsAsync,
+                        (_, token) => RunBoardSessionHeartbeatAsync(boardSessionLifecycle, boardSession, token)
+                    ]);
+            }
+            finally
+            {
+                // Unconditional: covers the Ctrl+C/host-cancellation path the
+                // interactive quit gate above never runs for.
+                await mode.ShieldPendingSendsAsync(SendShieldBound, CancellationToken.None);
+            }
         }
         finally
         {
-            // Unconditional: covers the Ctrl+C/host-cancellation path the
-            // interactive quit gate above never runs for.
-            await mode.ShieldPendingSendsAsync(SendShieldBound, CancellationToken.None);
+            await boardSessionLifecycle.EndAsync(boardSession, CancellationToken.None);
         }
 
         return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Touches <paramref name="generation"/>'s live presence row on a fixed
+    /// interval until <paramref name="cancellationToken"/> is cancelled.
+    /// </summary>
+    private static async Task RunBoardSessionHeartbeatAsync(
+        IBoardSessionLifecycle lifecycle, AgentSessionGeneration generation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(BoardSessionTouchInterval);
+
+            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await lifecycle.TouchAsync(generation, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on shutdown.
+        }
     }
 }

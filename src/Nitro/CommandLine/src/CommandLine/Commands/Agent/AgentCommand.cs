@@ -74,6 +74,7 @@ internal sealed class AgentCommand : Command
                 // never starts the mail-wake daemon coordinator.
                 var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
                 var mailWakeReceiptObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
+                var boardSessionLifecycle = services.GetRequiredService<IBoardSessionLifecycle>();
 
                 return await AgentTuiLauncher.RunAsync(
                     console,
@@ -88,6 +89,7 @@ internal sealed class AgentCommand : Command
                     workspaceDirectory,
                     mailWakeDaemonCoordinator,
                     mailWakeReceiptObserver,
+                    boardSessionLifecycle,
                     cancellationToken);
             }
         }

@@ -34,6 +34,12 @@ internal static class AgentTuiLauncher
     private static readonly TimeSpan SendShieldBound = TimeSpan.FromSeconds(2);
 
     /// <summary>
+    /// How often the unified dashboard's live board presence row is touched
+    /// while it stays open, mirroring the standalone board's own interval.
+    /// </summary>
+    private static readonly TimeSpan BoardSessionTouchInterval = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// Runs the tabbed shell until the user quits or
     /// <paramref name="cancellationToken"/> is cancelled, returning the
     /// shell's exit code. Owns <paramref name="mailWakeDaemonCoordinator"/>'s
@@ -45,7 +51,10 @@ internal static class AgentTuiLauncher
     /// The daemon's own leadership and health are never fatal to this run:
     /// a coordinator that never reaches <see cref="MailWakeDaemonState.Ready"/>
     /// still leaves every other tab fully usable, only surfaced through the
-    /// shell's own footer badge.
+    /// shell's own footer badge. Also owns the live board-session presence
+    /// row's lifetime the same way: started for the resolved mail actor
+    /// before the shell opens, and always ended again on every exit path,
+    /// even when no row was ever started (an invalid mail actor).
     /// </summary>
     public static async Task<int> RunAsync(
         INitroConsole console,
@@ -60,10 +69,61 @@ internal static class AgentTuiLauncher
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         IMailWakeReceiptObserver mailWakeReceiptObserver,
+        IBoardSessionLifecycle boardSessionLifecycle,
+        CancellationToken cancellationToken)
+    {
+        // Live board presence for the resolved mail identity (distinct from
+        // the task actor the shell footer identifies by below), started
+        // before the shell opens and always ended again below. An invalid
+        // mail actor (the same ExitException BuildMailTab's own
+        // MailUnavailableMode already surfaces) leaves no live row rather
+        // than failing the whole dashboard launch: every other tab must
+        // still open normally.
+        AgentSessionGeneration? boardSession = null;
+
+        try
+        {
+            var mailActor = MailActor.Resolve(null, environmentVariableProvider);
+            boardSession = await boardSessionLifecycle.StartAsync(mailActor, cancellationToken);
+        }
+        catch (ExitException)
+        {
+        }
+
+        try
+        {
+            return await RunShellAsync(
+                console, taskStore, mailStore, memoryStore, agentRegistry, agentSessionRegistry, activityReader,
+                timeProvider, environmentVariableProvider, workspaceDirectory, mailWakeDaemonCoordinator,
+                mailWakeReceiptObserver, boardSessionLifecycle, boardSession, cancellationToken);
+        }
+        finally
+        {
+            if (boardSession is not null)
+            {
+                await boardSessionLifecycle.EndAsync(boardSession, CancellationToken.None);
+            }
+        }
+    }
+
+    private static async Task<int> RunShellAsync(
+        INitroConsole console,
+        ITaskStore taskStore,
+        IMailStore mailStore,
+        IMemoryStore memoryStore,
+        IAgentRegistry agentRegistry,
+        IAgentSessionRegistry agentSessionRegistry,
+        IClaudeSessionActivityReader activityReader,
+        TimeProvider timeProvider,
+        IEnvironmentVariableProvider environmentVariableProvider,
+        string workspaceDirectory,
+        IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
+        IMailWakeReceiptObserver mailWakeReceiptObserver,
+        IBoardSessionLifecycle boardSessionLifecycle,
+        AgentSessionGeneration? boardSession,
         CancellationToken cancellationToken)
     {
         var actor = TaskActor.Resolve(null, environmentVariableProvider);
-
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
 
@@ -127,6 +187,12 @@ internal static class AgentTuiLauncher
             eventSources.Add(mailMode.RunSendEffectEventsAsync);
         }
 
+        if (boardSession is { } liveBoardSession)
+        {
+            eventSources.Add(
+                (_, token) => RunBoardSessionHeartbeatAsync(boardSessionLifecycle, liveBoardSession, token));
+        }
+
         try
         {
             await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, eventSources);
@@ -151,6 +217,28 @@ internal static class AgentTuiLauncher
         }
 
         return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Touches <paramref name="generation"/>'s live presence row on a fixed
+    /// interval until <paramref name="cancellationToken"/> is cancelled.
+    /// </summary>
+    private static async Task RunBoardSessionHeartbeatAsync(
+        IBoardSessionLifecycle lifecycle, AgentSessionGeneration generation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(BoardSessionTouchInterval);
+
+            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await lifecycle.TouchAsync(generation, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on shutdown.
+        }
     }
 
     /// <summary>
