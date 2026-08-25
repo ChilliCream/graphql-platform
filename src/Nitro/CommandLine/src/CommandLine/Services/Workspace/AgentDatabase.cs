@@ -30,9 +30,10 @@ internal sealed class AgentDatabase
     /// process_scope columns), v5 (before <c>agent_sessions</c> gained its
     /// v6 <c>proc_start_legacy</c> column), v6 (before the v7
     /// <see cref="MailWakeSchema"/> and <see cref="SessionPingGateSchema"/>
-    /// tables), and v7 (before <c>agent_sessions</c>' <c>harness</c> and
-    /// <c>endpoint_kind</c> CHECK constraints accepted the v8
-    /// <c>nitro-board</c> and <c>db-watch</c> values). A v3 database's
+    /// tables), and v7 (before <c>agent_sessions</c>', <c>mail_wake_targets</c>'
+    /// and <c>session_ping_gates</c>' <c>harness</c> CHECK constraints, and
+    /// <c>agent_sessions</c>' <c>endpoint_kind</c> CHECK constraint, accepted
+    /// the v8 <c>nitro-board</c> and <c>db-watch</c> values). A v3 database's
     /// agents table already carries every column
     /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
     /// means applying the new v4 tables and bumping the stamped version. A
@@ -50,6 +51,11 @@ internal sealed class AgentDatabase
     /// method is needed for this step. A v7 database's <c>agent_sessions</c>
     /// CHECK constraints predate <c>nitro-board</c>/<c>db-watch</c>, rebuilt
     /// in place by <see cref="RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync"/>.
+    /// Its <c>mail_wake_targets</c> and <c>session_ping_gates</c> tables'
+    /// <c>harness</c> CHECK constraints predate <c>nitro-board</c> the same
+    /// way, rebuilt in place by
+    /// <see cref="RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync"/>
+    /// and <see cref="RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync"/>.
     /// </summary>
     private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6, 7];
 
@@ -135,6 +141,16 @@ internal sealed class AgentDatabase
         // method.
         await connection.ExecuteAsync(MailWakeSchema.Create, transaction: transaction);
         await connection.ExecuteAsync(SessionPingGateSchema.Create, transaction: transaction);
+
+        // v8: mail_wake_targets' and session_ping_gates' harness CHECK
+        // constraints predate the nitro-board value on a v7 database, the
+        // same gap RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync
+        // closes for agent_sessions below. Neither table is the target of a
+        // foreign key from another table, unlike agent_sessions, so the
+        // rebuild can run inside this transaction without toggling PRAGMA
+        // foreign_keys or running in its own transaction afterward.
+        await RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync(connection, transaction);
+        await RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync(connection, transaction);
 
         // Column-by-column, not gated on version == UpgradableVersion: the
         // client column shipped after CurrentVersion was last bumped to 3,
@@ -463,6 +479,118 @@ internal sealed class AgentDatabase
         {
             await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
         }
+    }
+
+    /// <summary>
+    /// Rebuilds <c>mail_wake_targets</c> in place when its stamped
+    /// <c>harness</c> CHECK constraint predates the v8 <c>nitro-board</c>
+    /// value, detected the same way
+    /// <see cref="RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync"/>
+    /// detects a stale <c>agent_sessions</c> constraint: by inspecting the
+    /// table's own recorded SQL in <c>sqlite_master</c>, since SQLite has no
+    /// ALTER for a CHECK constraint. A no-op when the constraint already
+    /// lists the new value (including every freshly created table) or when
+    /// the table does not exist yet.
+    /// </summary>
+    /// <remarks>
+    /// Follows the same drop-under-a-fresh-name-then-rename procedure as
+    /// <see cref="RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync"/>,
+    /// but runs inside the caller's own transaction instead of a dedicated
+    /// one with foreign keys disabled: unlike <c>agent_sessions</c>,
+    /// <c>mail_wake_targets</c> is not the target of a foreign key from any
+    /// other table, so dropping and recreating it never risks a cascading
+    /// delete on a sibling table.
+    /// </remarks>
+    private static async Task RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+    {
+        var createTableSql = await connection.ExecuteScalarAsync<string?>(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'mail_wake_targets';",
+            transaction: transaction);
+
+        if (createTableSql is null || createTableSql.Contains("'nitro-board'", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        const string rebuildTableName = "mail_wake_targets_harness_rebuild";
+
+        await connection.ExecuteAsync(
+            $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
+        await connection.ExecuteAsync(
+            MailWakeSchema.CreateMailWakeTargetsTable(rebuildTableName), transaction: transaction);
+        await connection.ExecuteAsync(
+            $"""
+            INSERT INTO "{rebuildTableName}" (
+                batch_id, harness, session_id, host, pid, proc_start,
+                status, offered_generation, accepted_generation, last_error, updated_at
+            )
+            SELECT
+                batch_id, harness, session_id, host, pid, proc_start,
+                status, offered_generation, accepted_generation, last_error, updated_at
+            FROM mail_wake_targets;
+            """,
+            transaction: transaction);
+        await connection.ExecuteAsync("DROP TABLE mail_wake_targets;", transaction: transaction);
+        await connection.ExecuteAsync(
+            $"""ALTER TABLE "{rebuildTableName}" RENAME TO mail_wake_targets;""", transaction: transaction);
+    }
+
+    /// <summary>
+    /// Rebuilds <c>session_ping_gates</c> in place when its stamped
+    /// <c>harness</c> CHECK constraint predates the v8 <c>nitro-board</c>
+    /// value, the same gap and detection method
+    /// <see cref="RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync"/>
+    /// closes for <c>mail_wake_targets</c>. A no-op when the constraint
+    /// already lists the new value (including every freshly created table)
+    /// or when the table does not exist yet.
+    /// </summary>
+    /// <remarks>
+    /// Follows the same procedure as
+    /// <see cref="RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync"/>,
+    /// including running inside the caller's own transaction: like
+    /// <c>mail_wake_targets</c>, <c>session_ping_gates</c> is not the target
+    /// of a foreign key from any other table. Recreates
+    /// <c>idx_session_ping_gates_expires</c> after the rename, since an
+    /// index attached to the dropped table does not follow it.
+    /// </remarks>
+    private static async Task RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+    {
+        var createTableSql = await connection.ExecuteScalarAsync<string?>(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'session_ping_gates';",
+            transaction: transaction);
+
+        if (createTableSql is null || createTableSql.Contains("'nitro-board'", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        const string rebuildTableName = "session_ping_gates_harness_rebuild";
+
+        await connection.ExecuteAsync(
+            $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
+        await connection.ExecuteAsync(
+            SessionPingGateSchema.CreateSessionPingGatesTable(rebuildTableName), transaction: transaction);
+        await connection.ExecuteAsync(
+            $"""
+            INSERT INTO "{rebuildTableName}" (
+                harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at
+            )
+            SELECT
+                harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at
+            FROM session_ping_gates;
+            """,
+            transaction: transaction);
+        await connection.ExecuteAsync("DROP TABLE session_ping_gates;", transaction: transaction);
+        await connection.ExecuteAsync(
+            $"""ALTER TABLE "{rebuildTableName}" RENAME TO session_ping_gates;""", transaction: transaction);
+
+        await connection.ExecuteAsync(
+            "CREATE INDEX IF NOT EXISTS idx_session_ping_gates_expires ON session_ping_gates (expires_at);",
+            transaction: transaction);
     }
 
     /// <summary>

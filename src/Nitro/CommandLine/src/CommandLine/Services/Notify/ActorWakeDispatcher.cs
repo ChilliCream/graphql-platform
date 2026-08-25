@@ -18,8 +18,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// any transport.</item>
 /// <item>Otherwise, every target is re-resolved against its exact frozen
 /// generation (a session that ended or rebound since the claim disappears
-/// as a failure, not a stale write), reserved through
-/// <see cref="ISessionGateCoordinator"/>, and dispatched through
+/// as a failure, not a stale write). A target whose endpoint is
+/// <see cref="AgentSessionEndpointKind.DbWatch"/> (a Nitro board) is recorded
+/// <see cref="MailWakeTargetStatus.Delivered"/> outright, no lease
+/// reservation or transport attempted, since the board's own db-file watcher
+/// already observes the committed message. Every other target is reserved
+/// through <see cref="ISessionGateCoordinator"/> and dispatched through
 /// <see cref="IPingSessionExecutor"/>, up to <see cref="WakeDispatchPolicy.MaxConcurrentTransports"/>
 /// at once. A Claude access-denied outcome offers only that one target
 /// (recorded pending, not failed) and lets its live siblings finish rather
@@ -284,6 +288,18 @@ internal sealed class ActorWakeDispatcher(
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "no-endpoint");
             }
 
+            if (session.EndpointKind == AgentSessionEndpointKind.DbWatch)
+            {
+                // A Nitro board's endpoint is the shared workspace database
+                // file itself: the message this batch was claimed to deliver
+                // is already visible to it the moment it commits, observed
+                // through the board's own db-file watcher, not through any
+                // transport this dispatcher fires. Recorded delivered
+                // outright: no lease reservation, no ping worker, and no
+                // fake unsupported or error result.
+                return await RecordDeliveredAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration);
+            }
+
             if (session.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
                 and not AgentSessionEndpointKind.CodexThread)
             {
@@ -360,6 +376,19 @@ internal sealed class ActorWakeDispatcher(
                 concurrencyGate.Release();
             }
         }
+    }
+
+    private async Task<ActorWakeTargetReceipt> RecordDeliveredAsync(
+        string batchId, AgentSessionGeneration target, string ownerId, string attemptId, long claimedGeneration)
+    {
+        var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+            batchId, target, ownerId, attemptId, MailWakeTargetStatus.Delivered,
+            offeredGeneration: null, acceptedGeneration: claimedGeneration, lastError: null,
+            timeProvider.GetUtcNow(), CancellationToken.None);
+
+        return recorded
+            ? new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Delivered, null, claimedGeneration, null)
+            : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
     }
 
     private async Task<ActorWakeTargetReceipt> RecordFailureAsync(

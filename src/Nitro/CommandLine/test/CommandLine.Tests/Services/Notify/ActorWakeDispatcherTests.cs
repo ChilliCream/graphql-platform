@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -560,6 +561,178 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
         var status = (string)(await command.ExecuteScalarAsync(cancellationToken))!;
         Assert.Equal(MailWakeTargetStatus.Failed, status);
+    }
+
+    /// <summary>
+    /// Wired like a real end-to-end dispatch (the real
+    /// <see cref="PingSessionExecutor"/> and <see cref="SessionGateCoordinator"/>,
+    /// only the outermost Codex transport faked), not the scripted
+    /// <see cref="FakePingSessionExecutor"/> the tests above use: a false
+    /// transport attempt against the board's db-watch endpoint must be
+    /// observable here, not merely absent from a fake's own call log.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_Should_DeliverTheDbWatchTargetWithoutTransport_When_TheActorHasALiveBoardSession()
+    {
+        // arrange: a live Nitro board session (endpoint_kind = db-watch) for
+        // "pascal", whose mail is already delivered the moment it commits.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        var pid = Environment.ProcessId;
+        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
+        var boardGeneration = new AgentSessionGeneration(
+            AgentSessionHarness.NitroBoard, "board-1", InstanceId, pid, procStart);
+        await _sessions.StartAsync(
+            boardGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.DbWatch, "local",
+            envActor: "pascal", cancellationToken);
+
+        var message = await _mail.SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = "codex-worker",
+                Subject = "status",
+                Body = "check",
+                To = ["pascal"],
+                WakePolicy = MailWakePolicy.Enqueue
+            },
+            cancellationToken);
+        var receipt = Assert.Single(message.WakeReceipts);
+
+        var queueClient = new FakeCodexQueueClient();
+        var executor = new PingSessionExecutor(
+            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
+        var dispatcher = new ActorWakeDispatcher(
+            _batches,
+            _sessions,
+            _gateCoordinator,
+            executor,
+            _mail,
+            _instanceIdProvider,
+            _globalConfigDirectoryProvider,
+            _timeProvider);
+
+        // act
+        var dispatchReceipt = await dispatcher.DispatchAsync("pascal", Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(dispatchReceipt);
+        Assert.Equal(MailWakeTargetStatus.Delivered, dispatchReceipt.Status);
+        var target = Assert.Single(dispatchReceipt.Targets);
+        Assert.Equal(boardGeneration, target.Target);
+        Assert.Equal(MailWakeTargetStatus.Delivered, target.Status);
+        Assert.Null(target.LastError);
+
+        // no Codex transport was ever attempted, and no session gate or ping
+        // lease row was ever created for the board generation: dispatch
+        // short-circuits before reaching gateCoordinator.TryReserveAsync or
+        // the executor at all.
+        Assert.Empty(queueClient.Calls);
+
+        await using (var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken))
+        {
+            var gateCount = await ScalarCountAsync(
+                connection,
+                "SELECT COUNT(*) FROM session_ping_gates WHERE session_id = @sessionId",
+                boardGeneration.SessionId,
+                cancellationToken);
+            var leaseCount = await ScalarCountAsync(
+                connection, "SELECT COUNT(*) FROM ping_leases", null, cancellationToken);
+            Assert.Equal(0, gateCount);
+            Assert.Equal(0, leaseCount);
+        }
+
+        var observer = new MailWakeReceiptObserver(
+            _fileSystem, _database, _instanceIdProvider, _globalConfigDirectoryProvider);
+        var observation = await observer.ObserveAsync(receipt, cancellationToken);
+        Assert.Equal(MailWakeTargetStatus.Delivered, observation.Status);
+        Assert.True(observation.IsZero);
+    }
+
+    /// <summary>
+    /// The same actor can hold both a live board session and a live coding-
+    /// harness session at once: the db-watch target settles delivered
+    /// outright while its sibling still goes through the real transport.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_Should_DeliverTheDbWatchTarget_And_StillPingTheCodexTarget_When_TheActorHasBothSessionKinds()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        var pid = Environment.ProcessId;
+        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
+        var boardGeneration = new AgentSessionGeneration(
+            AgentSessionHarness.NitroBoard, "board-1", InstanceId, pid, procStart);
+        await _sessions.StartAsync(
+            boardGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.DbWatch, "local",
+            envActor: "pascal", cancellationToken);
+
+        var codexGeneration = new AgentSessionGeneration(
+            AgentSessionHarness.Codex, "codex-session", InstanceId, pid, procStart);
+        await _sessions.StartAsync(
+            codexGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+            envActor: "pascal", cancellationToken);
+
+        var message = await _mail.SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = "codex-worker",
+                Subject = "status",
+                Body = "check",
+                To = ["pascal"],
+                WakePolicy = MailWakePolicy.Enqueue
+            },
+            cancellationToken);
+
+        var queueClient = new FakeCodexQueueClient();
+        var executor = new PingSessionExecutor(
+            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
+        var dispatcher = new ActorWakeDispatcher(
+            _batches,
+            _sessions,
+            _gateCoordinator,
+            executor,
+            _mail,
+            _instanceIdProvider,
+            _globalConfigDirectoryProvider,
+            _timeProvider);
+
+        // act
+        var dispatchReceipt = await dispatcher.DispatchAsync("pascal", Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(dispatchReceipt);
+        Assert.Equal(2, dispatchReceipt.Targets.Count);
+
+        var boardTarget = Assert.Single(dispatchReceipt.Targets, t => t.Target == boardGeneration);
+        Assert.Equal(MailWakeTargetStatus.Delivered, boardTarget.Status);
+        Assert.Null(boardTarget.LastError);
+
+        var codexTarget = Assert.Single(dispatchReceipt.Targets, t => t.Target == codexGeneration);
+        Assert.Equal(MailWakeTargetStatus.Delivered, codexTarget.Status);
+
+        var call = Assert.Single(queueClient.Calls);
+        Assert.Equal("thread-1", call.ThreadId);
+        Assert.Contains(message.Id, call.Message);
+    }
+
+    private static async Task<long> ScalarCountAsync(
+        Microsoft.Data.Sqlite.SqliteConnection connection,
+        string sql,
+        string? sessionId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        if (sessionId is not null)
+        {
+            command.Parameters.AddWithValue("@sessionId", sessionId);
+        }
+
+        return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
     }
 
     private DateTimeOffset Deadline() => _timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;

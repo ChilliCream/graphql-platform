@@ -1492,6 +1492,207 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
+    /// Seeds a fully v7-shaped database whose <c>mail_wake_targets</c> and
+    /// <c>session_ping_gates</c> tables still carry their pre-v8
+    /// <c>harness</c> CHECK constraint (predating <c>nitro-board</c>), with a
+    /// populated row in each and the <c>mail_wake_batches</c> owner the
+    /// target row cascades from, mirroring a real workspace at this bead's
+    /// start. InitializeAsync must rebuild both tables to accept the new
+    /// value without losing the existing rows or the FK enforcement
+    /// <c>mail_wake_targets</c> relies on against <c>mail_wake_batches</c>.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeMailWakeTargetsAndSessionPingGatesHarnessCheckConstraint_When_ExistingVersionIsV7()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
+            await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, AgentRegistrySchema.Create, cancellationToken);
+            await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, AgentSessionSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, MailWakeSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, SessionPingGateSchema.Create, cancellationToken);
+
+            // Downgrade mail_wake_targets and session_ping_gates to their
+            // pre-v8 harness CHECK constraint, mirroring how the
+            // agent_sessions v7 test above hand-rolls its own stale
+            // constraint.
+            await ExecuteAsync(
+                connection,
+                """
+                DROP TABLE mail_wake_targets;
+                CREATE TABLE mail_wake_targets (
+                    batch_id TEXT NOT NULL REFERENCES mail_wake_batches (batch_id) ON DELETE CASCADE,
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    host TEXT NOT NULL,
+                    pid INTEGER NOT NULL CHECK (pid > 0),
+                    proc_start TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (status IN ('pending', 'delivered', 'satisfied', 'delegated', 'skipped', 'failed')),
+                    offered_generation INTEGER NULL CHECK (offered_generation IS NULL OR offered_generation >= 0),
+                    accepted_generation INTEGER NULL CHECK (accepted_generation IS NULL OR accepted_generation >= 0),
+                    last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (batch_id, harness, session_id, host, pid, proc_start)
+                );
+
+                DROP TABLE session_ping_gates;
+                CREATE TABLE session_ping_gates (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    host TEXT NOT NULL,
+                    pid INTEGER NOT NULL CHECK (pid > 0),
+                    proc_start TEXT NOT NULL,
+                    attempt_id TEXT NOT NULL,
+                    acquired_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id, host, pid, proc_start)
+                );
+                CREATE INDEX idx_session_ping_gates_expires ON session_ping_gates (expires_at);
+                """,
+                cancellationToken);
+
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code');
+
+                INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
+                VALUES ('instance-a', 'claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+
+                INSERT INTO mail_wake_batches (
+                    batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
+                    status, claimed_at, expires_at
+                ) VALUES (
+                    'batch-v7', 'instance-a', 'claude', 1, 'owner-1', 'attempt-1',
+                    'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
+                );
+
+                INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
+                VALUES ('batch-v7', 'claude-code', 'session-v7', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                        'pending', '2026-01-10T12:00:00+00:00');
+
+                INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
+                VALUES ('claude-code', 'session-v7', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                        'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+
+                PRAGMA user_version = 7;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
+        Assert.Equal(AgentDatabase.CurrentVersion, version);
+
+        var targetStatus = await QueryScalarStringAsync(
+            connection2,
+            "SELECT status FROM mail_wake_targets WHERE batch_id = 'batch-v7'",
+            cancellationToken);
+        Assert.Equal("pending", targetStatus);
+
+        var gateAttemptId = await QueryScalarStringAsync(
+            connection2,
+            "SELECT attempt_id FROM session_ping_gates WHERE session_id = 'session-v7'",
+            cancellationToken);
+        Assert.Equal("attempt-1", gateAttemptId);
+
+        // The new harness value is now writable on both tables.
+        await ExecuteAsync(
+            connection2,
+            """
+            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
+            VALUES ('batch-v7', 'nitro-board', 'board-v8', 'host-a', 5000, '654321', 'pending', '2026-01-10T12:00:00+00:00');
+
+            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
+            VALUES ('nitro-board', 'board-v8', 'host-a', 5000, '654321', 'attempt-2', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            """,
+            cancellationToken);
+
+        var boardTargetCount = await QueryScalarLongAsync(
+            connection2, "SELECT COUNT(*) FROM mail_wake_targets WHERE harness = 'nitro-board'", cancellationToken);
+        var boardGateCount = await QueryScalarLongAsync(
+            connection2, "SELECT COUNT(*) FROM session_ping_gates WHERE harness = 'nitro-board'", cancellationToken);
+        Assert.Equal(1, boardTargetCount);
+        Assert.Equal(1, boardGateCount);
+
+        // The FK to mail_wake_batches must still enforce (not left dangling by the rebuild).
+        await ExecuteAsync(
+            connection2, "DELETE FROM mail_wake_batches WHERE batch_id = 'batch-v7';", cancellationToken);
+        var targetCountAfterCascade = await QueryScalarLongAsync(
+            connection2,
+            "SELECT COUNT(*) FROM mail_wake_targets WHERE batch_id = 'batch-v7'",
+            cancellationToken);
+        Assert.Equal(0, targetCountAfterCascade);
+    }
+
+    /// <summary>
+    /// A freshly created database already carries the v8 <c>harness</c>
+    /// CHECK values directly on <c>mail_wake_targets</c> and
+    /// <c>session_ping_gates</c>: <see cref="MailWakeSchema.Create"/> and
+    /// <see cref="SessionPingGateSchema.Create"/> list <c>nitro-board</c>
+    /// from the start, so no rebuild is needed and it is writable on the
+    /// first attempt.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AcceptNitroBoardHarnessInMailWakeTargetsAndSessionPingGates_When_DatabaseIsFreshlyCreated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await ExecuteAsync(
+            connection,
+            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES "
+            + "('pascal', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            cancellationToken);
+        await ExecuteAsync(
+            connection,
+            """
+            INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
+            VALUES ('instance-a', 'pascal', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+
+            INSERT INTO mail_wake_batches (
+                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
+                status, claimed_at, expires_at
+            ) VALUES (
+                'batch-fresh', 'instance-a', 'pascal', 1, 'owner-1', 'attempt-1',
+                'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
+            );
+            """,
+            cancellationToken);
+
+        // act
+        await ExecuteAsync(
+            connection,
+            """
+            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
+            VALUES ('batch-fresh', 'nitro-board', 'board-fresh', 'host-a', 4242, '654321', 'pending', '2026-01-10T12:00:00+00:00');
+
+            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
+            VALUES ('nitro-board', 'board-fresh', 'host-a', 4242, '654321', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            """,
+            cancellationToken);
+
+        // assert
+        var targetHarness = await QueryScalarStringAsync(
+            connection, "SELECT harness FROM mail_wake_targets WHERE session_id = 'board-fresh'", cancellationToken);
+        var gateHarness = await QueryScalarStringAsync(
+            connection, "SELECT harness FROM session_ping_gates WHERE session_id = 'board-fresh'", cancellationToken);
+        Assert.Equal("nitro-board", targetHarness);
+        Assert.Equal("nitro-board", gateHarness);
+    }
+
+    /// <summary>
     /// <c>mail_wake_outbox.settled_generation</c> can never exceed
     /// <c>requested_generation</c>.
     /// </summary>

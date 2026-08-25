@@ -31,10 +31,41 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// <c>last_error</c> column is bounded the same way
 /// <c>agent_sessions.last_ping_detail</c> is, so a stored diagnostic can
 /// never grow unbounded. Statements are idempotent so applying them to an
-/// existing database is non-destructive.
+/// existing database is non-destructive. v8 adds <c>nitro-board</c> to
+/// <c>mail_wake_targets.harness</c>'s CHECK constraint, alongside the same
+/// addition to <c>agent_sessions.harness</c>, so a wake batch can record a
+/// target generation for a board session.
 /// </summary>
 internal static class MailWakeSchema
 {
+    /// <summary>
+    /// The <c>mail_wake_targets</c> column and constraint list, shared
+    /// between <see cref="Create"/> (applied under the live table name) and
+    /// <see cref="CreateMailWakeTargetsTable"/> (applied by
+    /// <see cref="AgentDatabase"/> under a temporary name to rebuild the
+    /// table for a database whose <c>harness</c> CHECK constraint predates
+    /// the v8 <c>nitro-board</c> value: SQLite cannot ALTER a CHECK
+    /// constraint in place, so the rebuild recreates the table under a
+    /// fresh name, copies every row across, then swaps it in for the live
+    /// one).
+    /// </summary>
+    private const string MailWakeTargetsColumns =
+        """
+            batch_id TEXT NOT NULL REFERENCES mail_wake_batches (batch_id) ON DELETE CASCADE,
+            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
+            session_id TEXT NOT NULL,
+            host TEXT NOT NULL,
+            pid INTEGER NOT NULL CHECK (pid > 0),
+            proc_start TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending', 'delivered', 'satisfied', 'delegated', 'skipped', 'failed')),
+            offered_generation INTEGER NULL CHECK (offered_generation IS NULL OR offered_generation >= 0),
+            accepted_generation INTEGER NULL CHECK (accepted_generation IS NULL OR accepted_generation >= 0),
+            last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (batch_id, harness, session_id, host, pid, proc_start)
+        """;
+
     public const string Create =
         """
         CREATE TABLE IF NOT EXISTS mail_wake_outbox (
@@ -76,19 +107,10 @@ internal static class MailWakeSchema
             WHERE status = 'active';
 
         CREATE TABLE IF NOT EXISTS mail_wake_targets (
-            batch_id TEXT NOT NULL REFERENCES mail_wake_batches (batch_id) ON DELETE CASCADE,
-            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-            session_id TEXT NOT NULL,
-            host TEXT NOT NULL,
-            pid INTEGER NOT NULL CHECK (pid > 0),
-            proc_start TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending'
-                CHECK (status IN ('pending', 'delivered', 'satisfied', 'delegated', 'skipped', 'failed')),
-            offered_generation INTEGER NULL CHECK (offered_generation IS NULL OR offered_generation >= 0),
-            accepted_generation INTEGER NULL CHECK (accepted_generation IS NULL OR accepted_generation >= 0),
-            last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
-            updated_at TEXT NOT NULL,
-            PRIMARY KEY (batch_id, harness, session_id, host, pid, proc_start)
+        """
+        + MailWakeTargetsColumns
+        + """
+
         );
 
         CREATE TABLE IF NOT EXISTS mail_wake_daemons (
@@ -98,6 +120,22 @@ internal static class MailWakeSchema
             leased_at TEXT NOT NULL,
             expires_at TEXT NOT NULL,
             last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200)
+        );
+        """;
+
+    /// <summary>
+    /// The same <c>mail_wake_targets</c> column and constraint list as
+    /// <see cref="Create"/>, applied under <paramref name="tableName"/>
+    /// instead of the live table name. <see cref="AgentDatabase"/> uses this
+    /// to build a replacement table carrying the current CHECK constraint,
+    /// copy every row from the live table into it, then swap it in under the
+    /// live name, the standard SQLite rebuild for a CHECK constraint change
+    /// no in-place ALTER can express.
+    /// </summary>
+    public static string CreateMailWakeTargetsTable(string tableName) =>
+        $"""
+        CREATE TABLE "{tableName}" (
+        {MailWakeTargetsColumns}
         );
         """;
 }
