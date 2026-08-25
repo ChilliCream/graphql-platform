@@ -280,6 +280,47 @@ public static async Task<List<Supplier?>> GetSupplierAsync(
 
 The `.Include(s => s.Id)` call adds the `Id` property to the projection selector so it is always available for the dictionary key, even if the client did not request it.
 
+# Always and Never Projected Fields
+
+By default, the projection selector contains the properties the client selects and any you add with `.Include()`. Two attributes change this per field at the schema level.
+
+`[IsProjected]` marks a field whose property is always part of the projection, even when the client does not select it. Use it for properties that server-side logic reads regardless of the selection, such as an owner identifier checked by authorization or a discriminator read by an abstract type resolver. Only leaf fields (scalars and enums) backed by a property are included this way; navigation and collection properties are not.
+
+`[IsProjected(false)]` marks a field whose property is never part of the projection, even when the client selects it. Unlike `[IsProjected]`, this applies to any field, including navigation and collection fields. The field then resolves to the property's default value. Use it for large columns you load another way.
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; }
+
+    [IsProjected]
+    public int OwnerId { get; set; }
+
+    [IsProjected(false)]
+    public string? Description { get; set; }
+}
+```
+
+For the following query, the generated SQL selects `Name` and `OwnerId`, and `description` resolves to `null`:
+
+```graphql
+{
+  products {
+    name
+    description
+  }
+}
+```
+
+```sql
+SELECT "p"."Name", "p"."OwnerId"
+FROM "Products" AS "p"
+```
+
+Both attributes apply wherever the projection is built from the selection set: `QueryContext<T>` and DataLoaders that call `.Select(selection)`. In code-first types, use the `.IsProjected()` and `.IsProjected(false)` descriptor extensions instead of the attributes.
+
 # Migrating from UseProjection
 
 If you are migrating from the `[UseProjection]` attribute approach, the key changes are:
