@@ -166,15 +166,51 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_SessionIdIsMissing()
+    public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_CwdIsMissing()
     {
+        // arrange: fail-open on a malformed/incomplete payload - no process
+        // identity's workspace can even be checked without a cwd.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var payload = new CodexHookPayload { SessionId = null, Cwd = _workspaceRoot };
+        var payload = new CodexHookPayload { SessionId = SessionId, Cwd = null };
 
         var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
 
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_CreateOneIdempotentProvisionalRow_When_SessionIdIsMissing()
+    {
+        // arrange: a missing session id does not fail open by itself - with
+        // an observable process identity (the dry-run sentinel here stands
+        // in for a real ancestor), the deterministic provisional session id
+        // for it is used instead, and a duplicate SessionStart for the same
+        // process generation is idempotent.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var payload = new CodexHookPayload { SessionId = null, Cwd = _workspaceRoot };
+
+        // act
+        var first = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+        var second = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(CodexHookOutcome.Neutral, first);
+        Assert.Equal(CodexHookOutcome.Neutral, second);
+        var provisionalGeneration = new AgentSessionGeneration(
+            AgentSessionHarness.Codex,
+            AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.Codex, "host-1", 1, "0"),
+            "host-1", 1, "0");
+        var row = await _sessions.FindByGenerationAsync(provisionalGeneration, cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal(1L, await CountAllSessionRowsAsync(cancellationToken));
+
+        // act: SessionEnd removes the exact provisional row.
+        await _handler.HandleSessionEndAsync(payload, dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Null(await _sessions.FindByGenerationAsync(provisionalGeneration, cancellationToken));
     }
 
     [Fact]
@@ -455,6 +491,15 @@ public sealed class CodexHookHandlerTests : IDisposable
 
     private async Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
         => await _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);
+
+    private async Task<long> CountAllSessionRowsAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM agent_sessions;";
+
+        return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
+    }
 
     private static AgentSessionGeneration CurrentGeneration() => new(
         AgentSessionHarness.Codex,

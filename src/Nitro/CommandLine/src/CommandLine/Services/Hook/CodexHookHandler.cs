@@ -200,11 +200,15 @@ internal sealed class CodexHookHandler(
     /// <summary>
     /// Resolves the generation identity and workspace an event's payload
     /// addresses, or null when any fail-open condition applies: a missing or
-    /// unresolvable session/thread id or cwd, no agent workspace at that cwd,
-    /// no live Codex ancestor process (the ancestor walk in real usage;
-    /// <paramref name="dryRun"/> pins a fixed sentinel identity instead), or
-    /// this process's own cwd resolving to a different workspace than the
-    /// payload's cwd does. Mirrors <c>ClaudeHookHandler.ResolveAsync</c>.
+    /// unresolvable cwd, no agent workspace at that cwd, no live Codex
+    /// ancestor process (the ancestor walk in real usage; <paramref
+    /// name="dryRun"/> pins a fixed sentinel identity instead), or this
+    /// process's own cwd resolving to a different workspace than the
+    /// payload's cwd does. A missing session/thread id does not fail open by
+    /// itself: with a resolvable process identity, the deterministic
+    /// provisional session id for it (see
+    /// <see cref="AgentSessionProvisionalSessionId"/>) is used instead.
+    /// Mirrors <c>ClaudeHookHandler.ResolveAsync</c>.
     /// <para>
     /// For <see cref="HandleNotifyAsync"/> specifically: spike S2 could not
     /// determine whether the Codex process is still resolvable as a live
@@ -219,7 +223,7 @@ internal sealed class CodexHookHandler(
     private async Task<ResolvedGeneration?> ResolveAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(payload.SessionId) || string.IsNullOrWhiteSpace(payload.Cwd))
+        if (string.IsNullOrWhiteSpace(payload.Cwd))
         {
             return null;
         }
@@ -268,7 +272,11 @@ internal sealed class CodexHookHandler(
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
-        var generation = new AgentSessionGeneration(AgentSessionHarness.Codex, payload.SessionId, host, pid, procStart);
+        var sessionId = string.IsNullOrWhiteSpace(payload.SessionId)
+            ? AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.Codex, host, pid, procStart)
+            : payload.SessionId;
+
+        var generation = new AgentSessionGeneration(AgentSessionHarness.Codex, sessionId, host, pid, procStart);
 
         return new ResolvedGeneration(generation, payloadWorkspace);
     }

@@ -241,6 +241,84 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Equal(0, await CountDeliveriesAsync(firstGeneration, cancellationToken));
     }
 
+    [Fact]
+    public async Task StartAsync_Should_AdoptTheProvisionalRow_When_ACanonicalSessionIdArrivesForTheSameProcessGeneration()
+    {
+        // arrange: a provisional row (no authoritative session id was
+        // available yet) already claimed and carrying ledger/budget state
+        // for this exact process generation.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var pid = CurrentAlivePid();
+        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
+        var provisionalSessionId = AgentSessionProvisionalSessionId.Derive(Harness, CurrentHost, pid, procStart);
+        var provisionalGeneration = new AgentSessionGeneration(Harness, provisionalSessionId, CurrentHost, pid, procStart);
+        await _sessions.StartAsync(
+            provisionalGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(provisionalGeneration, "pascal", forceRebind: false, cancellationToken);
+        await InsertDeliveryAsync(provisionalGeneration, "msg-1", cancellationToken);
+        await _sessions.IncrementBlockBudgetAsync(provisionalGeneration, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act: the canonical session id arrives for the exact same process
+        // generation.
+        var canonicalGeneration = provisionalGeneration with { SessionId = "canonical-session-1" };
+        var record = await _sessions.StartAsync(
+            canonicalGeneration, "/other-work", "/other-work/.nitro/agents", AgentSessionEndpointKind.CodexThread,
+            "canonical-session-1", envActor: null, cancellationToken);
+
+        // assert: adopted under the canonical key - binding, role, delivery
+        // ledger, and block budget carried over untouched from the
+        // provisional row, only the endpoint, location, and heartbeat
+        // refreshed, and no second row left behind.
+        Assert.Equal("canonical-session-1", record.SessionId);
+        Assert.Equal("pascal", record.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Explicit, record.BindingKind);
+        Assert.Equal("", record.Role);
+        Assert.Equal(1, record.BlockBudgetUsed);
+        Assert.Equal(AgentSessionEndpointKind.CodexThread, record.EndpointKind);
+        Assert.Equal("canonical-session-1", record.EndpointAddr);
+        Assert.Equal("/other-work", record.Cwd);
+        Assert.Equal("/other-work/.nitro/agents", record.WorkspacePath);
+        Assert.Equal(_timeProvider.GetUtcNow(), record.LastBeatAt);
+        // The delivery ledger's foreign key follows the row's new key (the
+        // same re-key EndAsync's cascade would apply if the row were
+        // deleted instead), so its row content survives under the
+        // canonical session id rather than the provisional one.
+        Assert.Equal(1, await CountDeliveriesAsync(canonicalGeneration, cancellationToken));
+        Assert.Equal(0, await CountDeliveriesAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(0, await CountSessionRowsAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(1, await CountSessionRowsAsync(canonicalGeneration, cancellationToken));
+        Assert.Equal(1, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_NotAdopt_When_TheExistingRowsSessionIdIsNotProvisional()
+    {
+        // arrange: an existing row shares this exact process generation but
+        // was never provisional (its own SessionStart already carried a
+        // canonical session id) - a duplicate SessionStart for a DIFFERENT
+        // session id sharing the same process generation must never adopt
+        // someone else's canonical row.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-1");
+        await _sessions.StartAsync(
+            generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "pascal", cancellationToken);
+
+        // act
+        var otherGeneration = generation with { SessionId = "session-2" };
+        await _sessions.StartAsync(
+            otherGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "codex", cancellationToken);
+
+        // assert: two independent rows, neither adopted into the other.
+        Assert.Equal(1, await CountSessionRowsAsync(generation, cancellationToken));
+        Assert.Equal(1, await CountSessionRowsAsync(otherGeneration, cancellationToken));
+    }
+
     // ---------- ClaimAsync state machine ----------
 
     [Fact]

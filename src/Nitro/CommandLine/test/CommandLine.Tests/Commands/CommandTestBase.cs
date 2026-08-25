@@ -164,8 +164,8 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Points Codex CLI config resolution at fixed paths instead of the
-    /// real machine's <c>CODEX_HOME</c>, so tests that exercise <c>agent
-    /// doctor</c>'s unconditional Codex hooks check never read whatever
+    /// real machine's <c>CODEX_HOME</c>, so tests that exercise <code>agent
+    /// doctor</code>'s unconditional Codex hooks check never read whatever
     /// happens to be installed on the machine running the test.
     /// </summary>
     private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
@@ -545,6 +545,19 @@ public abstract class CommandTestBase
     {
         _environmentVariableProviderMock
             .Setup(x => x.GetEnvironmentVariable("NITRO_" + variableName))
+            .Returns(value);
+    }
+
+    /// <summary>
+    /// Stubs <paramref name="variableName"/> exactly as given, without the
+    /// <c>NITRO_</c> prefix <see cref="SetupEnvironmentVariable"/> always
+    /// adds: for the small set of authoritative harness-launch variables a
+    /// harness itself sets unprefixed, e.g. <c>CODEX_SESSION_ID</c>.
+    /// </summary>
+    protected void SetupRawEnvironmentVariable(string variableName, string? value)
+    {
+        _environmentVariableProviderMock
+            .Setup(x => x.GetEnvironmentVariable(variableName))
             .Returns(value);
     }
 

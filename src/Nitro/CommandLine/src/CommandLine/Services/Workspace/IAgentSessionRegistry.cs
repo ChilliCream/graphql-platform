@@ -13,9 +13,16 @@ internal interface IAgentSessionRegistry
     /// Upserts the row for <paramref name="generation"/>'s
     /// <c>(harness, session_id)</c>, the SessionStart binding rules:
     /// <list type="bullet">
-    /// <item>No existing row: inserts one, bound
-    /// (<c>binding_kind = 'env'</c>) when <paramref name="envActor"/> is
-    /// given, otherwise unclaimed.</item>
+    /// <item>A provisional row (see <see cref="AgentSessionProvisionalSessionId"/>)
+    /// already exists for this exact (harness, host, pid, proc_start) and
+    /// <paramref name="generation"/>'s own session id is not itself
+    /// provisional: adopts that row under the canonical session id instead
+    /// of inserting a second one, preserving its binding, role, delivery
+    /// ledger, and block budget, and only refreshing the endpoint, location,
+    /// and heartbeat columns.</item>
+    /// <item>No existing row (and no provisional row to adopt): inserts one,
+    /// bound (<c>binding_kind = 'env'</c>) when <paramref name="envActor"/>
+    /// is given, otherwise unclaimed.</item>
     /// <item>An existing row at the SAME generation: a duplicate delivery,
     /// preserves binding, ledger, and counters, only refreshing the
     /// heartbeat.</item>

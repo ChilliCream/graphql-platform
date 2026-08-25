@@ -55,10 +55,12 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "register");
 
-        // assert
+        // assert: no harness ancestor is detectable in a test host, so the
+        // identity-only fallback also reports why no live session was bound.
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             "test-agent",
@@ -78,6 +80,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent' as 'backend'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             "backend",
@@ -97,6 +100,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             "claude-code",
@@ -117,6 +121,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             "",
@@ -137,6 +142,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'explicit-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
     }
 
@@ -162,6 +168,9 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal("codex", root.GetProperty("client").GetString());
         Assert.True(root.TryGetProperty("registeredAt", out _));
         Assert.True(root.TryGetProperty("lastSeenAt", out _));
+        Assert.False(root.GetProperty("liveBinding").GetBoolean());
+        Assert.Equal(
+            "no harness process or session id detected", root.GetProperty("noLiveBindingReason").GetString());
     }
 
     [Fact]
@@ -181,6 +190,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             1L,
@@ -211,6 +221,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             "",
@@ -233,6 +244,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             ✓ Registered 'test-agent'.
+            ✓ No live session bound: no harness process or session id detected.
             """);
         Assert.Equal(
             "",
@@ -424,20 +436,122 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task ReturnsError_When_NoSessionRowExistsForTheAncestor()
+    public async Task Codex_CreatesAndBindsAProvisionalRow_When_NoSessionRowExistsForTheAncestor()
     {
-        // arrange: the missing-row case through the CLI - an ancestor was
-        // detected but no SessionStart hook has fired for it yet.
+        // arrange: an ancestor was detected but no SessionStart hook has
+        // fired for it yet, and no authoritative session id is available
+        // either - the harness process itself is still a trustworthy live
+        // signal, so register creates and binds a deterministic provisional
+        // row for it instead of failing.
         await InitWorkspaceAsync();
         using var process = System.Diagnostics.Process.GetCurrentProcess();
         SetupAncestorSessionResolvers(codex: new CodexAncestorSession(process.Id));
 
         // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "worker");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        var sessionId = await QueryScalarAsync("SELECT session_id FROM agent_sessions");
+        Assert.StartsWith("provisional:codex:", sessionId);
+        Assert.Equal(
+            "test-agent",
+            await QueryScalarAsync($"SELECT agent_name FROM agent_sessions WHERE session_id = '{sessionId}'"));
+        Assert.Equal(
+            1L,
+            long.Parse((await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"))!));
+
+        // act: a duplicate register for the exact same process generation
+        // must reuse the same provisional row, not create a second one.
+        var repeated = await ExecuteCommandAsync("agent", "register", "--role", "worker");
+
+        // assert
+        Assert.Equal(0, repeated.ExitCode);
+        Assert.Equal(
+            1L,
+            long.Parse((await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"))!));
+    }
+
+    [Fact]
+    public async Task Codex_BindsTheMatchingRow_When_CodexSessionIdEnvVariableResolvesAnExistingRow()
+    {
+        // arrange: a sandboxed Codex invocation whose /proc ancestry cannot
+        // reach the real Codex process, but whose launch environment carries
+        // the authoritative CODEX_SESSION_ID for a row a SessionStart hook
+        // already recorded.
+        await InitWorkspaceAsync();
+        await InsertSessionRowAsync("codex", "codex-session-1");
+        SetupRawEnvironmentVariable("CODEX_SESSION_ID", "codex-session-1");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--role", "worker");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Registered 'test-agent' as 'worker', bound to codex session 'codex-session-1'.
+            """);
+        Assert.Equal(
+            "test-agent",
+            await QueryScalarAsync("SELECT agent_name FROM agent_sessions WHERE session_id = 'codex-session-1'"));
+    }
+
+    [Fact]
+    public async Task Codex_RegistersIdentityOnlyWithADiagnostic_When_CodexSessionIdEnvVariableHasNoMatchingRow()
+    {
+        // arrange: CODEX_SESSION_ID is set (a sandboxed Codex invocation),
+        // but no row was ever recorded for it - a missing session must never
+        // fail the whole command by itself, so the durable identity still
+        // registers, honestly reporting why no live session was bound.
+        await InitWorkspaceAsync();
+        SetupRawEnvironmentVariable("CODEX_SESSION_ID", "codex-session-missing");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
         var result = await ExecuteCommandAsync("agent", "register");
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Contains("No codex session found", result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        Assert.Equal("test-agent", root.GetProperty("name").GetString());
+        Assert.False(root.GetProperty("liveBinding").GetBoolean());
+        Assert.Equal(
+            "CODEX_SESSION_ID 'codex-session-missing' has no live session row on this host",
+            root.GetProperty("noLiveBindingReason").GetString());
+        Assert.Equal(
+            "test-agent",
+            await QueryScalarAsync("SELECT name FROM agents WHERE name = 'test-agent'"));
+        Assert.Equal(
+            0L,
+            long.Parse((await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"))!));
+    }
+
+    [Fact]
+    public async Task Claude_BindsTheExistingRow_When_ItsRecordedProcStartDiffersFromTheRecomputedOne()
+    {
+        // arrange: a regression test for comment 170 - an existing row whose
+        // recorded proc_start a schema migration left in the legacy format
+        // (or any other reason it no longer matches what would be
+        // recomputed right now) must still resolve and bind by its
+        // authoritative session id, not reject the whole command.
+        await InitWorkspaceAsync();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        await InsertLegacyClaudeSessionRowAsync("claude-session-1", process.Id);
+        SetupAncestorSessionResolvers(
+            claude: new ClaudeAncestorSession(process.Id, "claude-session-1", WorkingDirectory, "peer-a"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "orchestrator");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(
+            "orchestrator",
+            await QueryScalarAsync("SELECT agent_name FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+        Assert.Equal(
+            1L,
+            long.Parse((await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"))!));
     }
 
     [Fact]
@@ -482,6 +596,46 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
         Assert.Equal("codex-session-1", root.GetProperty("sessionId").GetString());
         Assert.Equal("worker", root.GetProperty("role").GetString());
         Assert.True(root.TryGetProperty("harnessVersion", out _));
+        Assert.True(root.GetProperty("liveBinding").GetBoolean());
+        Assert.Equal("", root.GetProperty("noLiveBindingReason").GetString());
+    }
+
+    /// <summary>
+    /// Inserts a claude-code <c>agent_sessions</c> row directly with
+    /// <c>proc_start_legacy = 1</c> and a wall-clock-format
+    /// <c>proc_start</c>, standing in for a row a v5-to-v6 schema migration
+    /// carried forward without rewriting: the register command's Claude
+    /// ancestor path always recomputes a fresh raw-ticks <c>proc_start</c>
+    /// for the SAME live pid, which never equals this row's recorded legacy
+    /// value by exact string comparison.
+    /// </summary>
+    private async Task InsertLegacyClaudeSessionRowAsync(string sessionId, int pid)
+    {
+        var legacyProcStart = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                proc_start_legacy
+            ) VALUES (
+                'claude-code', $sessionId, NULL, 'none', $host, $pid, $procStart,
+                $cwd, $workspacePath, 'none', '', $now, $now, 1
+            );
+            """;
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$host", FixedHost);
+        command.Parameters.AddWithValue("$pid", pid);
+        command.Parameters.AddWithValue("$procStart", legacyProcStart);
+        command.Parameters.AddWithValue("$cwd", WorkingDirectory);
+        command.Parameters.AddWithValue("$workspacePath", WorkspaceDirectory);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task InsertSessionRowAsync(string harness, string sessionId)

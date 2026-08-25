@@ -222,16 +222,20 @@ internal sealed class ClaudeHookHandler(
     /// <summary>
     /// Resolves the generation identity and workspace an event's payload
     /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable session id or cwd, no agent workspace at that cwd, no
-    /// live process identity (the ancestor walk in real usage; <paramref
-    /// name="dryRun"/> pins a fixed sentinel identity instead), or this
-    /// process's own cwd resolving to a different workspace than the
-    /// payload's cwd does (mirrors <c>SelfClaimAsync</c>'s same check).
+    /// or unresolvable cwd, no agent workspace at that cwd, no live process
+    /// identity (the ancestor walk in real usage; <paramref name="dryRun"/>
+    /// pins a fixed sentinel identity instead), or this process's own cwd
+    /// resolving to a different workspace than the payload's cwd does
+    /// (mirrors <c>SelfClaimAsync</c>'s same check). A missing
+    /// <see cref="ClaudeHookPayload.SessionId"/> does not fail open by
+    /// itself: with a resolvable process identity, the deterministic
+    /// provisional session id for it (see
+    /// <see cref="AgentSessionProvisionalSessionId"/>) is used instead.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(payload.SessionId) || string.IsNullOrWhiteSpace(payload.Cwd))
+        if (string.IsNullOrWhiteSpace(payload.Cwd))
         {
             return null;
         }
@@ -284,8 +288,11 @@ internal sealed class ClaudeHookHandler(
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
-        var generation = new AgentSessionGeneration(
-            AgentSessionHarness.ClaudeCode, payload.SessionId, host, pid, procStart);
+        var sessionId = string.IsNullOrWhiteSpace(payload.SessionId)
+            ? AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.ClaudeCode, host, pid, procStart)
+            : payload.SessionId;
+
+        var generation = new AgentSessionGeneration(AgentSessionHarness.ClaudeCode, sessionId, host, pid, procStart);
 
         return new ResolvedGeneration(generation, payloadWorkspace, endpointName);
     }

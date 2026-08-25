@@ -41,6 +41,20 @@ internal sealed class AgentSessionRegistry(
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
+        if (!AgentSessionProvisionalSessionId.IsProvisional(generation.SessionId))
+        {
+            var adopted = await TryAdoptProvisionalRowAsync(
+                connection, transaction, generation, cwd, workspacePath, normalizedEndpointKind,
+                normalizedEndpointAddr, now, cancellationToken);
+
+            if (adopted is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+
+                return adopted.ToRecord();
+            }
+        }
+
         var existing = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
             $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
             + "WHERE harness = @harness AND session_id = @sessionId",
@@ -187,6 +201,114 @@ internal sealed class AgentSessionRegistry(
         await transaction.CommitAsync(cancellationToken);
 
         return row.ToRecord();
+    }
+
+    /// <summary>
+    /// When a provisional row (see <see cref="AgentSessionProvisionalSessionId"/>)
+    /// already exists for <paramref name="generation"/>'s exact
+    /// (harness, host, pid, proc_start), a later event supplying the
+    /// canonical session id for that same live process must project as the
+    /// same participant rather than a second one: adopts the row under
+    /// <paramref name="generation"/>'s canonical session id, refreshing only
+    /// the endpoint, location, and heartbeat columns a fresh SessionStart
+    /// carries. The binding, role, delivery ledger content, block budget,
+    /// and every other column stay exactly as they were, the ledger's rows
+    /// carried over to follow the row's new key (its foreign key has no
+    /// <c>ON UPDATE CASCADE</c>, so re-keying the parent row also re-keys
+    /// its own children). Returns null when no provisional row matches, so
+    /// the caller falls through to its normal SessionStart handling.
+    /// </summary>
+    private static async Task<AgentSessionRow?> TryAdoptProvisionalRowAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string normalizedEndpointKind,
+        string normalizedEndpointAddr,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var provisionalRow = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND host = @host AND pid = @pid AND proc_start = @procStart",
+            new
+            {
+                harness = generation.Harness,
+                host = generation.Host,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                cancellationToken
+            },
+            transaction);
+
+        if (provisionalRow is null || !AgentSessionProvisionalSessionId.IsProvisional(provisionalRow.SessionId))
+        {
+            return null;
+        }
+
+        var parameters = new
+        {
+            sessionId = generation.SessionId,
+            endpointKind = normalizedEndpointKind,
+            endpointAddr = normalizedEndpointAddr,
+            cwd,
+            workspacePath,
+            now,
+            harness = generation.Harness,
+            oldSessionId = provisionalRow.SessionId,
+            pid = generation.Pid,
+            procStart = generation.ProcStart,
+            host = generation.Host,
+            cancellationToken
+        };
+
+        // A three-step re-key rather than a single UPDATE of session_id:
+        // session_deliveries' foreign key references agent_sessions
+        // (harness, session_id) without ON UPDATE CASCADE, so renaming the
+        // parent's key in place while its own child ledger rows still point
+        // at the old key violates the constraint. Inserting the row under
+        // its new key first, then repointing the ledger rows at it, then
+        // deleting the old key keeps every row valid at every step and
+        // relies on the same ON DELETE CASCADE the final delete would
+        // trigger anyway if the ledger were still attached to it.
+        await connection.ExecuteAsync(
+            """
+            INSERT INTO agent_sessions (
+                harness, session_id, agent_name, binding_kind, host, pid, proc_start, proc_start_legacy,
+                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                role, harness_version, process_scope
+            )
+            SELECT
+                harness, @sessionId, agent_name, binding_kind, host, pid, proc_start, proc_start_legacy,
+                @cwd, @workspacePath, @endpointKind, @endpointAddr, started_at, @now,
+                block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                role, harness_version, process_scope
+            FROM agent_sessions
+            WHERE harness = @harness AND session_id = @oldSessionId
+                AND pid = @pid AND proc_start = @procStart AND host = @host;
+            """,
+            parameters,
+            transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE session_deliveries SET session_id = @sessionId "
+            + "WHERE harness = @harness AND session_id = @oldSessionId",
+            parameters,
+            transaction);
+
+        await connection.ExecuteAsync(
+            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @oldSessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            parameters,
+            transaction);
+
+        return await connection.QueryFirstAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
     }
 
     public async Task<AgentSessionClaimResult> ClaimAsync(

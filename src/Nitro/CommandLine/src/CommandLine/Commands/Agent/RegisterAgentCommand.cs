@@ -53,7 +53,7 @@ internal sealed class RegisterAgentCommand : Command
             ?? "";
         var forceRebind = parseResult.GetValue(Opt<ForceRebindSessionOption>.Instance);
 
-        var generation = await TryResolveGenerationAsync(
+        var resolution = await TryResolveGenerationAsync(
             fileSystem,
             processInfoProvider,
             claudeAncestorResolver,
@@ -65,11 +65,14 @@ internal sealed class RegisterAgentCommand : Command
             sessions,
             cancellationToken);
 
-        if (generation is null)
+        if (resolution.Generation is null)
         {
-            // No Claude Code, Codex, or Copilot ancestor detected: the
-            // original identity-only registration this command has always
-            // supported outside a harness, unchanged.
+            // No trustworthy live session evidence (no harness ancestor, no
+            // authoritative session id with a matching row): the durable
+            // identity still registers successfully, honestly reporting
+            // that no live session was bound and why, rather than fabricating
+            // a binding or failing the whole command.
+            var reason = resolution.NoLiveBindingReason!;
             var agent = await registry.RegisterAsync(actor, role, client, cancellationToken);
 
             if (!console.IsHumanReadable)
@@ -78,7 +81,8 @@ internal sealed class RegisterAgentCommand : Command
                     new ObjectResult(
                         new AgentRegisterResult(
                             agent.Name, agent.Role, agent.Client, agent.RegisteredAt, agent.LastSeenAt,
-                            Harness: "", SessionId: "", HarnessVersion: "", BindingKind: "", Changed: false)));
+                            Harness: "", SessionId: "", HarnessVersion: "", BindingKind: AgentSessionBindingKind.None,
+                            Changed: false, LiveBinding: false, NoLiveBindingReason: reason)));
                 return ExitCodes.Success;
             }
 
@@ -86,12 +90,13 @@ internal sealed class RegisterAgentCommand : Command
                 agent.Role.Length > 0
                     ? $"Registered '{agent.Name.EscapeMarkup()}' as '{agent.Role.EscapeMarkup()}'."
                     : $"Registered '{agent.Name.EscapeMarkup()}'.");
+            console.OkLine($"No live session bound: {reason.EscapeMarkup()}.");
 
             return ExitCodes.Success;
         }
 
         var result = await sessions.RegisterAsync(
-            generation, actor, role, client, forceRebind, cancellationToken);
+            resolution.Generation, actor, role, client, forceRebind, cancellationToken);
 
         if (!console.IsHumanReadable)
         {
@@ -111,25 +116,41 @@ internal sealed class RegisterAgentCommand : Command
     }
 
     /// <summary>
+    /// The outcome of <see cref="TryResolveGenerationAsync"/>: either a live
+    /// generation to bind, or, when no trustworthy live session evidence
+    /// exists, the reason a caller reports alongside its identity-only
+    /// registration. Exactly one of the two is set.
+    /// </summary>
+    private readonly record struct GenerationResolution(AgentSessionGeneration? Generation, string? NoLiveBindingReason)
+    {
+        public static GenerationResolution Bound(AgentSessionGeneration generation) => new(generation, null);
+
+        public static GenerationResolution Unbound(string reason) => new(null, reason);
+    }
+
+    /// <summary>
     /// Resolves this process's own live harness session across Claude Code,
     /// Codex, and Copilot, in that order: Claude's ancestor session file
     /// gives its session id directly, and a row missing for it is bootstrapped
     /// on the spot (the SessionStart hook may never have fired for it); Codex
     /// and Copilot give only an ancestor pid, so the session already recorded
-    /// for that exact (host, pid, process-start) is looked up instead. When
-    /// no Codex ancestor pid can be walked (a sandboxed invocation, whose
-    /// <c>/proc</c> ancestry does not reach the real Codex process), the
-    /// authoritative <c>CODEX_SESSION_ID</c>/<c>CODEX_THREAD_ID</c> launch
-    /// environment resolves the session by id instead. Returns null when no
-    /// harness context is found at all (register then falls back to
-    /// identity-only registration). Throws <see cref="ExitException"/> when a
-    /// harness context IS found but its process is no longer running, its
-    /// session cannot be resolved to exactly one row, or this process's own
-    /// workspace disagrees with the session's: a detected harness context
-    /// that fails to resolve is a real problem, never a silent fallback to
-    /// identity-only success.
+    /// for that exact (host, pid, process-start) is looked up instead, or, if
+    /// none exists yet, a deterministic provisional row is created and bound
+    /// for that process generation. When no Codex ancestor pid can be walked
+    /// (a sandboxed invocation, whose <c>/proc</c> ancestry does not reach
+    /// the real Codex process), the authoritative
+    /// <c>CODEX_SESSION_ID</c>/<c>CODEX_THREAD_ID</c> launch environment
+    /// resolves the session by id instead. Returns an unbound resolution,
+    /// carrying the reason, when no harness context is found at all, or when
+    /// an authoritative session id has no matching row (register then falls
+    /// back to identity-only registration, honestly reporting why no live
+    /// session was bound). Throws <see cref="ExitException"/> for the unsafe
+    /// contradictions that remain real problems rather than a missing-session
+    /// no-op: this process's own workspace disagreeing with the session's,
+    /// more than one candidate row for the same process identity, or a
+    /// detected ancestor process that is no longer running.
     /// </summary>
-    private static async Task<AgentSessionGeneration?> TryResolveGenerationAsync(
+    private static async Task<GenerationResolution> TryResolveGenerationAsync(
         IFileSystem fileSystem,
         IProcessInfoProvider processInfoProvider,
         IClaudeAncestorSessionResolver claudeAncestorResolver,
@@ -152,10 +173,11 @@ internal sealed class RegisterAgentCommand : Command
 
         if (claudeAncestor is null && codexAncestor is null && codexSessionId is null && copilotAncestor is null)
         {
-            return null;
+            return GenerationResolution.Unbound("no harness process or session id detected");
         }
 
-        var cwdWorkspacePath = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory())
+        var cwd = fileSystem.GetCurrentDirectory();
+        var cwdWorkspacePath = AgentWorkspace.Find(fileSystem, cwd)
             ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
         var host = await instanceIdProvider.GetIdAsync(
@@ -179,7 +201,10 @@ internal sealed class RegisterAgentCommand : Command
             // fired (hooks not installed, or a race with this very command)
             // has no row yet: bootstrap it the same way SessionStart itself
             // would, so this one register call still creates and binds it
-            // instead of requiring a separate SessionStart first.
+            // instead of requiring a separate SessionStart first. StartAsync
+            // itself reconciles onto a provisional row already bound to this
+            // exact process generation, if one exists, instead of creating a
+            // second participant for it.
             if (await sessions.FindByGenerationAsync(generation, cancellationToken) is null)
             {
                 var (endpointKind, endpointAddr) = EndpointAddress.IsValid(claudeAncestor.Name)
@@ -191,25 +216,32 @@ internal sealed class RegisterAgentCommand : Command
                     envActor: null, cancellationToken);
             }
 
-            return generation;
+            return GenerationResolution.Bound(generation);
         }
 
         if (codexAncestor is not null)
         {
-            return await ResolveByProcessAsync(
-                AgentSessionHarness.Codex, codexAncestor.Pid, host, cwdWorkspacePath,
-                processInfoProvider, sessions, cancellationToken);
+            return GenerationResolution.Bound(
+                await ResolveByProcessAsync(
+                    AgentSessionHarness.Codex, codexAncestor.Pid, host, cwd, cwdWorkspacePath,
+                    processInfoProvider, sessions, cancellationToken));
         }
 
         if (codexSessionId is not null)
         {
-            return await ResolveBySessionIdAsync(
+            var generation = await ResolveBySessionIdAsync(
                 AgentSessionHarness.Codex, codexSessionId, host, cwdWorkspacePath, sessions, cancellationToken);
+
+            return generation is not null
+                ? GenerationResolution.Bound(generation)
+                : GenerationResolution.Unbound(
+                    $"CODEX_SESSION_ID '{codexSessionId}' has no live session row on this host");
         }
 
-        return await ResolveByProcessAsync(
-            AgentSessionHarness.Copilot, copilotAncestor!.Pid, host, cwdWorkspacePath,
-            processInfoProvider, sessions, cancellationToken);
+        return GenerationResolution.Bound(
+            await ResolveByProcessAsync(
+                AgentSessionHarness.Copilot, copilotAncestor!.Pid, host, cwd, cwdWorkspacePath,
+                processInfoProvider, sessions, cancellationToken));
     }
 
     /// <summary>
@@ -226,9 +258,12 @@ internal sealed class RegisterAgentCommand : Command
     /// <summary>
     /// Resolves a harness's own live session by its session id alone (no
     /// process identity to walk to), reading the (pid, proc_start) an
-    /// earlier, authoritative SessionStart already recorded for it.
+    /// earlier, authoritative SessionStart already recorded for it. Returns
+    /// null when no row is recorded for that session id: an authoritative id
+    /// with no matching row is not a hard error, it degrades to the caller's
+    /// identity-only fallback.
     /// </summary>
-    private static async Task<AgentSessionGeneration> ResolveBySessionIdAsync(
+    private static async Task<AgentSessionGeneration?> ResolveBySessionIdAsync(
         string harness,
         string sessionId,
         string host,
@@ -236,11 +271,12 @@ internal sealed class RegisterAgentCommand : Command
         IAgentSessionRegistry sessions,
         CancellationToken cancellationToken)
     {
-        var row = await sessions.FindBySessionIdAsync(harness, host, sessionId, cancellationToken)
-            ?? throw new ExitException(
-                $"No {harness} session found for session id '{sessionId}' on this host. If hooks were "
-                + $"never installed, run `nitro agent hooks {harness} install` and start a new {harness} "
-                + "session; otherwise it may have ended or been reaped.");
+        var row = await sessions.FindBySessionIdAsync(harness, host, sessionId, cancellationToken);
+
+        if (row is null)
+        {
+            return null;
+        }
 
         RequireMatchingWorkspace(cwdWorkspacePath, row.WorkspacePath);
 
@@ -250,12 +286,17 @@ internal sealed class RegisterAgentCommand : Command
     /// <summary>
     /// Resolves a harness's own live session by (host, pid, process-start)
     /// rather than a session id, for a harness whose ancestor process
-    /// exposes no session file to read one from directly.
+    /// exposes no session file to read one from directly. When no row is
+    /// recorded yet for that exact process generation, derives and binds the
+    /// deterministic provisional session id for it instead of failing: the
+    /// harness process itself is a trustworthy live signal even without a
+    /// SessionStart hook or an authoritative session id.
     /// </summary>
     private static async Task<AgentSessionGeneration> ResolveByProcessAsync(
         string harness,
         int pid,
         string host,
+        string cwd,
         string cwdWorkspacePath,
         IProcessInfoProvider processInfoProvider,
         IAgentSessionRegistry sessions,
@@ -268,10 +309,14 @@ internal sealed class RegisterAgentCommand : Command
 
         if (candidates.Count == 0)
         {
-            throw new ExitException(
-                $"No {harness} session found for pid {pid} on this host. If hooks were never "
-                + $"installed, run `nitro agent hooks {harness} install` and start a new {harness} "
-                + "session; otherwise it may have ended or been reaped.");
+            var provisionalGeneration = new AgentSessionGeneration(
+                harness, AgentSessionProvisionalSessionId.Derive(harness, host, pid, procStart), host, pid, procStart);
+
+            await sessions.StartAsync(
+                provisionalGeneration, cwd, cwdWorkspacePath, AgentSessionEndpointKind.None, string.Empty,
+                envActor: null, cancellationToken);
+
+            return provisionalGeneration;
         }
 
         if (candidates.Count > 1)
@@ -322,7 +367,9 @@ internal sealed class RegisterAgentCommand : Command
         result.Session.SessionId,
         result.Session.HarnessVersion,
         result.Session.BindingKind,
-        result.Changed);
+        result.Changed,
+        LiveBinding: true,
+        NoLiveBindingReason: "");
 
     public sealed record AgentRegisterResult(
         string Name,
@@ -334,5 +381,7 @@ internal sealed class RegisterAgentCommand : Command
         string SessionId,
         string HarnessVersion,
         string BindingKind,
-        bool Changed);
+        bool Changed,
+        bool LiveBinding,
+        string NoLiveBindingReason);
 }

@@ -143,16 +143,20 @@ internal sealed class CopilotHookHandler(
     /// <summary>
     /// Resolves the generation identity and workspace an event's payload
     /// addresses, or null when any fail-open condition applies: a missing or
-    /// unresolvable session id or cwd, no agent workspace at that cwd, no
-    /// live Copilot ancestor process (the ancestor walk in real usage;
-    /// <paramref name="dryRun"/> pins a fixed sentinel identity instead), or
-    /// this process's own cwd resolving to a different workspace than the
-    /// payload's cwd does. Mirrors <c>CodexHookHandler.ResolveAsync</c>.
+    /// unresolvable cwd, no agent workspace at that cwd, no live Copilot
+    /// ancestor process (the ancestor walk in real usage; <paramref
+    /// name="dryRun"/> pins a fixed sentinel identity instead), or this
+    /// process's own cwd resolving to a different workspace than the
+    /// payload's cwd does. A missing session id does not fail open by
+    /// itself: with a resolvable process identity, the deterministic
+    /// provisional session id for it (see
+    /// <see cref="AgentSessionProvisionalSessionId"/>) is used instead.
+    /// Mirrors <c>CodexHookHandler.ResolveAsync</c>.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         CopilotHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(payload.SessionId) || string.IsNullOrWhiteSpace(payload.Cwd))
+        if (string.IsNullOrWhiteSpace(payload.Cwd))
         {
             return null;
         }
@@ -201,8 +205,11 @@ internal sealed class CopilotHookHandler(
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
-        var generation = new AgentSessionGeneration(
-            AgentSessionHarness.Copilot, payload.SessionId, host, pid, procStart);
+        var sessionId = string.IsNullOrWhiteSpace(payload.SessionId)
+            ? AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.Copilot, host, pid, procStart)
+            : payload.SessionId;
+
+        var generation = new AgentSessionGeneration(AgentSessionHarness.Copilot, sessionId, host, pid, procStart);
 
         return new ResolvedGeneration(generation, payloadWorkspace);
     }
