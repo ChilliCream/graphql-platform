@@ -79,7 +79,8 @@ internal sealed class BoardMailCommand : Command
 
         try
         {
-            await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
+            await application.RunAsync(
+                shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync, mode.RunSendEffectEventsAsync]);
         }
         finally
         {

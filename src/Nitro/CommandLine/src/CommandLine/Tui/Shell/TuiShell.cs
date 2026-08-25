@@ -209,6 +209,7 @@ internal sealed class TuiShell
         TuiEvent.ResizeEvent resize => HandleResize(resize.Width, resize.Height),
         TuiEvent.TickEvent tick => HandleTick(tick.Now),
         TuiEvent.DataChangedEvent => HandleDataChanged(),
+        TuiEvent.EffectCompletedEvent => HandleEffectCompleted(),
         _ => false
     };
 
@@ -325,26 +326,42 @@ internal sealed class TuiShell
     /// focused (for example the mail tab's unread badge while the tasks tab
     /// is active).
     /// </summary>
-    private bool HandleDataChanged()
+    private bool HandleDataChanged() => BroadcastToTabs(new TuiMessage.RefreshRequested());
+
+    /// <summary>
+    /// Drains every hosted tab's own effect queue, not only the active
+    /// tab's, the same way <see cref="HandleDataChanged"/> refreshes every
+    /// tab: a compose or reply completing on the mail tab must still show
+    /// its toast while another tab is active. A mode that owns no effect
+    /// queue ignores this message (see <see cref="TuiMessage.EffectCompleted"/>).
+    /// </summary>
+    private bool HandleEffectCompleted() => BroadcastToTabs(new TuiMessage.EffectCompleted());
+
+    /// <summary>
+    /// Sends <paramref name="message"/> to every hosted tab's currently
+    /// active mode. The active tab's own follow-ups are routed through the
+    /// shell's normal <see cref="HandleMessage"/> dispatch; an inactive
+    /// tab's follow-ups are scoped to <see cref="TuiMessage.ShowToast"/>
+    /// only, since a toast is shell-global on the toaster row regardless of
+    /// which tab is active, while every other follow-up kind stays dropped:
+    /// <see cref="HandleMessage"/> acts on shell-level state (dialogs,
+    /// overlays) and the currently ACTIVE tab, so routing an inactive tab's
+    /// non-toast follow-up through it would leak that tab's outcome onto
+    /// whichever tab the user is actually looking at.
+    /// </summary>
+    private bool BroadcastToTabs(TuiMessage message)
     {
         foreach (var tab in _tabs)
         {
-            var followUps = tab.ActiveMode.Handle(new TuiMessage.RefreshRequested());
-
-            if (!ReferenceEquals(tab, ActiveTab))
-            {
-                // An inactive tab's own refresh follow-ups stay scoped to
-                // that tab's mode: HandleMessage acts on shell-level state
-                // (dialogs, overlays) and the currently ACTIVE tab, so
-                // routing an inactive tab's follow-up through it would leak
-                // that tab's refresh outcome onto whichever tab the user is
-                // actually looking at.
-                continue;
-            }
+            var followUps = tab.ActiveMode.Handle(message);
+            var isActiveTab = ReferenceEquals(tab, ActiveTab);
 
             foreach (var followUp in followUps)
             {
-                HandleMessage(followUp);
+                if (isActiveTab || followUp is TuiMessage.ShowToast)
+                {
+                    HandleMessage(followUp);
+                }
             }
         }
 

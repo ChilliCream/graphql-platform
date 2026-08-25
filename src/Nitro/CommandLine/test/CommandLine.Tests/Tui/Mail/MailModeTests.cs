@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -19,12 +20,13 @@ public sealed class MailModeTests
         FakeMailStore store,
         string actor = "alice",
         FakeAgentRegistry? agentRegistry = null,
-        FakeMailWakeReceiptObserver? wakeObserver = null)
+        FakeMailWakeReceiptObserver? wakeObserver = null,
+        IActorWakeDispatcher? wakeDispatcher = null)
         => new(
             store,
             actor,
             agentRegistry ?? new FakeAgentRegistry(),
-            new DaemonOwnedActorWakeDispatcher(),
+            wakeDispatcher ?? new DaemonOwnedActorWakeDispatcher(),
             wakeObserver ?? new FakeMailWakeReceiptObserver(),
             new FakeTimeProvider(Now));
 
@@ -639,6 +641,7 @@ public sealed class MailModeTests
     [InlineData("delegated", "Success")]
     [InlineData("pending", "Warn")]
     [InlineData("failed", "Error")]
+    [InlineData("partial", "Error")]
     public async Task ComposeForm_Submit_Should_StoreTheMessage_And_ReportTheObservedWakeStatusTruthfully(
         string wakeStatus, string expectedStyleName)
     {
@@ -674,6 +677,11 @@ public sealed class MailModeTests
         Assert.Equal("alice", sent.Sender);
         Assert.Equal("Status", sent.Subject);
         Assert.Single(sent.WakeReceipts); // exactly one transactional wake generation, for bob
+
+        if (wakeStatus == "partial")
+        {
+            Assert.Contains("Notification partial", toast.Text, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -783,6 +791,133 @@ public sealed class MailModeTests
         wakeObserver.Gate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
         mode.ResumeSendAcceptance();
+    }
+
+    [Fact]
+    public async Task CreateQuitGate_Should_CountAPendingNotification_ForACompletionTheDrainItselfObserves()
+    {
+        // arrange: the wake observer's own default (no StatusByActor entry)
+        // is MailWakeTargetStatus.Pending, so the send completes on its own
+        // during the gate's bounded drain, but its notification is still
+        // owed - the gate must count that truthfully even though
+        // TuiEffectQueue itself already reports PendingCount 0 by the time
+        // the gate inspects it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act: the gate's own bounded drain observes the completion itself,
+        // never delivered through Handle.
+        var report = await mode.CreateQuitGate()(TimeSpan.FromSeconds(5), cancellationToken);
+
+        // assert
+        Assert.Equal(1, report.PendingCount);
+        Assert.Equal(0, report.OutcomeUnknownCount);
+        Assert.True(report.HasUnresolvedWork);
+    }
+
+    [Fact]
+    public async Task CreateQuitGate_Should_CountOutcomeUnknown_ForACompletionTheDrainItselfObserves_When_TheWakeStepFaults()
+    {
+        // arrange: the standalone board's real dispatcher failing after the
+        // commit reconciles to an unknown outcome (see ReconcileWakeAsync),
+        // never a failure - the gate must report that as outcome-unknown,
+        // not pending.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        var mode = CreateMode(store, wakeDispatcher: new ThrowingActorWakeDispatcher());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var report = await mode.CreateQuitGate()(TimeSpan.FromSeconds(5), cancellationToken);
+
+        // assert
+        Assert.Equal(0, report.PendingCount);
+        Assert.Equal(1, report.OutcomeUnknownCount);
+        Assert.True(report.HasUnresolvedWork);
+    }
+
+    [Fact]
+    public async Task CreateQuitGate_Should_LeaveTheStashedToastForTheNextHandle_AfterACancelledQuit()
+    {
+        // arrange: mirrors TuiShell.QuitCancelled - the gate already drained
+        // and classified this completion, so a cancelled second
+        // confirmation resuming the live TUI must still show its toast on
+        // the next Handle, rather than losing it because it never reached
+        // Handle's own drain.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+        var report = await mode.CreateQuitGate()(TimeSpan.FromSeconds(5), cancellationToken);
+        Assert.True(report.HasUnresolvedWork); // the second confirmation the shell would show
+
+        // act: mirrors TuiShell.QuitCancelled firing after the user declines
+        // the second confirmation.
+        mode.ResumeSendAcceptance();
+        var followUp = mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal(ToastStyle.Warn, toast.Style);
+        Assert.Contains("pending", toast.Text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_When_TheStandaloneDispatcherFails()
+    {
+        // arrange: the standalone board's real dispatcher (never a daemon)
+        // throwing after the store write already committed must still be
+        // reported as sent, only with its wake outcome unresolved - this is
+        // the foreground-failure path BoardMailCommandTests cannot drive,
+        // since there is no interactive loop there to submit a compose
+        // through.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        var mode = CreateMode(store, wakeDispatcher: new ThrowingActorWakeDispatcher());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
+
+        // assert
+        Assert.Equal(ToastStyle.Warn, toast.Style);
+        Assert.Contains("Notification outcome unknown", toast.Text, StringComparison.Ordinal);
+        var sent = Assert.Single(store.Messages);
+        Assert.Single(sent.WakeReceipts);
     }
 
     [Fact]

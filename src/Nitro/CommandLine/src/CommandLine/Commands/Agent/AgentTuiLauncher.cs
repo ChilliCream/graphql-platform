@@ -120,9 +120,16 @@ internal static class AgentTuiLauncher
         // so this never delays the dashboard opening.
         await mailWakeDaemonCoordinator.StartAsync(cancellationToken);
 
+        var eventSources = new List<TuiEventSource> { dbWatcher.RunAsync };
+
+        if (mailMode is not null)
+        {
+            eventSources.Add(mailMode.RunSendEffectEventsAsync);
+        }
+
         try
         {
-            await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, [dbWatcher.RunAsync]);
+            await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, eventSources);
         }
         finally
         {

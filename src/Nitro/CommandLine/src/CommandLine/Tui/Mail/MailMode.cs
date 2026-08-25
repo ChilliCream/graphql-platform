@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -175,6 +176,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private readonly TuiEffectQueue<MailSendOutcome> _sendEffects = new();
 
     /// <summary>
+    /// Completions <see cref="CreateQuitGate"/> drained during its own
+    /// bounded wait, held here so <see cref="DrainEffectQueue"/> still
+    /// turns them into toasts on this mode's next <see cref="Handle"/> call:
+    /// a cancelled second quit confirmation resumes the live TUI, and a
+    /// completion the gate already observed must not go unreported just
+    /// because it was drained outside the normal <see cref="Handle"/> path.
+    /// </summary>
+    private readonly List<TuiEffectCompletion<MailSendOutcome>> _deferredCompletions = [];
+
+    /// <summary>
     /// Every registered agent's <see cref="AgentRecord.Client"/>, keyed by
     /// name (case-insensitively, matching <see cref="MailRecipientView"/>'s
     /// comparer), loaded once per <see cref="RefreshBlocking"/> rather than
@@ -344,6 +355,10 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.AgentFilterPickerRequested => OpenAgentFilterPicker(),
         TuiMessage.ToggleListModeRequested => ToggleListMode(),
         TuiMessage.FoldPrefixRequested => OpenFoldPrefix(),
+        // The drain at the top of Handle already turned any completion into
+        // its toast before HandleCore ever runs, so this message itself
+        // needs no further action here.
+        TuiMessage.EffectCompleted => [],
         _ => []
     };
 
@@ -863,7 +878,18 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private IReadOnlyList<TuiMessage> DrainEffectQueue()
     {
-        var completions = _sendEffects.DrainCompletions();
+        var drained = _sendEffects.DrainCompletions();
+        List<TuiEffectCompletion<MailSendOutcome>> completions;
+
+        if (_deferredCompletions.Count == 0)
+        {
+            completions = [.. drained];
+        }
+        else
+        {
+            completions = [.. _deferredCompletions, .. drained];
+            _deferredCompletions.Clear();
+        }
 
         if (completions.Count == 0)
         {
@@ -899,15 +925,58 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// Builds the <see cref="TuiQuitGate"/> a hosting command registers with
     /// <see cref="TuiShell"/>: stops accepting new sends, bounded-drains
-    /// whatever is already in flight, and reports what remained. A cancelled
-    /// second confirmation must call <see cref="ResumeSendAcceptance"/>, per
-    /// <see cref="TuiQuitGate"/>'s own contract.
+    /// whatever is already in flight, and reports what remained. A
+    /// completion the drain observes is classified truthfully rather than
+    /// counted as resolved: a <see cref="MailSendOutcome.Succeeded"/> whose
+    /// notification is still <see cref="MailWakeTargetStatus.Pending"/> adds
+    /// to <see cref="TuiQuitGateReport.PendingCount"/>, and a
+    /// <see cref="MailSendOutcome.Reconciled"/> outcome or a
+    /// <see cref="TuiEffectCompletion{TResult}.Faulted"/>/<see cref="TuiEffectCompletion{TResult}.Cancelled"/>
+    /// completion adds to <see cref="TuiQuitGateReport.OutcomeUnknownCount"/>.
+    /// Every completion the drain observes, counted or not, is stashed into
+    /// <see cref="_deferredCompletions"/> so its toast still surfaces on this
+    /// mode's next <see cref="Handle"/> call rather than being silently
+    /// dropped: a normal quit that proceeds never calls <see cref="Handle"/>
+    /// again, but a cancelled second confirmation (see
+    /// <see cref="ResumeSendAcceptance"/>) returns to a live TUI that must
+    /// still report it. A cancelled second confirmation must call
+    /// <see cref="ResumeSendAcceptance"/>, per <see cref="TuiQuitGate"/>'s
+    /// own contract.
     /// </summary>
     public TuiQuitGate CreateQuitGate() => async (bound, cancellationToken) =>
     {
         _sendEffects.StopAccepting();
         await _sendEffects.DrainPendingAsync(bound, cancellationToken).ConfigureAwait(false);
-        return new TuiQuitGateReport(_sendEffects.PendingCount, OutcomeUnknownCount: 0, _sendEffects.PendingOperationIds);
+
+        var completions = _sendEffects.DrainCompletions();
+        _deferredCompletions.AddRange(completions);
+
+        var pendingCount = _sendEffects.PendingCount;
+        var outcomeUnknownCount = 0;
+        var operationIds = new List<TuiOperationId>(_sendEffects.PendingOperationIds);
+
+        foreach (var completion in completions)
+        {
+            switch (completion)
+            {
+                case TuiEffectCompletion<MailSendOutcome>.Completed
+                {
+                    Result: MailSendOutcome.Succeeded { Notification.Status: MailWakeTargetStatus.Pending }
+                }:
+                    pendingCount++;
+                    operationIds.Add(completion.OperationId);
+                    break;
+
+                case TuiEffectCompletion<MailSendOutcome>.Completed { Result: MailSendOutcome.Reconciled }:
+                case TuiEffectCompletion<MailSendOutcome>.Faulted:
+                case TuiEffectCompletion<MailSendOutcome>.Cancelled:
+                    outcomeUnknownCount++;
+                    operationIds.Add(completion.OperationId);
+                    break;
+            }
+        }
+
+        return new TuiQuitGateReport(pendingCount, outcomeUnknownCount, operationIds);
     };
 
     /// <summary>
@@ -929,6 +998,19 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     public Task ShieldPendingSendsAsync(TimeSpan bound, CancellationToken cancellationToken)
         => _sendEffects.DrainPendingAsync(bound, cancellationToken);
+
+    /// <summary>
+    /// Relays <see cref="_sendEffects"/>'s own wake event onto the TUI event
+    /// loop's channel; matches <see cref="TuiEventSource"/>, so a hosting
+    /// command merges this into <see cref="TuiApplication.RunAsync"/>
+    /// alongside its workspace database watcher. Without this registered,
+    /// a compose or reply completion still persists into
+    /// <see cref="_sendEffects"/> and is never lost, but its toast surfaces
+    /// only once some other event (a key press, a tick, or a database
+    /// watcher notification) happens to reach this mode's <see cref="Handle"/>.
+    /// </summary>
+    public Task RunSendEffectEventsAsync(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken)
+        => _sendEffects.RunAsync(writer, cancellationToken);
 
     private IReadOnlyList<TuiMessage> HandleDiscardDialogKey(ConsoleKeyInfo info)
     {

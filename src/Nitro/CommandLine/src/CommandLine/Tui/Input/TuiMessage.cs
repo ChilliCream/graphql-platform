@@ -31,6 +31,13 @@ internal abstract record TuiMessage
     public sealed record RefreshRequested : TuiMessage;
 
     /// <summary>
+    /// An asynchronous effect completed. A mode that owns no effect queue
+    /// ignores this; one that does is expected to drain it the same way it
+    /// already does on every other message.
+    /// </summary>
+    public sealed record EffectCompleted : TuiMessage;
+
+    /// <summary>
     /// The selection cursor should move one step in <paramref name="Direction"/>.
     /// </summary>
     public sealed record MoveCursor(CursorDirection Direction) : TuiMessage;

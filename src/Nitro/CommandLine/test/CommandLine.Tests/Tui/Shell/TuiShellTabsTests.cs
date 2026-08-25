@@ -426,6 +426,71 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public async Task HandleDataChanged_Should_ShowTheMailTabsSendOutcomeToast_When_TheTasksTabIsActive()
+    {
+        // arrange: submits a compose directly through the mail tab's own
+        // MailMode while the tasks tab stays active throughout, mirroring
+        // how MailMode.SubmitCompose runs the whole store-plus-wake
+        // workflow off-thread regardless of which tab is hosting it; the
+        // outcome toast must still reach the shell's toaster once the
+        // workspace database watcher's DataChangedEvent drains it, rather
+        // than being dropped along with every other inactive-tab follow-up.
+        var testToken = TestContext.Current.CancellationToken;
+        var mailStore = new FakeMailStore();
+        var wakeObserver = new FakeMailWakeReceiptObserver();
+        var mailMode = new MailMode(
+            mailStore,
+            "alice",
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new DaemonOwnedActorWakeDispatcher(),
+            wakeObserver);
+        var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)], 80, 24);
+        mailMode.Handle(new TuiMessage.SelectInboxRequested());
+        mailMode.Handle(new TuiMessage.ComposeRequested());
+
+        foreach (var c in "bob")
+        {
+            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
+        }
+
+        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.Tab));
+
+        foreach (var c in "Status")
+        {
+            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
+        }
+
+        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.Tab));
+
+        foreach (var c in "Body")
+        {
+            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
+        }
+
+        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.S, ConsoleModifiers.Control));
+        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, testToken);
+
+        // act: the tasks tab (index 0) is still active; the send completed
+        // on the inactive mail tab.
+        var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("Notification pending", RenderToText(shell));
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
+    {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+
+        while (!condition())
+        {
+            await Task.Delay(5, timeoutCts.Token);
+        }
+    }
+
+    [Fact]
     public void Handle_Should_OpenTaskDetail_When_EnterPressedOnBoardSelection_ThroughATabbedShell()
     {
         // arrange: an existing single-mode board interaction, exercised
