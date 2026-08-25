@@ -102,12 +102,12 @@ public sealed class ClaudeHookDigestFormatterTests
     [Fact]
     public void Format_Should_NeverExceedTheByteCap_When_ManyEntriesAreSupplied()
     {
-        // arrange: entries sized so the itemized text alone lands near the
-        // cap - a case where a break condition that does not reserve room
-        // for the shell and truncation notice renders past MaxByteLength.
+        // arrange: entries sized so the itemized text lands right at the
+        // cap boundary - a fast path that does not reserve room for the
+        // trailing "and N more" line renders past MaxByteLength here.
         const int totalUnreadCount = 90;
         var entries = Enumerable.Range(0, totalUnreadCount)
-            .Select(i => ($"m-{i}", "bob", "status", new string('a', 100)))
+            .Select(i => ($"m-{i}", "bob", "status", new string('a', 2)))
             .ToArray();
 
         // act
@@ -118,6 +118,52 @@ public sealed class ClaudeHookDigestFormatterTests
             System.Text.Encoding.UTF8.GetByteCount(text) <= ClaudeHookDigestFormatter.MaxByteLength,
             "the rendered digest must never exceed the byte ceiling");
         Assert.Contains("more.", text);
+    }
+
+    [Fact]
+    public void Format_Should_ReserveRoomForTheTrailer_When_ATruncatedEntryIsFollowedByMoreUnread()
+    {
+        // arrange: the first entry's multibyte body is long enough to force
+        // truncation, and a second unread message remains - the truncation
+        // notice and the trailing "and N more" line must both fit under the
+        // cap without the notice's byte budget crowding out the trailer.
+        var body = string.Concat(Enumerable.Repeat("文", 2000)); // U+6587, 3 UTF-8 bytes each
+        var entries = new[]
+        {
+            ("m-1", "bob", "status", body),
+            ("m-2", "bob", "status", "x")
+        };
+
+        // act
+        var text = ClaudeHookDigestFormatter.Format(2, entries);
+
+        // assert
+        Assert.True(
+            System.Text.Encoding.UTF8.GetByteCount(text) <= ClaudeHookDigestFormatter.MaxByteLength,
+            "the rendered digest must never exceed the byte ceiling");
+        Assert.Contains("nitro agent mail read m-1", text);
+        Assert.Contains("...and 1 more.", text);
+    }
+
+    [Fact]
+    public void Format_Should_DropOnlyTheSubject_When_ThatAloneMakesTheFullBodyFit()
+    {
+        // arrange: a long subject alone pushes the shell past the cap, but
+        // the body is short enough to fit in full once the subject is
+        // dropped - so no truncation notice should be appended.
+        var subject = new string('s', 1900);
+        var body = new string('b', 100);
+        var entries = new[] { ("m-1", "bob", subject, body) };
+
+        // act
+        var text = ClaudeHookDigestFormatter.Format(1, entries);
+
+        // assert
+        Assert.Contains("[m-1] from bob\n" + body, text);
+        Assert.DoesNotContain("Message truncated", text);
+        Assert.True(
+            System.Text.Encoding.UTF8.GetByteCount(text) <= ClaudeHookDigestFormatter.MaxByteLength,
+            "the rendered digest must never exceed the byte ceiling");
     }
 
     [Fact]

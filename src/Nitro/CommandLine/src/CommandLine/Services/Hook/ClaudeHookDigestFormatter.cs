@@ -50,10 +50,11 @@ internal static class ClaudeHookDigestFormatter
 
         foreach (var (id, from, subject, body) in entries)
         {
+            var trailerReserve = TrailerByteLength(totalUnreadCount - renderedCount);
             var shell = Shell(id, from, subject);
             var fullEntryByteLength = Utf8Length(shell) + Utf8Length(body);
 
-            if (builderByteLength + fullEntryByteLength <= MaxByteLength)
+            if (builderByteLength + fullEntryByteLength + trailerReserve <= MaxByteLength)
             {
                 builder.Append(shell).Append(body);
                 builderByteLength += fullEntryByteLength;
@@ -63,7 +64,8 @@ internal static class ClaudeHookDigestFormatter
 
             var notice = TruncationNotice(id);
             var noticeByteLength = Utf8Length(notice);
-            var availableForBody = MaxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength;
+            var availableForBody =
+                MaxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength - trailerReserve;
 
             if (availableForBody < 0 && subject.Length > 0)
             {
@@ -72,7 +74,21 @@ internal static class ClaudeHookDigestFormatter
                 // context the read command actually needs) still have a
                 // chance to fit.
                 shell = Shell(id, from, subject: "");
-                availableForBody = MaxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength;
+
+                var bodyByteLength = Utf8Length(body);
+
+                if (builderByteLength + Utf8Length(shell) + bodyByteLength + trailerReserve <= MaxByteLength)
+                {
+                    // Dropping the subject alone left enough room for the
+                    // full body: no truncation notice is needed.
+                    builder.Append(shell).Append(body);
+                    builderByteLength += Utf8Length(shell) + bodyByteLength;
+                    renderedCount++;
+                    continue;
+                }
+
+                availableForBody =
+                    MaxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength - trailerReserve;
             }
 
             if (availableForBody < 0)
@@ -106,6 +122,13 @@ internal static class ClaudeHookDigestFormatter
 
     private static string TruncationNotice(string id)
         => $"\n[Message truncated. Read the full message with `nitro agent mail read {id}`.]";
+
+    /// <summary>
+    /// The UTF-8 byte length of the trailing "and N more" line for a given
+    /// remaining count, or 0 when nothing would remain unitemized.
+    /// </summary>
+    private static int TrailerByteLength(int remainingCount)
+        => remainingCount <= 0 ? 0 : Utf8Length($"\n\n...and {remainingCount} more.");
 
     /// <summary>
     /// The longest prefix of <paramref name="value"/> whose UTF-8 encoding
