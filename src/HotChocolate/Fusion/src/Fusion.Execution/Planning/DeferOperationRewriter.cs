@@ -303,6 +303,30 @@ internal sealed class DeferOperationRewriter
             rootOperation.SelectionSet,
             parentPath: []);
 
+        var usedVariables = new HashSet<string>(StringComparer.Ordinal);
+        CollectUsedVariables(rootSelectionSet, usedVariables);
+
+        var variableDefinitions = rootOperation.VariableDefinitions;
+
+        if (usedVariables.Count == 0)
+        {
+            variableDefinitions = [];
+        }
+        else if (usedVariables.Count != rootOperation.VariableDefinitions.Count)
+        {
+            var kept = new List<VariableDefinitionNode>(usedVariables.Count);
+
+            foreach (var variableDefinition in rootOperation.VariableDefinitions)
+            {
+                if (usedVariables.Contains(variableDefinition.Variable.Name.Value))
+                {
+                    kept.Add(variableDefinition);
+                }
+            }
+
+            variableDefinitions = kept;
+        }
+
         // The incremental plan's operation keeps the root operation's own type
         // (Query, Mutation, or Subscription). It only ever serves as a result
         // skeleton: BuildIncrementalPlans compiles it and
@@ -311,7 +335,87 @@ internal sealed class DeferOperationRewriter
         // resolution and anchor lookups for a mutation-anchored defer.
         return rootOperation
             .WithDirectives([])
+            .WithVariableDefinitions(variableDefinitions)
             .WithSelectionSet(rootSelectionSet);
+    }
+
+    /// <summary>
+    /// Collects the names of all variables referenced by field arguments and
+    /// directives within <paramref name="selectionSet"/>, so the incremental
+    /// plan operation only declares the variable definitions it actually uses.
+    /// The <c>@defer(if: $var)</c> directive is stripped before this runs (its
+    /// variable belongs to the <see cref="DeliveryGroup"/>, not the incremental
+    /// plan operation), so it never keeps a definition alive on its own.
+    /// </summary>
+    private static void CollectUsedVariables(SelectionSetNode selectionSet, HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            switch (selectionSet.Selections[i])
+            {
+                case FieldNode field:
+                    CollectUsedVariables(field.Arguments, usedVariables);
+                    CollectUsedVariables(field.Directives, usedVariables);
+
+                    if (field.SelectionSet is not null)
+                    {
+                        CollectUsedVariables(field.SelectionSet, usedVariables);
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    CollectUsedVariables(inlineFragment.Directives, usedVariables);
+                    CollectUsedVariables(inlineFragment.SelectionSet, usedVariables);
+                    break;
+            }
+        }
+    }
+
+    private static void CollectUsedVariables(
+        IReadOnlyList<DirectiveNode> directives,
+        HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            CollectUsedVariables(directives[i].Arguments, usedVariables);
+        }
+    }
+
+    private static void CollectUsedVariables(
+        IReadOnlyList<ArgumentNode> arguments,
+        HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            CollectUsedVariables(arguments[i].Value, usedVariables);
+        }
+    }
+
+    private static void CollectUsedVariables(IValueNode value, HashSet<string> usedVariables)
+    {
+        switch (value)
+        {
+            case VariableNode variable:
+                usedVariables.Add(variable.Name.Value);
+                break;
+
+            case ListValueNode listValue:
+                for (var i = 0; i < listValue.Items.Count; i++)
+                {
+                    CollectUsedVariables(listValue.Items[i], usedVariables);
+                }
+
+                break;
+
+            case ObjectValueNode objectValue:
+                for (var i = 0; i < objectValue.Fields.Count; i++)
+                {
+                    CollectUsedVariables(objectValue.Fields[i].Value, usedVariables);
+                }
+
+                break;
+        }
     }
 
     private static SelectionSetNode BuildSelectionSetFromPathNode(

@@ -1641,6 +1641,128 @@ public class DeferPlannerTests : FusionTestBase
         AssertNoMixedRequirementScope(plan);
     }
 
+    [Fact]
+    public void Defer_UnusedRootVariable_Should_Not_Be_Declared_On_IncrementalPlanOperation()
+    {
+        // arrange
+        // $productId only feeds productById in the main operation; the deferred
+        // fragment sits under the sibling `user` root field and never references it.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                productById(id: ID!): Product @lookup
+                user(id: ID!): User @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query t($productId: ID!) {
+                productById(id: $productId) {
+                    name
+                }
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var variableNames = string.Join(
+            ", ",
+            incrementalPlan.Operation.Definition.VariableDefinitions.Select(v => v.Variable.Name.Value));
+        variableNames.MatchInlineSnapshot("");
+    }
+
+    [Fact]
+    public void Defer_VariableUsedInDeferredSelection_Should_Be_Declared_On_IncrementalPlanOperation()
+    {
+        // arrange
+        // $domain is only referenced inside the deferred fragment, so it must survive
+        // pruning even though $productId (used only by the main operation) is dropped.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                productById(id: ID!): Product @lookup
+                user(id: ID!): User @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email(domain: String): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query t($productId: ID!, $domain: String) {
+                productById(id: $productId) {
+                    name
+                }
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email(domain: $domain)
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var variableNames = string.Join(
+            ", ",
+            incrementalPlan.Operation.Definition.VariableDefinitions.Select(v => v.Variable.Name.Value));
+        variableNames.MatchInlineSnapshot("domain");
+    }
+
     /// <summary>
     /// Asserts the planner contract that backs the defer-time variable routing in
     /// <c>OperationPlanContext.CreateVariableValueSets</c>. The runtime classifies
