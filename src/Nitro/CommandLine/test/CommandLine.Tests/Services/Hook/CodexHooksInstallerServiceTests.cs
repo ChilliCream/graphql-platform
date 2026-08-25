@@ -9,8 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Exercises <see cref="CodexHooksInstallerService"/> against a real
 /// temp-directory file system (never <c>~/.codex</c>): the hooks.json AND
-/// config.toml round trip together, the sidecar round trip covering both
-/// files, and the install-flow's headline scenario - wrapping a foreign
+/// config.toml round trip together, the notify sidecar round trip, and the
+/// install-flow's headline scenario - wrapping a foreign
 /// <c>notify</c> program on install and restoring it verbatim on uninstall.
 /// </summary>
 public sealed class CodexHooksInstallerServiceTests : IDisposable
@@ -54,7 +54,6 @@ public sealed class CodexHooksInstallerServiceTests : IDisposable
         Assert.True(File.Exists(sidecarPath));
 
         var sidecar = await ReadSidecarAsync(sidecarPath);
-        Assert.True(sidecar.HooksFiles.ContainsKey(_hooksJsonPath));
         Assert.True(sidecar.NotifyFiles.ContainsKey(_configTomlPath));
         Assert.Null(sidecar.NotifyFiles[_configTomlPath].PriorForeign);
     }
@@ -128,7 +127,6 @@ public sealed class CodexHooksInstallerServiceTests : IDisposable
         Assert.DoesNotContain("agent hook codex", hooksJsonText);
 
         var sidecar = await ReadSidecarAsync(Path.Combine(_sidecarDirectory, "codex-hooks-sidecar.json"));
-        Assert.False(sidecar.HooksFiles.ContainsKey(_hooksJsonPath));
         Assert.False(sidecar.NotifyFiles.ContainsKey(_configTomlPath));
     }
 

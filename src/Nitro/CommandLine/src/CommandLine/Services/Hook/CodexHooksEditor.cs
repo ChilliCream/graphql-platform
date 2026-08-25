@@ -24,12 +24,10 @@ internal static class CodexHooksEditor
 
     public sealed record InstallResult(
         string HooksJson,
-        IReadOnlyDictionary<string, CodexHooksSidecarEntry> Sidecar,
         IReadOnlyList<HookInstallEventResult> Outcomes);
 
     public sealed record UninstallResult(
         string HooksJson,
-        IReadOnlyDictionary<string, CodexHooksSidecarEntry> Sidecar,
         IReadOnlyList<HookUninstallEventResult> Outcomes);
 
     /// <summary>
@@ -38,15 +36,12 @@ internal static class CodexHooksEditor
     /// </summary>
     public static InstallResult Install(
         string? existingHooksJson,
-        LaunchDescriptor descriptor,
-        DateTimeOffset now)
+        LaunchDescriptor descriptor)
     {
         var root = ParseOrEmpty(existingHooksJson);
         var hooks = GetOrCreateHooks(root);
 
         var outcomes = new List<HookInstallEventResult>(CodexHooksTemplate.Events.Count);
-        var sidecar = new Dictionary<string, CodexHooksSidecarEntry>();
-
         foreach (var codexEvent in CodexHooksTemplate.Events)
         {
             var eventArray = GetOrCreateEventArray(hooks, codexEvent);
@@ -74,15 +69,9 @@ internal static class CodexHooksEditor
                     outcomes.Add(new HookInstallEventResult(codexEvent, HookInstallOutcome.Updated));
                 }
             }
-
-            sidecar[codexEvent] = new CodexHooksSidecarEntry(
-                desiredCommand,
-                desiredTimeout,
-                CodexHooksSidecarEntry.ComputeHash(desiredCommand, desiredTimeout),
-                now);
         }
 
-        return new InstallResult(Serialize(root), sidecar, outcomes);
+        return new InstallResult(Serialize(root), outcomes);
     }
 
     /// <summary>
@@ -124,12 +113,9 @@ internal static class CodexHooksEditor
     }
 
     /// <summary>
-    /// Removes only this installer's own entries, same provenance-first /
-    /// marker-fallback strategy as <see cref="ClaudeHooksEditor.Uninstall"/>.
+    /// Removes every Nitro-owned group under the events this installer owns.
     /// </summary>
-    public static UninstallResult Uninstall(
-        string? existingHooksJson,
-        IReadOnlyDictionary<string, CodexHooksSidecarEntry> priorSidecar)
+    public static UninstallResult Uninstall(string? existingHooksJson)
     {
         var root = ParseOrEmpty(existingHooksJson);
         var hooks = GetHooks(root);
@@ -146,22 +132,25 @@ internal static class CodexHooksEditor
                 continue;
             }
 
-            var removeIndex = priorSidecar.TryGetValue(codexEvent, out var recorded)
-                ? FindGroupIndexByCommand(eventArray, recorded.Command)
-                : -1;
+            var removed = false;
 
-            if (removeIndex < 0)
+            for (var i = eventArray.Count - 1; i >= 0; i--)
             {
-                removeIndex = FindOwnedGroupIndex(eventArray);
+                if (!IsOwnedGroup(eventArray[i]))
+                {
+                    continue;
+                }
+
+                eventArray.RemoveAt(i);
+                removed = true;
             }
 
-            if (removeIndex < 0)
+            if (!removed)
             {
                 outcomes.Add(new HookUninstallEventResult(codexEvent, HookUninstallOutcome.NotPresent));
                 continue;
             }
 
-            eventArray.RemoveAt(removeIndex);
             outcomes.Add(new HookUninstallEventResult(codexEvent, HookUninstallOutcome.Removed));
 
             if (eventArray.Count == 0)
@@ -170,8 +159,7 @@ internal static class CodexHooksEditor
             }
         }
 
-        return new UninstallResult(
-            Serialize(root), new Dictionary<string, CodexHooksSidecarEntry>(), outcomes);
+        return new UninstallResult(Serialize(root), outcomes);
     }
 
     private static JsonObject ParseOrEmpty(string? json)
@@ -272,27 +260,7 @@ internal static class CodexHooksEditor
     {
         for (var i = 0; i < array.Count; i++)
         {
-            if (array[i] is not JsonObject group
-                || group[GroupHooksKey] is not JsonArray hooks
-                || hooks.Count == 0)
-            {
-                continue;
-            }
-
-            var allOwned = true;
-
-            foreach (var hook in hooks)
-            {
-                var command = (hook as JsonObject)?[CommandKey]?.GetValue<string>();
-
-                if (command is null || !command.Contains(CodexHooksTemplate.CommandMarker, StringComparison.Ordinal))
-                {
-                    allOwned = false;
-                    break;
-                }
-            }
-
-            if (allOwned)
+            if (IsOwnedGroup(array[i]))
             {
                 return i;
             }
@@ -301,20 +269,18 @@ internal static class CodexHooksEditor
         return -1;
     }
 
-    private static int FindGroupIndexByCommand(JsonArray array, string command)
+    private static bool IsOwnedGroup(JsonNode? node)
     {
-        for (var i = 0; i < array.Count; i++)
+        if (node is not JsonObject group
+            || group[GroupHooksKey] is not JsonArray hooks
+            || hooks.Count == 0)
         {
-            if (array[i] is JsonObject group
-                && group[GroupHooksKey] is JsonArray hooks
-                && hooks.Count == 1
-                && (hooks[0] as JsonObject)?[CommandKey]?.GetValue<string>() == command)
-            {
-                return i;
-            }
+            return false;
         }
 
-        return -1;
+        return hooks.All(hook =>
+            (hook as JsonObject)?[CommandKey]?.GetValue<string>()?.Contains(
+                CodexHooksTemplate.CommandMarker, StringComparison.Ordinal) == true);
     }
 
     private static (string? Command, int? Timeout) ReadFirstHook(JsonObject group)

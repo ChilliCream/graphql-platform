@@ -36,19 +36,14 @@ internal static class DoctorHooksCheck
 
     public static async Task<DoctorAgentCommand.HookHarnessDoctorResult?> CheckCodexAsync(
         ICodexHooksInstallerService installer,
-        ICodexHooksSidecarStore sidecarStore,
         CancellationToken cancellationToken)
     {
         var status = await installer.StatusAsync(cancellationToken);
-        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
-        var entries = sidecar.HooksEntriesFor(status.HooksJsonPath);
 
-        return Evaluate(
+        return EvaluateWithoutSidecar(
             status.HooksJsonPath,
             status.HooksEvents,
-            eventName => entries.TryGetValue(eventName, out var entry) ? entry.Command : null,
-            "nitro agent hooks codex install",
-            "nitro agent hooks codex uninstall");
+            "nitro agent hooks codex install");
     }
 
     public static async Task<DoctorAgentCommand.HookHarnessDoctorResult?> CheckCopilotAsync(
@@ -120,6 +115,28 @@ internal static class DoctorHooksCheck
                 issues.Add($"'{eventResult.Event}': outdated; rerun `{installCommand}` to refresh it.");
             }
         }
+
+        return new DoctorAgentCommand.HookHarnessDoctorResult(
+            path,
+            [.. events.Select(e => new DoctorAgentCommand.HookEventDoctorResult(e.Event, e.Outcome.ToString()))],
+            issues.Count == 0,
+            issues);
+    }
+
+    private static DoctorAgentCommand.HookHarnessDoctorResult? EvaluateWithoutSidecar(
+        string path,
+        IReadOnlyList<HookStatusEventResult> events,
+        string installCommand)
+    {
+        if (events.All(e => e.Outcome == HookStatusOutcome.Missing))
+        {
+            return null;
+        }
+
+        var issues = events
+            .Where(e => e.Outcome == HookStatusOutcome.Outdated)
+            .Select(e => $"'{e.Event}': outdated; rerun `{installCommand}` to refresh it.")
+            .ToList();
 
         return new DoctorAgentCommand.HookHarnessDoctorResult(
             path,

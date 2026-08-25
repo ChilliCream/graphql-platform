@@ -1,32 +1,7 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
-
-/// <summary>
-/// One <c>hooks.json</c> event's recorded installation: the exact command
-/// and timeout this CLI wrote, and their hash. The Codex analog of
-/// <see cref="ClaudeHooksSidecarEntry"/> - kept as a distinct type rather
-/// than reused across harnesses, matching this codebase's per-harness type
-/// convention (<see cref="CodexHookPayload"/> vs
-/// <see cref="ClaudeHookPayload"/>) even though the shape is identical.
-/// </summary>
-internal sealed record CodexHooksSidecarEntry(
-    [property: JsonPropertyName("command")] string Command,
-    [property: JsonPropertyName("timeoutSeconds")] int TimeoutSeconds,
-    [property: JsonPropertyName("hash")] string Hash,
-    [property: JsonPropertyName("installedAt")] DateTimeOffset InstalledAt)
-{
-    public static string ComputeHash(string command, int timeoutSeconds)
-    {
-        var canonical = $"{command}\n{timeoutSeconds}";
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(canonical));
-
-        return Convert.ToHexString(hash).ToLowerInvariant();
-    }
-}
 
 /// <summary>
 /// The <c>config.toml</c> <c>notify</c> key's recorded installation:
@@ -44,29 +19,19 @@ internal sealed record CodexNotifySidecarEntry(
     [property: JsonPropertyName("installedAt")] DateTimeOffset InstalledAt);
 
 /// <summary>
-/// The sidecar file recording exactly which Codex CLI <c>hooks.json</c>
-/// entries and <c>config.toml</c> <c>notify</c> wrapping this CLI installed,
-/// keyed by the absolute path of each config file (one machine has exactly
-/// one <c>CODEX_HOME</c> in the common case, but this mirrors
-/// <see cref="ClaudeHooksSidecarFile"/>'s per-path keying rather than
-/// assuming that). A separate file from the Claude sidecar (own version,
-/// own filename): the two installers must never share failure modes.
+/// The sidecar file recording only the <c>config.toml</c> <c>notify</c>
+/// value Nitro replaced, keyed by the absolute config path. <c>hooks.json</c>
+/// ownership is deterministic: uninstall removes managed-event groups whose
+/// commands are Nitro Codex hook invocations, so it needs no provenance file.
 /// </summary>
 internal sealed record CodexHooksSidecarFile(
     [property: JsonPropertyName("version")] int Version,
-    [property: JsonPropertyName("hooksFiles")]
-        Dictionary<string, Dictionary<string, CodexHooksSidecarEntry>> HooksFiles,
     [property: JsonPropertyName("notifyFiles")]
         Dictionary<string, CodexNotifySidecarEntry> NotifyFiles)
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
-    public static CodexHooksSidecarFile Empty => new(CurrentVersion, [], []);
-
-    public IReadOnlyDictionary<string, CodexHooksSidecarEntry> HooksEntriesFor(string hooksJsonPath)
-        => HooksFiles.TryGetValue(hooksJsonPath, out var events)
-            ? events
-            : new Dictionary<string, CodexHooksSidecarEntry>();
+    public static CodexHooksSidecarFile Empty => new(CurrentVersion, []);
 
     public CodexNotifySidecarEntry? NotifyEntryFor(string configTomlPath)
         => NotifyFiles.GetValueOrDefault(configTomlPath);

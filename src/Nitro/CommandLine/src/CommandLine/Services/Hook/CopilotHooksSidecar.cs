@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// One hooks-dir event's recorded installation: the exact command and
 /// timeout this CLI wrote, and their hash. The Copilot analog of
-/// <see cref="ClaudeHooksSidecarEntry"/>/<see cref="CodexHooksSidecarEntry"/>
+/// <see cref="ClaudeHooksSidecarEntry"/>
 /// - kept as a distinct type rather than reused across harnesses, matching
 /// this codebase's per-harness type convention.
 /// </summary>

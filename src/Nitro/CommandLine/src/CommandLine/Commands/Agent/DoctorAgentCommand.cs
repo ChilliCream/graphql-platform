@@ -53,7 +53,6 @@ internal sealed class DoctorAgentCommand : Command
         var copilotHooksInstaller = services.GetRequiredService<ICopilotHooksInstallerService>();
         var copilotHooksSidecarStore = services.GetRequiredService<ICopilotHooksSidecarStore>();
         var codexHooksInstaller = services.GetRequiredService<ICodexHooksInstallerService>();
-        var codexHooksSidecarStore = services.GetRequiredService<ICodexHooksSidecarStore>();
         var claudeAncestorResolver = services.GetRequiredService<IClaudeAncestorSessionResolver>();
         var codexAncestorResolver = services.GetRequiredService<ICodexAncestorSessionResolver>();
         var copilotAncestorResolver = services.GetRequiredService<ICopilotAncestorSessionResolver>();
@@ -172,7 +171,7 @@ internal sealed class DoctorAgentCommand : Command
         var copilotHooks = await DoctorHooksCheck.CheckCopilotAsync(
             copilotHooksInstaller, copilotHooksSidecarStore, cancellationToken);
         var codexHooks = await DoctorHooksCheck.CheckCodexAsync(
-            codexHooksInstaller, codexHooksSidecarStore, cancellationToken);
+            codexHooksInstaller, cancellationToken);
 
         var hooksConsistent = (claudeUserHooks?.Consistent ?? true)
             && (claudeProjectHooks?.Consistent ?? true)

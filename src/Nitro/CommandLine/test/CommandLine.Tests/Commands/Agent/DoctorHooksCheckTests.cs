@@ -127,10 +127,10 @@ public sealed class DoctorHooksCheckTests : IDisposable
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
-        var (installer, sidecarStore) = CreateCodexServices();
+        var (installer, _) = CreateCodexServices();
 
         // act
-        var result = await DoctorHooksCheck.CheckCodexAsync(installer, sidecarStore, ct);
+        var result = await DoctorHooksCheck.CheckCodexAsync(installer, ct);
 
         // assert
         Assert.Null(result);
@@ -141,11 +141,11 @@ public sealed class DoctorHooksCheckTests : IDisposable
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
-        var (installer, sidecarStore) = CreateCodexServices();
+        var (installer, _) = CreateCodexServices();
         await installer.InstallAsync(ct);
 
         // act
-        var result = await DoctorHooksCheck.CheckCodexAsync(installer, sidecarStore, ct);
+        var result = await DoctorHooksCheck.CheckCodexAsync(installer, ct);
 
         // assert
         Assert.NotNull(result);

@@ -19,7 +19,7 @@ public sealed class CodexHooksEditorTests
     [Fact]
     public void Install_MissingFile_CreatesAllThreeEventsAsInstalled()
     {
-        var result = CodexHooksEditor.Install(null, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = CodexHooksEditor.Install(null, Descriptor);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
         Assert.Equal(CodexHooksTemplate.Events, result.Outcomes.Select(o => o.Event));
@@ -32,9 +32,6 @@ public sealed class CodexHooksEditorTests
             AssertCommand(group, CodexHooksTemplate.BuildCommand(Descriptor, codexEvent), 10);
         }
 
-        Assert.Equal(3, result.Sidecar.Count);
-        Assert.All(result.Sidecar.Values, e => Assert.Equal(DateTimeOffset.UnixEpoch, e.InstalledAt));
-
         Assert.NotNull(root["hooks"]);
     }
 
@@ -45,7 +42,7 @@ public sealed class CodexHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
-        var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = CodexHooksEditor.Install(before, Descriptor);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
 
@@ -67,7 +64,7 @@ public sealed class CodexHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
-        var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = CodexHooksEditor.Install(before, Descriptor);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -95,7 +92,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "already-installed.json");
 
-        var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = CodexHooksEditor.Install(before, Descriptor);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Unchanged, o.Outcome));
         Assert.True(JsonNode.DeepEquals(Parse(before), Parse(result.HooksJson)));
@@ -106,7 +103,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "outdated.json");
 
-        var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = CodexHooksEditor.Install(before, Descriptor);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -123,7 +120,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "manually-edited.json");
 
-        var result = CodexHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = CodexHooksEditor.Install(before, Descriptor);
 
         var outcome = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookInstallOutcome.Updated, outcome.Outcome);
@@ -136,8 +133,8 @@ public sealed class CodexHooksEditorTests
     [Fact]
     public void Install_Twice_IsIdempotent()
     {
-        var once = CodexHooksEditor.Install(null, Descriptor, DateTimeOffset.UnixEpoch).HooksJson;
-        var twice = CodexHooksEditor.Install(once, Descriptor, DateTimeOffset.UnixEpoch).HooksJson;
+        var once = CodexHooksEditor.Install(null, Descriptor).HooksJson;
+        var twice = CodexHooksEditor.Install(once, Descriptor).HooksJson;
 
         Assert.Equal(once, twice);
     }
@@ -164,10 +161,9 @@ public sealed class CodexHooksEditorTests
     [Fact]
     public void Uninstall_MissingFile_AllNotPresent()
     {
-        var result = CodexHooksEditor.Uninstall(null, new Dictionary<string, CodexHooksSidecarEntry>());
+        var result = CodexHooksEditor.Uninstall(null);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookUninstallOutcome.NotPresent, o.Outcome));
-        Assert.Empty(result.Sidecar);
     }
 
     [Fact]
@@ -177,12 +173,9 @@ public sealed class CodexHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
-        var sidecar = SidecarFor(before);
-
-        var result = CodexHooksEditor.Uninstall(before, sidecar);
+        var result = CodexHooksEditor.Uninstall(before);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookUninstallOutcome.Removed, o.Outcome));
-        Assert.Empty(result.Sidecar);
 
         var afterRoot = Parse(result.HooksJson);
 
@@ -195,41 +188,31 @@ public sealed class CodexHooksEditorTests
     }
 
     [Fact]
+    public void Uninstall_DuplicateNitroGroups_RemovesEveryNitroInvocation()
+    {
+        var installed = CodexHooksEditor.Install(null, Descriptor).HooksJson;
+        var root = Parse(installed);
+        var sessionStart = (JsonArray)Hooks(root)["SessionStart"]!;
+        sessionStart.Add(sessionStart[0]!.DeepClone());
+
+        var result = CodexHooksEditor.Uninstall(root.ToJsonString());
+
+        Assert.Equal(HookUninstallOutcome.Removed,
+            Assert.Single(result.Outcomes, e => e.Event == "SessionStart").Outcome);
+        Assert.DoesNotContain(CodexHooksTemplate.CommandMarker, result.HooksJson, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Uninstall_ForeignSessionStartWithNoOwnedGroup_LeavesItInPlace()
     {
         var before = CodexHooksInstallFixtures.Read("install", "foreign-only.json");
 
-        var result = CodexHooksEditor.Uninstall(before, new Dictionary<string, CodexHooksSidecarEntry>());
+        var result = CodexHooksEditor.Uninstall(before);
 
         var sessionStart = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookUninstallOutcome.NotPresent, sessionStart.Outcome);
         Assert.True(JsonNode.DeepEquals(Parse(before), Parse(result.HooksJson)));
     }
-
-    private static Dictionary<string, CodexHooksSidecarEntry> SidecarFor(string installedJson)
-    {
-        var root = Parse(installedJson);
-        var sidecar = new Dictionary<string, CodexHooksSidecarEntry>();
-
-        foreach (var codexEvent in CodexHooksTemplate.Events)
-        {
-            var group = SingleOwnedGroup(root, codexEvent);
-            var hook = (JsonObject)((JsonArray)group["hooks"]!)[0]!;
-            var command = hook["command"]!.GetValue<string>();
-            var timeout = hook["timeout"]!.GetValue<int>();
-
-            sidecar[codexEvent] = new CodexHooksSidecarEntry(
-                command, timeout, CodexHooksSidecarEntry.ComputeHash(command, timeout), DateTimeOffset.UnixEpoch);
-        }
-
-        return sidecar;
-    }
-
-    private static JsonObject SingleOwnedGroup(JsonObject root, string codexEvent)
-        => (JsonObject)((JsonArray)Hooks(root)[codexEvent]!)
-            .Single(g => ((JsonObject)g!)["hooks"]!.AsArray()
-                .All(h => ((JsonObject)h!)["command"]!.GetValue<string>()
-                    .Contains(CodexHooksTemplate.CommandMarker, StringComparison.Ordinal)))!;
 
     private static JsonObject SingleGroup(JsonObject root, string codexEvent)
     {

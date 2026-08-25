@@ -26,7 +26,7 @@ internal sealed record CodexHooksUninstallReport(
 /// <summary>
 /// Wires <see cref="CodexHooksEditor"/> and
 /// <see cref="CodexConfigTomlNotifyEditor"/>'s pure text editing to the real
-/// <c>hooks.json</c> and <c>config.toml</c> files, the sidecar, and the same
+/// <c>hooks.json</c> and <c>config.toml</c> files, the notify-restoration sidecar, and the same
 /// re-read-and-hash-compare concurrency guard
 /// <see cref="ClaudeHooksInstallerService"/> uses - applied independently to
 /// EACH of the two files, so a foreign edit racing one of them aborts only
@@ -57,7 +57,7 @@ internal sealed class CodexHooksInstallerService(
         var sidecar = await sidecarStore.ReadAsync(cancellationToken);
 
         var (hooksTextAtRead, hooksHashAtRead) = await ReadWithHashAsync(hooksJsonPath, cancellationToken);
-        var hooksResult = CodexHooksEditor.Install(hooksTextAtRead, descriptor, timeProvider.GetUtcNow());
+        var hooksResult = CodexHooksEditor.Install(hooksTextAtRead, descriptor);
         await WriteIfUnchangedSinceReadAsync(hooksJsonPath, hooksHashAtRead, hooksResult.HooksJson, cancellationToken);
 
         var ourArgv = CodexNotifyTemplate.BuildArgv(descriptor);
@@ -68,7 +68,6 @@ internal sealed class CodexHooksInstallerService(
         await WriteIfUnchangedSinceReadAsync(
             configTomlPath, tomlHashAtRead, notifyResult.ConfigToml, cancellationToken);
 
-        sidecar.HooksFiles[hooksJsonPath] = new Dictionary<string, CodexHooksSidecarEntry>(hooksResult.Sidecar);
         sidecar.NotifyFiles[configTomlPath] = new CodexNotifySidecarEntry(
             ourArgv, notifyResult.NewPriorForeign, timeProvider.GetUtcNow());
         await sidecarStore.WriteAsync(sidecar, cancellationToken);
@@ -110,8 +109,7 @@ internal sealed class CodexHooksInstallerService(
         var sidecar = await sidecarStore.ReadAsync(cancellationToken);
 
         var (hooksTextAtRead, hooksHashAtRead) = await ReadWithHashAsync(hooksJsonPath, cancellationToken);
-        var priorHooksEntries = sidecar.HooksEntriesFor(hooksJsonPath);
-        var hooksResult = CodexHooksEditor.Uninstall(hooksTextAtRead, priorHooksEntries);
+        var hooksResult = CodexHooksEditor.Uninstall(hooksTextAtRead);
         await WriteIfUnchangedSinceReadAsync(hooksJsonPath, hooksHashAtRead, hooksResult.HooksJson, cancellationToken);
 
         var ourArgv = CodexNotifyTemplate.BuildArgv(descriptor);
@@ -122,7 +120,6 @@ internal sealed class CodexHooksInstallerService(
         await WriteIfUnchangedSinceReadAsync(
             configTomlPath, tomlHashAtRead, notifyResult.ConfigToml, cancellationToken);
 
-        sidecar.HooksFiles.Remove(hooksJsonPath);
         sidecar.NotifyFiles.Remove(configTomlPath);
         await sidecarStore.WriteAsync(sidecar, cancellationToken);
 
