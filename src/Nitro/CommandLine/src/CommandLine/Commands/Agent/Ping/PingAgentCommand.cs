@@ -81,18 +81,20 @@ internal sealed class PingAgentCommand : Command
     }
 
     /// <summary>
-    /// Reserves the session's <see cref="ISessionGateCoordinator"/> gate and
-    /// lease slot exactly the way the notifier's <c>ActorWakeDispatcher</c>
-    /// does, then either records the outcome directly (no endpoint,
-    /// unsupported endpoint kind, capacity dropped) or executes the
-    /// endpoint transport call in-process via <see cref="IPingSessionExecutor"/>.
+    /// For a supported endpoint (codex-thread or claude-peer), reserves the
+    /// session's <see cref="ISessionGateCoordinator"/> gate and lease slot
+    /// exactly the way the notifier's <c>ActorWakeDispatcher</c> does, then
+    /// either records the outcome directly (capacity dropped) or executes
+    /// the endpoint transport call in-process via <see cref="IPingSessionExecutor"/>.
     /// A busy gate (another attempt already in flight, or a prior success's
     /// cooldown) is skipped without touching the row at all. Success is the
-    /// only outcome that starts a cooldown; every other completion
-    /// (including an unsupported-endpoint write, treated as coalescing the
-    /// same as success) releases or extends the gate exactly once in
-    /// <c>finally</c>. Returns a short label for CLI display; every branch
-    /// that reaches <see cref="IAgentSessionRegistry.WritePingResultAsync"/>
+    /// only outcome that starts a cooldown; every other completion releases
+    /// the gate exactly once in <c>finally</c>. An unsupported endpoint kind
+    /// never reserves the gate or a lease slot: it coalesces under its own
+    /// per-session cooldown on <c>last_ping_attempt</c> instead, so a
+    /// permanently unsupported endpoint never competes for the shared
+    /// ping_leases capacity. Returns a short label for CLI display; every
+    /// branch that reaches <see cref="IAgentSessionRegistry.WritePingResultAsync"/>
     /// already wrote the exact same value to the row.
     /// </summary>
     private static async Task<string> PingSessionAsync(
@@ -111,6 +113,29 @@ internal sealed class PingAgentCommand : Command
 
         var now = timeProvider.GetUtcNow();
         var attemptId = MemoryId.New(now);
+
+        if (session.EndpointKind is not AgentSessionEndpointKind.CodexThread
+            and not AgentSessionEndpointKind.ClaudePeer)
+        {
+            // Unsupported attempts coalesce under the same per-session
+            // cooldown as supported transports, so repeated manual pings
+            // against a permanently unsupported endpoint do not churn the
+            // gate. This never reaches the gate coordinator at all: an
+            // unsupported endpoint can never transport, so it must never
+            // reserve a ping_leases slot a supported session could use.
+            var claimed = await sessionRegistry.TryClaimPingCooldownAsync(
+                session, attemptId, now, PingPolicy.Cooldown, cancellationToken);
+
+            if (!claimed)
+            {
+                return "skipped-cooldown";
+            }
+
+            await sessionRegistry.WritePingResultAsync(
+                session.Harness, session.SessionId, attemptId, AgentPingResult.Unsupported, null, cancellationToken);
+            return AgentPingResult.Unsupported;
+        }
+
         var generation = new AgentSessionGeneration(
             session.Harness, session.SessionId, session.Host, session.Pid, session.ProcStart);
 
@@ -135,18 +160,6 @@ internal sealed class PingAgentCommand : Command
 
         try
         {
-            if (session.EndpointKind is not AgentSessionEndpointKind.CodexThread
-                and not AgentSessionEndpointKind.ClaudePeer)
-            {
-                // Unsupported attempts coalesce under the same per-session
-                // cooldown as supported transports, so repeated manual
-                // pings against a permanently unsupported endpoint do not
-                // churn the gate.
-                success = true;
-                return await RecordDirectResultAsync(
-                    sessionRegistry, session, attemptId, now, AgentPingResult.Unsupported, cancellationToken);
-            }
-
             // Stamps this attempt onto the row's last_ping_attempt with no
             // cooldown of its own (the gate above already owns cooldown):
             // this call's only remaining purpose is fencing the result

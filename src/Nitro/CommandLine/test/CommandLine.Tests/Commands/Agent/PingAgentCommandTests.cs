@@ -265,6 +265,179 @@ public sealed class PingAgentCommandTests : AgentCommandTestBase
         Assert.Null(pingResult);
     }
 
+    [Fact]
+    public async Task UnsupportedEndpointSession_Should_RecordUnsupported_WithoutReservingAGateOrLeaseSlot()
+    {
+        // arrange: a live session on a permanently unsupported endpoint
+        // kind, and every ping_leases slot already held by unrelated
+        // in-flight attempts - if the unsupported branch ever reserved the
+        // shared gate/lease it would find capacity exhausted and misreport
+        // capacity-dropped instead of unsupported.
+        var peerClient = new FakeClaudePeerClient();
+        SetupClaudePeerClient(peerClient);
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", agentName: "bob", endpointKind: "copilot-extension", endpointAddr: "copilot-a");
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.", "--no-ping");
+
+        var now = FakeTime.GetUtcNow();
+
+        for (var slot = 1; slot <= 4; slot++)
+        {
+            await InsertPingLeaseRowAsync(slot, $"unrelated-attempt-{slot}", now, now + TimeSpan.FromSeconds(30));
+        }
+
+        // act: two manual pings at the exact same instant.
+        var first = await ExecuteCommandAsync("agent", "ping", "bob");
+        var second = await ExecuteCommandAsync("agent", "ping", "bob");
+
+        // assert: recorded directly as unsupported, the second coalesces
+        // under the same cooldown, the shared gate and lease slots were
+        // never touched, and no transport call was ever attempted.
+        first.AssertSuccess("claude-code  session-1  copilot-extension  unsupported");
+        second.AssertSuccess("claude-code  session-1  copilot-extension  skipped-cooldown");
+
+        var pingResult = await QueryScalarAsync(
+            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
+        Assert.Equal("unsupported", pingResult);
+
+        var gateRowCount = await QueryScalarAsync(
+            "SELECT COUNT(*) FROM session_ping_gates WHERE session_id = 'session-1'");
+        Assert.Equal("0", gateRowCount);
+
+        var untouchedLeaseCount = await QueryScalarAsync(
+            "SELECT COUNT(*) FROM ping_leases WHERE attempt_id LIKE 'unrelated-attempt-%'");
+        Assert.Equal("4", untouchedLeaseCount);
+
+        Assert.Empty(peerClient.Calls);
+    }
+
+    /// <summary>
+    /// Blocks inside <see cref="IClaudePeerClient.SendAsync"/> until
+    /// released, signalling <see cref="Entered"/> once invoked, so a test
+    /// can race a real foreground <c>agent mail send</c> wake dispatch
+    /// against a concurrent <c>agent ping</c> while the wake's own
+    /// transport attempt is still holding the session gate.
+    /// </summary>
+    private sealed class BlockingClaudePeerClient : IClaudePeerClient
+    {
+        private readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public List<FakeClaudePeerCall> Calls { get; } = [];
+
+        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Release() => _release.TrySetResult();
+
+        public async Task<ClaudePeerSendOutcome> SendAsync(
+            int pid, string sessionId, string message, CancellationToken cancellationToken)
+        {
+            Calls.Add(new FakeClaudePeerCall(pid, sessionId));
+            Entered.TrySetResult();
+            await _release.Task.WaitAsync(cancellationToken);
+            return ClaudePeerSendOutcome.Ok;
+        }
+    }
+
+    private sealed record FakeClaudePeerCall(int Pid, string SessionId);
+
+    [Fact]
+    public async Task ManualPing_Should_SkipTheSession_When_AForegroundMailWakeIsInFlight()
+    {
+        // arrange: a live claude-peer session, and an outstanding
+        // mail_wake_outbox generation for bob due right now (the CLI's own
+        // "agent mail send" always records its own message with
+        // MailWakePolicy.Skip; seeding this row directly is what stands in
+        // for a caller ready for the wake - see SendMailCommandTests -
+        // for a due, outstanding generation `agent mail send ... ` (without
+        // --no-ping) claims and dispatches through the real, in-process
+        // ActorWakeDispatcher). Blocking its transport call mid-attempt
+        // keeps it holding the session gate for the rest of this test.
+        var blockingPeerClient = new BlockingClaudePeerClient();
+        SetupClaudePeerClient(blockingPeerClient);
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await InsertAliveSessionRowAsync(
+            FixedHost, "session-1", agentName: "bob", endpointKind: "claude-peer", endpointAddr: "peer-a");
+        await InsertMailWakeOutboxRowAsync("bob", FakeTime.GetUtcNow());
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var mailTask = ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+        await blockingPeerClient.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+
+        var gateAttemptIdBeforePing = await QueryScalarAsync(
+            "SELECT attempt_id FROM session_ping_gates WHERE session_id = 'session-1'");
+
+        // act
+        var pingResult = await ExecuteCommandAsync("agent", "ping", "bob");
+
+        // assert: the manual ping finds the wake's reservation still
+        // holding the gate and skips without ever reaching the transport;
+        // the wake's own reservation is untouched.
+        pingResult.AssertSuccess("claude-code  session-1  claude-peer  skipped-cooldown");
+        Assert.Single(blockingPeerClient.Calls);
+
+        var gateAttemptIdAfterPing = await QueryScalarAsync(
+            "SELECT attempt_id FROM session_ping_gates WHERE session_id = 'session-1'");
+        Assert.Equal(gateAttemptIdBeforePing, gateAttemptIdAfterPing);
+
+        blockingPeerClient.Release();
+        var mailResult = await mailTask;
+        Assert.Equal(0, mailResult.ExitCode);
+    }
+
+    /// <summary>
+    /// Inserts a <c>mail_wake_outbox</c> row directly, due right now, for
+    /// this fixture's <c>FixedHost</c> instance id and <paramref name="actor"/> -
+    /// standing in for a caller that enqueued with <c>MailWakePolicy.Enqueue</c>,
+    /// since the CLI's own <c>agent mail send</c> always records its own
+    /// message with <c>MailWakePolicy.Skip</c>.
+    /// </summary>
+    private async Task InsertMailWakeOutboxRowAsync(string actor, DateTimeOffset now)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO mail_wake_outbox (
+                nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at
+            ) VALUES ($host, $actor, 1, 0, $now, $now);
+            """;
+        command.Parameters.AddWithValue("$host", FixedHost);
+        command.Parameters.AddWithValue("$actor", actor);
+        command.Parameters.AddWithValue("$now", now);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Inserts a <c>ping_leases</c> row directly, standing in for another
+    /// in-flight attempt already holding one of the workspace's four
+    /// global transport slots.
+    /// </summary>
+    private async Task InsertPingLeaseRowAsync(
+        int slot, string attemptId, DateTimeOffset acquiredAt, DateTimeOffset expiresAt)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO ping_leases (slot, attempt_id, acquired_at, expires_at)
+            VALUES ($slot, $attemptId, $acquiredAt, $expiresAt);
+            """;
+        command.Parameters.AddWithValue("$slot", slot);
+        command.Parameters.AddWithValue("$attemptId", attemptId);
+        command.Parameters.AddWithValue("$acquiredAt", acquiredAt);
+        command.Parameters.AddWithValue("$expiresAt", expiresAt);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
     /// <summary>
     /// Inserts a <c>session_ping_gates</c> row for the current test
     /// process's own pid and start time (matching <see cref="AgentCommandTestBase.InsertAliveSessionRowAsync"/>'s
