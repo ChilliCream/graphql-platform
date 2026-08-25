@@ -2256,94 +2256,6 @@ internal sealed class TaskStore(
         await using var connection = await InitializeAsync(workspaceDirectory, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
-        CancellationToken cancellationToken)
-    {
-        // Every query below runs against a whole table and takes no filter
-        // parameters, so there is nothing for @-placeholder analysis to key
-        // on; cancellation is checked up front instead of plumbed through a
-        // parameter object (see ComputeBlockedAsync).
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        var taskRows = await connection.QueryAsync<TaskRow>(
-            $"SELECT {TaskItem.Columns} FROM tasks ORDER BY id");
-
-        var labelRows = await connection.QueryAsync<TaskLabelRow>(
-            "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label");
-        var labelsByTask = labelRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<string> (group) => [.. group.Select(row => row.Label)]);
-
-        var dependencyRows = await connection.QueryAsync<TaskDependencyRow>(
-            $"""
-            SELECT {TaskDependencyRow.Columns} FROM dependencies
-            ORDER BY task_id, depends_on_id
-            """);
-        var dependenciesByTask = dependencyRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<TaskSyncDependency> (group) =>
-                    [.. group.Select(row => new TaskSyncDependency
-                    {
-                        DependsOnId = row.DependsOnId,
-                        Type = row.Type,
-                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture),
-                        CreatedBy = row.CreatedBy
-                    })]);
-
-        var commentRows = await connection.QueryAsync<TaskCommentRow>(
-            $"SELECT {TaskComment.Columns} FROM comments ORDER BY task_id, created_at, id");
-        var commentsByTask = commentRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<TaskSyncComment> (group) =>
-                    [.. group.Select(row => new TaskSyncComment
-                    {
-                        Id = row.Id,
-                        Author = row.Author,
-                        Text = row.Text,
-                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture)
-                    })]);
-
-        return taskRows.Select(row =>
-        {
-            var task = row.ToTaskItem();
-
-            return new TaskSyncRecord
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                Design = task.Design,
-                AcceptanceCriteria = task.AcceptanceCriteria,
-                Notes = task.Notes,
-                Status = task.Status,
-                Priority = task.Priority,
-                Type = task.Type,
-                Assignee = task.Assignee,
-                EstimatedMinutes = task.EstimatedMinutes,
-                DueAt = task.DueAt,
-                DeferUntil = task.DeferUntil,
-                CreatedAt = task.CreatedAt,
-                CreatedBy = task.CreatedBy,
-                UpdatedAt = task.UpdatedAt,
-                ClosedAt = task.ClosedAt,
-                CloseReason = task.CloseReason,
-                DeletedAt = task.DeletedAt,
-                DeleteReason = task.DeleteReason,
-                Labels = labelsByTask.GetValueOrDefault(task.Id, []),
-                Dependencies = dependenciesByTask.GetValueOrDefault(task.Id, []),
-                Comments = commentsByTask.GetValueOrDefault(task.Id, [])
-            };
-        }).ToList();
-    }
-
     public async Task<TaskImportResult> ImportTasksAsync(
         IReadOnlyList<TaskSyncRecord> records,
         CancellationToken cancellationToken)
@@ -2548,10 +2460,11 @@ internal sealed class TaskStore(
     // Import writes task rows directly and never calls CreateTaskIdAsync, so
     // child_counters is never populated for the imported tasks. Without this,
     // the next child created for an imported parent collides with a child id
-    // that already exists (e.g. after "flush, delete db, import", creating a
-    // second child for the same parent reuses ".1"). Rebuild each parent's
-    // counter from the highest numeric child suffix present in the tasks
-    // table, never lowering a counter that is already ahead.
+    // that already exists (e.g. after importing a legacy tasks.jsonl that
+    // contains child tasks, creating another child for the same parent would
+    // reuse ".1"). Rebuild each parent's counter from the highest numeric
+    // child suffix present in the tasks table, never lowering a counter that
+    // is already ahead.
     private static async Task RestoreChildCountersAsync(
         SqliteConnection connection,
         DbTransaction transaction,
@@ -3112,8 +3025,8 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// A task-label pair, for grouping labels by task in
-    /// <see cref="ExportTasksAsync"/>.
+    /// A task-label pair, for the orphan-label check in
+    /// <see cref="CheckIntegrityAsync"/>.
     /// </summary>
     internal sealed class TaskLabelRow
     {

@@ -376,13 +376,6 @@ internal interface ITaskStore
     }
 
     /// <summary>
-    /// Returns every task, including tombstones, with its labels, outgoing
-    /// dependencies, and comments embedded, ordered by id.
-    /// </summary>
-    Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Upserts each record by id: a record whose updated_at is at or after
     /// the stored task's updated_at, or whose task does not exist yet,
     /// replaces the stored task together with its labels, outgoing

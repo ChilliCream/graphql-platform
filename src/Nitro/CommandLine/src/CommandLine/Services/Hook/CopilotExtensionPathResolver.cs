@@ -34,26 +34,15 @@ internal sealed class CopilotExtensionPathResolver(IFileSystem fileSystem) : ICo
         => Path.Combine(ResolveProjectRoot(), ".github", "extensions", DirectoryName);
 
     /// <summary>
-    /// The directory CONTAINING <c>.nitro</c>, mirroring
+    /// The project root that owns the workspace (the directory containing
+    /// <c>.nitro</c> or <c>.git</c>), mirroring
     /// <c>ClaudeSettingsPathResolver.ResolveProjectRoot</c>: Copilot's own
     /// project-scope extensions directory
-    /// (<c>&lt;repo-root&gt;/.github/extensions/</c>) is a sibling of
-    /// <c>.nitro</c>, not underneath it.
+    /// (<c>&lt;repo-root&gt;/.github/extensions/</c>) is a sibling of those,
+    /// not underneath them.
     /// </summary>
     private string ResolveProjectRoot()
-    {
-        for (var directory = fileSystem.GetCurrentDirectory();
-            !string.IsNullOrEmpty(directory);
-            directory = Path.GetDirectoryName(directory))
-        {
-            var workspaceDirectory = Workspace.AgentWorkspace.GetDirectory(directory);
-
-            if (fileSystem.FileExists(Workspace.AgentWorkspace.GetDatabasePath(workspaceDirectory)))
-            {
-                return directory;
-            }
-        }
-
-        throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
-    }
+        => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory())
+            ?.ProjectDirectory
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 }

@@ -42,6 +42,12 @@ internal sealed class TestFileSystem(string currentDirectory) : IFileSystem
 
     public void CreateDirectory(string path) => _inner.CreateDirectory(path);
 
+    public void MoveDirectory(string sourcePath, string targetPath)
+        => _inner.MoveDirectory(sourcePath, targetPath);
+
+    public void DeleteDirectory(string path, bool recursive)
+        => _inner.DeleteDirectory(path, recursive);
+
     public IEnumerable<string> GetFiles(
         string directory,
         string pattern,

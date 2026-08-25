@@ -311,7 +311,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
         await Task.Delay(Debounce, testToken);
-        File.WriteAllText(Path.Combine(_directory, "tasks.jsonl"), "unrelated");
+        File.WriteAllText(Path.Combine(_directory, "notes.txt"), "unrelated");
         await Task.Delay(Debounce * 4, testToken);
         cts.Cancel();
         await runTask;

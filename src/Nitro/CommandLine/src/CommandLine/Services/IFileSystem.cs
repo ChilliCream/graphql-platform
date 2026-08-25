@@ -39,6 +39,14 @@ internal interface IFileSystem
     // Directory
     bool DirectoryExists(string path);
     void CreateDirectory(string path);
+
+    // Moves a directory and everything in it to a target path that must not
+    // exist yet.
+    void MoveDirectory(string sourcePath, string targetPath);
+
+    // Deletes a directory; with recursive false the directory must be empty.
+    void DeleteDirectory(string path, bool recursive);
+
     string GetCurrentDirectory();
     IEnumerable<string> GetFiles(string directory, string pattern, SearchOption searchOption);
 

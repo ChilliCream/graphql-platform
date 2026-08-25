@@ -26,30 +26,16 @@ internal sealed class ClaudeSettingsPathResolver(IFileSystem fileSystem) : IClau
     };
 
     /// <summary>
-    /// The directory CONTAINING <c>.nitro</c>, not
-    /// <see cref="Workspace.AgentWorkspace.Find"/>'s own return value (that
-    /// resolves to the nested <c>.nitro/agents</c> database directory):
+    /// The project root that owns the workspace (the directory containing
+    /// <c>.nitro</c> or <c>.git</c>), not the workspace directory itself:
     /// Claude Code's project-scope config lives at
-    /// <c>&lt;repo-root&gt;/.claude/settings.json</c>, a sibling of
-    /// <c>.nitro</c>, not underneath it. Walks the same nearest-ancestor
-    /// search <c>AgentWorkspace.Find</c> uses, stopping one level higher.
+    /// <c>&lt;repo-root&gt;/.claude/settings.json</c>, a sibling of those,
+    /// not underneath them.
     /// </summary>
     private string ResolveProjectRoot()
-    {
-        for (var directory = fileSystem.GetCurrentDirectory();
-            !string.IsNullOrEmpty(directory);
-            directory = Path.GetDirectoryName(directory))
-        {
-            var workspaceDirectory = Workspace.AgentWorkspace.GetDirectory(directory);
-
-            if (fileSystem.FileExists(Workspace.AgentWorkspace.GetDatabasePath(workspaceDirectory)))
-            {
-                return directory;
-            }
-        }
-
-        throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
-    }
+        => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory())
+            ?.ProjectDirectory
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
     private static string ResolveUserHome()
     {

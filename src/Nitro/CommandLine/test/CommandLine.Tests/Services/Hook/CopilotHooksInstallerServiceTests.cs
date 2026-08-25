@@ -213,6 +213,12 @@ public sealed class CopilotHooksInstallerServiceTests : IDisposable
 
         public void CreateDirectory(string path) => inner.CreateDirectory(path);
 
+        public void MoveDirectory(string sourcePath, string targetPath)
+            => inner.MoveDirectory(sourcePath, targetPath);
+
+        public void DeleteDirectory(string path, bool recursive)
+            => inner.DeleteDirectory(path, recursive);
+
         public string GetCurrentDirectory() => inner.GetCurrentDirectory();
 
         public IEnumerable<string> GetFiles(string directory, string pattern, SearchOption searchOption)

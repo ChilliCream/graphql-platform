@@ -877,34 +877,137 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ExportImportTasksAsync_RoundTripsArchivedTask()
+    public async Task ImportTasksAsync_AppliesArchivedRecordVerbatim()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await SeedAsync(cancellationToken);
-        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2);
+        await SeedAsync(cancellationToken);
+        var record = new TaskSyncRecord
+        {
+            Id = "acme-1",
+            Title = "Task",
+            Status = TaskStates.Archived,
+            Type = TaskTypes.Task,
+            CreatedAt = _timeProvider.GetUtcNow(),
+            UpdatedAt = _timeProvider.GetUtcNow()
+        };
 
         // act
-        var records = await _store.ExportTasksAsync(cancellationToken);
-        var archivedRecord = Assert.Single(records, r => r.Id == "acme-1");
-        Assert.Equal(TaskStates.Archived, archivedRecord.Status);
+        var importResult = await _store.ImportTasksAsync([record], cancellationToken);
 
-        var freshRoot = Path.Combine(_tempRoot.FullName, "fresh-import");
-        Directory.CreateDirectory(freshRoot);
-        var freshStore = new TaskStore(new TestFileSystem(freshRoot), _timeProvider, new AgentDatabase());
-        var freshWorkspaceDirectory = AgentWorkspace.GetDirectory(freshRoot);
-        Directory.CreateDirectory(freshWorkspaceDirectory);
-        await freshStore.InitializeWorkspaceAsync(freshWorkspaceDirectory, "fresh", cancellationToken);
-
-        var importResult = await freshStore.ImportTasksAsync(records, cancellationToken);
-
-        // assert: import applies every record, including the archived one,
-        // and round-trips its status verbatim.
-        Assert.Equal(records.Count, importResult.Applied);
+        // assert: import applies the archived record and stores its status
+        // verbatim.
+        Assert.Equal(1, importResult.Applied);
         Assert.Equal(0, importResult.Skipped);
 
-        var imported = await freshStore.GetRequiredTaskAsync("acme-1", cancellationToken);
+        var imported = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
         Assert.Equal(TaskStates.Archived, imported.Status);
+    }
+
+    [Fact]
+    public async Task ImportTasksAsync_StaleRecord_SkipsAndKeepsStoredTask()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SeedAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        var newer = new TaskSyncRecord
+        {
+            Id = "acme-1",
+            Title = "Newer",
+            Status = TaskStates.Open,
+            Type = TaskTypes.Task,
+            CreatedAt = now.AddHours(-2),
+            UpdatedAt = now
+        };
+        var stale = new TaskSyncRecord
+        {
+            Id = "acme-1",
+            Title = "Stale",
+            Status = TaskStates.Open,
+            Type = TaskTypes.Task,
+            CreatedAt = now.AddHours(-2),
+            UpdatedAt = now.AddHours(-1)
+        };
+        await _store.ImportTasksAsync([newer], cancellationToken);
+
+        // act
+        var result = await _store.ImportTasksAsync([stale], cancellationToken);
+
+        // assert: the stale record is skipped and the stored task keeps its
+        // newer content.
+        Assert.Equal(0, result.Applied);
+        Assert.Equal(1, result.Skipped);
+        var stored = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal("Newer", stored.Title);
+    }
+
+    [Fact]
+    public async Task ImportTasksAsync_AppliesLabelsAndDependencies()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SeedAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        var records = new List<TaskSyncRecord>
+        {
+            NewTaskSyncRecord("acme-2", now),
+            new()
+            {
+                Id = "acme-1",
+                Title = "Task",
+                Status = TaskStates.Open,
+                Type = TaskTypes.Task,
+                CreatedAt = now,
+                UpdatedAt = now,
+                Labels = ["backend", "urgent"],
+                Dependencies =
+                [
+                    new TaskSyncDependency
+                    {
+                        DependsOnId = "acme-2",
+                        Type = TaskDependencyTypes.Blocks,
+                        CreatedAt = now
+                    }
+                ]
+            }
+        };
+
+        // act
+        await _store.ImportTasksAsync(records, cancellationToken);
+
+        // assert
+        Assert.Equal(["backend", "urgent"], await _store.GetLabelsAsync("acme-1", cancellationToken));
+        var dependency = Assert.Single(await _store.GetDependenciesAsync("acme-1", cancellationToken));
+        Assert.Equal("acme-2", dependency.DependsOnId);
+        Assert.Equal(TaskDependencyTypes.Blocks, dependency.Type);
+    }
+
+    [Fact]
+    public async Task ImportTasksAsync_RestoresChildCounters_ForImportedParents()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SeedAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+
+        // act
+        await _store.ImportTasksAsync(
+            [NewTaskSyncRecord("acme-1", now), NewTaskSyncRecord("acme-1.1", now)], cancellationToken);
+
+        var created = await _store.CreateTaskAsync(
+            new TaskCreation
+            {
+                Title = "Second child",
+                Priority = 2,
+                Type = TaskTypes.Task,
+                ParentId = "acme-1",
+                Actor = "tester"
+            },
+            cancellationToken);
+
+        // assert: the next child of the imported parent does not reuse ".1".
+        Assert.Equal("acme-1.2", created.Id);
     }
 
     [Fact]

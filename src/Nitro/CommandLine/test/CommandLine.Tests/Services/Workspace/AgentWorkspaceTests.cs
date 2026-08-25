@@ -62,12 +62,12 @@ public sealed class AgentWorkspaceTests : IDisposable
     }
 
     [Fact]
-    public void Find_Should_ReturnNull_When_OnlyJsonlExists()
+    public void Find_Should_ReturnNull_When_OnlyLegacyJsonlExists()
     {
         // arrange
         var workspaceDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
         Directory.CreateDirectory(workspaceDirectory);
-        File.WriteAllText(AgentWorkspace.GetJsonlPath(workspaceDirectory), "");
+        File.WriteAllText(AgentWorkspace.GetLegacyJsonlPath(workspaceDirectory), "");
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
 
         // act
@@ -77,58 +77,117 @@ public sealed class AgentWorkspaceTests : IDisposable
         Assert.Null(found);
     }
 
-    /// <summary>
-    /// Covers the fresh-clone bootstrap: a workspace containing only the
-    /// committed tasks.jsonl (and .gitignore), no database yet, as a freshly
-    /// cloned repository would look before <c>sync --import-only</c> builds
-    /// the database.
-    /// </summary>
     [Fact]
-    public void FindDatabaseOrJsonl_Should_ReturnDirectory_When_OnlyJsonlExists()
+    public void ResolveGitCommonDirectory_Should_ReturnGitDirectory_When_GitFolderExists()
     {
         // arrange
-        var workspaceDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
-        Directory.CreateDirectory(workspaceDirectory);
-        File.WriteAllText(AgentWorkspace.GetJsonlPath(workspaceDirectory), "");
+        var gitDirectory = Path.Combine(_tempRoot.FullName, ".git");
+        Directory.CreateDirectory(gitDirectory);
+        var fileSystem = new TestFileSystem(_tempRoot.FullName);
+
+        // act
+        var resolved = AgentWorkspace.ResolveGitCommonDirectory(fileSystem, _tempRoot.FullName);
+
+        // assert
+        Assert.Equal(gitDirectory, resolved);
+    }
+
+    [Fact]
+    public void ResolveGitCommonDirectory_Should_FollowWorktreePointer_ToCommonDirectory()
+    {
+        // arrange: a linked worktree's .git file pointing at the main
+        // checkout's gitdir, which redirects to the common directory.
+        var mainGitDirectory = Path.Combine(_tempRoot.FullName, "main", ".git");
+        var worktreeGitDirectory = Path.Combine(mainGitDirectory, "worktrees", "wt");
+        Directory.CreateDirectory(worktreeGitDirectory);
+        File.WriteAllText(Path.Combine(worktreeGitDirectory, "commondir"), "../..\n");
+
+        var worktreeRoot = Path.Combine(_tempRoot.FullName, "wt");
+        Directory.CreateDirectory(worktreeRoot);
         File.WriteAllText(
-            Path.Combine(workspaceDirectory, AgentWorkspace.GitIgnoreFileName),
-            AgentWorkspace.GitIgnoreContent);
-        var fileSystem = new TestFileSystem(_tempRoot.FullName);
+            Path.Combine(worktreeRoot, ".git"),
+            "gitdir: ../main/.git/worktrees/wt\n");
+        var fileSystem = new TestFileSystem(worktreeRoot);
 
         // act
-        var found = AgentWorkspace.FindDatabaseOrJsonl(fileSystem, _tempRoot.FullName);
+        var resolved = AgentWorkspace.ResolveGitCommonDirectory(fileSystem, worktreeRoot);
 
         // assert
-        Assert.Equal(workspaceDirectory, found);
+        Assert.Equal(Path.GetFullPath(mainGitDirectory), resolved);
     }
 
     [Fact]
-    public void FindDatabaseOrJsonl_Should_ReturnDirectory_When_OnlyDatabaseExists()
+    public void ResolveGitCommonDirectory_Should_ReturnNull_When_GitFileIsMalformed()
     {
         // arrange
-        var workspaceDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
-        Directory.CreateDirectory(workspaceDirectory);
-        File.WriteAllText(AgentWorkspace.GetDatabasePath(workspaceDirectory), "");
+        File.WriteAllText(Path.Combine(_tempRoot.FullName, ".git"), "not a pointer\n");
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
 
         // act
-        var found = AgentWorkspace.FindDatabaseOrJsonl(fileSystem, _tempRoot.FullName);
+        var resolved = AgentWorkspace.ResolveGitCommonDirectory(fileSystem, _tempRoot.FullName);
 
         // assert
-        Assert.Equal(workspaceDirectory, found);
+        Assert.Null(resolved);
     }
 
     [Fact]
-    public void FindDatabaseOrJsonl_Should_ReturnNull_When_NeitherExists()
+    public void FindLocation_Should_PreferNitroWorkspace_Over_GitWorkspace_AtSameLevel()
     {
-        // arrange
+        // arrange: both layouts initialized side by side.
+        var fallbackDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
+        Directory.CreateDirectory(fallbackDirectory);
+        File.WriteAllText(AgentWorkspace.GetDatabasePath(fallbackDirectory), "");
+
+        var gitWorkspaceDirectory = Path.Combine(_tempRoot.FullName, ".git", "nitro");
+        Directory.CreateDirectory(gitWorkspaceDirectory);
+        File.WriteAllText(AgentWorkspace.GetDatabasePath(gitWorkspaceDirectory), "");
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
 
         // act
-        var found = AgentWorkspace.FindDatabaseOrJsonl(fileSystem, _tempRoot.FullName);
+        var location = AgentWorkspace.FindLocation(fileSystem, _tempRoot.FullName);
 
         // assert
-        Assert.Null(found);
+        Assert.Equal(fallbackDirectory, location?.WorkspaceDirectory);
+    }
+
+    [Fact]
+    public void FindLocation_Should_ReturnGitWorkspace_When_OnlyGitDatabaseExists()
+    {
+        // arrange
+        var gitWorkspaceDirectory = Path.Combine(_tempRoot.FullName, ".git", "nitro");
+        Directory.CreateDirectory(gitWorkspaceDirectory);
+        File.WriteAllText(AgentWorkspace.GetDatabasePath(gitWorkspaceDirectory), "");
+
+        var nestedDirectory = Path.Combine(_tempRoot.FullName, "src", "nested");
+        Directory.CreateDirectory(nestedDirectory);
+        var fileSystem = new TestFileSystem(nestedDirectory);
+
+        // act
+        var location = AgentWorkspace.FindLocation(fileSystem, nestedDirectory);
+
+        // assert
+        Assert.Equal(gitWorkspaceDirectory, location?.WorkspaceDirectory);
+        Assert.Equal(_tempRoot.FullName, location?.ProjectDirectory);
+    }
+
+    [Theory]
+    [InlineData("/repo/.nitro/agents", ".nitro/agents")]
+    [InlineData("/repo/.git/nitro", ".git/nitro")]
+    [InlineData("/repo/.git/modules/sub/nitro", "/repo/.git/modules/sub/nitro")]
+    public void GetDisplayPath_Should_ShortenStandardLayouts(string workspaceDirectory, string expected)
+    {
+        // act & assert
+        Assert.Equal(expected, AgentWorkspace.GetDisplayPath(workspaceDirectory));
+    }
+
+    [Theory]
+    [InlineData("/repo/.nitro/agents", true)]
+    [InlineData("/repo/.git/nitro", false)]
+    [InlineData("/repo/other/agents", false)]
+    public void IsFallbackLayout_Should_DetectNitroAgentsLayout(string workspaceDirectory, bool expected)
+    {
+        // act & assert
+        Assert.Equal(expected, AgentWorkspace.IsFallbackLayout(workspaceDirectory));
     }
 
     [Theory]

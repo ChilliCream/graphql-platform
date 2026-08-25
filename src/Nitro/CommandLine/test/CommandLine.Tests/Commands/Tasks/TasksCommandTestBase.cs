@@ -57,12 +57,19 @@ public abstract class TasksCommandTestBase : CommandTestBase
     /// Runs a scalar query against the workspace database and returns the
     /// first column of the first row as a string.
     /// </summary>
-    protected async Task<string?> QueryScalarAsync(string sql)
+    protected Task<string?> QueryScalarAsync(string sql)
+        => QueryScalarAsync(sql, DatabasePath);
+
+    /// <summary>
+    /// Runs a scalar query against the database at the given path and
+    /// returns the first column of the first row as a string.
+    /// </summary>
+    protected async Task<string?> QueryScalarAsync(string sql, string databasePath)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
         await using var connection =
-            new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+            new SqliteConnection($"Data Source={databasePath};Pooling=False");
         await connection.OpenAsync(cancellationToken);
 
         await using var command = connection.CreateCommand();
@@ -76,7 +83,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
     /// <summary>
     /// Inserts a dependency edge directly into the workspace database,
     /// bypassing ITaskStore's cycle rejection. Used to seed a cycle that
-    /// reached the database some other way (a stale sync import, a manual
+    /// reached the database some other way (a legacy import, a manual
     /// edit) so cycle-detection commands have something to find.
     /// </summary>
     protected async Task InsertDependencyAsync(string taskId, string dependsOnId, string type = "blocks")

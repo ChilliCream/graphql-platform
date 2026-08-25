@@ -294,6 +294,12 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
 
         public void CreateDirectory(string path) => inner.CreateDirectory(path);
 
+        public void MoveDirectory(string sourcePath, string targetPath)
+            => inner.MoveDirectory(sourcePath, targetPath);
+
+        public void DeleteDirectory(string path, bool recursive)
+            => inner.DeleteDirectory(path, recursive);
+
         public string GetCurrentDirectory() => inner.GetCurrentDirectory();
 
         public IEnumerable<string> GetFiles(string directory, string pattern, SearchOption searchOption)
@@ -351,6 +357,12 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         public bool DirectoryExists(string path) => inner.DirectoryExists(path);
 
         public void CreateDirectory(string path) => inner.CreateDirectory(path);
+
+        public void MoveDirectory(string sourcePath, string targetPath)
+            => inner.MoveDirectory(sourcePath, targetPath);
+
+        public void DeleteDirectory(string path, bool recursive)
+            => inner.DeleteDirectory(path, recursive);
 
         public string GetCurrentDirectory() => inner.GetCurrentDirectory();
 

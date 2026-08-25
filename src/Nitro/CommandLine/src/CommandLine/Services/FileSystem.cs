@@ -129,6 +129,12 @@ internal sealed class FileSystem : IFileSystem
 
     public void CreateDirectory(string path) => Directory.CreateDirectory(path);
 
+    public void MoveDirectory(string sourcePath, string targetPath)
+        => Directory.Move(sourcePath, targetPath);
+
+    public void DeleteDirectory(string path, bool recursive)
+        => Directory.Delete(path, recursive);
+
     public string GetCurrentDirectory() => Directory.GetCurrentDirectory();
 
     public IEnumerable<string> GetFiles(

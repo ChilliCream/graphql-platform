@@ -3,9 +3,10 @@ using System.Text.Json.Serialization;
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// One line of tasks.jsonl: a task with its labels, outgoing dependencies,
-/// and comments embedded, so the line alone recreates the task. Represents
-/// both live tasks and tombstones.
+/// One line of a legacy tasks.jsonl file: a task with its labels, outgoing
+/// dependencies, and comments embedded, so the line alone recreates the
+/// task. Represents both live tasks and tombstones, read once when init
+/// migrates such a file into the task database.
 /// </summary>
 internal sealed class TaskSyncRecord
 {
@@ -35,11 +36,8 @@ internal sealed class TaskSyncRecord
 }
 
 /// <summary>
-/// AOT source-generated (de)serialization for tasks.jsonl. Kept separate
-/// from <c>JsonSourceGenerationContext</c>, whose options are indented for
-/// pretty-printed `--output json` results: JSONL requires exactly one
-/// compact JSON object per line. Also serializes <see cref="TaskConfigEntry"/>,
-/// which shares tasks.jsonl with task records as its own line per key.
+/// AOT source-generated deserialization for legacy tasks.jsonl lines: task
+/// records and <see cref="TaskConfigEntry"/> config lines.
 /// </summary>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(TaskSyncRecord))]

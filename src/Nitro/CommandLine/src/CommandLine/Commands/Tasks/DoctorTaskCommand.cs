@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -121,15 +122,37 @@ internal sealed class DoctorTaskCommand : Command
 
     /// <summary>
     /// Returns the legacy <c>.nitro/tasks</c> and <c>.nitro/mail</c>
-    /// directories, from before the two were unified onto
-    /// <c>.nitro/agents</c>, that still exist alongside the given workspace
-    /// directory.
+    /// directories, from before the two were unified, that still exist in
+    /// the project owning the given workspace directory.
     /// </summary>
     private static IReadOnlyList<string> FindLegacyDirectories(
         IFileSystem fileSystem,
         string workspaceDirectory)
     {
-        var nitroDirectory = Path.GetDirectoryName(workspaceDirectory);
+        var parent = Path.GetDirectoryName(workspaceDirectory);
+
+        if (parent is null)
+        {
+            return [];
+        }
+
+        string? nitroDirectory;
+
+        if (AgentWorkspace.IsFallbackLayout(workspaceDirectory))
+        {
+            nitroDirectory = parent;
+        }
+        else if (Path.GetFileName(parent) == AgentWorkspace.GitDirectoryName)
+        {
+            var projectDirectory = Path.GetDirectoryName(parent);
+            nitroDirectory = projectDirectory is null
+                ? null
+                : Path.Combine(projectDirectory, AgentWorkspace.RootDirectoryName);
+        }
+        else
+        {
+            nitroDirectory = null;
+        }
 
         if (nitroDirectory is null)
         {
