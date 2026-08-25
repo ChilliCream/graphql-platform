@@ -84,6 +84,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetBrandAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Product)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBrandAsync_product();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -96,7 +106,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))),
-                            RuntimeType = typeof(global::TestNamespace.Product)
+                            RuntimeType = typeof(global::TestNamespace.Product),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -143,6 +154,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetCategoryAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Product)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetCategoryAsync_product();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -155,7 +176,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))),
-                            RuntimeType = typeof(global::TestNamespace.Product)
+                            RuntimeType = typeof(global::TestNamespace.Product),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

@@ -90,6 +90,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetBooleanExplicitValue",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(bool?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBooleanExplicitValue_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -103,7 +113,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("bool")),
-                            RuntimeType = typeof(bool?)
+                            RuntimeType = typeof(bool?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -136,6 +147,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetBooleanExplicitNull",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(bool?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBooleanExplicitNull_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -149,7 +170,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("bool")),
-                            RuntimeType = typeof(bool?)
+                            RuntimeType = typeof(bool?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -182,6 +204,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetBooleanExplicitDefault",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(bool?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBooleanExplicitDefault_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -195,7 +227,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("bool")),
-                            RuntimeType = typeof(bool?)
+                            RuntimeType = typeof(bool?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -228,6 +261,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetLongExplicitValue",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(long?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetLongExplicitValue_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -241,7 +284,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(long), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("long")),
-                            RuntimeType = typeof(long?)
+                            RuntimeType = typeof(long?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -274,6 +318,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetLongExplicitValueWithSuffix",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(long?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetLongExplicitValueWithSuffix_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -287,7 +341,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(long), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("long")),
-                            RuntimeType = typeof(long?)
+                            RuntimeType = typeof(long?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -320,6 +375,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetLongExplicitNull",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(long?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetLongExplicitNull_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -333,7 +398,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(long), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("long")),
-                            RuntimeType = typeof(long?)
+                            RuntimeType = typeof(long?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -366,6 +432,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetLongExplicitDefault",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(long?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetLongExplicitDefault_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -379,7 +455,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(long), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("long")),
-                            RuntimeType = typeof(long?)
+                            RuntimeType = typeof(long?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -412,6 +489,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetCharExplicitValue",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(char?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetCharExplicitValue_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -425,7 +512,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(char), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("char")),
-                            RuntimeType = typeof(char?)
+                            RuntimeType = typeof(char?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -458,6 +546,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetCharExplicitNull",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(char?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetCharExplicitNull_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -471,7 +569,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(char), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("char")),
-                            RuntimeType = typeof(char?)
+                            RuntimeType = typeof(char?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -504,6 +603,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetCharExplicitDefault",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(char?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetCharExplicitDefault_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -517,7 +626,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(char), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("char")),
-                            RuntimeType = typeof(char?)
+                            RuntimeType = typeof(char?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -550,6 +660,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetEnumExplicitValue",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.ConsoleColor?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetEnumExplicitValue_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -563,7 +683,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::System.ConsoleColor), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("global__System_ConsoleColor")),
-                            RuntimeType = typeof(global::System.ConsoleColor?)
+                            RuntimeType = typeof(global::System.ConsoleColor?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -596,6 +717,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetEnumExplicitNull",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.ConsoleColor?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetEnumExplicitNull_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -609,7 +740,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::System.ConsoleColor), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("global__System_ConsoleColor")),
-                            RuntimeType = typeof(global::System.ConsoleColor?)
+                            RuntimeType = typeof(global::System.ConsoleColor?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -642,6 +774,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetEnumExplicitDefault",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.ConsoleColor?)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetEnumExplicitDefault_bar();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -655,7 +797,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::System.ConsoleColor), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NamedTypeNode("global__System_ConsoleColor")),
-                            RuntimeType = typeof(global::System.ConsoleColor?)
+                            RuntimeType = typeof(global::System.ConsoleColor?),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

@@ -52,6 +52,18 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Book),
+                            typeof(string),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetAuthorAsync_version();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -63,7 +75,8 @@ namespace TestNamespace
                             Name = naming.GetMemberName("version", global::HotChocolate.Types.MemberKind.Argument),
                             RuntimeDefaultValue = "Test",
                             Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.StringType), HotChocolate.Types.TypeContext.Input),
-                            RuntimeType = typeof(string)
+                            RuntimeType = typeof(string),
+                            Parameter = parameters?[1]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

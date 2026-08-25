@@ -76,6 +76,19 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetProductAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.ProductService),
+                            typeof(int),
+                            typeof(global::GreenDonut.Data.QueryContext<global::TestNamespace.Product>),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetProductAsync_productService();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -88,7 +101,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_ProductService"))),
-                            RuntimeType = typeof(global::TestNamespace.ProductService)
+                            RuntimeType = typeof(global::TestNamespace.ProductService),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -105,7 +119,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
-                            RuntimeType = typeof(int)
+                            RuntimeType = typeof(int),
+                            Parameter = parameters?[1]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

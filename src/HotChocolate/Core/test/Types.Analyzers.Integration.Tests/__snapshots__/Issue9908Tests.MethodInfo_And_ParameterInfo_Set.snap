@@ -4,11 +4,8 @@ schema {
   subscription: Subscription
 }
 
+"Object runtime type is set."
 type Query {
-  "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
-  "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   someBooks(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -18,7 +15,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): BookConnection
+  ): SomeBooksConnection
   authors(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -28,7 +25,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): AuthorConnection
+  ): AuthorsConnection
   publishers(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -38,7 +35,8 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): PublisherConnection
+  ): PublishersConnection
+  "Field member is set."
   issue9908Method(name: String!, input: Issue9908InputObjectInput!): Issue9908ResponseObject!
   animal: Animal!
   zoo: Zoo!
@@ -64,7 +62,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): BookConnection
+  ): BooksConnection
   favoriteBooks(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -74,7 +72,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): BookConnection
+  ): FavoriteBooksConnection
   ints(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -84,7 +82,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): IntConnection
+  ): IntsConnection
   products(
     "Returns the elements in the list that come after the specified cursor."
     after: Version2
@@ -94,7 +92,7 @@ type Query {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): ProductConnection
+  ): ProductsConnection
   argumentWithExplicitType(arg: Version2): String!
   nullableArgumentWithExplicitType(arg: Version2): String!
   nullableArrayArgumentRef(items: [String!]): String!
@@ -110,22 +108,26 @@ type Query {
   issue8057Entity(id: ID!): Issue8057Entity
 }
 
+"Object runtime type is set."
 type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
   createExport(currentUser: CurrentUserInput!, name: String!): String!
 }
 
+"Object runtime type is set."
 type Subscription {
   onProductAdded(categoryId: Int!): Int!
   onProductPriceChanged(productId: Int!): Int!
 }
 
+"Object runtime type is set."
 type Animal {
   id: String!
   kind: AnimalKind!
 }
 
+"Object runtime type is set."
 type Author {
   books(
     "Returns the first _n_ elements from the list."
@@ -136,29 +138,30 @@ type Author {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): BookConnection
+  ): BooksConnection
   id: String!
   name: String!
 }
 
-"A connection to a list of items."
-type AuthorConnection {
+"Object runtime type is set."
+type AuthorsConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [AuthorEdge!]
+  edges: [AuthorsEdge!]
   "A flattened list of the nodes."
   nodes: [Author!]
 }
 
-"An edge in a connection."
-type AuthorEdge {
+"Object runtime type is set."
+type AuthorsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
   node: Author!
 }
 
+"Object runtime type is set."
 type Book implements Product {
   batchGreeting: String!
   title: String!
@@ -166,24 +169,25 @@ type Book implements Product {
   kind: String!
 }
 
-"A connection to a list of items."
-type BookConnection {
+"Object runtime type is set."
+type BooksConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [BookEdge!]
+  edges: [BooksEdge!]
   "A flattened list of the nodes."
   nodes: [Book!]
 }
 
-"An edge in a connection."
-type BookEdge {
+"Object runtime type is set."
+type BooksEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
   node: Book!
 }
 
+"Object runtime type is set."
 type DeclaringTypeProbe {
   "tagged"
   fromPartialA: String!
@@ -191,24 +195,43 @@ type DeclaringTypeProbe {
   id: String!
 }
 
-"A connection to a list of items."
-type IntConnection {
+"Object runtime type is set."
+type FavoriteBooksConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [IntEdge!]
+  edges: [FavoriteBooksEdge!]
+  "A flattened list of the nodes."
+  nodes: [Book!]
+}
+
+"Object runtime type is set."
+type FavoriteBooksEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Book!
+}
+
+"Object runtime type is set."
+type IntsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [IntsEdge!]
   "A flattened list of the nodes."
   nodes: [Int!]
 }
 
-"An edge in a connection."
-type IntEdge {
+"Object runtime type is set."
+type IntsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
   node: Int!
 }
 
+"Object runtime type is set."
 type IsSelectedNode implements Node {
   id: ID!
   name: String!
@@ -216,15 +239,18 @@ type IsSelectedNode implements Node {
   wasNameSelected: Boolean!
 }
 
+"Object runtime type is set."
 type Issue8057Entity implements Node {
   id: ID!
 }
 
+"Object runtime type is set."
 type Issue9908ResponseObject {
+  "Field member is set."
   issue9908Property: String!
 }
 
-"Information about pagination in a connection."
+"Object runtime type is set."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
@@ -236,30 +262,32 @@ type PageInfo {
   endCursor: String
 }
 
+"Object runtime type is set."
 type PrefixOwnFieldsProbe {
   a_fromPartialA: String!
   fromPartialB: String!
   id: String!
 }
 
-"A connection to a list of items."
-type ProductConnection {
+"Object runtime type is set."
+type ProductsConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [ProductEdge!]
+  edges: [ProductsEdge!]
   "A flattened list of the nodes."
   nodes: [Product!]
 }
 
-"An edge in a connection."
-type ProductEdge {
+"Object runtime type is set."
+type ProductsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
   node: Product!
 }
 
+"Object runtime type is set."
 type Publisher {
   books(
     "Returns the first _n_ elements from the list."
@@ -270,38 +298,59 @@ type Publisher {
     last: Int
     "Returns the elements in the list that come before the specified cursor."
     before: String
-  ): BookConnection
+  ): BooksConnection
   id: String!
   name: String!
 }
 
-"A connection to a list of items."
-type PublisherConnection {
+"Object runtime type is set."
+type PublishersConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [PublisherEdge!]
+  edges: [PublishersEdge!]
   "A flattened list of the nodes."
   nodes: [Publisher!]
 }
 
-"An edge in a connection."
-type PublisherEdge {
+"Object runtime type is set."
+type PublishersEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
   node: Publisher!
 }
 
+"Object runtime type is set."
 type renamed_DescriptorAttributeProbe {
   name: String!
 }
 
+"Object runtime type is set."
 type Shape {
   key: String!
   name: String!
 }
 
+"Object runtime type is set."
+type SomeBooksConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [SomeBooksEdge!]
+  "A flattened list of the nodes."
+  nodes: [Book!]
+}
+
+"Object runtime type is set."
+type SomeBooksEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Book!
+}
+
+"Object runtime type is set."
 type Television implements Product {
   argumentWithExplicitType(arg: Version!): String!
   nullableArgumentWithExplicitType(arg: Version): String!
@@ -309,6 +358,7 @@ type Television implements Product {
   kind: String!
 }
 
+"Object runtime type is set."
 type Zoo {
   propertyAnimals: AnimalKind!
   animals: AnimalKind!
@@ -342,7 +392,9 @@ input CurrentUserInput {
   name: String!
 }
 
+"Input object runtime type is set."
 input Issue9908InputObjectInput {
+  "Field property is set."
   issue9908Property: String!
 }
 

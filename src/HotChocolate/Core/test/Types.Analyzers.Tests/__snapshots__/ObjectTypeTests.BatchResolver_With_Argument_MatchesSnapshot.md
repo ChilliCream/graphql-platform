@@ -79,6 +79,17 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::System.Collections.Generic.List<string>)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetGreeting_prefix();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -91,7 +102,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string"))),
-                            RuntimeType = typeof(global::System.Collections.Generic.List<string>)
+                            RuntimeType = typeof(global::System.Collections.Generic.List<string>),
+                            Parameter = parameters?[1]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

@@ -52,6 +52,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetBrandAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.DerivedProduct)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBrandAsync_product();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -64,7 +74,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.DerivedProduct), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_DerivedProduct"))),
-                            RuntimeType = typeof(global::TestNamespace.DerivedProduct)
+                            RuntimeType = typeof(global::TestNamespace.DerivedProduct),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

@@ -83,6 +83,18 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetBrandAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Brand),
+                            typeof(global::TestNamespace.Brand),
+                            typeof(global::TestNamespace.BrandService)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetBrandAsync_otherBrand();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -95,7 +107,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.Brand), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Brand"))),
-                            RuntimeType = typeof(global::TestNamespace.Brand)
+                            RuntimeType = typeof(global::TestNamespace.Brand),
+                            Parameter = parameters?[1]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);
@@ -112,7 +125,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(global::TestNamespace.BrandService), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_BrandService"))),
-                            RuntimeType = typeof(global::TestNamespace.BrandService)
+                            RuntimeType = typeof(global::TestNamespace.BrandService),
+                            Parameter = parameters?[2]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

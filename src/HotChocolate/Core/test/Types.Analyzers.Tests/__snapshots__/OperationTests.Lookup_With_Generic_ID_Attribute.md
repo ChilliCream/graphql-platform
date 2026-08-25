@@ -89,6 +89,16 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetProductById",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(int)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetProductById_id();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -101,7 +111,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
-                            RuntimeType = typeof(int)
+                            RuntimeType = typeof(int),
+                            Parameter = parameters?[0]
                         };
 
                         var argumentDescriptor = global::HotChocolate.Types.Descriptors.ArgumentDescriptor.From(field.Context, argumentConfiguration);

@@ -162,6 +162,18 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetEntityAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(int),
+                            typeof(global::TestNamespace.DataAccess.IEntityByIdDataLoader),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();
+
                     var bindingInfo = field.Context.ParameterBindingResolver;
                     var parameter = context.Resolvers.CreateParameterDescriptor_GetEntityAsync_id();
                     var parameterInfo = bindingInfo.GetBindingInfo(parameter);
@@ -174,7 +186,8 @@ namespace TestNamespace
                             Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                                 typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
                                 new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
-                            RuntimeType = typeof(int)
+                            RuntimeType = typeof(int),
+                            Parameter = parameters?[0]
                         };
 
                         configuration.Arguments.Add(argumentConfiguration);

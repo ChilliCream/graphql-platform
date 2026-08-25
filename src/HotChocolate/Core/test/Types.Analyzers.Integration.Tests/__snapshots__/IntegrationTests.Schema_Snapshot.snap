@@ -59,6 +59,7 @@ type Query {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
+  issue9908Method(name: String!, input: Issue9908InputObjectInput!): Issue9908ResponseObject!
   animal: Animal!
   zoo: Zoo!
   formatAnimalKinds(kinds: AnimalKind!): String!
@@ -294,6 +295,10 @@ type Issue8057Entity implements Node {
   id: ID!
 }
 
+type Issue9908ResponseObject {
+  issue9908Property: String!
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -436,6 +441,10 @@ input ConfiguredLocalStateInput {
 
 input CurrentUserInput {
   name: String!
+}
+
+input Issue9908InputObjectInput {
+  issue9908Property: String!
 }
 
 input ShapeInput {
