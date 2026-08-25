@@ -3,10 +3,9 @@ using System.Runtime.CompilerServices;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Locates the captured Copilot hook payload fixtures under
-/// <c>test/fixtures/hooks/copilot/redo-1.0.80/</c> (spike S5's redo,
-/// perles-net-k3j.4, against the actually-running 1.0.80 binary), sibling to
-/// the <c>CommandLine.Tests</c> project directory. Mirrors
+/// Locates the Copilot hook payload fixtures under
+/// <c>test/fixtures/hooks/copilot/</c>, sibling to the
+/// <c>CommandLine.Tests</c> project directory. Mirrors
 /// <see cref="CodexHookFixtures"/>'s resolution-by-source-path.
 /// </summary>
 internal static class CopilotHookFixtures
@@ -15,7 +14,7 @@ internal static class CopilotHookFixtures
     {
         var directory = Path.GetDirectoryName(sourceFile)!;
         var path = Path.Combine(
-            directory, "..", "..", "..", "fixtures", "hooks", "copilot", "redo-1.0.80", fileName);
+            directory, "..", "..", "..", "fixtures", "hooks", "copilot", fileName);
 
         return File.ReadAllText(path);
     }

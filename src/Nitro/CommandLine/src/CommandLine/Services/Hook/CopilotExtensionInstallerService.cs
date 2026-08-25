@@ -48,7 +48,7 @@ internal sealed record CopilotExtensionStatusReport(
 internal sealed record CopilotExtensionUninstallReport(string ExtensionPath, string ConfigPath, bool Removed);
 
 /// <summary>
-/// Installs the Copilot CLI extension asset (perles-net-k3j.16) to
+/// Installs the Copilot CLI extension asset to
 /// <c>&lt;repo-root&gt;/.github/extensions/nitro-mail/extension.mjs</c>,
 /// project scope only. Unlike the hooks installers, which merge Nitro-owned
 /// entries into a config file, the whole asset file is Nitro-owned, and the

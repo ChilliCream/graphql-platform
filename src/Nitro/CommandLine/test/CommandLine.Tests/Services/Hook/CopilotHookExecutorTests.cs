@@ -7,9 +7,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// against <see cref="StringReader"/>/<see cref="StringWriter"/>, mirroring
 /// <c>CodexHookExecutorTests</c>: the suppression short-circuit, every
 /// failure path resolving to the neutral <c>{}</c> response, the flat (not
-/// <c>hookSpecificOutput</c>-nested) response shape spike S5's redo
-/// live-verified, and successful parsing of the S5 redo's captured Copilot
-/// payload fixtures.
+/// <c>hookSpecificOutput</c>-nested) response shape, and successful parsing
+/// of Copilot payload fixtures.
 /// </summary>
 public sealed class CopilotHookExecutorTests
 {
@@ -19,7 +18,7 @@ public sealed class CopilotHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var environmentVariables = new FixedEnvironmentVariableProvider();
         environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");
-        var input = new StringReader(CopilotHookFixtures.Read("payload.sessionStart.user-hooks-dir.camelCase.json"));
+        var input = new StringReader(CopilotHookFixtures.Read("payload.session-start.json"));
         var output = new StringWriter();
         var handlerInvoked = false;
 
@@ -62,7 +61,7 @@ public sealed class CopilotHookExecutorTests
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(
-            CopilotHookFixtures.Read("payload.sessionEnd.project-github-copilot-settings-json.camelCase.json"));
+            CopilotHookFixtures.Read("payload.session-end.json"));
         var output = new StringWriter();
 
         var exitCode = await CopilotHookExecutor.RunAsync(
@@ -81,7 +80,7 @@ public sealed class CopilotHookExecutorTests
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(
-            CopilotHookFixtures.Read("payload.sessionEnd.project-github-copilot-settings-json.camelCase.json"));
+            CopilotHookFixtures.Read("payload.session-end.json"));
         var output = new StringWriter();
 
         var exitCode = await CopilotHookExecutor.RunAsync(
@@ -99,12 +98,11 @@ public sealed class CopilotHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteAFlatAdditionalContext_When_HandlerReturnsOne()
     {
-        // Spike S5's redo live-verified the response envelope is a flat
-        // {"additionalContext": "..."}, NOT nested under hookSpecificOutput
-        // like Claude/Codex - see CopilotHookResponse.
+        // The response envelope is flat, not nested under hookSpecificOutput
+        // like Claude and Codex. See CopilotHookResponse.
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(
-            CopilotHookFixtures.Read("payload.sessionStart.user-hooks-dir.camelCase.json"));
+            CopilotHookFixtures.Read("payload.session-start.json"));
         var output = new StringWriter();
 
         var exitCode = await CopilotHookExecutor.RunAsync(
@@ -122,14 +120,14 @@ public sealed class CopilotHookExecutorTests
 
     [Theory]
     [InlineData(
-        "payload.sessionStart.user-hooks-dir.camelCase.json",
-        "b2535577-1f31-4eaa-8688-963b7953a657")]
+        "payload.session-start.json",
+        "session-1")]
     [InlineData(
-        "payload.userPromptSubmitted.user-settingsjson-hooks-key.json",
-        "b2535577-1f31-4eaa-8688-963b7953a657")]
+        "payload.user-prompt-submitted.json",
+        "session-1")]
     [InlineData(
-        "payload.sessionEnd.project-github-copilot-settings-json.camelCase.json",
-        "02316996-2018-4677-b173-fb3c394abb2b")]
+        "payload.session-end.json",
+        "session-2")]
     public async Task RunAsync_Should_ParseTheFixture_Into_TheExpectedPayload(
         string fixtureFile, string expectedSessionId)
     {

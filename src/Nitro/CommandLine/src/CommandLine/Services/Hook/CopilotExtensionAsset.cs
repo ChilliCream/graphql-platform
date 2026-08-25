@@ -5,7 +5,7 @@ using System.Text;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The embedded <c>extension.mjs</c> asset (perles-net-k3j.16) this CLI
+/// The embedded <c>extension.mjs</c> asset this CLI
 /// installs to <c>.github/extensions/nitro-mail/extension.mjs</c>. The file
 /// carries its own <c>// nitro-mail-extension-version: N</c> header comment,
 /// but the installer's overwrite-refusal check compares content hashes, not
@@ -34,7 +34,7 @@ internal static class CopilotExtensionAsset
     /// </summary>
     public static readonly IReadOnlyList<string> KnownPriorHashes =
     [
-        "3572427819847172ECDBB3826CEA1B73053A61F82737AC7C4CFC9900E9C5F875",
+        "9D2BF9805981EBF8B97511AE62CC7B2D69BBEA5FA1FB2B0A55398F7914C8B362",
         "08A9286AA9EC1EC48B51ECEB977439E5E05499A87C5F006AAFC9A3628BF36764"
     ];
 

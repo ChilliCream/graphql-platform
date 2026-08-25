@@ -35,9 +35,7 @@ public sealed class CodexQueueClientTests
     }
 
     /// <summary>
-    /// Fixture-evidenced signature for a well-formed but nonexistent codex
-    /// thread id (perles-net-5sz, captured live against codex-cli 0.149.0:
-    /// see <c>evidence.5sz-gone-thread-signature.txt</c>).
+    /// Signature for a well-formed but nonexistent Codex thread id.
     /// </summary>
     [Fact]
     public void MapResult_Should_ReturnEndpointGone_When_StderrIsTheNoRolloutSignature()
@@ -53,8 +51,8 @@ public sealed class CodexQueueClientTests
     }
 
     /// <summary>
-    /// Fixture-evidenced signature for a malformed (non-UUID) thread id
-    /// (perles-net-5sz). Not expected to fire in production - the stored
+    /// Signature for a malformed (non-UUID) thread id. Not expected to fire
+    /// in production because the stored
     /// thread id always comes from Codex's own notify payload - but matched
     /// defensively since it is an equally unambiguous "no such session"
     /// report.
@@ -73,8 +71,7 @@ public sealed class CodexQueueClientTests
     }
 
     /// <summary>
-    /// Fixture-evidenced signature for an unrelated queue failure
-    /// (perles-net-5sz, a broken CODEX_HOME): a nonzero exit that must NOT
+    /// Signature for an unrelated queue failure: a nonzero exit that must not
     /// be misclassified as a gone thread.
     /// </summary>
     [Fact]

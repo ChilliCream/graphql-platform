@@ -1,4 +1,4 @@
-// M10 settlement test (perles-net-k3j.16): repeated sends across watcher
+// Repeated sends across watcher
 // restart boundaries all produce at least one session.send, including mail
 // accumulated before the extension ever started. Drives the pure state
 // machine exported by the shipped extension asset directly (no Copilot SDK,

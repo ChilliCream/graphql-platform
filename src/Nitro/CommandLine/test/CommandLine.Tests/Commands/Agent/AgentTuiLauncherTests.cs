@@ -132,8 +132,7 @@ public sealed class AgentTuiLauncherTests
     public void BuildTabs_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
     {
         // arrange: guards against the tab order regressing now that a
-        // fourth tab exists (perles-net-w27 flagged the absence of this
-        // assertion as a finding for slice g to close).
+        // fourth tab exists.
         var taskStore = new FakeTaskStore();
         var mailStore = new FakeMailStore();
         var agentRegistry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();

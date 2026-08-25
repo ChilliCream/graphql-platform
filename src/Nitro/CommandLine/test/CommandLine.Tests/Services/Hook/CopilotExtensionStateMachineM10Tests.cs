@@ -6,7 +6,7 @@ using System.Text;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// The settlement's M10 test (perles-net-k3j.16): repeated sends across
+/// Repeated sends across
 /// watcher restart boundaries all produce at least one <c>session.send</c>,
 /// including mail accumulated before the extension ever started. The
 /// watcher's state machine ships as plain JS inside the embedded

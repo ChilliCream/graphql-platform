@@ -5,9 +5,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Exercises <see cref="CodexHarnessVersionResolver"/> against injected
 /// rollout-version and exe-path readers (no real filesystem or <c>/proc</c>
-/// access). The exe-path regex is live-verified against
-/// <c>~/.codex/packages/standalone/releases/&lt;version&gt;-&lt;triple&gt;/bin/codex</c>
-/// paths per perles-net-xy9.2 comment 124's correction.
+/// access). Covers standalone release paths of the form
+/// <c>~/.codex/packages/standalone/releases/&lt;version&gt;-&lt;triple&gt;/bin/codex</c>.
 /// </summary>
 public sealed class CodexHarnessVersionResolverTests
 {

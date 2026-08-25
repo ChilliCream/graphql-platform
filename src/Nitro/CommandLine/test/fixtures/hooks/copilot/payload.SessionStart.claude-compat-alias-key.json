@@ -1,8 +1,0 @@
-{
-  "hook_event_name": "SessionStart",
-  "session_id": "e7733233-9dfa-4390-961a-a3ceb07c1494",
-  "timestamp": "2026-08-23T10:51:44.671Z",
-  "cwd": "/tmp/claude-1000/-home-pascal-perles-net/5c8d83e3-54d9-4e9d-a620-a533a0cd4f3d/scratchpad/s5-copilot/scratch-repo",
-  "source": "new",
-  "initial_prompt": "reply with the single word: pong4"
-}

@@ -9,11 +9,8 @@
 # Shift+A (TabSwitchKeys.ResolveMnemonic, the tab strip's [A]gents mnemonic)
 # jumps straight to Agents.
 #
-# perles-net-k3j.18 shipped presence badges in the list row (a glyph per
-# AgentRowBadge.PresenceGlyph: offline, online, unreachable, remote)
-# but no e2e tape ever exercised the Agents tab at all (that ticket's own
-# assumption otherwise was wrong; authoring one was routed to perles-net-02r
-# via its comment 64). The list is now built from AgentsState.RefreshAsync
+# Presence badges use one glyph per AgentRowBadge.PresenceGlyph: offline,
+# online, unreachable, or remote. The list is built from AgentsState.RefreshAsync
 # calling AgentSessionRegistry.ListParticipantsAsync, one row per live
 # agent_sessions row (harness, session id), not one row per registered
 # agent: an agent with no session row simply has no participant row and so

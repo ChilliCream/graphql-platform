@@ -16,7 +16,7 @@
 #
 # Neither actor here has a live session bound (both registrations print "No
 # live session bound"), so `send`'s default MailWakePolicy.Enqueue wake
-# attempt fails with `no-live-session` (perles-net-upj.7): the command prints
+# attempt fails with `no-live-session`: the command prints
 # "Stored '<id>' to ...", "message stored, but wake failed: no-live-session.",
 # one "  <actor>: failed (no-live-session)" line per recipient, and exits 1.
 # The send step is left on this default deliberately: this is the epic's
@@ -44,7 +44,7 @@ Output mail-send-flow.txt
 # Height is taller than the other flows' shared 850 (see run.sh/other tapes):
 # register's identity-only fallback prints an extra "No live session bound"
 # line for each of the two registrations here, and send's default wake
-# attempt (perles-net-ubl) now fails against those same sessionless actors,
+# attempt now fails against those same sessionless actors,
 # printing "message stored, but wake failed: ..." plus one line per
 # recipient instead of a single "Sent" line. At 850 (or 950, before this
 # growth) that pushed the tail of the final `mail read --thread` output (the

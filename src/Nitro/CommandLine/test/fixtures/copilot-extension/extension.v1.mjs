@@ -9,23 +9,14 @@
 // bytes stay identical across installs, which is what makes the installer's
 // version-hash check meaningful.
 //
-// UNVERIFIED, honestly: spike S5 (perles-net-k3j.4 redo, comment #94) found
-// the Copilot CLI's `EXTENSIONS` feature flag reports false on the machine
-// that spike ran on, and a minimal probe extension produced zero captures
-// under `-p` mode there. Neither this file's `joinSession()` call shape nor
-// its hook-callback field names (`onSessionStart` etc., `session.send`,
-// `session.on`) have been live-verified; they are transcribed from
-// `copilot-sdk/docs/extensions.md`, a doc source S5 separately flagged as
-// coming from a stale npm package tree. This file has never been loaded by a
-// real Copilot session. What IS tested (see
+// The pure state machine is tested independently of the SDK (see
 // `test/fixtures/copilot-extension/state-machine.m10.test.mjs`) is the pure
 // state machine below, independent of the SDK: idle/busy/draining/restart
 // transitions, the durable cursor, and the injection-loop guard.
 //
-// Non-goal (ticket perles-net-k3j.16): no gate/block behavior here. This
+// This extension has no gate or blocking behavior. It
 // extension only ever calls `session.send`, it never returns a blocking
-// hook decision; Copilot's `agentStop` blocking gate (S5 redo finding) is a
-// file-based-hooks concern, out of scope for this extension.
+// hook decision.
 
 import { spawn } from 'node:child_process';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
@@ -194,8 +185,7 @@ export function afterFlushFailed(state) {
 // `ClaudeHookDigestFormatter`/`CopilotHookHandler`'s C# formatter: this file
 // ships standalone JS with no access to the .NET assembly. Both must be kept
 // in the same shape (unread count, id + from only, 2KB byte ceiling,
-// newest-first, "and N more" trailer) by hand; a drift check is not
-// implemented (recorded as a NEEDS-PASCAL follow-up, see the task comment).
+// newest-first, "and N more" trailer) by hand.
 // ---------------------------------------------------------------------------
 
 const MAX_DIGEST_BYTES = 2048;

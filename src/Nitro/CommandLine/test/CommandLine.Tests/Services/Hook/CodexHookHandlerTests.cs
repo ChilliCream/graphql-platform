@@ -406,7 +406,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_NotReQueue_When_TheQueuedDigestsOwnDeliveryTurnRefiresNotify()
     {
-        // arrange: reproduces spike S2's captured end-to-end trace - turn 1
+        // arrange: turn 1
         // fires notify, queues a digest; turn 2 (the queued digest's own
         // delivery) fires notify again for the SAME thread-id with a new
         // turn-id, and the message-id-keyed ledger must skip it, otherwise

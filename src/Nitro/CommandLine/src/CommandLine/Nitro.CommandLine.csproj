@@ -72,7 +72,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The Copilot CLI extension asset (perles-net-k3j.16): a standalone
+    <!-- The Copilot CLI extension asset: a standalone
          Node.js file the installer copies byte-for-byte to
          .github/extensions/nitro-mail/extension.mjs. Embedded under a fixed
          logical name so CopilotExtensionAsset's resource lookup does not

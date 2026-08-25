@@ -5,9 +5,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Exercises <see cref="CopilotHarnessVersionResolver"/> against injected
 /// session-state-version and exe-output readers (no real filesystem, process
-/// exec, or <c>/proc</c> access). Both the <c>data.copilotVersion</c> field
-/// path and the <c>--version</c> output grammar are live-verified against a
-/// real <c>~/.copilot/session-state/&lt;id&gt;/events.jsonl</c> file.
+/// exec, or <c>/proc</c> access). Covers the <c>data.copilotVersion</c> field
+/// path and the <c>--version</c> output grammar.
 /// </summary>
 public sealed class CopilotHarnessVersionResolverTests
 {

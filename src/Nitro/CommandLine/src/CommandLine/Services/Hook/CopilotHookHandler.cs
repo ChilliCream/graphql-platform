@@ -62,8 +62,7 @@ internal sealed class CopilotHookHandler(
             return CopilotHookOutcome.Neutral;
         }
 
-        // sessionStart is the one Copilot hook event S5 (redo) live-verified
-        // as able to carry additionalContext into the model's context, so
+        // sessionStart can carry additionalContext into the model's context, so
         // the initial unread-mail digest rides here rather than on the
         // turn-boundary event Claude/Codex use for the same content (see
         // HandleUserPromptSubmitAsync).
@@ -75,8 +74,8 @@ internal sealed class CopilotHookHandler(
     public async Task<CopilotHookOutcome> HandleUserPromptSubmitAsync(
         CopilotHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        // No digest capability rides here (S5's live-verified finding: only
-        // sessionStart can carry additionalContext for Copilot), but a
+        // No digest capability rides here because only sessionStart can
+        // carry additionalContext for Copilot, but a
         // resolved generation is still a heartbeat-eligible lifecycle event.
         var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
 

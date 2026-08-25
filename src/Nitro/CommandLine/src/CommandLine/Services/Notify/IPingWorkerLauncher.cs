@@ -9,8 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// immediately after spawning, so the child must survive independently of
 /// it: on Linux this means a new session (<c>setsid</c>) immune to the
 /// SIGHUP a terminating terminal session would otherwise deliver to every
-/// process still in its foreground process group (verified in
-/// perles-net-k3j.3's spike).
+/// process still in its foreground process group.
 /// </summary>
 internal interface IPingWorkerLauncher
 {

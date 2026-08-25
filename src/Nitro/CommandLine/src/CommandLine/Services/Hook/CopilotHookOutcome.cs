@@ -3,10 +3,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// What a Copilot CLI hook event handler decided to tell Copilot,
 /// harness-agnostic in the same spirit as <see cref="ClaudeHookOutcome"/> and
-/// <see cref="CodexHookOutcome"/>. Copilot has no hook this adapter uses for
-/// blocking a turn (spike S5 redo live-verified that <c>agentStop</c> is a
-/// real blocking gate, but wiring it is out of this ticket's scope, see
-/// <see cref="ICopilotHookHandler"/>), so this carries only context
+/// <see cref="CodexHookOutcome"/>. This adapter does not use Copilot's
+/// <c>agentStop</c> hook for blocking a turn, so this carries only context
 /// injection.
 /// </summary>
 internal sealed record CopilotHookOutcome

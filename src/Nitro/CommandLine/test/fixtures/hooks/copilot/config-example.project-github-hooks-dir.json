@@ -1,8 +1,0 @@
-{
-  "_comment": "Placed at <gitRoot>/.github/hooks/<any-name>.json. Same recursive **/*.json glob mechanism as the user hooks dir. Only loaded when the project folder is in ~/.copilot/config.json's trustedFolders (untrusted folders: silently skipped, no error, no prompt in non-interactive -p mode).",
-  "hooks": {
-    "sessionStart": [
-      {"type": "command", "command": "...", "timeoutSec": 5}
-    ]
-  }
-}

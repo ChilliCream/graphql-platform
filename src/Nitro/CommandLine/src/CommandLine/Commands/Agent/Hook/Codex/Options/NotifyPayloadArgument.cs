@@ -2,7 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex.Options;
 
 /// <summary>
 /// The single JSON argument Codex CLI's <c>notify</c> mechanism passes as
-/// argv[1] (spike S2: NOT stdin, unlike every hooks.json event).
+/// argv[1], not stdin like a <c>hooks.json</c> event.
 /// </summary>
 internal sealed class NotifyPayloadArgument : Argument<string>
 {

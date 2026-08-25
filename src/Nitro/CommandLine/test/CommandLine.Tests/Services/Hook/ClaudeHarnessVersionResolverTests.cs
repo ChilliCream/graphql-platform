@@ -5,8 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Exercises <see cref="ClaudeHarnessVersionResolver"/> against injected
 /// session-file and start-tick readers (no real <c>/proc</c> or
-/// <c>~/.claude/sessions</c> access), live-verified field names against a
-/// real <c>~/.claude/sessions/&lt;pid&gt;.json</c> file
+/// <c>~/.claude/sessions</c> access), using the session registry shape
 /// (<c>{"pid":...,"procStart":"39270330","version":"2.1.241",...}</c>).
 /// </summary>
 public sealed class ClaudeHarnessVersionResolverTests

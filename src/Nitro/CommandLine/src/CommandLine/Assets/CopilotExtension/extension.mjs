@@ -12,25 +12,20 @@
 // installs, which is what makes the installer's version-hash check
 // meaningful.
 //
-// Statically verified against the bundled Copilot CLI 1.0.80 SDK: the
+// Built against the bundled Copilot CLI SDK: the
 // `@github/copilot-sdk/extension` import specifier (the CLI's ESM resolver
 // maps that specifier to `extension.js`, which exports `joinSession`; the
 // bare `@github/copilot-sdk` specifier maps to `index.js`, which does not),
 // and the hook/type shapes below (`types.d.ts` `SessionHooks`:1202,
-// `onAgentStop`:1250, `MessageOptions`:2405). UNVERIFIED, honestly: live
-// behavior. Spike S5 (perles-net-k3j.4 redo, comment #94) found the Copilot
-// CLI's `EXTENSIONS` feature flag reports false on the machine that spike
-// ran on, so this file has never actually been loaded by a real Copilot
-// session; `joinSession()`'s runtime behavior, `session.send`'s resolution
-// timing, and hook firing order are not live-verified. What IS tested (see
+// `onAgentStop`:1250, `MessageOptions`:2405). The pure state machine is tested
+// independently of the SDK (see
 // `test/fixtures/copilot-extension/state-machine.m10.test.mjs`) is the pure
 // state machine below, independent of the SDK: idle/busy/draining/restart
 // transitions, the durable cursor, and the injection-loop guard.
 //
-// Non-goal (ticket perles-net-k3j.16): no gate/block behavior here. This
+// This extension has no gate or blocking behavior. It
 // extension only ever calls `session.send`, it never returns a blocking
-// hook decision; Copilot's `agentStop` blocking gate (S5 redo finding) is a
-// file-based-hooks concern, out of scope for this extension.
+// hook decision.
 
 import { spawn } from 'node:child_process';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
@@ -211,8 +206,7 @@ export function afterFlushFailed(state) {
 // `ClaudeHookDigestFormatter`/`CopilotHookHandler`'s C# formatter: this file
 // ships standalone JS with no access to the .NET assembly. Both must be kept
 // in the same shape (unread count, id + from only, 2KB byte ceiling,
-// newest-first, "and N more" trailer) by hand; a drift check is not
-// implemented (recorded as a NEEDS-PASCAL follow-up, see the task comment).
+// newest-first, "and N more" trailer) by hand.
 // ---------------------------------------------------------------------------
 
 const MAX_DIGEST_BYTES = 2048;

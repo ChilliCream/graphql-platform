@@ -18,14 +18,12 @@ internal sealed record CodexNotifyOutcome
 /// <summary>
 /// Implements the Codex turn-boundary event state machine: presence upsert
 /// on <c>SessionStart</c>, the unread-mail digest on <c>UserPromptSubmit</c>
-/// (both via <c>hooks.json</c>'s <c>additionalContext</c>, spike S1 confirmed
-/// Codex supports the same contract Claude Code does), presence teardown on
+/// (both via <c>hooks.json</c>'s <c>additionalContext</c>), presence teardown on
 /// <c>SessionEnd</c>, and the idle-turn gate on the separate <c>notify</c>
-/// mechanism (spike S2): unlike Claude's <c>Stop</c> hook, Codex has no way
+/// mechanism. Unlike Claude's <c>Stop</c> hook, Codex has no way
 /// to block a turn from ending, so the gate instead queues the digest into
-/// the thread's NEXT turn via <c>codex queue</c>, with the delivery ledger's
-/// message-id-keyed reservation as the loop guard proven not to re-fire
-/// (spike S2's captured end-to-end trace). Every member is fail-open by
+/// the thread's next turn via <c>codex queue</c>, with the delivery ledger's
+/// message-id-keyed reservation as the loop guard. Every member is fail-open by
 /// contract, same as <see cref="Hook.IClaudeHookHandler"/>.
 /// </summary>
 internal interface ICodexHookHandler
@@ -59,7 +57,7 @@ internal interface ICodexHookHandler
     /// The idle-turn gate: resolves the workspace from
     /// <paramref name="payload"/>'s <c>cwd</c>, matches the session row by
     /// thread id (Codex's <c>thread-id</c> and <c>session_id</c> are the same
-    /// identifier, spike S4), and queues one digest via <c>codex queue --thread</c>
+    /// identifier), and queues one digest via <c>codex queue --thread</c>
     /// for unread messages not yet claimed on the gate channel.
     /// A message that IS already claimed (the queued digest's own delivery
     /// turn re-firing notify) is not re-queued - this is the S2-verified

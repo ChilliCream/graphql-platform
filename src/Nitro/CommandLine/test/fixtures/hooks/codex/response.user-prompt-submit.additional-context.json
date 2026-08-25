@@ -1,6 +1,0 @@
-{
-  "hookSpecificOutput": {
-    "hookEventName": "UserPromptSubmit",
-    "additionalContext": "NITRO_SPIKE_USERPROMPT_MARKER_7ac910"
-  }
-}

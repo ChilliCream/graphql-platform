@@ -23,8 +23,7 @@ internal enum ClaudePeerSendReason
 {
     // Claude Code's raw peer endpoint closes with EOF and no inline
     // delivery receipt. Ok means the complete protocol payload was written
-    // to the validated local endpoint, which is the behavior live-verified
-    // on 2.1.226 and 2.1.241.
+    // to the validated local endpoint.
     Ok,
     Unsupported,
     EndpointGone,

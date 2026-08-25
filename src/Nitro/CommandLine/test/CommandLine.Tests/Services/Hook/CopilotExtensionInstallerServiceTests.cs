@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Exercises <see cref="CopilotExtensionInstallerService"/> against a real
 /// temp-directory file system: the extension asset round trip, the config
-/// round trip, and the overwrite-refusal-on-unknown-hash rule (perles-net-k3j.16).
+/// round trip, and the overwrite-refusal-on-unknown-hash rule.
 /// </summary>
 public sealed class CopilotExtensionInstallerServiceTests : IDisposable
 {

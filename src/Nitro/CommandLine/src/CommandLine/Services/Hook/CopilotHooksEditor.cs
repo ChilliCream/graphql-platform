@@ -6,9 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// Pure JSON-text editing for a Copilot CLI hooks-dir file, matching
 /// <see cref="ClaudeHooksEditor"/>/<see cref="CodexHooksEditor"/>'s
-/// no-side-effects contract. Two structural differences from Codex's
-/// <c>hooks.json</c>, both from spike S5's redo (perles-net-k3j.4, against
-/// the actually-running 1.0.80 binary): the top level MUST be
+/// no-side-effects contract. There are two structural differences from
+/// Codex's <c>hooks.json</c>: the top level must be
 /// <c>{"hooks": {"&lt;event&gt;": [...]}}</c> (a bare, unwrapped event map
 /// is a live, logged parse error that silently loads zero hooks), and each
 /// event's array holds hook objects directly (no Codex-style nested

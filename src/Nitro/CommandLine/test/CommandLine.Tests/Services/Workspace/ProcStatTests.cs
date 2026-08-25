@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="ProcStat.ReadStartTicks"/> against the real
-/// <c>/proc</c> filesystem, live-verified: <c>sed 's/.*) //'
+/// <c>/proc</c> filesystem. The command <c>sed 's/.*) //'
 /// /proc/&lt;pid&gt;/stat | awk '{print $20}'</c> against this process's own
 /// pid matches the value this method returns.
 /// </summary>

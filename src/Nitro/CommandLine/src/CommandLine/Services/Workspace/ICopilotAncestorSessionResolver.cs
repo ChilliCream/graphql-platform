@@ -4,9 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// The Copilot CLI ancestor process this hook invocation was launched under:
 /// just the pid. Like <see cref="CodexAncestorSession"/> (and unlike
 /// <see cref="ClaudeAncestorSession"/>), Copilot has no live per-pid session
-/// registry file to read, and no ancestor "peer name" is needed either: the
-/// Copilot endpoint is a sibling task's extension (perles-net-k3j.16, out of
-/// this ticket's scope), not something derivable from the ancestor process.
+/// registry file to read, and no ancestor "peer name" is needed either. The
+/// Copilot endpoint comes from an extension, not the ancestor process.
 /// </summary>
 internal sealed record CopilotAncestorSession(int Pid);
 

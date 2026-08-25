@@ -4,8 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Copilot;
 
 /// <summary>
 /// Adapts Copilot CLI's <c>userPromptSubmitted</c> hooks-dir event. Always a
-/// no-op response: spike S5 (redo, perles-net-k3j.4) live-verified that this
-/// event's response body is silently dropped by Copilot 1.0.80, so no digest
+/// no-op response because Copilot drops this event's response body, so no digest
 /// is attempted here (see <see cref="Services.Hook.ICopilotHookHandler.HandleUserPromptSubmitAsync"/>).
 /// Payload JSON on stdin, <c>{}</c> on stdout, always.
 /// </summary>

@@ -13,8 +13,7 @@ internal enum CodexQueueResult
     Ok,
 
     /// <summary>
-    /// The subprocess reported that the thread no longer exists (evidence:
-    /// perles-net-5sz, <c>test/fixtures/hooks/codex/evidence.5sz-gone-thread-signature.txt</c>).
+    /// The subprocess reported that the thread no longer exists.
     /// </summary>
     EndpointGone,
 
@@ -26,9 +25,9 @@ internal enum CodexQueueResult
 }
 
 /// <summary>
-/// Injects a digest into a Codex thread via <c>codex queue --thread &lt;id&gt; --message &lt;text&gt;</c>
-/// (spike S2, perles-net-k3j.2): a durable,
-/// cross-process write into <c>~/.codex/queue_1.sqlite</c>, decoupled from
+/// Injects a digest into a Codex thread via
+/// <c>codex queue --thread &lt;id&gt; --message &lt;text&gt;</c>, a durable
+/// cross-process write decoupled from
 /// any live Codex process. The message is delivered as an extra prepended
 /// user-message item ahead of whatever the thread's next actual turn is,
 /// sharing that turn's single <c>notify</c> firing.
@@ -52,9 +51,8 @@ internal interface ICodexQueueClient
 internal sealed class CodexQueueClient : ICodexQueueClient
 {
     /// <summary>
-    /// Bounds the subprocess: spike S2 measured a live call at ~300-360ms,
-    /// dominated by process spawn. A generous multiple of that, well inside
-    /// the 10s hook/notify entry timeout this call's caller enforces.
+    /// Bounds the subprocess well inside the hook/notify entry timeout
+    /// enforced by the caller.
     /// </summary>
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
@@ -106,8 +104,7 @@ internal sealed class CodexQueueClient : ICodexQueueClient
     /// <summary>
     /// Classifies a completed <c>codex queue</c> invocation. Internal, not
     /// private: <c>CodexQueueClientTests</c> exercises this directly against
-    /// the captured stderr fixtures (perles-net-5sz) without shelling out to
-    /// a real <c>codex</c> binary.
+    /// stderr fixtures without shelling out to a real <c>codex</c> binary.
     /// </summary>
     internal static CodexQueueResult MapResult(int exitCode, string stderr)
     {

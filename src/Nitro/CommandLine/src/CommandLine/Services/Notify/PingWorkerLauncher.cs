@@ -33,9 +33,7 @@ internal sealed class PingWorkerLauncher : IPingWorkerLauncher
     }
 
     /// <summary>
-    /// <c>setsid nohup &lt;nitro&gt; ...</c>: the exact idiom
-    /// perles-net-k3j.3's spike verified survives across Bash-tool-call
-    /// boundaries. <c>setsid</c> starts the child in a new session with no
+    /// <c>setsid nohup &lt;nitro&gt; ...</c>. <c>setsid</c> starts the child in a new session with no
     /// controlling terminal; <c>nohup</c> additionally ignores SIGHUP, in
     /// case something downstream still tries to signal the session leader.
     /// </summary>

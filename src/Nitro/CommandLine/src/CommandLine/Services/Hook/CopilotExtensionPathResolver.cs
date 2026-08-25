@@ -6,11 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// and its sibling <c>nitro-mail.config.json</c> (the launch descriptor the
 /// asset reads at runtime, kept out of the versioned asset file itself so
 /// the asset's bytes, and therefore its content hash, stay identical across
-/// machines). Project scope only (perles-net-k3j.16 non-goal): spike S5
-/// (perles-net-k3j.4 redo, comment #94) found the Copilot CLI's
-/// <c>EXTENSIONS</c> feature flag reports false on the machine it ran on and
-/// could not live-verify a user-scope extensions directory actually loading
-/// anything, so there is no user-scope resolution path here at all, unlike
+/// machines). There is no user-scope resolution path, unlike
 /// <see cref="IClaudeSettingsPathResolver"/>'s user/project split.
 /// </summary>
 internal interface ICopilotExtensionPathResolver

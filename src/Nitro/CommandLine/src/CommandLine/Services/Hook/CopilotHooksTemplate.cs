@@ -3,9 +3,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// The desired Copilot CLI hooks-dir entry for each turn-boundary event this
 /// CLI adapts, built from a <see cref="LaunchDescriptor"/>. The Copilot
-/// analog of <see cref="ClaudeHooksTemplate"/>/<see cref="CodexHooksTemplate"/>:
-/// registers only the canonical camelCase event keys spike S5 (redo,
-/// perles-net-k3j.4) confirmed live (not the Claude-Code-compat PascalCase
+/// analog of <see cref="ClaudeHooksTemplate"/>/<see cref="CodexHooksTemplate"/>.
+/// It registers only the canonical camelCase event keys, not the Claude-Code-compatible PascalCase
 /// alias keys, which yield a different, snake_case payload shape this
 /// adapter does not parse).
 /// </summary>

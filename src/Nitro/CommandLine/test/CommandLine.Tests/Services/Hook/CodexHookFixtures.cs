@@ -3,9 +3,8 @@ using System.Runtime.CompilerServices;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Locates the captured Codex hook/notify payload fixtures under
-/// <c>test/fixtures/hooks/codex/</c> (the S1/S2 spike evidence,
-/// perles-net-k3j.1/.2), sibling to the <c>CommandLine.Tests</c> project
+/// Locates the Codex hook payload fixtures under
+/// <c>test/fixtures/hooks/codex/</c>, sibling to the <c>CommandLine.Tests</c> project
 /// directory. Mirrors <see cref="HookFixtures"/>'s resolution-by-source-path.
 /// </summary>
 internal static class CodexHookFixtures

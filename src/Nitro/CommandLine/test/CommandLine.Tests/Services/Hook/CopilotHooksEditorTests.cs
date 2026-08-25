@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// hooks-dir fixtures under <c>test/fixtures/hooks/copilot/install/</c> and
 /// <c>test/fixtures/hooks/copilot/uninstall/</c>, mirroring
 /// <c>CodexHooksEditorTests</c>. The two structural differences exercised
-/// here (spike S5 redo, perles-net-k3j.4): the required <c>"hooks"</c>
+/// here are the required <c>"hooks"</c>
 /// wrapper, and a flat per-event array of hook objects (no Codex-style
 /// nested per-group <c>"hooks"</c> array).
 /// </summary>
@@ -150,8 +150,8 @@ public sealed class CopilotHooksEditorTests
     [Fact]
     public void Install_BareUnwrappedShape_FixesItIntoTheRequiredHooksWrapper()
     {
-        // Spike S5 redo, perles-net-k3j.4: a bare {"<event>": [...]} file (no
-        // "hooks" wrapper) is a live, logged Copilot parse error that loads
+        // A bare {"<event>": [...]} file without a "hooks" wrapper is a
+        // Copilot parse error that loads
         // zero hooks - this installer must never write that shape, and must
         // repair it if it somehow finds it on disk (this file is always
         // Nitro's own dedicated filename).

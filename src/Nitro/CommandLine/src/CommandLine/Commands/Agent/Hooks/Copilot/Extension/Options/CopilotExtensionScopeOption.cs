@@ -1,12 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Copilot.Extension.Options;
 
 /// <summary>
-/// Required, and the only accepted value today is <c>project</c>
-/// (perles-net-k3j.16 non-goal: no user-scope extension install unless a
-/// future spike live-verifies a user-scope extensions directory actually
-/// loads anything - spike S5, perles-net-k3j.4 redo comment #94, found the
-/// Copilot CLI's <c>EXTENSIONS</c> feature flag reports false on the machine
-/// it ran on and could not confirm a live-loading user-scope extension).
+/// Required. The only accepted value is <c>project</c> because user-scope
+/// extension installation is not supported.
 /// Required rather than defaulted so installing the extension is always an
 /// explicit, deliberate choice, unlike the hooks installers' scope options.
 /// </summary>

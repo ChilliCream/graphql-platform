@@ -10,7 +10,7 @@
 #
 # The mail board TUI (raw-key event loop, full-screen alternate-screen
 # rendering) cannot be exercised by the in-process test tier; this is the
-# VHS tier's job. Since perles-net-nql.2 the list pane is a table: a heading
+# VHS tier's job. The list pane is a table: a heading
 # row (From/To/Age, plus a message-count column in the threaded default)
 # above thread-rollup rows, newest activity first, collapsed by default; the
 # board opens on the Workspace mailbox rather than Inbox, and a message (or
@@ -23,17 +23,14 @@
 # row in the LIST pane itself, revealing its two messages indented beneath
 # it with the distinct thread-membership glyph ('└'), separate from the
 # fold toggle ('▸'/'▾') on the parent row. Shift+V (MailKeyMap.ToggleListModeRequested)
-# swaps the list pane from threaded rows to the pre-epic flat per-message
+# swaps the list pane from threaded rows to the flat per-message
 # stream (kept, not deleted); Shift+S then jumps to Sent, still in flat mode
 # (list mode is an axis independent of mailbox), showing both of e2e-agent's
 # own sent messages; Shift+I jumps back to Inbox, the flow's final state.
-# Together these cover the epic's five call-outs (Workspace default, the
+# Together these cover five important behaviors (Workspace default, the
 # heading row, expanding a thread, the unread-to-me highlight, and the
-# Shift+V flat-mode toggle -- Shift+T was reassigned to Shift+V during
-# nql.2's review since Shift+T collides with the Tasks tab mnemonic and
-# lowercase t is already the detail pane's own thread toggle, see
-# perles-net-nql.2 comment 56) alongside three signals wi3.4/m0f established
-# that nql.3's original re-record dropped (perles-net-02r): a non-participant
+# Shift+V flat-mode toggle; Shift+T collides with the Tasks tab mnemonic and
+# lowercase t is already the detail pane's own thread toggle), plus a non-participant
 # row (m-fix006, alice to bob, blank relationship glyph since e2e-agent is
 # neither its sender nor a recipient) already visible in the initial
 # Workspace landing; Workspace's read-only footer signal (the 'f filter'
@@ -42,8 +39,7 @@
 # exercised here on a flat-mode message row after Shift+V (a thread row
 # already shows its whole thread by default, so 't' has nothing to add
 # there -- this is the one place in the flow a flat row is selected) --
-# alongside the Sent/Inbox mailbox jumps the mail e2e tape bead
-# (perles-net-wi3.4) established -- not exhaustive per-command coverage,
+# alongside the Sent/Inbox mailbox jumps. This is not exhaustive per-command coverage,
 # that is the unit tier's job.
 #
 # fixtures/mail-seed.sql gives e2e-agent three inbox messages (it is a `to`
@@ -102,7 +98,7 @@ Type `nitro agent` Enter
 Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
 
 # ']': TabSwitchKeys moves to the Mail tab. MailState defaults to the
-# Workspace mailbox (perles-net-nql.2), so the list pane opens titled
+# Workspace mailbox, so the list pane opens titled
 # "Workspace (5)" -- five thread rollups across every agent's mail -- with
 # the heading row (From/To/Age; the count column's own "#" heading wraps
 # beneath it at this width, see this tape's header comment) above them, and
@@ -115,15 +111,13 @@ Wait+Screen@30s />\s+▸\s+T\s+bob/
 
 # m-fix006 (alice to bob, the fixture's non-participant message) is already
 # on screen as the fifth row: a blank relationship glyph, since e2e-agent is
-# neither its sender nor a recipient (wi3.4's original assertion, dropped by
-# nql.3's re-record).
+# neither its sender nor a recipient.
 Wait+Screen@30s /▸\s+alice\s+bob/
 
 # Workspace's read-only default suppresses the u/a/r/c footer hints
 # (MailLifecycleActions.IsReadOnly via MailMode.SuppressedGlobalHints),
-# pulling 'f filter' into the fixed-width footer in their place -- the
-# text-observable read-only signal wi3.4 established and nql.3's re-record
-# dropped (perles-net-02r); the list header naming the mailbox above is the
+# pulling 'f filter' into the fixed-width footer in their place. The list
+# header naming the mailbox above is the
 # other of MailMode's two redundant read-only indicators, the list border's
 # distinct accent (ResolveListBorderToken) is color-only and out of reach of
 # this text tier.
@@ -136,7 +130,7 @@ Wait+Screen@30s /f filter/
 # e2e-agent (any-message rollup semantics) -- Workspace's own read-only mode
 # never suppresses this marker, since it is always the actor's own state.
 # The detail pane already renders the whole thread for a selected thread
-# row (the epic's default, no 't' needed here unlike a flat message row).
+# row by default, with no 't' needed here unlike a flat message row.
 Down
 Down
 Wait+Screen@30s />\s+▸\s+●\s+F\s+e2e-agent/
@@ -155,16 +149,14 @@ Wait+Screen@30s /●\s+└\s+alice/
 Wait+Screen@30s /└\s+e2e-agent\s+alice/
 
 # Shift+V: MailKeyMap.ToggleListModeRequested swaps the list pane from
-# threaded rollups to the pre-epic flat per-message stream (kept, not
-# deleted, per the epic's non-goals) -- "Workspace (6)", one row per
+# threaded rollups to the flat per-message stream. "Workspace (6)" has one row per
 # message rather than per thread, selection preserved on m-fix004 (the
 # thread row's own last message).
 Type "V"
 Wait+Screen@30s /Workspace \(6\)/
 
-# 't': the detail pane's own thread toggle (MailKeyMap), restored here on a
-# flat-mode message row (wi3.4's original coverage, dropped by nql.3's
-# re-record; a selected thread row already shows its whole thread by
+# 't': the detail pane's own thread toggle (MailKeyMap), used here on a
+# flat-mode message row. A selected thread row already shows its whole thread by
 # default, so this is the flow's one flat-row detail toggle). Selection
 # after the flat switch above stayed on m-fix004 (the thread's last message,
 # e2e-agent's own reply), whose Message-mode detail pane shows only its own

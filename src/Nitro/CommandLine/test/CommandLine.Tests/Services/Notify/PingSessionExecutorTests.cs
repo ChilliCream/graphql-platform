@@ -140,7 +140,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     public async Task ExecuteCodexThreadAsync_Should_RecordEndpointGone_When_TheTransportSignalsGoneThread()
     {
         // arrange: fixture-evidenced signature for a dead/unknown codex
-        // thread (perles-net-5sz, evidence.5sz-gone-thread-signature.txt).
+        // thread.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         await _mail.SendMessageAsync(

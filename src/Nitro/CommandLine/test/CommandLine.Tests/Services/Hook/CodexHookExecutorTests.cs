@@ -119,9 +119,9 @@ public sealed class CodexHookExecutorTests
     }
 
     [Theory]
-    [InlineData("payload.session-start.json", "01a02e46-9486-7ef3-9af5-282ebecc6329", "/home/pascal/perles-net")]
-    [InlineData("payload.user-prompt-submit.json", "01a02e46-9486-7ef3-9af5-282ebecc6329", "/home/pascal/perles-net")]
-    [InlineData("payload.session-end.json", "01a02e46-9486-7ef3-9af5-282ebecc6329", "/home/pascal/perles-net")]
+    [InlineData("payload.session-start.json", "session-1", "/workspace/project")]
+    [InlineData("payload.user-prompt-submit.json", "session-1", "/workspace/project")]
+    [InlineData("payload.session-end.json", "session-1", "/workspace/project")]
     public async Task RunAsync_Should_ParseTheFixture_Into_TheExpectedPayload(
         string fixtureFile, string expectedSessionId, string expectedCwd)
     {

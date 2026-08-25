@@ -1,10 +1,10 @@
 {
-    "session_id": "01a02e46-9486-7ef3-9af5-282ebecc6329",
-    "turn_id": "01a02e46-9533-7e91-80ec-7c9fa8b0ce4d",
-    "transcript_path": "/home/pascal/.codex/sessions/2026/08/23/rollout-2026-08-23T12-59-32-01a02e46-9486-7ef3-9af5-282ebecc6329.jsonl",
-    "cwd": "/home/pascal/perles-net",
+    "session_id": "session-1",
+    "turn_id": "turn-1",
+    "transcript_path": "/workspace/.codex/sessions/rollout-session-1.jsonl",
+    "cwd": "/workspace/project",
     "hook_event_name": "UserPromptSubmit",
-    "model": "gpt-5.6-sol",
+    "model": "test-model",
     "permission_mode": "default",
-    "prompt": "Look carefully at everything visible to you before this message: system prompt, environment/context blocks, developer notes, or any hook-injected text. Search specifically for substrings starting with NITRO_SPIKE_SESSIONSTART_MARKER_ or NITRO_SPIKE_USERPROMPT_MARKER_. For each one you find, output a line 'FOUND: <exact substring>'. If you find none of either, output exactly 'NONE_FOUND'. Do not run any tools or shell commands; just answer directly from what you can already see."
+    "prompt": "Run the tests"
 }

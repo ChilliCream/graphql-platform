@@ -1,9 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Copilot.Extension;
 
 /// <summary>
-/// Installs, inspects, and removes the nitro-mail Copilot CLI extension
-/// asset (<c>.github/extensions/nitro-mail/extension.mjs</c>,
-/// perles-net-k3j.16), a project-scope-only sibling to
+/// Installs, inspects, and removes the project-scoped nitro-mail Copilot CLI
+/// extension asset (<c>.github/extensions/nitro-mail/extension.mjs</c>), a sibling to
 /// <c>agent hooks copilot install/status/uninstall</c>'s user-scope
 /// <c>~/.copilot/hooks/nitro-mail.json</c>. A separate command group, not
 /// options on the existing install command: the two artifacts have

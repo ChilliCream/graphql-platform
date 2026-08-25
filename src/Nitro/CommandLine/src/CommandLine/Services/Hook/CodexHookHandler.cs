@@ -45,8 +45,8 @@ internal sealed class CodexHookHandler(
         var envActor = MailActor.TryResolve(null, environmentVariables)
             ?? AgentSessionActorNaming.Generate(resolved.Generation.Harness, resolved.Generation.SessionId);
 
-        // The Codex endpoint address is the thread id itself (== session id,
-        // spike S4), unlike Claude's ancestor-derived peer name: Codex has no
+        // The Codex endpoint address is the thread id itself, which equals
+        // the session id. Unlike Claude's ancestor-derived peer name, Codex has no
         // live per-pid registry to read a "name" from.
         var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
             ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
@@ -210,10 +210,10 @@ internal sealed class CodexHookHandler(
     /// <see cref="AgentSessionProvisionalSessionId"/>) is used instead.
     /// Mirrors <c>ClaudeHookHandler.ResolveAsync</c>.
     /// <para>
-    /// For <see cref="HandleNotifyAsync"/> specifically: spike S2 could not
-    /// determine whether the Codex process is still resolvable as a live
+    /// For <see cref="HandleNotifyAsync"/> specifically, the Codex process
+    /// may no longer be resolvable as a live
     /// ancestor by the time <c>notify</c> runs for a one-shot <c>codex exec</c>
-    /// invocation (see perles-net-k3j.2's "not determined" list). If
+    /// invocation. If
     /// it is not, this resolves to null and the gate fails open for that
     /// turn - an accepted, documented drop under the plan's guarantee
     /// statement ("notification is best effort... fail-open errors... can

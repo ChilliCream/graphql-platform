@@ -8,10 +8,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
 /// Exercises <see cref="CopilotHookHandler"/> end to end against a real
-/// workspace database: presence upsert AND the initial unread-mail digest on
-/// SessionStart (spike S5 redo, perles-net-k3j.4, live-verified
-/// <c>additionalContext</c> lands there), the documented UserPromptSubmit
-/// no-op (S5 redo live-verified that hook's response body is dropped), and
+/// workspace database: presence upsert and the initial unread-mail digest on
+/// SessionStart, the documented UserPromptSubmit no-op, and
 /// conditional teardown on SessionEnd. Every call runs with
 /// <c>dryRun: true</c>, mirroring <c>CodexHookHandlerTests</c>.
 /// </summary>
@@ -128,8 +126,7 @@ public sealed class CopilotHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_RecordNoEndpoint_Always()
     {
-        // No Copilot extension exists yet in this ticket's scope
-        // (perles-net-k3j.16, sibling task): every row records
+        // Without a Copilot extension endpoint, every row records
         // endpoint_kind = 'none' regardless of whether the session is
         // claimed.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -315,8 +312,7 @@ public sealed class CopilotHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_AlwaysReturnNeutral_EvenWhenUnreadMailExists()
     {
-        // Documented no-op: S5 redo live-verified this event's response body
-        // is dropped by Copilot 1.0.80, so no digest is attempted and no
+        // Copilot drops this event's response body, so no digest is attempted and no
         // ledger reservation is made for it.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
