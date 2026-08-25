@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -455,7 +456,20 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // guard throwing for this instance.
         await Assert.ThrowsAsync<InvalidOperationException>(() => coordinator.StartAsync(cancellationToken));
 
+        // release the hung dispatch and wait for the orphaned run loop to
+        // actually finish releasing leadership before disposing: the timed
+        // out StopAsync above already disposed the run loop's linked
+        // CancellationTokenSource, so this DisposeAsync's own CancelAsync
+        // call throws ObjectDisposedException before it ever awaits the run
+        // task, and its exception handler only snapshots IsCompleted once
+        // rather than waiting for it. Waiting on the leader row here instead
+        // means the run loop's SQLite connection is closed before the
+        // fixture's Dispose deletes the temp workspace.
+        var leaseExpiresBeforeRelease = await ReadLeaderExpiresAtAsync(cancellationToken);
         dispatcher.Release();
+        await WaitUntilAsync(
+            async () => await ReadLeaderExpiresAtAsync(cancellationToken) != leaseExpiresBeforeRelease,
+            cancellationToken);
         await coordinator.DisposeAsync();
     }
 
@@ -630,6 +644,16 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         command.CommandText = "SELECT owner_id FROM mail_wake_daemons WHERE nitro_instance_id = @nitroInstanceId";
         command.Parameters.AddWithValue("@nitroInstanceId", InstanceId);
         return (string?)await command.ExecuteScalarAsync(cancellationToken);
+    }
+
+    private async Task<DateTimeOffset?> ReadLeaderExpiresAtAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT expires_at FROM mail_wake_daemons WHERE nitro_instance_id = @nitroInstanceId";
+        command.Parameters.AddWithValue("@nitroInstanceId", InstanceId);
+        var value = (string?)await command.ExecuteScalarAsync(cancellationToken);
+        return value is null ? null : DateTimeOffset.Parse(value, CultureInfo.InvariantCulture);
     }
 
     private async Task InsertDueOutboxRowAsync(
