@@ -108,6 +108,9 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
             Schema: v{AgentDatabase.CurrentVersion} (current)
 
             ✓ Schema version
+            ✓ Mail-wake
+              Leader: none
+              Work: pending=0 accepted=0 deferred=0
             ✓ Mixed-instance sessions
 
             - claude-code: no ancestor process detected here, skipped.
@@ -154,6 +157,16 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         var participants = root.GetProperty("participants").EnumerateArray().ToArray();
         Assert.Equal(3, participants.Length);
         Assert.All(participants, p => Assert.False(p.GetProperty("ancestorDetected").GetBoolean()));
+
+        var mailWake = root.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("schemaCurrent").GetBoolean());
+        Assert.Equal("none", mailWake.GetProperty("leaderState").GetString());
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, mailWake.GetProperty("epoch").ValueKind);
+        Assert.Equal(0, mailWake.GetProperty("pendingActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("acceptedActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("deferredActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("accessDeniedPendingTargets").GetInt32());
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
     }
 
     [Fact]
@@ -626,6 +639,9 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
             Schema: v{AgentDatabase.CurrentVersion} (current)
 
             ✓ Schema version
+            ✓ Mail-wake
+              Leader: none
+              Work: pending=0 accepted=0 deferred=0
             ✓ Mixed-instance sessions
 
             - claude-code: no ancestor process detected here, skipped.
@@ -634,6 +650,367 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
 
             - copilot: no ancestor process detected here, skipped.
             """);
+    }
+
+    // ---------- Mail-wake checks ----------
+
+    [Fact]
+    public async Task MailWake_HealthyLeader_ReportsReadyState_WithEpochAndLease()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("✓ Mail-wake", result.StdOut);
+        Assert.Contains("Leader: ready (epoch=1, lease expires in 30s)", result.StdOut);
+        Assert.Contains("Work: pending=0 accepted=0 deferred=0", result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_ExpiredLease_NoPendingWork_ReportsExpiredState_ButStaysHealthy()
+    {
+        // arrange: a previous leader's lease lapsed and nobody has claimed
+        // it since, but there is no work left waiting on it.
+        await InitWorkspaceAsync();
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 2, expiresAt: FakeTime.GetUtcNow() - TimeSpan.FromSeconds(10));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("✓ Mail-wake", result.StdOut);
+        Assert.Contains("Leader: expired (epoch=2, lease expired 10s ago)", result.StdOut);
+        Assert.Contains("Work: pending=0 accepted=0 deferred=0", result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_PendingWork_NoLeader_ReportsUnhealthy_WithStartDashboardRemediation()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL Mail-wake:", result.StdOut);
+        Assert.Contains(
+            "1 actor(s) have pending mail-wake work, but no dashboard leader is currently "
+            + "running for this Nitro instance. Start the dashboard to process it.",
+            result.StdOut);
+        Assert.Contains("Leader: none", result.StdOut);
+        Assert.Contains("Work: pending=1 accepted=0 deferred=0, oldest due 0s ago", result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_PendingWork_ExpiredLease_ReportsUnhealthy_WithRestartDashboardRemediation()
+    {
+        // arrange: the same stuck-work signal, but a lease that once existed
+        // has since expired rather than never having existed at all.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 3, expiresAt: FakeTime.GetUtcNow() - TimeSpan.FromSeconds(5));
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL Mail-wake:", result.StdOut);
+        Assert.Contains(
+            "1 actor(s) have pending mail-wake work, but the dashboard leader's lease has "
+            + "expired and nobody has re-acquired it. Start (or restart) the dashboard.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_PendingWork_ReadyLeader_StaysHealthy_LeaderCanStillClaimIt()
+    {
+        // arrange: a live leader has not admitted this actor's work yet, but
+        // it is still able to, so this is not yet a problem.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(15));
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("✓ Mail-wake", result.StdOut);
+        Assert.Contains("Work: pending=1 accepted=0 deferred=0, oldest due 0s ago", result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_AcceptedWork_ActiveBatch_ReportsAcceptedCount_JsonOutput()
+    {
+        // arrange: a batch has already claimed this actor's generation, so
+        // it counts as accepted rather than pending, independent of whether
+        // the persistent daemon leader itself is running.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+        await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
+        Assert.Equal(0, mailWake.GetProperty("pendingActorCount").GetInt32());
+        Assert.Equal(1, mailWake.GetProperty("acceptedActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("deferredActorCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task MailWake_DeferredWork_DueInFuture_ReportsDeferredCount_JsonOutput()
+    {
+        // arrange: a retry backoff pushed this actor's due time into the
+        // future; nobody has claimed it and it is not yet due.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0,
+            dueAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(60));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
+        Assert.Equal(0, mailWake.GetProperty("pendingActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("acceptedActorCount").GetInt32());
+        Assert.Equal(1, mailWake.GetProperty("deferredActorCount").GetInt32());
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, mailWake.GetProperty("oldestPendingAgeSeconds").ValueKind);
+    }
+
+    [Fact]
+    public async Task MailWake_NoWork_FullySettledOutboxRow_NotCounted_JsonOutput()
+    {
+        // arrange: a fully settled outbox row (nothing outstanding) is not
+        // pending, accepted, or deferred work.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 1, dueAt: FakeTime.GetUtcNow());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
+        Assert.Equal(0, mailWake.GetProperty("pendingActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("acceptedActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("deferredActorCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task MailWake_AccessDeniedTarget_ReportsUnhealthy_WithDegradedRemediation()
+    {
+        // arrange: a target durably stuck offered on a Claude access-denied
+        // handoff, the read-only signal for a degraded dashboard daemon.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+        var batchId = await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+        await InsertMailWakeTargetRowAsync(batchId, sessionId: "session-1", lastError: "access-denied");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL Mail-wake:", result.StdOut);
+        Assert.Contains(
+            "1 target(s) are stuck pending on a Claude access-denied handoff; the dashboard "
+            + "daemon degraded and released leadership. Verify the dashboard's Claude access, "
+            + "then it will re-elect and retry.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_SchemaMismatch_ReportsFailure_WithoutLeaderOrWorkLines()
+    {
+        // arrange: a v3-shaped database predates the mail-wake tables
+        // outright; the check must never query them.
+        await SeedLegacySchemaVersionAsync(3);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL Mail-wake:", result.StdOut);
+        Assert.Contains(
+            $"Mail-wake diagnostics require the current schema (v{AgentDatabase.CurrentVersion}); "
+            + "this workspace is v3. Run `nitro agent init` to migrate.",
+            result.StdOut);
+        Assert.Contains("Session checks skipped: the schema is not current.", result.StdOut);
+        Assert.DoesNotContain("Leader:", result.StdOut);
+        Assert.DoesNotContain("Work:", result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_DifferentNitroInstance_RowsNotCounted_JsonOutput()
+    {
+        // arrange: another Nitro instance sharing this workspace has its own
+        // leader and pending work; neither belongs to this instance's report.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
+        await InsertMailWakeLeaderRowAsync(
+            "some-other-instance", epoch: 5, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+        await InsertMailWakeOutboxRowAsync(
+            "some-other-instance", "zeta", requestedGeneration: 1, settledGeneration: 0,
+            dueAt: FakeTime.GetUtcNow());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
+        Assert.Equal("none", mailWake.GetProperty("leaderState").GetString());
+        Assert.Equal(0, mailWake.GetProperty("pendingActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("acceptedActorCount").GetInt32());
+        Assert.Equal(0, mailWake.GetProperty("deferredActorCount").GetInt32());
+    }
+
+    private async Task InsertMailWakeLeaderRowAsync(
+        string nitroInstanceId, long epoch, DateTimeOffset expiresAt, string? lastError = null)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO mail_wake_daemons (nitro_instance_id, owner_id, epoch, leased_at, expires_at, last_error)
+            VALUES ($nitroInstanceId, 'owner-test', $epoch, $leasedAt, $expiresAt, $lastError);
+            """;
+        command.Parameters.AddWithValue("$nitroInstanceId", nitroInstanceId);
+        command.Parameters.AddWithValue("$epoch", epoch);
+        command.Parameters.AddWithValue("$leasedAt", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$expiresAt", expiresAt);
+        command.Parameters.AddWithValue("$lastError", (object?)lastError ?? DBNull.Value);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    private async Task InsertMailWakeOutboxRowAsync(
+        string nitroInstanceId, string actor, long requestedGeneration, long settledGeneration, DateTimeOffset dueAt)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO mail_wake_outbox (
+                nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at
+            ) VALUES ($nitroInstanceId, $actor, $requestedGeneration, $settledGeneration, $dueAt, $now);
+            """;
+        command.Parameters.AddWithValue("$nitroInstanceId", nitroInstanceId);
+        command.Parameters.AddWithValue("$actor", actor);
+        command.Parameters.AddWithValue("$requestedGeneration", requestedGeneration);
+        command.Parameters.AddWithValue("$settledGeneration", settledGeneration);
+        command.Parameters.AddWithValue("$dueAt", dueAt);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Inserts a live <c>mail_wake_batches</c> row directly (bypassing
+    /// <c>IMailWakeBatchStore</c>, which only ever claims against a due
+    /// outbox row), so accepted-work scenarios can be seeded independently
+    /// of the outbox row's own due time. Returns the generated batch id, for
+    /// tests that also need to attach a target row.
+    /// </summary>
+    private async Task<string> InsertMailWakeActiveBatchRowAsync(
+        string nitroInstanceId, string actor, long claimedGeneration, DateTimeOffset expiresAt)
+    {
+        var batchId = Guid.NewGuid().ToString("N");
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO mail_wake_batches (
+                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
+                status, claimed_at, expires_at
+            ) VALUES (
+                $batchId, $nitroInstanceId, $actor, $claimedGeneration, 'owner-test', 'attempt-test',
+                'active', $now, $expiresAt
+            );
+            """;
+        command.Parameters.AddWithValue("$batchId", batchId);
+        command.Parameters.AddWithValue("$nitroInstanceId", nitroInstanceId);
+        command.Parameters.AddWithValue("$actor", actor);
+        command.Parameters.AddWithValue("$claimedGeneration", claimedGeneration);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$expiresAt", expiresAt);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+
+        return batchId;
+    }
+
+    private async Task InsertMailWakeTargetRowAsync(string batchId, string sessionId, string lastError)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO mail_wake_targets (
+                batch_id, harness, session_id, host, pid, proc_start, status, last_error, updated_at
+            ) VALUES (
+                $batchId, 'claude-code', $sessionId, $host, 12345, '999999999', 'pending', $lastError, $now
+            );
+            """;
+        command.Parameters.AddWithValue("$batchId", batchId);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$host", FixedHost);
+        command.Parameters.AddWithValue("$lastError", lastError);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 
     /// <summary>

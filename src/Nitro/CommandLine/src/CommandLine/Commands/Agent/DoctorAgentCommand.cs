@@ -87,6 +87,7 @@ internal sealed class DoctorAgentCommand : Command
         IReadOnlyList<AgentSessionDoctorRow> deadGenerationSessions = [];
         IReadOnlyList<AgentSessionDoctorRow> mixedInstanceSessions = [];
         var mixedInstanceSessionsCleaned = 0;
+        var mailWake = DoctorMailWakeCheck.ForSchemaNotCurrent(version);
 
         if (schemaCurrent)
         {
@@ -154,6 +155,9 @@ internal sealed class DoctorAgentCommand : Command
             }
 
             mixedInstanceSessions = mixedInstanceRows.Select(ToDoctorRow).ToArray();
+
+            mailWake = await DoctorMailWakeCheck.CheckAsync(
+                connection, currentInstanceId!, timeProvider.GetUtcNow(), cancellationToken);
         }
 
         // Hooks/sidecar checks are independent of the agent_sessions schema
@@ -221,7 +225,7 @@ internal sealed class DoctorAgentCommand : Command
         }
 
         var healthy = schemaCurrent && mixedInstanceSessions.Count == 0 && hooksConsistent
-            && participantsHealthy && (probe is null || probe.Success);
+            && participantsHealthy && mailWake.Healthy && (probe is null || probe.Success);
 
         if (!console.IsHumanReadable)
         {
@@ -240,6 +244,7 @@ internal sealed class DoctorAgentCommand : Command
                 copilotHooks,
                 codexHooks,
                 participants,
+                mailWake,
                 probe,
                 healthy)));
 
@@ -258,6 +263,8 @@ internal sealed class DoctorAgentCommand : Command
         WriteHooksCheck(console, "Claude hooks (project)", claudeProjectHooks);
         WriteHooksCheck(console, "Copilot hooks", copilotHooks);
         WriteHooksCheck(console, "Codex hooks", codexHooks);
+
+        WriteMailWakeCheck(console, mailWake);
 
         if (!schemaCurrent)
         {
@@ -347,6 +354,46 @@ internal sealed class DoctorAgentCommand : Command
 
         WriteCheck(console, name, result.Consistent, result.Issues);
     }
+
+    /// <summary>
+    /// Prints the mail-wake daemon's read-only diagnosis. Unlike a plain
+    /// <see cref="WriteCheck"/> call, the leader and work summary lines print
+    /// unconditionally, healthy or not, the same unconditional-detail
+    /// convention <see cref="WriteParticipantCheck"/> uses for its Session
+    /// and Version lines: this is a status report, not just a pass/fail
+    /// check. Skipped entirely (beyond the check line itself) when the
+    /// schema does not support the mail-wake tables, since there is nothing
+    /// further to report.
+    /// </summary>
+    private static void WriteMailWakeCheck(INitroConsole console, MailWakeDoctorResult mailWake)
+    {
+        WriteCheck(console, "Mail-wake", mailWake.Healthy, mailWake.Remediation);
+
+        if (!mailWake.SchemaCurrent)
+        {
+            return;
+        }
+
+        console.WriteLine(
+            $"  Leader: {mailWake.LeaderState}"
+            + (mailWake.Epoch is { } epoch
+                ? $" (epoch={epoch}, {DescribeLease(mailWake.LeaderState, mailWake.LeaseExpiresInSeconds)})"
+                : ""));
+        console.WriteLine(
+            $"  Work: pending={mailWake.PendingActorCount} accepted={mailWake.AcceptedActorCount} "
+            + $"deferred={mailWake.DeferredActorCount}"
+            + (mailWake.OldestPendingAgeSeconds is { } age ? $", oldest due {age:0}s ago" : ""));
+
+        if (mailWake.LastError is { Length: > 0 } lastError)
+        {
+            console.WriteLine($"  Last daemon error: {lastError.EscapeMarkup()}");
+        }
+    }
+
+    private static string DescribeLease(string leaderState, double? leaseExpiresInSeconds) =>
+        leaderState == "ready"
+            ? $"lease expires in {leaseExpiresInSeconds:0}s"
+            : $"lease expired {-leaseExpiresInSeconds:0}s ago";
 
     /// <summary>
     /// Prints one harness's end-to-end participant diagnosis. A harness
@@ -546,6 +593,7 @@ internal sealed class DoctorAgentCommand : Command
         HookHarnessDoctorResult? CopilotHooks,
         HookHarnessDoctorResult? CodexHooks,
         IReadOnlyList<HarnessParticipantDoctorResult> Participants,
+        MailWakeDoctorResult MailWake,
         ClaudeProbeResult? Probe,
         bool Healthy);
 
@@ -575,6 +623,44 @@ internal sealed class DoctorAgentCommand : Command
         string? LiveHarnessVersion,
         bool? ProcessScopeObservable,
         double? LastHeardSeconds,
+        bool Healthy,
+        IReadOnlyList<string> Remediation);
+
+    /// <summary>
+    /// Part of the public shape of <c>agent doctor --output json</c>. The
+    /// mail-wake daemon's read-only diagnosis for this Nitro instance, from
+    /// <see cref="DoctorMailWakeCheck"/>. <see cref="LeaderState"/> is
+    /// <c>"unknown"</c> when <see cref="SchemaCurrent"/> is false (the
+    /// mail-wake tables were never queried), <c>"none"</c> when no
+    /// <c>mail_wake_daemons</c> row exists for this instance, <c>"ready"</c>
+    /// when one exists with an unexpired lease, and <c>"expired"</c>
+    /// otherwise. <see cref="Epoch"/> and <see cref="LeaseExpiresInSeconds"/>
+    /// are null exactly when <see cref="LeaderState"/> is <c>"none"</c> or
+    /// <c>"unknown"</c>; <see cref="LeaseExpiresInSeconds"/> is positive
+    /// while the lease is still live and negative once it has expired. Never
+    /// carries the leader's owner id. <see cref="PendingActorCount"/> counts
+    /// actors with due, unclaimed generation work, <see cref="AcceptedActorCount"/>
+    /// those with a live claimed batch already working it, and
+    /// <see cref="DeferredActorCount"/> those whose retry is scheduled for
+    /// later; <see cref="OldestPendingAgeSeconds"/> is the age of the oldest
+    /// due-but-unsettled generation across the pending and accepted actors
+    /// combined. <see cref="AccessDeniedPendingTargets"/> counts targets
+    /// durably stuck on a Claude access-denied handoff, the read-only signal
+    /// for a degraded dashboard. <see cref="Healthy"/> is false for a schema
+    /// mismatch, any access-denied target, or pending work with no ready
+    /// leader to claim it.
+    /// </summary>
+    public sealed record MailWakeDoctorResult(
+        bool SchemaCurrent,
+        string LeaderState,
+        long? Epoch,
+        double? LeaseExpiresInSeconds,
+        string? LastError,
+        int AccessDeniedPendingTargets,
+        int PendingActorCount,
+        int AcceptedActorCount,
+        int DeferredActorCount,
+        double? OldestPendingAgeSeconds,
         bool Healthy,
         IReadOnlyList<string> Remediation);
 

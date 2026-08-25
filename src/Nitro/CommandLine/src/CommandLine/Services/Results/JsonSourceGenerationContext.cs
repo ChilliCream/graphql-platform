@@ -77,6 +77,7 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(DoctorAgentCommand.AgentDoctorResult))]
 [JsonSerializable(typeof(DoctorAgentCommand.HookHarnessDoctorResult))]
+[JsonSerializable(typeof(DoctorAgentCommand.MailWakeDoctorResult))]
 [JsonSerializable(typeof(ChilliCream.Nitro.CommandLine.Commands.Agent.ClaudeProbeResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 [JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
