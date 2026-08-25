@@ -534,10 +534,19 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
         // recorded proc_start a schema migration left in the legacy format
         // (or any other reason it no longer matches what would be
         // recomputed right now) must still resolve and bind by its
-        // authoritative session id, not reject the whole command.
+        // authoritative session id, not reject the whole command, and must
+        // reuse the row's own recorded generation rather than rewriting it
+        // as a brand new process (which would reset proc_start/proc_start_
+        // legacy and wipe the delivery ledger). Already explicitly bound to
+        // the SAME actor this register call uses, so the assertions isolate
+        // the generation-reuse fix from register's ordinary (and unrelated)
+        // ledger reset on a genuine rebind.
         await InitWorkspaceAsync();
         using var process = System.Diagnostics.Process.GetCurrentProcess();
-        await InsertLegacyClaudeSessionRowAsync("claude-session-1", process.Id);
+        await InsertAgentAsync("orchestrator");
+        var legacyProcStart = await InsertLegacyClaudeSessionRowAsync(
+            "claude-session-1", process.Id, agentName: "orchestrator", bindingKind: AgentSessionBindingKind.Explicit);
+        await InsertSessionDeliveryAsync("claude-code", "claude-session-1", "msg-1");
         SetupAncestorSessionResolvers(
             claude: new ClaudeAncestorSession(process.Id, "claude-session-1", WorkingDirectory, "peer-a"));
 
@@ -552,6 +561,17 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
         Assert.Equal(
             1L,
             long.Parse((await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"))!));
+        Assert.Equal(
+            legacyProcStart,
+            await QueryScalarAsync("SELECT proc_start FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+        Assert.Equal(
+            "1",
+            await QueryScalarAsync(
+                "SELECT proc_start_legacy FROM agent_sessions WHERE session_id = 'claude-session-1'"));
+        Assert.Equal(
+            1L,
+            long.Parse((await QueryScalarAsync(
+                "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'claude-session-1'"))!));
     }
 
     [Fact]
@@ -607,9 +627,13 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
     /// carried forward without rewriting: the register command's Claude
     /// ancestor path always recomputes a fresh raw-ticks <c>proc_start</c>
     /// for the SAME live pid, which never equals this row's recorded legacy
-    /// value by exact string comparison.
+    /// value by exact string comparison. Defaults to an unbound row;
+    /// <paramref name="agentName"/> and <paramref name="bindingKind"/> let a
+    /// caller start from an already explicitly-claimed row instead, to
+    /// exercise register's no-op-for-the-same-actor path.
     /// </summary>
-    private async Task InsertLegacyClaudeSessionRowAsync(string sessionId, int pid)
+    private async Task<string> InsertLegacyClaudeSessionRowAsync(
+        string sessionId, int pid, string? agentName = null, string bindingKind = "none")
     {
         var legacyProcStart = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
 
@@ -623,16 +647,55 @@ public sealed class RegisterAgentCommandSessionAwareTests : AgentCommandTestBase
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                 proc_start_legacy
             ) VALUES (
-                'claude-code', $sessionId, NULL, 'none', $host, $pid, $procStart,
+                'claude-code', $sessionId, $agentName, $bindingKind, $host, $pid, $procStart,
                 $cwd, $workspacePath, 'none', '', $now, $now, 1
             );
             """;
         command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
+        command.Parameters.AddWithValue("$bindingKind", bindingKind);
         command.Parameters.AddWithValue("$host", FixedHost);
         command.Parameters.AddWithValue("$pid", pid);
         command.Parameters.AddWithValue("$procStart", legacyProcStart);
         command.Parameters.AddWithValue("$cwd", WorkingDirectory);
         command.Parameters.AddWithValue("$workspacePath", WorkspaceDirectory);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+
+        return legacyProcStart;
+    }
+
+    /// <summary>
+    /// Inserts a durable <c>agents</c> row directly, for arranging an
+    /// <c>agent_sessions</c> row whose <c>agent_name</c> already references
+    /// it (that column's foreign key requires the referenced agent to
+    /// exist).
+    /// </summary>
+    private async Task InsertAgentAsync(string name)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES ($name, $now, $now);";
+        command.Parameters.AddWithValue("$name", name);
+        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    private async Task InsertSessionDeliveryAsync(string harness, string sessionId, string messageId)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at) "
+            + "VALUES ($harness, $sessionId, $messageId, 'digest', $now);";
+        command.Parameters.AddWithValue("$harness", harness);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$messageId", messageId);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);

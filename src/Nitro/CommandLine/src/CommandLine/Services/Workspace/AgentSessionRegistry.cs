@@ -215,8 +215,11 @@ internal sealed class AgentSessionRegistry(
     /// and every other column stay exactly as they were, the ledger's rows
     /// carried over to follow the row's new key (its foreign key has no
     /// <c>ON UPDATE CASCADE</c>, so re-keying the parent row also re-keys
-    /// its own children). Returns null when no provisional row matches, so
-    /// the caller falls through to its normal SessionStart handling.
+    /// its own children). A stale row already sitting under the canonical
+    /// (harness, session id) is replaced by the adopted provisional row,
+    /// taking its ledger with it via <c>ON DELETE CASCADE</c>. Returns null
+    /// when no provisional row matches, so the caller falls through to its
+    /// normal SessionStart handling.
     /// </summary>
     private static async Task<AgentSessionRow?> TryAdoptProvisionalRowAsync(
         SqliteConnection connection,
@@ -272,6 +275,18 @@ internal sealed class AgentSessionRegistry(
         // deleting the old key keeps every row valid at every step and
         // relies on the same ON DELETE CASCADE the final delete would
         // trigger anyway if the ledger were still attached to it.
+        //
+        // A stale row can already occupy the canonical (harness, session id)
+        // key, for example a prior session that never received a SessionEnd
+        // for that same id at an older process generation. That row is
+        // discarded here, its ledger going with it via ON DELETE CASCADE,
+        // exactly what StartAsync's generation-change branch would have
+        // wiped had this call fallen through to it instead.
+        await connection.ExecuteAsync(
+            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId",
+            parameters,
+            transaction);
+
         await connection.ExecuteAsync(
             """
             INSERT INTO agent_sessions (

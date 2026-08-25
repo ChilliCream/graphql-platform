@@ -131,7 +131,11 @@ internal sealed class RegisterAgentCommand : Command
     /// <summary>
     /// Resolves this process's own live harness session across Claude Code,
     /// Codex, and Copilot, in that order: Claude's ancestor session file
-    /// gives its session id directly, and a row missing for it is bootstrapped
+    /// gives its session id directly. A row already recorded for that
+    /// session id is reused via its own recorded process generation when the
+    /// ancestor's pid still matches it (recovering a row whose recomputed
+    /// proc_start no longer agrees with what was recorded, for example a
+    /// legacy wall-clock value), and a row missing entirely is bootstrapped
     /// on the spot (the SessionStart hook may never have fired for it); Codex
     /// and Copilot give only an ancestor pid, so the session already recorded
     /// for that exact (host, pid, process-start) is looked up instead, or, if
@@ -207,6 +211,27 @@ internal sealed class RegisterAgentCommand : Command
             // second participant for it.
             if (await sessions.FindByGenerationAsync(generation, cancellationToken) is null)
             {
+                // The recomputed proc_start can disagree with what a row
+                // already recorded for this same session id, most often a
+                // legacy wall-clock value from before proc_start moved to
+                // raw ticks. Reusing the row's own recorded generation
+                // recovers it instead of driving StartAsync's
+                // generation-change branch, which would treat this as a
+                // brand new process and reset the row's ledger, budget, and
+                // heartbeat state.
+                var recordedRow = await sessions.FindBySessionIdAsync(
+                    AgentSessionHarness.ClaudeCode, host, claudeAncestor.SessionId, cancellationToken);
+
+                if (recordedRow is not null && recordedRow.Pid == claudeAncestor.Pid)
+                {
+                    RequireMatchingWorkspace(cwdWorkspacePath, recordedRow.WorkspacePath);
+
+                    return GenerationResolution.Bound(
+                        new AgentSessionGeneration(
+                            AgentSessionHarness.ClaudeCode, claudeAncestor.SessionId, host,
+                            recordedRow.Pid, recordedRow.ProcStart));
+                }
+
                 var (endpointKind, endpointAddr) = EndpointAddress.IsValid(claudeAncestor.Name)
                     ? (AgentSessionEndpointKind.ClaudePeer, claudeAncestor.Name)
                     : (AgentSessionEndpointKind.None, string.Empty);

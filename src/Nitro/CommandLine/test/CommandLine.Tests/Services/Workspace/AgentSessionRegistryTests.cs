@@ -294,6 +294,47 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_Should_AdoptTheProvisionalRow_When_AStaleRowAlreadyOccupiesTheCanonicalSessionId()
+    {
+        // arrange: a stale row already sits under the canonical session id,
+        // left behind at an older process generation (for example a prior
+        // process that never received a SessionEnd), and a provisional row
+        // now exists for the live process generation.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var pid = CurrentAlivePid();
+        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
+        var staleGeneration = new AgentSessionGeneration(Harness, "canonical-1", CurrentHost, pid, "1");
+        await _sessions.StartAsync(
+            staleGeneration, "/stale-work", "/stale-work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: "stale-actor", cancellationToken);
+
+        var provisionalSessionId = AgentSessionProvisionalSessionId.Derive(Harness, CurrentHost, pid, procStart);
+        var provisionalGeneration = new AgentSessionGeneration(Harness, provisionalSessionId, CurrentHost, pid, procStart);
+        await _sessions.StartAsync(
+            provisionalGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(provisionalGeneration, "pascal", forceRebind: false, cancellationToken);
+
+        // act: the canonical session id arrives for the live process
+        // generation, while the stale row still occupies that same id.
+        var canonicalGeneration = provisionalGeneration with { SessionId = "canonical-1" };
+        var record = await _sessions.StartAsync(
+            canonicalGeneration, "/other-work", "/other-work/.nitro/agents", AgentSessionEndpointKind.CodexThread,
+            "canonical-1", envActor: null, cancellationToken);
+
+        // assert: the adopted row's binding comes from the provisional row,
+        // not the stale row it replaced, and the stale row leaves no second
+        // participant behind.
+        Assert.Equal("canonical-1", record.SessionId);
+        Assert.Equal("pascal", record.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Explicit, record.BindingKind);
+        Assert.Equal(1, await CountSessionRowsAsync(canonicalGeneration, cancellationToken));
+        Assert.Equal(0, await CountSessionRowsAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(1, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
+    }
+
+    [Fact]
     public async Task StartAsync_Should_NotAdopt_When_TheExistingRowsSessionIdIsNotProvisional()
     {
         // arrange: an existing row shares this exact process generation but
