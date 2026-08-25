@@ -30,10 +30,16 @@
 Output mail-send-flow.gif
 Output mail-send-flow.txt
 
+# Height is taller than the other flows' shared 850 (see run.sh/other tapes):
+# register's identity-only fallback now prints an extra "No live session
+# bound" line for each of the two registrations here, and at 850 that pushed
+# the tail of the final `mail read --thread` output (the second message's
+# Subject/Thread lines) off the bottom of the fixed-size terminal, silently
+# dropping it from the golden. 950 keeps the full output on screen.
 Set Shell bash
 Set FontSize 18
 Set Width 1100
-Set Height 850
+Set Height 950
 Set Padding 14
 Set TypingSpeed 50ms
 Set CursorBlink false

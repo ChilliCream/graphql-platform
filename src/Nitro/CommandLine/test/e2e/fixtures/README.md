@@ -19,9 +19,10 @@ Before recording any flow, `run.sh` prepares `out/fixture/acme/` on the host
    task ID prefix (via `AgentWorkspace.NormalizePrefix`, derived from the
    `acme` directory name, matching `TasksCommandTestBase`).
 3. Assert `PRAGMA user_version` on the fresh database equals
-   `AgentDatabase.CurrentVersion` (2). A mismatch means the binary's schema
-   moved and this fixture prep needs to be re-pointed, not silently seeded
-   against the wrong shape.
+   `AgentDatabase.CurrentVersion`, read straight out of `AgentDatabase.cs` so
+   the guard cannot drift out of sync with a hardcoded number. A mismatch
+   means the seed files themselves need reviewing against the new schema
+   shape, not silently seeding against the wrong shape.
 4. Apply `seed.sql`, then `mail-seed.sql`, then `agents-seed.sql`, with the
    `sqlite3` CLI against `out/fixture/acme/.nitro/agents/agents.db`.
    `seed.sql` (`tasks`/`dependencies`/`labels`/`comments`/`events`/

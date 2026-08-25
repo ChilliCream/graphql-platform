@@ -145,9 +145,16 @@ fi
 FIXTURE_DIR="$OUT_DIR/fixture/acme"
 # Matches AgentWorkspace.RootDirectoryName/AgentsDirectoryName/DatabaseFileName.
 FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
-# Matches AgentDatabase.CurrentVersion. The binary is the schema owner: this
-# is a version-number guard, never a schema-shape comparison.
-FIXTURE_SCHEMA_VERSION=4
+# Read straight from AgentDatabase.CurrentVersion so this guard tracks the
+# binary's schema owner instead of drifting out of sync with a hardcoded
+# number. The binary is still the schema owner: this stays a version-number
+# guard, never a schema-shape comparison.
+AGENT_DATABASE_CS="$REPO_ROOT/src/Nitro/CommandLine/src/CommandLine/Services/Workspace/AgentDatabase.cs"
+FIXTURE_SCHEMA_VERSION="$(grep -oP 'public const int CurrentVersion = \K[0-9]+(?=;)' "$AGENT_DATABASE_CS")"
+if [[ -z "$FIXTURE_SCHEMA_VERSION" ]]; then
+  echo "==> fixture prepare FAILED: could not read AgentDatabase.CurrentVersion from $AGENT_DATABASE_CS" >&2
+  exit 2
+fi
 FIXTURE_TASK_MARKER="acme-epic1"
 FIXTURE_MAIL_MARKER="Retro notes"
 FIXTURE_AGENTS_MARKER="bob  remote"
