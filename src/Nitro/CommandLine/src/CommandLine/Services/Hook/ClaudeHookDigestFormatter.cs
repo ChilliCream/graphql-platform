@@ -50,7 +50,7 @@ internal static class ClaudeHookDigestFormatter
 
         foreach (var (id, from, subject, body) in entries)
         {
-            var trailerReserve = TrailerByteLength(totalUnreadCount - renderedCount);
+            var trailerReserve = TrailerByteLength(totalUnreadCount - renderedCount - 1);
             var shell = Shell(id, from, subject);
             var fullEntryByteLength = Utf8Length(shell) + Utf8Length(body);
 
