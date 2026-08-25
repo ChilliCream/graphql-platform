@@ -2156,10 +2156,13 @@ public class DeferPlannerTests : FusionTestBase
     }
 
     [Fact]
-    public void Defer_KeyOnlyField_Should_KeepRootRefetch_When_OnlyReachableLookupIsSelfCyclic()
+    public void Defer_KeyOnlyField_Should_NotDefer_When_OnlyReachableLookupIsSelfCyclic()
     {
         // arrange
-        // The only deferred field is the entity's own key, and its only lookup is keyed by that same field.
+        // The only deferred field is the entity's own key, and its only lookup is keyed by that
+        // same field. All the deferred data is already available (the key that any subgraph
+        // exposing the entity resolves for free), so the planner serves it in the initial
+        // payload instead of pinning a wasteful root re-fetch of the whole list.
         var schema = ComposeSchema(
             """
             # name: a
@@ -2196,6 +2199,70 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_FieldAlreadyRequiredByParent_Should_NotDefer()
+    {
+        // arrange
+        // `price` is already fetched (as a fusion__requirement) because `convertedPrice`
+        // needs it, independently of the defer. Deferring it too would produce a second
+        // fetch for data the main plan is already obtaining, so the planner serves it
+        // in the initial payload instead.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price: Float!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                convertedPrice(price: Float! @require(field: "price")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                product(id: "1") {
+                    convertedPrice
+                    ... @defer {
+                        price
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
         MatchSnapshot(plan);
     }
 

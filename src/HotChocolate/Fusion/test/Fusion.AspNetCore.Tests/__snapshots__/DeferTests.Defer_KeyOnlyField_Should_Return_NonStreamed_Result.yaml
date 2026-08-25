@@ -1,0 +1,102 @@
+title: Defer_KeyOnlyField_Should_Return_NonStreamed_Result
+request:
+  document: |
+    query GetUsers {
+      users {
+        ... @defer {
+          id
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "data": {
+      "users": [
+        {
+          "id": "VXNlcjox"
+        },
+        {
+          "id": "VXNlcjoy"
+        },
+        {
+          "id": "VXNlcjoz"
+        }
+      ]
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUsers_628c0b99_1 {
+              users {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query GetUsers {
+          users {
+            id
+          }
+        }
+      name: GetUsers
+      hash: 628c0b99e91e4161c994c1c554c8ddbf
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUsers_628c0b99_1 {
+          users {
+            id
+          }
+        }

@@ -148,6 +148,67 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Defer_KeyOnlyField_Should_Return_NonStreamed_Result()
+    {
+        // arrange
+        // The only deferred field is the entity's own key, and its only lookup is keyed by
+        // that same field, so no incremental plan can ever key a lookup off it. The data is
+        // already available (the key any subgraph exposing the entity resolves for free), so
+        // the gateway serves it in the initial payload instead of deferring it.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUsers {
+                users {
+                    ... @defer {
+                        id
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
     public async Task Defer_IfTrue_Variable_Should_Return_Streamed_Result()
     {
         // arrange
