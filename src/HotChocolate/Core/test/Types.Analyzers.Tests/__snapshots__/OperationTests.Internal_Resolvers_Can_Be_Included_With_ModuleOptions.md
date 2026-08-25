@@ -90,6 +90,11 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetPublic",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
+
                     configuration.Resolvers = context.Resolvers.GetPublic();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -110,6 +115,11 @@ namespace TestNamespace
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetInternal",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
 
                     configuration.Resolvers = context.Resolvers.GetInternal();
                 },

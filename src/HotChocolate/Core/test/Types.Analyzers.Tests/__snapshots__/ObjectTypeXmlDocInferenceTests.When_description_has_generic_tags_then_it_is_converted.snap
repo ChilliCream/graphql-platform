@@ -87,6 +87,11 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "Foo",
+                        global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
+
                     configuration.Resolvers = context.Resolvers.Foo();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -165,7 +170,7 @@ Assembly Emit Diagnostics
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (70,37)-(70,74)",
+    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (75,37)-(75,74)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0718)",
     "MessageFormat": "'{0}': static types cannot be used as type arguments",
     "Message": "'Query': static types cannot be used as type arguments",

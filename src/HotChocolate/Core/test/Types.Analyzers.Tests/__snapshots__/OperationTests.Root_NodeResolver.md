@@ -117,14 +117,6 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
-                    configuration.Member = context.ThisType.GetMethod(
-                        "GetTest",
-                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                        new global::System.Type[]
-                        {
-                            typeof(string)
-                        })!;
-
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
 
                     bindingResolver.ApplyConfiguration(

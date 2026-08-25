@@ -78,6 +78,20 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetTest",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Threading.CancellationToken),
+                            typeof(global::System.Security.Claims.ClaimsPrincipal),
+                            typeof(global::HotChocolate.Language.DocumentNode),
+                            typeof(global::HotChocolate.Language.FieldNode),
+                            typeof(global::HotChocolate.Types.IOutputFieldDefinition),
+                            typeof(global::HotChocolate.Types.Pagination.ConnectionFlags),
+                            typeof(global::HotChocolate.Execution.ISelection)
+                        })!;
+
                     configuration.Resolvers = context.Resolvers.GetTest();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

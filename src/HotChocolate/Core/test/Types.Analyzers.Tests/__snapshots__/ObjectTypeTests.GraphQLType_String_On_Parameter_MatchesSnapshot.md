@@ -81,16 +81,6 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
-                    configuration.Member = context.ThisType.GetMethod(
-                        "GetAuthorAsync",
-                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                        new global::System.Type[]
-                        {
-                            typeof(global::TestNamespace.Book),
-                            typeof(int),
-                            typeof(global::System.Threading.CancellationToken)
-                        })!;
-
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
                     HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                         field.Context,
@@ -458,14 +448,14 @@ namespace Microsoft.Extensions.DependencyInjection
     ]
   },
   {
-    "Id": "CS0116",
+    "Id": "CS1519",
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,34)-(78,40)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
-    "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
-    "Message": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (76,20)-(76,21)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1519)",
+    "MessageFormat": "Invalid token '{0}' in a member declaration",
+    "Message": "Invalid token '}' in a member declaration",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -474,14 +464,78 @@ namespace Microsoft.Extensions.DependencyInjection
     ]
   },
   {
-    "Id": "CS1022",
+    "Id": "CS0825",
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,41)-(78,42)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
-    "MessageFormat": "Type or namespace definition, or end-of-file expected",
-    "Message": "Type or namespace definition, or end-of-file expected",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,20)-(78,23)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0825)",
+    "MessageFormat": "The contextual keyword 'var' may only appear within a local variable declaration or in script code",
+    "Message": "The contextual keyword 'var' may only appear within a local variable declaration or in script code",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0708",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,24)-(78,39)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0708)",
+    "MessageFormat": "'{0}': cannot declare instance members in a static class",
+    "Message": "'BookNode.fieldDescriptor': cannot declare instance members in a static class",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0103",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,108)-(78,113)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
+    "MessageFormat": "The name '{0}' does not exist in the current context",
+    "Message": "The name 'field' does not exist in the current context",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0103",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,123)-(78,136)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
+    "MessageFormat": "The name '{0}' does not exist in the current context",
+    "Message": "The name 'configuration' does not exist in the current context",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS1513",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,138)-(78,138)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1513)",
+    "MessageFormat": "} expected",
+    "Message": "} expected",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -494,7 +548,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,60)-(78,69)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (79,62)-(79,80)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
@@ -510,7 +564,55 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,70)-(78,70)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (82,45)-(82,45)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1031)",
+    "MessageFormat": "Type expected",
+    "Message": "Type expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS1026",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (82,45)-(82,45)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1026)",
+    "MessageFormat": ") expected",
+    "Message": ") expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0116",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,55)-(83,74)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
+    "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Message": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS1031",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,75)-(83,85)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1031)",
     "MessageFormat": "Type expected",
     "Message": "Type expected",
@@ -526,7 +628,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,70)-(78,70)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,75)-(83,85)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8124)",
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
@@ -542,7 +644,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (78,70)-(78,70)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,75)-(83,85)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1026)",
     "MessageFormat": ") expected",
     "Message": ") expected",
@@ -558,7 +660,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (79,24)-(79,40)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,75)-(83,85)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -574,10 +676,58 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (80,71)-(80,88)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (85,36)-(85,54)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8124",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,90)-(86,91)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8124)",
+    "MessageFormat": "Tuple must contain at least two elements.",
+    "Message": "Tuple must contain at least two elements.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS1026",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,90)-(86,91)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1026)",
+    "MessageFormat": ") expected",
+    "Message": ") expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8124",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,91)-(86,92)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8124)",
+    "MessageFormat": "Tuple must contain at least two elements.",
+    "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -590,7 +740,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (80,88)-(80,89)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,92)-(86,93)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -606,7 +756,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (81,48)-(81,49)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (87,24)-(87,39)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
@@ -622,10 +772,58 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (82,24)-(82,25)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (87,39)-(87,40)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0116",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (89,34)-(89,58)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
+    "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Message": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS1022",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (89,59)-(89,60)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
+    "MessageFormat": "Type or namespace definition, or end-of-file expected",
+    "Message": "Type or namespace definition, or end-of-file expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0116",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (90,36)-(90,55)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
+    "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -638,7 +836,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,61)-(83,62)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (90,56)-(90,57)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8124)",
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
@@ -654,10 +852,58 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (83,62)-(83,63)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (90,57)-(90,58)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0116",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (92,34)-(92,43)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
+    "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Message": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS1022",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (92,44)-(92,45)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
+    "MessageFormat": "Type or namespace definition, or end-of-file expected",
+    "Message": "Type or namespace definition, or end-of-file expected",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0116",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (92,64)-(92,78)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
+    "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
+    "Message": "A namespace cannot directly contain members such as fields, methods or statements",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -670,7 +916,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (84,38)-(84,39)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (92,79)-(92,80)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8124)",
     "MessageFormat": "Tuple must contain at least two elements.",
     "Message": "Tuple must contain at least two elements.",
@@ -686,26 +932,10 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (84,39)-(84,40)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (92,80)-(92,81)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS8124",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (85,77)-(85,78)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8124)",
-    "MessageFormat": "Tuple must contain at least two elements.",
-    "Message": "Tuple must contain at least two elements.",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -718,7 +948,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,25)-(86,26)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (93,17)-(93,18)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -734,7 +964,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,26)-(86,28)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (94,16)-(94,58)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8803)",
     "MessageFormat": "Top-level statements must precede namespace and type declarations.",
     "Message": "Top-level statements must precede namespace and type declarations.",
@@ -746,203 +976,11 @@ namespace Microsoft.Extensions.DependencyInjection
     ]
   },
   {
-    "Id": "CS1525",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (86,27)-(86,28)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1525)",
-    "MessageFormat": "Invalid expression term '{0}'",
-    "Message": "Invalid expression term ';'",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
     "Id": "CS0103",
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (88,108)-(88,113)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'field' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (88,123)-(88,136)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'configuration' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (90,24)-(90,29)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'field' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (92,24)-(92,37)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'configuration' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (95,20)-(95,35)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'bindingResolver' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (96,24)-(96,31)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'context' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (99,20)-(99,33)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'configuration' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (102,20)-(102,33)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'configuration' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (102,46)-(102,53)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
-    "MessageFormat": "The name '{0}' does not exist in the current context",
-    "Message": "The name 'context' does not exist in the current context",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS1022",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (103,16)-(103,17)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
-    "MessageFormat": "Type or namespace definition, or end-of-file expected",
-    "Message": "Type or namespace definition, or end-of-file expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS1022",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (103,17)-(103,18)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
-    "MessageFormat": "Type or namespace definition, or end-of-file expected",
-    "Message": "Type or namespace definition, or end-of-file expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0103",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (104,28)-(104,37)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (94,28)-(94,37)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'resolvers' does not exist in the current context",
@@ -958,7 +996,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (104,49)-(104,57)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (94,49)-(94,57)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'thisType' does not exist in the current context",
@@ -974,7 +1012,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (104,58)-(104,59)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (94,58)-(94,59)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1002)",
     "MessageFormat": "; expected",
     "Message": "; expected",
@@ -990,7 +1028,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (104,58)-(104,59)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (94,58)-(94,59)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -1006,7 +1044,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (106,12)-(106,21)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (96,12)-(96,21)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'Configure' does not exist in the current context",
@@ -1022,7 +1060,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (106,22)-(106,32)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (96,22)-(96,32)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0103)",
     "MessageFormat": "The name '{0}' does not exist in the current context",
     "Message": "The name 'descriptor' does not exist in the current context",
@@ -1038,7 +1076,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (107,8)-(107,9)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (97,8)-(97,9)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -1054,7 +1092,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (109,28)-(109,37)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (99,28)-(99,37)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)",
     "MessageFormat": "A namespace cannot directly contain members such as fields, methods or statements",
     "Message": "A namespace cannot directly contain members such as fields, methods or statements",
@@ -1070,7 +1108,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (109,28)-(109,37)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (99,28)-(99,37)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0751)",
     "MessageFormat": "A partial member must be declared within a partial type",
     "Message": "A partial member must be declared within a partial type",
@@ -1086,7 +1124,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (111,29)-(111,40)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (101,29)-(101,40)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1527)",
     "MessageFormat": "Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected",
     "Message": "Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected",
@@ -1102,7 +1140,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (141,4)-(141,5)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (131,4)-(131,5)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",
@@ -1118,7 +1156,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (142,0)-(142,1)",
+    "Location": "BookNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (132,0)-(132,1)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1022)",
     "MessageFormat": "Type or namespace definition, or end-of-file expected",
     "Message": "Type or namespace definition, or end-of-file expected",

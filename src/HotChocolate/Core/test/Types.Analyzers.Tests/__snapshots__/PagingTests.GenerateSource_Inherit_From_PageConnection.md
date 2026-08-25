@@ -54,6 +54,11 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "CustomResolver",
+                        global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
+
                     configuration.Resolvers = context.Resolvers.CustomResolver();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

@@ -54,6 +54,15 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },

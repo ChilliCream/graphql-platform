@@ -89,6 +89,11 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "T",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
+
                     configuration.Resolvers = context.Resolvers.T();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -108,6 +113,11 @@ namespace TestNamespace
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "F",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
 
                     configuration.Resolvers = context.Resolvers.F();
                 },
@@ -129,6 +139,11 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "P",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
+
                     configuration.Resolvers = context.Resolvers.P();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -148,6 +163,11 @@ namespace TestNamespace
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "M",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
 
                     configuration.Resolvers = context.Resolvers.M();
                 },
@@ -169,6 +189,11 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "E",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
+
                     configuration.Resolvers = context.Resolvers.E();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -188,6 +213,11 @@ namespace TestNamespace
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "Nested",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        global::System.Array.Empty<global::System.Type>());
 
                     configuration.Resolvers = context.Resolvers.Nested();
                 },

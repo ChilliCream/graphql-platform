@@ -114,15 +114,6 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
-                    configuration.Member = context.ThisType.GetMethod(
-                        "GetBrandAsync",
-                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                        new global::System.Type[]
-                        {
-                            typeof(global::TestNamespace.Brand),
-                            typeof(global::TestNamespace.BrandService)
-                        })!;
-
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
                     HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                         field.Context,

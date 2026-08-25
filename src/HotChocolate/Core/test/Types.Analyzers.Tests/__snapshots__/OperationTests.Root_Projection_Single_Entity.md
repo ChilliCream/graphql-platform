@@ -90,6 +90,14 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetTest",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.QueryContext<global::TestNamespace.Foo>)
+                        })!;
+
                     configuration.Resolvers = context.Resolvers.GetTest();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
@@ -46,10 +46,6 @@
 
   <ItemGroup>
     <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

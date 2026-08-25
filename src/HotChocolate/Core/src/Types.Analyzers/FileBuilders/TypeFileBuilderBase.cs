@@ -367,10 +367,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
+        if (resolver.Member is IMethodSymbol resolverMethod)
         {
-            var resolverMethod = (IMethodSymbol)resolver.Member;
-
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
             using (Writer.IncreaseIndent())
@@ -389,8 +387,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 }
                 else
                 {
-                    var resolverMethods = (IMethodSymbol)resolver.Member;
-
                     Writer.WriteIndentedLine("new global::System.Type[]");
                     Writer.WriteIndentedLine("{");
                     using (Writer.IncreaseIndent())
@@ -407,7 +403,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                             Writer.WriteIndented(
                                 "typeof({0})",
-                                ToFullyQualifiedString(parameter.Type, resolverMethods, typeLookup));
+                                ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
                         }
                     }
 
@@ -416,187 +412,140 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 }
             }
 
-            Writer.WriteLine();
-            Writer.WriteIndentedLine("var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();");
-
-            var firstParameter = true;
-            foreach (var parameter in resolver.Parameters)
+            if (resolver.Parameters.Any(p => p.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
             {
-                if (parameter.Type.TypeKind is TypeKind.Error
-                    || parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
-                {
-                    continue;
-                }
-
                 Writer.WriteLine();
+                Writer.WriteIndentedLine("var parameters = (configuration.Member as global::System.Reflection.MethodInfo)?.GetParameters();");
 
-                if (firstParameter)
+                var firstParameter = true;
+                foreach (var parameter in resolver.Parameters)
                 {
-                    Writer.WriteIndentedLine(
-                        "var bindingInfo = field.Context.ParameterBindingResolver;");
-                    Writer.WriteIndentedLine(
-                        "var parameter = context.Resolvers.CreateParameterDescriptor_{0}_{1}();",
-                        resolver.Member.Name,
-                        parameter.Name);
-                    Writer.WriteIndentedLine(
-                        "var parameterInfo = bindingInfo.GetBindingInfo(parameter);");
-                    firstParameter = false;
-                }
-                else
-                {
-                    Writer.WriteIndentedLine(
-                        "parameter = context.Resolvers.CreateParameterDescriptor_{0}_{1}();",
-                        resolver.Member.Name,
-                        parameter.Name);
-                    Writer.WriteIndentedLine(
-                        "parameterInfo = bindingInfo.GetBindingInfo(parameter);");
-                }
-
-                Writer.WriteLine();
-
-                using (Writer.WriteIfClause(
-                    "parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument"))
-                {
-                    var parameterTypeString = ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup);
-
-                    Writer.WriteIndentedLine(
-                        "var argumentConfiguration = new global::{0}",
-                        WellKnownTypes.ArgumentConfiguration);
-                    Writer.WriteIndentedLine("{");
-
-                    using (Writer.IncreaseIndent())
+                    if (parameter.Type.TypeKind is TypeKind.Error
+                        || parameter.Kind is not (ResolverParameterKind.Argument or ResolverParameterKind.Unknown))
                     {
-                        Writer.WriteIndentedLine(
-                            "Name = naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.Argument),",
-                            parameter.Name);
-                        description = parameter.Description;
-                        if (!string.IsNullOrEmpty(description))
-                        {
-                            _hasDescription = true;
-                            Writer.WriteIndentedLine(
-                                "Description = GetDescription(\"{0}\", {1}, field.Context.Options.UseXmlDocumentation),",
-                                GeneratorUtils.EscapeForStringLiteral(description),
-                                parameter.IsDescriptionFromAttribute ? "false" : "true");
-                        }
-
-                        deprecationReason = parameter.DeprecationReason;
-                        if (!string.IsNullOrEmpty(deprecationReason))
-                        {
-                            Writer.WriteIndentedLine("DeprecationReason = \"{0}\",", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
-                        }
-
-                        if (parameter.Parameter.HasExplicitDefaultValue)
-                        {
-                            var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(
-                                parameter.Parameter.ExplicitDefaultValue,
-                                parameter.Type);
-                            Writer.WriteIndentedLine("RuntimeDefaultValue = {0},", defaultValueString);
-                        }
-
-                        WriteAssignTypeRef(
-                            parameter.SchemaTypeRef,
-                            "Type",
-                            "Input",
-                            ",");
-
-                        Writer.WriteIndentedLine("RuntimeType = typeof({0}),", parameterTypeString);
-                        Writer.WriteIndentedLine("Parameter = parameters?[{0}]", parameter.Parameter.Ordinal);
-                    }
-
-                    Writer.WriteIndentedLine("};");
-
-                    if (parameter.DescriptorAttributes.Length > 0)
-                    {
-                        Writer.WriteLine();
-                        Writer.WriteIndentedLine(
-                            "var argumentDescriptor = global::{0}.From(field.Context, argumentConfiguration);",
-                            WellKnownTypes.ArgumentDescriptor);
-                        Writer.WriteIndentedLine(
-                            "{0}.ApplyConfiguration(",
-                            WellKnownTypes.ConfigurationHelper);
-                        using (Writer.IncreaseIndent())
-                        {
-                            Writer.WriteIndentedLine("field.Context,");
-                            Writer.WriteIndentedLine("argumentDescriptor,");
-                            Writer.WriteIndentedLine("null,");
-
-                            var first = true;
-                            foreach (var attribute in parameter.DescriptorAttributes)
-                            {
-                                if (!first)
-                                {
-                                    Writer.WriteLine(',');
-                                }
-
-                                Writer.WriteIndent();
-                                Writer.Write(GenerateAttributeInstantiation(attribute));
-                                first = false;
-                            }
-
-                            Writer.WriteLine([')', ';']);
-                        }
-
-                        Writer.WriteIndentedLine("argumentConfiguration.ConfigurationsAreApplied = true;");
-                        Writer.WriteIndentedLine("argumentDescriptor.CreateConfiguration();");
+                        continue;
                     }
 
                     Writer.WriteLine();
-                    Writer.WriteIndentedLine("configuration.Arguments.Add(argumentConfiguration);");
+
+                    if (firstParameter)
+                    {
+                        Writer.WriteIndentedLine(
+                            "var bindingInfo = field.Context.ParameterBindingResolver;");
+                        Writer.WriteIndentedLine(
+                            "var parameter = context.Resolvers.CreateParameterDescriptor_{0}_{1}();",
+                            resolver.Member.Name,
+                            parameter.Name);
+                        Writer.WriteIndentedLine(
+                            "var parameterInfo = bindingInfo.GetBindingInfo(parameter);");
+                        firstParameter = false;
+                    }
+                    else
+                    {
+                        Writer.WriteIndentedLine(
+                            "parameter = context.Resolvers.CreateParameterDescriptor_{0}_{1}();",
+                            resolver.Member.Name,
+                            parameter.Name);
+                        Writer.WriteIndentedLine(
+                            "parameterInfo = bindingInfo.GetBindingInfo(parameter);");
+                    }
+
+                    Writer.WriteLine();
+
+                    using (Writer.WriteIfClause(
+                        "parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument"))
+                    {
+                        var parameterTypeString = ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup);
+
+                        Writer.WriteIndentedLine(
+                            "var argumentConfiguration = new global::{0}",
+                            WellKnownTypes.ArgumentConfiguration);
+                        Writer.WriteIndentedLine("{");
+
+                        using (Writer.IncreaseIndent())
+                        {
+                            Writer.WriteIndentedLine(
+                                "Name = naming.GetMemberName(\"{0}\", global::HotChocolate.Types.MemberKind.Argument),",
+                                parameter.Name);
+                            description = parameter.Description;
+                            if (!string.IsNullOrEmpty(description))
+                            {
+                                _hasDescription = true;
+                                Writer.WriteIndentedLine(
+                                    "Description = GetDescription(\"{0}\", {1}, field.Context.Options.UseXmlDocumentation),",
+                                    GeneratorUtils.EscapeForStringLiteral(description),
+                                    parameter.IsDescriptionFromAttribute ? "false" : "true");
+                            }
+
+                            deprecationReason = parameter.DeprecationReason;
+                            if (!string.IsNullOrEmpty(deprecationReason))
+                            {
+                                Writer.WriteIndentedLine("DeprecationReason = \"{0}\",", GeneratorUtils.EscapeForStringLiteral(deprecationReason));
+                            }
+
+                            if (parameter.Parameter.HasExplicitDefaultValue)
+                            {
+                                var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(
+                                    parameter.Parameter.ExplicitDefaultValue,
+                                    parameter.Type);
+                                Writer.WriteIndentedLine("RuntimeDefaultValue = {0},", defaultValueString);
+                            }
+
+                            WriteAssignTypeRef(
+                                parameter.SchemaTypeRef,
+                                "Type",
+                                "Input",
+                                ",");
+
+                            Writer.WriteIndentedLine("RuntimeType = typeof({0}),", parameterTypeString);
+                            Writer.WriteIndentedLine("Parameter = parameters?[{0}]", parameter.Parameter.Ordinal);
+                        }
+
+                        Writer.WriteIndentedLine("};");
+
+                        if (parameter.DescriptorAttributes.Length > 0)
+                        {
+                            Writer.WriteLine();
+                            Writer.WriteIndentedLine(
+                                "var argumentDescriptor = global::{0}.From(field.Context, argumentConfiguration);",
+                                WellKnownTypes.ArgumentDescriptor);
+                            Writer.WriteIndentedLine(
+                                "{0}.ApplyConfiguration(",
+                                WellKnownTypes.ConfigurationHelper);
+                            using (Writer.IncreaseIndent())
+                            {
+                                Writer.WriteIndentedLine("field.Context,");
+                                Writer.WriteIndentedLine("argumentDescriptor,");
+                                Writer.WriteIndentedLine("null,");
+
+                                var first = true;
+                                foreach (var attribute in parameter.DescriptorAttributes)
+                                {
+                                    if (!first)
+                                    {
+                                        Writer.WriteLine(',');
+                                    }
+
+                                    Writer.WriteIndent();
+                                    Writer.Write(GenerateAttributeInstantiation(attribute));
+                                    first = false;
+                                }
+
+                                Writer.WriteLine([')', ';']);
+                            }
+
+                            Writer.WriteIndentedLine("argumentConfiguration.ConfigurationsAreApplied = true;");
+                            Writer.WriteIndentedLine("argumentDescriptor.CreateConfiguration();");
+                        }
+
+                        Writer.WriteLine();
+                        Writer.WriteIndentedLine("configuration.Arguments.Add(argumentConfiguration);");
+                    }
                 }
             }
         }
 
         var canApplyParameterFieldConfiguration = CanApplyParameterFieldConfiguration(resolver);
-
-        if (resolver.DescriptorAttributes.Length > 0
-            || resolver.IsNodeResolver
-            || resolver.Kind is ResolverKind.ConnectionResolver)
-        {
-            Writer.WriteLine();
-            Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
-            using (Writer.IncreaseIndent())
-            {
-                Writer.WriteIndentedLine(
-                    "\"{0}\",",
-                    resolver.Member.Name);
-                Writer.WriteIndentedLine(
-                    "global::{0},",
-                    resolver.IsStatic
-                        ? WellKnownTypes.StaticMemberFlags
-                        : WellKnownTypes.InstanceMemberFlags);
-                if (resolver.Parameters.Length == 0)
-                {
-                    Writer.WriteIndentedLine("global::System.Array.Empty<global::System.Type>());");
-                }
-                else
-                {
-                    var resolverMethods = (IMethodSymbol)resolver.Member;
-
-                    Writer.WriteIndentedLine("new global::System.Type[]");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        for (var i = 0; i < resolver.Parameters.Length; i++)
-                        {
-                            var parameter = resolver.Parameters[i];
-
-                            if (i > 0)
-                            {
-                                Writer.Write(',');
-                                Writer.WriteLine();
-                            }
-
-                            Writer.WriteIndented(
-                                "typeof({0})",
-                                ToFullyQualifiedString(parameter.Type, resolverMethods, typeLookup));
-                        }
-                    }
-
-                    Writer.WriteLine();
-                    Writer.WriteIndentedLine("})!;");
-                }
-            }
-        }
 
         var needsUseConnection = resolver.Kind is ResolverKind.ConnectionResolver
             && !resolver.DescriptorAttributes.Any(a =>

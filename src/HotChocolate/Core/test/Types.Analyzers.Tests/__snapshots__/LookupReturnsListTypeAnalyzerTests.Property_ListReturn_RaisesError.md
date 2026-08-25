@@ -91,11 +91,6 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
-                    configuration.Member = context.ThisType.GetMethod(
-                        "AllUsers",
-                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                        global::System.Array.Empty<global::System.Type>());
-
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
                     HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                         field.Context,

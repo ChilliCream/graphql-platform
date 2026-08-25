@@ -79,6 +79,14 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetDisplayName",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.Product>)
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetDisplayName();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

@@ -90,6 +90,14 @@ namespace TestNamespace
 
                     configuration.SetSourceGeneratorFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetStuffAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
                     configuration.Resolvers = context.Resolvers.GetStuffAsync();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::System.Collections.Generic.KeyValuePair<int, string>>.Default;
                 },
