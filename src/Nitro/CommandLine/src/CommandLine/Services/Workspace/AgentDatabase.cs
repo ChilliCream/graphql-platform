@@ -19,7 +19,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -27,20 +27,26 @@ internal sealed class AgentDatabase
     /// implicit columns), v3 (after those columns and the client column,
     /// before the v4 <see cref="AgentSessionSchema"/> tables), v4 (before
     /// <c>agent_sessions</c> gained its v5 role, harness_version, and
-    /// process_scope columns), and v5 (before <c>agent_sessions</c> gained
-    /// its v6 <c>proc_start_legacy</c> column). A v3 database's agents table
-    /// already carries every column <see cref="UpgradeAgentsTableAsync"/>
-    /// adds, so upgrading it only means applying the new v4 tables and
-    /// bumping the stamped version. A v4 database's <c>agent_sessions</c>
-    /// table already carries every column except the three
-    /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> adds. A v5
-    /// database's <c>agent_sessions</c> table already carries every column
-    /// except <c>proc_start_legacy</c>, which
+    /// process_scope columns), v5 (before <c>agent_sessions</c> gained its
+    /// v6 <c>proc_start_legacy</c> column), and v6 (before the v7
+    /// <see cref="MailWakeSchema"/> and <see cref="SessionPingGateSchema"/>
+    /// tables). A v3 database's agents table already carries every column
+    /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
+    /// means applying the new v4 tables and bumping the stamped version. A
+    /// v4 database's <c>agent_sessions</c> table already carries every
+    /// column except the three <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/>
+    /// adds. A v5 database's <c>agent_sessions</c> table already carries
+    /// every column except <c>proc_start_legacy</c>, which
     /// <see cref="UpgradeAgentSessionsProcStartLegacyColumnAsync"/> adds,
     /// marking every existing row legacy since none of them can carry raw
-    /// start ticks yet.
+    /// start ticks yet. A v6 database is missing every v7 table outright, so
+    /// upgrading it means only applying the new schema and bumping the
+    /// stamped version, the same unconditional <c>CREATE TABLE IF NOT EXISTS</c>
+    /// shape the v4 session tables used when they were added: there is no
+    /// existing column data to carry forward, so no dedicated upgrade
+    /// method is needed for this step.
     /// </summary>
-    private static readonly int[] UpgradableVersions = [2, 3, 4, 5];
+    private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -58,11 +64,12 @@ internal sealed class AgentDatabase
     /// if it predates <c>unsupported</c> (see
     /// <see cref="RebuildAgentSessionsCheckConstraintIfStaleAsync"/>, its own
     /// transaction since it needs foreign key enforcement off), then, in one
-    /// further transaction, applies the task, mail, and agent registry
-    /// schemas, upgrades the agents table's role, implicit, and client
-    /// columns and the agent_sessions table's role, harness_version, and
-    /// process_scope columns in place when any of them predate the database
-    /// on hand, and stamps the current schema version. Returns the open
+    /// further transaction, applies the task, mail, agent registry,
+    /// mail-wake, and session-ping-gate schemas, upgrades the agents
+    /// table's role, implicit, and client columns and the agent_sessions
+    /// table's role, harness_version, and process_scope columns in place
+    /// when any of them predate the database on hand, and stamps the
+    /// current schema version. Returns the open
     /// connection so callers, including test seeding helpers, can write
     /// against it directly. Throws <see cref="ExitException"/> when the existing
     /// database's version is anything other than 0 (a genuinely new file),
@@ -115,6 +122,14 @@ internal sealed class AgentDatabase
         await connection.ExecuteAsync(AgentRegistrySchema.Create, transaction: transaction);
         await connection.ExecuteAsync(MailStoreSchema.Create, transaction: transaction);
         await connection.ExecuteAsync(AgentSessionSchema.Create, transaction: transaction);
+
+        // v7: every mail-wake and session-ping-gate table is brand new, so
+        // (like AgentSessionSchema.Create above) applying it unconditionally
+        // with CREATE TABLE IF NOT EXISTS covers a fresh database and every
+        // upgradable version alike, without a dedicated column-upgrade
+        // method.
+        await connection.ExecuteAsync(MailWakeSchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(SessionPingGateSchema.Create, transaction: transaction);
 
         // Column-by-column, not gated on version == UpgradableVersion: the
         // client column shipped after CurrentVersion was last bumped to 3,
