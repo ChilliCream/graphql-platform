@@ -9,14 +9,15 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 /// Read-only diagnosis of the mail-wake daemon's persisted state for one
 /// Nitro instance: the <c>mail_wake_daemons</c> leader row's epoch and lease,
 /// that instance's own <c>mail_wake_outbox</c> generation counts, and any
-/// target durably stuck on a Claude access-denied handoff. Reads the schema
-/// and store state directly by SQL, never through
-/// <see cref="IMailWakeDaemonLeaderStore"/> or <see cref="IMailWakeBatchStore"/>,
-/// so it never acquires, renews, or releases anything. Every query is scoped
-/// to the caller's own Nitro instance id: a different instance's rows are
-/// never read or counted. Never reports an owner id, socket path, key, or
-/// raw stderr; the reported last error carries only the daemon's own
-/// already-bounded (200 char) failure message.
+/// target durably stuck on a Claude access-denied handoff on its actor's
+/// latest, still-unsettled batch. Reads the schema and store state directly
+/// by SQL, never through <see cref="IMailWakeDaemonLeaderStore"/> or
+/// <see cref="IMailWakeBatchStore"/>, so it never acquires, renews, or
+/// releases anything. Every query is scoped to the caller's own Nitro
+/// instance id: a different instance's rows are never read or counted.
+/// Never reports an owner id, socket path, key, or raw stderr; the reported
+/// last error carries only the daemon's own already-bounded (200 char)
+/// failure message.
 /// </summary>
 internal static class DoctorMailWakeCheck
 {
@@ -130,8 +131,15 @@ internal static class DoctorMailWakeCheck
             """
             SELECT COUNT(*) FROM mail_wake_targets t
             JOIN mail_wake_batches b ON b.batch_id = t.batch_id
+            JOIN mail_wake_outbox o ON (o.nitro_instance_id = b.nitro_instance_id AND o.actor = b.actor)
             WHERE b.nitro_instance_id = @nitroInstanceId AND t.status = 'pending'
               AND t.last_error = 'access-denied'
+              AND o.settled_generation < b.claimed_generation
+              AND NOT EXISTS (
+                  SELECT 1 FROM mail_wake_batches n
+                  WHERE n.nitro_instance_id = b.nitro_instance_id AND n.actor = b.actor
+                    AND n.claimed_at > b.claimed_at
+              )
             """,
             new { nitroInstanceId, cancellationToken });
 
@@ -141,10 +149,14 @@ internal static class DoctorMailWakeCheck
         if (accessDeniedPendingTargets > 0)
         {
             healthy = false;
-            remediation.Add(
-                $"{accessDeniedPendingTargets} target(s) are stuck pending on a Claude "
-                + "access-denied handoff; the dashboard daemon degraded and released leadership. "
-                + "Verify the dashboard's Claude access, then it will re-elect and retry.");
+            remediation.Add(leaderState == "ready"
+                ? $"{accessDeniedPendingTargets} target(s) are stuck pending on a Claude "
+                    + "access-denied handoff; the dashboard leader is live and will retry the "
+                    + "offered target(s) once the dashboard's Claude access is verified."
+                : $"{accessDeniedPendingTargets} target(s) are stuck pending on a Claude "
+                    + "access-denied handoff; the dashboard daemon degraded and released "
+                    + "leadership. Verify the dashboard's Claude access, then it will re-elect "
+                    + "and retry.");
         }
 
         if (pendingCount > 0 && leaderState != "ready")

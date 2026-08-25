@@ -162,6 +162,7 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         Assert.True(mailWake.GetProperty("schemaCurrent").GetBoolean());
         Assert.Equal("none", mailWake.GetProperty("leaderState").GetString());
         Assert.Equal(System.Text.Json.JsonValueKind.Null, mailWake.GetProperty("epoch").ValueKind);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, mailWake.GetProperty("lastError").ValueKind);
         Assert.Equal(0, mailWake.GetProperty("pendingActorCount").GetInt32());
         Assert.Equal(0, mailWake.GetProperty("acceptedActorCount").GetInt32());
         Assert.Equal(0, mailWake.GetProperty("deferredActorCount").GetInt32());
@@ -863,6 +864,168 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
+    public async Task MailWake_AccessDeniedTarget_ReadyLeader_ReportsUnhealthy_WithLiveRetryRemediation()
+    {
+        // arrange: the same stuck access-denied target, but a ready leader
+        // is currently live rather than having released leadership over it.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+        var batchId = await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+        await InsertMailWakeTargetRowAsync(batchId, sessionId: "session-1", lastError: "access-denied");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("FAIL Mail-wake:", result.StdOut);
+        Assert.Contains(
+            "1 target(s) are stuck pending on a Claude access-denied handoff; the dashboard "
+            + "leader is live and will retry the offered target(s) once the dashboard's Claude "
+            + "access is verified.",
+            result.StdOut);
+    }
+
+    [Fact]
+    public async Task MailWake_AccessDeniedTarget_SettledOutbox_NotCounted()
+    {
+        // arrange: the outbox generation this batch claimed is already fully
+        // settled, so the access-denied target is a stale row from a
+        // handoff that has since completed, not outstanding work.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 1, dueAt: FakeTime.GetUtcNow());
+        var batchId = await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30),
+            status: "released");
+        await InsertMailWakeTargetRowAsync(batchId, sessionId: "session-1", lastError: "access-denied");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
+        Assert.Equal(0, mailWake.GetProperty("accessDeniedPendingTargets").GetInt32());
+    }
+
+    [Fact]
+    public async Task MailWake_AccessDeniedTarget_SupersededByNewerBatch_NotCounted()
+    {
+        // arrange: a retry batch has since claimed and is actively working
+        // this actor's generation, so the older, released batch's
+        // access-denied target no longer describes the current state.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 2, settledGeneration: 1, dueAt: FakeTime.GetUtcNow());
+        var olderBatchId = await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30),
+            status: "released", claimedAt: FakeTime.GetUtcNow() - TimeSpan.FromMinutes(10));
+        await InsertMailWakeTargetRowAsync(olderBatchId, sessionId: "session-1", lastError: "access-denied");
+        var newerBatchId = await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 2, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30),
+            claimedAt: FakeTime.GetUtcNow());
+        await InsertMailWakeTargetRowAsync(newerBatchId, sessionId: "session-2");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.True(mailWake.GetProperty("healthy").GetBoolean());
+        Assert.Equal(0, mailWake.GetProperty("accessDeniedPendingTargets").GetInt32());
+    }
+
+    [Fact]
+    public async Task MailWake_LastDaemonError_ReportedInHumanAndJsonOutput()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30),
+            lastError: "ping: transport timeout");
+
+        // act: human output
+        var humanResult = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert: informational only, does not fail health on its own
+        Assert.Equal(0, humanResult.ExitCode);
+        Assert.Contains("Last daemon error: ping: transport timeout", humanResult.StdOut);
+
+        // act: JSON output
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        var jsonResult = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, jsonResult.ExitCode);
+        using var document = System.Text.Json.JsonDocument.Parse(jsonResult.StdOut);
+        var mailWake = document.RootElement.GetProperty("mailWake");
+        Assert.Equal("ping: transport timeout", mailWake.GetProperty("lastError").GetString());
+    }
+
+    [Fact]
+    public async Task MailWake_Doctor_IsReadOnly_DoesNotTouchLeaseOrWorkRows()
+    {
+        // arrange: an expired lease and outstanding pending work, so every
+        // read path (lease, outbox, active-batch, target scan) is exercised
+        // without the check acquiring, renewing, or releasing anything.
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "pascal");
+        await InsertMailWakeLeaderRowAsync(
+            FixedHost, epoch: 2, expiresAt: FakeTime.GetUtcNow() - TimeSpan.FromSeconds(10));
+        await InsertMailWakeOutboxRowAsync(
+            FixedHost, "pascal", requestedGeneration: 1, settledGeneration: 0, dueAt: FakeTime.GetUtcNow());
+        var batchId = await InsertMailWakeActiveBatchRowAsync(
+            FixedHost, "pascal", claimedGeneration: 1, expiresAt: FakeTime.GetUtcNow() + TimeSpan.FromSeconds(30));
+        await InsertMailWakeTargetRowAsync(batchId, sessionId: "session-1");
+
+        const string daemonsSql =
+            "SELECT epoch || '|' || expires_at || '|' || owner_id || '|' || COALESCE(last_error, '') "
+            + $"FROM mail_wake_daemons WHERE nitro_instance_id = '{FixedHost}'";
+        const string outboxSql =
+            "SELECT requested_generation || '|' || settled_generation || '|' || due_at "
+            + $"FROM mail_wake_outbox WHERE nitro_instance_id = '{FixedHost}' AND actor = 'pascal'";
+        var batchesSql = $"SELECT status || '|' || expires_at FROM mail_wake_batches WHERE batch_id = '{batchId}'";
+        const string targetsCountSql = "SELECT COUNT(*) FROM mail_wake_targets";
+
+        var daemonsBefore = await QueryScalarAsync(daemonsSql);
+        var outboxBefore = await QueryScalarAsync(outboxSql);
+        var batchesBefore = await QueryScalarAsync(batchesSql);
+        var targetsCountBefore = await QueryScalarAsync(targetsCountSql);
+
+        // act: the seeded work is claimed by the active batch (accepted, not
+        // pending), and an expired leader with no pending work stays
+        // healthy, so this run succeeds while still exercising every read.
+        var result = await ExecuteCommandAsync("agent", "doctor");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        var daemonsAfter = await QueryScalarAsync(daemonsSql);
+        var outboxAfter = await QueryScalarAsync(outboxSql);
+        var batchesAfter = await QueryScalarAsync(batchesSql);
+        var targetsCountAfter = await QueryScalarAsync(targetsCountSql);
+
+        Assert.Equal(daemonsBefore, daemonsAfter);
+        Assert.Equal(outboxBefore, outboxAfter);
+        Assert.Equal(batchesBefore, batchesAfter);
+        Assert.Equal(targetsCountBefore, targetsCountAfter);
+    }
+
+    [Fact]
     public async Task MailWake_SchemaMismatch_ReportsFailure_WithoutLeaderOrWorkLines()
     {
         // arrange: a v3-shaped database predates the mail-wake tables
@@ -962,7 +1125,8 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
     /// tests that also need to attach a target row.
     /// </summary>
     private async Task<string> InsertMailWakeActiveBatchRowAsync(
-        string nitroInstanceId, string actor, long claimedGeneration, DateTimeOffset expiresAt)
+        string nitroInstanceId, string actor, long claimedGeneration, DateTimeOffset expiresAt,
+        string status = "active", DateTimeOffset? claimedAt = null)
     {
         var batchId = Guid.NewGuid().ToString("N");
 
@@ -976,14 +1140,15 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
                 status, claimed_at, expires_at
             ) VALUES (
                 $batchId, $nitroInstanceId, $actor, $claimedGeneration, 'owner-test', 'attempt-test',
-                'active', $now, $expiresAt
+                $status, $claimedAt, $expiresAt
             );
             """;
         command.Parameters.AddWithValue("$batchId", batchId);
         command.Parameters.AddWithValue("$nitroInstanceId", nitroInstanceId);
         command.Parameters.AddWithValue("$actor", actor);
         command.Parameters.AddWithValue("$claimedGeneration", claimedGeneration);
-        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$status", status);
+        command.Parameters.AddWithValue("$claimedAt", claimedAt ?? DateTimeOffset.UtcNow);
         command.Parameters.AddWithValue("$expiresAt", expiresAt);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
@@ -991,7 +1156,7 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         return batchId;
     }
 
-    private async Task InsertMailWakeTargetRowAsync(string batchId, string sessionId, string lastError)
+    private async Task InsertMailWakeTargetRowAsync(string batchId, string sessionId, string? lastError = null)
     {
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
@@ -1007,7 +1172,7 @@ public sealed class DoctorAgentCommandTests : AgentCommandTestBase
         command.Parameters.AddWithValue("$batchId", batchId);
         command.Parameters.AddWithValue("$sessionId", sessionId);
         command.Parameters.AddWithValue("$host", FixedHost);
-        command.Parameters.AddWithValue("$lastError", lastError);
+        command.Parameters.AddWithValue("$lastError", (object?)lastError ?? DBNull.Value);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);

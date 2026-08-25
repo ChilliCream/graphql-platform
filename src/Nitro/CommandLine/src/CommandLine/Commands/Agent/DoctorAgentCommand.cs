@@ -644,9 +644,10 @@ internal sealed class DoctorAgentCommand : Command
     /// <see cref="DeferredActorCount"/> those whose retry is scheduled for
     /// later; <see cref="OldestPendingAgeSeconds"/> is the age of the oldest
     /// due-but-unsettled generation across the pending and accepted actors
-    /// combined. <see cref="AccessDeniedPendingTargets"/> counts targets
-    /// durably stuck on a Claude access-denied handoff, the read-only signal
-    /// for a degraded dashboard. <see cref="Healthy"/> is false for a schema
+    /// combined. <see cref="AccessDeniedPendingTargets"/> counts only targets
+    /// on the actor's latest, still-unsettled batch durably stuck on a
+    /// Claude access-denied handoff, the read-only signal for a degraded
+    /// dashboard. <see cref="Healthy"/> is false for a schema
     /// mismatch, any access-denied target, or pending work with no ready
     /// leader to claim it.
     /// </summary>
