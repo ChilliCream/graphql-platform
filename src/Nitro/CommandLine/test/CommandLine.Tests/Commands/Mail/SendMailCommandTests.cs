@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
 
 public sealed class SendMailCommandTests(NitroCommandFixture fixture)
@@ -400,6 +402,46 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var pingResult = await QueryScalarAsync(
             "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
         Assert.Null(pingResult);
+    }
+
+    [Fact]
+    public async Task WakeAttempt_Should_ReachACompletedBatchWithANonPendingTarget_When_ARecipientHasAnOutstandingGenerationAndALiveSession()
+    {
+        // arrange: an outstanding wake generation enqueued ahead of this
+        // send (this send itself still defaults to MailWakePolicy.Skip)
+        // plus a live claimed session proves Notifier -> the direct-first
+        // dispatcher is wired end to end from a command.
+        await InitWorkspaceAsync();
+        const string host = "host-send-wake-attempt-test";
+        SetupInstanceId(host);
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
+        await CreateWakeStore(host).SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = "test-agent",
+                Subject = "earlier",
+                Body = "unread",
+                To = ["bob"],
+                WakePolicy = MailWakePolicy.Enqueue
+            },
+            TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+
+        // assert: the dispatcher claimed and completed a batch for bob, and
+        // its target row moved off pending, regardless of whether the
+        // transport call itself actually succeeded.
+        Assert.Equal(0, result.ExitCode);
+        var batchStatus = await QueryScalarAsync(
+            $"SELECT status FROM mail_wake_batches WHERE actor = 'bob' AND nitro_instance_id = '{host}'");
+        Assert.Equal("completed", batchStatus);
+        var targetStatus = await QueryScalarAsync(
+            "SELECT status FROM mail_wake_targets WHERE batch_id = "
+            + $"(SELECT batch_id FROM mail_wake_batches WHERE actor = 'bob' AND nitro_instance_id = '{host}')");
+        Assert.NotEqual("pending", targetStatus);
     }
 
     [Fact]

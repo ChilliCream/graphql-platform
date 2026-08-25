@@ -54,6 +54,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
         services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
         services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
+        services.TryAddSingleton<IMailWakeReceiptObserver, MailWakeReceiptObserver>();
         services.TryAddSingleton<INotifier, Notifier>();
         services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();

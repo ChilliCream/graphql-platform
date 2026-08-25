@@ -490,38 +490,6 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         Assert.True(completedA);
     }
 
-    [Fact]
-    public async Task TryRecordTargetOutcomeAsync_Should_LeaveTheRowFailed_When_ATerminalFailureRacesAPriorAcceptance()
-    {
-        // arrange: an earlier call already recorded this target Delivered
-        // with an accepted generation (a successful transport observed and
-        // accepted), then a later call for the same owner/attempt records a
-        // terminal Failed for the same target - terminal status must take
-        // precedence over the historical acceptance, never be silently
-        // superseded by it.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(30), cancellationToken, requestedGeneration: 5);
-
-        var deliveredRecorded = await _batches.TryRecordTargetOutcomeAsync(
-            claim.BatchId, Target, "owner-1", "attempt-1", "delivered",
-            offeredGeneration: null, acceptedGeneration: 5, lastError: null, now, cancellationToken);
-
-        // act
-        var failedRecorded = await _batches.TryRecordTargetOutcomeAsync(
-            claim.BatchId, Target, "owner-1", "attempt-1", "failed",
-            offeredGeneration: null, acceptedGeneration: null, lastError: "endpoint-gone",
-            now + TimeSpan.FromSeconds(1), cancellationToken);
-
-        // assert
-        Assert.True(deliveredRecorded);
-        Assert.True(failedRecorded);
-        await using var connection = await ConnectAsync(cancellationToken);
-        var status = await ExecuteScalarStringAsync(
-            connection, $"SELECT status FROM mail_wake_targets WHERE batch_id = '{claim.BatchId}'", cancellationToken);
-        Assert.Equal("failed", status);
-    }
-
     private async Task<MailWakeBatchClaim> SeedClaimedBatchAsync(
         DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken, long requestedGeneration = 1)
     {

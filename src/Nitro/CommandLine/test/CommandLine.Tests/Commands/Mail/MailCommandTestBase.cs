@@ -49,6 +49,18 @@ public abstract class MailCommandTestBase : CommandTestBase
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry());
 
     /// <summary>
+    /// Creates an <see cref="IMailStore"/> like <see cref="CreateStore"/>,
+    /// additionally wired with the instance id and global config directory
+    /// providers <see cref="MailWakePolicy.Enqueue"/> requires, pinned to
+    /// <paramref name="instanceId"/> so a directly-enqueued generation lines
+    /// up with a command run under the matching <see cref="SetupInstanceId"/>.
+    /// </summary>
+    internal MailStore CreateWakeStore(string instanceId)
+        => new(
+            new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry(),
+            new FixedInstanceIdProvider(instanceId), new FixedGlobalConfigDirectoryProvider(WorkingDirectory));
+
+    /// <summary>
     /// Creates an <see cref="IAgentRegistry"/> bound to this test's workspace
     /// and clock, for seeding agents without going through the CLI.
     /// </summary>
