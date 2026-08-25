@@ -11,13 +11,27 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// Unlike the pre-epic design, a store write alone is never reported as an
 /// unconditional "Sent": <see cref="Succeeded"/> only ever means the commit
 /// landed, and its own <see cref="MailNotificationResult.Status"/> still
-/// decides whether <see cref="ToShowToast"/> shows green.
+/// decides whether <see cref="ToShowToast"/> shows green. <see cref="Stored"/>
+/// is a third, intermediate case: posted the moment the commit lands, ahead
+/// of the terminal <see cref="Succeeded"/> or <see cref="Reconciled"/>
+/// outcome the actor-wake dispatch-and-observe step can take up to
+/// <see cref="WakeDispatchPolicy.BatchDeadline"/> longer to reach.
 /// </summary>
 internal abstract record MailSendOutcome
 {
     private MailSendOutcome()
     {
     }
+
+    /// <summary>
+    /// The message committed, but the actor-wake dispatch-and-observe step
+    /// has not started resolving it yet: an intermediate signal posted right
+    /// after the store commit, so <see cref="MailMode"/> can show a truthful
+    /// "Stored" toast before that step even begins, rather than leaving the
+    /// transient "Sending" toast the only visible state until the terminal
+    /// <see cref="Succeeded"/> or <see cref="Reconciled"/> outcome arrives.
+    /// </summary>
+    public sealed record Stored(MailMessage Message) : MailSendOutcome;
 
     /// <summary>
     /// The message committed, and the actor-wake dispatch-and-observe step
@@ -46,18 +60,32 @@ internal abstract record MailSendOutcome
     /// The toast this outcome should show once observed: green only for a
     /// <see cref="Succeeded"/> outcome whose <see cref="MailNotificationResult.Status"/>
     /// is one of <see cref="WakeReceiptAggregator.IsZero"/>'s zero statuses;
-    /// every other case (still pending, partial, failed, unresolved, or a
-    /// rejected write) is styled to reflect that the recipient's wake is not
-    /// yet, or was never, confirmed.
+    /// every other case (still pending, partial, failed, unresolved, a
+    /// rejected write, or the intermediate <see cref="Stored"/> signal) is
+    /// styled to reflect that the recipient's wake is not yet, or was never,
+    /// confirmed.
     /// </summary>
     public TuiMessage.ShowToast ToShowToast() => this switch
     {
+        Stored stored => FormatStored(stored),
         Succeeded succeeded => FormatSucceeded(succeeded),
         Reconciled reconciled =>
             new TuiMessage.ShowToast($"Stored '{reconciled.Message.Id}'. Notification outcome unknown.", ToastStyle.Warn),
         Failed failed => new TuiMessage.ShowToast(failed.ToastText, ToastStyle.Error),
         _ => throw new NotSupportedException()
     };
+
+    private static TuiMessage.ShowToast FormatStored(Stored stored)
+    {
+        var id = stored.Message.Id;
+        var recipients = string.Join(", ", stored.Message.Recipients.Select(r => r.Name));
+
+        // Info, matching the transient "Sending…" toast this one replaces:
+        // the commit is a fact, but this is not yet a terminal outcome, so
+        // it must never read as green, amber, or red the way Succeeded,
+        // Reconciled, and Failed do.
+        return new TuiMessage.ShowToast($"Stored '{id}' to {recipients}.", ToastStyle.Info);
+    }
 
     private static TuiMessage.ShowToast FormatSucceeded(Succeeded succeeded)
     {

@@ -195,23 +195,34 @@ public sealed class AgentTuiLauncherTests
 
         mailMode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.S, false, false, true));
 
-        // act
+        // act: the intermediate "Stored" toast (posted before the wake step
+        // even starts observing) always shows Info, while the terminal
+        // outcome this test waits for never does, so skipping Info-styled
+        // toasts here reliably distinguishes them regardless of which drain
+        // call happens to observe which.
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-        IReadOnlyList<TuiMessage> outcome = [];
+        TuiMessage.ShowToast? toast = null;
 
-        while (outcome.Count == 0)
+        while (toast is null)
         {
-            outcome = mailMode.Handle(new TuiMessage.RefreshRequested());
+            foreach (var message in mailMode.Handle(new TuiMessage.RefreshRequested()))
+            {
+                var candidate = Assert.IsType<TuiMessage.ShowToast>(message);
 
-            if (outcome.Count == 0)
+                if (candidate.Style != ToastStyle.Info)
+                {
+                    toast = candidate;
+                }
+            }
+
+            if (toast is null)
             {
                 await Task.Delay(5, timeoutCts.Token);
             }
         }
 
         // assert
-        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(outcome));
         Assert.Equal(ToastStyle.Success, toast.Style);
         Assert.Contains("a dashboard accepted delivery", toast.Text, StringComparison.Ordinal);
         Assert.Contains(store.Messages, m => m.Sender == "alice" && m.Subject == "Status");
@@ -264,24 +275,35 @@ public sealed class AgentTuiLauncherTests
         // can race ahead of DaemonSettledMailWakeReceiptObserver's own
         // Task.Delay call registering against the same TimeProvider; enough
         // iterations cross the deadline regardless of when that timer
-        // actually gets armed.
+        // actually gets armed. The intermediate "Stored" toast (posted
+        // before the wake step even starts re-observing) always shows Info,
+        // while the terminal outcome this test waits for never does, so
+        // skipping Info-styled toasts here reliably distinguishes them.
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-        IReadOnlyList<TuiMessage> outcome = [];
+        TuiMessage.ShowToast? toast = null;
 
-        while (outcome.Count == 0)
+        while (toast is null)
         {
             timeProvider.Advance(MailWakeDaemonPolicy.Default.AdmissionPollInterval);
-            outcome = mailMode.Handle(new TuiMessage.RefreshRequested());
 
-            if (outcome.Count == 0)
+            foreach (var message in mailMode.Handle(new TuiMessage.RefreshRequested()))
+            {
+                var candidate = Assert.IsType<TuiMessage.ShowToast>(message);
+
+                if (candidate.Style != ToastStyle.Info)
+                {
+                    toast = candidate;
+                }
+            }
+
+            if (toast is null)
             {
                 await Task.Delay(5, timeoutCts.Token);
             }
         }
 
         // assert
-        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(outcome));
         Assert.Equal(ToastStyle.Warn, toast.Style);
         Assert.Contains("pending", toast.Text, StringComparison.OrdinalIgnoreCase);
         Assert.True(wakeObserver.ObserveCallCount > 1);

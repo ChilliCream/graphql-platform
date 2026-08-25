@@ -76,7 +76,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
         var receipt = Assert.Single(message.WakeReceipts);
 
         // act
-        var observation = await _observer.ObserveAsync(receipt, cancellationToken);
+        var observation = await _observer.ObserveAsync(receipt, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Pending, observation.Status);
@@ -97,7 +97,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
         await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
 
         // act
-        var observation = await _observer.ObserveAsync(receipt, cancellationToken);
+        var observation = await _observer.ObserveAsync(receipt, Deadline(), cancellationToken);
 
         // assert: delivered zero, the exact frozen target, and no duplicate
         // message row was written by a send preceding this observation.
@@ -137,7 +137,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
             now + TimeSpan.FromSeconds(1), cancellationToken);
 
         // act
-        var observation = await _observer.ObserveAsync(receipt, cancellationToken);
+        var observation = await _observer.ObserveAsync(receipt, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Failed, observation.Status);
@@ -161,7 +161,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
         await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
 
         // act
-        var observation = await _observer.ObserveAsync(receipt, cancellationToken);
+        var observation = await _observer.ObserveAsync(receipt, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Pending, observation.Status);
@@ -184,10 +184,10 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
         var receipt = Assert.Single(message.WakeReceipts);
 
         // act
-        var before = await _observer.ObserveAsync(receipt, cancellationToken);
+        var before = await _observer.ObserveAsync(receipt, Deadline(), cancellationToken);
         var dispatcher = CreateDispatcher(new FakePingSessionExecutor());
         await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        var after = await _observer.ObserveAsync(receipt, cancellationToken);
+        var after = await _observer.ObserveAsync(receipt, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Pending, before.Status);

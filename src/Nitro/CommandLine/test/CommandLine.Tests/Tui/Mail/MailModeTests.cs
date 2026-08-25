@@ -963,6 +963,75 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public async Task ComposeForm_Submit_Should_ShowStoredToast_Before_TheWakeStepResolves()
+    {
+        // arrange: the wake observer is gated open, so the commit has
+        // already landed but the dispatch-and-observe step has not resolved
+        // yet - the truthful intermediate "Stored" toast (perles-net-4mn
+        // comment 211, step 1) must already be visible in that window, well
+        // ahead of the terminal outcome toast.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore();
+        var wakeObserver = new FakeMailWakeReceiptObserver { Gate = new TaskCompletionSource() };
+        var mode = CreateMode(store, wakeObserver: wakeObserver);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, cancellationToken);
+
+        // act: the terminal outcome cannot have resolved yet, since the
+        // observer is still gated open.
+        var followUp = mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        var stored = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal(ToastStyle.Info, stored.Style);
+        var sent = Assert.Single(store.Messages);
+        Assert.Equal($"Stored '{sent.Id}' to bob.", stored.Text);
+
+        // cleanup: release the gate so the send resolves.
+        wakeObserver.Gate!.SetResult();
+        await WaitForOutcomeToastAsync(mode, cancellationToken);
+    }
+
+    [Fact]
+    public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_Without_AssertingNotStored_When_TheSendEffectFaults()
+    {
+        // arrange: a non-ExitException from the store write itself (a
+        // genuine bug, not a rejected write) reaches the send effect as
+        // Faulted. Only an observed ExitException proves a rejected write
+        // (see MailSendOutcome.Failed), so this toast must state the
+        // commit's outcome as unknown rather than asserting the message was
+        // not stored (perles-net-4mn comment 211, step 3).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new FakeMailStore { SendFault = new InvalidOperationException("boom") };
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectInboxRequested());
+        mode.Handle(new TuiMessage.ComposeRequested());
+        Type(mode, "bob");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Status");
+        mode.HandleRawKey(Key(ConsoleKey.Tab));
+        Type(mode, "Body");
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
+
+        // assert
+        Assert.Equal(ToastStyle.Error, toast.Style);
+        Assert.Equal("Sending did not complete. The message's outcome is unknown.", toast.Text);
+        Assert.Empty(store.Messages);
+    }
+
+    [Fact]
     public async Task ReplyForm_Submit_Should_ReconcileToAnUnknownNotification_When_TheWakeStepIsCancelledAfterCommit()
     {
         // arrange: the token cancels while the wake observation is gated
@@ -1011,6 +1080,19 @@ public sealed class MailModeTests
     /// drains, mirroring how <see cref="MailMode"/>'s own send effect
     /// surfaces asynchronously in production.
     /// </summary>
+    /// <summary>
+    /// Polls <see cref="MailMode.Handle"/> until a terminal outcome toast
+    /// (<see cref="MailSendOutcome.Succeeded"/>, <see cref="MailSendOutcome.Reconciled"/>,
+    /// or <see cref="MailSendOutcome.Failed"/>) surfaces, skipping over the
+    /// intermediate <see cref="MailSendOutcome.Stored"/> notice, which can
+    /// land in the same drain as, on its own ahead of, or (for a write the
+    /// store rejects outright) never at all relative to the terminal toast.
+    /// Every terminal outcome shows <see cref="ToastStyle.Success"/>,
+    /// <see cref="ToastStyle.Warn"/>, or <see cref="ToastStyle.Error"/>; only
+    /// the transient "Sending…" and "Stored" toasts ever show
+    /// <see cref="ToastStyle.Info"/>, so that style alone distinguishes them
+    /// without depending on drain timing.
+    /// </summary>
     private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
         MailMode mode, CancellationToken cancellationToken)
     {
@@ -1021,9 +1103,14 @@ public sealed class MailModeTests
         {
             var result = mode.Handle(new TuiMessage.RefreshRequested());
 
-            if (result.Count > 0)
+            foreach (var message in result)
             {
-                return Assert.IsType<TuiMessage.ShowToast>(Assert.Single(result));
+                var toast = Assert.IsType<TuiMessage.ShowToast>(message);
+
+                if (toast.Style != ToastStyle.Info)
+                {
+                    return toast;
+                }
             }
 
             await Task.Delay(5, timeoutCts.Token);
@@ -1144,7 +1231,12 @@ public sealed class MailModeTests
         await eventSourceCts.CancelAsync();
         await eventSourceTask;
 
-        // assert
+        // assert: the intermediate "Stored" notice (posted before the wake
+        // dispatch-and-observe step even starts) is already queued by the
+        // time the terminal completion is, since both are enqueued in
+        // program order on the same background task - but DrainEffectQueue
+        // drops a stored notice superseded by a terminal completion in the
+        // same drain, so only the terminal toast surfaces here.
         Assert.IsType<TuiEvent.EffectCompletedEvent>(effectEvent);
         var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
         Assert.Contains("Notification pending", toast.Text, StringComparison.Ordinal);

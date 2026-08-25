@@ -30,10 +30,11 @@ public sealed class DaemonSettledMailWakeReceiptObserverTests
         ]);
         var timeProvider = new FakeTimeProvider(Now);
         var observer = new DaemonSettledMailWakeReceiptObserver(inner, timeProvider);
+        var deadline = Now + WakeDispatchPolicy.BatchDeadline;
         var cancellationToken = TestContext.Current.CancellationToken;
 
         // act
-        var observeTask = observer.ObserveAsync(Receipt(), cancellationToken);
+        var observeTask = observer.ObserveAsync(Receipt(), deadline, cancellationToken);
 
         using var pollCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         pollCts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -60,10 +61,11 @@ public sealed class DaemonSettledMailWakeReceiptObserverTests
         var inner = new FakeMailWakeReceiptObserver();
         var timeProvider = new FakeTimeProvider(Now);
         var observer = new DaemonSettledMailWakeReceiptObserver(inner, timeProvider);
+        var deadline = Now + WakeDispatchPolicy.BatchDeadline;
         var cancellationToken = TestContext.Current.CancellationToken;
 
         // act
-        var observeTask = observer.ObserveAsync(Receipt(), cancellationToken);
+        var observeTask = observer.ObserveAsync(Receipt(), deadline, cancellationToken);
 
         using var pollCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         pollCts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -79,5 +81,31 @@ public sealed class DaemonSettledMailWakeReceiptObserverTests
         // assert
         Assert.Equal(MailWakeTargetStatus.Pending, observation.Status);
         Assert.True(inner.ObserveCallCount > 1);
+    }
+
+    [Fact]
+    public async Task ObserveAsync_Should_HonorTheCallersDeadline_When_ItHasAlreadyElapsed()
+    {
+        // arrange: the caller's own deadline (shared across every receipt of
+        // one MailWakeDispatch.RunAsync batch) has already elapsed by the
+        // time this receipt is observed, as it would for a later recipient
+        // once an earlier one's retry loop spent the whole shared window.
+        // The decorator must honor that deadline rather than computing its
+        // own fresh WakeDispatchPolicy.BatchDeadline from the current clock
+        // and retrying regardless of what the caller passed in.
+        var inner = new FakeMailWakeReceiptObserver();
+        var timeProvider = new FakeTimeProvider(Now);
+        var observer = new DaemonSettledMailWakeReceiptObserver(inner, timeProvider);
+        var deadline = Now - TimeSpan.FromSeconds(1);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act
+        var observation = await observer.ObserveAsync(Receipt(), deadline, cancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+
+        // assert: gave up after the single initial read, never entering the
+        // retry loop, instead of polling for its own fresh BatchDeadline.
+        Assert.Equal(MailWakeTargetStatus.Pending, observation.Status);
+        Assert.Equal(1, inner.ObserveCallCount);
     }
 }

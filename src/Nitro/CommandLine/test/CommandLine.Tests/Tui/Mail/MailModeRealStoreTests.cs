@@ -86,8 +86,11 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
 
     /// <summary>
     /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/>
-    /// until a compose/reply outcome toast drains; see the identical helper
-    /// in <c>MailModeTests</c>.
+    /// until a terminal compose/reply outcome toast drains, skipping over
+    /// the intermediate "Stored" notice the same way the identical helper in
+    /// <c>MailModeTests</c> does: every terminal outcome shows
+    /// <see cref="ToastStyle.Success"/>, <see cref="ToastStyle.Warn"/>, or
+    /// <see cref="ToastStyle.Error"/>, never <see cref="ToastStyle.Info"/>.
     /// </summary>
     private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
         MailMode mode, CancellationToken cancellationToken)
@@ -99,9 +102,14 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         {
             var result = mode.Handle(new TuiMessage.RefreshRequested());
 
-            if (result.Count > 0)
+            foreach (var message in result)
             {
-                return Assert.IsType<TuiMessage.ShowToast>(Assert.Single(result));
+                var toast = Assert.IsType<TuiMessage.ShowToast>(message);
+
+                if (toast.Style != ToastStyle.Info)
+                {
+                    return toast;
+                }
             }
 
             await Task.Delay(5, timeoutCts.Token);

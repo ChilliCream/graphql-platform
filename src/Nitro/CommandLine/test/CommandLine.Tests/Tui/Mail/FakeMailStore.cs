@@ -34,6 +34,15 @@ internal sealed class FakeMailStore : IMailStore
     /// </summary>
     public TaskCompletionSource? SendGate { get; set; }
 
+    /// <summary>
+    /// When set, every <see cref="SendMessageAsync"/> call throws this
+    /// instead of writing, for exercising a failure that is not an
+    /// <see cref="ExitException"/>: the same way a genuine bug in the real
+    /// store would, this reaches <see cref="MailMode"/>'s send effect as a
+    /// faulted completion rather than <see cref="MailSendOutcome.Failed"/>.
+    /// </summary>
+    public Exception? SendFault { get; set; }
+
     public Task<IReadOnlyList<MailMessage>> QueryInboxAsync(
         MailInboxFilter filter,
         CancellationToken cancellationToken)
@@ -110,6 +119,11 @@ internal sealed class FakeMailStore : IMailStore
         if (SendGate is { } gate)
         {
             await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        if (SendFault is { } fault)
+        {
+            throw fault;
         }
 
         if (creation.To.Count == 0)

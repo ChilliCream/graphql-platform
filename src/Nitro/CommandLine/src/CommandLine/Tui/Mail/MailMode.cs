@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
@@ -129,11 +130,15 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// Shown for a <see cref="TuiEffectCompletion{TResult}.Faulted"/> or
     /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> completion: both
     /// mean the send effect itself never reached a <see cref="MailSendOutcome"/>
-    /// at all, which only happens before the store write is attempted (every
-    /// path after it is shielded into a definite outcome; see
-    /// <see cref="ReconcileWakeAsync"/>), so nothing was stored.
+    /// at all. Every path once <see cref="_store"/>'s write returns
+    /// successfully is shielded into a definite outcome (see
+    /// <see cref="ReconcileWakeAsync"/>), so this almost always means the
+    /// write was never attempted or never returned; but only an observed
+    /// <see cref="ExitException"/> (see <see cref="MailSendOutcome.Failed"/>)
+    /// actually proves a rejected write, so this text states the commit's
+    /// outcome as unknown rather than asserting the message was not stored.
     /// </summary>
-    private const string SendDidNotStartToastText = "Sending did not complete; the message was not stored.";
+    private const string SendOutcomeUnknownToastText = "Sending did not complete. The message's outcome is unknown.";
 
     /// <summary>
     /// The <see cref="CapturingHints"/> shown while the fold prefix (z) is
@@ -174,6 +179,18 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// at a time (see <see cref="SendDedupeKey"/>).
     /// </summary>
     private readonly TuiEffectQueue<MailSendOutcome> _sendEffects = new();
+
+    /// <summary>
+    /// One <see cref="MailSendOutcome.Stored"/> notice per submitted send,
+    /// posted by <see cref="RunSendEffectAsync"/>/<see cref="RunReplyEffectAsync"/>
+    /// right after the store commit and before <see cref="ReconcileWakeAsync"/>
+    /// begins. <see cref="_sendEffects"/> only reports an effect's terminal
+    /// completion, so this side channel is what lets <see cref="DrainEffectQueue"/>
+    /// surface a truthful "Stored" toast ahead of the terminal outcome, which
+    /// can take up to <see cref="WakeDispatchPolicy.BatchDeadline"/> longer to
+    /// resolve.
+    /// </summary>
+    private readonly ConcurrentQueue<MailSendOutcome.Stored> _storedNotices = new();
 
     /// <summary>
     /// Completions <see cref="CreateQuitGate"/> drained during its own
@@ -814,6 +831,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return new MailSendOutcome.Failed(ex.Message);
         }
 
+        _storedNotices.Enqueue(new MailSendOutcome.Stored(message));
         return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
     }
 
@@ -836,6 +854,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return new MailSendOutcome.Failed(ex.Message);
         }
 
+        _storedNotices.Enqueue(new MailSendOutcome.Stored(message));
         return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
     }
 
@@ -872,23 +891,33 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Drains every compose/reply completion persisted to
-    /// <see cref="_sendEffects"/> since the last call, turning each into its
-    /// toast (<see cref="MailSendOutcome.ToShowToast"/> for a completed
-    /// effect; <see cref="SendDidNotStartToastText"/> for the
+    /// Drains every <see cref="_storedNotices"/> notice and compose/reply
+    /// completion persisted to <see cref="_sendEffects"/> since the last
+    /// call, turning each into its toast: a <see cref="MailSendOutcome.Stored"/>
+    /// notice's own <see cref="MailSendOutcome.ToShowToast"/> surfaces the
+    /// truthful "Stored" state ahead of the terminal outcome, which
+    /// <see cref="MailSendOutcome.ToShowToast"/> also formats for a completed
+    /// effect; <see cref="SendOutcomeUnknownToastText"/> covers the
     /// <see cref="TuiEffectCompletion{TResult}.Faulted"/> or
     /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> cases a submitted
     /// effect can, in principle, still reach before its store write is even
-    /// attempted). A committed completion also refreshes this mode's loaded
-    /// data, so the new message appears without waiting for the next
-    /// database-watcher tick. A <see cref="MailSendOutcome.Failed"/> outcome
-    /// reopens whichever of <see cref="_submittedComposeForm"/> or
-    /// <see cref="_submittedReplyForm"/> the rejected submit retained, so the
-    /// typed values survive behind the error toast; every other outcome
-    /// discards them.
+    /// attempted. When this same drain also observes the terminal
+    /// completion (the common case once the wake step resolves quickly), the
+    /// stored notice is dropped rather than turned into its own toast: the
+    /// shell's toaster shows one toast at a time for a fixed duration, so
+    /// queuing "Stored" immediately ahead of the terminal toast would only
+    /// delay the terminal toast by that duration for no benefit, when both
+    /// are already known at once. A stored notice or committed completion
+    /// also refreshes this mode's loaded data, so the new message appears
+    /// without waiting for the next database-watcher tick. A
+    /// <see cref="MailSendOutcome.Failed"/> outcome reopens whichever of
+    /// <see cref="_submittedComposeForm"/> or <see cref="_submittedReplyForm"/>
+    /// the rejected submit retained, so the typed values survive behind the
+    /// error toast; every other outcome discards them.
     /// </summary>
     private IReadOnlyList<TuiMessage> DrainEffectQueue()
     {
+        var storedNotices = DrainStoredNotices();
         var drained = _sendEffects.DrainCompletions();
         List<TuiEffectCompletion<MailSendOutcome>> completions;
 
@@ -902,13 +931,21 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             _deferredCompletions.Clear();
         }
 
-        if (completions.Count == 0)
+        if (storedNotices.Count == 0 && completions.Count == 0)
         {
             return [];
         }
 
-        var toasts = new List<TuiMessage>(completions.Count);
-        var committed = false;
+        var toasts = new List<TuiMessage>(storedNotices.Count + completions.Count);
+        var committed = storedNotices.Count > 0;
+
+        if (completions.Count == 0)
+        {
+            foreach (var notice in storedNotices)
+            {
+                toasts.Add(notice.ToShowToast());
+            }
+        }
 
         foreach (var completion in completions)
         {
@@ -927,7 +964,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
                     break;
 
                 default:
-                    toasts.Add(new TuiMessage.ShowToast(SendDidNotStartToastText, ToastStyle.Error));
+                    toasts.Add(new TuiMessage.ShowToast(SendOutcomeUnknownToastText, ToastStyle.Error));
                     break;
             }
 
@@ -941,6 +978,39 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         }
 
         return toasts;
+    }
+
+    /// <summary>
+    /// Drains every <see cref="MailSendOutcome.Stored"/> notice posted to
+    /// <see cref="_storedNotices"/> since the last call.
+    /// </summary>
+    private IReadOnlyList<MailSendOutcome.Stored> DrainStoredNotices()
+    {
+        if (_storedNotices.IsEmpty)
+        {
+            return [];
+        }
+
+        var drained = new List<MailSendOutcome.Stored>();
+
+        while (_storedNotices.TryDequeue(out var notice))
+        {
+            drained.Add(notice);
+        }
+
+        return drained;
+    }
+
+    /// <summary>
+    /// Discards every <see cref="MailSendOutcome.Stored"/> notice posted to
+    /// <see cref="_storedNotices"/> since the last call, without turning any
+    /// of them into a toast; see <see cref="CreateQuitGate"/>.
+    /// </summary>
+    private void ClearStoredNotices()
+    {
+        while (_storedNotices.TryDequeue(out _))
+        {
+        }
     }
 
     /// <summary>
@@ -962,13 +1032,19 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <see cref="ResumeSendAcceptance"/>) returns to a live TUI that must
     /// still report it. A cancelled second confirmation must call
     /// <see cref="ResumeSendAcceptance"/>, per <see cref="TuiQuitGate"/>'s
-    /// own contract.
+    /// own contract. Also discards whatever <see cref="_storedNotices"/> the
+    /// drained submission posted: this report already classifies it more
+    /// precisely by its terminal completion, so surfacing the stale
+    /// intermediate "Stored" toast too on a later <see cref="Handle"/> call
+    /// would only be redundant with, and could arrive out of order before,
+    /// that terminal toast.
     /// </summary>
     public TuiQuitGate CreateQuitGate() => async (bound, cancellationToken) =>
     {
         _sendEffects.StopAccepting();
         await _sendEffects.DrainPendingAsync(bound, cancellationToken).ConfigureAwait(false);
 
+        ClearStoredNotices();
         var completions = _sendEffects.DrainCompletions();
         _deferredCompletions.AddRange(completions);
 

@@ -30,5 +30,18 @@ internal sealed record MailWakeObservation(
 /// </summary>
 internal interface IMailWakeReceiptObserver
 {
-    Task<MailWakeObservation> ObserveAsync(MailWakeReceipt receipt, CancellationToken cancellationToken);
+    /// <summary>
+    /// Reads back <paramref name="receipt"/>'s durable dispatch state.
+    /// </summary>
+    /// <param name="receipt">The wake generation to observe.</param>
+    /// <param name="deadline">
+    /// The caller's own shared batch deadline (for example
+    /// <see cref="WakeDispatchPolicy.BatchDeadline"/> computed once for
+    /// every receipt of one send). A single-read implementation may ignore
+    /// it, while an implementation that retries until settlement must stop
+    /// by it rather than computing a fresh deadline of its own per call.
+    /// </param>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    Task<MailWakeObservation> ObserveAsync(
+        MailWakeReceipt receipt, DateTimeOffset deadline, CancellationToken cancellationToken);
 }

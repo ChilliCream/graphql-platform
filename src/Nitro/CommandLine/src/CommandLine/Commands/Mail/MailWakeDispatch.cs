@@ -22,9 +22,12 @@ internal static class MailWakeDispatch
     /// <see cref="MailMessage.WakeReceipts"/> through
     /// <paramref name="dispatcher"/> under one shared deadline fixed once for
     /// this call, then reads back each receipt's durable outcome through
-    /// <paramref name="observer"/> so the result reflects this message's own
-    /// generation even when the dispatch attempt itself lost its claim to
-    /// another owner.
+    /// <paramref name="observer"/>, passed the same shared deadline, so the
+    /// result reflects this message's own generation even when the dispatch
+    /// attempt itself lost its claim to another owner, and an observer that
+    /// retries until settlement never computes its own fresh deadline per
+    /// recipient, which would otherwise hold later recipients' slots for a
+    /// multiple of this call's own deadline.
     /// </summary>
     public static async Task<MailNotificationResult> RunAsync(
         MailMessage message,
@@ -55,7 +58,7 @@ internal static class MailWakeDispatch
         foreach (var receipt in message.WakeReceipts)
         {
             await dispatcher.DispatchAsync(receipt.Actor, deadline, cancellationToken);
-            var observation = await observer.ObserveAsync(receipt, cancellationToken);
+            var observation = await observer.ObserveAsync(receipt, deadline, cancellationToken);
             observations.Add(observation);
             recipients.Add(MailWakeRecipientResult.Create(receipt, observation));
         }

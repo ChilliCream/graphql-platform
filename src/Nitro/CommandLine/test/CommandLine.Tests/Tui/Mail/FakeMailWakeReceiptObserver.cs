@@ -24,7 +24,8 @@ internal sealed class FakeMailWakeReceiptObserver : IMailWakeReceiptObserver
 
     public TaskCompletionSource? Gate { get; set; }
 
-    public async Task<MailWakeObservation> ObserveAsync(MailWakeReceipt receipt, CancellationToken cancellationToken)
+    public async Task<MailWakeObservation> ObserveAsync(
+        MailWakeReceipt receipt, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         ObserveCallCount++;
 

@@ -22,7 +22,8 @@ internal sealed class MailWakeReceiptObserver(
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IMailWakeReceiptObserver
 {
-    public async Task<MailWakeObservation> ObserveAsync(MailWakeReceipt receipt, CancellationToken cancellationToken)
+    public async Task<MailWakeObservation> ObserveAsync(
+        MailWakeReceipt receipt, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         var nitroInstanceId = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);

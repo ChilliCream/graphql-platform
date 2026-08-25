@@ -644,7 +644,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         var observer = new MailWakeReceiptObserver(
             _fileSystem, _database, _instanceIdProvider, _globalConfigDirectoryProvider);
-        var observation = await observer.ObserveAsync(receipt, cancellationToken);
+        var observation = await observer.ObserveAsync(receipt, Deadline(), cancellationToken);
         Assert.Equal(MailWakeTargetStatus.Delivered, observation.Status);
         Assert.True(observation.IsZero);
     }
