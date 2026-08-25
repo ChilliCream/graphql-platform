@@ -1915,4 +1915,82 @@ public class DeferPlannerTests : FusionTestBase
         // assert
         MatchSnapshot(plan);
     }
+
+    [Fact]
+    public void Defer_ProviderServesTwoRequirements_Should_KeepEdge_When_OnlyOneIsRerouted()
+    {
+        // arrange
+        // currencyCode also lives on accounts and reroutes to the parent; regionCode does not.
+        var schema = ComposeSchema(
+            """
+            # name: accounts
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                currencyCode: String! @shareable
+            }
+            """,
+            """
+            # name: profile
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                bio: String!
+                currencyCode: String! @shareable
+                regionCode: String!
+            }
+            """,
+            """
+            # name: pricing
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                totalSpent(currency: String! @require(field: "currencyCode")): Float!
+                shippingFee(region: String! @require(field: "regionCode")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        bio
+                        totalSpent
+                        shippingFee
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var providerNode = incrementalPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.SchemaName == "profile");
+        var downstreamNode = incrementalPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.SchemaName == "pricing");
+        var dependsOnProvider = false;
+        foreach (var dependency in downstreamNode.Dependencies)
+        {
+            dependsOnProvider |= dependency == providerNode;
+        }
+        Assert.True(dependsOnProvider);
+    }
 }

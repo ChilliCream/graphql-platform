@@ -434,7 +434,8 @@ public sealed partial class OperationPlanner
                     producerIds);
                 var schemaHint =
                     (sourceStep is not null
-                        ? TryFindDeferRequirementProvider(incrementalPlanSteps, sourceStep, sourceRequirement)?.SchemaName
+                        ? TryFindDeferRequirementProvider(incrementalPlanSteps, sourceStep, sourceRequirement)
+                            ?.SchemaName
                         : null)
                     ?? producers[0].SchemaName!;
 
@@ -499,11 +500,9 @@ public sealed partial class OperationPlanner
             }
         }
 
-        // A provider that also carries client-visible output is never a pure
-        // producer, so the loop above never visits its dependents. Every remaining
-        // step's requirement anchored exactly at the defer's own path is retried
-        // against the parent scope directly; the edge and the now-unconsumed field
-        // are cleaned up below once it succeeds.
+        // Every remaining step's requirement anchored exactly at the defer's own path is
+        // retried against the parent scope; the edge and the now-unconsumed field are
+        // cleaned up below once it succeeds.
         var rerouted = new List<(int ProviderStepId, int DownstreamStepId, string FieldName)>();
 
         foreach (var step in incrementalPlanSteps)
@@ -686,7 +685,10 @@ public sealed partial class OperationPlanner
 
             var stepIndex = SelectionSetIndexer.Create(parentStep.Definition).ToBuilder();
             var targetId = stepIndex.GetId(
-                LocateSelectionSetAtPath(GetStepEntitySelectionSet(parentStep), requirement.Path, parentStep.Target.Length));
+                LocateSelectionSetAtPath(
+                    GetStepEntitySelectionSet(parentStep),
+                    requirement.Path,
+                    parentStep.Target.Length));
 
             var dependentsBeforeInline = parentStep.Dependents;
 
@@ -1048,8 +1050,9 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Removes each <paramref name="rerouted"/> provider-to-dependent dependency edge and
-    /// drops the provider's field once no remaining dependent still consumes it.
+    /// Removes each <paramref name="rerouted"/> provider-to-dependent dependency edge, unless
+    /// the dependent still has another requirement that resolves back to the same provider,
+    /// and drops the provider's rerouted field once no remaining dependent still consumes it.
     /// </summary>
     private static ImmutableList<PlanStep> RemoveReroutedInPlanEdges(
         ImmutableList<PlanStep> incrementalPlanSteps,
@@ -1079,13 +1082,35 @@ public sealed partial class OperationPlanner
             if (step is OperationPlanStep providerStep
                 && removalsByProvider.TryGetValue(providerStep.Id, out var removals))
             {
-                var removedDependentIds = new HashSet<int>();
-                foreach (var (downstreamStepId, _) in removals)
+                var reroutedFieldNamesByDownstream = new Dictionary<int, HashSet<string>>();
+                foreach (var (downstreamStepId, fieldName) in removals)
                 {
-                    removedDependentIds.Add(downstreamStepId);
+                    if (!reroutedFieldNamesByDownstream.TryGetValue(downstreamStepId, out var fieldNames))
+                    {
+                        fieldNames = new HashSet<string>(StringComparer.Ordinal);
+                        reroutedFieldNamesByDownstream[downstreamStepId] = fieldNames;
+                    }
+
+                    fieldNames.Add(fieldName);
                 }
 
-                var remainingDependents = providerStep.Dependents.Except(removedDependentIds);
+                var severedDependentIds = new HashSet<int>();
+                foreach (var (downstreamStepId, reroutedFieldNames) in reroutedFieldNamesByDownstream)
+                {
+                    if (incrementalPlanSteps.ById(downstreamStepId) is OperationPlanStep downstreamStep
+                        && DependentStillRequiresProvider(
+                            incrementalPlanSteps,
+                            downstreamStep,
+                            providerStep,
+                            reroutedFieldNames))
+                    {
+                        continue;
+                    }
+
+                    severedDependentIds.Add(downstreamStepId);
+                }
+
+                var remainingDependents = providerStep.Dependents.Except(severedDependentIds);
 
                 var stillConsumedFieldNames = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var remainingDependentId in remainingDependents)
@@ -1095,13 +1120,17 @@ public sealed partial class OperationPlanner
                         continue;
                     }
 
+                    reroutedFieldNamesByDownstream.TryGetValue(remainingDependentId, out var excludedFieldNames);
+
                     foreach (var (_, requirement) in remainingStep.Requirements)
                     {
                         var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-                        if (fieldName is not null)
+                        if (fieldName is null || (excludedFieldNames?.Contains(fieldName) ?? false))
                         {
-                            stillConsumedFieldNames.Add(fieldName);
+                            continue;
                         }
+
+                        stillConsumedFieldNames.Add(fieldName);
                     }
                 }
 
@@ -1124,6 +1153,35 @@ public sealed partial class OperationPlanner
         }
 
         return updated.ToImmutable();
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="downstreamStep"/> still has a requirement, other
+    /// than those named in <paramref name="reroutedFieldNames"/>, that
+    /// <see cref="TryFindDeferRequirementProvider"/> resolves back to <paramref name="providerStep"/>.
+    /// </summary>
+    private static bool DependentStillRequiresProvider(
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        OperationPlanStep downstreamStep,
+        OperationPlanStep providerStep,
+        HashSet<string> reroutedFieldNames)
+    {
+        foreach (var (_, requirement) in downstreamStep.Requirements)
+        {
+            var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
+            if (fieldName is not null && reroutedFieldNames.Contains(fieldName))
+            {
+                continue;
+            }
+
+            if (TryFindDeferRequirementProvider(incrementalPlanSteps, downstreamStep, requirement)?.Id
+                == providerStep.Id)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
