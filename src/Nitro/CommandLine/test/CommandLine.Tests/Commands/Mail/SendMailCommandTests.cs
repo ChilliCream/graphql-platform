@@ -374,14 +374,13 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JsonOutput_Should_ReturnCleanJsonAndRecordSpawnFailed_When_TheNotifierLaunchFails()
+    public async Task JsonOutput_Should_ReturnCleanJson_When_TheRecipientHasNoOutstandingWakeGeneration()
     {
-        // arrange: a recipient with a live claimed codex-thread session, one
-        // notifier spawn failure mode among several the plan requires send
-        // to stay clean under.
+        // arrange: a recipient with a live claimed codex-thread session, but
+        // send still defaults to MailWakePolicy.Skip, so the direct-first
+        // dispatcher finds nothing outstanding and never touches the row.
         await InitWorkspaceAsync();
         SetupInstanceId("host-send-test");
-        SetupPingWorkerLauncher(new FailingPingWorkerLauncher());
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", "host-send-test");
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -390,8 +389,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync(
             "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
 
-        // assert: the notifier's spawn failure never touches mail's own
-        // exit code or stdout - a single clean JSON result, nothing else.
+        // assert: the notifier never alters mail's own exit code or stdout -
+        // a single clean JSON result, nothing else.
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -400,7 +399,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         var pingResult = await QueryScalarAsync(
             "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
-        Assert.Equal("spawn-failed", pingResult);
+        Assert.Null(pingResult);
     }
 
     [Fact]

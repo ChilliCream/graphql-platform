@@ -1,0 +1,384 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
+namespace ChilliCream.Nitro.CommandLine.Services.Notify;
+
+/// <summary>
+/// Claims one actor's outstanding <c>mail_wake_outbox</c> generation as a
+/// frozen <c>mail_wake_batches</c> row and dispatches every materialized
+/// target in the foreground, entirely in-process (no detached worker):
+/// <list type="bullet">
+/// <item>Nothing outstanding, not yet due, or another owner already holds a
+/// live batch for this actor: <see cref="DispatchAsync"/> returns null.</item>
+/// <item>The frozen target set is empty (no live claimed session): the
+/// batch completes immediately with an explicit no-live-session failure.</item>
+/// <item>The actor has no unread mail left by dispatch time: every target
+/// settles <see cref="MailWakeTargetStatus.Satisfied"/> without attempting
+/// any transport.</item>
+/// <item>Otherwise, every target is re-resolved against its exact frozen
+/// generation (a session that ended or rebound since the claim disappears
+/// as a failure, not a stale write), reserved through
+/// <see cref="ISessionGateCoordinator"/>, and dispatched through
+/// <see cref="IPingSessionExecutor"/>, up to <see cref="WakeDispatchPolicy.MaxConcurrentTransports"/>
+/// at once. A Claude access-denied outcome offers only that one target
+/// (recorded pending, not failed) and lets its live siblings finish rather
+/// than aborting them.</item>
+/// </list>
+/// The batch's own lease is renewed periodically while dispatch is in
+/// flight; losing that renewal to a fresher claimant cancels every target
+/// still in flight or not yet started, and this attempt makes no further
+/// claim about their outcome (left <see cref="MailWakeTargetStatus.Pending"/>,
+/// never asserted as failed or delivered) and does not touch the batch row
+/// again, since a newer owner already holds it. When this attempt still
+/// holds the batch at the end, it completes (settles the claimed generation)
+/// unless at least one target was left with durable offered work, in which
+/// case it releases the batch with a rescheduled retry instead.
+/// </summary>
+internal sealed class ActorWakeDispatcher(
+    IMailWakeBatchStore batchStore,
+    IAgentSessionRegistry sessionRegistry,
+    ISessionGateCoordinator gateCoordinator,
+    IPingSessionExecutor executor,
+    IMailStore mailStore,
+    INitroInstanceIdProvider instanceIdProvider,
+    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
+    TimeProvider timeProvider) : IActorWakeDispatcher
+{
+    public async Task<ActorWakeReceipt?> DispatchAsync(string actor, CancellationToken cancellationToken)
+    {
+        var normalizedActor = MailAgentName.Normalize(actor);
+        var nitroInstanceId = await instanceIdProvider.GetIdAsync(
+            globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
+
+        var candidates = await ResolveCandidatesAsync(normalizedActor, cancellationToken);
+
+        var now = timeProvider.GetUtcNow();
+        var ownerId = $"dispatcher-{Guid.NewGuid():N}";
+        var batchAttemptId = $"batch-{Guid.NewGuid():N}";
+
+        var claim = await batchStore.TryClaimAsync(
+            nitroInstanceId, normalizedActor, ownerId, batchAttemptId, candidates, now,
+            WakeDispatchPolicy.BatchLeaseDuration, cancellationToken);
+
+        if (claim is null)
+        {
+            return null;
+        }
+
+        if (claim.Targets.Count == 0)
+        {
+            // No live claimed session to address at all: nobody was, or
+            // could be, notified. Nothing durable is left behind, so the
+            // claimed generation settles now rather than being retried
+            // against a still-empty candidate set.
+            await batchStore.TryCompleteAsync(claim.BatchId, ownerId, batchAttemptId, now, cancellationToken);
+            return new ActorWakeReceipt(normalizedActor, MailWakeTargetStatus.Failed, []);
+        }
+
+        var unread = await mailStore.CountUnreadAsync(normalizedActor, cancellationToken);
+
+        if (unread == 0)
+        {
+            return await CompleteAlreadyReadAsync(
+                normalizedActor, claim, ownerId, batchAttemptId, cancellationToken);
+        }
+
+        return await DispatchTargetsAsync(normalizedActor, claim, ownerId, batchAttemptId, now, cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<AgentSessionGeneration>> ResolveCandidatesAsync(
+        string actor, CancellationToken cancellationToken)
+    {
+        var sessions = await sessionRegistry.FindLiveClaimedByAgentNameAsync(actor, cancellationToken);
+
+        return sessions
+            .Select(s => new AgentSessionGeneration(s.Harness, s.SessionId, s.Host, s.Pid, s.ProcStart))
+            .ToList();
+    }
+
+    private async Task<ActorWakeReceipt> CompleteAlreadyReadAsync(
+        string actor,
+        MailWakeBatchClaim claim,
+        string ownerId,
+        string batchAttemptId,
+        CancellationToken cancellationToken)
+    {
+        var receipts = new List<ActorWakeTargetReceipt>(claim.Targets.Count);
+
+        foreach (var target in claim.Targets)
+        {
+            var recordedAt = timeProvider.GetUtcNow();
+            var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+                claim.BatchId, target, ownerId, batchAttemptId, MailWakeTargetStatus.Satisfied,
+                offeredGeneration: null, acceptedGeneration: claim.ClaimedGeneration,
+                lastError: "mail-already-read", recordedAt, cancellationToken);
+
+            receipts.Add(recorded
+                ? new ActorWakeTargetReceipt(
+                    target, MailWakeTargetStatus.Satisfied, null, claim.ClaimedGeneration, "mail-already-read")
+                : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null));
+        }
+
+        await batchStore.TryCompleteAsync(
+            claim.BatchId, ownerId, batchAttemptId, timeProvider.GetUtcNow(), cancellationToken);
+
+        return new ActorWakeReceipt(
+            actor, WakeReceiptAggregator.Aggregate(receipts.Select(r => r.Status).ToList()), receipts);
+    }
+
+    private async Task<ActorWakeReceipt> DispatchTargetsAsync(
+        string actor,
+        MailWakeBatchClaim claim,
+        string ownerId,
+        string batchAttemptId,
+        DateTimeOffset claimedAt,
+        CancellationToken cancellationToken)
+    {
+        var batchDeadline = claimedAt + WakeDispatchPolicy.BatchDeadline;
+
+        using var renewalDoneSource = new CancellationTokenSource();
+        using var renewalLossSource = new CancellationTokenSource();
+        using var dispatchSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, renewalLossSource.Token);
+
+        var renewalTask = RenewLoopAsync(
+            claim.BatchId, ownerId, batchAttemptId, renewalLossSource, renewalDoneSource.Token, cancellationToken);
+
+        using var concurrencyGate = new SemaphoreSlim(WakeDispatchPolicy.MaxConcurrentTransports);
+
+        var targetTasks = claim.Targets
+            .Select(target => DispatchTargetAsync(
+                claim.BatchId, ownerId, batchAttemptId, actor, target, claim.ClaimedGeneration, batchDeadline,
+                concurrencyGate, dispatchSource.Token, cancellationToken))
+            .ToList();
+
+        var receipts = await Task.WhenAll(targetTasks);
+
+        await renewalDoneSource.CancelAsync();
+
+        try
+        {
+            await renewalTask;
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected once renewalDoneSource signals dispatch is over.
+        }
+
+        if (!renewalLossSource.IsCancellationRequested)
+        {
+            var finalNow = timeProvider.GetUtcNow();
+            var hasOffered = receipts.Any(r => r.Status == MailWakeTargetStatus.Pending);
+
+            if (hasOffered)
+            {
+                await batchStore.TryReleaseAsync(
+                    claim.BatchId, ownerId, batchAttemptId, finalNow,
+                    finalNow + WakeDispatchPolicy.OfferedRetryDelay, "offered", cancellationToken);
+            }
+            else
+            {
+                await batchStore.TryCompleteAsync(claim.BatchId, ownerId, batchAttemptId, finalNow, cancellationToken);
+            }
+        }
+
+        // else: a newer owner already holds the batch (this attempt's
+        // renewal was lost); it owns completing or releasing it now, not
+        // this attempt.
+
+        return new ActorWakeReceipt(
+            actor, WakeReceiptAggregator.Aggregate(receipts.Select(r => r.Status).ToList()), receipts);
+    }
+
+    /// <summary>
+    /// Periodically renews the batch's own lease while its targets are
+    /// still dispatching. A failed renewal (the lease was lost to a fresher
+    /// claimant) cancels <paramref name="lossSource"/>, which every
+    /// in-flight or not-yet-started target's own dispatch observes and
+    /// stops on.
+    /// </summary>
+    private async Task RenewLoopAsync(
+        string batchId,
+        string ownerId,
+        string attemptId,
+        CancellationTokenSource lossSource,
+        CancellationToken stopToken,
+        CancellationToken callerToken)
+    {
+        using var loopSource = CancellationTokenSource.CreateLinkedTokenSource(stopToken, callerToken);
+
+        try
+        {
+            while (true)
+            {
+                await Task.Delay(WakeDispatchPolicy.BatchRenewInterval, timeProvider, loopSource.Token);
+
+                var now = timeProvider.GetUtcNow();
+                var renewed = await batchStore.TryRenewAsync(
+                    batchId, ownerId, attemptId, now, WakeDispatchPolicy.BatchLeaseDuration, callerToken);
+
+                if (!renewed)
+                {
+                    await lossSource.CancelAsync();
+                    return;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Dispatch finished normally (stopToken), or the caller's own
+            // token was cancelled: either way, nothing more to renew.
+        }
+    }
+
+    private async Task<ActorWakeTargetReceipt> DispatchTargetAsync(
+        string batchId,
+        string ownerId,
+        string batchAttemptId,
+        string actor,
+        AgentSessionGeneration target,
+        long claimedGeneration,
+        DateTimeOffset batchDeadline,
+        SemaphoreSlim concurrencyGate,
+        CancellationToken dispatchToken,
+        CancellationToken callerToken)
+    {
+        var acquiredGate = false;
+
+        try
+        {
+            await concurrencyGate.WaitAsync(dispatchToken);
+            acquiredGate = true;
+
+            var session = await sessionRegistry.FindByGenerationAsync(target, dispatchToken);
+
+            if (session is null)
+            {
+                return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "session-gone");
+            }
+
+            if (session.EndpointKind == AgentSessionEndpointKind.None)
+            {
+                return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "no-endpoint");
+            }
+
+            if (session.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
+                and not AgentSessionEndpointKind.CodexThread)
+            {
+                return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "unsupported");
+            }
+
+            var now = timeProvider.GetUtcNow();
+            var pingAttemptId = MemoryId.New(now);
+            var reservation = await gateCoordinator.TryReserveAsync(target, pingAttemptId, now, dispatchToken);
+
+            if (reservation.Reservation is null)
+            {
+                var reason = reservation.Failure == WakeReservationFailure.GateBusy ? "busy" : "capacity-dropped";
+                return await RecordOfferedAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration, reason);
+            }
+
+            var held = reservation.Reservation;
+            var success = false;
+
+            try
+            {
+                var attemptDeadline = ClampDeadline(now, batchDeadline);
+
+                var outcome = session.EndpointKind == AgentSessionEndpointKind.ClaudePeer
+                    ? await executor.ExecuteClaudePeerAsync(
+                        session.Harness, session.SessionId, actor, session.Pid, pingAttemptId, held.Slot,
+                        attemptDeadline, dispatchToken)
+                    : await executor.ExecuteCodexThreadAsync(
+                        session.Harness, session.SessionId, actor, session.EndpointAddr, pingAttemptId, held.Slot,
+                        attemptDeadline, dispatchToken);
+
+                if (outcome.Reason == PingAttemptReason.AccessDenied)
+                {
+                    return await RecordOfferedAsync(
+                        batchId, target, ownerId, batchAttemptId, claimedGeneration, "access-denied");
+                }
+
+                success = outcome.Reason == PingAttemptReason.Ok;
+                var status = success ? MailWakeTargetStatus.Delivered : MailWakeTargetStatus.Failed;
+                var lastError = success ? null : outcome.Reason.ToString();
+
+                var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+                    batchId, target, ownerId, batchAttemptId, status,
+                    offeredGeneration: null, acceptedGeneration: success ? claimedGeneration : null,
+                    lastError, timeProvider.GetUtcNow(), CancellationToken.None);
+
+                return recorded
+                    ? new ActorWakeTargetReceipt(target, status, null, success ? claimedGeneration : null, lastError)
+                    : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
+            }
+            finally
+            {
+                // Never on dispatchToken: the reservation this attempt holds
+                // must be released (or extended into cooldown) even when
+                // dispatchToken itself is the reason the transport call just
+                // unwound.
+                await gateCoordinator.CompleteAsync(held, success, timeProvider.GetUtcNow(), CancellationToken.None);
+            }
+        }
+        catch (OperationCanceledException) when (!callerToken.IsCancellationRequested)
+        {
+            // The batch's own lease renewal was lost (or dispatchToken was
+            // otherwise cancelled for a reason other than the caller's own
+            // token): this target was never dispatched, or its dispatch was
+            // aborted mid-flight, possibly after a transport call already
+            // wrote to the wire. Never asserted delivered or failed; its row
+            // stays whatever it already durably was.
+            return new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
+        }
+        finally
+        {
+            if (acquiredGate)
+            {
+                concurrencyGate.Release();
+            }
+        }
+    }
+
+    private async Task<ActorWakeTargetReceipt> RecordFailureAsync(
+        string batchId, AgentSessionGeneration target, string ownerId, string attemptId, string reason)
+    {
+        var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+            batchId, target, ownerId, attemptId, MailWakeTargetStatus.Failed,
+            offeredGeneration: null, acceptedGeneration: null, lastError: reason,
+            timeProvider.GetUtcNow(), CancellationToken.None);
+
+        return recorded
+            ? new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Failed, null, null, reason)
+            : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
+    }
+
+    private async Task<ActorWakeTargetReceipt> RecordOfferedAsync(
+        string batchId, AgentSessionGeneration target, string ownerId, string attemptId,
+        long claimedGeneration, string reason)
+    {
+        var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+            batchId, target, ownerId, attemptId, MailWakeTargetStatus.Pending,
+            offeredGeneration: claimedGeneration, acceptedGeneration: null, lastError: reason,
+            timeProvider.GetUtcNow(), CancellationToken.None);
+
+        return new ActorWakeTargetReceipt(
+            target, MailWakeTargetStatus.Pending, recorded ? claimedGeneration : null, null, recorded ? reason : null);
+    }
+
+    /// <summary>
+    /// The earlier of (<see cref="WakeDispatchPolicy.HandoffObservationReserve"/>
+    /// held back from <paramref name="batchDeadline"/>) and one attempt's
+    /// own <see cref="PingPolicy.HardTimeout"/> budget from <paramref name="now"/>,
+    /// so a target dispatched late in the batch's window never gets more
+    /// than what is left, and no target ever gets more than its own hard
+    /// cap regardless of how much budget remains.
+    /// </summary>
+    private static DateTimeOffset ClampDeadline(DateTimeOffset now, DateTimeOffset batchDeadline)
+    {
+        var reserved = batchDeadline - WakeDispatchPolicy.HandoffObservationReserve;
+        var hardCap = now + PingPolicy.HardTimeout;
+        return reserved < hardCap ? reserved : hardCap;
+    }
+}

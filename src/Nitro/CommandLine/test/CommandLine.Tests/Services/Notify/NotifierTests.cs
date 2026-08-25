@@ -1,280 +1,179 @@
-using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Exercises <see cref="Notifier"/> against a real workspace database: the
-/// claude-peer/none/codex-thread branch, the cooldown/lease decision before
-/// any spawn, spawn-failure recording, and never throwing - the required
-/// notifier tests for capacity-dropped, supported-vs-none distinctness,
-/// and clean behavior under every spawn-failure mode.
+/// Exercises <see cref="Notifier"/>'s own thin contract: it dispatches each
+/// distinct recipient actor exactly once through <see cref="IActorWakeDispatcher"/>,
+/// never lets one recipient's dispatch failure stop the rest, and never
+/// throws - the notifier contract every mail command relies on. The
+/// direct-first state machine itself (claim, per-target dispatch, receipt
+/// aggregation) is exercised in <see cref="ActorWakeDispatcherTests"/>; the
+/// final test here wires the real <see cref="ActorWakeDispatcher"/> and
+/// <see cref="PingSessionExecutor"/> together as an end-to-end smoke test.
 /// </summary>
-public sealed class NotifierTests : IDisposable
+public sealed class NotifierTests
 {
-    private const string Actor = "codex-worker";
-
-    private readonly DirectoryInfo _tempRoot;
-    private readonly string _workspaceDirectory;
-    private readonly TestFileSystem _fileSystem;
-    private readonly FakeTimeProvider _timeProvider;
-    private readonly AgentDatabase _database;
-    private readonly AgentRegistry _agentRegistry;
-    private readonly AgentSessionRegistry _sessions;
-    private readonly PingLeaseStore _leases;
-    private readonly FakePingWorkerLauncher _launcher;
-    private readonly Notifier _notifier;
-
-    public NotifierTests()
-    {
-        _tempRoot = Directory.CreateTempSubdirectory("nitro-notifier-tests");
-        _workspaceDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
-        Directory.CreateDirectory(_workspaceDirectory);
-        _fileSystem = new TestFileSystem(_tempRoot.FullName);
-        _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
-        _database = new AgentDatabase();
-        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
-        _sessions = new AgentSessionRegistry(
-            _fileSystem,
-            _timeProvider,
-            _database,
-            _agentRegistry,
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null));
-        _leases = new PingLeaseStore(_fileSystem, _database);
-        _launcher = new FakePingWorkerLauncher();
-        _notifier = new Notifier(
-            _sessions, _leases, _launcher, new FixedLaunchDescriptorResolver(), _timeProvider);
-    }
-
-    public void Dispose() => _tempRoot.Delete(recursive: true);
-
     [Fact]
-    public async Task NotifyAsync_Should_SpawnTheWorker_When_EndpointIsClaudePeer()
+    public async Task NotifyAsync_Should_DispatchEachDistinctActorOnce()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.ClaudePeer, "peer-a", cancellationToken);
+        var dispatcher = new FakeActorWakeDispatcher();
+        var notifier = new Notifier(dispatcher);
 
         // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
+        await notifier.NotifyAsync(["agent-a", "agent-b", "agent-a"], cancellationToken);
 
-        // assert
-        var call = Assert.Single(_launcher.Calls);
-        Assert.Contains("--endpoint-kind", call.WorkerArgs);
-        Assert.Contains(AgentSessionEndpointKind.ClaudePeer, call.WorkerArgs);
-        Assert.Contains("--pid", call.WorkerArgs);
-
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.NotNull(row!.LastPingAttempt);
-        Assert.Null(row.LastPingResult);
+        // assert: the duplicate "agent-a" collapses to a single dispatch.
+        Assert.Equal(["agent-a", "agent-b"], dispatcher.DispatchedActors);
     }
 
     [Fact]
-    public async Task NotifyAsync_Should_RecordUnsupported_And_NeverSpawn_When_EndpointHasNoTransport()
+    public async Task NotifyAsync_Should_DispatchTheRemainingActors_When_OneActorsDispatchThrows()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.CopilotExtension, "copilot-a", cancellationToken);
+        var dispatcher = new FakeActorWakeDispatcher { ThrowingActor = "agent-a" };
+        var notifier = new Notifier(dispatcher);
 
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.Equal(AgentPingResult.Unsupported, row!.LastPingResult);
-        Assert.Empty(_launcher.Calls);
+        // act & assert: never throws, and still reaches "agent-b".
+        await notifier.NotifyAsync(["agent-a", "agent-b"], cancellationToken);
+        Assert.Equal(["agent-a", "agent-b"], dispatcher.DispatchedActors);
     }
 
     [Fact]
-    public async Task NotifyAsync_Should_DoNothing_When_EndpointIsNone()
+    public async Task NotifyAsync_Should_NeverThrow_When_TheRecipientListIsEmpty()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(AgentSessionEndpointKind.None, "", cancellationToken);
+        var notifier = new Notifier(new FakeActorWakeDispatcher());
 
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert: no endpoint to attempt at all - never recorded as a
-        // distinct ping outcome.
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.Null(row!.LastPingResult);
-        Assert.Empty(_launcher.Calls);
+        // act & assert
+        await notifier.NotifyAsync([], cancellationToken);
     }
 
     [Fact]
-    public async Task NotifyAsync_Should_SpawnTheWorker_When_EndpointIsCodexThread()
+    public async Task NotifyAsync_Should_DeliverEndToEnd_When_WiredToTheRealDispatcher()
     {
-        // arrange
+        // arrange: the real ActorWakeDispatcher, SessionGateCoordinator, and
+        // PingSessionExecutor wired together against a real workspace
+        // database, with only the outermost Codex transport faked - proves
+        // the notifier's DI shape actually dispatches a wake end to end.
         var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        const string actor = "codex-worker";
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-notifier-e2e-tests");
 
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert: cooldown claimed and a lease acquired before spawning, so
-        // the row carries a pending attempt id; the worker (not this
-        // process) writes the eventual result.
-        var call = Assert.Single(_launcher.Calls);
-        Assert.Contains("ping-worker", call.WorkerArgs);
-        Assert.Contains(generation.SessionId, call.WorkerArgs);
-        Assert.Contains("thread-1", call.WorkerArgs);
-        Assert.Contains(Actor, call.WorkerArgs);
-        Assert.Contains(AgentSessionEndpointKind.CodexThread, call.WorkerArgs);
-        Assert.Contains("--deadline", call.WorkerArgs);
-
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.NotNull(row!.LastPingAttempt);
-        Assert.Null(row.LastPingResult);
-    }
-
-    [Fact]
-    public async Task NotifyAsync_Should_RecordSpawnFailed_And_ReleaseTheLease_When_LaunchFails()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        _launcher.NextResult = false;
-
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.Equal(AgentPingResult.SpawnFailed, row!.LastPingResult);
-
-        // the lease was released, not leaked: all four slots are free again.
-        var acquired = await Task.WhenAll(Enumerable.Range(1, 4).Select(i =>
-            _leases.TryAcquireAsync($"probe-{i}", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken)));
-        Assert.All(acquired, slot => Assert.NotNull(slot));
-    }
-
-    [Fact]
-    public async Task NotifyAsync_Should_RecordCapacityDropped_When_AllLeaseSlotsAreHeld()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-
-        for (var i = 1; i <= 4; i++)
+        try
         {
-            await _leases.TryAcquireAsync(
-                $"holder-{i}", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+            var workspaceDirectory = AgentWorkspace.GetDirectory(tempRoot.FullName);
+            Directory.CreateDirectory(workspaceDirectory);
+            var fileSystem = new TestFileSystem(tempRoot.FullName);
+            var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+            var database = new AgentDatabase();
+            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
+            var sessions = new AgentSessionRegistry(
+                fileSystem,
+                timeProvider,
+                database,
+                agentRegistry,
+                new FixedInstanceIdProvider("host-1"),
+                new FixedGlobalConfigDirectoryProvider(tempRoot.FullName),
+                new ProcessInfoProvider(),
+                new FixedAncestorSessionResolver(null));
+            var instanceIdProvider = new FixedInstanceIdProvider("host-1");
+            var globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(tempRoot.FullName);
+            var mail = new MailStore(
+                fileSystem, timeProvider, database, agentRegistry, instanceIdProvider, globalConfigDirectoryProvider);
+            var batches = new MailWakeBatchStore(fileSystem, database);
+            var gates = new SessionPingGateStore(fileSystem, database);
+            var leases = new PingLeaseStore(fileSystem, database);
+            var gateCoordinator = new SessionGateCoordinator(gates, leases);
+            var queueClient = new FakeCodexQueueClient();
+            var executor = new PingSessionExecutor(
+                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider);
+            var dispatcher = new ActorWakeDispatcher(
+                batches,
+                sessions,
+                gateCoordinator,
+                executor,
+                mail,
+                new FixedInstanceIdProvider("host-1"),
+                new FixedGlobalConfigDirectoryProvider(tempRoot.FullName),
+                timeProvider);
+            var notifier = new Notifier(dispatcher);
+
+            await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
+            {
+            }
+
+            var pid = Environment.ProcessId;
+            var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
+            var generation = new AgentSessionGeneration(
+                AgentSessionHarness.Codex, "session-1", "host-1", pid, procStart);
+
+            await sessions.StartAsync(
+                generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
+                envActor: actor, cancellationToken);
+
+            var message = await mail.SendMessageAsync(
+                new MailMessageCreation
+                {
+                    Sender = "pascal",
+                    Subject = "status",
+                    Body = "check",
+                    To = [actor],
+                    WakePolicy = MailWakePolicy.Enqueue
+                },
+                cancellationToken);
+
+            // act
+            await notifier.NotifyAsync(
+                message.Recipients.Select(r => r.Name).ToArray(), cancellationToken);
+
+            // assert
+            var call = Assert.Single(queueClient.Calls);
+            Assert.Equal("thread-1", call.ThreadId);
+            Assert.Contains(message.Id, call.Message);
         }
-
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert: recorded, and no spawn was ever attempted.
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.Equal(AgentPingResult.CapacityDropped, row!.LastPingResult);
-        Assert.Empty(_launcher.Calls);
-    }
-
-    [Fact]
-    public async Task NotifyAsync_Should_Coalesce_When_CalledTwiceWithinTheCooldown()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await SeedClaimedSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-        _timeProvider.Advance(TimeSpan.FromSeconds(1));
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert: the second call landed inside the 60s cooldown, so it
-        // never spawned a second worker.
-        Assert.Single(_launcher.Calls);
-    }
-
-    [Fact]
-    public async Task NotifyAsync_Should_CoalesceUnsupported_When_CalledTwiceWithinTheCooldown()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var generation = await SeedClaimedSessionAsync(
-            AgentSessionEndpointKind.CopilotExtension, "copilot-a", cancellationToken);
-
-        // act
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-        var firstAttempt = (await _sessions.FindByGenerationAsync(generation, cancellationToken))!.LastPingAttempt;
-        _timeProvider.Advance(TimeSpan.FromSeconds(1));
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-
-        // assert: the second call landed inside the 60s cooldown, so it
-        // never claimed a fresh attempt id.
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
-        Assert.Equal(firstAttempt, row!.LastPingAttempt);
-    }
-
-    [Fact]
-    public async Task NotifyAsync_Should_NeverThrow_When_NoWorkspaceExists()
-    {
-        // arrange: InitializeWorkspaceAsync was never called - resolving the
-        // workspace throws inside FindLiveClaimedByAgentNameAsync.
-        var cancellationToken = TestContext.Current.CancellationToken;
-
-        // act & assert: mail success output and exit code can never be
-        // altered by a notification failure.
-        await _notifier.NotifyAsync([Actor], cancellationToken);
-    }
-
-    private async Task<AgentSessionGeneration> SeedClaimedSessionAsync(
-        string endpointKind, string endpointAddr, CancellationToken cancellationToken)
-    {
-        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        finally
         {
+            tempRoot.Delete(recursive: true);
         }
-
-        // A genuinely alive pid/proc_start: NotifyAsync resolves live
-        // sessions through FindLiveClaimedByAgentNameAsync, which reaps
-        // dead current-instance rows first, so a fake sentinel pid would be
-        // reaped out from under the test before it ever reached the
-        // endpoint-kind branch.
-        var pid = Environment.ProcessId;
-        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
-
-        var harness = endpointKind == AgentSessionEndpointKind.ClaudePeer
-            ? AgentSessionHarness.ClaudeCode
-            : AgentSessionHarness.Codex;
-        var generation = new AgentSessionGeneration(harness, "session-1", "host-1", pid, procStart);
-
-        await _sessions.StartAsync(
-            generation, "/work", "/work/.nitro/agents", endpointKind, endpointAddr,
-            envActor: Actor, cancellationToken);
-
-        return generation;
     }
 }
 
-internal sealed record FakePingWorkerLaunchCall(LaunchDescriptor Descriptor, IReadOnlyList<string> WorkerArgs);
-
-internal sealed class FakePingWorkerLauncher : IPingWorkerLauncher
+internal sealed class FakeActorWakeDispatcher : IActorWakeDispatcher
 {
-    public List<FakePingWorkerLaunchCall> Calls { get; } = [];
+    public List<string> DispatchedActors { get; } = [];
 
-    public bool NextResult { get; set; } = true;
+    public string? ThrowingActor { get; set; }
 
-    public bool TryLaunch(LaunchDescriptor descriptor, IReadOnlyList<string> workerArgs)
+    public Task<ActorWakeReceipt?> DispatchAsync(string actor, CancellationToken cancellationToken)
     {
-        Calls.Add(new FakePingWorkerLaunchCall(descriptor, workerArgs));
-        return NextResult;
+        DispatchedActors.Add(actor);
+
+        if (actor == ThrowingActor)
+        {
+            throw new InvalidOperationException($"Simulated dispatch failure for '{actor}'.");
+        }
+
+        return Task.FromResult<ActorWakeReceipt?>(new ActorWakeReceipt(actor, MailWakeTargetStatus.Delivered, []));
     }
 }
 
-internal sealed class FixedLaunchDescriptorResolver : ILaunchDescriptorResolver
+/// <summary>
+/// Never reached by the codex-thread end-to-end smoke test, but required to
+/// satisfy <see cref="PingSessionExecutor"/>'s constructor.
+/// </summary>
+internal sealed class NoopClaudePeerClient : IClaudePeerClient
 {
-    public LaunchDescriptor Resolve() => new("/usr/bin/nitro", []);
+    public Task<ClaudePeerSendOutcome> SendAsync(
+        int pid, string sessionId, string message, CancellationToken cancellationToken)
+        => Task.FromResult(ClaudePeerSendOutcome.Ok);
 }

@@ -50,6 +50,10 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IPingWorkerLauncher, PingWorkerLauncher>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
         services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
+        services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
+        services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
+        services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
+        services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
         services.TryAddSingleton<INotifier, Notifier>();
         services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
