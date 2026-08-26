@@ -55,12 +55,12 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var backlog = new Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)>();
-        var resultBuilder = new SourceResultDocumentBuilder(
-            context.Memory,
-            context.OperationPlan.Operation,
-            context.IncludeFlags);
-        var root = resultBuilder.Root;
-        var index = 0;
+
+        // The result document must contain exactly the selections this node resolves.
+        // Slots for selections that other nodes fulfill would remain unassigned and
+        // corrupt the document that is built below.
+        var selections = new Selection[_selections.Length];
+        var selectionCount = 0;
 
         foreach (var selection in _selections)
         {
@@ -71,13 +71,27 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 continue;
             }
 
-            var property = root.CreateProperty(selection, index++);
-            backlog.Push((null, selection, property));
+            selections[selectionCount++] = selection;
+        }
+
+        var resultBuilder = new SourceResultDocumentBuilder(
+            context.Memory,
+            context.OperationPlan.Operation,
+            context.IncludeFlags,
+            selections.AsSpan(0, selectionCount));
+        var root = resultBuilder.Root;
+
+        for (var i = 0; i < selectionCount; i++)
+        {
+            var property = root.CreateProperty(selections[i], i);
+            backlog.Push((null, selections[i], property));
         }
 
         try
         {
             await ExecuteSelectionsAsync(context, backlog, cancellationToken).ConfigureAwait(false);
+
+            context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -99,8 +113,6 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
             return ExecutionStatus.Failed;
         }
-
-        context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
 
         return ExecutionStatus.Success;
     }

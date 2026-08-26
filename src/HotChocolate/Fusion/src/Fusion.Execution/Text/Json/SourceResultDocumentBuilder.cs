@@ -33,6 +33,20 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         Root = new SourceResultElementBuilder(this, rootIndex);
     }
 
+    public SourceResultDocumentBuilder(
+        IMemoryArena arena,
+        Operation operation,
+        ulong includeFlags,
+        ReadOnlySpan<Selection> rootSelections)
+    {
+        _arena = arena ?? throw new ArgumentNullException(nameof(arena));
+        _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _metaDb = new MetaDb();
+
+        var rootIndex = CreateObjectValue(rootSelections, includeFlags);
+        Root = new SourceResultElementBuilder(this, rootIndex);
+    }
+
     public SourceResultElementBuilder Root { get; }
 
     internal ElementTokenType GetElementTokenType(int index)
