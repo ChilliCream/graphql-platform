@@ -29,8 +29,124 @@ internal static partial class TestHelper
     private static readonly HashSet<string> s_ignoreCodes =
         ["CS1701", "CS1702", "CS8652", "CS8632", "CS5001", "CS8019"];
 
+    private static readonly PortableExecutableReference[] s_references =
+    [
+#if NET8_0
+        .. Net80.References.All,
+#elif NET9_0
+        .. Net90.References.All,
+#elif NET10_0
+        .. Net100.References.All,
+#elif NET11_0
+        .. Net110.References.All,
+#endif
+        // HotChocolate.Primitives
+        MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
+
+        // HotChocolate.Execution
+        MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
+
+        // HotChocolate.Execution.Abstractions
+        MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
+
+        // HotChocolate.Execution.Processing
+        MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
+
+        // HotChocolate.Execution.Abstractions
+        MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
+
+        // HotChocolate.Execution.Operation.Abstractions
+        MetadataReference.CreateFromFile(typeof(ISelection).Assembly.Location),
+
+        // HotChocolate.Types
+        MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
+
+        // HotChocolate.Types.Abstractions
+        MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
+
+        // HotChocolate.Features
+        MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
+
+        // HotChocolate.Language
+        MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
+
+        // HotChocolate.Language.Utf8
+        MetadataReference.CreateFromFile(typeof(ParserOptions).Assembly.Location),
+
+        // HotChocolate.Language.Visitors
+        MetadataReference.CreateFromFile(typeof(SyntaxVisitor).Assembly.Location),
+
+        // HotChocolate.Abstractions
+        MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+
+        // HotChocolate.AspNetCore
+        MetadataReference.CreateFromFile(
+            typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
+
+        // GreenDonut
+        MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+
+        // GreenDonut.Data
+        MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
+
+        // HotChocolate.Data
+        MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
+
+        // Microsoft.AspNetCore
+        MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
+
+        // Microsoft.Extensions.DependencyInjection.Abstractions
+        MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+
+        // Microsoft.AspNetCore.Authorization
+        MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+
+        // HotChocolate.Authorization
+        MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
+    ];
+
+    public static MetadataReference CreateReference(
+        [StringSyntax("csharp")] string sourceText,
+        string assemblyName)
+    {
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            [CSharpSyntaxTree.ParseText(sourceText)],
+            s_references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        using var stream = new MemoryStream();
+        var emitResult = compilation.Emit(stream);
+
+        if (!emitResult.Success)
+        {
+            var errors = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
+            throw new InvalidOperationException(
+                $"The referenced assembly '{assemblyName}' failed to compile:\n"
+                + string.Join("\n", errors));
+        }
+
+        return MetadataReference.CreateFromImage(stream.ToArray());
+    }
+
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
         => GetGeneratedSourceSnapshot([sourceText]);
+
+    public static Snapshot GetGeneratedSourceSnapshot(
+        [StringSyntax("csharp")] string sourceText,
+        IEnumerable<MetadataReference> additionalReferences)
+        => GetGeneratedSourceSnapshot(
+            [sourceText],
+            "Tests",
+            enableInterceptors: false,
+            enableAnalyzers: false,
+            additionalReferences,
+            inspectCompilation: null);
 
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
@@ -42,6 +158,7 @@ internal static partial class TestHelper
             assemblyName,
             enableInterceptors,
             enableAnalyzers,
+            additionalReferences: null,
             inspectCompilation: null);
 
     public static Snapshot GetGeneratedSourceSnapshot(
@@ -52,6 +169,7 @@ internal static partial class TestHelper
             "Tests",
             enableInterceptors: false,
             enableAnalyzers: false,
+            additionalReferences: null,
             inspectCompilation: inspectCompilation);
 
     private static Snapshot GetGeneratedSourceSnapshot(
@@ -59,88 +177,15 @@ internal static partial class TestHelper
         string? assemblyName,
         bool enableInterceptors,
         bool enableAnalyzers,
+        IEnumerable<MetadataReference>? additionalReferences,
         Action<CSharpCompilation>? inspectCompilation)
     {
-        IEnumerable<PortableExecutableReference> references =
-        [
-#if NET8_0
-            .. Net80.References.All,
-#elif NET9_0
-            .. Net90.References.All,
-#elif NET10_0
-            .. Net100.References.All,
-#elif NET11_0
-            .. Net110.References.All,
-#endif
-            // HotChocolate.Primitives
-            MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
+        IEnumerable<MetadataReference> references = s_references;
 
-            // HotChocolate.Execution
-            MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
-
-            // HotChocolate.Execution.Abstractions
-            MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
-
-            // HotChocolate.Execution.Processing
-            MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
-
-            // HotChocolate.Execution.Abstractions
-            MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
-
-            // HotChocolate.Execution.Operation.Abstractions
-            MetadataReference.CreateFromFile(typeof(ISelection).Assembly.Location),
-
-            // HotChocolate.Types
-            MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
-
-            // HotChocolate.Types.Abstractions
-            MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
-
-            // HotChocolate.Features
-            MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
-
-            // HotChocolate.Language
-            MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
-
-            // HotChocolate.Language.Utf8
-            MetadataReference.CreateFromFile(typeof(ParserOptions).Assembly.Location),
-
-            // HotChocolate.Language.Visitors
-            MetadataReference.CreateFromFile(typeof(SyntaxVisitor).Assembly.Location),
-
-            // HotChocolate.Abstractions
-            MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
-
-            // HotChocolate.AspNetCore
-            MetadataReference.CreateFromFile(
-                typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
-
-            // GreenDonut
-            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
-
-            // GreenDonut.Data
-            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
-
-            // HotChocolate.Data
-            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
-
-            // Microsoft.AspNetCore
-            MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
-
-            // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
-
-            // Microsoft.AspNetCore.Authorization
-            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
-
-            // HotChocolate.Authorization
-            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
-        ];
+        if (additionalReferences is not null)
+        {
+            references = [.. s_references, .. additionalReferences];
+        }
 
         // Create a Roslyn compilation for the syntax tree.
         var parseOptions = !enableInterceptors
