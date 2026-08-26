@@ -363,6 +363,8 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
         }
 
         target.UseNativeDeadLetterForwarding |= configuration.UseNativeDeadLetterForwarding;
+        target.IsTemporary |= configuration.IsTemporary;
+        target.TemporaryIdleTimeout ??= configuration.TemporaryIdleTimeout;
         target.MaxConcurrentSessions ??= configuration.MaxConcurrentSessions;
         target.MaxConcurrentCallsPerSession ??= configuration.MaxConcurrentCallsPerSession;
         target.SessionIdleTimeout ??= configuration.SessionIdleTimeout;

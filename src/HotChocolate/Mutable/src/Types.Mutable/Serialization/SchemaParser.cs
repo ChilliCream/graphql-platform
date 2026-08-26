@@ -794,7 +794,26 @@ public static class SchemaParser
 
         foreach (var objectTypeRef in node.Types)
         {
-            var memberType = schema.Types[objectTypeRef.Name.Value];
+            var memberName = objectTypeRef.Name.Value;
+
+            if (!schema.Types.TryGetType(memberName, out var memberType)
+                || memberType is MissingType)
+            {
+                if (SpecScalarNames.IsSpecScalar(memberName))
+                {
+                    throw new SchemaInitializationException(
+                        string.Format(
+                            SchemaParser_InvalidUnionMemberType,
+                            type.Name,
+                            memberName));
+                }
+
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_UnionMemberTypeNotDefined,
+                        type.Name,
+                        memberName));
+            }
 
             if (memberType is not MutableObjectTypeDefinition objectType)
             {
@@ -1008,21 +1027,41 @@ public static class SchemaParser
             switch (operationType.Operation)
             {
                 case OperationType.Query:
-                    schema.QueryType = (MutableObjectTypeDefinition)schema.Types[typeName];
+                    schema.QueryType = ResolveRootType(schema, "query", typeName);
                     break;
 
                 case OperationType.Mutation:
-                    schema.MutationType = (MutableObjectTypeDefinition)schema.Types[typeName];
+                    schema.MutationType = ResolveRootType(schema, "mutation", typeName);
                     break;
 
                 case OperationType.Subscription:
-                    schema.SubscriptionType = (MutableObjectTypeDefinition)schema.Types[typeName];
+                    schema.SubscriptionType = ResolveRootType(schema, "subscription", typeName);
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
+    }
+
+    private static MutableObjectTypeDefinition ResolveRootType(
+        MutableSchemaDefinition schema,
+        string operation,
+        string typeName)
+    {
+        if (!schema.Types.TryGetType(typeName, out var type) || type is MissingType)
+        {
+            throw new SchemaInitializationException(
+                string.Format(SchemaParser_RootTypeNotDefined, operation, typeName));
+        }
+
+        if (type is not MutableObjectTypeDefinition objectType)
+        {
+            throw new SchemaInitializationException(
+                string.Format(SchemaParser_InvalidRootType, operation, typeName));
+        }
+
+        return objectType;
     }
 
     private static void BuildDirectiveCollection(

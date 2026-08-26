@@ -21,7 +21,11 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             return null;
         }
 
-        var resolution = AzureServiceBusDestinations.Resolve(Transport.Schema, context.Naming, route);
+        var resolution = AzureServiceBusDestinations.Resolve(
+            Transport.Schema,
+            _topology.Address,
+            context.Naming,
+            route);
 
         if (resolution.Kind == AzureServiceBusDestinationKind.Queue)
         {
@@ -174,18 +178,30 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
         }
 
         var forwardDeadLetteredMessagesTo = ResolveNativeDeadLetterDestination(azureConfiguration);
+        var resolvedIdleTimeout = ResolveTemporaryIdleTimeout(azureConfiguration);
 
         var queue = _topology.GetOrAddQueue(
             azureConfiguration.QueueName,
             _ => new AzureServiceBusQueueConfiguration
             {
-                AutoDeleteOnIdle = azureEndpoint.Kind == ReceiveEndpointKind.Reply
-                    ? TimeSpan.FromHours(24)
-                    : null,
+                AutoDeleteOnIdle = resolvedIdleTimeout,
                 AutoProvision = azureConfiguration.AutoProvision,
                 ForwardDeadLetteredMessagesTo = forwardDeadLetteredMessagesTo,
                 Origin = TopologyOrigin.Endpoint
             });
+
+        if (resolvedIdleTimeout is not null)
+        {
+            if (queue.AutoDeleteOnIdle is not null && queue.AutoDeleteOnIdle != resolvedIdleTimeout)
+            {
+                throw ThrowHelper.TemporaryEndpointQueueAutoDeleteOnIdleConflict(
+                    azureConfiguration.Name ?? azureConfiguration.QueueName,
+                    azureConfiguration.QueueName,
+                    queue.AutoDeleteOnIdle);
+            }
+
+            queue.SetAutoDeleteOnIdle(resolvedIdleTimeout.Value);
+        }
 
         if (forwardDeadLetteredMessagesTo is not null)
         {
@@ -223,7 +239,6 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             return;
         }
 
-        var schema = Transport.Schema;
         var autoBind = (azureConfiguration.BindMode ?? Transport.BindMode) is MessagingBindMode.Implicit;
 
         foreach (var route in context.Router.GetInboundByEndpoint(azureEndpoint))
@@ -233,21 +248,19 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
                 continue;
             }
 
-            var explicitPublishRoute = context.Router.GetOutboundByMessageType(messageType)
-                .FirstOrDefault(r => r is { HasExplicitDestination: true, Kind: OutboundRouteKind.Publish });
+            var publishDestination = ResolvePublishDestination(context, messageType);
 
-            if (explicitPublishRoute is not null)
+            if (publishDestination is not null)
             {
-                var destination = AzureServiceBusDestinations.Resolve(schema, context.Naming, explicitPublishRoute);
-                if (destination.Kind == AzureServiceBusDestinationKind.Queue)
+                if (publishDestination.Kind == AzureServiceBusDestinationKind.Queue)
                 {
                     continue;
                 }
 
-                EnsureTopic(destination.Name);
                 if (autoBind)
                 {
-                    EnsureSubscription(destination.Name, azureConfiguration.QueueName);
+                    EnsureTopic(publishDestination.Name);
+                    EnsureSubscription(publishDestination.Name, azureConfiguration.QueueName);
                 }
 
                 continue;
@@ -358,6 +371,42 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
         return false;
     }
 
+    /// <summary>
+    /// Resolves the publish destination for a message type, preferring an explicitly configured
+    /// route destination and falling back to the topic or queue name of a same-transport dispatch
+    /// endpoint that a custom endpoint descriptor connected the route to.
+    /// </summary>
+    private AzureServiceBusDestination? ResolvePublishDestination(
+        IMessagingConfigurationContext context,
+        MessageType messageType)
+    {
+        foreach (var route in context.Router.GetOutboundByMessageType(messageType))
+        {
+            if (route.Kind != OutboundRouteKind.Publish)
+            {
+                continue;
+            }
+
+            if (route.HasExplicitDestination)
+            {
+                return AzureServiceBusDestinations.Resolve(
+                    Transport.Schema,
+                    _topology.Address,
+                    context.Naming,
+                    route);
+            }
+
+            if (route.Endpoint is AzureServiceBusDispatchEndpoint { Transport: var owner } endpoint
+                && owner == Transport
+                && AzureServiceBusDestinations.FromDispatchEndpoint(endpoint.Configuration) is { } destination)
+            {
+                return destination;
+            }
+        }
+
+        return null;
+    }
+
     private void EnsureTopic(string topicName)
     {
         _topology.GetOrAddTopic(
@@ -451,6 +500,11 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
 
         return queueName;
     }
+
+    private static TimeSpan? ResolveTemporaryIdleTimeout(AzureServiceBusReceiveEndpointConfiguration configuration)
+        => configuration.IsTemporary
+            ? configuration.TemporaryIdleTimeout ?? AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.AutoDeleteOnIdle
+            : null;
 
     private bool? GetInheritedQueueAutoProvision(
         string queueName,

@@ -120,23 +120,29 @@ The emulator supports runtime entity management through [`ServiceBusAdministrati
 
 ## Verify it works
 
-Add an endpoint that publishes through the bus and verify the handler executes:
+For a one-off smoke test, replace `app.Run()` with a start-publish-stop sequence. `IMessageBus` is registered as scoped, so resolve it from a service scope:
 
 ```csharp
-app.MapPost("/orders", async (IMessageBus bus) =>
-{
-    await bus.PublishAsync(new OrderPlacedEvent
-    {
-        OrderId = Guid.NewGuid(),
-        CustomerId = "customer-1",
-        TotalAmount = 99.99m
-    }, CancellationToken.None);
+await app.StartAsync();
 
-    return Results.Ok();
-});
+using (var scope = app.Services.CreateScope())
+{
+    var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+    await bus.PublishAsync(
+        new OrderPlacedEvent
+        {
+            OrderId = Guid.NewGuid(),
+            CustomerId = "customer-1",
+            TotalAmount = 99.99m
+        },
+        CancellationToken.None);
+}
+
+await app.StopAsync();
 ```
 
-Send a POST request to `/orders` and check your application logs. You should see the handler process the event. You can also inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
+Check your application logs. You should see the handler process the event. You can also inspect the auto-provisioned topics, subscriptions, and queues in the Azure portal under your Service Bus namespace.
 
 # How topology works
 
@@ -455,6 +461,29 @@ transport.Queue("tenant-orders")
 ```
 
 `MaxConcurrentCallsPerSession` defaults to `1` to preserve in-session processing order. When `MaxConcurrentSessions` is not specified, `MaxConcurrency` determines the maximum number of concurrently locked sessions. Session-only settings cause startup to fail when applied to a non-session queue. Lock auto-renewal defaults to five minutes for both regular and session endpoints.
+
+# Temporary receive endpoints
+
+Call `Temporary()` on a queue or receive endpoint descriptor to scope its backing queue to the lifetime of the consuming process:
+
+```csharp
+transport.Queue($"tenant-events-{instanceId}")
+    .Temporary()
+    .Receives<TenantEvent>();
+```
+
+`Temporary()` sets the queue's `AutoDeleteOnIdle` to a 24-hour default. Use `Temporary(TimeSpan idleTimeout)` for a custom idle window; the broker enforces a five-minute minimum, and Mocha throws `ArgumentOutOfRangeException` for a shorter value.
+
+`AutoDeleteOnIdle` measures time since the queue was last accessed by a send or receive, not the age of any individual message on it - it is an entity idle timeout, not a message TTL. While the endpoint is running, a heartbeat periodically peeks the queue to reset that idle timer, so a queue with no message traffic stays alive for as long as its receive endpoint is active. The heartbeat interval is half the configured idle timeout: the 24-hour default produces a 12-hour heartbeat, and a 10-minute `Temporary(TimeSpan)` produces a 5-minute heartbeat.
+
+If the backing queue is already declared, for example through `DeclareQueue(...)`, with a conflicting `AutoDeleteOnIdle`, startup fails with an explicit error instead of silently discarding the `Temporary()` configuration.
+
+## Forwarding subscription cleanup
+
+A temporary endpoint that subscribes to events uses the same convention-based forwarding subscription as any other subscribe endpoint. When the endpoint stops gracefully, Mocha removes the Mocha-owned, auto-provisioned convention forwarding subscriptions that target its queue. User-declared subscriptions, and subscriptions with auto-provisioning disabled, are left in place.
+
+> [!NOTE]
+> This cleanup runs only on graceful shutdown. If the process crashes or is killed, the forwarding subscription is not removed and remains on the topic after its queue is eventually auto-deleted; remove it manually or through your own crash-recovery process.
 
 # Control auto-provisioning
 

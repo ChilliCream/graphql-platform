@@ -298,8 +298,55 @@ public class AzureServiceBusMessagingTopologyTests
 
         // assert
         Assert.Equal("fwd-accounting", shortName);
-        Assert.Equal("fwd-orders-processing-and-fulfillment-not-a0c46eb0", longName);
+        Assert.Equal("fwd-orders-processing-and-fulfill-a0c46eb0270a10f6", longName);
         Assert.Equal(50, longName.Length);
+    }
+
+    [Fact]
+    public void GetForwardingSubscriptionName_Should_NotCollide_When_QueueNamesShareLegacyFourByteHashPrefix()
+    {
+        // arrange - these two queue names share the same first 4 SHA-256 bytes, which was the
+        // entire hash suffix previously used, but diverge in the next 4 bytes.
+        const string queueName1 = "orders-processing-and-fulfillment-not-47578-queue";
+        const string queueName2 = "orders-processing-and-fulfillment-not-177000-queue";
+
+        // act
+        var name1 = AzureServiceBusSubscription.GetForwardingSubscriptionName(queueName1);
+        var name2 = AzureServiceBusSubscription.GetForwardingSubscriptionName(queueName2);
+
+        // assert
+        Assert.NotEqual(name1, name2);
+    }
+
+    [Fact]
+    public void GetForwardingSubscriptionName_Should_ReturnSlashFreeConvention_When_QueueNameIsHierarchical()
+    {
+        // act
+        var hierarchicalName = AzureServiceBusSubscription.GetForwardingSubscriptionName("orders/eu");
+        var flatName = AzureServiceBusSubscription.GetForwardingSubscriptionName("orders-eu");
+
+        // assert
+        Assert.Equal("fwd-orders-eu-df09ed5999ef8fa2", hierarchicalName);
+        Assert.Equal("fwd-orders-eu", flatName);
+    }
+
+    [Fact]
+    public void DeclareSubscription_Should_ProduceValidName_When_DestinationQueueIsHierarchical()
+    {
+        // arrange
+        var (_, _, topology) = CreateTopology();
+        topology.AddTopic(new AzureServiceBusTopicConfiguration { Name = "orders" });
+        topology.AddQueue(new AzureServiceBusQueueConfiguration { Name = "orders/eu" });
+
+        // act
+        var subscription = topology.AddSubscription(new AzureServiceBusSubscriptionConfiguration
+        {
+            Source = "orders",
+            Destination = "orders/eu"
+        });
+
+        // assert
+        Assert.Equal("fwd-orders-eu-df09ed5999ef8fa2", subscription.Name);
     }
 
     [Fact]

@@ -274,7 +274,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
                     "type": "__Type",
                     "field": "fields",
                     "argument": "includeOptIn",
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Names"
                   }
                 }
               ]

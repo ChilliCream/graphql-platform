@@ -7,6 +7,11 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             "Either ConnectionString or FullyQualifiedNamespace + Credential must be provided");
 
+    public static Exception ConnectionStringAndNamespaceCredentialMutuallyExclusive()
+        => new InvalidOperationException(
+            "ConnectionString is mutually exclusive with FullyQualifiedNamespace + Credential. "
+            + "Configure only one connection mode.");
+
     // Convention
     public static Exception ReceiveEndpointQueueNameRequired()
         => new InvalidOperationException("Queue name is required");
@@ -59,6 +64,14 @@ internal static class ThrowHelper
             "AzureServiceBusScheduledMessageStore requires the dispatch context and endpoint "
             + "to belong to its registered Azure Service Bus transport.");
 
+    // Routing
+    public static Exception ExplicitDestinationTargetsAnotherNamespace(Uri destination, Uri topologyAddress)
+        => new InvalidOperationException(
+            $"Explicit destination '{destination}' targets Azure Service Bus namespace "
+            + $"'{destination.Authority}', but this transport is connected to namespace "
+            + $"'{topologyAddress.Authority}'. Route the message through a transport connected to "
+            + "that namespace, or omit the host to target the current namespace implicitly.");
+
     // Topology
     public static Exception TopicAlreadyExists(string topicName)
         => new InvalidOperationException($"Topic '{topicName}' already exists");
@@ -71,6 +84,16 @@ internal static class ThrowHelper
 
     public static Exception TopologyQueueNotFound(string queueName)
         => new InvalidOperationException($"Queue '{queueName}' not found in topology");
+
+    public static Exception TemporaryEndpointQueueAutoDeleteOnIdleConflict(
+        string endpointName,
+        string queueName,
+        TimeSpan? declaredAutoDeleteOnIdle)
+        => new InvalidOperationException(
+            $"Endpoint '{endpointName}' is marked Temporary(), but queue '{queueName}' was already declared "
+            + $"with AutoDeleteOnIdle '{declaredAutoDeleteOnIdle?.ToString() ?? "unset"}', which does not "
+            + "match the endpoint's resolved idle timeout. Align the queue declaration's AutoDeleteOnIdle "
+            + "with the endpoint's Temporary() idle timeout.");
 
     public static Exception SubscriptionAlreadyExists(string source, string destination)
         => new InvalidOperationException(

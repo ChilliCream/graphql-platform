@@ -36,6 +36,9 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.MaxConcurrency" />
     new IRabbitMQReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Temporary" />
+    new IRabbitMQReceiveEndpointDescriptor Temporary();
+
     /// <summary>
     /// Sets the address of the fault endpoint where failed messages are forwarded.
     /// </summary>

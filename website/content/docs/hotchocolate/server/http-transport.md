@@ -355,7 +355,7 @@ Hot Chocolate supports two WebSocket sub-protocols:
 | `graphql-transport-ws` | The modern protocol defined by the [graphql-ws](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md) library. This is the recommended protocol for new projects.                                       |
 | `graphql-ws`           | The legacy protocol defined by Apollo's [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md). Use this for backward compatibility with older clients. |
 
-The client selects its preferred sub-protocol via the standard WebSocket `Sec-WebSocket-Protocol` header during the handshake. Hot Chocolate negotiates and accepts whichever protocol the client requests.
+The client lists the sub-protocols it supports in the standard WebSocket `Sec-WebSocket-Protocol` header during the handshake, ordered by preference. Hot Chocolate accepts the first listed sub-protocol it supports. If none of the listed sub-protocols is supported, the server closes the connection with close code `1002` (protocol error).
 
 ## Enabling WebSocket Support
 
@@ -413,7 +413,7 @@ app.MapGraphQLWebSocket("/graphql/ws")
 
 A WebSocket connection follows this sequence:
 
-1. The client opens a WebSocket connection and specifies the sub-protocol.
+1. The client opens a WebSocket connection and lists the sub-protocols it supports.
 2. The client sends a `connection_init` message within the `ConnectionInitializationTimeout` window.
 3. The server responds with `connection_ack`.
 4. The client subscribes to operations by sending `subscribe` messages.

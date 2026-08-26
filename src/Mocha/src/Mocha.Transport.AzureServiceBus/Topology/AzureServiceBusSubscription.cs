@@ -116,14 +116,23 @@ public sealed class AzureServiceBusSubscription
     /// <summary>
     /// Computes the deterministic broker subscription name used by a topic-to-queue forwarding subscription
     /// for the specified destination queue. Infrastructure-as-code tooling can use this method to pre-create
-    /// the subscription with the identical name. The result never exceeds 50 characters.
+    /// the subscription with the identical name. The result never exceeds 50 characters and never contains
+    /// slashes, even when the queue name is hierarchical. The hash suffix used for names requiring
+    /// sanitization or truncation widened from 4 to 8 bytes; pre-created subscriptions relying on the
+    /// former 4-byte suffix must be recreated under the new name.
     /// </summary>
     /// <param name="queueName">The destination queue name.</param>
     /// <returns>The forwarding subscription name.</returns>
     public static string GetForwardingSubscriptionName(string queueName)
     {
-        var candidate = "fwd-" + queueName;
-        if (candidate.Length <= MaxSubscriptionNameLength)
+        var sanitizedQueueName = queueName.IndexOf('/') < 0
+            ? queueName
+            : queueName.Replace('/', '-');
+        var candidate = "fwd-" + sanitizedQueueName;
+
+        // A name that required sanitization always gets a hash suffix so it cannot collide with the
+        // subscription name for a different queue that already matches the sanitized form.
+        if (candidate.Length <= MaxSubscriptionNameLength && sanitizedQueueName == queueName)
         {
             return candidate;
         }
@@ -131,8 +140,8 @@ public sealed class AzureServiceBusSubscription
         var hash = Convert.ToHexString(
             SHA256.HashData(Encoding.UTF8.GetBytes(queueName)),
             0,
-            4).ToLowerInvariant();
-        var prefixLength = MaxSubscriptionNameLength - hash.Length - 1;
+            8).ToLowerInvariant();
+        var prefixLength = Math.Min(candidate.Length, MaxSubscriptionNameLength - hash.Length - 1);
         return candidate[..prefixLength] + "-" + hash;
     }
 
@@ -194,6 +203,23 @@ public sealed class AzureServiceBusSubscription
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
             // Already provisioned by another instance, safe to ignore.
+        }
+    }
+
+    /// <summary>
+    /// Deletes this subscription from Azure Service Bus.
+    /// </summary>
+    internal async Task DeprovisionAsync(
+        AzureServiceBusClientManager clientManager,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await clientManager.DeleteSubscriptionAsync(Source.Name, Name, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+        {
+            // Already removed by another instance or a previous cleanup attempt, safe to ignore.
         }
     }
 }

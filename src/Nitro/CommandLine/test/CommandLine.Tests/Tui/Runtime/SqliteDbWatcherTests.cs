@@ -6,6 +6,14 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Runtime;
 public sealed class SqliteDbWatcherTests : IDisposable
 {
     private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(50);
+
+    /// <summary>
+    /// The debounce used by the coalescing test. It is far wider than the time the burst takes to
+    /// write so that neither file system event delivery nor a scheduler delay stretched by a loaded
+    /// machine can push two writes of the same burst into separate debounce windows.
+    /// </summary>
+    private static readonly TimeSpan BurstDebounce = TimeSpan.FromMilliseconds(500);
+
     private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
 
     private readonly string _directory =
@@ -231,11 +239,12 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // thread pool can stretch a "Debounce / 5" delay past Debounce itself,
         // letting the timer fire mid-burst and emit a second event. Synchronous
         // writes have no such scheduling dependency and stay well inside the
-        // debounce window regardless of system load.
+        // debounce window regardless of system load, which BurstDebounce widens
+        // further so that event delivery alone cannot split the burst either.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, BurstDebounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -251,7 +260,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var first = await ReadOneAsync(channel.Reader, testToken);
 
         // No further event should follow once the burst settles.
-        await Task.Delay(Debounce * 4, testToken);
+        await Task.Delay(BurstDebounce * 2, testToken);
         cts.Cancel();
         await runTask;
 
@@ -267,7 +276,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new SqliteDbWatcher(databasePath, Debounce);
+        var watcher = new SqliteDbWatcher(databasePath, BurstDebounce);
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -279,7 +288,8 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // the same timer rather than each scheduling its own event. Issued
         // back-to-back with no inter-write delay for the same reason as the
         // -wal burst test above (bd-hai): a Task.Delay-paced burst is only as
-        // tight as the thread pool's scheduling under load allows.
+        // tight as the thread pool's scheduling under load allows. BurstDebounce
+        // widens the window so event delivery alone cannot split the burst either.
         for (var i = 0; i < 5; i++)
         {
             File.WriteAllText(databasePath, "changed-" + i);
@@ -288,7 +298,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var first = await ReadOneAsync(channel.Reader, testToken);
 
         // No further event should follow once the burst settles.
-        await Task.Delay(Debounce * 4, testToken);
+        await Task.Delay(BurstDebounce * 2, testToken);
         cts.Cancel();
         await runTask;
 
