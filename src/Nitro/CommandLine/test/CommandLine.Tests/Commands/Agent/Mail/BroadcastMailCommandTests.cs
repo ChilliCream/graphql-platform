@@ -24,16 +24,16 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
 
             Options:
               --subject <subject> (REQUIRED)  The message subject
-              --body <body>                   The message body. Exactly one of --body or --body-file is required
-              --body-file <body-file>         A file to read the message body from. Exactly one of --body or --body-file is required
+              --body <body>                   The message body; use --body-file to read it from a file instead
+              --body-file <body-file>         A file to read the message body from; use it instead of --body
               --role <role>                   The actor role, normalized lowercase
-              --actor <actor>                 The actor performing this command; inferred from the current session when omitted
+              --actor <actor> (REQUIRED)      The actor performing this command; allocate one with `nitro agent login`
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
 
             Example:
-              nitro agent mail broadcast --subject "Heads up" --body "Deploying at 5pm."
-              nitro agent mail broadcast --role "backend" --subject "Heads up" --body "Deploying at 5pm."
+              nitro agent mail broadcast --subject "Heads up" --body "Deploying at 5pm." --actor "maya"
+              nitro agent mail broadcast --role "backend" --subject "Heads up" --body "Deploying at 5pm." --actor "maya"
             """);
     }
 
@@ -56,7 +56,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             $"""
             ✓ Sent '{id}' to alpha, zeta.
-            wake delivered.
             """);
     }
 
@@ -98,7 +97,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             $"""
             ✓ Sent '{id}' to zeta.
-            wake delivered.
             """);
     }
 
@@ -128,7 +126,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             $"""
             ✓ Sent '{id}' to zeta.
-            wake delivered.
             """);
     }
 
@@ -203,7 +200,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             $"""
             ✓ Sent '{id}' to zeta.
-            wake delivered.
             """);
     }
 
@@ -259,7 +255,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             $"""
             ✓ Sent '{id}' to zeta.
-            wake delivered.
             """);
         Assert.Equal(
             "1",
@@ -299,7 +294,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         orchestratorResult.AssertSuccess(
             $"""
             ✓ Sent '{id}' to zeta.
-            wake delivered.
             """);
     }
 
@@ -387,7 +381,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             $"""
             ✓ Sent '{id}' to zeta.
-            wake delivered.
             """);
         var call = Assert.Single(queueClient.Calls);
         Assert.Equal("thread-zeta", call.ThreadId);
@@ -433,134 +426,6 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal("test-agent", root.GetProperty("from").GetString());
         Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
         Assert.True(root.GetProperty("messageStored").GetBoolean());
-        Assert.Equal("delivered", root.GetProperty("notification").GetProperty("status").GetString());
-    }
-
-    [Fact]
-    public async Task JsonOutput_Should_ReturnCleanJson_And_ExitNonzero_When_TheRecipientHasNoLiveSession()
-    {
-        // arrange: two recipients, neither with a live claimed session, so
-        // the direct-first dispatcher has nobody to address for either - the
-        // message is durably stored but the wake is a confirmed failure for
-        // both.
-        await InitWorkspaceAsync();
-        SetupInstanceId("host-broadcast-nolive-test");
-        await SeedAgentAsync("test-agent");
-        await SeedAgentAsync("bob");
-        await SeedAgentAsync("zeta");
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
-
-        // assert: exactly one clean JSON object on stdout, nothing on
-        // stderr, even though the command exits nonzero.
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-        Assert.Equal(
-            ["bob", "zeta"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
-        Assert.True(root.GetProperty("messageStored").GetBoolean());
-        var notification = root.GetProperty("notification");
-        Assert.Equal("failed", notification.GetProperty("status").GetString());
-        var recipients = notification.GetProperty("recipients").EnumerateArray().ToArray();
-        Assert.Equal(2, recipients.Length);
-        Assert.All(recipients, recipient => Assert.Equal("failed", recipient.GetProperty("status").GetString()));
-
-        var pingResult = await QueryScalarAsync(
-            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
-        Assert.Null(pingResult);
-    }
-
-    [Fact]
-    public async Task JsonOutput_Should_ReportFailed_When_OneRecipientDeliversAndAnotherHasNoLiveSession()
-    {
-        // arrange: bob has a live claimed codex-thread session that
-        // delivers, zeta has none at all - a mixed multi-recipient outcome
-        // must control the command's own exit while every recipient's own
-        // outcome remains visible in the receipt.
-        await InitWorkspaceAsync();
-        const string host = "host-broadcast-mixed-failure-test";
-        SetupInstanceId(host);
-        SetupCodexQueueClient(new FakeCodexQueueClient());
-        await SeedAgentAsync("test-agent");
-        await SeedAgentAsync("bob");
-        await SeedAgentAsync("zeta");
-        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-        var notification = root.GetProperty("notification");
-        Assert.Equal("failed", notification.GetProperty("status").GetString());
-        var recipients = notification.GetProperty("recipients").EnumerateArray()
-            .ToDictionary(recipient => recipient.GetProperty("actor").GetString()!);
-        Assert.Equal("delivered", recipients["bob"].GetProperty("status").GetString());
-        Assert.Equal("failed", recipients["zeta"].GetProperty("status").GetString());
-    }
-
-    [Fact]
-    public async Task HumanOutput_Should_ReportDelivered_When_TheWakeReachesALiveSession()
-    {
-        // arrange: bob has a live claimed codex-thread session and the fake
-        // codex queue client reports success, so the direct-first dispatcher
-        // delivers the wake in the foreground.
-        await InitWorkspaceAsync();
-        const string host = "host-broadcast-delivered-human-test";
-        SetupInstanceId(host);
-        SetupCodexQueueClient(new FakeCodexQueueClient());
-        await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
-
-        // assert
-        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
-        result.AssertSuccess(
-            $"""
-            ✓ Sent '{id}' to bob.
-            wake delivered.
-            """);
-    }
-
-    [Fact]
-    public async Task HumanOutput_Should_ListEveryFailingRecipient_When_MixedResultsFail()
-    {
-        // arrange: same mixed scenario as the JSON failure test, asserting
-        // the human-readable rendering instead.
-        await InitWorkspaceAsync();
-        const string host = "host-broadcast-mixed-failure-human-test";
-        SetupInstanceId(host);
-        SetupCodexQueueClient(new FakeCodexQueueClient());
-        await SeedAgentAsync("test-agent");
-        await SeedAgentAsync("bob");
-        await SeedAgentAsync("zeta");
-        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", host);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "mail", "broadcast", "--subject", "Heads up", "--body", "Deploying.");
-
-        // assert
-        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Heads up'");
-        result.AssertError(
-            $"""
-            Stored '{id}' to bob, zeta.
-            message stored, but wake failed: no-live-session.
-              zeta: failed (no-live-session)
-            """);
     }
 
     [Fact]

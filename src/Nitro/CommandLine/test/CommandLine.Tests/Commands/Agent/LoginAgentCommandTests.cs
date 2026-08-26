@@ -163,8 +163,8 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         // arrange: a live Claude session mints its own actor, which still
         // does not make an unrelated name usable.
         await InitWorkspaceAsync();
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
 
         // act

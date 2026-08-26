@@ -23,12 +23,12 @@ internal sealed class SessionPingGateStore(IFileSystem fileSystem, AgentDatabase
         var claimed = await connection.QueryFirstOrDefaultAsync<string>(
             """
             INSERT INTO session_ping_gates (
-                harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at
+                harness, session_id, host, attempt_id, acquired_at, expires_at
             )
             VALUES (
-                @harness, @sessionId, @host, @pid, @procStart, @attemptId, @now, @expiresAt
+                @harness, @sessionId, @host, @attemptId, @now, @expiresAt
             )
-            ON CONFLICT (harness, session_id, host, pid, proc_start) DO UPDATE SET
+            ON CONFLICT (harness, session_id, host) DO UPDATE SET
                 attempt_id = excluded.attempt_id,
                 acquired_at = excluded.acquired_at,
                 expires_at = excluded.expires_at
@@ -40,8 +40,6 @@ internal sealed class SessionPingGateStore(IFileSystem fileSystem, AgentDatabase
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
                 host = generation.Host,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 attemptId,
                 now,
                 expiresAt = now + leaseDuration,
@@ -64,7 +62,6 @@ internal sealed class SessionPingGateStore(IFileSystem fileSystem, AgentDatabase
             """
             UPDATE session_ping_gates SET expires_at = @expiresAt
             WHERE harness = @harness AND session_id = @sessionId AND host = @host
-              AND pid = @pid AND proc_start = @procStart
               AND attempt_id = @attemptId AND expires_at > @now
             RETURNING attempt_id
             """,
@@ -73,8 +70,6 @@ internal sealed class SessionPingGateStore(IFileSystem fileSystem, AgentDatabase
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
                 host = generation.Host,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 attemptId,
                 now,
                 expiresAt = now + leaseDuration,
@@ -93,15 +88,13 @@ internal sealed class SessionPingGateStore(IFileSystem fileSystem, AgentDatabase
             """
             DELETE FROM session_ping_gates
             WHERE harness = @harness AND session_id = @sessionId AND host = @host
-              AND pid = @pid AND proc_start = @procStart AND attempt_id = @attemptId
+              AND attempt_id = @attemptId
             """,
             new
             {
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
                 host = generation.Host,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 attemptId,
                 cancellationToken
             });

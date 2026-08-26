@@ -22,11 +22,11 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
               <text>  The memory text. Exactly one of the text argument or --file is required
 
             Options:
-              --file <file>             A file to read the memory text from
-              --actor <actor>           The actor recorded on memory writes; inferred from the current session when omitted
-              --scope <global|project>  The memory scope to write to (project or global) [default: project]
-              --output <json>           The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help            Show help and usage information
+              --file <file>               A file to read the memory text from
+              --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
+              --scope <global|project>    The memory scope to write to (project or global) [default: project]
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent memory log "Investigated the flaky test; still unresolved."

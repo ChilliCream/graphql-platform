@@ -16,19 +16,17 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
               Archive one or more messages for the acting agent.
 
             Usage:
-              nitro agent mail archive <message-ids>... [options]
-
-            Arguments:
-              <message-ids>  One or more message IDs
+              nitro agent mail archive [options]
 
             Options:
-              --actor <actor>  The actor performing this command; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --message <message> (REQUIRED)  A message ID; repeat for several messages
+              --actor <actor> (REQUIRED)      The actor performing this command; allocate one with `nitro agent login`
+              --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                  Show help and usage information
 
             Example:
-              nitro agent mail archive "m-abc123"
-              nitro agent mail archive "m-abc123" "m-def456"
+              nitro agent mail archive --message "m-abc123" --actor "maya"
+              nitro agent mail archive --message "m-abc123" --message "m-def456" --actor "maya"
             """);
     }
 
@@ -36,7 +34,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "archive", "m-abc123");
+        var result = await ExecuteCommandAsync("agent", "mail", "archive", "--message", "m-abc123");
 
         // assert
         result.AssertError(
@@ -55,7 +53,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
         var message = await SeedMessageAsync("bob", "Status", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "archive", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "archive", "--message", message.Id);
 
         // assert
         result.AssertSuccess($"✓ Archived '{message.Id}'.");
@@ -76,7 +74,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
         var second = await SeedMessageAsync("bob", "Two", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "archive", first.Id, second.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "archive", "--message", first.Id, "--message", second.Id);
 
         // assert
         result.AssertSuccess(
@@ -94,7 +92,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("test-agent");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "archive", "m-missing");
+        var result = await ExecuteCommandAsync("agent", "mail", "archive", "--message", "m-missing");
 
         // assert
         result.AssertError(
@@ -115,7 +113,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
         var foreign = await SeedMessageAsync("bob", "Foreign", ["carol"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "archive", mine.Id, foreign.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "archive", "--message", mine.Id, "--message", foreign.Id);
 
         // assert
         result.AssertError($"'test-agent' is not a recipient of: {foreign.Id}.");
@@ -133,7 +131,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
         var message = await SeedMessageAsync("bob", "Status", ["test-agent"]);
-        await ExecuteCommandAsync("agent", "mail", "archive", message.Id);
+        await ExecuteCommandAsync("agent", "mail", "archive", "--message", message.Id);
 
         // act
         var result = await ExecuteCommandAsync("agent", "mail", "inbox");
@@ -156,7 +154,7 @@ public sealed class ArchiveMailCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "archive", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "archive", "--message", message.Id);
 
         // assert
         result.AssertSuccess(

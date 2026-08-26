@@ -21,12 +21,12 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
               nitro agent mail watch [options]
 
             Options:
-              --timeout <timeout>  Exit with an error after this many seconds if no new mail arrives (waits until cancelled when omitted)
-              --after <after>      Deliver every message created after this cursor immediately, then keep watching. The cursor is either an RFC 3339 timestamp or a message ID.
-              --include-existing   Treat mail already unread at start as arrived and print it immediately, then keep watching
-              --actor <actor>      The actor performing this command; inferred from the current session when omitted
-              --output <json>      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help       Show help and usage information
+              --timeout <timeout>         Exit with an error after this many seconds if no new mail arrives (waits until cancelled when omitted)
+              --after <after>             Deliver every message created after this cursor immediately, then keep watching. The cursor is either an RFC 3339 timestamp or a message ID.
+              --include-existing          Treat mail already unread at start as arrived and print it immediately, then keep watching
+              --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent mail watch

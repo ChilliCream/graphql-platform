@@ -24,9 +24,9 @@ public sealed class AddTaskCommentCommandTests(NitroCommandFixture fixture)
               <text>  The comment text
 
             Options:
-              --actor <actor>  The actor recorded on the audit log; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --actor <actor> (REQUIRED)  The actor recorded on the audit log; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent tasks comment add "acme-1a2" "Looks good to me."

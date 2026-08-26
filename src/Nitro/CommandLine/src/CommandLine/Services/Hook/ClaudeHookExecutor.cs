@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -6,8 +7,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// The fail-open envelope every <c>nitro agent hook claude &lt;event&gt;</c>
 /// subcommand runs its handler through: reads the payload from stdin,
 /// enforces the entry timeout, and writes a harness-shaped JSON response to
-/// stdout. Malformed payload, database contention, a schema version
-/// mismatch, a missing workspace, any exception a handler raises, and the
+/// stdout. Malformed payload, database contention, a missing workspace, any
+/// exception a handler raises, and the
 /// timeout itself all resolve to the same neutral <c>{}</c> response;
 /// installing a hook must never be able to fail Claude's turn. Free of
 /// System.CommandLine and DI types so it can run against a bare
@@ -26,10 +27,12 @@ internal static class ClaudeHookExecutor
         IEnvironmentVariableProvider environmentVariables,
         TextReader input,
         TextWriter output,
+        TextWriter error,
         Func<ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle,
         string hookEventName,
         CancellationToken cancellationToken)
-        => RunAsync(environmentVariables, input, output, handle, hookEventName, EntryTimeout, cancellationToken);
+        => RunAsync(
+            environmentVariables, input, output, error, handle, hookEventName, EntryTimeout, cancellationToken);
 
     /// <summary>
     /// Overload taking an explicit <paramref name="timeout"/> instead of
@@ -40,6 +43,7 @@ internal static class ClaudeHookExecutor
         IEnvironmentVariableProvider environmentVariables,
         TextReader input,
         TextWriter output,
+        TextWriter error,
         Func<ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle,
         string hookEventName,
         TimeSpan timeout,
@@ -74,12 +78,24 @@ internal static class ClaudeHookExecutor
             // handler ignoring cancellation must not be allowed to keep
             // this call, and the harness, waiting past the timeout.
         }
+        catch (AgentWorkspaceSchemaMismatchException exception)
+        {
+            // Reported rather than swallowed: unlike the transient failures
+            // below, a stale schema keeps every hook of every session inert
+            // until someone migrates it, and nothing else ever says so. It
+            // goes to stderr with a nonzero exit, which the harness surfaces
+            // to the user without blocking the turn.
+            await error.WriteLineAsync(exception.Message.AsMemory(), cancellationToken);
+            await WriteAsync(output, ClaudeHookOutcome.Neutral, hookEventName, cancellationToken);
+
+            return FailureExitCode;
+        }
         catch
         {
-            // Fail-open on EVERYTHING: an empty or malformed payload or a
-            // handler exception (database contention, a schema version
-            // mismatch). `outcome` is still ClaudeHookOutcome.Neutral, so the
-            // harness always gets a valid neutral response, never an error.
+            // Fail-open on EVERYTHING else: an empty or malformed payload or
+            // a handler exception (database contention, for example).
+            // `outcome` is still ClaudeHookOutcome.Neutral, so the harness
+            // always gets a valid neutral response, never an error.
             outcome = ClaudeHookOutcome.Neutral;
         }
 
@@ -104,6 +120,14 @@ internal static class ClaudeHookExecutor
     // its own JSON protocol (or silently, via the neutral response), never
     // through the process exit code.
     private const int ExitCode = 0;
+
+    /// <summary>
+    /// The nonzero exit a hook uses to report a condition the user has to
+    /// act on. Deliberately not 2, which Claude Code treats as a blocking
+    /// error that feeds stderr back into the turn: an unmigrated workspace
+    /// must be visible, not turn-blocking.
+    /// </summary>
+    private const int FailureExitCode = 1;
 
     private static bool IsSuppressed(IEnvironmentVariableProvider environmentVariables)
         => environmentVariables.GetEnvironmentVariable("NITRO_HOOK_SUPPRESS") is "1" or "true";

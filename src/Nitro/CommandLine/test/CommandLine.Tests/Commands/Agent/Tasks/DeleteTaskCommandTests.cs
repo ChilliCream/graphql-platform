@@ -23,11 +23,11 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
               <id>  The task ID
 
             Options:
-              --reason <reason>  The reason recorded for this change
-              --actor <actor>    The actor recorded on the audit log; inferred from the current session when omitted
-              --force            Skip confirmation prompts for deletes and overwrites
-              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help     Show help and usage information
+              --reason <reason>           The reason recorded for this change
+              --actor <actor> (REQUIRED)  The actor recorded on the audit log; allocate one with `nitro agent login`
+              --force                     Skip confirmation prompts for deletes and overwrites
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent tasks delete "app-1a2"

@@ -9,16 +9,16 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// to block a turn from ending, so the gate instead queues the digest into
 /// the thread's next turn via <c>codex queue</c>, with the delivery ledger's
 /// message-id-keyed reservation as the loop guard. Every member is fail-open by
-/// contract, same as <see cref="Hook.IClaudeHookHandler"/>.
+/// contract, same as <see cref="IClaudeHookHandler"/>.
 /// </summary>
 internal interface ICodexHookHandler
 {
     /// <summary>
-    /// Upserts the session's presence row. <paramref name="dryRun"/> pins the
-    /// row's generation to the same fixed sentinel identity
-    /// <see cref="Hook.IClaudeHookHandler.HandleSessionStartAsync"/> uses
-    /// (pid 1, epoch proc_start), for the same reason: fixture-driven tests
-    /// and captured-payload replays without a live Codex ancestor process.
+    /// Upserts the session's presence row. <paramref name="dryRun"/> skips
+    /// every side effect outside the workspace database, the same as
+    /// <see cref="IClaudeHookHandler.HandleSessionStartAsync"/>, so
+    /// fixture-driven tests and captured-payload replays work without a live
+    /// Codex session.
     /// </summary>
     Task<CodexHookOutcome> HandleSessionStartAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);

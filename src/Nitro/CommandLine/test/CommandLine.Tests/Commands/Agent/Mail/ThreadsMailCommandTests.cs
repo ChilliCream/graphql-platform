@@ -19,10 +19,10 @@ public sealed class ThreadsMailCommandTests(NitroCommandFixture fixture)
               nitro agent mail threads [options]
 
             Options:
-              --limit <limit>  The maximum number of messages to show
-              --actor <actor>  The actor performing this command; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --limit <limit>             The maximum number of messages to show
+              --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent mail threads

@@ -16,6 +16,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
     {
         SetupNoAuthentication();
         SetupActingActor("test-agent");
+        DefaultActor = "test-agent";
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-task-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");

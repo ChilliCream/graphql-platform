@@ -25,7 +25,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         // announced actor is the seeded name rather than an allocated one.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
-        SetupCodexAncestor();
         SetupHookPayload();
 
         // act
@@ -60,7 +59,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         // arrange
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
-        SetupCodexAncestor();
         SetupHookPayload();
 
         // act
@@ -94,7 +92,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         // arrange: a presence row this same generation created on SessionStart.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
-        SetupCodexAncestor();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
         SetupHookPayload();
@@ -109,17 +106,15 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task SessionEnd_Should_KeepThePresenceRow_When_NoSessionResolves()
+    public async Task SessionEnd_Should_KeepThePresenceRow_When_ThePayloadNamesNoSession()
     {
-        // arrange: the row exists, but this invocation has no Codex ancestor
-        // to resolve the generation that owns it.
+        // arrange: the row exists, but this event's payload names no session,
+        // so nothing says which row it speaks for.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
-        SetupCodexAncestor();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
-        SetupAncestorSessionResolvers();
-        SetupHookPayload();
+        SetupSessionlessHookPayload();
 
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "codex", "session-end");
@@ -140,7 +135,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         SetupHermeticSidecar();
         var queueClient = new FakeCodexQueueClient();
         SetupCodexQueueClient(queueClient);
-        SetupCodexAncestor();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
 
@@ -162,23 +156,22 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task Notify_Should_QueueNothing_When_NoSessionResolves()
+    public async Task Notify_Should_QueueNothing_When_ThePayloadNamesNoThread()
     {
         // arrange: the thread has unread mail and a bound presence row, but
-        // this invocation has no Codex ancestor to resolve the generation.
+        // this notify payload names no thread, so nothing says which session
+        // it speaks for.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         await SeedMailAsync();
         SetupHermeticSidecar();
         var queueClient = new FakeCodexQueueClient();
         SetupCodexQueueClient(queueClient);
-        SetupCodexAncestor();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
-        SetupAncestorSessionResolvers();
 
         // act
-        var result = await ExecuteCommandAsync("agent", "hook", "codex", "notify", NotifyPayload());
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "notify", SessionlessNotifyPayload());
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -262,13 +255,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         => InsertSessionIdentityAsync("maya", SessionId, AgentSessionHarness.Codex);
 
     /// <summary>
-    /// Reports this test process itself as the Codex ancestor, so the real
-    /// start-ticks read the generation identity needs succeeds.
-    /// </summary>
-    private void SetupCodexAncestor()
-        => SetupAncestorSessionResolvers(codex: new CodexAncestorSession(Environment.ProcessId));
-
-    /// <summary>
     /// Points the <c>notify</c> install sidecar at this test's own directory,
     /// where there is none, so no foreign notify program installed on the
     /// machine running the test is ever spawned.
@@ -284,6 +270,13 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     private void SetupHookPayload()
         => SetupStandardInput(
             $$"""{"session_id":"{{SessionId}}","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+
+    private void SetupSessionlessHookPayload()
+        => SetupStandardInput(
+            $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+
+    private string SessionlessNotifyPayload()
+        => $$"""{"type":"agent-turn-complete","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""";
 
     private string NotifyPayload()
         => $$"""{"type":"agent-turn-complete","thread-id":"{{SessionId}}","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""";

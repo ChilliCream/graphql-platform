@@ -35,21 +35,9 @@ internal sealed class ClaudeSessionFileReader : IClaudeSessionFileReader
     }
 
     /// <summary>
-    /// The pid, which the session file writes as a number but older files
-    /// wrote as a string.
-    /// </summary>
-    private static int? TryReadPid(JsonElement element)
-        => element.ValueKind switch
-        {
-            JsonValueKind.Number when element.TryGetInt32(out var value) => value,
-            JsonValueKind.String when int.TryParse(element.GetString(), out var value) => value,
-            _ => null
-        };
-
-    /// <summary>
     /// Reads one session file, returning it only when it carries
-    /// <paramref name="sessionId"/> and every field a session row needs. A
-    /// file being rewritten as it is read is skipped, not fatal.
+    /// <paramref name="sessionId"/>. A file being rewritten as it is read is
+    /// skipped, not fatal.
     /// </summary>
     private static ClaudeSessionFile? TryRead(string path, string sessionId)
     {
@@ -60,22 +48,21 @@ internal sealed class ClaudeSessionFileReader : IClaudeSessionFileReader
 
             if (!root.TryGetProperty("sessionId", out var id)
                 || id.ValueKind != JsonValueKind.String
-                || id.GetString() != sessionId
-                || !root.TryGetProperty("pid", out var pidElement)
-                || TryReadPid(pidElement) is not { } pid
-                || pid <= 0)
+                || id.GetString() != sessionId)
             {
                 return null;
             }
 
             return new ClaudeSessionFile(
-                pid,
                 sessionId,
                 root.TryGetProperty("cwd", out var cwd) && cwd.ValueKind == JsonValueKind.String
                     ? cwd.GetString() ?? ""
                     : "",
                 root.TryGetProperty("name", out var name) && name.ValueKind == JsonValueKind.String
                     ? name.GetString() ?? ""
+                    : "",
+                root.TryGetProperty("version", out var version) && version.ValueKind == JsonValueKind.String
+                    ? version.GetString() ?? ""
                     : "");
         }
         catch (JsonException)

@@ -24,9 +24,9 @@ public sealed class RemoveTaskDependencyCommandTests(NitroCommandFixture fixture
               <depends-on-id>  The task this dependency points to
 
             Options:
-              --actor <actor>  The actor recorded on the audit log; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --actor <actor> (REQUIRED)  The actor recorded on the audit log; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent tasks dep remove "acme-1a2" "acme-9z8"

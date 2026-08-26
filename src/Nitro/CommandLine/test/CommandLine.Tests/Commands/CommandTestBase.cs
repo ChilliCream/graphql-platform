@@ -43,17 +43,6 @@ public abstract class CommandTestBase
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
-    // Default to no ancestor found for every command test, not just ones
-    // that call SetupAncestorSessionResolvers explicitly: `agent register`
-    // walks the real Claude Code, Codex, and Copilot ancestor process tree,
-    // which the test host cannot control (and, running nested inside a live
-    // Claude Code session, cannot even predict deterministically).
-    private IClaudeAncestorSessionResolver _claudeAncestorSessionResolverOverride =
-        new FixedClaudeAncestorSessionResolver(null);
-    private ICodexAncestorSessionResolver _codexAncestorSessionResolverOverride =
-        new FixedCodexAncestorSessionResolver(null);
-    private ICopilotAncestorSessionResolver _copilotAncestorSessionResolverOverride =
-        new FixedCopilotAncestorSessionResolver(null);
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
@@ -150,16 +139,6 @@ public abstract class CommandTestBase
         _standardInputOverride = new FixedStandardInputReader(payload);
     }
 
-    private protected void SetupAncestorSessionResolvers(
-        ClaudeAncestorSession? claude = null,
-        CodexAncestorSession? codex = null,
-        CopilotAncestorSession? copilot = null)
-    {
-        _claudeAncestorSessionResolverOverride = new FixedClaudeAncestorSessionResolver(claude);
-        _codexAncestorSessionResolverOverride = new FixedCodexAncestorSessionResolver(codex);
-        _copilotAncestorSessionResolverOverride = new FixedCopilotAncestorSessionResolver(copilot);
-    }
-
     /// <summary>
     /// Points Claude Code <c>settings.json</c> resolution at fixed paths
     /// instead of the real machine's home directory, so hook command tests
@@ -234,6 +213,14 @@ public abstract class CommandTestBase
         _useSessionWithWorkspace = true;
     }
 
+    /// <summary>
+    /// The actor <see cref="ExecuteCommandAsync"/> supplies to any command
+    /// that declares a required <c>--actor</c> option and was not given one
+    /// explicitly. Null leaves the arguments untouched, so a test that
+    /// asserts the requirement itself still sees the parse failure.
+    /// </summary>
+    private protected string? DefaultActor { get; set; }
+
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
         var arguments = args.ToList();
@@ -242,6 +229,8 @@ public abstract class CommandTestBase
         {
             arguments.AddRange(["--api-key", "default-api-key"]);
         }
+
+        AddDefaultActorIfRequired(arguments);
 
         var stdOutWriter = new StringWriter();
         var stdErrWriter = new StringWriter();
@@ -292,6 +281,45 @@ public abstract class CommandTestBase
             rootCommand.Name);
     }
 
+    /// <summary>
+    /// Appends <c>--actor <see cref="DefaultActor"/></c> when the command the
+    /// arguments resolve to declares a required <c>--actor</c> option and the
+    /// caller did not pass one, so a test only spells the actor out when the
+    /// actor itself is what it is about.
+    /// </summary>
+    private void AddDefaultActorIfRequired(List<string> arguments)
+    {
+        if (DefaultActor is null || arguments.Contains("--actor"))
+        {
+            return;
+        }
+
+        // Walked by name rather than parsed: parsing here would run the
+        // options' own default factories, which need command services this
+        // invocation has not built yet.
+        Command command = _fixture.RootCommand;
+
+        foreach (var token in arguments)
+        {
+            if (token.StartsWith('-'))
+            {
+                break;
+            }
+
+            if (command.Subcommands.FirstOrDefault(c => c.Name == token) is not { } subcommand)
+            {
+                break;
+            }
+
+            command = subcommand;
+        }
+
+        if (command.Options.Any(o => o.Name == "--actor" && o.Required))
+        {
+            arguments.AddRange(["--actor", DefaultActor]);
+        }
+    }
+
     internal InteractiveCommand StartInteractiveCommand(params string[] args)
     {
         var arguments = args.ToList();
@@ -300,6 +328,8 @@ public abstract class CommandTestBase
         {
             arguments.AddRange(["--api-key", "default-api-key"]);
         }
+
+        AddDefaultActorIfRequired(arguments);
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
@@ -389,10 +419,6 @@ public abstract class CommandTestBase
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
         }
-
-        services.Replace(ServiceDescriptor.Singleton(_claudeAncestorSessionResolverOverride));
-        services.Replace(ServiceDescriptor.Singleton(_codexAncestorSessionResolverOverride));
-        services.Replace(ServiceDescriptor.Singleton(_copilotAncestorSessionResolverOverride));
 
         if (_claudeSettingsPathResolverOverride is not null)
         {
@@ -704,22 +730,4 @@ internal sealed class InteractiveCommand(
     {
         return await executeAsync(cancellationToken);
     }
-}
-
-internal sealed class FixedClaudeAncestorSessionResolver(ClaudeAncestorSession? session)
-    : IClaudeAncestorSessionResolver
-{
-    public ClaudeAncestorSession? Resolve() => session;
-}
-
-internal sealed class FixedCodexAncestorSessionResolver(CodexAncestorSession? session)
-    : ICodexAncestorSessionResolver
-{
-    public CodexAncestorSession? Resolve() => session;
-}
-
-internal sealed class FixedCopilotAncestorSessionResolver(CopilotAncestorSession? session)
-    : ICopilotAncestorSessionResolver
-{
-    public CopilotAncestorSession? Resolve() => session;
 }

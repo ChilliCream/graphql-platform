@@ -50,9 +50,7 @@ public sealed class CodexHookHandlerTests : IDisposable
             _database,
             _agentRegistry,
             new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null));
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
         _ledger = new SessionDeliveryLedger(_fileSystem, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
         _environmentVariables = new FixedEnvironmentVariableProvider();
@@ -70,8 +68,6 @@ public sealed class CodexHookHandlerTests : IDisposable
         _ledger,
         _mail,
         _environmentVariables,
-        new ProcessInfoProvider(),
-        new FixedCodexAncestorSessionResolver(null),
         new FixedCodexHarnessVersionResolver(),
         new FixedInstanceIdProvider("host-1"),
         new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
@@ -193,8 +189,6 @@ public sealed class CodexHookHandlerTests : IDisposable
             _ledger,
             _mail,
             _environmentVariables,
-            new ProcessInfoProvider(),
-            new FixedCodexAncestorSessionResolver(null),
             new FixedCodexHarnessVersionResolver("0.101.0"),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
@@ -478,14 +472,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     private static AgentSessionGeneration CurrentGeneration() => new(
         AgentSessionHarness.Codex,
         SessionId,
-        "host-1",
-        Pid: 1,
-        "0");
-}
-
-internal sealed class FixedCodexAncestorSessionResolver(CodexAncestorSession? session) : ICodexAncestorSessionResolver
-{
-    public CodexAncestorSession? Resolve() => session;
+        "host-1");
 }
 
 internal sealed class FakeCodexQueueClient : ICodexQueueClient

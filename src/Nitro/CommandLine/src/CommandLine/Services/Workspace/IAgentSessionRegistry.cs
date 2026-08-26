@@ -13,13 +13,6 @@ internal interface IAgentSessionRegistry
     /// Upserts the row for <paramref name="generation"/>'s
     /// <c>(harness, session_id)</c>, the SessionStart binding rules:
     /// <list type="bullet">
-    /// <item>A provisional row (see <see cref="AgentSessionProvisionalSessionId"/>)
-    /// already exists for this exact (harness, host, pid, proc_start) and
-    /// <paramref name="generation"/>'s own session id is not itself
-    /// provisional: adopts that row under the canonical session id instead
-    /// of inserting a second one, preserving its binding, role, delivery
-    /// ledger, and block budget, and only refreshing the endpoint, location,
-    /// and heartbeat columns.</item>
     /// <item>No existing coding-session row: creates or reuses its durable
     /// identity, allocating an actor when <paramref name="envActor"/> is not
     /// supplied. Production coding hooks do not supply it; the parameter is
@@ -45,9 +38,9 @@ internal interface IAgentSessionRegistry
 
     /// <summary>
     /// Applies the claim state machine to the row matching
-    /// <paramref name="generation"/> exactly (harness, session id, host,
-    /// pid, and proc_start all predicate the row lookup, so a stale
-    /// generation matches nothing). Throws <see cref="ExitException"/> when
+    /// <paramref name="generation"/> exactly (harness, session id, and host
+    /// all predicate the row lookup, so a stale generation matches
+    /// nothing). Throws <see cref="ExitException"/> when
     /// no row matches that generation, or when the row is already
     /// explicitly claimed by a different actor and
     /// <paramref name="forceRebind"/> is false.
@@ -59,33 +52,12 @@ internal interface IAgentSessionRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Zero-config self-claim: resolves this process's Claude Code ancestor
-    /// session (Linux-first, see <see cref="IClaudeAncestorSessionResolver"/>),
-    /// bootstraps its row via <see cref="StartAsync"/> when none exists yet,
-    /// then applies <see cref="ClaimAsync"/> for <paramref name="actor"/>.
-    /// Throws <see cref="ExitException"/> when no Claude Code ancestor can be
-    /// found, its process is no longer running, or no agent workspace
-    /// resolves from its working directory.
-    /// </summary>
-    Task<AgentSessionClaimResult> SelfClaimAsync(
-        string actor,
-        bool forceRebind,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Conditionally deletes the row matching <paramref name="generation"/>
     /// exactly. A late call against a generation the row no longer carries
     /// (superseded by a fresh SessionStart, already reaped) is a no-op.
     /// Returns whether a row was actually deleted.
     /// </summary>
     Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
-
-    Task<bool> EndEphemeralCopilotAsync(
-        string host,
-        int pid,
-        string procStart,
-        CancellationToken cancellationToken)
-        => Task.FromResult(false);
 
     /// <summary>
     /// Returns the row matching <paramref name="generation"/> exactly (the
@@ -113,21 +85,17 @@ internal interface IAgentSessionRegistry
     Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Deletes every row on the CURRENT Nitro instance this reader can PROVE
-    /// dead in the same observable process scope as its recorded generation
-    /// (see <see cref="IProcessInfoProvider.Observe"/>). A row this reader
-    /// cannot observe, typically a different PID namespace than the row's
-    /// writer recorded, is left untouched, the same as a row still alive.
-    /// Rows recorded by a different instance id are never touched. Returns
-    /// the rows that were reaped.
+    /// Deletes every row on the CURRENT Nitro instance that has not beaten
+    /// within the stale window. A live session beats on every hook event it
+    /// sends, so silence that long means the harness ended without its
+    /// SessionEnd hook running. Rows recorded by a different instance id are
+    /// never touched. Returns the rows that were reaped.
     /// </summary>
     Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reaps provably dead current-instance rows, then returns every
-    /// surviving row with its computed <see cref="AgentSessionState"/>,
-    /// including <see cref="AgentSessionState.Unobservable"/> for a
-    /// current-instance row this reader cannot verify.
+    /// Reaps stale current-instance rows, then returns every surviving row
+    /// with its computed <see cref="AgentSessionState"/>.
     /// </summary>
     Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken);
 
@@ -161,7 +129,7 @@ internal interface IAgentSessionRegistry
     Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reaps provably dead current-instance rows, then returns one
+    /// Reaps stale current-instance rows, then returns one
     /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
     /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when
     /// the session is claimed, and computing the same
@@ -253,29 +221,15 @@ internal interface IAgentSessionRegistry
     }
 
     /// <summary>
-    /// Returns every row matching <paramref name="harness"/>, <paramref
-    /// name="host"/>, <paramref name="pid"/>, and <paramref
-    /// name="procStart"/> exactly, for resolving a session by its process
-    /// identity when its session id is not independently known. Empty when
-    /// none matches; more than one means the match is ambiguous.
-    /// </summary>
-    Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, string procStart, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Returns the row matching <paramref name="harness"/>, <paramref
-    /// name="host"/>, and <paramref name="sessionId"/> exactly, ignoring
-    /// process identity entirely. For resolving a session's own recorded
-    /// (pid, proc_start) from its session id alone, when the caller has no
-    /// live process identity to walk to (an authoritative session id from
-    /// the harness's own launch environment, for example, rather than a
-    /// <c>/proc</c> ancestor walk). Null when no row matches.
+    /// name="host"/>, and <paramref name="sessionId"/> exactly. Null when no
+    /// row matches.
     /// </summary>
     Task<AgentSessionRecord?> FindBySessionIdAsync(
         string harness, string host, string sessionId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reaps dead current-instance rows, then returns every surviving row
+    /// Reaps stale current-instance rows, then returns every surviving row
     /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
     /// rows are never returned: a wake fired from here cannot reach a
     /// session another Nitro instance owns). Used by the notifier to

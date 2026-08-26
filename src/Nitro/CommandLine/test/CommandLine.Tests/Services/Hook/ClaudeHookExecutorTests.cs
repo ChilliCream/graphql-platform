@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -26,6 +27,7 @@ public sealed class ClaudeHookExecutorTests
         environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");
         var input = new StringReader(HookFixtures.Read("session-start.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
         var handlerInvoked = false;
 
         // act
@@ -33,6 +35,7 @@ public sealed class ClaudeHookExecutorTests
             environmentVariables,
             input,
             output,
+            error,
             (_, _) =>
             {
                 handlerInvoked = true;
@@ -54,12 +57,14 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("malformed.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         // act
         var exitCode = await ClaudeHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => throw new InvalidOperationException("must not be reached"),
             "SessionStart",
             cancellationToken);
@@ -76,12 +81,14 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         // act
         var exitCode = await ClaudeHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => throw new InvalidOperationException("simulated database contention"),
             "Stop",
             cancellationToken);
@@ -99,12 +106,14 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         // act
         var exitCode = await ClaudeHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             async (_, ct) => { await Task.Delay(Timeout.InfiniteTimeSpan, ct); return ClaudeHookOutcome.Neutral; },
             "Stop",
             TimeSpan.FromMilliseconds(50),
@@ -125,6 +134,7 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // act
@@ -132,6 +142,7 @@ public sealed class ClaudeHookExecutorTests
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             async (_, _) => { await Task.Delay(Timeout.InfiniteTimeSpan); return ClaudeHookOutcome.Neutral; },
             "Stop",
             TimeSpan.FromMilliseconds(50),
@@ -173,22 +184,16 @@ public sealed class ClaudeHookExecutorTests
                 database,
                 agentRegistry,
                 new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot),
-                new ProcessInfoProvider(),
-                new FixedAncestorSessionResolver(null));
+                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
             var ledger = new SessionDeliveryLedger(fileSystem, database);
             var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
-            var environmentVariables = new FixedEnvironmentVariableProvider();
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
                 sessions,
                 ledger,
                 mail,
-                environmentVariables,
-                new ProcessInfoProvider(),
-                new FixedAncestorSessionResolver(null),
-                new FixedClaudeHarnessVersionResolver(),
+                new FixedClaudeSessionFileReader(),
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
 
@@ -216,12 +221,14 @@ public sealed class ClaudeHookExecutorTests
             var input = new StringReader(
                 $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(workspaceRoot)}}}""");
             var output = new StringWriter();
+            var error = new StringWriter();
 
             // act
             var exitCode = await ClaudeHookExecutor.RunAsync(
-                environmentVariables,
+                new FixedEnvironmentVariableProvider(),
                 input,
                 output,
+                error,
                 (p, ct) => handler.HandleStopAsync(p, dryRun: true, ct),
                 "Stop",
                 TimeSpan.FromMilliseconds(200),
@@ -262,22 +269,16 @@ public sealed class ClaudeHookExecutorTests
                 database,
                 agentRegistry,
                 new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot),
-                new ProcessInfoProvider(),
-                new FixedAncestorSessionResolver(null));
+                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
             var ledger = new SessionDeliveryLedger(fileSystem, database);
             var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
-            var environmentVariables = new FixedEnvironmentVariableProvider();
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
                 sessions,
                 ledger,
                 mail,
-                environmentVariables,
-                new ProcessInfoProvider(),
-                new FixedAncestorSessionResolver(null),
-                new FixedClaudeHarnessVersionResolver(),
+                new FixedClaudeSessionFileReader(),
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
 
@@ -297,12 +298,14 @@ public sealed class ClaudeHookExecutorTests
             var input = new StringReader(
                 $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(workspaceRoot)}}}""");
             var output = new StringWriter();
+            var error = new StringWriter();
 
             // act
             var exitCode = await ClaudeHookExecutor.RunAsync(
-                environmentVariables,
+                new FixedEnvironmentVariableProvider(),
                 input,
                 output,
+                error,
                 (p, ct) => handler.HandleSessionStartAsync(p, dryRun: true, ct),
                 "SessionStart",
                 cancellationToken);
@@ -324,12 +327,14 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("user-prompt-submit.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         // act
         var exitCode = await ClaudeHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => Task.FromResult(new ClaudeHookOutcome { AdditionalContext = "nitro mail: 1 unread message." }),
             "UserPromptSubmit",
             cancellationToken);
@@ -348,12 +353,14 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("session-start.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         // act
         var exitCode = await ClaudeHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => Task.FromResult(new ClaudeHookOutcome { AdditionalContext = "nitro mail: 1 unread message." }),
             "SessionStart",
             cancellationToken);
@@ -372,12 +379,14 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         // act
         var exitCode = await ClaudeHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => Task.FromResult(new ClaudeHookOutcome { Block = true, BlockReason = "unread mail" }),
             "Stop",
             cancellationToken);
@@ -400,6 +409,7 @@ public sealed class ClaudeHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read(fixtureFile));
         var output = new StringWriter();
+        var error = new StringWriter();
         ClaudeHookPayload? captured = null;
 
         // act
@@ -407,6 +417,7 @@ public sealed class ClaudeHookExecutorTests
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (payload, _) =>
             {
                 captured = payload;

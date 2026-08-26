@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
@@ -50,9 +51,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _database,
             _agentRegistry,
             new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null));
+            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
         _ledger = new SessionDeliveryLedger(_fileSystem, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
         _environmentVariables = new FixedEnvironmentVariableProvider();
@@ -63,10 +62,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _sessions,
             _ledger,
             _mail,
-            _environmentVariables,
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null),
-            new FixedClaudeHarnessVersionResolver(),
+            new FixedClaudeSessionFileReader(),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
     }
@@ -79,10 +75,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         _sessions,
         _ledger,
         _mail,
-        _environmentVariables,
-        new ProcessInfoProvider(),
-        new FixedAncestorSessionResolver(null),
-        new FixedClaudeHarnessVersionResolver(),
+        new FixedClaudeSessionFileReader(),
         new FixedInstanceIdProvider("host-1"),
         new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -202,10 +195,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _sessions,
             _ledger,
             _mail,
-            _environmentVariables,
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null),
-            new FixedClaudeHarnessVersionResolver("2.1.241"),
+            new FixedClaudeSessionFileReader(new ClaudeSessionFile(SessionId, "", "", "2.1.241")),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -510,10 +500,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new IncrementNeverMatchesAgentSessionRegistry(_sessions),
             _ledger,
             _mail,
-            _environmentVariables,
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null),
-            new FixedClaudeHarnessVersionResolver(),
+            new FixedClaudeSessionFileReader(),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -546,10 +533,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _sessions,
             spyLedger,
             _mail,
-            _environmentVariables,
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null),
-            new FixedClaudeHarnessVersionResolver(),
+            new FixedClaudeSessionFileReader(),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
@@ -660,32 +644,13 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
     }
 
-    private static AgentSessionGeneration CurrentGeneration() => new(
-        AgentSessionHarness.ClaudeCode,
-        SessionId,
-        "host-1",
-        Pid: 1,
-        "0");
-}
-
-internal sealed class FixedAncestorSessionResolver(ClaudeAncestorSession? session) : IClaudeAncestorSessionResolver
-{
-    public ClaudeAncestorSession? Resolve() => session;
-}
-
-internal sealed class FixedClaudeHarnessVersionResolver(string version = "") : IClaudeHarnessVersionResolver
-{
-    public string Resolve(int pid) => version;
+    private static AgentSessionGeneration CurrentGeneration()
+        => new(AgentSessionHarness.ClaudeCode, SessionId, "host-1");
 }
 
 internal sealed class FixedCodexHarnessVersionResolver(string version = "") : ICodexHarnessVersionResolver
 {
-    public string Resolve(string sessionId, int ancestorPid) => version;
-}
-
-internal sealed class FixedCopilotHarnessVersionResolver(string version = "") : ICopilotHarnessVersionResolver
-{
-    public string Resolve(string sessionId, int ancestorPid) => version;
+    public string Resolve(string sessionId) => version;
 }
 
 /// <summary>
@@ -709,10 +674,6 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
     public Task<AgentSessionClaimResult> ClaimAsync(
         AgentSessionGeneration generation, string actor, bool forceRebind, CancellationToken cancellationToken)
         => inner.ClaimAsync(generation, actor, forceRebind, cancellationToken);
-
-    public Task<AgentSessionClaimResult> SelfClaimAsync(
-        string actor, bool forceRebind, CancellationToken cancellationToken)
-        => inner.SelfClaimAsync(actor, forceRebind, cancellationToken);
 
     public Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => inner.EndAsync(generation, cancellationToken);
@@ -754,10 +715,6 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
         bool forceRebind,
         CancellationToken cancellationToken)
         => inner.RegisterAsync(generation, actor, role, client, forceRebind, cancellationToken);
-
-    public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
-        => inner.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
 
     public Task<AgentSessionRecord?> FindBySessionIdAsync(
         string harness, string host, string sessionId, CancellationToken cancellationToken)

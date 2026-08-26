@@ -102,9 +102,7 @@ public sealed class NotifierTests
                 database,
                 agentRegistry,
                 new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(tempRoot.FullName),
-                new ProcessInfoProvider(),
-                new FixedAncestorSessionResolver(null));
+                new FixedGlobalConfigDirectoryProvider(tempRoot.FullName));
             var instanceIdProvider = new FixedInstanceIdProvider("host-1");
             var globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(tempRoot.FullName);
             var mail = new MailStore(
@@ -131,10 +129,8 @@ public sealed class NotifierTests
             {
             }
 
-            var pid = Environment.ProcessId;
-            var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
             var generation = new AgentSessionGeneration(
-                AgentSessionHarness.Codex, "session-1", "host-1", pid, procStart);
+                AgentSessionHarness.Codex, "session-1", "host-1");
 
             await sessions.StartAsync(
                 generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
@@ -197,6 +193,6 @@ internal sealed class FakeActorWakeDispatcher : IActorWakeDispatcher
 internal sealed class NoopClaudePeerClient : IClaudePeerClient
 {
     public Task<ClaudePeerSendOutcome> SendAsync(
-        int pid, string sessionId, string message, CancellationToken cancellationToken)
+        string sessionId, string message, CancellationToken cancellationToken)
         => Task.FromResult(ClaudePeerSendOutcome.Ok);
 }

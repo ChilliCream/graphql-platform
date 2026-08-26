@@ -13,7 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class SessionPingGateStoreTests : IDisposable
 {
     private static readonly AgentSessionGeneration Generation =
-        new("claude-code", "session-1", "host-a", 4242, "123456");
+        new("claude-code", "session-1", "host-a");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -73,7 +73,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
-        var otherGeneration = Generation with { Pid = 9999, ProcStart = "999999" };
+        var otherGeneration = Generation with { Host = "host-other" };
 
         // act
         var claimed =

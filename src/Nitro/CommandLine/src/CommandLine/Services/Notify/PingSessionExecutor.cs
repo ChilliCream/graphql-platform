@@ -35,7 +35,6 @@ internal sealed class PingSessionExecutor(
         string harness,
         string sessionId,
         string actorName,
-        int pid,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
@@ -48,7 +47,7 @@ internal sealed class PingSessionExecutor(
             slot,
             deadline,
             async (digest, token) => MapClaudePeerResult(
-                await claudePeerClient.SendAsync(pid, sessionId, digest, token)),
+                await claudePeerClient.SendAsync(sessionId, digest, token)),
             cancellationToken);
 
     private async Task<PingAttemptOutcome> ExecuteAsync(

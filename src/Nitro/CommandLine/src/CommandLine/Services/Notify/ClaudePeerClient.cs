@@ -38,7 +38,6 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
     }
 
     public async Task<ClaudePeerSendOutcome> SendAsync(
-        int pid,
         string sessionId,
         string message,
         CancellationToken cancellationToken)
@@ -48,9 +47,10 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             // Always read fresh: the registry and key files are re-read on
             // every call rather than cached, so an attempt always sees the
             // endpoint's current metadata instead of a stale prior read.
-            var registryPath = Path.Combine(_sessionDirectory, $"{pid}.json");
-            var registryJson = await ReadBoundedTextAsync(
-                registryPath, MaxRegistryBytes, cancellationToken);
+            // The registry is keyed by pid on disk, so the row carrying this
+            // session id is found by scanning; the pid it names is only ever
+            // used to locate that row's key files.
+            var registryJson = await FindRegistryAsync(sessionId, cancellationToken);
 
             if (registryJson is null)
             {
@@ -60,7 +60,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             using var registryDocument = JsonDocument.Parse(registryJson);
             var root = registryDocument.RootElement;
 
-            if (!TryReadRegistry(root, pid, sessionId, out var endpoint, out var procStart))
+            if (!TryReadRegistry(root, sessionId, out var pid, out var endpoint, out var procStart))
             {
                 return ClaudePeerSendOutcome.EndpointGone;
             }
@@ -143,19 +143,61 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
         }
     }
 
+    /// <summary>
+    /// The registry row carrying <paramref name="sessionId"/>, or null when
+    /// no row does. The directory holds one file per live session, named by
+    /// its pid, so the row is found by reading them rather than by name.
+    /// </summary>
+    private async Task<string?> FindRegistryAsync(string sessionId, CancellationToken cancellationToken)
+    {
+        if (!Directory.Exists(_sessionDirectory))
+        {
+            return null;
+        }
+
+        foreach (var path in Directory.EnumerateFiles(
+            _sessionDirectory, "*.json", SearchOption.TopDirectoryOnly))
+        {
+            var json = await ReadBoundedTextAsync(path, MaxRegistryBytes, cancellationToken);
+
+            if (json is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(json);
+
+                if (document.RootElement.TryGetProperty("sessionId", out var id)
+                    && id.ValueKind == JsonValueKind.String
+                    && id.GetString() == sessionId)
+                {
+                    return json;
+                }
+            }
+            catch (JsonException)
+            {
+            }
+        }
+
+        return null;
+    }
+
     private static bool TryReadRegistry(
         JsonElement root,
-        int expectedPid,
         string expectedSessionId,
+        out int pid,
         out string endpoint,
         out string procStart)
     {
+        pid = 0;
         endpoint = string.Empty;
         procStart = string.Empty;
 
         if (!root.TryGetProperty("pid", out var pidElement)
-            || !pidElement.TryGetInt32(out var pid)
-            || pid != expectedPid
+            || !pidElement.TryGetInt32(out pid)
+            || pid <= 0
             || !root.TryGetProperty("sessionId", out var sessionIdElement)
             || sessionIdElement.ValueKind != JsonValueKind.String
             || sessionIdElement.GetString() != expectedSessionId

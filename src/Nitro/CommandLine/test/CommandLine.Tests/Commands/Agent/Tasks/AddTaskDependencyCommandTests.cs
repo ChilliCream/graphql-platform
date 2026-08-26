@@ -24,10 +24,10 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
               <depends-on-id>  The task this dependency points to
 
             Options:
-              --type <type>    The dependency type (blocks, parent-child, waits-for, related, ...; default blocks)
-              --actor <actor>  The actor recorded on the audit log; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --type <type>               The dependency type (blocks, parent-child, waits-for, related, ...; default blocks)
+              --actor <actor> (REQUIRED)  The actor recorded on the audit log; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent tasks dep add "acme-1a2" "acme-9z8"

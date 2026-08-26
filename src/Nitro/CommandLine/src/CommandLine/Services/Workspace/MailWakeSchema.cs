@@ -55,15 +55,13 @@ internal static class MailWakeSchema
             harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
             session_id TEXT NOT NULL,
             host TEXT NOT NULL,
-            pid INTEGER NOT NULL CHECK (pid > 0),
-            proc_start TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'pending'
                 CHECK (status IN ('pending', 'delivered', 'satisfied', 'delegated', 'skipped', 'failed')),
             offered_generation INTEGER NULL CHECK (offered_generation IS NULL OR offered_generation >= 0),
             accepted_generation INTEGER NULL CHECK (accepted_generation IS NULL OR accepted_generation >= 0),
             last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
             updated_at TEXT NOT NULL,
-            PRIMARY KEY (batch_id, harness, session_id, host, pid, proc_start)
+            PRIMARY KEY (batch_id, harness, session_id, host)
         """;
 
     public const string Create =

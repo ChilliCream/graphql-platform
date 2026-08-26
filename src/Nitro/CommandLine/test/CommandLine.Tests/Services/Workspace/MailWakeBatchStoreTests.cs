@@ -19,7 +19,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     private const string Actor = "claude";
 
     private static readonly AgentSessionGeneration Target =
-        new("claude-code", "session-1", "host-a", 4242, "123456");
+        new("claude-code", "session-1", "host-a");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;

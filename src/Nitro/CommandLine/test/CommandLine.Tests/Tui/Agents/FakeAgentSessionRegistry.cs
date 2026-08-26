@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
 /// An in-memory <see cref="IAgentSessionRegistry"/> exercising the surface
-/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentsState"/> consumes
+/// <see cref="CommandLine.Tui.Agents.AgentsState"/> consumes
 /// (<see cref="ListParticipantsAsync"/>) and <see cref="FindLiveClaimedByAgentNameAsync"/>,
 /// configurable via <see cref="LiveSessionsByAgentName"/>. Every other member
 /// throws <see cref="NotSupportedException"/>.
@@ -46,10 +46,6 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         AgentSessionGeneration generation, string actor, bool forceRebind, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
-    public Task<AgentSessionClaimResult> SelfClaimAsync(
-        string actor, bool forceRebind, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
     public Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
@@ -73,10 +69,6 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         string client,
         bool forceRebind,
         CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<AgentSessionRecord?> FindBySessionIdAsync(

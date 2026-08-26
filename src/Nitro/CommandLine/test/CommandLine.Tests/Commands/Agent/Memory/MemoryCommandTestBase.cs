@@ -16,6 +16,7 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     {
         SetupNoAuthentication();
         SetupActingActor("test-agent");
+        DefaultActor = "test-agent";
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-memory-command-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");

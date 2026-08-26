@@ -16,19 +16,17 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
               Mark one or more messages read without printing them.
 
             Usage:
-              nitro agent mail ack <message-ids>... [options]
-
-            Arguments:
-              <message-ids>  One or more message IDs
+              nitro agent mail ack [options]
 
             Options:
-              --actor <actor>  The actor performing this command; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --message <message> (REQUIRED)  A message ID; repeat for several messages
+              --actor <actor> (REQUIRED)      The actor performing this command; allocate one with `nitro agent login`
+              --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                  Show help and usage information
 
             Example:
-              nitro agent mail ack "m-abc123"
-              nitro agent mail ack "m-abc123" "m-def456"
+              nitro agent mail ack --message "m-abc123" --actor "maya"
+              nitro agent mail ack --message "m-abc123" --message "m-def456" --actor "maya"
             """);
     }
 
@@ -36,7 +34,7 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "ack", "m-abc123");
+        var result = await ExecuteCommandAsync("agent", "mail", "ack", "--message", "m-abc123");
 
         // assert
         result.AssertError(
@@ -55,7 +53,7 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
         var message = await SeedMessageAsync("bob", "Status", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "ack", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "ack", "--message", message.Id);
 
         // assert
         result.AssertSuccess($"✓ Marked '{message.Id}' read.");
@@ -76,7 +74,7 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
         var second = await SeedMessageAsync("bob", "Two", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "ack", first.Id, second.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "ack", "--message", first.Id, "--message", second.Id);
 
         // assert
         result.AssertSuccess(
@@ -94,7 +92,7 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("test-agent");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "ack", "m-missing");
+        var result = await ExecuteCommandAsync("agent", "mail", "ack", "--message", "m-missing");
 
         // assert
         result.AssertError(
@@ -115,7 +113,7 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
         var foreign = await SeedMessageAsync("bob", "Foreign", ["carol"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "ack", mine.Id, foreign.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "ack", "--message", mine.Id, "--message", foreign.Id);
 
         // assert
         result.AssertError($"'test-agent' is not a recipient of: {foreign.Id}.");
@@ -136,7 +134,7 @@ public sealed class AckMailCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "ack", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "ack", "--message", message.Id);
 
         // assert
         result.AssertSuccess(

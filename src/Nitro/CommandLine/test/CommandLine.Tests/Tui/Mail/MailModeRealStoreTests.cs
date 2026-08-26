@@ -76,13 +76,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         await _store.InitializeWorkspaceAsync(_workspaceDirectory, cancellationToken);
     }
 
-    private MailMode CreateMode(string actor, FakeMailWakeReceiptObserver? wakeObserver = null) => new(
-        _store,
-        actor,
-        _registry,
-        new DaemonOwnedActorWakeDispatcher(),
-        wakeObserver ?? new FakeMailWakeReceiptObserver(),
-        _timeProvider);
+    private MailMode CreateMode(string actor) => new(_store, actor, _registry, _timeProvider);
 
     /// <summary>
     /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/>

@@ -412,13 +412,13 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ShowActivityLetter_When_TheOnlineClaudeSessionHasKnownActivity()
     {
-        // arrange: activity is read through by pid for an online
+        // arrange: activity is read through by session id for an online
         // claude-code session (see AgentsState.RefreshAsync).
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
-            sessionId: "s-a", agentName: "agent-a", state: AgentSessionState.Online, pid: 777));
+            sessionId: "s-a", agentName: "agent-a", state: AgentSessionState.Online));
         var activityReader = new FakeClaudeSessionActivityReader();
-        activityReader.StatusByPid[777] = "busy";
+        activityReader.StatusBySessionId["s-a"] = "busy";
         var mode = CreateMode(sessions, activityReader);
         mode.OnEnter();
 

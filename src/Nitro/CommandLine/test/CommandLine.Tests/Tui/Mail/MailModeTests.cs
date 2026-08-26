@@ -23,15 +23,11 @@ public sealed class MailModeTests
     private static MailMode CreateMode(
         FakeMailStore store,
         string? actor = "alice",
-        FakeAgentRegistry? agentRegistry = null,
-        FakeMailWakeReceiptObserver? wakeObserver = null,
-        IActorWakeDispatcher? wakeDispatcher = null)
+        FakeAgentRegistry? agentRegistry = null)
         => new(
             store,
             actor,
             agentRegistry ?? new FakeAgentRegistry(),
-            wakeDispatcher ?? new DaemonOwnedActorWakeDispatcher(),
-            wakeObserver ?? new FakeMailWakeReceiptObserver(),
             new FakeTimeProvider(Now));
 
     private static AgentRecord Agent(string name) => new()
@@ -693,49 +689,6 @@ public sealed class MailModeTests
         Assert.False(mode.IsInputCapturing);
     }
 
-    [Theory]
-    [InlineData("delivered", "Success")]
-    [InlineData("satisfied", "Success")]
-    [InlineData("delegated", "Success")]
-    [InlineData("pending", "Warn")]
-    [InlineData("failed", "Error")]
-    public async Task ComposeForm_Submit_Should_StoreTheMessage_And_ReportTheObservedWakeStatusTruthfully(
-        string wakeStatus, string expectedStyleName)
-    {
-        // arrange: a store write alone is never reported delivered; only an
-        // A successful wake status (delivered/satisfied/delegated) shows green,
-        // matching the truthful-receipt design (perles-net-4mn comment 156).
-        // InlineData cannot carry the internal ToastStyle enum directly (a
-        // public test method's parameter types must be at least as
-        // accessible as the method), so the expected style is named and
-        // parsed back into the real enum below instead.
-        var expectedStyle = Enum.Parse<ToastStyle>(expectedStyleName);
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var wakeObserver = new FakeMailWakeReceiptObserver();
-        wakeObserver.StatusByActor["bob"] = FakeMailWakeReceiptObserver.Observation("bob", wakeStatus);
-        var mode = CreateMode(store, wakeObserver: wakeObserver);
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.SelectInboxRequested());
-        mode.Handle(new TuiMessage.ComposeRequested());
-        Type(mode, "bob");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Status");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "All good.");
-        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-
-        // act
-        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
-
-        // assert
-        Assert.Equal(expectedStyle, toast.Style);
-        var sent = Assert.Single(store.Messages);
-        Assert.Equal("alice", sent.Sender);
-        Assert.Equal("Status", sent.Subject);
-        Assert.Single(sent.WakeReceipts); // exactly one transactional wake generation, for bob
-    }
-
     [Fact]
     public async Task ComposeForm_Submit_Should_ShowErrorToast_And_WriteNothing_When_StoreRejectsTheWrite()
     {
@@ -809,12 +762,11 @@ public sealed class MailModeTests
     public async Task ComposeForm_Submit_Should_RefuseADuplicateSubmit_While_TheFirstIsStillInFlight()
     {
         // arrange: the second compose is submitted while the first send's
-        // wake observation is still gated open, so exactly one transactional
+        // store write is still gated open, so exactly one transactional
         // send may be in flight at a time (TuiEffectQueue's dedupe key).
         var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var wakeObserver = new FakeMailWakeReceiptObserver { Gate = new TaskCompletionSource() };
-        var mode = CreateMode(store, wakeObserver: wakeObserver);
+        var store = new FakeMailStore { SendGate = new TaskCompletionSource() };
+        var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
         mode.Handle(new TuiMessage.ComposeRequested());
@@ -824,7 +776,7 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Tab));
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, cancellationToken);
+        await WaitUntilAsync(() => store.SendGateEntered, cancellationToken);
 
         mode.Handle(new TuiMessage.ComposeRequested());
         Type(mode, "carol");
@@ -843,8 +795,8 @@ public sealed class MailModeTests
         Assert.True(mode.IsInputCapturing);
         Assert.Single(store.Messages);
 
-        // cleanup: release the gated observation so the first send resolves.
-        wakeObserver.Gate!.SetResult();
+        // cleanup: release the gated write so the first send resolves.
+        store.SendGate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
     }
 
@@ -853,9 +805,8 @@ public sealed class MailModeTests
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var wakeObserver = new FakeMailWakeReceiptObserver { Gate = new TaskCompletionSource() };
-        var mode = CreateMode(store, wakeObserver: wakeObserver);
+        var store = new FakeMailStore { SendGate = new TaskCompletionSource() };
+        var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
         mode.Handle(new TuiMessage.ComposeRequested());
@@ -865,11 +816,11 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Tab));
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, cancellationToken);
+        await WaitUntilAsync(() => store.SendGateEntered, cancellationToken);
 
         var gate = mode.CreateQuitGate();
 
-        // act: bounded drain while the send is still gated open.
+        // act: bounded drain while the store write is still gated open.
         var reportWhilePending = await gate(TimeSpan.FromMilliseconds(50), cancellationToken);
 
         // assert
@@ -879,7 +830,7 @@ public sealed class MailModeTests
 
         // cleanup: release the gate, resume accepting (mirroring
         // TuiShell.QuitCancelled), and confirm the effect drains cleanly.
-        wakeObserver.Gate!.SetResult();
+        store.SendGate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
         mode.ResumeSendAcceptance();
     }
@@ -913,35 +864,6 @@ public sealed class MailModeTests
         // assert
         Assert.Equal(1, report.PendingCount);
         Assert.Equal(0, report.OutcomeUnknownCount);
-        Assert.True(report.HasUnresolvedWork);
-    }
-
-    [Fact]
-    public async Task CreateQuitGate_Should_CountOutcomeUnknown_ForACompletionTheDrainItselfObserves_When_TheWakeStepFaults()
-    {
-        // arrange: a foreground dispatcher failing after the commit
-        // reconciles to an unknown outcome (see ReconcileWakeAsync),
-        // never a failure - the gate must report that as outcome-unknown,
-        // not pending.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var mode = CreateMode(store, wakeDispatcher: new ThrowingActorWakeDispatcher());
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.SelectInboxRequested());
-        mode.Handle(new TuiMessage.ComposeRequested());
-        Type(mode, "bob");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Status");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Body");
-        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-
-        // act
-        var report = await mode.CreateQuitGate()(TimeSpan.FromSeconds(5), cancellationToken);
-
-        // assert
-        Assert.Equal(0, report.PendingCount);
-        Assert.Equal(1, report.OutcomeUnknownCount);
         Assert.True(report.HasUnresolvedWork);
     }
 
@@ -980,73 +902,6 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_When_TheForegroundDispatcherFails()
-    {
-        // arrange: the foreground dispatcher throwing after the store write
-        // already committed must still be reported as sent, only with its
-        // wake outcome unresolved.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var mode = CreateMode(store, wakeDispatcher: new ThrowingActorWakeDispatcher());
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.SelectInboxRequested());
-        mode.Handle(new TuiMessage.ComposeRequested());
-        Type(mode, "bob");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Status");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Body");
-        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-
-        // act
-        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
-
-        // assert
-        Assert.Equal(ToastStyle.Warn, toast.Style);
-        Assert.Contains("Notification outcome unknown", toast.Text, StringComparison.Ordinal);
-        var sent = Assert.Single(store.Messages);
-        Assert.Single(sent.WakeReceipts);
-    }
-
-    [Fact]
-    public async Task ComposeForm_Submit_Should_ShowStoredToast_Before_TheWakeStepResolves()
-    {
-        // arrange: the wake observer is gated open, so the commit has
-        // already landed but the dispatch-and-observe step has not resolved
-        // yet - the truthful intermediate "Stored" toast (perles-net-4mn
-        // comment 211, step 1) must already be visible in that window, well
-        // ahead of the terminal outcome toast.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var wakeObserver = new FakeMailWakeReceiptObserver { Gate = new TaskCompletionSource() };
-        var mode = CreateMode(store, wakeObserver: wakeObserver);
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.SelectInboxRequested());
-        mode.Handle(new TuiMessage.ComposeRequested());
-        Type(mode, "bob");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Status");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Body");
-        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, cancellationToken);
-
-        // act: the terminal outcome cannot have resolved yet, since the
-        // observer is still gated open.
-        var followUp = mode.Handle(new TuiMessage.RefreshRequested());
-
-        // assert
-        var stored = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
-        Assert.Equal(ToastStyle.Info, stored.Style);
-        var sent = Assert.Single(store.Messages);
-        Assert.Equal($"Stored '{sent.Id}' to bob.", stored.Text);
-
-        // cleanup: release the gate so the send resolves.
-        wakeObserver.Gate!.SetResult();
-        await WaitForOutcomeToastAsync(mode, cancellationToken);
-    }
-
-    [Fact]
     public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_Without_AssertingNotStored_When_TheSendEffectFaults()
     {
         // arrange: a non-ExitException from the store write itself (a
@@ -1075,48 +930,6 @@ public sealed class MailModeTests
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Equal("Sending did not complete. The message's outcome is unknown.", toast.Text);
         Assert.Empty(store.Messages);
-    }
-
-    [Fact]
-    public async Task ReplyForm_Submit_Should_ReconcileToAnUnknownNotification_When_TheWakeStepIsCancelledAfterCommit()
-    {
-        // arrange: the token cancels while the wake observation is gated
-        // open, i.e. strictly after the store write already committed. The
-        // message must still exist (only an observed rollback ever means
-        // unsent), with its notification outcome reported unresolved rather
-        // than a hard failure.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var wakeObserver = new FakeMailWakeReceiptObserver { Gate = new TaskCompletionSource() };
-        using var effectCts = new CancellationTokenSource();
-        var mode = new MailMode(
-            store,
-            "alice",
-            new FakeAgentRegistry(),
-            new DaemonOwnedActorWakeDispatcher(),
-            wakeObserver,
-            new FakeTimeProvider(Now),
-            effectCts.Token);
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.SelectInboxRequested());
-        mode.State.SelectedRow = 0;
-        mode.Handle(new TuiMessage.ReplyRequested());
-        Type(mode, "On it.");
-        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-        await WaitUntilAsync(() => wakeObserver.ObserveCallCount > 0, cancellationToken);
-
-        // act: cancelled while the observation is gated open, strictly after
-        // the reply already committed; the gate itself is never released,
-        // so only the cancellation can resolve the wait.
-        await effectCts.CancelAsync();
-        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
-
-        // assert
-        Assert.Equal(ToastStyle.Warn, toast.Style);
-        Assert.Contains("outcome unknown", toast.Text, StringComparison.Ordinal);
-        Assert.Contains(store.Messages, m => m.Sender == "alice" && m.InReplyTo == "m-1" && m.Body == "On it.");
     }
 
     /// <summary>
@@ -1190,8 +1003,6 @@ public sealed class MailModeTests
             store,
             "alice",
             new FakeAgentRegistry(),
-            new DaemonOwnedActorWakeDispatcher(),
-            new FakeMailWakeReceiptObserver(),
             new FakeTimeProvider(Now),
             effectCts.Token);
         mode.OnEnter();
@@ -1584,15 +1395,13 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public async Task ReplyForm_Submit_Should_SendReply_And_ShowSuccessToast_When_TheWakeDelivers()
+    public async Task ReplyForm_Submit_Should_SendReply_And_ShowSuccessToast()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         AddMessage(store, "m-1", Now); // sender defaults to "sender", to "alice"
-        var wakeObserver = new FakeMailWakeReceiptObserver();
-        wakeObserver.StatusByActor["sender"] = FakeMailWakeReceiptObserver.Observation("sender", "delivered");
-        var mode = CreateMode(store, wakeObserver: wakeObserver);
+        var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ReplyRequested());

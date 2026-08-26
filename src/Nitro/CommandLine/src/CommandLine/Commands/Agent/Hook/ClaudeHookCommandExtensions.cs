@@ -6,9 +6,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 /// <summary>
 /// Wires a Claude hook leaf command's action through
 /// <see cref="ClaudeHookExecutor"/> instead of
-/// <c>SetActionWithExceptionHandling</c>: a hook adapter reports failure to
-/// the harness through its own JSON protocol, never through stderr or a
-/// nonzero exit code.
+/// <c>SetActionWithExceptionHandling</c>: a hook adapter reports a transient
+/// failure to the harness through its own JSON protocol rather than through
+/// stderr, and only a condition the user has to act on (an unmigrated
+/// workspace) reaches stderr with a nonzero exit.
 /// </summary>
 internal static class ClaudeHookCommandExtensions
 {
@@ -26,6 +27,7 @@ internal static class ClaudeHookCommandExtensions
                 environmentVariables,
                 services.GetRequiredService<IStandardInputReader>().Reader,
                 parseResult.InvocationConfiguration.Output,
+                parseResult.InvocationConfiguration.Error,
                 (payload, ct) => handle(handler, payload, ct),
                 hookEventName,
                 cancellationToken);

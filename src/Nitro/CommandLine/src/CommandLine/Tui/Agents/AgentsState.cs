@@ -67,7 +67,7 @@ internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaude
     {
         var activity = participant.State == AgentSessionState.Online
             && participant.Session.Harness == AgentSessionHarness.ClaudeCode
-                ? activityReader.GetStatus(participant.Session.Pid, participant.Session.SessionId)
+                ? activityReader.GetStatus(participant.Session.SessionId)
                 : null;
 
         return new AgentParticipantRow(participant, activity);

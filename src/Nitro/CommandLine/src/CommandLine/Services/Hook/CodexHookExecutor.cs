@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
@@ -27,10 +29,12 @@ internal static class CodexHookExecutor
         IEnvironmentVariableProvider environmentVariables,
         TextReader input,
         TextWriter output,
+        TextWriter error,
         Func<CodexHookPayload, CancellationToken, Task<CodexHookOutcome>> handle,
         string hookEventName,
         CancellationToken cancellationToken)
-        => RunAsync(environmentVariables, input, output, handle, hookEventName, EntryTimeout, cancellationToken);
+        => RunAsync(
+            environmentVariables, input, output, error, handle, hookEventName, EntryTimeout, cancellationToken);
 
     /// <summary>
     /// Overload taking an explicit <paramref name="timeout"/> instead of
@@ -41,6 +45,7 @@ internal static class CodexHookExecutor
         IEnvironmentVariableProvider environmentVariables,
         TextReader input,
         TextWriter output,
+        TextWriter error,
         Func<CodexHookPayload, CancellationToken, Task<CodexHookOutcome>> handle,
         string hookEventName,
         TimeSpan timeout,
@@ -75,12 +80,23 @@ internal static class CodexHookExecutor
             // ignoring cancellation must not be allowed to keep this call,
             // and Codex, waiting past the timeout.
         }
+        catch (AgentWorkspaceSchemaMismatchException exception)
+        {
+            // Reported rather than swallowed, the same as the Claude
+            // adapter: a stale schema keeps every hook of every session
+            // inert until someone migrates it, and nothing else ever says
+            // so.
+            await error.WriteLineAsync(exception.Message.AsMemory(), cancellationToken);
+            await WriteAsync(output, CodexHookOutcome.Neutral, hookEventName, cancellationToken);
+
+            return FailureExitCode;
+        }
         catch
         {
-            // Fail-open on EVERYTHING: an empty or malformed payload or a
-            // handler exception (database contention, a schema version
-            // mismatch). `outcome` is still CodexHookOutcome.Neutral, so
-            // Codex always gets a valid neutral response, never an error.
+            // Fail-open on EVERYTHING else: an empty or malformed payload or
+            // a handler exception (database contention, for example).
+            // `outcome` is still CodexHookOutcome.Neutral, so Codex always
+            // gets a valid neutral response, never an error.
             outcome = CodexHookOutcome.Neutral;
         }
 
@@ -105,6 +121,12 @@ internal static class CodexHookExecutor
     // own JSON protocol (or silently, via the neutral response), never
     // through the process exit code.
     private const int ExitCode = 0;
+
+    /// <summary>
+    /// The nonzero exit a hook uses to report a condition the user has to
+    /// act on, mirroring <see cref="ClaudeHookExecutor"/>.
+    /// </summary>
+    private const int FailureExitCode = 1;
 
     private static bool IsSuppressed(IEnvironmentVariableProvider environmentVariables)
         => environmentVariables.GetEnvironmentVariable("NITRO_HOOK_SUPPRESS") is "1" or "true";

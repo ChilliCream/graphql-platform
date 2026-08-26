@@ -14,8 +14,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class SessionGateCoordinatorTests : IDisposable
 {
-    private static readonly AgentSessionGeneration TargetA = new("claude-code", "session-1", "host-1", 100, "1");
-    private static readonly AgentSessionGeneration TargetB = new("claude-code", "session-2", "host-1", 200, "1");
+    private static readonly AgentSessionGeneration TargetA = new("claude-code", "session-1", "host-1");
+    private static readonly AgentSessionGeneration TargetB = new("claude-code", "session-2", "host-1");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;

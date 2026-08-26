@@ -77,7 +77,7 @@ internal sealed record AgentPresence(
 
             if (only.State == AgentSessionState.Online && only.Session.Harness == AgentSessionHarness.ClaudeCode)
             {
-                activity = activityReader.GetStatus(only.Session.Pid, only.Session.SessionId);
+                activity = activityReader.GetStatus(only.Session.SessionId);
             }
         }
 

@@ -19,6 +19,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     {
         SetupNoAuthentication();
         SetupActingActor("test-agent");
+        DefaultActor = "test-agent";
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-mail-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
@@ -69,9 +70,8 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// <summary>
     /// Creates an <see cref="IAgentSessionRegistry"/> bound to this test's
     /// workspace, clock, and instance id, for resolving live participants
-    /// directly without going through the CLI. No ancestor process is ever
-    /// found: every row it acts on must already exist, seeded directly
-    /// against the database.
+    /// directly without going through the CLI: every row it acts on must
+    /// already exist, seeded directly against the database.
     /// </summary>
     internal AgentSessionRegistry CreateSessions(string host)
         => new(
@@ -80,9 +80,7 @@ public abstract class MailCommandTestBase : CommandTestBase
             new AgentDatabase(),
             CreateRegistry(),
             new FixedInstanceIdProvider(host),
-            new FixedGlobalConfigDirectoryProvider(WorkingDirectory),
-            new ProcessInfoProvider(),
-            new FixedClaudeAncestorSessionResolver(null));
+            new FixedGlobalConfigDirectoryProvider(WorkingDirectory));
 
     /// <summary>
     /// Registers an agent directly against the registry.
@@ -160,14 +158,6 @@ public abstract class MailCommandTestBase : CommandTestBase
         string endpointKind = AgentSessionEndpointKind.None,
         string endpointAddr = "")
     {
-        using var process = Process.GetCurrentProcess();
-        var pid = process.Id;
-
-        // The real /proc-reported start ticks for this pid:
-        // TryClaimPingCooldownAsync matches proc_start with raw string
-        // equality against exactly this value.
-        var procStart = ProcStat.ReadStartTicks(pid)!;
-
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
 
@@ -186,10 +176,10 @@ public abstract class MailCommandTestBase : CommandTestBase
         command.CommandText =
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, role, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, role, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'codex', $sessionId, $agentName, $bindingKind, $role, $host, $pid, $procStart,
+                'codex', $sessionId, $agentName, $bindingKind, $role, $host,
                 '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now
             );
             """;
@@ -199,8 +189,6 @@ public abstract class MailCommandTestBase : CommandTestBase
             "$bindingKind", agentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Explicit);
         command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$pid", pid);
-        command.Parameters.AddWithValue("$procStart", procStart);
         command.Parameters.AddWithValue("$endpointKind", endpointKind);
         command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);

@@ -35,6 +35,13 @@ internal sealed class FakeMailStore : IMailStore
     public TaskCompletionSource? SendGate { get; set; }
 
     /// <summary>
+    /// True once a send or reply has reached <see cref="SendGate"/> and is
+    /// waiting on it, so a test can hold a write in flight deterministically
+    /// instead of racing the effect queue.
+    /// </summary>
+    public bool SendGateEntered { get; private set; }
+
+    /// <summary>
     /// When set, every <see cref="SendMessageAsync"/> call throws this
     /// instead of writing, for exercising a failure that is not an
     /// <see cref="ExitException"/>: the same way a genuine bug in the real
@@ -118,6 +125,7 @@ internal sealed class FakeMailStore : IMailStore
     {
         if (SendGate is { } gate)
         {
+            SendGateEntered = true;
             await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -164,6 +172,7 @@ internal sealed class FakeMailStore : IMailStore
     {
         if (SendGate is { } gate)
         {
+            SendGateEntered = true;
             await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
 

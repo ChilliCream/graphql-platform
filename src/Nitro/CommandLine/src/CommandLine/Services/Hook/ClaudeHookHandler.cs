@@ -11,39 +11,10 @@ internal sealed class ClaudeHookHandler(
     IAgentSessionRegistry sessionRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
-    IProcessInfoProvider processInfoProvider,
     IClaudeSessionFileReader sessionFileReader,
-    IClaudeHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
 {
-    public ClaudeHookHandler(
-        IFileSystem fileSystem,
-        TimeProvider timeProvider,
-        IAgentSessionRegistry sessionRegistry,
-        ISessionDeliveryLedger ledger,
-        IMailStore mailStore,
-        IEnvironmentVariableProvider environmentVariableProvider,
-        IProcessInfoProvider processInfoProvider,
-        IClaudeSessionFileReader sessionFileReader,
-        IClaudeHarnessVersionResolver harnessVersionResolver,
-        INitroInstanceIdProvider instanceIdProvider,
-        IGlobalConfigDirectoryProvider globalConfigDirectoryProvider)
-        : this(
-            fileSystem,
-            timeProvider,
-            sessionRegistry,
-            ledger,
-            mailStore,
-            processInfoProvider,
-            sessionFileReader,
-            harnessVersionResolver,
-            instanceIdProvider,
-            globalConfigDirectoryProvider)
-    {
-        ArgumentNullException.ThrowIfNull(environmentVariableProvider);
-    }
-
     /// <summary>
     /// The per-turn Stop gate block budget, reset on <c>UserPromptSubmit</c>
     /// so normal mail volume can never silently disable the gate for the
@@ -56,9 +27,9 @@ internal sealed class ClaudeHookHandler(
     /// </summary>
     public const int MaxDigestMessages = 10;
 
-    private const string BlockReason =
-        "Unread nitro mail is waiting. Read it with `nitro agent mail inbox` "
-        + "before ending this turn, or ignore this once if it is not actionable right now.";
+    private static string BlockReason(string actor)
+        => $"Unread nitro mail is waiting. Read it with `nitro agent mail inbox --actor {actor}` "
+            + "before ending this turn, or ignore this once if it is not actionable right now.";
 
     public async Task<ClaudeHookOutcome> HandleSessionStartAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
@@ -84,11 +55,10 @@ internal sealed class ClaudeHookHandler(
             envActor: null,
             cancellationToken);
 
-        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.Pid);
-
-        if (harnessVersion.Length > 0)
+        if (resolved.HarnessVersion.Length > 0)
         {
-            await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
+            await sessionRegistry.RecordHarnessVersionAsync(
+                resolved.Generation, resolved.HarnessVersion, cancellationToken);
         }
 
         return new ClaudeHookOutcome
@@ -136,13 +106,15 @@ internal sealed class ClaudeHookHandler(
 
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
-        var actorContext = AgentActorContext.Format(row.AgentName, row.Role);
+        // The actor name is not repeated here: SessionStart already announces
+        // it on startup, resume, clear, compact, and fork, which covers every
+        // point the session could have lost it. This event only speaks up
+        // when there is unread mail to announce.
         var digest = await BuildDigestAsync(resolved.Generation, row.AgentName, cancellationToken);
 
-        return new ClaudeHookOutcome
-        {
-            AdditionalContext = AgentActorContext.Combine(actorContext, digest)
-        };
+        return digest is null
+            ? ClaudeHookOutcome.Neutral
+            : new ClaudeHookOutcome { AdditionalContext = digest };
     }
 
     public async Task<ClaudeHookOutcome> HandleStopAsync(
@@ -209,7 +181,7 @@ internal sealed class ClaudeHookHandler(
             return ClaudeHookOutcome.Neutral;
         }
 
-        return new ClaudeHookOutcome { Block = true, BlockReason = BlockReason };
+        return new ClaudeHookOutcome { Block = true, BlockReason = BlockReason(row.AgentName) };
     }
 
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
@@ -263,20 +235,15 @@ internal sealed class ClaudeHookHandler(
     /// <summary>
     /// Resolves the generation identity and workspace an event's payload
     /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable cwd, no agent workspace at that cwd, no live process
-    /// identity (the ancestor walk in real usage; <paramref name="dryRun"/>
-    /// pins a fixed sentinel identity instead), or this process's own cwd
-    /// resolving to a different workspace than the payload's cwd does
-    /// (mirrors <c>SelfClaimAsync</c>'s same check). A missing
-    /// <see cref="ClaudeHookPayload.SessionId"/> does not fail open by
-    /// itself: with a resolvable process identity, the deterministic
-    /// provisional session id for it (see
-    /// <see cref="AgentSessionProvisionalSessionId"/>) is used instead.
+    /// or unresolvable cwd, a missing session id, no agent workspace at that
+    /// cwd, or this process's own cwd resolving to a different workspace
+    /// than the payload's cwd does. In a dry run the session file is not
+    /// consulted at all, so a fixture payload resolves without one.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(payload.Cwd))
+        if (string.IsNullOrWhiteSpace(payload.Cwd) || string.IsNullOrWhiteSpace(payload.SessionId))
         {
             return null;
         }
@@ -289,60 +256,25 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        int pid;
-        string procStart;
-        string? endpointName;
-
-        if (dryRun)
-        {
-            // Pid 1, not 0: the agent_sessions schema's `pid > 0` CHECK
-            // rejects zero. Any fixed positive pid is exactly as safe a
-            // sentinel here, since pairing it with the "0" proc_start
-            // below (no live process ever reports 0 start ticks) is what
-            // actually makes collision with a real session's generation
-            // impossible.
-            pid = 1;
-            procStart = "0";
-            endpointName = null;
-        }
-        else
-        {
-            // The event names its own session, so the session file that
-            // carries that id identifies the process exactly. Nothing is
-            // inferred from the process tree.
-            var session = sessionFileReader.Find(payload.SessionId ?? string.Empty);
-
-            if (session is null)
-            {
-                return null;
-            }
-
-            var resolvedStart = processInfoProvider.GetStartTicks(session.Pid);
-
-            if (resolvedStart is null)
-            {
-                return null;
-            }
-
-            pid = session.Pid;
-            procStart = resolvedStart;
-            endpointName = session.Name;
-        }
+        // The event names its own session, so the session file that carries
+        // that id describes it exactly. Nothing is inferred from the process
+        // tree, and a session with no file still resolves: the file only
+        // supplies the peer address and the harness version.
+        var session = dryRun ? null : sessionFileReader.Find(payload.SessionId);
 
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(payload.SessionId))
-        {
-            return null;
-        }
-
         var generation = new AgentSessionGeneration(
-            AgentSessionHarness.ClaudeCode, payload.SessionId, host, pid, procStart);
+            AgentSessionHarness.ClaudeCode, payload.SessionId, host);
 
-        return new ResolvedGeneration(generation, payloadWorkspace, endpointName);
+        return new ResolvedGeneration(
+            generation, payloadWorkspace, session?.Name, session?.Version ?? string.Empty);
     }
 
     private sealed record ResolvedGeneration(
-        AgentSessionGeneration Generation, string WorkspaceDirectory, string? EndpointName);
+        AgentSessionGeneration Generation,
+        string WorkspaceDirectory,
+        string? EndpointName,
+        string HarnessVersion);
 }

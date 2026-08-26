@@ -99,8 +99,8 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         {
             await connection.ExecuteAsync(
                 """
-                INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
-                VALUES (@batchId, @harness, @sessionId, @host, @pid, @procStart, 'pending', @now)
+                INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
+                VALUES (@batchId, @harness, @sessionId, @host, 'pending', @now)
                 """,
                 new
                 {
@@ -108,8 +108,6 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                     harness = target.Harness,
                     sessionId = target.SessionId,
                     host = target.Host,
-                    pid = target.Pid,
-                    procStart = target.ProcStart,
                     now,
                     cancellationToken
                 },
@@ -265,7 +263,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                 last_error = @lastError,
                 updated_at = @now
             WHERE batch_id = @batchId AND harness = @harness AND session_id = @sessionId
-              AND host = @host AND pid = @pid AND proc_start = @procStart
+              AND host = @host
               AND EXISTS (
                   SELECT 1 FROM mail_wake_batches
                   WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
@@ -279,8 +277,6 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                 harness = target.Harness,
                 sessionId = target.SessionId,
                 host = target.Host,
-                pid = target.Pid,
-                procStart = target.ProcStart,
                 status,
                 offeredGeneration,
                 acceptedGeneration,

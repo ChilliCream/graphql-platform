@@ -45,18 +45,17 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         result.AssertHelpOutput(
             """
             Description:
-              Install, inspect, and remove Nitro's Claude Code hook entries.
+              Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
 
             Usage:
-              nitro agent hooks claude [command] [options]
+              nitro agent hooks [command] [options]
 
             Options:
               -?, -h, --help  Show help and usage information
 
             Commands:
-              install    Add or update this CLI's Claude Code turn-boundary hook entries.
-              status     Show whether this CLI's Claude Code hook entries are missing, current, or outdated.
-              uninstall  Remove this CLI's Claude Code turn-boundary hook entries.
+              claude  Install, inspect, and remove Nitro's Claude Code hook entries.
+              codex   Install, inspect, and remove Nitro's Codex CLI hook and notify entries.
             """);
     }
 

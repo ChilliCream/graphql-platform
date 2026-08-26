@@ -95,7 +95,7 @@ internal sealed class ActorWakeDispatcher(
             .Where(s => s.Harness != AgentSessionHarness.NitroBoard)
             .OrderByDescending(s => s.LastBeatAt)
             .Take(1)
-            .Select(s => new AgentSessionGeneration(s.Harness, s.SessionId, s.Host, s.Pid, s.ProcStart))
+            .Select(s => new AgentSessionGeneration(s.Harness, s.SessionId, s.Host))
             .ToList();
     }
 
@@ -305,7 +305,7 @@ internal sealed class ActorWakeDispatcher(
 
                 var outcome = session.EndpointKind == AgentSessionEndpointKind.ClaudePeer
                     ? await executor.ExecuteClaudePeerAsync(
-                        session.Harness, session.SessionId, actor, session.Pid, pingAttemptId, held.Slot,
+                        session.Harness, session.SessionId, actor, pingAttemptId, held.Slot,
                         attemptDeadline, dispatchToken)
                     : await executor.ExecuteCodexThreadAsync(
                         session.Harness, session.SessionId, actor, session.EndpointAddr, pingAttemptId, held.Slot,

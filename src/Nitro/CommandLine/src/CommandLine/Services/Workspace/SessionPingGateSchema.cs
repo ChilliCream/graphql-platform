@@ -4,9 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// Schema v7: <c>session_ping_gates</c>, the per-session-generation mutual
 /// exclusion gate a caller reserves before attempting any endpoint transport
 /// against one exact <see cref="AgentSessionGeneration"/>, keyed by its full
-/// (harness, session_id, host, pid, proc_start) tuple so a stale generation
-/// (an older pid the OS has since reused, or a superseded SessionStart) can
-/// never contend with the current one. Distinct from <c>ping_leases</c>,
+/// (harness, session_id, host) tuple. Distinct from <c>ping_leases</c>,
 /// which caps total outstanding ping children workspace-wide regardless of
 /// which session they target; this table instead guarantees at most one
 /// attempt in flight against any single session generation at a time. Not
@@ -38,12 +36,10 @@ internal static class SessionPingGateSchema
             harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
             session_id TEXT NOT NULL,
             host TEXT NOT NULL,
-            pid INTEGER NOT NULL CHECK (pid > 0),
-            proc_start TEXT NOT NULL,
             attempt_id TEXT NOT NULL,
             acquired_at TEXT NOT NULL,
             expires_at TEXT NOT NULL,
-            PRIMARY KEY (harness, session_id, host, pid, proc_start)
+            PRIMARY KEY (harness, session_id, host)
         """;
 
     public const string Create =

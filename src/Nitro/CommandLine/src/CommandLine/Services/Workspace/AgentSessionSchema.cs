@@ -14,24 +14,17 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// for (<c>claude-peer</c>, currently): a distinct diagnostic from
 /// <c>endpoint_kind = 'none'</c>, which means the session simply has no
 /// endpoint to attempt at all. <c>agent_sessions</c> also carries the
-/// mutable participant <c>role</c>, the exact <c>harness_version</c>, and
-/// the <c>process_scope</c> that distinguishes PID/boot namespace
-/// visibility, added in v5. v6 adds <c>proc_start_legacy</c>: <c>proc_start</c>
-/// switched from a DateTimeOffset compared with a wall-clock tolerance to a
-/// raw kernel start-tick string compared by exact equality, and a row a
-/// v5-to-v6 migration carries forward cannot be converted to ticks (the
-/// writing host's boot time is unknown here), so it is marked
-/// <c>proc_start_legacy = 1</c> and read with the old wall-clock rule until
-/// its own next SessionStart rewrites it with fresh ticks and clears the
-/// marker. A generation-predicated mutation (claim, heartbeat, ping,
-/// delete) matches <c>proc_start</c> by SQL equality against raw ticks, so
-/// it no-ops on a legacy row until that same rewrite happens. v8 adds
-/// <c>nitro-board</c> to the <c>harness</c> CHECK constraint (a running
-/// board process, bound to the durable human mail actor as an operator
-/// participant instead of a coding-harness hook) and <c>db-watch</c> to the
-/// <c>endpoint_kind</c> CHECK constraint (the shared workspace database
-/// file itself as the delivery endpoint, with no routable address and no
-/// transport ever fired against it).
+/// mutable participant <c>role</c> and the exact <c>harness_version</c>.
+/// v8 adds <c>nitro-board</c> to the <c>harness</c> CHECK constraint (a
+/// running board process, bound to the durable human mail actor as an
+/// operator participant instead of a coding-harness hook) and
+/// <c>db-watch</c> to the <c>endpoint_kind</c> CHECK constraint (the shared
+/// workspace database file itself as the delivery endpoint, with no
+/// routable address and no transport ever fired against it). v10 drops the
+/// <c>pid</c>, <c>proc_start</c>, <c>process_scope</c> and
+/// <c>proc_start_legacy</c> columns: a hook event names its own session, so
+/// (harness, session_id, host) identifies a row exactly and no process
+/// identity is recorded or compared.
 /// </summary>
 internal static class AgentSessionSchema
 {
@@ -52,8 +45,6 @@ internal static class AgentSessionSchema
             agent_name TEXT NULL REFERENCES agents (name),
             binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
             host TEXT NOT NULL,
-            pid INTEGER NOT NULL CHECK (pid > 0),
-            proc_start TEXT NOT NULL,
             cwd TEXT NOT NULL,
             workspace_path TEXT NOT NULL,
             endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'db-watch', 'none')),
@@ -67,8 +58,6 @@ internal static class AgentSessionSchema
             last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
             role TEXT NOT NULL DEFAULT '',
             harness_version TEXT NOT NULL DEFAULT '',
-            process_scope TEXT NOT NULL DEFAULT '',
-            proc_start_legacy INTEGER NOT NULL DEFAULT 0 CHECK (proc_start_legacy IN (0, 1)),
             -- Table-level CHECK constraints must follow every column
             -- definition (SQLite rejects one interleaved between columns),
             -- so both cross-column checks live here instead of next to the
@@ -88,7 +77,6 @@ internal static class AgentSessionSchema
         );
 
         CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);
-        CREATE INDEX IF NOT EXISTS idx_agent_sessions_pid ON agent_sessions (host, pid);
 
         CREATE TABLE IF NOT EXISTS session_deliveries (
             harness TEXT NOT NULL,

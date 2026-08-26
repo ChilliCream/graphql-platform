@@ -39,11 +39,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
         services.TryAddSingleton<IGlobalConfigDirectoryProvider, GlobalConfigDirectoryProvider>();
         services.TryAddSingleton<INitroInstanceIdProvider, NitroInstanceIdProvider>();
-        services.TryAddSingleton<IProcessInfoProvider, ProcessInfoProvider>();
         services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
-        services.TryAddSingleton<IClaudeAncestorSessionResolver, ClaudeAncestorSessionResolver>();
-        services.TryAddSingleton<ICodexAncestorSessionResolver, CodexAncestorSessionResolver>();
-        services.TryAddSingleton<IClaudeHarnessVersionResolver, ClaudeHarnessVersionResolver>();
         services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();

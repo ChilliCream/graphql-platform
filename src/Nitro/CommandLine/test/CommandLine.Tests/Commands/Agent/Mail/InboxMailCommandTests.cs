@@ -19,14 +19,14 @@ public sealed class InboxMailCommandTests(NitroCommandFixture fixture)
               nitro agent mail inbox [options]
 
             Options:
-              --unread         Only show messages that have not been read
-              --from <from>    Only show messages sent by this agent
-              --since <since>  Only show messages created at or after this RFC 3339 timestamp
-              --all            Include archived messages
-              --limit <limit>  The maximum number of messages to show
-              --actor <actor>  The actor performing this command; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --unread                    Only show messages that have not been read
+              --from <from>               Only show messages sent by this agent
+              --since <since>             Only show messages created at or after this RFC 3339 timestamp
+              --all                       Include archived messages
+              --limit <limit>             The maximum number of messages to show
+              --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent mail inbox

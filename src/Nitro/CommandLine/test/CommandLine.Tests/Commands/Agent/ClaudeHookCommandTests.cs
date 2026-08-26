@@ -18,8 +18,6 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // announced actor is the seeded name rather than an allocated one.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -33,13 +31,13 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task SessionStart_Should_WriteNeutralResponse_When_NoSessionResolves()
+    public async Task SessionStart_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession()
     {
-        // arrange: no ancestor harness session, so nothing identifies this
-        // process as a coding session.
+        // arrange: a payload with no session id, so nothing identifies which
+        // session the event speaks for.
         await InitWorkspaceAsync();
         SetupStandardInput(
-            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+            $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
@@ -56,8 +54,6 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // empty inbox, so the context carries no mail digest.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -80,8 +76,6 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         await SeedAgentAsync("ada");
         await ExecuteCommandAsync(
             "agent", "mail", "send", "--body", "All good.", "--to", "maya", "--subject", "Status", "--actor", "ada");
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -101,8 +95,6 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // so the gate has nothing to block the turn for.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
@@ -126,8 +118,6 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
         await SeedAgentAsync("ada");
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
@@ -142,7 +132,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // assert
         Assert.Equal(0, result.ExitCode);
         result.StdOut.Trim().MatchInlineSnapshot(
-            """{"decision":"block","reason":"Unread nitro mail is waiting. Read it with \u0060nitro agent mail inbox\u0060 before ending this turn, or ignore this once if it is not actionable right now."}""");
+            """{"decision":"block","reason":"Unread nitro mail is waiting. Read it with \u0060nitro agent mail inbox --actor maya\u0060 before ending this turn, or ignore this once if it is not actionable right now."}""");
     }
 
     [Fact]
@@ -151,8 +141,6 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // arrange: a presence row this session started.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
-        SetupAncestorSessionResolvers(
-            claude: new ClaudeAncestorSession(Environment.ProcessId, "session-1", WorkingDirectory, ""));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
@@ -173,14 +161,14 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [InlineData("user-prompt-submit")]
     [InlineData("stop")]
     [InlineData("session-end")]
-    public async Task Event_Should_WriteNeutralResponse_When_NoSessionResolves(string eventName)
+    public async Task Event_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession(string eventName)
     {
-        // arrange: no ancestor harness session, so nothing identifies this
-        // process as a coding session.
+        // arrange: a payload with no session id, so nothing identifies which
+        // session the event speaks for.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
         SetupStandardInput(
-            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+            $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "claude", eventName);

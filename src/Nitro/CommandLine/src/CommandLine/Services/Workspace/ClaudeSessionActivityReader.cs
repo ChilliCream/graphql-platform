@@ -2,14 +2,14 @@ using System.Text.Json;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
-internal sealed class ClaudeSessionActivityReader(Func<int, string?>? sessionFileReader = null)
+internal sealed class ClaudeSessionActivityReader(Func<string, string?>? sessionFileReader = null)
     : IClaudeSessionActivityReader
 {
-    private readonly Func<int, string?> _sessionFileReader = sessionFileReader ?? ReadSessionFile;
+    private readonly Func<string, string?> _sessionFileReader = sessionFileReader ?? ReadSessionFile;
 
-    public string? GetStatus(int pid, string sessionId)
+    public string? GetStatus(string sessionId)
     {
-        var json = _sessionFileReader(pid);
+        var json = _sessionFileReader(sessionId);
 
         if (json is null)
         {
@@ -19,16 +19,9 @@ internal sealed class ClaudeSessionActivityReader(Func<int, string?>? sessionFil
         try
         {
             using var document = JsonDocument.Parse(json);
-            var root = document.RootElement;
 
-            if (!root.TryGetProperty("sessionId", out var sessionIdElement)
-                || sessionIdElement.GetString() != sessionId)
-            {
-                return null;
-            }
-
-            return root.TryGetProperty("status", out var statusElement)
-                ? statusElement.GetString()
+            return document.RootElement.TryGetProperty("status", out var status)
+                ? status.GetString()
                 : null;
         }
         catch (JsonException)
@@ -37,25 +30,45 @@ internal sealed class ClaudeSessionActivityReader(Func<int, string?>? sessionFil
         }
     }
 
-    private static string? ReadSessionFile(int pid)
+    /// <summary>
+    /// The session file carrying <paramref name="sessionId"/>. The directory
+    /// holds one file per live session, named by its pid rather than its
+    /// session id, so the file is found by reading them.
+    /// </summary>
+    private static string? ReadSessionFile(string sessionId)
     {
+        var directory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "sessions");
+
         try
         {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".claude",
-                "sessions",
-                $"{pid}.json");
+            foreach (var path in Directory.EnumerateFiles(directory, "*.json"))
+            {
+                var json = File.ReadAllText(path);
 
-            return File.Exists(path) ? File.ReadAllText(path) : null;
+                try
+                {
+                    using var document = JsonDocument.Parse(json);
+
+                    if (document.RootElement.TryGetProperty("sessionId", out var id)
+                        && id.ValueKind == JsonValueKind.String
+                        && id.GetString() == sessionId)
+                    {
+                        return json;
+                    }
+                }
+                catch (JsonException)
+                {
+                }
+            }
         }
         catch (IOException)
         {
-            return null;
         }
         catch (UnauthorizedAccessException)
         {
-            return null;
         }
+
+        return null;
     }
 }

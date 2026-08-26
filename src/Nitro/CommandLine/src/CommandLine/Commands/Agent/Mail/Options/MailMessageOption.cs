@@ -4,7 +4,7 @@ internal sealed class MailMessageOption : Option<string>
 {
     public MailMessageOption() : base("--message")
     {
-        Description = "The ID of the message to reply to";
+        Description = "The message ID";
         Required = true;
     }
 }

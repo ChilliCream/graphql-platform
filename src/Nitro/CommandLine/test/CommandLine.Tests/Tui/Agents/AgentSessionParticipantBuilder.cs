@@ -18,7 +18,6 @@ internal static class AgentSessionParticipantBuilder
         string role = "",
         string harnessVersion = "",
         string host = "host-a",
-        int pid = 4242,
         string cwd = "/work",
         string workspacePath = "/work/.nitro/agents",
         string endpointKind = "claude-peer",
@@ -32,8 +31,6 @@ internal static class AgentSessionParticipantBuilder
             AgentName = agentName,
             BindingKind = agentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Explicit,
             Host = host,
-            Pid = pid,
-            ProcStart = "1000000",
             Cwd = cwd,
             WorkspacePath = workspacePath,
             EndpointKind = endpointKind,
@@ -42,15 +39,13 @@ internal static class AgentSessionParticipantBuilder
             LastBeatAt = lastBeatAt ?? startedAt ?? DefaultNow,
             BlockBudgetUsed = 0,
             Role = role,
-            HarnessVersion = harnessVersion,
-            ProcessScope = "",
-            ProcStartLegacy = false
+            HarnessVersion = harnessVersion
         };
 
     /// <summary>
     /// Builds a participant with <paramref name="state"/> supplied directly
     /// (as <see cref="FakeAgentSessionRegistry"/> hands it straight back,
-    /// rather than recomputing it from host/pid the way the real registry
+    /// rather than recomputing it from the host the way the real registry
     /// does - that computation is covered separately by
     /// <c>AgentSessionRegistryTests</c>). An unreachable state clears the
     /// endpoint columns, mirroring how the real registry only reports
@@ -63,7 +58,6 @@ internal static class AgentSessionParticipantBuilder
         string harness = "claude-code",
         string harnessVersion = "",
         string state = AgentSessionState.Online,
-        int pid = 4242,
         AgentRecord? agent = null,
         DateTimeOffset? startedAt = null,
         DateTimeOffset? lastBeatAt = null)
@@ -76,7 +70,6 @@ internal static class AgentSessionParticipantBuilder
             agentName: agentName,
             role: role,
             harnessVersion: harnessVersion,
-            pid: pid,
             endpointKind: unreachable ? AgentSessionEndpointKind.None : AgentSessionEndpointKind.ClaudePeer,
             endpointAddr: unreachable ? "" : "peer",
             startedAt: startedAt,

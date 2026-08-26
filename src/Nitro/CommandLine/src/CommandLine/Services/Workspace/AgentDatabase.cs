@@ -19,7 +19,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 9;
+    public const int CurrentVersion = 10;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -27,8 +27,7 @@ internal sealed class AgentDatabase
     /// implicit columns), v3 (after those columns and the client column,
     /// before the v4 <see cref="AgentSessionSchema"/> tables), v4 (before
     /// <c>agent_sessions</c> gained its v5 role, harness_version, and
-    /// process_scope columns), v5 (before <c>agent_sessions</c> gained its
-    /// v6 <c>proc_start_legacy</c> column), v6 (before the v7
+    /// process_scope columns), v5, v6 (before the v7
     /// <see cref="MailWakeSchema"/> and <see cref="SessionPingGateSchema"/>
     /// tables), and v7 (before <c>agent_sessions</c>', <c>mail_wake_targets</c>'
     /// and <c>session_ping_gates</c>' <c>harness</c> CHECK constraints, and
@@ -38,12 +37,8 @@ internal sealed class AgentDatabase
     /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
     /// means applying the new v4 tables and bumping the stamped version. A
     /// v4 database's <c>agent_sessions</c> table already carries every
-    /// column except the three <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/>
-    /// adds. A v5 database's <c>agent_sessions</c> table already carries
-    /// every column except <c>proc_start_legacy</c>, which
-    /// <see cref="UpgradeAgentSessionsProcStartLegacyColumnAsync"/> adds,
-    /// marking every existing row legacy since none of them can carry raw
-    /// start ticks yet. A v6 database is missing every v7 table outright, so
+    /// column except the two <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/>
+    /// adds. A v6 database is missing every v7 table outright, so
     /// upgrading it means only applying the new schema and bumping the
     /// stamped version, the same unconditional <c>CREATE TABLE IF NOT EXISTS</c>
     /// shape the v4 session tables used when they were added: there is no
@@ -58,9 +53,17 @@ internal sealed class AgentDatabase
     /// and <see cref="RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync"/>.
     /// The v8-to-v9 upgrade preserves task tables and external memory files,
     /// but resets legacy agent, connection, mail, and wake state so the v9
-    /// one-session/one-actor invariant starts from a consistent state.
+    /// one-session/one-actor invariant starts from a consistent state. The
+    /// v9-to-v10 upgrade drops the <c>pid</c> and <c>proc_start</c> columns
+    /// (and <c>agent_sessions</c>' <c>process_scope</c> and
+    /// <c>proc_start_legacy</c>) from all three tables that carried them:
+    /// a session is identified by (harness, session_id, host) alone, never
+    /// by a process. SQLite cannot drop a primary key column in place, so
+    /// each of the three rebuilds that already exist for a stale CHECK
+    /// constraint also triggers on a surviving <c>pid</c> column and copies
+    /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -81,8 +84,8 @@ internal sealed class AgentDatabase
     /// further transaction, applies the task, mail, agent registry,
     /// mail-wake, and session-ping-gate schemas, upgrades the agents
     /// table's role, implicit, and client columns and the agent_sessions
-    /// table's role, harness_version, and process_scope columns in place
-    /// when any of them predate the database on hand, and stamps the
+    /// table's role and harness_version columns in place when any of them
+    /// predate the database on hand, and stamps the
     /// current schema version. Returns the open
     /// connection so callers, including test seeding helpers, can write
     /// against it directly. Throws <see cref="ExitException"/> when the existing
@@ -172,11 +175,6 @@ internal sealed class AgentDatabase
         // bead adds.
         await UpgradeAgentSessionsMetadataColumnsAsync(connection, transaction);
 
-        // Same unconditional, column-checked shape again: every existing v5
-        // database predates proc_start_legacy, so this is what actually
-        // carries out the v5-to-v6 migration this bead adds.
-        await UpgradeAgentSessionsProcStartLegacyColumnAsync(connection, transaction);
-
         if (version == 8)
         {
             await ResetLegacyAgentStateAsync(connection, transaction);
@@ -192,10 +190,10 @@ internal sealed class AgentDatabase
         // off for the moment agent_sessions is dropped, which PRAGMA
         // foreign_keys cannot do with a transaction pending. Running it here
         // rather than alongside that earlier rebuild also guarantees every
-        // column the current schema carries (v5's role/harness_version/
-        // process_scope, v6's proc_start_legacy) already exists on the
-        // source table by the time it runs, so every row's real values are
-        // copied through unchanged instead of being re-defaulted.
+        // column the current schema carries (v5's role and harness_version)
+        // already exists on the source table by the time it runs, so every
+        // row's real values are copied through unchanged instead of being
+        // re-defaulted.
         await RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync(connection, cancellationToken);
 
         return connection;
@@ -258,11 +256,10 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
-    /// Adds the <c>agent_sessions</c> table's v5 <c>role</c>,
-    /// <c>harness_version</c>, and <c>process_scope</c> columns when the
-    /// database on hand's table predates any of them, checked column by
-    /// column so this is safe to run against a table that already carries
-    /// all three.
+    /// Adds the <c>agent_sessions</c> table's v5 <c>role</c> and
+    /// <c>harness_version</c> columns when the database on hand's table
+    /// predates either of them, checked column by column so this is safe to
+    /// run against a table that already carries both.
     /// </summary>
     private static async Task UpgradeAgentSessionsMetadataColumnsAsync(
         SqliteConnection connection,
@@ -285,45 +282,6 @@ internal sealed class AgentDatabase
                 "ALTER TABLE agent_sessions ADD COLUMN harness_version TEXT NOT NULL DEFAULT '';",
                 transaction: transaction);
         }
-
-        if (!columns.Contains("process_scope"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agent_sessions ADD COLUMN process_scope TEXT NOT NULL DEFAULT '';",
-                transaction: transaction);
-        }
-    }
-
-    /// <summary>
-    /// Adds the <c>agent_sessions</c> table's v6 <c>proc_start_legacy</c>
-    /// column when the database on hand's table predates it, then marks
-    /// EVERY row already in the table legacy: a table missing this column
-    /// predates raw start ticks entirely, so every <c>proc_start</c> value
-    /// it already holds is the pre-v6 DateTimeOffset text, not ticks, and
-    /// must be read with the legacy wall-clock liveness rule until each
-    /// row's own next SessionStart rewrites it fresh. Safe to run against a
-    /// table that already carries the column (a no-op).
-    /// </summary>
-    private static async Task UpgradeAgentSessionsProcStartLegacyColumnAsync(
-        SqliteConnection connection,
-        DbTransaction transaction)
-    {
-        var columns = (await connection.QueryAsync<string>(
-                "SELECT name FROM pragma_table_info('agent_sessions');", transaction: transaction))
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (columns.Contains("proc_start_legacy"))
-        {
-            return;
-        }
-
-        await connection.ExecuteAsync(
-            "ALTER TABLE agent_sessions ADD COLUMN proc_start_legacy "
-            + "INTEGER NOT NULL DEFAULT 0 CHECK (proc_start_legacy IN (0, 1));",
-            transaction: transaction);
-
-        await connection.ExecuteAsync(
-            "UPDATE agent_sessions SET proc_start_legacy = 1;", transaction: transaction);
     }
 
     /// <summary>
@@ -377,24 +335,17 @@ internal sealed class AgentDatabase
                 $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
             await connection.ExecuteAsync(
                 AgentSessionSchema.CreateAgentSessionsTable(rebuildTableName), transaction: transaction);
-            // proc_start_legacy is set to the literal 1, not copied from a
-            // source column (this rebuild's source table predates it
-            // entirely): any row old enough to need this CHECK-constraint
-            // rebuild predates raw start ticks too, so every proc_start
-            // value it carries is the pre-v6 DateTimeOffset text.
             await connection.ExecuteAsync(
                 $"""
                 INSERT INTO "{rebuildTableName}" (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    proc_start_legacy
+                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail
                 )
                 SELECT
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    1
+                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail
                 FROM agent_sessions;
                 """,
                 transaction: transaction);
@@ -407,10 +358,7 @@ internal sealed class AgentDatabase
             // was never renamed, so session_deliveries' foreign key still
             // resolves.
             await connection.ExecuteAsync(
-                """
-                CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);
-                CREATE INDEX IF NOT EXISTS idx_agent_sessions_pid ON agent_sessions (host, pid);
-                """,
+                "CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);",
                 transaction: transaction);
 
             await transaction.CommitAsync(cancellationToken);
@@ -424,7 +372,8 @@ internal sealed class AgentDatabase
     /// <summary>
     /// Rebuilds <c>agent_sessions</c> in place when its stamped CHECK
     /// constraints on <c>harness</c> or <c>endpoint_kind</c> predate the v8
-    /// <c>nitro-board</c> harness value or <c>db-watch</c> endpoint kind,
+    /// <c>nitro-board</c> harness value or <c>db-watch</c> endpoint kind, or
+    /// when it still carries the v9 <c>pid</c> column the v10 schema drops,
     /// detected the same way <see cref="RebuildAgentSessionsCheckConstraintIfStaleAsync"/>
     /// detects a stale <c>last_ping_result</c> constraint: by inspecting the
     /// table's own recorded SQL in <c>sqlite_master</c>, since SQLite has no
@@ -435,8 +384,9 @@ internal sealed class AgentDatabase
     /// current schema carries is copied through unchanged rather than
     /// re-defaulted: unlike the rebuild above, this one only ever runs after
     /// every column-upgrade step in <see cref="InitializeAsync"/> has
-    /// already applied, so v5's role/harness_version/process_scope and v6's
-    /// proc_start_legacy are guaranteed present on the source table.
+    /// already applied, so v5's role and harness_version are guaranteed
+    /// present on the source table. The columns v10 drops are simply left
+    /// out of the copy.
     /// </summary>
     /// <remarks>
     /// Follows the same drop-under-a-fresh-name-then-rename procedure as
@@ -458,7 +408,8 @@ internal sealed class AgentDatabase
 
         if (createTableSql is null
             || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
-                && createTableSql.Contains("'db-watch'", StringComparison.Ordinal)))
+                && createTableSql.Contains("'db-watch'", StringComparison.Ordinal)
+                && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
         {
             return;
         }
@@ -478,16 +429,16 @@ internal sealed class AgentDatabase
             await connection.ExecuteAsync(
                 $"""
                 INSERT INTO "{rebuildTableName}" (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                     block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    role, harness_version, process_scope, proc_start_legacy
+                    role, harness_version
                 )
                 SELECT
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                     block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    role, harness_version, process_scope, proc_start_legacy
+                    role, harness_version
                 FROM agent_sessions;
                 """,
                 transaction: transaction);
@@ -496,10 +447,7 @@ internal sealed class AgentDatabase
                 $"""ALTER TABLE "{rebuildTableName}" RENAME TO agent_sessions;""", transaction: transaction);
 
             await connection.ExecuteAsync(
-                """
-                CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);
-                CREATE INDEX IF NOT EXISTS idx_agent_sessions_pid ON agent_sessions (host, pid);
-                """,
+                "CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);",
                 transaction: transaction);
 
             await transaction.CommitAsync(cancellationToken);
@@ -513,13 +461,14 @@ internal sealed class AgentDatabase
     /// <summary>
     /// Rebuilds <c>mail_wake_targets</c> in place when its stamped
     /// <c>harness</c> CHECK constraint predates the v8 <c>nitro-board</c>
-    /// value, detected the same way
+    /// value, or when it still carries the v9 <c>pid</c> column the v10
+    /// schema drops, detected the same way
     /// <see cref="RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync"/>
-    /// detects a stale <c>agent_sessions</c> constraint: by inspecting the
-    /// table's own recorded SQL in <c>sqlite_master</c>, since SQLite has no
-    /// ALTER for a CHECK constraint. A no-op when the constraint already
-    /// lists the new value (including every freshly created table) or when
-    /// the table does not exist yet.
+    /// detects a stale <c>agent_sessions</c> table: by inspecting the
+    /// table's own recorded SQL in <c>sqlite_master</c>, since SQLite has
+    /// neither an ALTER for a CHECK constraint nor one that drops a primary
+    /// key column. A no-op when the table is already current, or when it
+    /// does not exist yet.
     /// </summary>
     /// <remarks>
     /// Follows the same drop-under-a-fresh-name-then-rename procedure as
@@ -538,7 +487,9 @@ internal sealed class AgentDatabase
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'mail_wake_targets';",
             transaction: transaction);
 
-        if (createTableSql is null || createTableSql.Contains("'nitro-board'", StringComparison.Ordinal))
+        if (createTableSql is null
+            || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
+                && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
         {
             return;
         }
@@ -552,11 +503,11 @@ internal sealed class AgentDatabase
         await connection.ExecuteAsync(
             $"""
             INSERT INTO "{rebuildTableName}" (
-                batch_id, harness, session_id, host, pid, proc_start,
+                batch_id, harness, session_id, host,
                 status, offered_generation, accepted_generation, last_error, updated_at
             )
             SELECT
-                batch_id, harness, session_id, host, pid, proc_start,
+                batch_id, harness, session_id, host,
                 status, offered_generation, accepted_generation, last_error, updated_at
             FROM mail_wake_targets;
             """,
@@ -569,11 +520,11 @@ internal sealed class AgentDatabase
     /// <summary>
     /// Rebuilds <c>session_ping_gates</c> in place when its stamped
     /// <c>harness</c> CHECK constraint predates the v8 <c>nitro-board</c>
-    /// value, the same gap and detection method
+    /// value, or when it still carries the v9 <c>pid</c> column the v10
+    /// schema drops: the same gaps and detection method
     /// <see cref="RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync"/>
-    /// closes for <c>mail_wake_targets</c>. A no-op when the constraint
-    /// already lists the new value (including every freshly created table)
-    /// or when the table does not exist yet.
+    /// closes for <c>mail_wake_targets</c>. A no-op when the table is
+    /// already current, or when it does not exist yet.
     /// </summary>
     /// <remarks>
     /// Follows the same procedure as
@@ -592,7 +543,9 @@ internal sealed class AgentDatabase
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'session_ping_gates';",
             transaction: transaction);
 
-        if (createTableSql is null || createTableSql.Contains("'nitro-board'", StringComparison.Ordinal))
+        if (createTableSql is null
+            || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
+                && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
         {
             return;
         }
@@ -606,10 +559,10 @@ internal sealed class AgentDatabase
         await connection.ExecuteAsync(
             $"""
             INSERT INTO "{rebuildTableName}" (
-                harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at
+                harness, session_id, host, attempt_id, acquired_at, expires_at
             )
             SELECT
-                harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at
+                harness, session_id, host, attempt_id, acquired_at, expires_at
             FROM session_ping_gates;
             """,
             transaction: transaction);
@@ -691,7 +644,7 @@ internal sealed class AgentDatabase
 
         if (version != CurrentVersion)
         {
-            throw new ExitException(
+            throw new AgentWorkspaceSchemaMismatchException(
                 $"The agent workspace database has schema v{version}, expected v{CurrentVersion}. "
                 + "Run `nitro agent init` to migrate it.");
         }

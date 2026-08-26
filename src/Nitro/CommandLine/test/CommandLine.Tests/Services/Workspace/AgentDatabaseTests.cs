@@ -108,8 +108,8 @@ public sealed class AgentDatabaseTests : IDisposable
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", sessionColumns);
         Assert.Contains("harness_version", sessionColumns);
-        Assert.Contains("process_scope", sessionColumns);
-        Assert.Contains("proc_start_legacy", sessionColumns);
+        Assert.DoesNotContain("pid", sessionColumns);
+        Assert.DoesNotContain("proc_start", sessionColumns);
     }
 
     [Fact]
@@ -142,30 +142,6 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken));
         Assert.Equal(AgentDatabase.CurrentVersion,
             await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
-    }
-
-    /// <summary>
-    /// A row created fresh against the current schema defaults to
-    /// <c>proc_start_legacy = 0</c> without any caller needing to set it
-    /// explicitly, since a fresh row's <c>proc_start</c> is always raw
-    /// ticks, never the pre-v6 legacy format.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_DefaultProcStartLegacyToFalse_When_RowIsFreshlyInserted()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await InsertAgentSessionAsync(connection, "session-fresh-legacy", cancellationToken);
-
-        // act
-        var procStartLegacy = await QueryScalarLongAsync(
-            connection,
-            "SELECT proc_start_legacy FROM agent_sessions WHERE session_id = 'session-fresh-legacy'",
-            cancellationToken);
-
-        // assert
-        Assert.Equal(0, procStartLegacy);
     }
 
     [Fact]
@@ -411,7 +387,7 @@ public sealed class AgentDatabaseTests : IDisposable
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", sessionColumns);
         Assert.Contains("harness_version", sessionColumns);
-        Assert.Contains("process_scope", sessionColumns);
+        Assert.DoesNotContain("process_scope", sessionColumns);
 
         var agentName = await QueryScalarStringAsync(
             connection2, "SELECT agent_name FROM agent_sessions WHERE session_id = 'session-v4'", cancellationToken);
@@ -423,13 +399,8 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2,
             "SELECT harness_version FROM agent_sessions WHERE session_id = 'session-v4'",
             cancellationToken);
-        var processScope = await QueryScalarStringAsync(
-            connection2,
-            "SELECT process_scope FROM agent_sessions WHERE session_id = 'session-v4'",
-            cancellationToken);
         Assert.Equal("", role);
         Assert.Equal("", harnessVersion);
-        Assert.Equal("", processScope);
 
         var deliveryCount = await QueryScalarLongAsync(
             connection2,
@@ -456,7 +427,7 @@ public sealed class AgentDatabaseTests : IDisposable
     /// it fresh.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_UpgradeAgentSessionsProcStartLegacyColumn_When_ExistingVersionIsV5()
+    public async Task InitializeAsync_Should_DropTheProcessColumns_When_ExistingVersionIsV5()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -555,17 +526,12 @@ public sealed class AgentDatabaseTests : IDisposable
 
         var sessionColumns = (await QueryColumnNamesAsync(connection2, "agent_sessions", cancellationToken))
             .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("proc_start_legacy", sessionColumns);
+        Assert.DoesNotContain("proc_start", sessionColumns);
+        Assert.DoesNotContain("proc_start_legacy", sessionColumns);
 
-        var procStartLegacy = await QueryScalarLongAsync(
-            connection2,
-            "SELECT proc_start_legacy FROM agent_sessions WHERE session_id = 'session-v5'",
-            cancellationToken);
-        Assert.Equal(1, procStartLegacy);
-
-        var procStart = await QueryScalarStringAsync(
-            connection2, "SELECT proc_start FROM agent_sessions WHERE session_id = 'session-v5'", cancellationToken);
-        Assert.Equal("2026-01-10T12:00:00.000000+00:00", procStart);
+        var role = await QueryScalarStringAsync(
+            connection2, "SELECT role FROM agent_sessions WHERE session_id = 'session-v5'", cancellationToken);
+        Assert.Equal("backend", role);
 
         var deliveryCount = await QueryScalarLongAsync(
             connection2,
@@ -685,14 +651,10 @@ public sealed class AgentDatabaseTests : IDisposable
             cancellationToken);
         Assert.Equal("ok", existingLastPingResult);
 
-        // This row went through the CHECK-constraint rebuild, which predates
-        // proc_start_legacy entirely, so it must come out marked legacy
-        // rather than silently defaulting to "carries raw ticks".
-        var procStartLegacy = await QueryScalarLongAsync(
-            connection2,
-            "SELECT proc_start_legacy FROM agent_sessions WHERE session_id = 'session-old'",
-            cancellationToken);
-        Assert.Equal(1, procStartLegacy);
+        var sessionColumns = (await QueryColumnNamesAsync(connection2, "agent_sessions", cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.DoesNotContain("pid", sessionColumns);
+        Assert.DoesNotContain("proc_start", sessionColumns);
 
         var deliveryCount = await QueryScalarLongAsync(
             connection2,
@@ -724,11 +686,11 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                 last_ping_result
             ) VALUES (
-                'claude-code', 'session-invalid', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'claude-code', 'session-invalid', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00', 'not-a-real-result'
             );
@@ -783,10 +745,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'nitro-board', 'board-fresh', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'nitro-board', 'board-fresh', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'db-watch', 'local', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );
@@ -809,7 +771,7 @@ public sealed class AgentDatabaseTests : IDisposable
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await StampVersionOnNewFileAsync(10, cancellationToken);
+        await StampVersionOnNewFileAsync(AgentDatabase.CurrentVersion + 1, cancellationToken);
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
@@ -822,14 +784,14 @@ public sealed class AgentDatabaseTests : IDisposable
     /// CLI understands must still be rejected, force or not.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion10()
+    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstAVersionNewerThanCurrent()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 10;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 11;", cancellationToken);
         }
 
         // act & assert
@@ -878,7 +840,7 @@ public sealed class AgentDatabaseTests : IDisposable
         }
 
         // act & assert
-        await Assert.ThrowsAsync<ExitException>(
+        await Assert.ThrowsAsync<AgentWorkspaceSchemaMismatchException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
     }
 
@@ -890,7 +852,7 @@ public sealed class AgentDatabaseTests : IDisposable
         await StampVersionOnNewFileAsync(1, cancellationToken);
 
         // act & assert
-        await Assert.ThrowsAsync<ExitException>(
+        await Assert.ThrowsAsync<AgentWorkspaceSchemaMismatchException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
     }
 
@@ -902,11 +864,11 @@ public sealed class AgentDatabaseTests : IDisposable
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 10;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 11;", cancellationToken);
         }
 
         // act & assert
-        var exception = await Assert.ThrowsAsync<ExitException>(
+        var exception = await Assert.ThrowsAsync<AgentWorkspaceSchemaMismatchException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
         Assert.Contains("newer version", exception.Message);
     }
@@ -930,7 +892,7 @@ public sealed class AgentDatabaseTests : IDisposable
         await StampVersionOnNewFileAsync(upgradableVersion, cancellationToken);
 
         // act & assert
-        await Assert.ThrowsAsync<ExitException>(
+        await Assert.ThrowsAsync<AgentWorkspaceSchemaMismatchException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
     }
 
@@ -956,10 +918,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', 'session-1', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'claude-code', 'session-1', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );
@@ -1019,10 +981,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', 'session-2', NULL, 'explicit', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'claude-code', 'session-2', NULL, 'explicit', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );
@@ -1047,10 +1009,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', 'session-3', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'claude-code', 'session-3', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'claude-peer', '', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );
@@ -1074,10 +1036,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', 'session-4', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'claude-code', 'session-4', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'none', 'peer-a', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );
@@ -1285,13 +1247,13 @@ public sealed class AgentDatabaseTests : IDisposable
                 VALUES ('msg-v6', 'codex', 'to', 0);
 
                 INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    role, harness_version, process_scope, proc_start_legacy
+                    role, harness_version
                 ) VALUES (
-                    'claude-code', 'session-v6', 'claude', 'explicit', 'host-a', 4242, '123456',
+                    'claude-code', 'session-v6', 'claude', 'explicit', 'host-a',
                     '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3', 'pidns:4242', 0
+                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3'
                 );
 
                 INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
@@ -1476,18 +1438,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2,
             "SELECT harness_version FROM agent_sessions WHERE session_id = 'session-v7'",
             cancellationToken);
-        var processScope = await QueryScalarStringAsync(
-            connection2, "SELECT process_scope FROM agent_sessions WHERE session_id = 'session-v7'", cancellationToken);
-        var procStartLegacy = await QueryScalarLongAsync(
-            connection2,
-            "SELECT proc_start_legacy FROM agent_sessions WHERE session_id = 'session-v7'",
-            cancellationToken);
         var endpointKind = await QueryScalarStringAsync(
             connection2, "SELECT endpoint_kind FROM agent_sessions WHERE session_id = 'session-v7'", cancellationToken);
         Assert.Equal("backend", role);
         Assert.Equal("1.2.3", harnessVersion);
-        Assert.Equal("pidns:4242", processScope);
-        Assert.Equal(0, procStartLegacy);
         Assert.Equal("claude-peer", endpointKind);
 
         var deliveryCount = await QueryScalarLongAsync(
@@ -1499,10 +1453,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2,
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'nitro-board', 'board-1', NULL, 'none', 'host-a', 5000, '654321',
+                'nitro-board', 'board-1', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'db-watch', 'local', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );
@@ -1643,11 +1597,11 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             connection2,
             """
-            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
-            VALUES ('batch-v7', 'nitro-board', 'board-v8', 'host-a', 5000, '654321', 'pending', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
+            VALUES ('batch-v7', 'nitro-board', 'board-v8', 'host-a', 'pending', '2026-01-10T12:00:00+00:00');
 
-            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
-            VALUES ('nitro-board', 'board-v8', 'host-a', 5000, '654321', 'attempt-2', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
+            VALUES ('nitro-board', 'board-v8', 'host-a', 'attempt-2', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
             """,
             cancellationToken);
 
@@ -1707,11 +1661,11 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             connection,
             """
-            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
-            VALUES ('batch-fresh', 'nitro-board', 'board-fresh', 'host-a', 4242, '654321', 'pending', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
+            VALUES ('batch-fresh', 'nitro-board', 'board-fresh', 'host-a', 'pending', '2026-01-10T12:00:00+00:00');
 
-            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
-            VALUES ('nitro-board', 'board-fresh', 'host-a', 4242, '654321', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
+            VALUES ('nitro-board', 'board-fresh', 'host-a', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
             """,
             cancellationToken);
 
@@ -1820,9 +1774,8 @@ public sealed class AgentDatabaseTests : IDisposable
                 'batch-target', 'instance-a', 'claude', 1, 'owner-1', 'attempt-1',
                 'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
             );
-            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
-            VALUES ('batch-target', 'claude-code', 'session-target', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                    'pending', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
+            VALUES ('batch-target', 'claude-code', 'session-target', 'host-a', 'pending', '2026-01-10T12:00:00+00:00');
             """,
             cancellationToken);
 
@@ -1874,9 +1827,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             connection,
             """
-            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
-            VALUES ('claude-code', 'session-gate', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                    'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
+            VALUES ('claude-code', 'session-gate', 'host-a', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
             """,
             cancellationToken);
 
@@ -1907,9 +1859,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             connection,
             """
-            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
-            VALUES ('claude-code', 'session-dup', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                    'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
+            VALUES ('claude-code', 'session-dup', 'host-a', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
             """,
             cancellationToken);
 
@@ -1917,9 +1868,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
-            INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
-            VALUES ('claude-code', 'session-dup', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                    'attempt-2', '2026-01-10T12:00:01+00:00', '2026-01-10T12:00:31+00:00');
+            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
+            VALUES ('claude-code', 'session-dup', 'host-a', 'attempt-2', '2026-01-10T12:00:01+00:00', '2026-01-10T12:00:31+00:00');
             """,
             cancellationToken));
     }
@@ -2005,10 +1955,10 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             $"""
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', '{sessionId}', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
+                'claude-code', '{sessionId}', NULL, 'none', 'host-a',
                 '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
                 '2026-01-10T12:00:00+00:00'
             );

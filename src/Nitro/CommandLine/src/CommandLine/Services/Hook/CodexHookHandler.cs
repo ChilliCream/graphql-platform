@@ -56,8 +56,8 @@ internal sealed class CodexHookHandler(
         }
 
         // The Codex endpoint address is the thread id itself, which equals
-        // the session id. Unlike Claude's ancestor-derived peer name, Codex has no
-        // live per-pid registry to read a "name" from.
+        // the session id. Unlike Claude's session file, Codex publishes no
+        // separate peer name to address.
         var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
             ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
             : (AgentSessionEndpointKind.None, string.Empty);
@@ -71,7 +71,7 @@ internal sealed class CodexHookHandler(
             envActor: null,
             cancellationToken);
 
-        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.SessionId, resolved.Generation.Pid);
+        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.SessionId);
 
         if (harnessVersion.Length > 0)
         {
@@ -120,14 +120,16 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        var actorContext = AgentActorContext.Format(row.AgentName, row.Role);
+        // The actor name is not repeated here, the same as the Claude
+        // adapter: session-start already announces it whenever a session
+        // begins or resumes. This event only speaks up when there is unread
+        // mail to announce.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
-        return new CodexHookOutcome
-        {
-            AdditionalContext = AgentActorContext.Combine(actorContext, digest)
-        };
+        return digest is null
+            ? CodexHookOutcome.Neutral
+            : new CodexHookOutcome { AdditionalContext = digest };
     }
 
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
@@ -231,26 +233,11 @@ internal sealed class CodexHookHandler(
 
     /// <summary>
     /// Resolves the generation identity and workspace an event's payload
-    /// addresses, or null when any fail-open condition applies: a missing or
-    /// unresolvable cwd, no agent workspace at that cwd, no live Codex
-    /// ancestor process (the ancestor walk in real usage; <paramref
-    /// name="payload"/> names no session, or this
-    /// process's own cwd resolving to a different workspace than the
-    /// payload's cwd does. A missing session/thread id does not fail open by
-    /// itself: with a resolvable process identity, the deterministic
-    /// provisional session id for it (see
-    /// <see cref="AgentSessionProvisionalSessionId"/>) is used instead.
-    /// Mirrors <c>ClaudeHookHandler.ResolveAsync</c>.
-    /// <para>
-    /// For <see cref="HandleNotifyAsync"/> specifically, the Codex process
-    /// may no longer be resolvable as a live
-    /// ancestor by the time <c>notify</c> runs for a one-shot <c>codex exec</c>
-    /// invocation. If
-    /// it is not, this resolves to null and the gate fails open for that
-    /// turn - an accepted, documented drop under the plan's guarantee
-    /// statement ("notification is best effort... fail-open errors... can
-    /// drop an individual attempt"), not a crash or an incorrect action.
-    /// </para>
+    /// addresses, or null when any fail-open condition applies: a missing
+    /// or unresolvable cwd, a missing session/thread id, no agent workspace
+    /// at that cwd, or this process's own cwd resolving to a different
+    /// workspace than the payload's cwd does. Mirrors
+    /// <c>ClaudeHookHandler.ResolveAsync</c>.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
@@ -268,13 +255,6 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        // The event names its own session and delivery addresses the thread
-        // id, so no process is involved. The schema still requires a
-        // positive pid, and (harness, session_id) is what identifies a row,
-        // so a fixed sentinel is enough until those columns are dropped.
-        const int pid = 1;
-        const string procStart = "0";
-
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
@@ -283,8 +263,10 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
+        // The event names its own session and delivery addresses the thread
+        // id, so no process is involved in identifying the row.
         var generation = new AgentSessionGeneration(
-            AgentSessionHarness.Codex, payload.SessionId, host, pid, procStart);
+            AgentSessionHarness.Codex, payload.SessionId, host);
 
         return new ResolvedGeneration(generation, payloadWorkspace);
     }

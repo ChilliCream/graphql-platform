@@ -12,10 +12,15 @@ internal sealed class AgentSessionRegistry(
     AgentDatabase database,
     IAgentRegistry agentRegistry,
     INitroInstanceIdProvider instanceIdProvider,
-    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
-    IProcessInfoProvider processInfoProvider,
-    IClaudeAncestorSessionResolver ancestorResolver) : IAgentSessionRegistry
+    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IAgentSessionRegistry
 {
+    /// <summary>
+    /// How long a session row survives without a heartbeat before
+    /// <see cref="ReapAsync"/> removes it. A live session beats on every
+    /// hook event it sends.
+    /// </summary>
+    private static readonly TimeSpan s_staleAfter = TimeSpan.FromHours(24);
+
     public async Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
         string cwd,
@@ -72,12 +77,12 @@ internal sealed class AgentSessionRegistry(
             await connection.ExecuteAsync(
                 """
                 INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                    harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, role, process_scope
+                    block_budget_used, role
                 ) VALUES (
-                    @harness, @sessionId, @agentName, @bindingKind, @host, @pid, @procStart,
-                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @role, @processScope
+                    @harness, @sessionId, @agentName, @bindingKind, @host,
+                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @role
                 );
                 """,
                 new
@@ -87,15 +92,12 @@ internal sealed class AgentSessionRegistry(
                     agentName = boundAgentName,
                     bindingKind,
                     host = generation.Host,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
                     cwd,
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
                     role = identityRole,
-                    processScope = processInfoProvider.GetProcessScope(),
                     cancellationToken
                 },
                 transaction);
@@ -111,15 +113,13 @@ internal sealed class AgentSessionRegistry(
                 await connection.ExecuteAsync(
                     "UPDATE agent_sessions SET last_beat_at = @now "
                     + "WHERE harness = @harness AND session_id = @sessionId "
-                    + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                    + "AND host = @host",
                     new
                     {
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                        pid = generation.Pid,
-                        procStart = generation.ProcStart,
-                        host = generation.Host,
+                                host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -130,7 +130,7 @@ internal sealed class AgentSessionRegistry(
                     "UPDATE agent_sessions SET agent_name = @agentName, binding_kind = @bindingKind, "
                     + "role = @role, last_beat_at = @now "
                     + "WHERE harness = @harness AND session_id = @sessionId "
-                    + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                    + "AND host = @host",
                     new
                     {
                         agentName = boundAgentName,
@@ -139,9 +139,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                        pid = generation.Pid,
-                        procStart = generation.ProcStart,
-                        host = generation.Host,
+                                host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -163,11 +161,6 @@ internal sealed class AgentSessionRegistry(
             // fresh SessionStart, rebinding exactly as the missing-row case
             // above does, and reset the delivery ledger and counters.
             //
-            // proc_start_legacy resets to 0 unconditionally here: a fresh
-            // SessionStart always carries a freshly observed generation, so
-            // its proc_start is always raw ticks, never the legacy format a
-            // schema migration may have left the OLD generation carrying.
-            //
             // Both statements below predicate on the OLD generation
             // (`existing`), not just (harness, session_id): a reader that
             // observed this same old generation is the only writer allowed
@@ -184,9 +177,6 @@ internal sealed class AgentSessionRegistry(
                     agent_name = @agentName,
                     binding_kind = @bindingKind,
                     host = @host,
-                    pid = @pid,
-                    proc_start = @procStart,
-                    proc_start_legacy = 0,
                     cwd = @cwd,
                     workspace_path = @workspacePath,
                     endpoint_kind = @endpointKind,
@@ -199,10 +189,9 @@ internal sealed class AgentSessionRegistry(
                     last_ping_result = NULL,
                     last_ping_detail = NULL,
                     role = @role,
-                    harness_version = '',
-                    process_scope = @processScope
+                    harness_version = ''
                 WHERE harness = @harness AND session_id = @sessionId
-                    AND pid = @oldPid AND proc_start = @oldProcStart AND host = @oldHost;
+                    AND host = @oldHost;
                 """,
                 new
                 {
@@ -211,17 +200,12 @@ internal sealed class AgentSessionRegistry(
                     agentName = boundAgentName,
                     bindingKind,
                     host = generation.Host,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
                     cwd,
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
                     role = identityRole,
-                    processScope = processInfoProvider.GetProcessScope(),
-                    oldPid = existing.Pid,
-                    oldProcStart = existing.ProcStart,
                     oldHost = existing.Host,
                     cancellationToken
                 },
@@ -323,129 +307,6 @@ internal sealed class AgentSessionRegistry(
             new { actor, now, cancellationToken },
             transaction);
 
-    /// <summary>
-    /// When a provisional row (see <see cref="AgentSessionProvisionalSessionId"/>)
-    /// already exists for <paramref name="generation"/>'s exact
-    /// (harness, host, pid, proc_start), a later event supplying the
-    /// canonical session id for that same live process must project as the
-    /// same participant rather than a second one: adopts the row under
-    /// <paramref name="generation"/>'s canonical session id, refreshing only
-    /// the endpoint, location, and heartbeat columns a fresh SessionStart
-    /// carries. The binding, role, delivery ledger content, block budget,
-    /// and every other column stay exactly as they were, the ledger's rows
-    /// carried over to follow the row's new key (its foreign key has no
-    /// <c>ON UPDATE CASCADE</c>, so re-keying the parent row also re-keys
-    /// its own children). A stale row already sitting under the canonical
-    /// (harness, session id) is replaced by the adopted provisional row,
-    /// taking its ledger with it via <c>ON DELETE CASCADE</c>. Returns null
-    /// when no provisional row matches, so the caller falls through to its
-    /// normal SessionStart handling.
-    /// </summary>
-    private static async Task<AgentSessionRow?> TryAdoptProvisionalRowAsync(
-        SqliteConnection connection,
-        DbTransaction transaction,
-        AgentSessionGeneration generation,
-        string cwd,
-        string workspacePath,
-        string normalizedEndpointKind,
-        string normalizedEndpointAddr,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var provisionalRow = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
-            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
-            + "WHERE harness = @harness AND host = @host AND pid = @pid AND proc_start = @procStart",
-            new
-            {
-                harness = generation.Harness,
-                host = generation.Host,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
-                cancellationToken
-            },
-            transaction);
-
-        if (provisionalRow is null || !AgentSessionProvisionalSessionId.IsProvisional(provisionalRow.SessionId))
-        {
-            return null;
-        }
-
-        var parameters = new
-        {
-            sessionId = generation.SessionId,
-            endpointKind = normalizedEndpointKind,
-            endpointAddr = normalizedEndpointAddr,
-            cwd,
-            workspacePath,
-            now,
-            harness = generation.Harness,
-            oldSessionId = provisionalRow.SessionId,
-            pid = generation.Pid,
-            procStart = generation.ProcStart,
-            host = generation.Host,
-            cancellationToken
-        };
-
-        // A three-step re-key rather than a single UPDATE of session_id:
-        // session_deliveries' foreign key references agent_sessions
-        // (harness, session_id) without ON UPDATE CASCADE, so renaming the
-        // parent's key in place while its own child ledger rows still point
-        // at the old key violates the constraint. Inserting the row under
-        // its new key first, then repointing the ledger rows at it, then
-        // deleting the old key keeps every row valid at every step and
-        // relies on the same ON DELETE CASCADE the final delete would
-        // trigger anyway if the ledger were still attached to it.
-        //
-        // A stale row can already occupy the canonical (harness, session id)
-        // key, for example a prior session that never received a SessionEnd
-        // for that same id at an older process generation. That row is
-        // discarded here, its ledger going with it via ON DELETE CASCADE,
-        // exactly what StartAsync's generation-change branch would have
-        // wiped had this call fallen through to it instead.
-        await connection.ExecuteAsync(
-            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId",
-            parameters,
-            transaction);
-
-        await connection.ExecuteAsync(
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start, proc_start_legacy,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                role, harness_version, process_scope
-            )
-            SELECT
-                harness, @sessionId, agent_name, binding_kind, host, pid, proc_start, proc_start_legacy,
-                @cwd, @workspacePath, @endpointKind, @endpointAddr, started_at, @now,
-                block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                role, harness_version, process_scope
-            FROM agent_sessions
-            WHERE harness = @harness AND session_id = @oldSessionId
-                AND pid = @pid AND proc_start = @procStart AND host = @host;
-            """,
-            parameters,
-            transaction);
-
-        await connection.ExecuteAsync(
-            "UPDATE session_deliveries SET session_id = @sessionId "
-            + "WHERE harness = @harness AND session_id = @oldSessionId",
-            parameters,
-            transaction);
-
-        await connection.ExecuteAsync(
-            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @oldSessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-            parameters,
-            transaction);
-
-        return await connection.QueryFirstAsync<AgentSessionRow>(
-            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
-            + "WHERE harness = @harness AND session_id = @sessionId",
-            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
-            transaction);
-    }
-
     public async Task<AgentSessionClaimResult> ClaimAsync(
         AgentSessionGeneration generation,
         string actor,
@@ -467,13 +328,11 @@ internal sealed class AgentSessionRegistry(
         var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
             $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            + "AND host = @host",
             new
             {
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 host = generation.Host,
                 cancellationToken
             },
@@ -483,8 +342,7 @@ internal sealed class AgentSessionRegistry(
         {
             throw new ExitException(
                 $"No session found for '{generation.Harness}' session '{generation.SessionId}' "
-                + $"at pid {generation.Pid} on this host. It may have ended, been reaped, "
-                + "or never started.");
+                + "on this host. It may have ended, been reaped, or never started.");
         }
 
         var previousBindingKind = row.BindingKind;
@@ -567,13 +425,11 @@ internal sealed class AgentSessionRegistry(
         var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
             $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            + "AND host = @host",
             new
             {
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 host = generation.Host,
                 cancellationToken
             },
@@ -583,12 +439,10 @@ internal sealed class AgentSessionRegistry(
         {
             throw new ExitException(
                 $"No session found for '{generation.Harness}' session '{generation.SessionId}' "
-                + $"at pid {generation.Pid} on this host. If hooks were never installed, run "
+                + "on this host. If hooks were never installed, run "
                 + $"`nitro agent hooks {HooksInstallCommandName(generation.Harness)} install` and "
                 + "start a new session; otherwise it may have ended or been reaped.");
         }
-
-        RequireObservableProcessScope(generation, row.ProcessScope);
 
         await RequireKnownActorAsync(connection, transaction, normalizedActor, cancellationToken);
 
@@ -623,15 +477,13 @@ internal sealed class AgentSessionRegistry(
         await connection.ExecuteAsync(
             "UPDATE agent_sessions SET role = @role, last_beat_at = @now "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            + "AND host = @host",
             new
             {
                 role = normalizedRole,
                 now,
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 host = generation.Host,
                 cancellationToken
             },
@@ -680,13 +532,11 @@ internal sealed class AgentSessionRegistry(
         var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
             $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            + "AND host = @host",
             new
             {
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 host = generation.Host,
                 cancellationToken
             },
@@ -696,12 +546,10 @@ internal sealed class AgentSessionRegistry(
         {
             throw new ExitException(
                 $"No session found for '{generation.Harness}' session '{generation.SessionId}' "
-                + $"at pid {generation.Pid} on this host. If hooks were never installed, run "
+                + "on this host. If hooks were never installed, run "
                 + $"`nitro agent hooks {HooksInstallCommandName(generation.Harness)} install` and "
                 + "start a new session; otherwise it may have ended or been reaped.");
         }
-
-        RequireObservableProcessScope(generation, row.ProcessScope);
 
         var identity = await connection.QueryFirstOrDefaultAsync<AgentSessionIdentityRecord>(
             $"SELECT {AgentSessionIdentityRecord.Columns} FROM agent_session_identities "
@@ -853,19 +701,6 @@ internal sealed class AgentSessionRegistry(
             agent, updated.ToRecord(), actorChanged || roleChanged, previousBindingKind, previousAgentName);
     }
 
-    public async Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
-    {
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        var rows = await connection.QueryAsync<AgentSessionRow>(
-            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
-            + "WHERE harness = @harness AND host = @host AND pid = @pid AND proc_start = @procStart",
-            new { harness, host, pid, procStart, cancellationToken });
-
-        return rows.Select(r => r.ToRecord()).ToList();
-    }
-
     public async Task<AgentSessionRecord?> FindBySessionIdAsync(
         string harness, string host, string sessionId, CancellationToken cancellationToken)
     {
@@ -935,15 +770,13 @@ internal sealed class AgentSessionRegistry(
         await connection.ExecuteAsync(
             "UPDATE agent_sessions SET agent_name = @agentName, binding_kind = @bindingKind "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            + "AND host = @host",
             new
             {
                 agentName = normalizedActor,
                 bindingKind = newBindingKind,
                 harness = generation.Harness,
                 sessionId = generation.SessionId,
-                pid = generation.Pid,
-                procStart = generation.ProcStart,
                 host = generation.Host,
                 cancellationToken
             },
@@ -959,68 +792,16 @@ internal sealed class AgentSessionRegistry(
             await connection.ExecuteAsync(
                 "UPDATE agent_sessions SET block_budget_used = 0 "
                 + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                + "AND host = @host",
                 new
                 {
                     harness = generation.Harness,
                     sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
                     host = generation.Host,
                     cancellationToken
                 },
                 transaction);
         }
-    }
-
-    public async Task<AgentSessionClaimResult> SelfClaimAsync(
-        string actor,
-        bool forceRebind,
-        CancellationToken cancellationToken)
-    {
-        var ancestorSession = ancestorResolver.Resolve()
-            ?? throw new ExitException(
-                "Could not identify a Claude Code ancestor session for this process. "
-                + "Self-claim is zero-config on Linux with Claude Code only; other harnesses and "
-                + "platforms need a session row created by `nitro agent hook` first.");
-
-        var procStart = processInfoProvider.GetStartTicks(ancestorSession.Pid)
-            ?? throw new ExitException(
-                $"Process {ancestorSession.Pid} for the detected Claude Code session is no longer running.");
-
-        var host = await ResolveHostAsync(cancellationToken);
-
-        var workspacePath = AgentWorkspace.Find(fileSystem, ancestorSession.Cwd)
-            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
-
-        // This process's own cwd-resolved workspace must agree with the
-        // ancestor session's workspace before any write happens: every write
-        // below (including AgentRegistry.EnsureImplicitAsync) targets the
-        // database ConnectAsync resolves from THIS process's cwd, so a
-        // mismatch here would silently claim a session into the wrong
-        // workspace's database.
-        var cwdWorkspacePath = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
-
-        if (cwdWorkspacePath is null || cwdWorkspacePath != workspacePath)
-        {
-            throw new ExitException(
-                $"This process's workspace ('{cwdWorkspacePath ?? "none"}') does not match the "
-                + $"Claude Code session's workspace ('{workspacePath}'). Run `nitro agent session "
-                + "claim` from the session's workspace.");
-        }
-
-        var (endpointKind, endpointAddr) = EndpointAddress.IsValid(ancestorSession.Name)
-            ? (AgentSessionEndpointKind.ClaudePeer, ancestorSession.Name)
-            : (AgentSessionEndpointKind.None, string.Empty);
-
-        var generation = new AgentSessionGeneration(
-            AgentSessionHarness.ClaudeCode, ancestorSession.SessionId, host, ancestorSession.Pid, procStart);
-
-        await StartAsync(
-            generation, ancestorSession.Cwd, workspacePath, endpointKind, endpointAddr,
-            envActor: null, cancellationToken);
-
-        return await ClaimAsync(generation, actor, forceRebind, cancellationToken);
     }
 
     public async Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
@@ -1030,56 +811,14 @@ internal sealed class AgentSessionRegistry(
         await using var command = connection.CreateCommand();
         command.CommandText =
             "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        command.Parameters.AddWithValue("@pid", generation.Pid);
-        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
         command.Parameters.AddWithValue("@host", generation.Host);
 
         var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return rowsAffected > 0;
-    }
-
-    public async Task<bool> EndEphemeralCopilotAsync(
-        string host,
-        int pid,
-        string procStart,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = await ConnectAsync(cancellationToken);
-        await using var transaction = connection.BeginTransaction(deferred: false);
-        var sessionId = await connection.QueryFirstOrDefaultAsync<string>(
-            "SELECT session_id FROM agent_sessions "
-            + "WHERE harness = @harness AND host = @host AND pid = @pid AND proc_start = @procStart",
-            new
-            {
-                harness = AgentSessionHarness.Copilot,
-                host,
-                pid,
-                procStart,
-                cancellationToken
-            },
-            transaction);
-
-        if (sessionId is null)
-        {
-            await transaction.CommitAsync(cancellationToken);
-            return false;
-        }
-
-        await connection.ExecuteAsync(
-            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId",
-            new { harness = AgentSessionHarness.Copilot, sessionId, cancellationToken },
-            transaction);
-        await connection.ExecuteAsync(
-            "DELETE FROM agent_session_identities WHERE harness = @harness AND session_id = @sessionId",
-            new { harness = AgentSessionHarness.Copilot, sessionId, cancellationToken },
-            transaction);
-        await transaction.CommitAsync(cancellationToken);
-
-        return true;
     }
 
     public async Task<AgentSessionRecord?> FindByGenerationAsync(
@@ -1091,11 +830,9 @@ internal sealed class AgentSessionRegistry(
         command.CommandText =
             $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        command.Parameters.AddWithValue("@pid", generation.Pid);
-        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
         command.Parameters.AddWithValue("@host", generation.Host);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -1116,11 +853,9 @@ internal sealed class AgentSessionRegistry(
         command.CommandText =
             "UPDATE agent_sessions SET block_budget_used = 0 "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        command.Parameters.AddWithValue("@pid", generation.Pid);
-        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
         command.Parameters.AddWithValue("@host", generation.Host);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -1137,11 +872,9 @@ internal sealed class AgentSessionRegistry(
         updateCommand.CommandText =
             "UPDATE agent_sessions SET block_budget_used = block_budget_used + 1 "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         updateCommand.Parameters.AddWithValue("@harness", generation.Harness);
         updateCommand.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        updateCommand.Parameters.AddWithValue("@pid", generation.Pid);
-        updateCommand.Parameters.AddWithValue("@procStart", generation.ProcStart);
         updateCommand.Parameters.AddWithValue("@host", generation.Host);
 
         var rowsAffected = await updateCommand.ExecuteNonQueryAsync(cancellationToken);
@@ -1157,11 +890,9 @@ internal sealed class AgentSessionRegistry(
         selectCommand.CommandText =
             "SELECT block_budget_used FROM agent_sessions "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         selectCommand.Parameters.AddWithValue("@harness", generation.Harness);
         selectCommand.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        selectCommand.Parameters.AddWithValue("@pid", generation.Pid);
-        selectCommand.Parameters.AddWithValue("@procStart", generation.ProcStart);
         selectCommand.Parameters.AddWithValue("@host", generation.Host);
 
         var updated = (int)(long)(await selectCommand.ExecuteScalarAsync(cancellationToken))!;
@@ -1174,6 +905,7 @@ internal sealed class AgentSessionRegistry(
     public async Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken)
     {
         var host = await ResolveHostAsync(cancellationToken);
+        var cutoff = timeProvider.GetUtcNow() - s_staleAfter;
 
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -1187,30 +919,27 @@ internal sealed class AgentSessionRegistry(
         {
             var record = candidate.ToRecord();
 
-            // Only a row this reader can PROVE dead in the same observable
-            // process scope is reaped: unobservable (a different PID
-            // namespace than the writer recorded, or a permission failure)
-            // is left untouched, the same as alive.
-            if (processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcStartLegacy, record.ProcessScope)
-                != ProcessObservationResult.Dead)
+            // A session that has not beaten within the stale window is
+            // reaped. A live session beats on every hook event it sends, so
+            // silence this long means the harness ended without its
+            // SessionEnd hook running.
+            if (record.LastBeatAt > cutoff)
             {
                 continue;
             }
 
-            // The generation predicate guards a TOCTOU race: if the row was
-            // reclaimed or restarted with a new generation between the
-            // SELECT above and this DELETE, the WHERE clause matches
-            // nothing and the newer generation survives untouched.
+            // The heartbeat predicate guards a TOCTOU race: if the row beat
+            // again between the SELECT above and this DELETE, the WHERE
+            // clause matches nothing and the live session survives.
             var rowsAffected = await connection.ExecuteAsync(
                 "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                + "AND host = @host AND last_beat_at = @lastBeatAt",
                 new
                 {
                     harness = record.Harness,
                     sessionId = record.SessionId,
-                    pid = record.Pid,
-                    procStart = record.ProcStart,
                     host = record.Host,
+                    lastBeatAt = record.LastBeatAt,
                     cancellationToken
                 });
 
@@ -1259,15 +988,12 @@ internal sealed class AgentSessionRegistry(
     /// and <see cref="ListParticipantsAsync"/> report for <paramref name="record"/>,
     /// relative to the current instance's resolved <paramref name="host"/>.
     /// </summary>
-    private string ComputeState(AgentSessionRecord record, string host)
+    private static string ComputeState(AgentSessionRecord record, string host)
         => record.Host != host
             ? AgentSessionState.Remote
-            : processInfoProvider.Observe(record.Pid, record.ProcStart, record.ProcStartLegacy, record.ProcessScope)
-                == ProcessObservationResult.Unobservable
-                ? AgentSessionState.Unobservable
-                : record.EndpointKind == AgentSessionEndpointKind.None
-                    ? AgentSessionState.Unreachable
-                    : AgentSessionState.Online;
+            : record.EndpointKind == AgentSessionEndpointKind.None
+                ? AgentSessionState.Unreachable
+                : AgentSessionState.Online;
 
     public async Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
@@ -1279,12 +1005,10 @@ internal sealed class AgentSessionRegistry(
         command.CommandText =
             "UPDATE agent_sessions SET last_beat_at = @now "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         command.Parameters.AddWithValue("@now", now);
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        command.Parameters.AddWithValue("@pid", generation.Pid);
-        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
         command.Parameters.AddWithValue("@host", generation.Host);
 
         var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
@@ -1301,12 +1025,10 @@ internal sealed class AgentSessionRegistry(
         command.CommandText =
             "UPDATE agent_sessions SET harness_version = @harnessVersion "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         command.Parameters.AddWithValue("@harnessVersion", harnessVersion);
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        command.Parameters.AddWithValue("@pid", generation.Pid);
-        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
         command.Parameters.AddWithValue("@host", generation.Host);
 
         var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
@@ -1416,7 +1138,7 @@ internal sealed class AgentSessionRegistry(
                 last_ping_result = NULL,
                 last_ping_detail = NULL
             WHERE harness = @harness AND session_id = @sessionId
-                AND pid = @pid AND proc_start = @procStart AND host = @host
+                AND host = @host
                 AND (last_ping_at IS NULL OR last_ping_at <= @cutoff);
             """,
             new
@@ -1425,8 +1147,6 @@ internal sealed class AgentSessionRegistry(
                 attemptId,
                 harness = session.Harness,
                 sessionId = session.SessionId,
-                pid = session.Pid,
-                procStart = session.ProcStart,
                 host = session.Host,
                 cutoff,
                 cancellationToken
@@ -1464,12 +1184,10 @@ internal sealed class AgentSessionRegistry(
         command.CommandText =
             "UPDATE agent_sessions SET role = @role "
             + "WHERE harness = @harness AND session_id = @sessionId "
-            + "AND pid = @pid AND proc_start = @procStart AND host = @host";
+            + "AND host = @host";
         command.Parameters.AddWithValue("@role", normalizedRole);
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
-        command.Parameters.AddWithValue("@pid", generation.Pid);
-        command.Parameters.AddWithValue("@procStart", generation.ProcStart);
         command.Parameters.AddWithValue("@host", generation.Host);
 
         var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
@@ -1481,27 +1199,7 @@ internal sealed class AgentSessionRegistry(
         => await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
     private static bool IsSameGeneration(AgentSessionRow existing, AgentSessionGeneration generation)
-        => existing.Pid == generation.Pid
-            && existing.Host == generation.Host
-            && existing.ProcStart == generation.ProcStart;
-
-    /// <summary>
-    /// Throws when <see cref="IProcessInfoProvider.CanObserveScope"/> is
-    /// false for <paramref name="recordedProcessScope"/>: a positive
-    /// mismatch means this process cannot trust that <paramref
-    /// name="generation"/>'s pid refers to the same process the row's writer
-    /// observed. Either scope being unknown is not treated as a mismatch.
-    /// </summary>
-    private void RequireObservableProcessScope(AgentSessionGeneration generation, string recordedProcessScope)
-    {
-        if (!processInfoProvider.CanObserveScope(recordedProcessScope))
-        {
-            throw new ExitException(
-                $"Cannot verify this process against the '{generation.Harness}' session "
-                + $"'{generation.SessionId}' (a different process observation scope than the one "
-                + "that started it).");
-        }
-    }
+        => existing.Host == generation.Host;
 
     /// <summary>
     /// Maps an <see cref="AgentSessionHarness"/> value to the harness name
@@ -1550,8 +1248,6 @@ internal sealed class AgentSessionRegistry(
         public string? AgentName { get; init; }
         public required string BindingKind { get; init; }
         public required string Host { get; init; }
-        public required int Pid { get; init; }
-        public required string ProcStart { get; init; }
         public required string Cwd { get; init; }
         public required string WorkspacePath { get; init; }
         public required string EndpointKind { get; init; }
@@ -1565,8 +1261,6 @@ internal sealed class AgentSessionRegistry(
         public string? LastPingDetail { get; init; }
         public required string Role { get; init; }
         public required string HarnessVersion { get; init; }
-        public required string ProcessScope { get; init; }
-        public required bool ProcStartLegacy { get; init; }
 
         /// <summary>
         /// Maps a row from a <see cref="AgentSessionRecord.Columns"/> query
@@ -1582,8 +1276,6 @@ internal sealed class AgentSessionRegistry(
                 : reader.GetString(reader.GetOrdinal("AgentName")),
             BindingKind = reader.GetString(reader.GetOrdinal("BindingKind")),
             Host = reader.GetString(reader.GetOrdinal("Host")),
-            Pid = reader.GetInt32(reader.GetOrdinal("Pid")),
-            ProcStart = reader.GetString(reader.GetOrdinal("ProcStart")),
             Cwd = reader.GetString(reader.GetOrdinal("Cwd")),
             WorkspacePath = reader.GetString(reader.GetOrdinal("WorkspacePath")),
             EndpointKind = reader.GetString(reader.GetOrdinal("EndpointKind")),
@@ -1604,9 +1296,7 @@ internal sealed class AgentSessionRegistry(
                 ? null
                 : reader.GetString(reader.GetOrdinal("LastPingDetail")),
             Role = reader.GetString(reader.GetOrdinal("Role")),
-            HarnessVersion = reader.GetString(reader.GetOrdinal("HarnessVersion")),
-            ProcessScope = reader.GetString(reader.GetOrdinal("ProcessScope")),
-            ProcStartLegacy = reader.GetBoolean(reader.GetOrdinal("ProcStartLegacy"))
+            HarnessVersion = reader.GetString(reader.GetOrdinal("HarnessVersion"))
         };
 
         public AgentSessionRecord ToRecord() => new()
@@ -1616,8 +1306,6 @@ internal sealed class AgentSessionRegistry(
             AgentName = AgentName,
             BindingKind = BindingKind,
             Host = Host,
-            Pid = Pid,
-            ProcStart = ProcStart,
             Cwd = Cwd,
             WorkspacePath = WorkspacePath,
             EndpointKind = EndpointKind,
@@ -1630,9 +1318,7 @@ internal sealed class AgentSessionRegistry(
             LastPingResult = LastPingResult,
             LastPingDetail = LastPingDetail,
             Role = Role,
-            HarnessVersion = HarnessVersion,
-            ProcessScope = ProcessScope,
-            ProcStartLegacy = ProcStartLegacy
+            HarnessVersion = HarnessVersion
         };
     }
 }

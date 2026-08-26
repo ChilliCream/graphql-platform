@@ -403,9 +403,7 @@ public sealed class TuiShellTabsTests
         var mailMode = new MailMode(
             mailStore,
             "actor",
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-            new DaemonOwnedActorWakeDispatcher(),
-            new FakeMailWakeReceiptObserver());
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
         var mailTab = new TuiTab(
             () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
             mnemonic: 'M',
@@ -430,20 +428,17 @@ public sealed class TuiShellTabsTests
     {
         // arrange: submits a compose directly through the mail tab's own
         // MailMode while the tasks tab stays active throughout, mirroring
-        // how MailMode.SubmitCompose runs the whole store-plus-wake
-        // workflow off-thread regardless of which tab is hosting it; the
+        // how MailMode.SubmitCompose runs the store write off-thread
+        // regardless of which tab is hosting it; the
         // outcome toast must still reach the shell's toaster once the
         // workspace database watcher's DataChangedEvent drains it, rather
         // than being dropped along with every other inactive-tab follow-up.
         var testToken = TestContext.Current.CancellationToken;
         var mailStore = new FakeMailStore();
-        var wakeObserver = new FakeMailWakeReceiptObserver();
         var mailMode = new MailMode(
             mailStore,
             "alice",
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-            new DaemonOwnedActorWakeDispatcher(),
-            wakeObserver);
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
         var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)], 80, 24);
         mailMode.Handle(new TuiMessage.SelectInboxRequested());
         mailMode.Handle(new TuiMessage.ComposeRequested());

@@ -55,9 +55,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _database,
             _agentRegistry,
             _instanceIdProvider,
-            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null));
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
         _globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName);
         _mail = new MailStore(
             _fileSystem, _timeProvider, _database, _agentRegistry, _instanceIdProvider, _globalConfigDirectoryProvider);
@@ -252,7 +250,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var frozen = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        var rebound = frozen with { Pid = 999_999, ProcStart = "999999" };
+        var rebound = frozen with { Host = "host-other" };
         await SendEnqueuedMailAsync(cancellationToken);
         var executor = new FakePingSessionExecutor();
         var dispatcher = new ActorWakeDispatcher(
@@ -494,16 +492,14 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
-        var pid = Environment.ProcessId;
-        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
         var boardGeneration = new AgentSessionGeneration(
-            AgentSessionHarness.NitroBoard, "board-1", InstanceId, pid, procStart);
+            AgentSessionHarness.NitroBoard, "board-1", InstanceId);
         await _sessions.StartAsync(
             boardGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.DbWatch, "local",
             envActor: "pascal", cancellationToken);
 
         var codexGeneration = new AgentSessionGeneration(
-            AgentSessionHarness.Codex, "codex-session", InstanceId, pid, procStart);
+            AgentSessionHarness.Codex, "codex-session", InstanceId);
         await _sessions.StartAsync(
             codexGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
             envActor: "pascal", cancellationToken);
@@ -591,14 +587,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     {
         // A genuinely alive pid/proc_start: dispatch resolves live sessions
         // through FindLiveClaimedByAgentNameAsync, which reaps dead
-        // current-instance rows first, so a fake sentinel pid would be
-        // reaped out from under the test before it ever reached dispatch.
-        var pid = Environment.ProcessId;
-        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
         var harness = endpointKind == AgentSessionEndpointKind.ClaudePeer
             ? AgentSessionHarness.ClaudeCode
             : AgentSessionHarness.Codex;
-        var generation = new AgentSessionGeneration(harness, sessionId, InstanceId, pid, procStart);
+        var generation = new AgentSessionGeneration(harness, sessionId, InstanceId);
 
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", endpointKind, endpointAddr,
@@ -671,7 +663,6 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         string harness,
         string sessionId,
         string actorName,
-        int pid,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
@@ -753,10 +744,6 @@ internal sealed class AlwaysGoneSessionRegistryDecorator(IAgentSessionRegistry i
         AgentSessionGeneration generation, string actor, bool forceRebind, CancellationToken cancellationToken)
         => inner.ClaimAsync(generation, actor, forceRebind, cancellationToken);
 
-    public Task<AgentSessionClaimResult> SelfClaimAsync(
-        string actor, bool forceRebind, CancellationToken cancellationToken)
-        => inner.SelfClaimAsync(actor, forceRebind, cancellationToken);
-
     public Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => inner.EndAsync(generation, cancellationToken);
 
@@ -788,10 +775,6 @@ internal sealed class AlwaysGoneSessionRegistryDecorator(IAgentSessionRegistry i
 
     public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
         => inner.ListParticipantsAsync(cancellationToken);
-
-    public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
-        => inner.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
 
     public Task<AgentSessionRecord?> FindBySessionIdAsync(
         string harness, string host, string sessionId, CancellationToken cancellationToken)
@@ -841,10 +824,6 @@ internal sealed class ReboundOnFindSessionRegistryDecorator(
         AgentSessionGeneration generation, string actor2, bool forceRebind, CancellationToken cancellationToken)
         => inner.ClaimAsync(generation, actor2, forceRebind, cancellationToken);
 
-    public Task<AgentSessionClaimResult> SelfClaimAsync(
-        string actor2, bool forceRebind, CancellationToken cancellationToken)
-        => inner.SelfClaimAsync(actor2, forceRebind, cancellationToken);
-
     public Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => inner.EndAsync(generation, cancellationToken);
 
@@ -888,10 +867,6 @@ internal sealed class ReboundOnFindSessionRegistryDecorator(
 
     public Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken)
         => inner.ListParticipantsAsync(cancellationToken);
-
-    public Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
-        string harness, string host, int pid, string procStart, CancellationToken cancellationToken)
-        => inner.FindByProcessAsync(harness, host, pid, procStart, cancellationToken);
 
     public Task<AgentSessionRecord?> FindBySessionIdAsync(
         string harness, string host, string sessionId, CancellationToken cancellationToken)

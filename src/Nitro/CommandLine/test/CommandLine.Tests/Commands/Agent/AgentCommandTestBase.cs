@@ -16,6 +16,7 @@ public abstract class AgentCommandTestBase : CommandTestBase
     {
         SetupNoAuthentication();
         SetupActingActor("test-agent");
+        DefaultActor = "test-agent";
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-agent-registry-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
@@ -84,15 +85,6 @@ public abstract class AgentCommandTestBase : CommandTestBase
         string role = "",
         string harnessVersion = "")
     {
-        using var process = System.Diagnostics.Process.GetCurrentProcess();
-        var pid = process.Id;
-
-        // The real /proc-reported start ticks for this pid: registry
-        // methods that predicate on the full generation (e.g.
-        // TryClaimPingCooldownAsync, and Observe's liveness check) match
-        // proc_start with raw string equality against exactly this value.
-        var procStart = ProcStat.ReadStartTicks(pid)!;
-
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
 
@@ -111,11 +103,11 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.CommandText =
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                 role, harness_version
             ) VALUES (
-                $harness, $sessionId, $agentName, $bindingKind, $host, $pid, $procStart,
+                $harness, $sessionId, $agentName, $bindingKind, $host,
                 '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now,
                 $role, $harnessVersion
             );
@@ -125,8 +117,6 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
         command.Parameters.AddWithValue("$bindingKind", bindingKind);
         command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$pid", pid);
-        command.Parameters.AddWithValue("$procStart", procStart);
         command.Parameters.AddWithValue("$endpointKind", endpointKind);
         command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
@@ -157,14 +147,13 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts an <c>agent_sessions</c> row on <paramref name="host"/> at a
-    /// pid that is never alive (999999), so the registry's liveness check
-    /// reaps it on the next read when <paramref name="host"/> is the
-    /// workspace's current instance id (a remote host's row is never reaped
-    /// regardless of pid liveness). Mirrors
-    /// <c>ListSessionCommandTests.InsertDeadSessionRowAsync</c>.
+    /// Inserts an <c>agent_sessions</c> row on <paramref name="host"/> whose
+    /// heartbeat is far outside the registry's stale window, so it is reaped
+    /// on the next read when <paramref name="host"/> is the workspace's
+    /// current instance id (a remote host's row is never reaped, however
+    /// stale).
     /// </summary>
-    protected async Task InsertDeadSessionRowAsync(string host, string sessionId, string? agentName = null)
+    protected async Task InsertStaleSessionRowAsync(string host, string sessionId, string? agentName = null)
     {
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
@@ -184,18 +173,18 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.CommandText =
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', $sessionId, $agentName, $bindingKind, $host, 999999, $now,
-                '/work', '/work/.nitro/agents', 'none', '', $now, $now
+                'claude-code', $sessionId, $agentName, $bindingKind, $host,
+                '/work', '/work/.nitro/agents', 'none', '', $stale, $stale
             );
             """;
         command.Parameters.AddWithValue("$sessionId", sessionId);
         command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
         command.Parameters.AddWithValue("$bindingKind", agentName is null ? "none" : "explicit");
         command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+        command.Parameters.AddWithValue("$stale", DateTimeOffset.UtcNow.AddDays(-30));
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }

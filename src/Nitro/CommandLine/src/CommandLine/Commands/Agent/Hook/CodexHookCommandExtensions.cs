@@ -39,6 +39,7 @@ internal static class CodexHookCommandExtensions
                 environmentVariables,
                 services.GetRequiredService<IStandardInputReader>().Reader,
                 parseResult.InvocationConfiguration.Output,
+                parseResult.InvocationConfiguration.Error,
                 (payload, ct) => handle(handler, payload, ct),
                 hookEventName,
                 cancellationToken);

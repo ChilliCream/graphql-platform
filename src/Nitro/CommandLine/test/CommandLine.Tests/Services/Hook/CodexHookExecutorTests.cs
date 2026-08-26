@@ -20,12 +20,14 @@ public sealed class CodexHookExecutorTests
         environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");
         var input = new StringReader(CodexHookFixtures.Read("payload.session-start.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
         var handlerInvoked = false;
 
         var exitCode = await CodexHookExecutor.RunAsync(
             environmentVariables,
             input,
             output,
+            error,
             (_, _) =>
             {
                 handlerInvoked = true;
@@ -45,11 +47,13 @@ public sealed class CodexHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader("{ this is not valid json");
         var output = new StringWriter();
+        var error = new StringWriter();
 
         var exitCode = await CodexHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => throw new InvalidOperationException("must not be reached"),
             "SessionStart",
             cancellationToken);
@@ -64,11 +68,13 @@ public sealed class CodexHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(CodexHookFixtures.Read("payload.session-end.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         var exitCode = await CodexHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => throw new InvalidOperationException("simulated database contention"),
             "SessionEnd",
             cancellationToken);
@@ -83,11 +89,13 @@ public sealed class CodexHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(CodexHookFixtures.Read("payload.session-end.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         var exitCode = await CodexHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             async (_, ct) => { await Task.Delay(Timeout.InfiniteTimeSpan, ct); return CodexHookOutcome.Neutral; },
             "SessionEnd",
             TimeSpan.FromMilliseconds(50),
@@ -103,11 +111,13 @@ public sealed class CodexHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(CodexHookFixtures.Read("payload.user-prompt-submit.json"));
         var output = new StringWriter();
+        var error = new StringWriter();
 
         var exitCode = await CodexHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (_, _) => Task.FromResult(new CodexHookOutcome { AdditionalContext = "nitro mail: 1 unread message." }),
             "UserPromptSubmit",
             cancellationToken);
@@ -128,12 +138,14 @@ public sealed class CodexHookExecutorTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(CodexHookFixtures.Read(fixtureFile));
         var output = new StringWriter();
+        var error = new StringWriter();
         CodexHookPayload? captured = null;
 
         await CodexHookExecutor.RunAsync(
             new FixedEnvironmentVariableProvider(),
             input,
             output,
+            error,
             (payload, _) =>
             {
                 captured = payload;

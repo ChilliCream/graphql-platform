@@ -24,7 +24,7 @@ public sealed class DeferTaskCommandTests(NitroCommandFixture fixture)
 
             Options:
               --until <until> (REQUIRED)  Hide the task from ready work until this ISO 8601 date or timestamp
-              --actor <actor>             The actor recorded on the audit log; inferred from the current session when omitted
+              --actor <actor> (REQUIRED)  The actor recorded on the audit log; allocate one with `nitro agent login`
               --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
 

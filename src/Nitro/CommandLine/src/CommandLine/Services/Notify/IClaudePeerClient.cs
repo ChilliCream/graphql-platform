@@ -7,7 +7,6 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal interface IClaudePeerClient
 {
     Task<ClaudePeerSendOutcome> SendAsync(
-        int pid,
         string sessionId,
         string message,
         CancellationToken cancellationToken);

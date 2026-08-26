@@ -40,7 +40,6 @@ internal interface IPingSessionExecutor
         string harness,
         string sessionId,
         string actorName,
-        int pid,
         string attemptId,
         int slot,
         DateTimeOffset deadline,

@@ -50,14 +50,12 @@ public sealed class PingSessionExecutorTests : IDisposable
             _database,
             _agentRegistry,
             new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null));
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
         _leases = new PingLeaseStore(_fileSystem, _database);
         _queueClient = new FakeCodexQueueClient();
         _claudePeerClient = new FakeClaudePeerClient();
-        _generation = new AgentSessionGeneration(Harness, SessionId, "host-1", 1, "0");
+        _generation = new AgentSessionGeneration(Harness, SessionId, "host-1");
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -179,13 +177,12 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteClaudePeerAsync(
-            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+            Harness, SessionId, Actor, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_claudePeerClient.Calls);
-        Assert.Equal(42, call.Pid);
-        Assert.Equal(SessionId, call.SessionId);
+                Assert.Equal(SessionId, call.SessionId);
         Assert.Contains(message.Id, call.Message);
         Assert.Contains("check", call.Message);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
@@ -208,7 +205,7 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteClaudePeerAsync(
-            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+            Harness, SessionId, Actor, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert: the typed outcome exactly matches what was durably written.
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
@@ -236,7 +233,7 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteClaudePeerAsync(
-            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+            Harness, SessionId, Actor, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert: the coarse CHECK-compatible result stays "error", but the
         // typed reason and detail stay specific.
@@ -265,7 +262,7 @@ public sealed class PingSessionExecutorTests : IDisposable
 
         // act
         var outcome = await executor.ExecuteClaudePeerAsync(
-            Harness, SessionId, Actor, pid: 42, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+            Harness, SessionId, Actor, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Error, outcome.Result);
@@ -328,7 +325,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         // returns its own conclusion, even though the row has already moved
         // on to the newer attempt.
         var outcome = await executor.ExecuteClaudePeerAsync(
-            Harness, SessionId, Actor, pid: 1, staleAttemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+            Harness, SessionId, Actor, staleAttemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
@@ -465,7 +462,7 @@ internal sealed class NeverCompletingCodexQueueClient : ICodexQueueClient
     }
 }
 
-internal sealed record FakeClaudePeerCall(int Pid, string SessionId, string Message);
+internal sealed record FakeClaudePeerCall(string SessionId, string Message);
 
 internal sealed class FakeClaudePeerClient : IClaudePeerClient
 {
@@ -474,12 +471,11 @@ internal sealed class FakeClaudePeerClient : IClaudePeerClient
     public ClaudePeerSendOutcome NextOutcome { get; set; } = ClaudePeerSendOutcome.Ok;
 
     public Task<ClaudePeerSendOutcome> SendAsync(
-        int pid,
         string sessionId,
         string message,
         CancellationToken cancellationToken)
     {
-        Calls.Add(new FakeClaudePeerCall(pid, sessionId, message));
+        Calls.Add(new FakeClaudePeerCall(sessionId, message));
         return Task.FromResult(NextOutcome);
     }
 }

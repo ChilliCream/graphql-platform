@@ -19,7 +19,7 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
         result.AssertHelpOutput(
             """
             Description:
-              List current actors and their durable harness sessions.
+              List the actors this workspace knows, with their session when they have one.
 
             Usage:
               nitro agent list [options]
@@ -111,10 +111,10 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task Execute_Should_KeepIdentityOffline_When_DeadConnectionIsReaped()
+    public async Task Execute_Should_KeepIdentityOffline_When_StaleConnectionIsReaped()
     {
         await InitWorkspaceAsync();
-        await InsertDeadSessionRowAsync(FixedHost, "session-1", "maya");
+        await InsertStaleSessionRowAsync(FixedHost, "session-1", "maya");
         await InsertSessionIdentityAsync("maya", "session-1");
 
         var result = await ExecuteCommandAsync("agent", "list");

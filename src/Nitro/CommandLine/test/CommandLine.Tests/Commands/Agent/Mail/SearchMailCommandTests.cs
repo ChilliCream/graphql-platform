@@ -16,20 +16,18 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
               Search the acting agent's sent and received messages by subject, body, and sender, case-insensitively. Archived messages are included.
 
             Usage:
-              nitro agent mail search <text> [options]
-
-            Arguments:
-              <text>  The text to search for in the subject and body
+              nitro agent mail search [options]
 
             Options:
-              --limit <limit>  The maximum number of messages to show
-              --actor <actor>  The actor performing this command; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --text <text> (REQUIRED)    The text to search for in the subject, body, and sender
+              --limit <limit>             The maximum number of messages to show
+              --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
 
             Example:
-              nitro agent mail search "deploy"
-              nitro agent mail search "deploy" --limit 10
+              nitro agent mail search --text "deploy" --actor "maya"
+              nitro agent mail search --text "deploy" --limit 10 --actor "maya"
             """);
     }
 
@@ -37,7 +35,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "deploy");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "deploy");
 
         // assert
         result.AssertError(
@@ -54,7 +52,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("test-agent");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "nothing-to-find");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "nothing-to-find");
 
         // assert
         result.AssertSuccess(
@@ -74,7 +72,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await SeedMessageAsync("bob", "Unrelated", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "DEPLOY");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "DEPLOY");
 
         // assert
         var lines = result.StdOut.TrimEnd('\n').Split('\n');
@@ -95,7 +93,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await SeedMessageAsync("bob", "Other", ["test-agent"], body: "nothing relevant");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "parser");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "parser");
 
         // assert
         var lines = result.StdOut.TrimEnd('\n').Split('\n');
@@ -115,7 +113,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await SeedMessageAsync("bob", "Private matter between bob and carol", ["carol"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "Private");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "Private");
 
         // assert
         result.AssertSuccess(
@@ -136,7 +134,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
             [message.Id], "test-agent", TestContext.Current.CancellationToken);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "Archived");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "Archived");
 
         // assert
         Assert.Contains("Archived match", result.StdOut);
@@ -153,7 +151,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await SeedMessageAsync("bob", "100 other days", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "100%");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "100%");
 
         // assert
         var lines = result.StdOut.TrimEnd('\n').Split('\n');
@@ -173,7 +171,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await SeedMessageAsync("bob", "abc unrelated id", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "a_c");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "a_c");
 
         // assert
         var lines = result.StdOut.TrimEnd('\n').Split('\n');
@@ -196,7 +194,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         var third = await SeedMessageAsync("bob", "Match three", ["test-agent"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "Match", "--limit", "1");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "Match", "--limit", "1");
 
         // assert
         var lines = result.StdOut.TrimEnd('\n').Split('\n');
@@ -212,9 +210,9 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var zeroResult = await ExecuteCommandAsync("agent", "mail", "search", "x", "--limit", "0");
+        var zeroResult = await ExecuteCommandAsync("agent", "mail", "search", "--text", "x", "--limit", "0");
         var negativeResult = await ExecuteCommandAsync(
-            "agent", "mail", "search", "x", "--limit", "-1");
+            "agent", "mail", "search", "--text", "x", "--limit", "-1");
 
         // assert
         Assert.Equal(1, zeroResult.ExitCode);
@@ -234,7 +232,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "Status");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "Status");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -258,7 +256,7 @@ public sealed class SearchMailCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "search", "nothing");
+        var result = await ExecuteCommandAsync("agent", "mail", "search", "--text", "nothing");
 
         // assert
         result.AssertSuccess(

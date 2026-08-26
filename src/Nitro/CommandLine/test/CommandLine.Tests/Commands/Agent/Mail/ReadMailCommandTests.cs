@@ -16,20 +16,18 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
               Print a message and mark it read.
 
             Usage:
-              nitro agent mail read <message-id> [options]
-
-            Arguments:
-              <message-id>  The message ID
+              nitro agent mail read [options]
 
             Options:
-              --thread         Print every message of the thread, oldest first, and mark them all read
-              --actor <actor>  The actor performing this command; inferred from the current session when omitted
-              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help   Show help and usage information
+              --message <message> (REQUIRED)  The message ID
+              --thread                        Print every message of the thread, oldest first, and mark them all read
+              --actor <actor> (REQUIRED)      The actor performing this command; allocate one with `nitro agent login`
+              --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                  Show help and usage information
 
             Example:
-              nitro agent mail read "m-abc123"
-              nitro agent mail read "m-abc123" --thread
+              nitro agent mail read --message "m-abc123" --actor "maya"
+              nitro agent mail read --message "m-abc123" --thread --actor "maya"
             """);
     }
 
@@ -37,7 +35,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
     public async Task NoWorkspace_ReturnsError()
     {
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", "m-abc123");
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", "m-abc123");
 
         // assert
         result.AssertError(
@@ -53,7 +51,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", "m-missing");
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", "m-missing");
 
         // assert
         result.AssertError(
@@ -73,7 +71,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         var message = await SeedMessageAsync("bob", "Status", ["carol"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", message.Id);
 
         // assert
         result.AssertError(
@@ -93,7 +91,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
             "bob", "Status", ["test-agent"], body: "All good.");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", message.Id);
 
         // assert
         result.AssertSuccess(
@@ -124,7 +122,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
             "bob", "Status", ["test-agent"], ["carol"], "All good.");
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", message.Id);
 
         // assert
         result.AssertSuccess(
@@ -150,7 +148,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         var message = await SeedMessageAsync("test-agent", "Status", ["bob"]);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", message.Id);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -175,7 +173,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "read", original.Id, "--thread");
+            "agent", "mail", "read", "--message", original.Id, "--thread");
 
         // assert
         result.AssertSuccess(
@@ -216,7 +214,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
-        var result = await ExecuteCommandAsync("agent", "mail", "read", message.Id);
+        var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", message.Id);
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -245,7 +243,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "read", original.Id, "--thread");
+            "agent", "mail", "read", "--message", original.Id, "--thread");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);

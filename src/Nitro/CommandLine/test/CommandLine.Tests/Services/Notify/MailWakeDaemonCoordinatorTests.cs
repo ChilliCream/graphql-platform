@@ -62,9 +62,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             _database,
             _agentRegistry,
             _instanceIdProvider,
-            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName),
-            new ProcessInfoProvider(),
-            new FixedAncestorSessionResolver(null));
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
         _globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName);
         _mail = new MailStore(
             _fileSystem, TimeProvider.System, _database, _agentRegistry, _instanceIdProvider,
@@ -602,12 +600,10 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         string endpointKind, string endpointAddr, CancellationToken cancellationToken,
         string sessionId = "session-1", string actor = Actor)
     {
-        var pid = Environment.ProcessId;
-        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
         var harness = endpointKind == AgentSessionEndpointKind.ClaudePeer
             ? AgentSessionHarness.ClaudeCode
             : AgentSessionHarness.Codex;
-        var generation = new AgentSessionGeneration(harness, sessionId, InstanceId, pid, procStart);
+        var generation = new AgentSessionGeneration(harness, sessionId, InstanceId);
 
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", endpointKind, endpointAddr, envActor: actor,
@@ -848,7 +844,7 @@ internal sealed class DeniedThenHangingDispatcher(string deniedActor, Concurrent
             await _hungRegistered.Task;
 
             var target = new AgentSessionGeneration(
-                AgentSessionHarness.ClaudeCode, "denied-session", "host-1", Environment.ProcessId, "0");
+                AgentSessionHarness.ClaudeCode, "denied-session", "host-1");
 
             return new ActorWakeReceipt(
                 actor,
