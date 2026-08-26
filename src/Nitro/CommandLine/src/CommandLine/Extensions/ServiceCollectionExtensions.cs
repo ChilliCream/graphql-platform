@@ -2,8 +2,13 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -22,13 +27,52 @@ internal static class ServiceCollectionExtensions
 
         services.TryAddSingleton<IEnvironmentVariableProvider, EnvironmentVariableProvider>();
 
+        services.TryAddSingleton<IStandardInputReader, StandardInputReader>();
+
         services.TryAddSingleton<IResultHolder, ResultHolder>();
         services.TryAddSingleton<IResultFormatter, JsonResultFormatter>();
 
         services.TryAddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
 
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<AgentDatabase>();
+        services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
+        services.TryAddSingleton<IGlobalConfigDirectoryProvider, GlobalConfigDirectoryProvider>();
+        services.TryAddSingleton<INitroInstanceIdProvider, NitroInstanceIdProvider>();
+        services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
+        services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
+        services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
+        services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
+        services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
+        services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
+        services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
+        services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
+        services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
+        services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
+        services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
+        services.TryAddSingleton<IMailNudge, MailNudge>();
+        services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
+        services.TryAddSingleton<INotifier, Notifier>();
+        services.TryAddSingleton<IMailWakeDaemonLeaderStore, MailWakeDaemonLeaderStore>();
+        services.TryAddSingleton(MailWakeDaemonPolicy.Default);
+
+        // Inert until a caller invokes IMailWakeDaemonCoordinator.StartAsync.
+        services.TryAddSingleton<IMailWakeDaemonCoordinator, MailWakeDaemonCoordinator>();
+        services.TryAddSingleton<IClaudeHookHandler, ClaudeHookHandler>();
+        services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
+        services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
+        services.TryAddSingleton<ICodexHookHandler, CodexHookHandler>();
+        services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
+        services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
+        services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
+        services.TryAddSingleton<IClaudeHooksSidecarStore, ClaudeHooksSidecarStore>();
+        services.TryAddSingleton<IClaudeHooksInstallerService, ClaudeHooksInstallerService>();
+        services.TryAddSingleton<ICodexPathResolver, CodexPathResolver>();
+        services.TryAddSingleton<ICodexHooksSidecarStore, CodexHooksSidecarStore>();
+        services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
+        services.TryAddSingleton<IMailStore, MailStore>();
+        services.TryAddSingleton<IMemoryStore, MemoryStore>();
 
         return services;
     }

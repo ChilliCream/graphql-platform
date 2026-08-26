@@ -18,6 +18,7 @@ internal static class TaskGlyphs
     public static string Status(string status) => status switch
     {
         TaskStates.Closed => "✓",
+        TaskStates.Archived => "✓",
         TaskStates.InProgress => "●",
         TaskStates.Open => "○",
         TaskStates.Deferred => "⏸",

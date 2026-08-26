@@ -1,0 +1,35 @@
+ [T]asks   [M]ail (2)   [A]gents   M[e]mory
+╭─Agents (2)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
+│ >   bob       ◇ claude-code  started        ││ Session                                      │
+│ 2026-01-01 heard 2026-01-01                 ││                                              │
+│     e2e-agent ● nitro-board  started AGE    ││ Actor: bob                                   │
+│  heard AGE                                  ││ Role: -                                      │
+│                                             ││ State: remote                                │
+│                                             ││ Harness: claude-code                         │
+│                                             ││ Session id: e2e-remote-session               │
+│                                             ││ Host: e2e-remote-host-fixture                │
+│                                             ││ Cwd: /tmp/remote-cwd                         │
+│                                             ││ Workspace: /tmp/remote-workspace             │
+│                                             ││ Endpoint: none                               │
+│                                             ││ Started: 2026-01-01 06:00                    │
+│                                             ││ Last heard: 2026-01-01 06:00                 │
+│                                             ││                                              │
+│                                             ││ Identity                                     │
+│                                             ││                                              │
+│                                             ││ Name: bob                                    │
+│                                             ││ Role: -                                      │
+│                                             ││ Client: -                                    │
+│                                             ││ Implicit: no                                 │
+│                                             ││ Registered: 2026-01-01 07:00                 │
+│                                             ││ Last seen: 2026-01-01 07:00                  │
+│                                             ││                                              │
+│                                             ││ Sent mail                                    │
+│                                             ││                                              │
+│                                             ││ 2026-01-01 Billing review -> e2e-agent, ali… │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+│                                             ││                                              │
+╰─────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+hjkl move  enter open  r refresh  y copy id  z zoom  e edit  esc back  q quit  …      e2e-agent

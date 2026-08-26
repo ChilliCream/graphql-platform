@@ -42,7 +42,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               -f, --source-schema-file <source-schema-file>                               One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               --source-schema-url <source-schema-url>                                     A URL from which to download a source schema
               --source-schema-settings-file <source-schema-settings-file>                 A settings file paired by occurrence with '--source-schema-url'
-              -a, --archive, --configuration <archive>                                    The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -a, --archive <archive>                                                     The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
               -e, --env, --environment <environment>                                      The name of the environment used for value substitution in the schema-settings.json files
               --cache-control-merge-behavior <ignore|include|include-private>             Choose how @cacheControl directives are merged
               --enable-global-object-identification                                       Add the 'Query.node' field for global object identification
