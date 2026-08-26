@@ -4,7 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 internal sealed class CodexHooksSidecarStore(
     IFileSystem fileSystem,
-    Services.Workspace.IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : ICodexHooksSidecarStore
+    Workspace.IGlobalConfigDirectoryProvider globalConfigDirectoryProvider)
+    : ICodexHooksSidecarStore
 {
     private const string FileName = "codex-hooks-sidecar.json";
 
