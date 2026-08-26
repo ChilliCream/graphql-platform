@@ -9,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// </summary>
 internal sealed class MemoryState(MemoryDataLoader loader)
 {
-    private static readonly List<string> ScopeCycle = [MemoryScopes.All, MemoryScopes.Project, MemoryScopes.Global];
+    private static readonly List<string> s_scopeCycle = [MemoryScopes.All, MemoryScopes.Project, MemoryScopes.Global];
 
     /// <summary>
     /// Which collection <see cref="CuratedRecords"/>/<see cref="JournalEntries"/>
@@ -155,8 +155,8 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     /// </summary>
     public async Task CycleScopeAsync(CancellationToken cancellationToken)
     {
-        var index = ScopeCycle.IndexOf(Scope);
-        Scope = ScopeCycle[(index + 1) % ScopeCycle.Count];
+        var index = s_scopeCycle.IndexOf(Scope);
+        Scope = s_scopeCycle[(index + 1) % s_scopeCycle.Count];
         await RefreshAsync(cancellationToken).ConfigureAwait(false);
     }
 

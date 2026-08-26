@@ -20,7 +20,7 @@ internal sealed class TaskStore(
     private const int MinIdLength = 3;
     private const int MaxIdAttempts = 10;
 
-    private static readonly string[] StatusOrder =
+    private static readonly string[] s_statusOrder =
     [
         TaskStates.Open,
         TaskStates.InProgress,
@@ -2554,9 +2554,9 @@ internal sealed class TaskStore(
 
     private static int StatusOrderIndex(TaskCount statusCount)
     {
-        var index = Array.IndexOf(StatusOrder, statusCount.Value);
+        var index = Array.IndexOf(s_statusOrder, statusCount.Value);
 
-        return index < 0 ? StatusOrder.Length : index;
+        return index < 0 ? s_statusOrder.Length : index;
     }
 
     private static void AddBlocker(

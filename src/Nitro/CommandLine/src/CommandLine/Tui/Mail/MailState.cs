@@ -26,12 +26,21 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// epic, since they only ever touch <see cref="ViewMode"/> and
 /// <see cref="ThreadMessages"/>, which this class still owns.
 /// </remarks>
-internal sealed class MailState(string actor, MailDataLoader loader)
+internal sealed class MailState(string? actor, MailDataLoader loader)
 {
     /// <summary>
-    /// The acting agent whose mail this state loads.
+    /// The acting agent whose mail this state loads, or null when the board
+    /// has no identity: only <see cref="MailMailbox.Workspace"/>, which
+    /// belongs to no actor, is reachable then.
     /// </summary>
-    public string Actor { get; } = actor;
+    public string? Actor { get; } = actor;
+
+    /// <summary>
+    /// <see cref="Actor"/> for the personal mailboxes and every write, none
+    /// of which is reachable without an identity.
+    /// </summary>
+    private string RequiredActor
+        => Actor ?? throw new InvalidOperationException("The board has no agent identity.");
 
     /// <summary>
     /// The mailbox currently selected. Changed only by
@@ -408,7 +417,7 @@ internal sealed class MailState(string actor, MailDataLoader loader)
         Messages = await LoadMessagesAsync(cancellationToken).ConfigureAwait(false);
         Threads = await LoadThreadsAsync(cancellationToken).ConfigureAwait(false);
 
-        _workspaceUnreadToMeThreadIds = Mailbox == MailMailbox.Workspace
+        _workspaceUnreadToMeThreadIds = Mailbox == MailMailbox.Workspace && Actor is not null
             ? (await loader.LoadInboxThreadsAsync(Actor, MailListFilter.Inbox, cancellationToken).ConfigureAwait(false))
                 .Where(t => (t.UnreadCount ?? 0) > 0)
                 .Select(t => t.ThreadId)
@@ -597,10 +606,10 @@ internal sealed class MailState(string actor, MailDataLoader loader)
     /// </summary>
     private Task<IReadOnlyList<MailMessage>> LoadMessagesAsync(CancellationToken cancellationToken) => Mailbox switch
     {
-        MailMailbox.Sent => loader.LoadSentAsync(Actor, cancellationToken),
-        MailMailbox.All => loader.LoadAllAsync(Actor, cancellationToken),
+        MailMailbox.Sent => loader.LoadSentAsync(RequiredActor, cancellationToken),
+        MailMailbox.All => loader.LoadAllAsync(RequiredActor, cancellationToken),
         MailMailbox.Workspace => loader.LoadWorkspaceAsync(AgentFilter, cancellationToken),
-        _ => loader.LoadInboxAsync(Actor, Filter, cancellationToken)
+        _ => loader.LoadInboxAsync(RequiredActor, Filter, cancellationToken)
     };
 
     /// <summary>
@@ -618,16 +627,16 @@ internal sealed class MailState(string actor, MailDataLoader loader)
         switch (Mailbox)
         {
             case MailMailbox.Sent:
-                return await loader.LoadSentThreadsAsync(Actor, cancellationToken).ConfigureAwait(false);
+                return await loader.LoadSentThreadsAsync(RequiredActor, cancellationToken).ConfigureAwait(false);
 
             case MailMailbox.All:
-                return await loader.LoadAllThreadsAsync(Actor, cancellationToken).ConfigureAwait(false);
+                return await loader.LoadAllThreadsAsync(RequiredActor, cancellationToken).ConfigureAwait(false);
 
             case MailMailbox.Workspace:
                 return await loader.LoadWorkspaceThreadsAsync(AgentFilter, cancellationToken).ConfigureAwait(false);
 
             default:
-                var threads = await loader.LoadInboxThreadsAsync(Actor, Filter, cancellationToken).ConfigureAwait(false);
+                var threads = await loader.LoadInboxThreadsAsync(RequiredActor, Filter, cancellationToken).ConfigureAwait(false);
                 return Filter == MailListFilter.Unread
                     ? threads.Where(t => (t.UnreadCount ?? 0) > 0).ToList()
                     : threads;

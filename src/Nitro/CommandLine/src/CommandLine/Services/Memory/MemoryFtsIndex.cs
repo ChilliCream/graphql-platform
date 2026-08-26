@@ -24,7 +24,7 @@ internal static class MemoryFtsIndex
 {
     static MemoryFtsIndex() => SQLitePCL.Batteries_V2.Init();
 
-    private static readonly TimeSpan AbandonedTempFileAge = TimeSpan.FromHours(1);
+    private static readonly TimeSpan s_abandonedTempFileAge = TimeSpan.FromHours(1);
 
     /// <summary>
     /// Returns the ids of curated memories in one scope's index whose body
@@ -208,7 +208,7 @@ internal static class MemoryFtsIndex
             fileSystem.CreateDirectory(localDirectory);
         }
 
-        fileSystem.CleanupAbandonedTempFiles(localDirectory, AbandonedTempFileAge);
+        fileSystem.CleanupAbandonedTempFiles(localDirectory, s_abandonedTempFileAge);
 
         var indexPath = AgentWorkspace.GetMemoryIndexDatabasePath(localDirectory);
         var tempPath = Path.Combine(

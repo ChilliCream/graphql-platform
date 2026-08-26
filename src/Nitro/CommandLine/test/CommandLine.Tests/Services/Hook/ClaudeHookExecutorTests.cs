@@ -196,7 +196,6 @@ public sealed class ClaudeHookExecutorTests
             {
             }
 
-            environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
             var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
             await handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
             await mail.SendMessageAsync(

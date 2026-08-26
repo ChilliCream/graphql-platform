@@ -7,7 +7,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 internal sealed partial class ProcessInfoProvider(
     Func<int, string?>? startTicksReader = null,
-    ProcessInfoProvider.StartTicksReader? observeReader = null) : IProcessInfoProvider
+    ProcessInfoProvider.StartTicksReader? observeReader = null,
+    Func<string>? processScopeReader = null) : IProcessInfoProvider
 {
     // Legacy-only: rows migrated from schema v5, whose recorded proc_start
     // is still the old DateTimeOffset text a pre-v6 writer captured, fall
@@ -20,7 +21,7 @@ internal sealed partial class ProcessInfoProvider(
     // tolerance rather than exact equality for this path only. A v6 row's
     // raw start ticks never uses this constant: it compares by exact string
     // equality instead (see <see cref="Observe"/>).
-    private static readonly TimeSpan LegacyStartTimeTolerance = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan s_legacyStartTimeTolerance = TimeSpan.FromSeconds(2);
 
     /// <summary>
     /// Reads a pid's raw start ticks like <see cref="Func{Int32, String}"/>
@@ -49,6 +50,9 @@ internal sealed partial class ProcessInfoProvider(
     public bool IsAlive(int pid, string expectedStartTicks) => _startTicksReader(pid) == expectedStartTicks;
 
     public string GetProcessScope()
+        => processScopeReader is null ? ReadProcessScope() : processScopeReader();
+
+    private static string ReadProcessScope()
     {
         if (!OperatingSystem.IsLinux())
         {
@@ -102,7 +106,7 @@ internal sealed partial class ProcessInfoProvider(
 
             var expectedStart = DateTimeOffset.Parse(expectedProcStart, CultureInfo.InvariantCulture);
             var alive = actualStart is not null
-                && (actualStart.Value - expectedStart).Duration() <= LegacyStartTimeTolerance;
+                && (actualStart.Value - expectedStart).Duration() <= s_legacyStartTimeTolerance;
 
             return alive ? ProcessObservationResult.Alive : ProcessObservationResult.Dead;
         }

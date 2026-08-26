@@ -3,18 +3,6 @@ using System.Text.Json.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
-internal enum HookInstallOutcome { Installed, Updated, Unchanged }
-
-internal enum HookUninstallOutcome { Removed, NotPresent }
-
-internal enum HookStatusOutcome { Missing, Installed, Outdated }
-
-internal sealed record HookInstallEventResult(string Event, HookInstallOutcome Outcome);
-
-internal sealed record HookUninstallEventResult(string Event, HookUninstallOutcome Outcome);
-
-internal sealed record HookStatusEventResult(string Event, HookStatusOutcome Outcome, string? InstalledCommand);
-
 /// <summary>
 /// Pure JSON-text editing for a Claude Code <c>settings.json</c>'s
 /// <c>hooks</c> section: no file I/O, no sidecar persistence, so golden

@@ -16,10 +16,3 @@ internal sealed record CodexHookResponse
 {
     public CodexHookSpecificOutput? HookSpecificOutput { get; init; }
 }
-
-internal sealed record CodexHookSpecificOutput
-{
-    public required string HookEventName { get; init; }
-
-    public required string AdditionalContext { get; init; }
-}

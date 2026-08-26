@@ -1,71 +1,6 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
-
-internal enum CopilotExtensionInstallOutcome
-{
-    /// <summary>No file existed at the destination; it was created.</summary>
-    Installed,
-
-    /// <summary>
-    /// A recognized prior asset version was on disk; it was replaced with
-    /// the current version.
-    /// </summary>
-    Updated,
-
-    /// <summary>The current asset version was already on disk; nothing was written.</summary>
-    Unchanged,
-
-    /// <summary>
-    /// Content not matching any known asset version was on disk (a
-    /// hand-edited or entirely foreign file) and <c>--force</c> was passed,
-    /// so it was overwritten anyway.
-    /// </summary>
-    Forced
-}
-
-internal enum CopilotExtensionStatusOutcome
-{
-    Missing,
-    Current,
-    Outdated,
-
-    /// <summary>
-    /// On-disk content matches no asset version this CLI recognizes: not
-    /// something <c>install</c> wrote, and not safe to overwrite without
-    /// <c>--force</c>.
-    /// </summary>
-    Unrecognized
-}
-
-internal sealed record CopilotExtensionInstallReport(
-    string ExtensionPath, string ConfigPath, CopilotExtensionInstallOutcome Outcome);
-
-internal sealed record CopilotExtensionStatusReport(
-    string ExtensionPath, string ConfigPath, CopilotExtensionStatusOutcome Outcome);
-
-internal sealed record CopilotExtensionUninstallReport(string ExtensionPath, string ConfigPath, bool Removed);
-
-/// <summary>
-/// Installs the Copilot CLI extension asset to
-/// <c>&lt;repo-root&gt;/.github/extensions/nitro-mail/extension.mjs</c>,
-/// project scope only. Unlike the hooks installers, which merge Nitro-owned
-/// entries into a config file, the whole asset file is Nitro-owned, and the
-/// safety question is not "did a foreign edit land since we last read this
-/// file" but "is the file currently on disk something we recognize at all" -
-/// content not matching any known asset version is refused unless
-/// <c>--force</c>, per the plan's "overwrite refused if the on-disk hash
-/// matches no known asset version" rule.
-/// </summary>
-internal interface ICopilotExtensionInstallerService
-{
-    Task<CopilotExtensionInstallReport> InstallAsync(bool force, CancellationToken cancellationToken);
-
-    Task<CopilotExtensionStatusReport> StatusAsync(CancellationToken cancellationToken);
-
-    Task<CopilotExtensionUninstallReport> UninstallAsync(CancellationToken cancellationToken);
-}
 
 internal sealed class CopilotExtensionInstallerService(
     IFileSystem fileSystem,
@@ -203,19 +138,3 @@ internal sealed class CopilotExtensionInstallerService(
         }
     }
 }
-
-/// <summary>
-/// The <c>nitro-mail.config.json</c> content <c>extension.mjs</c> reads at
-/// runtime to invoke <c>nitro</c>: the same executable-plus-argument-prefix
-/// shape <see cref="LaunchDescriptor"/> carries, serialized so a Node.js
-/// process (with no access to the .NET record) can read it.
-/// </summary>
-internal sealed record CopilotExtensionConfig(
-    string Executable,
-    IReadOnlyList<string> ArgumentPrefix,
-    int ExtensionVersion,
-    DateTimeOffset InstalledAt);
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(CopilotExtensionConfig))]
-internal sealed partial class CopilotExtensionConfigJsonContext : JsonSerializerContext;

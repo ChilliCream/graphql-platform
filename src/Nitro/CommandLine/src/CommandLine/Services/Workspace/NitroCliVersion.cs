@@ -9,13 +9,13 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// </summary>
 internal static class NitroCliVersion
 {
-    private static readonly Lazy<string> LazyCurrent = new(Resolve);
+    private static readonly Lazy<string> s_lazyCurrent = new(Resolve);
 
     /// <summary>
     /// The value of this assembly's <see cref="AssemblyInformationalVersionAttribute"/>,
     /// or the empty string when the attribute is absent.
     /// </summary>
-    public static string Current => LazyCurrent.Value;
+    public static string Current => s_lazyCurrent.Value;
 
     private static string Resolve()
         => typeof(NitroCliVersion).Assembly

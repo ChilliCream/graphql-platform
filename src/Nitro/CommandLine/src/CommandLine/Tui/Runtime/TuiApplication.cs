@@ -33,15 +33,15 @@ internal sealed class TuiApplication
 {
     private const int EventChannelCapacity = 64;
 
-    private static readonly TimeSpan DefaultTickInterval = TimeSpan.FromMilliseconds(100);
-    private static readonly TimeSpan DefaultKeyPollInterval = TimeSpan.FromMilliseconds(15);
+    private static readonly TimeSpan s_defaultTickInterval = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_defaultKeyPollInterval = TimeSpan.FromMilliseconds(15);
 
     /// <summary>
     /// The fixed bound the shutdown path waits for the key-reader, tick, and
     /// additional event-source tasks before giving up on them. Matches the
     /// coordinator/effect shutdown wait used elsewhere in the TUI runtime.
     /// </summary>
-    private static readonly TimeSpan DefaultShutdownDrainBound = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_defaultShutdownDrainBound = TimeSpan.FromSeconds(5);
 
     private readonly IAnsiConsole _console;
     private readonly TimeSpan _tickInterval;
@@ -55,9 +55,9 @@ internal sealed class TuiApplication
         TimeSpan? shutdownDrainBound = null)
     {
         _console = console ?? throw new ArgumentNullException(nameof(console));
-        _tickInterval = tickInterval ?? DefaultTickInterval;
-        _keyPollInterval = keyPollInterval ?? DefaultKeyPollInterval;
-        _shutdownDrainBound = shutdownDrainBound ?? DefaultShutdownDrainBound;
+        _tickInterval = tickInterval ?? s_defaultTickInterval;
+        _keyPollInterval = keyPollInterval ?? s_defaultKeyPollInterval;
+        _shutdownDrainBound = shutdownDrainBound ?? s_defaultShutdownDrainBound;
     }
 
     /// <summary>

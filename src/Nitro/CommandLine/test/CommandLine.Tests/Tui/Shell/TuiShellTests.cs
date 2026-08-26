@@ -1067,8 +1067,9 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive()
     {
-        // arrange
-        var shell = CreateShell(new FakeTuiMode());
+        // arrange: an actor, so the write chords are live and the footer
+        // carries its full hint set.
+        var shell = CreateShell(new FakeTuiMode(), actor: "pascal");
 
         // act
         var text = RenderToText(shell);
@@ -1084,6 +1085,22 @@ public sealed class TuiShellTests
         Assert.Contains("back", text);
         Assert.Contains("quit", text);
         Assert.DoesNotContain("…", text);
+    }
+
+    [Fact]
+    public void Render_Should_HideTheEditHint_When_TheBoardHasNoIdentity()
+    {
+        // arrange
+        var shell = CreateShell(new FakeTuiMode());
+
+        // act
+        var text = RenderToText(shell);
+
+        // assert: every task write is refused without an actor, so the
+        // chord is not advertised; the read-only hints stay.
+        Assert.DoesNotContain("edit", text);
+        Assert.Contains("move", text);
+        Assert.Contains("open", text);
     }
 
     [Fact]

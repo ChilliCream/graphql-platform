@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
+using ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 

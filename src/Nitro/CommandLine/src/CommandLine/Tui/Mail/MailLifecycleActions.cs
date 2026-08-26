@@ -1,50 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
-using ChilliCream.Nitro.CommandLine.Tui.Input;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
-
-/// <summary>
-/// The lifecycle write a <see cref="MailActionOutcome"/> resulted from.
-/// </summary>
-internal enum MailAction
-{
-    MarkRead,
-    MarkUnread,
-    Archive
-}
-
-/// <summary>
-/// The outcome of one <see cref="MailLifecycleActions"/> write against the
-/// mail store.
-/// </summary>
-internal abstract record MailActionOutcome
-{
-    private MailActionOutcome()
-    {
-    }
-
-    /// <summary>
-    /// The write succeeded.
-    /// </summary>
-    public sealed record Succeeded(MailAction Action, string ToastText) : MailActionOutcome;
-
-    /// <summary>
-    /// The store rejected the write with an <see cref="ExitException"/>.
-    /// </summary>
-    public sealed record Failed(MailAction Action, string ToastText) : MailActionOutcome;
-
-    /// <summary>
-    /// The shell toast this outcome should show: success styled for
-    /// <see cref="Succeeded"/>, error styled for <see cref="Failed"/>.
-    /// </summary>
-    public TuiMessage.ShowToast ToShowToast() => this switch
-    {
-        Succeeded succeeded => new TuiMessage.ShowToast(succeeded.ToastText, ToastStyle.Success),
-        Failed failed => new TuiMessage.ShowToast(failed.ToastText, ToastStyle.Error),
-        _ => throw new NotSupportedException()
-    };
-}
 
 /// <summary>
 /// Mark-read, mark-unread, and archive actions for the selected message:
@@ -81,7 +38,10 @@ internal static class MailLifecycleActions
         "Workspace is read-only. Press Shift+I for Inbox to make changes.";
 
     /// <summary>
-    /// Whether <paramref name="mailbox"/> refuses every mutating gesture,
+    /// Whether <paramref name="mailbox"/> refuses every mutating gesture
+    /// under <paramref name="actor"/>: always when it is null, since the
+    /// board then has no identity to record a write under and refuses with
+    /// <see cref="Shell.BoardIdentity.NoIdentityMessage"/>, and otherwise
     /// showing <see cref="WorkspaceReadOnlyMessage"/> instead of reaching
     /// the store or opening a form or confirmation. See
     /// <see cref="WorkspaceReadOnlyMessage"/> for why.
@@ -99,7 +59,8 @@ internal static class MailLifecycleActions
     /// "Delete all messages matching search" action rather than overloading
     /// its plain "Delete all".
     /// </remarks>
-    public static bool IsReadOnly(MailMailbox mailbox) => mailbox == MailMailbox.Workspace;
+    public static bool IsReadOnly(MailMailbox mailbox, string? actor)
+        => actor is null || mailbox == MailMailbox.Workspace;
 
     /// <summary>
     /// Builds the confirmation dialog for archiving <paramref name="message"/>.

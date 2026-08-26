@@ -1,21 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The presence states shown to humans for an agent IDENTITY (as opposed to
-/// <see cref="AgentSessionState"/>, which is per-session). Adds
-/// <c>offline</c> - zero live sessions bound to the agent - to the three
-/// states <see cref="IAgentSessionRegistry.ListAsync"/> computes per row.
-/// </summary>
-internal static class AgentPresenceState
-{
-    public const string Offline = "offline";
-    public const string Online = AgentSessionState.Online;
-    public const string Unreachable = AgentSessionState.Unreachable;
-    public const string Unobservable = AgentSessionState.Unobservable;
-    public const string Remote = AgentSessionState.Remote;
-}
-
-/// <summary>
 /// One agent identity's presence, aggregated across zero or more live
 /// <see cref="AgentSessionRecord"/> rows bound to it. Presence has its own
 /// minutes-scale lifetime, distinct from the 30-day staleness
@@ -35,7 +20,7 @@ internal sealed record AgentPresence(
     /// The state priority a conflicted agent's states are joined in: the
     /// most-actionable state first (see <see cref="Compute"/>).
     /// </summary>
-    private static readonly string[] StatePriority =
+    private static readonly string[] s_statePriority =
     [
         AgentSessionState.Online,
         AgentSessionState.Unreachable,
@@ -54,7 +39,7 @@ internal sealed record AgentPresence(
     /// <para/>
     /// A same-actor restart can leave more than one live session. When those
     /// sessions disagree on <see cref="AgentSessionView.State"/>, every
-    /// distinct state is joined (in <see cref="StatePriority"/> order)
+    /// distinct state is joined (in <see cref="s_statePriority"/> order)
     /// rather than one being silently picked, and <see cref="Conflicted"/> is
     /// set so a caller can flag it: the plan's "same-actor multi-session
     /// conflicts surfaced, not hidden".
@@ -77,7 +62,7 @@ internal sealed record AgentPresence(
         var distinctStates = sessions.Select(v => v.State).Distinct().ToArray();
         var conflicted = distinctStates.Length > 1;
         var state = conflicted
-            ? string.Join("+", StatePriority.Where(distinctStates.Contains))
+            ? string.Join("+", s_statePriority.Where(distinctStates.Contains))
             : distinctStates[0];
 
         string? endpointKind = null;

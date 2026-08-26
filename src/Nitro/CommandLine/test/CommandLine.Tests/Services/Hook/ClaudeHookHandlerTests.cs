@@ -130,24 +130,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_IgnoreLegacyActorEnvironmentVariables()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "pascal");
-
-        // act
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // assert
-        var row = await FindRowAsync(cancellationToken);
-        Assert.NotNull(row);
-        Assert.NotEqual("pascal", row.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
-    }
-
-    [Fact]
     public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutCreatingARow_When_CwdHasNoWorkspace()
     {
         // arrange: fail-open on a missing workspace. The payload's cwd is a

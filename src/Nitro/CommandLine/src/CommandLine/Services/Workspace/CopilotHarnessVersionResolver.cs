@@ -13,7 +13,7 @@ internal sealed partial class CopilotHarnessVersionResolver(
     /// Bounds the fallback <c>--version</c> exec: a hung child must never
     /// block the hook that spawned it.
     /// </summary>
-    private static readonly TimeSpan ExecTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_execTimeout = TimeSpan.FromSeconds(5);
 
     private readonly Func<string, string?> _sessionStateVersionReader =
         sessionStateVersionReader ?? ReadSessionStateVersion;
@@ -122,7 +122,7 @@ internal sealed partial class CopilotHarnessVersionResolver(
 
             process.Start();
 
-            if (!process.WaitForExit((int)ExecTimeout.TotalMilliseconds))
+            if (!process.WaitForExit((int)s_execTimeout.TotalMilliseconds))
             {
                 process.Kill();
                 return null;

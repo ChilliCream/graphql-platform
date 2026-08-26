@@ -60,7 +60,7 @@ internal sealed class AgentDatabase
     /// but resets legacy agent, connection, mail, and wake state so the v9
     /// one-session/one-actor invariant starts from a consistent state.
     /// </summary>
-    private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6, 7, 8];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -68,7 +68,7 @@ internal sealed class AgentDatabase
     /// can decide, before calling in, whether an existing database on disk
     /// is a plain-init upgrade candidate or requires <c>--force</c>.
     /// </summary>
-    public static bool IsUpgradableVersion(long version) => Array.IndexOf(UpgradableVersions, (int)version) >= 0;
+    public static bool IsUpgradableVersion(long version) => Array.IndexOf(s_upgradableVersions, (int)version) >= 0;
 
     static AgentDatabase() => SQLitePCL.Batteries_V2.Init();
 
@@ -87,7 +87,7 @@ internal sealed class AgentDatabase
     /// connection so callers, including test seeding helpers, can write
     /// against it directly. Throws <see cref="ExitException"/> when the existing
     /// database's version is anything other than 0 (a genuinely new file),
-    /// one of <see cref="UpgradableVersions"/>, or <see cref="CurrentVersion"/>,
+    /// one of <see cref="s_upgradableVersions"/>, or <see cref="CurrentVersion"/>,
     /// checked before either transaction touches the file.
     /// </summary>
     public async Task<SqliteConnection> InitializeAsync(

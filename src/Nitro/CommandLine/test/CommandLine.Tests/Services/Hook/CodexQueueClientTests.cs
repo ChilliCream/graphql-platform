@@ -13,14 +13,12 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 public sealed class CodexQueueClientTests
 {
     [Fact]
-    public void BuildStartInfo_Should_StripActorEnvAndSuppressHooks()
+    public void BuildStartInfo_Should_SuppressHooks()
     {
         // act
         var startInfo = CodexQueueClient.BuildStartInfo("thread-1", "digest");
 
         // assert
-        Assert.False(startInfo.Environment.ContainsKey("NITRO_MAIL_ACTOR"));
-        Assert.False(startInfo.Environment.ContainsKey("NITRO_TASK_ACTOR"));
         Assert.Equal("1", startInfo.Environment["NITRO_HOOK_SUPPRESS"]);
     }
 

@@ -23,33 +23,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 
 /// <summary>
 /// Covers <see cref="AgentTuiLauncher"/>'s unified actor wiring and daemon,
-/// board-presence, and shutdown lifecycle.
+/// and shutdown lifecycle.
 /// </summary>
 public sealed class AgentTuiLauncherTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static Mock<IEnvironmentVariableProvider> CreateEnvironment() => new();
-
-    /// <summary>
-    /// A working <see cref="IBoardSessionLifecycle"/> mock: StartAsync
-    /// returns a fixed generation, TouchAsync and EndAsync both succeed.
-    /// </summary>
-    private static Mock<IBoardSessionLifecycle> CreateBoardSessionLifecycle()
-    {
-        var lifecycle = new Mock<IBoardSessionLifecycle>();
-        lifecycle
-            .Setup(x => x.StartAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string actor, CancellationToken _) => new AgentSessionGeneration(
-                AgentSessionHarness.NitroBoard, $"board:{actor}", "host-1", 4242, "123456"));
-        lifecycle
-            .Setup(x => x.TouchAsync(It.IsAny<AgentSessionGeneration>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-        lifecycle
-            .Setup(x => x.EndAsync(It.IsAny<AgentSessionGeneration>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-        return lifecycle;
-    }
 
     private static TuiShell BuildShell(TuiTab mailTab)
     {
@@ -77,7 +57,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_UseTheResolvedSessionActor()
+    public void BuildMailTab_Should_OpenWithoutAnActor()
     {
         var store = new FakeMailStore();
 
@@ -85,22 +65,21 @@ public sealed class AgentTuiLauncherTests
             store,
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
             new FakeTimeProvider(Now),
-            "session-actor",
             new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
-        Assert.Equal("session-actor", mailMode.State.Actor);
+        Assert.Null(mailMode.State.Actor);
     }
 
     [Fact]
-    public void BuildMailTab_Should_HostAWorkingMailMode_When_TheActorIsValid()
+    public void BuildMailTab_Should_HostAWorkingMailMode()
     {
         // arrange
         var store = new FakeMailStore();
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), "valid-actor",
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now),
             new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
         // assert: today's behavior, unchanged: a working MailMode, badge-free
@@ -110,7 +89,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public async Task BuildMailTab_Should_NeverDispatchDirectly_Relying_OnTheRunningDaemonInstead()
+    public async Task MailMode_Should_NeverDispatchDirectly_Relying_OnTheRunningDaemonInstead()
     {
         // arrange: the unified dashboard's mail tab is wired with
         // DaemonOwnedActorWakeDispatcher (see BuildMailTab's remarks), so a
@@ -124,10 +103,14 @@ public sealed class AgentTuiLauncherTests
         var wakeObserver = new FakeMailWakeReceiptObserver();
         wakeObserver.StatusByActor["bob"] =
             FakeMailWakeReceiptObserver.Observation("bob", MailWakeTargetStatus.Delegated);
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), "alice",
-            wakeObserver, cancellationToken);
-        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
+        var mailMode = new MailMode(
+            store,
+            "alice",
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new DaemonOwnedActorWakeDispatcher(),
+            new DaemonSettledMailWakeReceiptObserver(wakeObserver, new FakeTimeProvider(Now)),
+            new FakeTimeProvider(Now),
+            cancellationToken);
         mailMode.OnEnter();
         mailMode.Handle(new TuiMessage.SelectInboxRequested());
         mailMode.Handle(new TuiMessage.ComposeRequested());
@@ -186,7 +169,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public async Task BuildMailTab_Should_ReportPending_When_TheDaemonDoesNotSettleBeforeTheBatchDeadline()
+    public async Task MailMode_Should_ReportPending_When_TheDaemonDoesNotSettleBeforeTheBatchDeadline()
     {
         // arrange: the observer is left at its default Pending, so
         // DaemonSettledMailWakeReceiptObserver keeps re-observing on the
@@ -197,10 +180,14 @@ public sealed class AgentTuiLauncherTests
         var store = new FakeMailStore();
         var wakeObserver = new FakeMailWakeReceiptObserver();
         var timeProvider = new FakeTimeProvider(Now);
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), timeProvider, "alice",
-            wakeObserver, cancellationToken);
-        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
+        var mailMode = new MailMode(
+            store,
+            "alice",
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new DaemonOwnedActorWakeDispatcher(),
+            new DaemonSettledMailWakeReceiptObserver(wakeObserver, timeProvider),
+            timeProvider,
+            cancellationToken);
         mailMode.OnEnter();
         mailMode.Handle(new TuiMessage.SelectInboxRequested());
         mailMode.Handle(new TuiMessage.ComposeRequested());
@@ -296,7 +283,6 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 timeProvider,
-                "alice",
                 new FakeMailWakeReceiptObserver(),
                 TestContext.Current.CancellationToken);
 
@@ -390,7 +376,6 @@ public sealed class AgentTuiLauncherTests
             var console = new NitroConsole(
                 outConsole,
                 new TestConsole(),
-                CreateEnvironment().Object,
                 new SnapshotActivitySinkFactory());
 
             var coordinator = new Mock<IMailWakeDaemonCoordinator>();
@@ -410,11 +395,9 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),
-                CreateBoardSessionLifecycle().Object,
                 runCts.Token);
 
             await Task.Delay(TimeSpan.FromMilliseconds(150), cancellationToken);
@@ -461,7 +444,6 @@ public sealed class AgentTuiLauncherTests
             var console = new NitroConsole(
                 outConsole,
                 new TestConsole(),
-                CreateEnvironment().Object,
                 new SnapshotActivitySinkFactory());
 
             var coordinator = new Mock<IMailWakeDaemonCoordinator>();
@@ -482,243 +464,15 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),
-                CreateBoardSessionLifecycle().Object,
                 alreadyCancelled.Token).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
             // assert
             Assert.Equal(ExitCodes.Success, exitCode);
             coordinator.Verify(x => x.StartAsync(It.IsAny<CancellationToken>()), Times.Once);
             coordinator.Verify(x => x.StopAsync(It.IsAny<CancellationToken>()), Times.Once);
-        }
-        finally
-        {
-            tempRoot.Delete(recursive: true);
-        }
-    }
-
-    [Fact]
-    public async Task RunAsync_Should_StartAndEndTheBoardSession_AroundTheApplicationLoop()
-    {
-        // arrange: the live board presence row is started for the resolved
-        // mail actor before the shell opens, and ended again once the
-        // application loop returns (the caller's own cancellation token is
-        // what unwinds TuiApplication.RunAsync's loop here).
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-board-session-tests");
-
-        try
-        {
-            var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
-            Directory.CreateDirectory(workingDirectory);
-            var workspaceDirectory = AgentWorkspace.GetDirectory(workingDirectory);
-            Directory.CreateDirectory(workspaceDirectory);
-
-            var memoryStore = new MemoryStore(
-                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
-                Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory"));
-
-            var outConsole = new TestConsole();
-            outConsole.Profile.Capabilities.Interactive = true;
-            outConsole.Profile.Width = 80;
-            outConsole.Profile.Height = 24;
-
-            var console = new NitroConsole(
-                outConsole,
-                new TestConsole(),
-                CreateEnvironment().Object,
-                new SnapshotActivitySinkFactory());
-
-            var coordinator = new Mock<IMailWakeDaemonCoordinator>();
-            coordinator.Setup(x => x.StartAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            coordinator.Setup(x => x.StopAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            coordinator.SetupGet(x => x.Status).Returns(MailWakeDaemonStatus.Initial);
-
-            var lifecycle = CreateBoardSessionLifecycle();
-
-            using var runCts = new CancellationTokenSource();
-
-            // act
-            var runTask = AgentTuiLauncher.RunAsync(
-                console,
-                new FakeTaskStore(),
-                new FakeMailStore(),
-                memoryStore,
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
-                new FakeTimeProvider(Now),
-                "alice",
-                workspaceDirectory,
-                coordinator.Object,
-                new FakeMailWakeReceiptObserver(),
-                lifecycle.Object,
-                runCts.Token);
-
-            await Task.Delay(TimeSpan.FromMilliseconds(150), cancellationToken);
-            await runCts.CancelAsync();
-            var exitCode = await runTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
-
-            // assert: started once for the resolved mail actor (distinct
-            // from the "tasks-actor"/task-actor identity), and ended once
-            // with the exact generation StartAsync returned.
-            Assert.Equal(ExitCodes.Success, exitCode);
-            lifecycle.Verify(x => x.StartAsync("alice", It.IsAny<CancellationToken>()), Times.Once);
-            lifecycle.Verify(
-                x => x.EndAsync(
-                    It.Is<AgentSessionGeneration>(g => g.Harness == AgentSessionHarness.NitroBoard),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-        }
-        finally
-        {
-            tempRoot.Delete(recursive: true);
-        }
-    }
-
-    [Fact]
-    public async Task RunAsync_Should_StillEndTheBoardSession_When_CancellationIsAlreadyRequestedBeforeTheLoopStarts()
-    {
-        // arrange: stands in for a startup/runtime error unwinding the
-        // application loop before it ever paints a frame; the board session
-        // must still see a matching EndAsync, not just StartAsync.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-board-session-tests");
-
-        try
-        {
-            var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
-            Directory.CreateDirectory(workingDirectory);
-            var workspaceDirectory = AgentWorkspace.GetDirectory(workingDirectory);
-            Directory.CreateDirectory(workspaceDirectory);
-
-            var memoryStore = new MemoryStore(
-                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
-                Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory"));
-
-            var outConsole = new TestConsole();
-            outConsole.Profile.Capabilities.Interactive = true;
-            outConsole.Profile.Width = 80;
-            outConsole.Profile.Height = 24;
-
-            var console = new NitroConsole(
-                outConsole,
-                new TestConsole(),
-                CreateEnvironment().Object,
-                new SnapshotActivitySinkFactory());
-
-            var coordinator = new Mock<IMailWakeDaemonCoordinator>();
-            coordinator.Setup(x => x.StartAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            coordinator.Setup(x => x.StopAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            coordinator.SetupGet(x => x.Status).Returns(MailWakeDaemonStatus.Initial);
-
-            var lifecycle = CreateBoardSessionLifecycle();
-
-            using var alreadyCancelled = new CancellationTokenSource();
-            await alreadyCancelled.CancelAsync();
-
-            // act
-            var exitCode = await AgentTuiLauncher.RunAsync(
-                console,
-                new FakeTaskStore(),
-                new FakeMailStore(),
-                memoryStore,
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
-                new FakeTimeProvider(Now),
-                "alice",
-                workspaceDirectory,
-                coordinator.Object,
-                new FakeMailWakeReceiptObserver(),
-                lifecycle.Object,
-                alreadyCancelled.Token).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
-
-            // assert
-            Assert.Equal(ExitCodes.Success, exitCode);
-            lifecycle.Verify(x => x.StartAsync("alice", It.IsAny<CancellationToken>()), Times.Once);
-            lifecycle.Verify(
-                x => x.EndAsync(It.IsAny<AgentSessionGeneration>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-        finally
-        {
-            tempRoot.Delete(recursive: true);
-        }
-    }
-
-    [Fact]
-    public async Task RunAsync_Should_LeaveNoLiveBoardSessionToEnd_When_BoardStartupFails()
-    {
-        // arrange: board presence is optional; a startup failure must not
-        // fail the dashboard or leave a session to end.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-board-session-tests");
-
-        try
-        {
-            var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
-            Directory.CreateDirectory(workingDirectory);
-            var workspaceDirectory = AgentWorkspace.GetDirectory(workingDirectory);
-            Directory.CreateDirectory(workspaceDirectory);
-
-            var memoryStore = new MemoryStore(
-                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
-                Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory"));
-
-            var outConsole = new TestConsole();
-            outConsole.Profile.Capabilities.Interactive = true;
-            outConsole.Profile.Width = 80;
-            outConsole.Profile.Height = 24;
-
-            var console = new NitroConsole(
-                outConsole,
-                new TestConsole(),
-                CreateEnvironment().Object,
-                new SnapshotActivitySinkFactory());
-
-            var coordinator = new Mock<IMailWakeDaemonCoordinator>();
-            coordinator.Setup(x => x.StartAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            coordinator.Setup(x => x.StopAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            coordinator.SetupGet(x => x.Status).Returns(MailWakeDaemonStatus.Initial);
-
-            var lifecycle = new Mock<IBoardSessionLifecycle>();
-            lifecycle
-                .Setup(x => x.StartAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new ExitException("unreachable"));
-
-            using var runCts = new CancellationTokenSource();
-
-            var runTask = AgentTuiLauncher.RunAsync(
-                console,
-                new FakeTaskStore(),
-                new FakeMailStore(),
-                memoryStore,
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
-                new FakeTimeProvider(Now),
-                "alice",
-                workspaceDirectory,
-                coordinator.Object,
-                new FakeMailWakeReceiptObserver(),
-                lifecycle.Object,
-                runCts.Token);
-
-            await Task.Delay(TimeSpan.FromMilliseconds(150), cancellationToken);
-            await runCts.CancelAsync();
-            var exitCode = await runTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
-
-            // assert: the dashboard still opens and exits cleanly, with no
-            // EndAsync call for a session that was never started.
-            Assert.Equal(ExitCodes.Success, exitCode);
-            lifecycle.Verify(
-                x => x.EndAsync(It.IsAny<AgentSessionGeneration>(), It.IsAny<CancellationToken>()), Times.Never);
         }
         finally
         {

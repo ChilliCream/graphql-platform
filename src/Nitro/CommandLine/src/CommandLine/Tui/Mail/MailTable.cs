@@ -329,18 +329,18 @@ internal static class MailTable
     /// derive from Markus Kuhn's reference <c>wcwidth()</c>) plus the
     /// emoji-presentation blocks (regional indicators/flags, pictographs,
     /// emoticons, transport, and the supplemental symbol blocks). Paired
-    /// with <see cref="WideRangeEnds"/> at the same index. There is no
+    /// with <see cref="s_wideRangeEnds"/> at the same index. There is no
     /// project-referenceable Unicode width table to defer to instead (see
     /// <see cref="Truncate(string, int)"/>'s remark).
     /// </summary>
-    private static readonly int[] WideRangeStarts =
+    private static readonly int[] s_wideRangeStarts =
     [
         0x1100, 0x2E80, 0x3041, 0x3400, 0x4E00, 0xA000, 0xAC00, 0xF900, 0xFE30,
         0xFF00, 0xFFE0, 0x1F1E6, 0x1F200, 0x1F300, 0x1F600, 0x1F680, 0x1F900,
         0x1FA70, 0x20000, 0x30000
     ];
 
-    private static readonly int[] WideRangeEnds =
+    private static readonly int[] s_wideRangeEnds =
     [
         0x115F, 0x303E, 0x33FF, 0x4DBF, 0x9FFF, 0xA4CF, 0xD7A3, 0xFAFF, 0xFE4F,
         0xFF60, 0xFFE6, 0x1F1FF, 0x1F2FF, 0x1F5FF, 0x1F64F, 0x1F6FF, 0x1F9FF,
@@ -349,7 +349,7 @@ internal static class MailTable
 
     /// <summary>
     /// A single Unicode scalar's terminal cell width: 2 for a code point in
-    /// <see cref="WideRangeStarts"/>/<see cref="WideRangeEnds"/> (East Asian
+    /// <see cref="s_wideRangeStarts"/>/<see cref="s_wideRangeEnds"/> (East Asian
     /// Wide/Fullwidth or emoji-presentation), 1 for everything else,
     /// including combining marks, which most terminals render zero-width but
     /// this table still budgets a cell for - an acceptable, rare
@@ -365,14 +365,14 @@ internal static class MailTable
             return 1;
         }
 
-        for (var i = 0; i < WideRangeStarts.Length; i++)
+        for (var i = 0; i < s_wideRangeStarts.Length; i++)
         {
-            if (value < WideRangeStarts[i])
+            if (value < s_wideRangeStarts[i])
             {
                 return 1;
             }
 
-            if (value <= WideRangeEnds[i])
+            if (value <= s_wideRangeEnds[i])
             {
                 return 2;
             }

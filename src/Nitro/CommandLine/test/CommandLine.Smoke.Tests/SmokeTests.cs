@@ -126,8 +126,7 @@ public class SmokeTests
 
         var command = Cli.Wrap("dotnet")
             .WithArguments(args)
-            .WithValidation(CommandResultValidation.None)
-            .WithEnvironmentVariables(env => env.Set("NITRO_TASK_ACTOR", "smoke-test"));
+            .WithValidation(CommandResultValidation.None);
 
         if (workingDirectory is not null)
         {

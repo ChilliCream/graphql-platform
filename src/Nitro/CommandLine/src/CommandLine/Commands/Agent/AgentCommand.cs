@@ -1,9 +1,9 @@
 using System.CommandLine.Help;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks;
-using ChilliCream.Nitro.CommandLine.Commands.Mail;
-using ChilliCream.Nitro.CommandLine.Commands.Memory;
-using ChilliCream.Nitro.CommandLine.Commands.Tasks;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
@@ -37,7 +37,8 @@ internal sealed class AgentCommand : Command
     /// the tasks tab when the terminal is interactive and an agent
     /// workspace is found; otherwise it prints the same guidance a bare
     /// group with no action would, naming <c>nitro agent init</c> among the
-    /// listed subcommands.
+    /// listed subcommands. The board never takes an actor: it is an
+    /// observer over the whole workspace and refuses every write.
     /// </summary>
     private static async Task<int> ExecuteAsync(
         ICommandServices services,
@@ -59,18 +60,8 @@ internal sealed class AgentCommand : Command
                 var agentSessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
                 var activityReader = services.GetRequiredService<IClaudeSessionActivityReader>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
-                var actorResolver = services.GetRequiredService<IActingActorResolver>();
-                var actor = await actorResolver.ResolveAsync(
-                    optionValue: null,
-                    cancellationToken);
-
-                // Resolved, and its lifetime owned by AgentTuiLauncher.RunAsync,
-                // only on this interactive-plus-workspace path: a noninteractive
-                // invocation or one with no workspace never reaches here, so it
-                // never starts the mail-wake daemon coordinator.
                 var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
                 var mailWakeReceiptObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
-                var boardSessionLifecycle = services.GetRequiredService<IBoardSessionLifecycle>();
 
                 return await AgentTuiLauncher.RunAsync(
                     console,
@@ -81,11 +72,9 @@ internal sealed class AgentCommand : Command
                     agentSessionRegistry,
                     activityReader,
                     timeProvider,
-                    actor,
                     workspaceDirectory,
                     mailWakeDaemonCoordinator,
                     mailWakeReceiptObserver,
-                    boardSessionLifecycle,
                     cancellationToken);
             }
         }

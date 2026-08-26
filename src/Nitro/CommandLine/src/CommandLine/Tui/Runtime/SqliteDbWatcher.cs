@@ -21,10 +21,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 /// </summary>
 internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = null)
 {
-    private static readonly TimeSpan DefaultDebounce = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan s_defaultDebounce = TimeSpan.FromMilliseconds(200);
 
     private readonly string _databasePath = databasePath ?? throw new ArgumentNullException(nameof(databasePath));
-    private readonly TimeSpan _debounce = debounce ?? DefaultDebounce;
+    private readonly TimeSpan _debounce = debounce ?? s_defaultDebounce;
 
     /// <summary>
     /// Watches the database file until <paramref name="cancellationToken"/> is

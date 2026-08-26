@@ -13,18 +13,13 @@ internal sealed class ActingActorResolver(
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     IAgentSessionRegistry sessions) : IActingActorResolver
 {
-    public const string EnvironmentVariableName = "NITRO_ACTOR";
-
     public async Task<string> ResolveAsync(
         string? optionValue,
         CancellationToken cancellationToken)
     {
-        var requested = optionValue
-            ?? environmentVariables.GetEnvironmentVariable(EnvironmentVariableName);
-
-        if (requested is not null)
+        if (optionValue is not null)
         {
-            return MailAgentName.Normalize(requested);
+            return MailAgentName.Normalize(optionValue);
         }
 
         var session = await TryResolveSessionAsync(cancellationToken);
@@ -35,11 +30,9 @@ internal sealed class ActingActorResolver(
                 "Could not identify the current session. Pass '--actor <actor>' explicitly.");
         }
 
-        var currentActor = session.AgentName
+        return session.AgentName
             ?? throw new ExitException(
                 $"The current {session.Harness} session has no actor. Run `nitro agent register` and retry.");
-
-        return currentActor;
     }
 
     private async Task<AgentSessionRecord?> TryResolveSessionAsync(CancellationToken cancellationToken)

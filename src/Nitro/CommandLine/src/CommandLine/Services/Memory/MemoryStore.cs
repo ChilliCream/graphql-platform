@@ -16,7 +16,7 @@ internal sealed class MemoryStore(
     // Matches the threshold AtomicFileSystemTests exercises: a temp file
     // this old was abandoned by a crashed or cancelled write, not one still
     // in flight.
-    private static readonly TimeSpan AbandonedTempFileAge = TimeSpan.FromHours(1);
+    private static readonly TimeSpan s_abandonedTempFileAge = TimeSpan.FromHours(1);
 
     public string GlobalMemoryDirectory => globalMemoryDirectory;
 
@@ -46,7 +46,7 @@ internal sealed class MemoryStore(
             ? EnsureGlobalStore()
             : await EnsureProjectStoreAsync(cancellationToken);
 
-        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, AbandonedTempFileAge);
+        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, s_abandonedTempFileAge);
 
         var now = timeProvider.GetUtcNow();
         var id = MemoryId.New(timeProvider);
@@ -80,7 +80,7 @@ internal sealed class MemoryStore(
         var tags = ApplyTagChanges(record.Tags, update.AddTags, update.RemoveTags);
 
         var curatedDirectory = GetCuratedDirectoryForScope(normalizedScope);
-        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, AbandonedTempFileAge);
+        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, s_abandonedTempFileAge);
 
         var frontmatter = new MemoryFrontmatter(
             MemoryFrontmatterParser.SupportedSchemaVersion,
@@ -265,7 +265,7 @@ internal sealed class MemoryStore(
             journalDirectory, DateOnly.FromDateTime(now.UtcDateTime));
 
         CreateIfMissing(dateDirectory);
-        fileSystem.CleanupAbandonedTempFiles(dateDirectory, AbandonedTempFileAge);
+        fileSystem.CleanupAbandonedTempFiles(dateDirectory, s_abandonedTempFileAge);
 
         var id = MemoryId.New(timeProvider);
         var path = Path.Combine(dateDirectory, id + ".md");
@@ -453,7 +453,7 @@ internal sealed class MemoryStore(
         }
 
         CreateIfMissing(curatedDirectory);
-        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, AbandonedTempFileAge);
+        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, s_abandonedTempFileAge);
 
         var now = timeProvider.GetUtcNow();
 

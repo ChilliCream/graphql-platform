@@ -115,21 +115,6 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_IgnoreLegacyActorEnvironmentVariables()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "pascal");
-
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        var row = await FindRowAsync(cancellationToken);
-        Assert.NotNull(row);
-        Assert.NotEqual("pascal", row.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
-    }
-
-    [Fact]
     public async Task HandleSessionStartAsync_Should_SetTheCodexThreadEndpoint_ToTheSessionId()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -238,34 +238,3 @@ internal abstract record TuiMessage
     /// </summary>
     public sealed record ForgetRequested : TuiMessage;
 }
-
-/// <summary>
-/// A direction the selection cursor can move in.
-/// </summary>
-internal enum CursorDirection
-{
-    Up,
-    Down,
-    Left,
-    Right
-}
-
-/// <summary>
-/// An edge of a list the selection cursor can jump to.
-/// </summary>
-internal enum EdgeTarget
-{
-    Top,
-    Bottom
-}
-
-/// <summary>
-/// The visual style of a toast message.
-/// </summary>
-internal enum ToastStyle
-{
-    Info,
-    Success,
-    Warn,
-    Error
-}

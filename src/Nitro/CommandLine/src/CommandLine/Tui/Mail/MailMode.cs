@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Commands.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -18,16 +18,6 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Which form a <see cref="MailMode"/>'s active discard confirmation
-/// applies to.
-/// </summary>
-internal enum MailDiscardTarget
-{
-    Compose,
-    Reply
-}
-
-/// <summary>
 /// The mail board <see cref="ITuiMode"/>: a message list pane next to a
 /// detail pane for the selected message, with a key toggling the detail
 /// pane between one message and its whole thread. Opening a message in the
@@ -37,6 +27,9 @@ internal enum MailDiscardTarget
 /// Shift+I/S/L/W gestures jump directly to the Inbox/Sent/All/Workspace
 /// <see cref="MailMailbox"/>; u and a are refused with a toast, instead of
 /// reaching the store, on any message the actor is not a recipient of.
+/// A board with no actor is read-only in every mailbox, refusing each of
+/// those gestures and every jump to a personal mailbox with
+/// <see cref="Shell.BoardIdentity.NoIdentityMessage"/>.
 /// <see cref="MailMailbox.Workspace"/> shows every agent's mail, so it is
 /// read-only by default: u, a, c, and r are all refused with
 /// <see cref="MailLifecycleActions.WorkspaceReadOnlyMessage"/> there
@@ -144,7 +137,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// The <see cref="CapturingHints"/> shown while the fold prefix (z) is
     /// pending its second key.
     /// </summary>
-    private static readonly KeyHint[] FoldPrefixHints =
+    private static readonly KeyHint[] s_foldPrefixHints =
     [
         new("a/o/c", "toggle/open/close thread"),
         new("R/M", "unfold/fold all")
@@ -154,7 +147,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// The footer hints <see cref="SuppressedGlobalHints"/> hides while
     /// <see cref="MailMailbox.Workspace"/> is active.
     /// </summary>
-    private static readonly KeyHint[] WorkspaceReadOnlyHints =
+    private static readonly KeyHint[] s_workspaceReadOnlyHints =
     [
         MailKeyMap.ToggleReadHint,
         MailKeyMap.ArchiveHint,
@@ -231,7 +224,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// Builds a mail board over <paramref name="store"/> for <paramref name="actor"/>.
     /// </summary>
     /// <param name="store">The mail store every read and write goes through.</param>
-    /// <param name="actor">The acting agent.</param>
+    /// <param name="actor">
+    /// The acting agent, or null when the board has no identity: only
+    /// <see cref="MailMailbox.Workspace"/> is then reachable, and every
+    /// write is refused.
+    /// </param>
     /// <param name="agentRegistry">Resolves every registered agent's client attribution.</param>
     /// <param name="wakeDispatcher">
     /// Dispatches or defers wake work for a compose or reply's recipients,
@@ -251,7 +248,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </param>
     public MailMode(
         IMailStore store,
-        string actor,
+        string? actor,
         IAgentRegistry agentRegistry,
         IActorWakeDispatcher wakeDispatcher,
         IMailWakeReceiptObserver wakeObserver,
@@ -259,7 +256,6 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         CancellationToken effectCancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(store);
-        ArgumentNullException.ThrowIfNull(actor);
         ArgumentNullException.ThrowIfNull(agentRegistry);
         ArgumentNullException.ThrowIfNull(wakeDispatcher);
         ArgumentNullException.ThrowIfNull(wakeObserver);
@@ -278,6 +274,20 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// focus.
     /// </summary>
     public MailState State => _state;
+
+    /// <summary>
+    /// The actor used to render read state: an empty name without an
+    /// identity, which matches no recipient, so nothing renders as
+    /// addressed to me.
+    /// </summary>
+    private string RenderActor => _state.Actor ?? string.Empty;
+
+    /// <summary>
+    /// The actor for a write, which every mutating gesture refuses without
+    /// (see <see cref="RefuseIfReadOnly"/>).
+    /// </summary>
+    private string WritingActor
+        => _state.Actor ?? throw new InvalidOperationException("The board has no agent identity.");
 
     /// <summary>
     /// Whether this mode currently owns an active overlay (the archive
@@ -301,7 +311,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         : _composeForm is not null ? MailComposeForm.Hints
         : _replyForm is not null ? MailReplyForm.Hints
         : _agentPicker is not null ? QuickPicker.Hints
-        : _foldPrefixPending ? FoldPrefixHints
+        : _foldPrefixPending ? s_foldPrefixHints
         : [];
 
     /// <summary>
@@ -325,7 +335,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// reaching the store, in <see cref="MailMailbox.Workspace"/>.
     /// </remarks>
     public IReadOnlyCollection<KeyHint> SuppressedGlobalHints
-        => MailLifecycleActions.IsReadOnly(_state.Mailbox) ? WorkspaceReadOnlyHints : [];
+        => MailLifecycleActions.IsReadOnly(_state.Mailbox, _state.Actor) ? s_workspaceReadOnlyHints : [];
 
     /// <inheritdoc />
     public void OnEnter() => RefreshBlocking();
@@ -537,17 +547,17 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private IReadOnlyList<TuiMessage> MaybeMarkSelectedRead()
     {
-        if (MailLifecycleActions.IsReadOnly(_state.Mailbox))
+        if (MailLifecycleActions.IsReadOnly(_state.Mailbox, _state.Actor))
         {
             return [];
         }
 
-        if (_state.SelectedMessage is not { } message || !MailRecipientView.IsUnread(message, _state.Actor))
+        if (_state.SelectedMessage is not { } message || !MailRecipientView.IsUnread(message, WritingActor))
         {
             return [];
         }
 
-        var outcome = MailLifecycleActions.MarkReadAsync(_store, message, _state.Actor, CancellationToken.None)
+        var outcome = MailLifecycleActions.MarkReadAsync(_store, message, WritingActor, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         RefreshBlocking();
@@ -575,12 +585,12 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
         }
 
-        if (MailRecipientView.FindRecipient(message, _state.Actor) is null)
+        if (MailRecipientView.FindRecipient(message, WritingActor) is null)
         {
             return [new TuiMessage.ShowToast(NotARecipientMessage(message), ToastStyle.Warn)];
         }
 
-        var outcome = MailLifecycleActions.ToggleReadAsync(_store, message, _state.Actor, CancellationToken.None)
+        var outcome = MailLifecycleActions.ToggleReadAsync(_store, message, WritingActor, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         RefreshBlocking();
@@ -606,7 +616,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast("No message selected.", ToastStyle.Warn)];
         }
 
-        if (MailRecipientView.FindRecipient(message, _state.Actor) is null)
+        if (MailRecipientView.FindRecipient(message, WritingActor) is null)
         {
             return [new TuiMessage.ShowToast(NotARecipientMessage(message), ToastStyle.Warn)];
         }
@@ -667,9 +677,16 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// may proceed.
     /// </summary>
     private IReadOnlyList<TuiMessage>? RefuseIfReadOnly()
-        => MailLifecycleActions.IsReadOnly(_state.Mailbox)
+    {
+        if (_state.Actor is null)
+        {
+            return [new TuiMessage.ShowToast(Shell.BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
+        }
+
+        return MailLifecycleActions.IsReadOnly(_state.Mailbox, _state.Actor)
             ? [new TuiMessage.ShowToast(MailLifecycleActions.WorkspaceReadOnlyMessage, ToastStyle.Warn)]
             : null;
+    }
 
     private IReadOnlyList<TuiMessage> HandleArchiveDialogKey(ConsoleKeyInfo info)
     {
@@ -697,7 +714,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         _archiveDialog = null;
         _archiveTarget = null;
 
-        var outcome = MailLifecycleActions.ArchiveAsync(_store, target, _state.Actor, CancellationToken.None)
+        var outcome = MailLifecycleActions.ArchiveAsync(_store, target, WritingActor, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         RefreshBlocking();
@@ -745,7 +762,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private IReadOnlyList<TuiMessage> SubmitCompose(FormResult.Submitted submitted)
     {
-        var creation = MailComposeForm.BuildCreation(submitted.Values, _state.Actor);
+        var creation = MailComposeForm.BuildCreation(submitted.Values, WritingActor);
 
         if (!_sendEffects.TrySubmit(
             SendDedupeKey, (_, ct) => RunSendEffectAsync(creation, ct), _effectCancellationToken, out _))
@@ -794,7 +811,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private IReadOnlyList<TuiMessage> SubmitReply(FormResult.Submitted submitted)
     {
-        var request = _replyForm!.BuildRequest(submitted.Values, _state.Actor);
+        var request = _replyForm!.BuildRequest(submitted.Values, WritingActor);
 
         if (!_sendEffects.TrySubmit(
             SendDedupeKey, (_, ct) => RunReplyEffectAsync(request, ct), _effectCancellationToken, out _))
@@ -1166,6 +1183,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> SelectMailbox(MailMailbox mailbox)
     {
+        if (_state.Actor is null && mailbox != MailMailbox.Workspace)
+        {
+            return [new TuiMessage.ShowToast(Shell.BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
+        }
+
         _state.SelectMailboxAsync(mailbox, CancellationToken.None).GetAwaiter().GetResult();
         _detailView.ResetScroll();
         return [];
@@ -1516,9 +1538,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private string RenderRow(MailListRow row, bool selected, DateTimeOffset now, MailTable.Columns columns) => row switch
     {
         MailListRow.Thread t => MailTable.RenderThreadRow(
-            t.Summary, t.Expanded, _state.IsThreadUnreadToMe(t.Summary), selected, _state.Actor, now, columns),
+            t.Summary, t.Expanded, _state.IsThreadUnreadToMe(t.Summary), selected, RenderActor, now, columns),
         MailListRow.MessageRow m => MailTable.RenderMessageRow(
-            m.Message, m.ThreadChild, MailRecipientView.IsUnread(m.Message, _state.Actor), selected, _state.Actor, now, columns),
+            m.Message, m.ThreadChild, MailRecipientView.IsUnread(m.Message, RenderActor), selected, RenderActor, now, columns),
         _ => string.Empty
     };
 
@@ -1559,7 +1581,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private void RefreshBlocking()
     {
         _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
-        UnreadCount = _store.CountUnreadAsync(_state.Actor, CancellationToken.None).GetAwaiter().GetResult();
+        UnreadCount = _state.Actor is null
+            ? 0
+            : _store.CountUnreadAsync(_state.Actor, CancellationToken.None).GetAwaiter().GetResult();
 
         var agents = _agentRegistry.ListAsync(role: null, staleBefore: null, CancellationToken.None)
             .GetAwaiter().GetResult();

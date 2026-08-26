@@ -57,6 +57,7 @@ public abstract class CommandTestBase
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
+    private Services.Workspace.IActingActorResolver? _actingActorResolverOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -189,6 +190,16 @@ public abstract class CommandTestBase
         _claudePeerClientOverride = client;
     }
 
+    /// <summary>
+    /// Resolves the acting actor to <paramref name="actor"/> when a command
+    /// omits <c>--actor</c>. Commands under test run without a detectable
+    /// harness session, which is the only other identity source.
+    /// </summary>
+    protected void SetupActingActor(string actor)
+    {
+        _actingActorResolverOverride = new FixedActingActorResolver(actor);
+    }
+
     protected void SetupNoAuthentication()
     {
         _authenticated = false;
@@ -252,7 +263,6 @@ public abstract class CommandTestBase
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            _environmentVariableProviderMock.Object,
             new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
@@ -301,7 +311,6 @@ public abstract class CommandTestBase
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            _environmentVariableProviderMock.Object,
             new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
@@ -393,6 +402,11 @@ public abstract class CommandTestBase
         if (_claudePeerClientOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_claudePeerClientOverride));
+        }
+
+        if (_actingActorResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_actingActorResolverOverride));
         }
 
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));

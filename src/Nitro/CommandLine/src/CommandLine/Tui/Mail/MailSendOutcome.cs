@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Commands.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Tui.Input;

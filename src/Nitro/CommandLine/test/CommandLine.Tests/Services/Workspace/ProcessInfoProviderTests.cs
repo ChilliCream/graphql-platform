@@ -126,12 +126,13 @@ public sealed class ProcessInfoProviderTests
     [Fact]
     public void CanObserveScope_Should_ReturnFalse_When_BothScopesAreKnown_AndDiffer()
     {
-        // arrange
-        var foreignScope = _provider.GetProcessScope() + "-foreign";
+        // arrange: a known reader scope, so the comparison is exercised on
+        // platforms that report none of their own.
+        var provider = new ProcessInfoProvider(processScopeReader: () => "pidns:1");
 
         // act & assert: a positive mismatch between two KNOWN scopes -
         // definite proof this reader cannot trust its own view.
-        Assert.False(_provider.CanObserveScope(foreignScope));
+        Assert.False(provider.CanObserveScope("pidns:2"));
     }
 
     [Fact]
@@ -203,12 +204,12 @@ public sealed class ProcessInfoProviderTests
         // recorded) means this reader cannot trust that fact.
         using var self = Process.GetCurrentProcess();
         var expectedTicks = ProcStat.ReadStartTicks(self.Id)!;
-        var foreignScope = _provider.GetProcessScope() + "-foreign";
+        var provider = new ProcessInfoProvider(processScopeReader: () => "pidns:1");
 
         // act & assert
         Assert.Equal(
             ProcessObservationResult.Unobservable,
-            _provider.Observe(self.Id, expectedTicks, legacy: false, foreignScope));
+            provider.Observe(self.Id, expectedTicks, legacy: false, "pidns:2"));
     }
 
     [Fact]

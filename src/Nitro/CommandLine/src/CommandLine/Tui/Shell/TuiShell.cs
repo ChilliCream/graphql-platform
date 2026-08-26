@@ -30,8 +30,8 @@ internal sealed class TuiShell
     private const string FooterEllipsis = "…";
     private const string TabStripSeparator = " ";
 
-    private static readonly TimeSpan QuitGateDrainBound = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan QuitGateGrace = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan s_quitGateDrainBound = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_quitGateGrace = TimeSpan.FromSeconds(1);
 
     private readonly IReadOnlyList<TuiTab> _tabs;
     private readonly TuiTab _tasksTab;
@@ -41,6 +41,7 @@ internal sealed class TuiShell
     private readonly ITaskStore? _store;
     private readonly IMailStore? _mailStore;
     private readonly string? _actor;
+
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
     private readonly IReadOnlyList<TuiQuitGate> _quitGates;
     private readonly TimeSpan _quitGateDrainBound;
@@ -156,7 +157,7 @@ internal sealed class TuiShell
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
-        _quitGateDrainBound = quitGateDrainBound ?? QuitGateDrainBound;
+        _quitGateDrainBound = quitGateDrainBound ?? s_quitGateDrainBound;
         _width = initialWidth;
         _height = initialHeight;
 
@@ -850,7 +851,7 @@ internal sealed class TuiShell
             try
             {
                 report = gate(_quitGateDrainBound, CancellationToken.None)
-                    .WaitAsync(_quitGateDrainBound + QuitGateGrace)
+                    .WaitAsync(_quitGateDrainBound + s_quitGateGrace)
                     .GetAwaiter().GetResult();
             }
             catch (TimeoutException)
@@ -930,6 +931,11 @@ internal sealed class TuiShell
             return false;
         }
 
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
+        }
+
         if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
@@ -952,6 +958,11 @@ internal sealed class TuiShell
         if (!IsTasksTabActive || _store is null)
         {
             return false;
+        }
+
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
         }
 
         if (LoadSelectedTask() is not { } task)
@@ -982,6 +993,11 @@ internal sealed class TuiShell
             return false;
         }
 
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
+        }
+
         if (LoadSelectedTask() is not { } task)
         {
             return true;
@@ -1000,6 +1016,11 @@ internal sealed class TuiShell
             return false;
         }
 
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
+        }
+
         if (LoadSelectedTask() is not { } task)
         {
             return true;
@@ -1016,6 +1037,11 @@ internal sealed class TuiShell
         if (!IsTasksTabActive || _store is null)
         {
             return false;
+        }
+
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
         }
 
         // A selected task becomes the new task's parent: creating unconditionally
@@ -1125,7 +1151,13 @@ internal sealed class TuiShell
             return capturingMode.CapturingHints;
         }
 
-        var hints = ActiveTab.Dispatcher.CombineHints(contextHints, ActiveMode.SuppressedGlobalHints);
+        // Without an identity every task write is refused, so the chord
+        // must not be advertised, the same way a read-only mail mailbox
+        // hides its own.
+        var suppressed = _actor is null
+            ? [.. ActiveMode.SuppressedGlobalHints, new KeyHint("e", "edit")]
+            : ActiveMode.SuppressedGlobalHints;
+        var hints = ActiveTab.Dispatcher.CombineHints(contextHints, suppressed);
         return _tabs.Count > 1 ? [.. hints, TabSwitchKeys.Hint] : hints;
     }
 
@@ -1294,23 +1326,4 @@ internal sealed class TuiShell
         plainWidth = usedWidth + trailerWidth;
         return string.Join(FooterSeparator, markupItems.Take(included)) + FooterSeparator + FooterEllipsis;
     }
-}
-
-/// <summary>
-/// Which field a <see cref="TuiShell"/>'s active quick picker is editing.
-/// </summary>
-internal enum PickerKind
-{
-    Status,
-    Priority
-}
-
-/// <summary>
-/// Which form a <see cref="TuiShell"/>'s active discard confirmation applies
-/// to.
-/// </summary>
-internal enum DiscardTarget
-{
-    EditorForm,
-    CreateForm
 }

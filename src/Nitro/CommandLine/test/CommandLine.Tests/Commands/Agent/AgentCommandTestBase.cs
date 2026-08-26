@@ -15,7 +15,7 @@ public abstract class AgentCommandTestBase : CommandTestBase
     protected AgentCommandTestBase(NitroCommandFixture fixture) : base(fixture)
     {
         SetupNoAuthentication();
-        SetupEnvironmentVariable("ACTOR", "test-agent");
+        SetupActingActor("test-agent");
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-agent-registry-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");

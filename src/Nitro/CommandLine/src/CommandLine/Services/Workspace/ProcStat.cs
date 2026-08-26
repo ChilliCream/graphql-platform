@@ -1,9 +1,14 @@
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Reads a process's raw start-tick count from <c>/proc/&lt;pid&gt;/stat</c>,
-/// Linux's own kernel-tick clock for a process's start time, distinct from
-/// and more precise than .NET's estimated <see cref="System.Diagnostics.Process.StartTime"/>.
+/// Reads a process's start time as an exact digit string two processes can
+/// compare for equality: Linux's own kernel-tick clock from
+/// <c>/proc/&lt;pid&gt;/stat</c>, and elsewhere the kernel start timestamp
+/// behind <see cref="Process.StartTime"/>.
 /// </summary>
 internal static class ProcStat
 {
@@ -25,6 +30,11 @@ internal static class ProcStat
     public static string? ReadStartTicks(int pid, out bool permissionDenied)
     {
         permissionDenied = false;
+
+        if (!OperatingSystem.IsLinux())
+        {
+            return ReadStartTimeTicks(pid, out permissionDenied);
+        }
 
         try
         {
@@ -52,6 +62,39 @@ internal static class ProcStat
             return null;
         }
         catch (UnauthorizedAccessException)
+        {
+            permissionDenied = true;
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// The pid's start time in <see cref="DateTime.Ticks"/>, for platforms
+    /// with no procfs. Unlike Linux, where .NET estimates this from boot
+    /// time, the value is the fixed timestamp the kernel recorded, so two
+    /// readers of the same live pid agree exactly.
+    /// </summary>
+    private static string? ReadStartTimeTicks(int pid, out bool permissionDenied)
+    {
+        permissionDenied = false;
+
+        try
+        {
+            using var process = Process.GetProcessById(pid);
+
+            return process.StartTime.Ticks.ToString(CultureInfo.InvariantCulture);
+        }
+        catch (ArgumentException)
+        {
+            // No process carries this pid.
+            return null;
+        }
+        catch (InvalidOperationException)
+        {
+            // The process exited between the lookup and the read.
+            return null;
+        }
+        catch (Win32Exception)
         {
             permissionDenied = true;
             return null;

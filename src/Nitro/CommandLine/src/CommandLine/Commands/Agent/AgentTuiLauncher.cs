@@ -22,13 +22,14 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 /// </summary>
 internal static class AgentTuiLauncher
 {
-    private static readonly TimeSpan PendingSendShutdownTimeout = TimeSpan.FromSeconds(2);
-    private static readonly TimeSpan PresenceHeartbeatInterval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_pendingSendShutdownTimeout = TimeSpan.FromSeconds(2);
 
     /// <summary>
-    /// Runs the TUI and owns its live-presence session and mail wake daemon.
+    /// Runs the TUI and owns its mail wake daemon. The board is an
+    /// observer: it never takes an actor, so it registers no session and
+    /// refuses every write.
     /// </summary>
-    public static async Task<int> RunAsync(
+    public static Task<int> RunAsync(
         INitroConsole console,
         ITaskStore taskStore,
         IMailStore mailStore,
@@ -37,39 +38,14 @@ internal static class AgentTuiLauncher
         IAgentSessionRegistry agentSessionRegistry,
         IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
-        string actor,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         IMailWakeReceiptObserver mailWakeReceiptObserver,
-        IBoardSessionLifecycle boardSessionLifecycle,
         CancellationToken cancellationToken)
-    {
-        AgentSessionGeneration? presenceSession = null;
-
-        try
-        {
-            presenceSession = await boardSessionLifecycle.StartAsync(actor, cancellationToken);
-        }
-        catch (ExitException)
-        {
-            // An invalid mail identity must not prevent the other tabs from opening.
-        }
-
-        try
-        {
-            return await RunShellAsync(
-                console, taskStore, mailStore, memoryStore, agentRegistry, agentSessionRegistry, activityReader,
-                timeProvider, actor, workspaceDirectory, mailWakeDaemonCoordinator,
-                mailWakeReceiptObserver, boardSessionLifecycle, presenceSession, cancellationToken);
-        }
-        finally
-        {
-            if (presenceSession is not null)
-            {
-                await boardSessionLifecycle.EndAsync(presenceSession, CancellationToken.None);
-            }
-        }
-    }
+        => RunShellAsync(
+            console, taskStore, mailStore, memoryStore, agentRegistry, agentSessionRegistry, activityReader,
+            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator,
+            mailWakeReceiptObserver, cancellationToken);
 
     private static async Task<int> RunShellAsync(
         INitroConsole console,
@@ -80,12 +56,9 @@ internal static class AgentTuiLauncher
         IAgentSessionRegistry agentSessionRegistry,
         IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
-        string actor,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         IMailWakeReceiptObserver mailWakeReceiptObserver,
-        IBoardSessionLifecycle boardSessionLifecycle,
-        AgentSessionGeneration? presenceSession,
         CancellationToken cancellationToken)
     {
         var searchMode = new SearchMode(taskStore);
@@ -102,7 +75,6 @@ internal static class AgentTuiLauncher
             agentSessionRegistry,
             activityReader,
             timeProvider,
-            actor,
             mailWakeReceiptObserver,
             quitCts.Token);
 
@@ -117,7 +89,7 @@ internal static class AgentTuiLauncher
             searchMode,
             treeView,
             taskStore,
-            actor,
+            actor: null,
             mailStore,
             mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
             quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
@@ -141,12 +113,6 @@ internal static class AgentTuiLauncher
             eventSources.Add(mailMode.RunSendEffectEventsAsync);
         }
 
-        if (presenceSession is { } livePresenceSession)
-        {
-            eventSources.Add(
-                (_, token) => RunPresenceHeartbeatAsync(boardSessionLifecycle, livePresenceSession, token));
-        }
-
         try
         {
             await application.RunAsync(shell.Handle, shell.Render, quitCts.Token, eventSources);
@@ -160,32 +126,11 @@ internal static class AgentTuiLauncher
             // brief chance to commit before the process exits.
             if (mailMode is not null)
             {
-                await mailMode.ShieldPendingSendsAsync(PendingSendShutdownTimeout, CancellationToken.None);
+                await mailMode.ShieldPendingSendsAsync(s_pendingSendShutdownTimeout, CancellationToken.None);
             }
         }
 
         return ExitCodes.Success;
-    }
-
-    /// <summary>
-    /// Refreshes the TUI's live-presence session until shutdown.
-    /// </summary>
-    private static async Task RunPresenceHeartbeatAsync(
-        IBoardSessionLifecycle lifecycle, AgentSessionGeneration generation, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var timer = new PeriodicTimer(PresenceHeartbeatInterval);
-
-            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await lifecycle.TouchAsync(generation, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Normal shutdown.
-        }
     }
 
     /// <summary>
@@ -200,7 +145,6 @@ internal static class AgentTuiLauncher
         IAgentSessionRegistry agentSessionRegistry,
         IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
-        string actor,
         IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken effectCancellationToken = default)
     {
@@ -209,7 +153,7 @@ internal static class AgentTuiLauncher
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var mailTab = BuildMailTab(
-            mailStore, agentRegistry, timeProvider, actor, mailWakeReceiptObserver,
+            mailStore, agentRegistry, timeProvider, mailWakeReceiptObserver,
             effectCancellationToken);
 
         var agentsMode = new AgentsMode(taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
@@ -222,21 +166,20 @@ internal static class AgentTuiLauncher
     }
 
     /// <summary>
-    /// Builds the Mail tab for the already-resolved session actor. Wake
-    /// dispatch belongs to the shared daemon; the tab enqueues work and
-    /// observes its result.
+    /// Builds the Mail tab with no actor, so it opens on the workspace-wide
+    /// mailbox and refuses every write. Wake dispatch belongs to the shared
+    /// daemon; the tab enqueues work and observes its result.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,
         IAgentRegistry agentRegistry,
         TimeProvider timeProvider,
-        string actor,
         IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken effectCancellationToken = default)
     {
         var mailMode = new MailMode(
             mailStore,
-            actor,
+            actor: null,
             agentRegistry,
             new DaemonOwnedActorWakeDispatcher(),
             new DaemonSettledMailWakeReceiptObserver(mailWakeReceiptObserver, timeProvider),

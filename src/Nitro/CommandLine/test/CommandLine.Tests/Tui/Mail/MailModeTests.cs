@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Microsoft.Extensions.Time.Testing;
 using Spectre.Console;
@@ -21,7 +22,7 @@ public sealed class MailModeTests
 
     private static MailMode CreateMode(
         FakeMailStore store,
-        string actor = "alice",
+        string? actor = "alice",
         FakeAgentRegistry? agentRegistry = null,
         FakeMailWakeReceiptObserver? wakeObserver = null,
         IActorWakeDispatcher? wakeDispatcher = null)
@@ -59,6 +60,60 @@ public sealed class MailModeTests
         {
             mode.HandleRawKey(Key(c));
         }
+    }
+
+    [Fact]
+    public void MutatingGesture_Should_BeRefused_When_TheBoardHasNoIdentity()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store, actor: null);
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ToggleReadRequested());
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal(BoardIdentity.NoIdentityMessage, shown.Text);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
+    }
+
+    [Fact]
+    public void JumpToInbox_Should_BeRefused_And_StayOnWorkspace_When_TheBoardHasNoIdentity()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store, actor: null);
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.SelectInboxRequested());
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal(BoardIdentity.NoIdentityMessage, shown.Text);
+        Assert.Equal(MailMailbox.Workspace, mode.State.Mailbox);
+    }
+
+    [Fact]
+    public void Workspace_Should_ListEveryAgentsMail_When_TheBoardHasNoIdentity()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now, actor: "alice");
+        AddMessage(store, "m-2", Now.AddMinutes(1), actor: "bob");
+
+        // act
+        var mode = CreateMode(store, actor: null);
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal(MailMailbox.Workspace, mode.State.Mailbox);
+        Assert.Equal(2, mode.State.Messages.Count);
+        Assert.Equal(0, mode.UnreadCount);
     }
 
     [Fact]

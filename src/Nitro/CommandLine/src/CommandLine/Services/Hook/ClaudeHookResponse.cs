@@ -17,10 +17,3 @@ internal sealed record ClaudeHookResponse
 
     public string? Reason { get; init; }
 }
-
-internal sealed record ClaudeHookSpecificOutput
-{
-    public required string HookEventName { get; init; }
-
-    public required string AdditionalContext { get; init; }
-}
