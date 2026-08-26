@@ -15,6 +15,5 @@ internal sealed class HooksCommand : Command
 
         Subcommands.Add(new Claude.ClaudeHooksCommand());
         Subcommands.Add(new Codex.CodexHooksCommand());
-        Subcommands.Add(new Copilot.CopilotHooksCommand());
     }
 }

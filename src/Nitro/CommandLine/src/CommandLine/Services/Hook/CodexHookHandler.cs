@@ -10,7 +10,6 @@ internal sealed class CodexHookHandler(
     IAgentSessionRegistry sessionRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
-    IProcessInfoProvider processInfoProvider,
     ICodexHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
@@ -23,8 +22,6 @@ internal sealed class CodexHookHandler(
         ISessionDeliveryLedger ledger,
         IMailStore mailStore,
         IEnvironmentVariableProvider environmentVariableProvider,
-        IProcessInfoProvider processInfoProvider,
-        ICodexAncestorSessionResolver ancestorResolver,
         ICodexHarnessVersionResolver harnessVersionResolver,
         INitroInstanceIdProvider instanceIdProvider,
         IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
@@ -35,8 +32,6 @@ internal sealed class CodexHookHandler(
             sessionRegistry,
             ledger,
             mailStore,
-            processInfoProvider,
-            ancestorResolver,
             harnessVersionResolver,
             instanceIdProvider,
             globalConfigDirectoryProvider,
@@ -53,7 +48,7 @@ internal sealed class CodexHookHandler(
     public async Task<CodexHookOutcome> HandleSessionStartAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, cancellationToken);
 
         if (resolved is null)
         {
@@ -92,7 +87,7 @@ internal sealed class CodexHookHandler(
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, cancellationToken);
 
         if (resolved is null)
         {
@@ -138,7 +133,7 @@ internal sealed class CodexHookHandler(
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, cancellationToken);
 
         if (resolved is not null)
         {
@@ -162,7 +157,7 @@ internal sealed class CodexHookHandler(
         }
 
         var resolved = await ResolveAsync(
-            new CodexHookPayload { SessionId = payload.ThreadId, Cwd = payload.Cwd }, dryRun, cancellationToken);
+            new CodexHookPayload { SessionId = payload.ThreadId, Cwd = payload.Cwd }, cancellationToken);
 
         if (resolved is null)
         {
@@ -239,7 +234,7 @@ internal sealed class CodexHookHandler(
     /// addresses, or null when any fail-open condition applies: a missing or
     /// unresolvable cwd, no agent workspace at that cwd, no live Codex
     /// ancestor process (the ancestor walk in real usage; <paramref
-    /// name="dryRun"/> pins a fixed sentinel identity instead), or this
+    /// name="payload"/> names no session, or this
     /// process's own cwd resolving to a different workspace than the
     /// payload's cwd does. A missing session/thread id does not fail open by
     /// itself: with a resolvable process identity, the deterministic
@@ -258,7 +253,7 @@ internal sealed class CodexHookHandler(
     /// </para>
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(payload.Cwd))
         {

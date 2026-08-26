@@ -43,10 +43,8 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
         services.TryAddSingleton<IClaudeAncestorSessionResolver, ClaudeAncestorSessionResolver>();
         services.TryAddSingleton<ICodexAncestorSessionResolver, CodexAncestorSessionResolver>();
-        services.TryAddSingleton<ICopilotAncestorSessionResolver, CopilotAncestorSessionResolver>();
         services.TryAddSingleton<IClaudeHarnessVersionResolver, ClaudeHarnessVersionResolver>();
         services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
-        services.TryAddSingleton<ICopilotHarnessVersionResolver, CopilotHarnessVersionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
@@ -76,8 +74,6 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexPathResolver, CodexPathResolver>();
         services.TryAddSingleton<ICodexHooksSidecarStore, CodexHooksSidecarStore>();
         services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
-        services.TryAddSingleton<ICopilotExtensionPathResolver, CopilotExtensionPathResolver>();
-        services.TryAddSingleton<ICopilotExtensionInstallerService, CopilotExtensionInstallerService>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();
