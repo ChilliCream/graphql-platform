@@ -16,6 +16,23 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
     private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Lets the watcher settle after start-up and drains whatever it published
+    /// in the meantime. The arrange step writes the main database file before
+    /// the watcher exists, and the file system can still deliver that write's
+    /// event afterwards; a test asserting that a -wal/-shm-only churn publishes
+    /// nothing must not fail on it. Anything published after this returns was
+    /// caused by the act step.
+    /// </summary>
+    private static async Task SettleAsync(Channel<TuiEvent> channel, CancellationToken cancellationToken)
+    {
+        await Task.Delay(Debounce * 4, cancellationToken);
+
+        while (channel.Reader.TryRead(out _))
+        {
+        }
+    }
+
     private readonly string _directory =
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "sqlite-db-watcher-tests-" + Guid.NewGuid())).FullName;
 
@@ -40,7 +57,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(databasePath, "changed");
         var received = await ReadOneAsync(channel.Reader, testToken);
         cts.Cancel();
@@ -71,7 +88,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(databasePath + "-wal", "wal-bytes");
         File.Delete(databasePath + "-wal");
         await Task.Delay(Debounce * 4, testToken);
@@ -96,7 +113,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
 
         // Simulate a burst of read-triggered -wal/-shm churn (create, modify,
         // delete), the same shape a self-sustaining loop would produce.
@@ -131,7 +148,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(databasePath + "-wal", "wal-bytes");
         File.WriteAllText(databasePath + "-shm", "shm-bytes");
         File.WriteAllText(databasePath, "changed");
@@ -163,7 +180,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(databasePath + "-wal", new string('w', 64));
         var received = await ReadOneAsync(channel.Reader, testToken);
         cts.Cancel();
@@ -188,7 +205,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(databasePath + "-wal", new string('w', 32));
         var first = await ReadOneAsync(channel.Reader, testToken);
         File.WriteAllText(databasePath + "-wal", new string('w', 96));
@@ -218,7 +235,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(walPath, new string('x', 32));
         await Task.Delay(Debounce * 4, testToken);
         cts.Cancel();
@@ -250,7 +267,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
 
         for (var i = 1; i <= 5; i++)
         {
@@ -282,7 +299,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
 
         // A burst of writes to the db file within one debounce window resets
         // the same timer rather than each scheduling its own event. Issued
@@ -320,7 +337,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         File.WriteAllText(Path.Combine(_directory, "notes.txt"), "unrelated");
         await Task.Delay(Debounce * 4, testToken);
         cts.Cancel();
@@ -363,7 +380,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
-        await Task.Delay(Debounce, testToken);
+        await SettleAsync(channel, testToken);
         cts.Cancel();
         var completed = await Task.WhenAny(runTask, Task.Delay(TestTimeout, testToken));
 

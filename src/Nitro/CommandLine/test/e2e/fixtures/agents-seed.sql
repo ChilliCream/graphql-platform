@@ -35,4 +35,15 @@ INSERT INTO agent_sessions (
     'none', '', '2026-01-01 06:00:00.0000000+00:00', '2026-01-01 06:00:00.0000000+00:00'
 );
 
+-- The durable identity row for the same session. `nitro agent list` joins
+-- agent_session_identities to the live agent_sessions row by
+-- (harness, session_id), so a session seeded without its identity is listed
+-- as "no session" no matter what agent_sessions holds.
+INSERT INTO agent_session_identities (
+    harness, session_id, actor, role, actor_revision, created_at, last_seen_at
+) VALUES (
+    'claude-code', 'e2e-remote-session', 'bob', '', 1,
+    '2026-01-01 06:00:00.0000000+00:00', '2026-01-01 06:00:00.0000000+00:00'
+);
+
 COMMIT;
