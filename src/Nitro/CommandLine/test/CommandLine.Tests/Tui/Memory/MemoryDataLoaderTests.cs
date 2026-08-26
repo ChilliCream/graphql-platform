@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
 
@@ -16,8 +17,8 @@ public sealed class MemoryDataLoaderTests : MemoryTestBase
 
     public MemoryDataLoaderTests() : base("nitro-memory-data-loader-tests")
     {
-        _store = new MemoryStore(FileSystem, TimeProvider, GlobalMemoryDirectory);
-        _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, CancellationToken.None).GetAwaiter().GetResult();
+        _store = new MemoryStore(FileSystem, TimeProvider, new AgentDatabase());
+        InitializeWorkspace();
         _loader = new MemoryDataLoader(_store);
     }
 
@@ -35,7 +36,7 @@ public sealed class MemoryDataLoaderTests : MemoryTestBase
         await SaveAsync("Second.");
 
         // act
-        var records = await _loader.LoadCuratedAsync("project", new MemoryQuery("", null, []), cancellationToken);
+        var records = await _loader.LoadCuratedAsync(new MemoryQuery("", null, []), cancellationToken);
 
         // assert
         Assert.Equal(2, records.Count);
@@ -51,7 +52,7 @@ public sealed class MemoryDataLoaderTests : MemoryTestBase
 
         // act
         var records = await _loader.LoadCuratedAsync(
-            "project", new MemoryQuery("", "decision", []), cancellationToken);
+            new MemoryQuery("", "decision", []), cancellationToken);
 
         // assert
         var record = Assert.Single(records);
@@ -68,7 +69,7 @@ public sealed class MemoryDataLoaderTests : MemoryTestBase
 
         // act
         var records = await _loader.LoadCuratedAsync(
-            "project", new MemoryQuery("", null, ["ops"]), cancellationToken);
+            new MemoryQuery("", null, ["ops"]), cancellationToken);
 
         // assert
         var record = Assert.Single(records);
@@ -85,7 +86,7 @@ public sealed class MemoryDataLoaderTests : MemoryTestBase
 
         // act
         var records = await _loader.LoadCuratedAsync(
-            "project", new MemoryQuery("deploy checklist", null, []), cancellationToken);
+            new MemoryQuery("deploy checklist", null, []), cancellationToken);
 
         // assert
         var record = Assert.Single(records);
@@ -101,7 +102,7 @@ public sealed class MemoryDataLoaderTests : MemoryTestBase
             new MemoryJournalEntryCreation { Text = "Note one.", Actor = "test-agent" }, cancellationToken);
 
         // act
-        var entries = await _loader.LoadJournalAsync("project", new MemoryQuery("", null, []), cancellationToken);
+        var entries = await _loader.LoadJournalAsync(new MemoryQuery("", null, []), cancellationToken);
 
         // assert
         Assert.Single(entries);

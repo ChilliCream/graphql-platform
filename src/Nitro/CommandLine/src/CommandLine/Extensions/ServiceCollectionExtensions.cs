@@ -72,11 +72,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
-        services.TryAddSingleton<IGlobalMemoryDirectoryProvider, GlobalMemoryDirectoryProvider>();
-        services.TryAddSingleton<IMemoryStore>(sp => new MemoryStore(
-            sp.GetRequiredService<IFileSystem>(),
-            sp.GetRequiredService<TimeProvider>(),
-            sp.GetRequiredService<IGlobalMemoryDirectoryProvider>().GetDirectory()));
+        services.TryAddSingleton<IMemoryStore, MemoryStore>();
 
         return services;
     }

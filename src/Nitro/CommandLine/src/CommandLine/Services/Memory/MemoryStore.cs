@@ -1,436 +1,307 @@
+using System.Data.Common;
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Dapper;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The project and global memory stores: directory provisioning and
-/// discovery, the curated vertical (save, update, forget, show, recent),
-/// and the journal vertical (log, promote), reading and writing markdown
-/// files directly, with union-merged, no-shadowing reads across scopes.
+/// Curated memories and the journal, in the workspace database beside tasks
+/// and mail: the curated vertical (save, update, forget, show, recent,
+/// search) and the journal vertical (log, promote). Search runs against the
+/// <c>memory_curated_fts</c> table the schema's own triggers maintain, so
+/// there is no index to rebuild or fall out of step.
 /// </summary>
 internal sealed class MemoryStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
-    string globalMemoryDirectory) : IMemoryStore
+    AgentDatabase database) : IMemoryStore
 {
-    // Matches the threshold AtomicFileSystemTests exercises: a temp file
-    // this old was abandoned by a crashed or cancelled write, not one still
-    // in flight.
-    private static readonly TimeSpan s_abandonedTempFileAge = TimeSpan.FromHours(1);
+    public string? FindWorkspaceDirectory()
+        => AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
-    public string GlobalMemoryDirectory => globalMemoryDirectory;
-
-    public string? FindProjectWorkspaceDirectory()
-        => AgentWorkspace.FindMemory(fileSystem, fileSystem.GetCurrentDirectory());
-
-    public Task EnsureProjectWorkspaceAsync(string workspaceDirectory, CancellationToken cancellationToken)
+    private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
-        var memoryDirectory = AgentWorkspace.GetMemoryDirectory(workspaceDirectory);
+        var workspaceDirectory = FindWorkspaceDirectory()
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
 
-        CreateIfMissing(AgentWorkspace.GetMemoryCuratedDirectory(memoryDirectory));
-        CreateIfMissing(AgentWorkspace.GetMemoryJournalDirectory(memoryDirectory));
-        CreateIfMissing(AgentWorkspace.GetMemoryLocalDirectory(memoryDirectory));
-
-        return Task.CompletedTask;
+        return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
     public async Task<MemoryRecord> SaveAsync(
         MemoryRecordCreation creation, CancellationToken cancellationToken)
     {
-        var scope = ValidateWriteScope(creation.Scope);
         var type = ValidateType(creation.Type);
         var tags = NormalizeTags(creation.Tags);
         var actor = ValidateActor(creation.Actor);
-
-        var curatedDirectory = scope == MemoryScopes.Global
-            ? EnsureGlobalStore()
-            : await EnsureProjectStoreAsync(cancellationToken);
-
-        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, s_abandonedTempFileAge);
-
         var now = timeProvider.GetUtcNow();
         var id = MemoryId.New(timeProvider);
-        var path = GetCuratedPath(curatedDirectory, id);
 
-        var frontmatter = new MemoryFrontmatter(
-            MemoryFrontmatterParser.SupportedSchemaVersion,
-            id,
-            type,
-            tags,
-            now,
-            now,
-            actor,
-            PromotedFrom: null,
-            creation.Text);
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        await fileSystem.CreateFileAtomicAsync(
-            path, MemoryFrontmatterWriter.Write(frontmatter), cancellationToken);
+        await connection.ExecuteAsync(
+            """
+            INSERT INTO memory_curated (id, type, body, created_at, updated_at, created_by)
+            VALUES (@id, @type, @body, @now, @now, @actor);
+            """,
+            new { id, type, body = creation.Text, now, actor },
+            transaction);
 
-        return ToRecord(frontmatter, path, scope);
+        await InsertTagsAsync(connection, transaction, id, tags);
+        await transaction.CommitAsync(cancellationToken);
+
+        return new MemoryRecord
+        {
+            Id = id,
+            Type = type,
+            Tags = tags,
+            Body = creation.Text,
+            CreatedAt = now,
+            UpdatedAt = now,
+            CreatedBy = actor
+        };
     }
 
     public async Task<MemoryRecord> UpdateAsync(
-        string id, string scope, MemoryRecordUpdate update, CancellationToken cancellationToken)
+        string id, MemoryRecordUpdate update, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateWriteScope(scope);
-        var record = await GetRequiredAsync(id, normalizedScope, cancellationToken);
+        var type = update.TypeGiven ? ValidateType(update.Type ?? "") : null;
+        var addTags = NormalizeTags(update.AddTags);
+        var removeTags = NormalizeTags(update.RemoveTags);
 
-        var text = update.TextGiven ? update.Text ?? "" : record.Body;
-        var type = update.TypeGiven ? ValidateType(update.Type ?? "") : record.Type;
-        var tags = ApplyTagChanges(record.Tags, update.AddTags, update.RemoveTags);
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var curatedDirectory = GetCuratedDirectoryForScope(normalizedScope);
-        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, s_abandonedTempFileAge);
+        _ = await RequireCuratedAsync(connection, transaction, id, cancellationToken);
+        var now = timeProvider.GetUtcNow();
 
-        var frontmatter = new MemoryFrontmatter(
-            MemoryFrontmatterParser.SupportedSchemaVersion,
-            record.Id,
-            type,
-            tags,
-            record.CreatedAt,
-            timeProvider.GetUtcNow(),
-            record.CreatedBy,
-            record.PromotedFrom,
-            text);
+        await connection.ExecuteAsync(
+            """
+            UPDATE memory_curated SET
+                type = COALESCE(@type, type),
+                body = COALESCE(@body, body),
+                updated_at = @now
+            WHERE id = @id;
+            """,
+            new { id, type, body = update.TextGiven ? update.Text : null, now },
+            transaction);
 
-        await fileSystem.ReplaceFileAtomicAsync(
-            record.Path, MemoryFrontmatterWriter.Write(frontmatter), cancellationToken);
+        foreach (var tag in removeTags)
+        {
+            await connection.ExecuteAsync(
+                "DELETE FROM memory_curated_tags WHERE id = @id AND tag = @tag;",
+                new { id, tag },
+                transaction);
+        }
 
-        return ToRecord(frontmatter, record.Path, normalizedScope);
+        await InsertTagsAsync(connection, transaction, id, addTags);
+
+        var updated = await RequireCuratedAsync(connection, transaction, id, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return updated;
     }
 
-    public async Task<MemoryRecord> ForgetAsync(string id, string scope, CancellationToken cancellationToken)
+    public async Task<MemoryRecord> ForgetAsync(string id, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateWriteScope(scope);
-        var record = await GetRequiredAsync(id, normalizedScope, cancellationToken);
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        fileSystem.DeleteFile(record.Path);
+        var record = await RequireCuratedAsync(connection, transaction, id, cancellationToken);
+
+        await connection.ExecuteAsync(
+            "DELETE FROM memory_curated WHERE id = @id;",
+            new { id },
+            transaction);
+        await transaction.CommitAsync(cancellationToken);
 
         return record;
     }
 
-    public async Task<MemoryRecord?> FindAsync(string id, string scope, CancellationToken cancellationToken)
+    public async Task<MemoryRecord?> FindAsync(string id, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        switch (normalizedScope)
-        {
-            case MemoryScopes.Project:
-                return await FindInDirectoryAsync(
-                    GetCuratedDirectory(RequireProjectWorkspaceDirectory()),
-                    id,
-                    MemoryScopes.Project,
-                    cancellationToken);
-
-            case MemoryScopes.Global:
-                return await FindInDirectoryAsync(GetGlobalCuratedDirectory(), id, MemoryScopes.Global, cancellationToken);
-
-            default:
-                var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
-
-                var projectRecord = projectWorkspaceDirectory is null
-                    ? null
-                    : await FindInDirectoryAsync(
-                        GetCuratedDirectory(projectWorkspaceDirectory), id, MemoryScopes.Project, cancellationToken);
-
-                var globalRecord = await FindInDirectoryAsync(
-                    GetGlobalCuratedDirectory(), id, MemoryScopes.Global, cancellationToken);
-
-                if (projectRecord is not null && globalRecord is not null)
-                {
-                    throw new MemoryScopeConflictException([
-                        new MemoryScopeConflict(
-                            id,
-                            [MemoryScopes.Project, MemoryScopes.Global],
-                            [projectRecord.Path, globalRecord.Path])
-                    ]);
-                }
-
-                return projectRecord ?? globalRecord;
-        }
+        return await FindCuratedAsync(connection, transaction: null, id, cancellationToken);
     }
 
-    public async Task<MemoryRecord> GetRequiredAsync(string id, string scope, CancellationToken cancellationToken)
-        => await FindAsync(id, scope, cancellationToken)
-            ?? throw new ExitException($"Memory '{id}' does not exist.");
+    public async Task<MemoryRecord> GetRequiredAsync(string id, CancellationToken cancellationToken)
+        => await FindAsync(id, cancellationToken) ?? throw NotFound(id);
 
     public async Task<IReadOnlyList<MemoryRecord>> GetRecentCuratedAsync(
-        string scope, int? limit, CancellationToken cancellationToken)
+        int? limit, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
-        var records = new List<MemoryRecord>();
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
-        {
-            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+        var ids = await connection.QueryAsync<string>(
+            """
+            SELECT id FROM memory_curated
+            ORDER BY updated_at DESC, id
+            LIMIT @limit;
+            """,
+            new { limit = limit ?? -1 });
 
-            if (projectWorkspaceDirectory is not null)
-            {
-                records.AddRange(await ListCuratedAsync(
-                    GetCuratedDirectory(projectWorkspaceDirectory), MemoryScopes.Project, cancellationToken));
-            }
-        }
-
-        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
-        {
-            records.AddRange(
-                await ListCuratedAsync(GetGlobalCuratedDirectory(), MemoryScopes.Global, cancellationToken));
-        }
-
-        if (normalizedScope == MemoryScopes.All)
-        {
-            ThrowIfCrossScopeDuplicates(records, r => r.Id, r => r.Scope, r => r.Path);
-        }
-
-        return limit is { } value ? records.Take(value).ToList() : records;
+        return await LoadCuratedAsync(connection, ids.ToList());
     }
 
     public async Task<IReadOnlyList<MemoryRecord>> SearchCuratedAsync(
         string query,
-        string scope,
         IReadOnlyList<string> tags,
         string? type,
         DateTimeOffset? since,
         int? limit,
         CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
-        var matchQuery = MemoryFtsQuery.BuildLiteralMatch(query);
-        var normalizedTags = tags.Select(MemoryTags.Normalize).ToList();
-        var normalizedType = type is null ? null : MemoryTypes.Normalize(type);
+        var normalizedTags = NormalizeTags(tags);
+        var normalizedType = type is null ? null : ValidateType(type);
 
-        var records = new List<MemoryRecord>();
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
+        // The query is quoted into a single FTS5 phrase rather than passed
+        // through: a caller's text is search input, never query syntax.
+        var match = MemoryFtsQuery.BuildLiteralMatch(query);
+
+        var sql =
+            """
+            SELECT c.id
+            FROM memory_curated_fts f
+            JOIN memory_curated c ON c.id = f.id
+            WHERE memory_curated_fts MATCH @match
+            """;
+
+        if (normalizedType is not null)
         {
-            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
-
-            if (projectWorkspaceDirectory is not null)
-            {
-                records.AddRange(await SearchScopeAsync(
-                    GetCuratedDirectory(projectWorkspaceDirectory),
-                    GetLocalDirectory(projectWorkspaceDirectory),
-                    MemoryScopes.Project,
-                    matchQuery,
-                    normalizedType,
-                    normalizedTags,
-                    since,
-                    cancellationToken));
-            }
+            sql += "\n  AND c.type = @type";
         }
 
-        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
+        if (since is { } minimum)
         {
-            records.AddRange(await SearchScopeAsync(
-                GetGlobalCuratedDirectory(),
-                GetGlobalLocalDirectory(),
-                MemoryScopes.Global,
-                matchQuery,
-                normalizedType,
-                normalizedTags,
-                since,
-                cancellationToken));
+            _ = minimum;
+            sql += "\n  AND c.updated_at >= @since";
         }
 
-        if (normalizedScope == MemoryScopes.All)
+        foreach (var (tag, index) in normalizedTags.Select((tag, index) => (tag, index)))
         {
-            ThrowIfCrossScopeDuplicates(records, r => r.Id, r => r.Scope, r => r.Path);
+            _ = tag;
+            sql += "\n  AND EXISTS (SELECT 1 FROM memory_curated_tags t "
+                + $"WHERE t.id = c.id AND t.tag = @tag{index})";
         }
 
-        return limit is { } value ? records.Take(value).ToList() : records;
+        sql += "\nORDER BY f.rank, c.updated_at DESC, c.id\nLIMIT @limit;";
+
+        var parameters = new DynamicParameters();
+        parameters.Add("match", match);
+        parameters.Add("type", normalizedType);
+        parameters.Add("since", since);
+        parameters.Add("limit", limit ?? -1);
+
+        for (var index = 0; index < normalizedTags.Count; index++)
+        {
+            parameters.Add($"tag{index}", normalizedTags[index]);
+        }
+
+        var ids = await connection.QueryAsync<string>(
+            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+
+        return await LoadCuratedAsync(connection, ids.ToList());
     }
 
     public async Task<MemoryJournalEntry> LogAsync(
         MemoryJournalEntryCreation creation, CancellationToken cancellationToken)
     {
-        var scope = ValidateWriteScope(creation.Scope);
         var actor = ValidateActor(creation.Actor);
-
-        string journalDirectory;
-
-        if (scope == MemoryScopes.Global)
-        {
-            EnsureGlobalStore();
-            journalDirectory = GetGlobalJournalDirectory();
-        }
-        else
-        {
-            var workspaceDirectory = RequireProjectWorkspaceDirectory();
-            await EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
-            journalDirectory = GetJournalDirectory(workspaceDirectory);
-        }
-
         var now = timeProvider.GetUtcNow();
-        var dateDirectory = AgentWorkspace.GetMemoryJournalDateDirectory(
-            journalDirectory, DateOnly.FromDateTime(now.UtcDateTime));
-
-        CreateIfMissing(dateDirectory);
-        fileSystem.CleanupAbandonedTempFiles(dateDirectory, s_abandonedTempFileAge);
-
         var id = MemoryId.New(timeProvider);
-        var path = Path.Combine(dateDirectory, id + ".md");
 
-        var frontmatter = new MemoryJournalFrontmatter(
-            MemoryJournalFrontmatterParser.SupportedSchemaVersion, id, now, actor, creation.Text);
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        await fileSystem.CreateFileAtomicAsync(
-            path, MemoryJournalFrontmatterWriter.Write(frontmatter), cancellationToken);
+        await connection.ExecuteAsync(
+            """
+            INSERT INTO memory_journal (id, body, created_at, created_by)
+            VALUES (@id, @body, @now, @actor);
+            """,
+            new { id, body = creation.Text, now, actor });
 
-        return ToJournalRecord(frontmatter, path, scope);
+        return new MemoryJournalEntry
+        {
+            Id = id,
+            Body = creation.Text,
+            CreatedAt = now,
+            CreatedBy = actor
+        };
     }
 
-    public async Task<MemoryJournalEntry?> FindJournalEntryAsync(
-        string id, string scope, CancellationToken cancellationToken)
+    public async Task<MemoryJournalEntry?> FindJournalEntryAsync(string id, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        switch (normalizedScope)
-        {
-            case MemoryScopes.Project:
-                return await FindJournalEntryInDirectoryAsync(
-                    GetJournalDirectory(RequireProjectWorkspaceDirectory()),
-                    id,
-                    MemoryScopes.Project,
-                    cancellationToken);
+        var row = await connection.QueryFirstOrDefaultAsync<JournalRow>(
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            + "FROM memory_journal WHERE id = @id;",
+            new { id });
 
-            case MemoryScopes.Global:
-                return await FindJournalEntryInDirectoryAsync(
-                    GetGlobalJournalDirectory(), id, MemoryScopes.Global, cancellationToken);
-
-            default:
-                var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
-
-                var projectEntry = projectWorkspaceDirectory is null
-                    ? null
-                    : await FindJournalEntryInDirectoryAsync(
-                        GetJournalDirectory(projectWorkspaceDirectory), id, MemoryScopes.Project, cancellationToken);
-
-                var globalEntry = await FindJournalEntryInDirectoryAsync(
-                    GetGlobalJournalDirectory(), id, MemoryScopes.Global, cancellationToken);
-
-                if (projectEntry is not null && globalEntry is not null)
-                {
-                    throw new MemoryScopeConflictException([
-                        new MemoryScopeConflict(
-                            id,
-                            [MemoryScopes.Project, MemoryScopes.Global],
-                            [projectEntry.Path, globalEntry.Path])
-                    ]);
-                }
-
-                return projectEntry ?? globalEntry;
-        }
+        return row?.ToEntry();
     }
 
     public async Task<MemoryJournalEntry> GetRequiredJournalEntryAsync(
-        string id, string scope, CancellationToken cancellationToken)
-        => await FindJournalEntryAsync(id, scope, cancellationToken)
+        string id, CancellationToken cancellationToken)
+        => await FindJournalEntryAsync(id, cancellationToken)
             ?? throw new ExitException($"Journal entry '{id}' does not exist.");
 
     public async Task<IReadOnlyList<MemoryJournalEntry>> GetRecentJournalAsync(
-        string scope, int? limit, CancellationToken cancellationToken)
+        int? limit, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
-        var entries = new List<MemoryJournalEntry>();
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
-        {
-            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+        var entries = await connection.QueryAsync<JournalRow>(
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            + "FROM memory_journal ORDER BY created_at DESC, id LIMIT @limit;",
+            new { limit = limit ?? -1 });
 
-            if (projectWorkspaceDirectory is not null)
-            {
-                entries.AddRange(await ListJournalAsync(
-                    GetJournalDirectory(projectWorkspaceDirectory), MemoryScopes.Project, cancellationToken));
-            }
-        }
-
-        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
-        {
-            entries.AddRange(
-                await ListJournalAsync(GetGlobalJournalDirectory(), MemoryScopes.Global, cancellationToken));
-        }
-
-        if (normalizedScope == MemoryScopes.All)
-        {
-            ThrowIfCrossScopeDuplicates(entries, e => e.Id, e => e.Scope, e => e.Path);
-        }
-
-        return limit is { } value ? entries.Take(value).ToList() : entries;
+        return entries.Select(row => row.ToEntry()).ToList();
     }
 
     public async Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalAsync(
-        string query, string scope, DateTimeOffset? since, int? limit, CancellationToken cancellationToken)
+        string query, DateTimeOffset? since, int? limit, CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
-        var words = query.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-        var entries = new List<MemoryJournalEntry>();
+        var words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
-        {
-            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+        await using var connection = await ConnectAsync(cancellationToken);
 
-            if (projectWorkspaceDirectory is not null)
-            {
-                entries.AddRange(await SearchJournalScopeAsync(
-                    GetJournalDirectory(projectWorkspaceDirectory),
-                    MemoryScopes.Project,
-                    words,
-                    since,
-                    cancellationToken));
-            }
-        }
+        var entries = await connection.QueryAsync<JournalRow>(
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            + "FROM memory_journal WHERE (@since IS NULL OR created_at >= @since) "
+            + "ORDER BY created_at DESC, id;",
+            new { since });
 
-        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
-        {
-            entries.AddRange(await SearchJournalScopeAsync(
-                GetGlobalJournalDirectory(), MemoryScopes.Global, words, since, cancellationToken));
-        }
+        // Matched in memory rather than in SQL: the journal has no FTS
+        // index, and the match is every word as a literal substring, which
+        // LIKE cannot express without escaping the caller's text itself.
+        var matched = entries.Where(row => MatchesAllWords(row.Body, words));
 
-        if (normalizedScope == MemoryScopes.All)
-        {
-            ThrowIfCrossScopeDuplicates(entries, e => e.Id, e => e.Scope, e => e.Path);
-        }
-
-        return limit is { } value ? entries.Take(value).ToList() : entries;
+        return (limit is { } max ? matched.Take(max) : matched).Select(row => row.ToEntry()).ToList();
     }
 
     public async Task<IReadOnlyList<MemoryJournalEntry>> GetUnpromotedJournalEntriesAsync(
-        string scope, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
-        var normalizedScope = ValidateReadScope(scope);
-        var entries = new List<MemoryJournalEntry>();
+        await using var connection = await ConnectAsync(cancellationToken);
 
-        if (normalizedScope is MemoryScopes.Project or MemoryScopes.All)
-        {
-            var projectWorkspaceDirectory = FindProjectWorkspaceDirectory();
+        var entries = await connection.QueryAsync<JournalRow>(
+            """
+            SELECT j.id AS Id, j.body AS Body, j.created_at AS CreatedAt, j.created_by AS CreatedBy
+            FROM memory_journal j
+            WHERE NOT EXISTS (SELECT 1 FROM memory_curated c WHERE c.promoted_from = j.id)
+            ORDER BY j.created_at DESC, j.id;
+            """);
 
-            if (projectWorkspaceDirectory is not null)
-            {
-                entries.AddRange(await GetUnpromotedInScopeAsync(
-                    GetJournalDirectory(projectWorkspaceDirectory),
-                    GetCuratedDirectory(projectWorkspaceDirectory),
-                    MemoryScopes.Project,
-                    cancellationToken));
-            }
-        }
-
-        if (normalizedScope is MemoryScopes.Global or MemoryScopes.All)
-        {
-            entries.AddRange(await GetUnpromotedInScopeAsync(
-                GetGlobalJournalDirectory(), GetGlobalCuratedDirectory(), MemoryScopes.Global, cancellationToken));
-        }
-
-        if (normalizedScope == MemoryScopes.All)
-        {
-            ThrowIfCrossScopeDuplicates(entries, e => e.Id, e => e.Scope, e => e.Path);
-        }
-
-        return entries;
+        return entries.Select(row => row.ToEntry()).ToList();
     }
 
     public async Task<MemoryPromotionOutcome> PromoteAsync(
         string journalId,
-        string scope,
         string type,
         IReadOnlyList<string> tags,
         CancellationToken cancellationToken)
@@ -438,394 +309,162 @@ internal sealed class MemoryStore(
         var normalizedType = ValidateType(type);
         var normalizedTags = NormalizeTags(tags);
 
-        var entry = await GetRequiredJournalEntryAsync(journalId, scope, cancellationToken);
-        var resolvedScope = entry.Scope;
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var curatedDirectory = GetCuratedDirectoryForScope(resolvedScope);
-        var curatedId = MemoryPromotedId.Derive(resolvedScope, entry.Id);
-        var curatedPath = GetCuratedPath(curatedDirectory, curatedId);
+        var entry = await connection.QueryFirstOrDefaultAsync<JournalRow>(
+            new CommandDefinition(
+                "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+                + "FROM memory_journal WHERE id = @journalId;",
+                new { journalId },
+                transaction,
+                cancellationToken: cancellationToken))
+            ?? throw new ExitException($"Journal entry '{journalId}' does not exist.");
 
-        if (fileSystem.FileExists(curatedPath))
-        {
-            return new MemoryPromotionOutcome(
-                await ReadExistingPromotionAsync(curatedPath, curatedId, resolvedScope, cancellationToken),
-                AlreadyPromoted: true);
-        }
-
-        CreateIfMissing(curatedDirectory);
-        fileSystem.CleanupAbandonedTempFiles(curatedDirectory, s_abandonedTempFileAge);
-
+        var id = MemoryPromotedId.Derive(journalId);
         var now = timeProvider.GetUtcNow();
 
-        var frontmatter = new MemoryFrontmatter(
-            MemoryFrontmatterParser.SupportedSchemaVersion,
-            curatedId,
-            normalizedType,
-            normalizedTags,
-            now,
-            now,
-            entry.CreatedBy,
-            entry.Id,
-            entry.Body);
+        // INSERT OR IGNORE against the unique promoted_from index: a second
+        // promote of the same entry, including a concurrent one, affects no
+        // rows and reports the memory the first one produced.
+        var inserted = await connection.ExecuteAsync(
+            """
+            INSERT OR IGNORE INTO memory_curated (
+                id, type, body, created_at, updated_at, created_by, promoted_from
+            ) VALUES (@id, @type, @body, @now, @now, @actor, @journalId);
+            """,
+            new { id, type = normalizedType, body = entry.Body, now, actor = entry.CreatedBy, journalId },
+            transaction);
 
-        try
+        if (inserted == 0)
         {
-            await fileSystem.CreateFileAtomicAsync(
-                curatedPath, MemoryFrontmatterWriter.Write(frontmatter), cancellationToken);
-        }
-        catch (IOException) when (fileSystem.FileExists(curatedPath))
-        {
-            // Lost a create race to a concurrent or retried promote of the
-            // same journal entry: the winner's file is authoritative.
-            return new MemoryPromotionOutcome(
-                await ReadExistingPromotionAsync(curatedPath, curatedId, resolvedScope, cancellationToken),
-                AlreadyPromoted: true);
+            var existing = await FindPromotedAsync(connection, transaction, journalId, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return new MemoryPromotionOutcome(existing, AlreadyPromoted: true);
         }
 
-        return new MemoryPromotionOutcome(ToRecord(frontmatter, curatedPath, resolvedScope), AlreadyPromoted: false);
+        await InsertTagsAsync(connection, transaction, id, normalizedTags);
+        var record = await RequireCuratedAsync(connection, transaction, id, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return new MemoryPromotionOutcome(record, AlreadyPromoted: false);
     }
 
-    private async Task<MemoryRecord> ReadExistingPromotionAsync(
-        string curatedPath, string curatedId, string scope, CancellationToken cancellationToken)
+    private static async Task InsertTagsAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        string id,
+        IReadOnlyList<string> tags)
     {
-        var content = await fileSystem.ReadAllTextAsync(curatedPath, cancellationToken);
-
-        if (!MemoryFrontmatterParser.TryParse(content, curatedId, out var frontmatter, out var failure))
+        foreach (var tag in tags)
         {
-            throw new ExitException($"Memory '{curatedId}' has malformed frontmatter: {failure.Message}");
+            await connection.ExecuteAsync(
+                "INSERT OR IGNORE INTO memory_curated_tags (id, tag) VALUES (@id, @tag);",
+                new { id, tag },
+                transaction);
         }
-
-        return ToRecord(frontmatter, curatedPath, scope);
     }
 
-    private async Task<IReadOnlyList<MemoryJournalEntry>> GetUnpromotedInScopeAsync(
-        string journalDirectory, string curatedDirectory, string scope, CancellationToken cancellationToken)
+    /// <summary>
+    /// Loads full records for the given ids, preserving the order the ids
+    /// were given in: the ordering is decided by the query that produced
+    /// them (recency, or FTS rank), which a second lookup must not disturb.
+    /// </summary>
+    private static async Task<IReadOnlyList<MemoryRecord>> LoadCuratedAsync(
+        SqliteConnection connection,
+        IReadOnlyList<string> ids)
     {
-        var entries = await ListJournalAsync(journalDirectory, scope, cancellationToken);
-        var unpromoted = new List<MemoryJournalEntry>();
-
-        foreach (var entry in entries)
+        if (ids.Count == 0)
         {
-            var curatedId = MemoryPromotedId.Derive(scope, entry.Id);
-            var curatedPath = GetCuratedPath(curatedDirectory, curatedId);
-
-            if (!fileSystem.FileExists(curatedPath))
-            {
-                unpromoted.Add(entry);
-            }
+            return [];
         }
 
-        return unpromoted;
+        var idList = string.Join(", ", ids.Select(id => $"'{MemoryId.Require(id)}'"));
+
+        var rows = await connection.QueryAsync<CuratedRow>(
+            "SELECT id AS Id, type AS Type, body AS Body, created_at AS CreatedAt, "
+            + "updated_at AS UpdatedAt, created_by AS CreatedBy, promoted_from AS PromotedFrom "
+            + $"FROM memory_curated WHERE id IN ({idList});");
+
+        var tagRows = await connection.QueryAsync<CuratedTagRow>(
+            $"SELECT id AS Id, tag AS Tag FROM memory_curated_tags WHERE id IN ({idList}) ORDER BY tag;");
+
+        var tagsById = tagRows
+            .GroupBy(row => row.Id)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<string>)group.Select(r => r.Tag).ToArray());
+
+        var byId = rows.ToDictionary(row => row.Id, row => row.ToRecord(tagsById));
+
+        return ids.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
     }
 
-    private async Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalScopeAsync(
-        string journalDirectory,
-        string scope,
-        IReadOnlyList<string> words,
-        DateTimeOffset? since,
+    private static async Task<MemoryRecord?> FindCuratedAsync(
+        SqliteConnection connection,
+        DbTransaction? transaction,
+        string id,
         CancellationToken cancellationToken)
     {
-        var entries = await ListJournalAsync(journalDirectory, scope, cancellationToken);
+        var row = await connection.QueryFirstOrDefaultAsync<CuratedRow>(
+            new CommandDefinition(
+                "SELECT id AS Id, type AS Type, body AS Body, created_at AS CreatedAt, "
+                + "updated_at AS UpdatedAt, created_by AS CreatedBy, promoted_from AS PromotedFrom "
+                + "FROM memory_curated WHERE id = @id;",
+                new { id },
+                transaction,
+                cancellationToken: cancellationToken));
 
-        return entries
-            .Where(entry => since is null || entry.CreatedAt >= since)
-            .Where(entry => MatchesAllWords(entry.Body, words))
-            .ToList();
+        if (row is null)
+        {
+            return null;
+        }
+
+        var tags = await connection.QueryAsync<string>(
+            new CommandDefinition(
+                "SELECT tag FROM memory_curated_tags WHERE id = @id ORDER BY tag;",
+                new { id },
+                transaction,
+                cancellationToken: cancellationToken));
+
+        return row.ToRecord(tags.ToArray());
     }
+
+    private static async Task<MemoryRecord> FindPromotedAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        string journalId,
+        CancellationToken cancellationToken)
+    {
+        var id = await connection.QueryFirstAsync<string>(
+            new CommandDefinition(
+                "SELECT id FROM memory_curated WHERE promoted_from = @journalId;",
+                new { journalId },
+                transaction,
+                cancellationToken: cancellationToken));
+
+        return (await FindCuratedAsync(connection, transaction, id, cancellationToken))!;
+    }
+
+    private static async Task<MemoryRecord> RequireCuratedAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        string id,
+        CancellationToken cancellationToken)
+        => await FindCuratedAsync(connection, transaction, id, cancellationToken) ?? throw NotFound(id);
+
+    private static ExitException NotFound(string id) => new($"Memory '{id}' does not exist.");
 
     private static bool MatchesAllWords(string body, IReadOnlyList<string> words)
     {
         foreach (var word in words)
         {
-            if (body.IndexOf(word, StringComparison.OrdinalIgnoreCase) < 0)
+            if (!body.Contains(word, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
         }
 
         return true;
-    }
-
-    private async Task<MemoryJournalEntry?> FindJournalEntryInDirectoryAsync(
-        string journalDirectory, string id, string scope, CancellationToken cancellationToken)
-    {
-        if (!fileSystem.DirectoryExists(journalDirectory))
-        {
-            return null;
-        }
-
-        var path = fileSystem.GetFiles(journalDirectory, id + ".md", SearchOption.AllDirectories).FirstOrDefault();
-
-        if (path is null)
-        {
-            return null;
-        }
-
-        var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
-
-        if (!MemoryJournalFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
-        {
-            throw new ExitException($"Journal entry '{id}' has malformed frontmatter: {failure.Message}");
-        }
-
-        return ToJournalRecord(frontmatter, path, scope);
-    }
-
-    private async Task<IReadOnlyList<MemoryJournalEntry>> ListJournalAsync(
-        string journalDirectory, string scope, CancellationToken cancellationToken)
-    {
-        if (!fileSystem.DirectoryExists(journalDirectory))
-        {
-            return [];
-        }
-
-        var entries = new List<MemoryJournalEntry>();
-
-        foreach (var path in fileSystem.GetFiles(journalDirectory, "*.md", SearchOption.AllDirectories))
-        {
-            var id = Path.GetFileNameWithoutExtension(path);
-            var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
-
-            if (!MemoryJournalFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
-            {
-                throw new ExitException($"Journal entry '{id}' has malformed frontmatter: {failure.Message}");
-            }
-
-            entries.Add(ToJournalRecord(frontmatter, path, scope));
-        }
-
-        return entries
-            .OrderByDescending(entry => entry.CreatedAt)
-            .ThenBy(entry => entry.Id, StringComparer.Ordinal)
-            .ToList();
-    }
-
-    private static MemoryJournalEntry ToJournalRecord(
-        MemoryJournalFrontmatter frontmatter, string path, string scope) => new()
-    {
-        Id = frontmatter.Id,
-        Scope = scope,
-        Path = path,
-        Body = frontmatter.Body,
-        CreatedAt = frontmatter.CreatedAt,
-        CreatedBy = frontmatter.CreatedBy
-    };
-
-    private string GetGlobalJournalDirectory()
-        => AgentWorkspace.GetMemoryJournalDirectory(globalMemoryDirectory);
-
-    private static string GetJournalDirectory(string workspaceDirectory)
-        => AgentWorkspace.GetMemoryJournalDirectory(AgentWorkspace.GetMemoryDirectory(workspaceDirectory));
-
-    public async Task<MemoryIndexRebuildResult> RebuildIndexAsync(string scope, CancellationToken cancellationToken)
-    {
-        var normalizedScope = ValidateWriteScope(scope);
-
-        string curatedDirectory;
-        string localDirectory;
-
-        if (normalizedScope == MemoryScopes.Global)
-        {
-            curatedDirectory = EnsureGlobalStore();
-            localDirectory = GetGlobalLocalDirectory();
-        }
-        else
-        {
-            curatedDirectory = await EnsureProjectStoreAsync(cancellationToken);
-            localDirectory = GetLocalDirectory(RequireProjectWorkspaceDirectory());
-        }
-
-        var indexedCount = await MemoryFtsIndex.RebuildAsync(
-            fileSystem, curatedDirectory, localDirectory, cancellationToken);
-        var indexPath = AgentWorkspace.GetMemoryIndexDatabasePath(localDirectory);
-
-        return new MemoryIndexRebuildResult(normalizedScope, indexedCount, indexPath);
-    }
-
-    private async Task<IReadOnlyList<MemoryRecord>> SearchScopeAsync(
-        string curatedDirectory,
-        string localDirectory,
-        string scope,
-        string matchQuery,
-        string? type,
-        IReadOnlyList<string> tags,
-        DateTimeOffset? since,
-        CancellationToken cancellationToken)
-    {
-        if (!fileSystem.DirectoryExists(curatedDirectory))
-        {
-            return [];
-        }
-
-        var ids = await MemoryFtsIndex.SearchAsync(
-            fileSystem, curatedDirectory, localDirectory, matchQuery, type, tags, since, cancellationToken);
-
-        var records = new List<MemoryRecord>();
-
-        foreach (var id in ids)
-        {
-            var record = await FindInDirectoryAsync(curatedDirectory, id, scope, cancellationToken);
-
-            if (record is not null)
-            {
-                records.Add(record);
-            }
-        }
-
-        return records;
-    }
-
-    private async Task<MemoryRecord?> FindInDirectoryAsync(
-        string curatedDirectory, string id, string scope, CancellationToken cancellationToken)
-    {
-        var path = GetCuratedPath(curatedDirectory, id);
-
-        if (!fileSystem.FileExists(path))
-        {
-            return null;
-        }
-
-        var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
-
-        if (!MemoryFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
-        {
-            throw new ExitException($"Memory '{id}' has malformed frontmatter: {failure.Message}");
-        }
-
-        return ToRecord(frontmatter, path, scope);
-    }
-
-    private async Task<IReadOnlyList<MemoryRecord>> ListCuratedAsync(
-        string curatedDirectory, string scope, CancellationToken cancellationToken)
-    {
-        if (!fileSystem.DirectoryExists(curatedDirectory))
-        {
-            return [];
-        }
-
-        var records = new List<MemoryRecord>();
-
-        foreach (var path in fileSystem.GetFiles(curatedDirectory, "*.md", SearchOption.TopDirectoryOnly))
-        {
-            var id = Path.GetFileNameWithoutExtension(path);
-            var content = await fileSystem.ReadAllTextAsync(path, cancellationToken);
-
-            if (!MemoryFrontmatterParser.TryParse(content, id, out var frontmatter, out var failure))
-            {
-                throw new ExitException($"Memory '{id}' has malformed frontmatter: {failure.Message}");
-            }
-
-            records.Add(ToRecord(frontmatter, path, scope));
-        }
-
-        return records
-            .OrderByDescending(record => record.UpdatedAt)
-            .ThenBy(record => record.Id, StringComparer.Ordinal)
-            .ToList();
-    }
-
-    private static void ThrowIfCrossScopeDuplicates<T>(
-        IReadOnlyList<T> records,
-        Func<T, string> idSelector,
-        Func<T, string> scopeSelector,
-        Func<T, string> pathSelector)
-    {
-        var conflicts = records
-            .GroupBy(idSelector, StringComparer.Ordinal)
-            .Where(group => group.Count() > 1)
-            .Select(group => new MemoryScopeConflict(
-                group.Key,
-                group.Select(scopeSelector).ToArray(),
-                group.Select(pathSelector).ToArray()))
-            .ToList();
-
-        if (conflicts.Count > 0)
-        {
-            throw new MemoryScopeConflictException(conflicts);
-        }
-    }
-
-    private async Task<string> EnsureProjectStoreAsync(CancellationToken cancellationToken)
-    {
-        var workspaceDirectory = RequireProjectWorkspaceDirectory();
-
-        // Provisioning happens on `agent init`; this is the lazy-creation
-        // fallback for a workspace that has an agent database but has never
-        // written a curated memory before.
-        await EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
-
-        return GetCuratedDirectory(workspaceDirectory);
-    }
-
-    private string EnsureGlobalStore()
-    {
-        CreateIfMissing(AgentWorkspace.GetMemoryCuratedDirectory(globalMemoryDirectory));
-        CreateIfMissing(AgentWorkspace.GetMemoryJournalDirectory(globalMemoryDirectory));
-        CreateIfMissing(AgentWorkspace.GetMemoryLocalDirectory(globalMemoryDirectory));
-
-        return GetGlobalCuratedDirectory();
-    }
-
-    private string GetCuratedDirectoryForScope(string scope)
-        => scope == MemoryScopes.Global
-            ? GetGlobalCuratedDirectory()
-            : GetCuratedDirectory(RequireProjectWorkspaceDirectory());
-
-    private string GetGlobalCuratedDirectory()
-        => AgentWorkspace.GetMemoryCuratedDirectory(globalMemoryDirectory);
-
-    private static string GetLocalDirectory(string workspaceDirectory)
-        => AgentWorkspace.GetMemoryLocalDirectory(AgentWorkspace.GetMemoryDirectory(workspaceDirectory));
-
-    private string GetGlobalLocalDirectory()
-        => AgentWorkspace.GetMemoryLocalDirectory(globalMemoryDirectory);
-
-    private string RequireProjectWorkspaceDirectory()
-        => FindProjectWorkspaceDirectory()
-            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
-
-    private static string GetCuratedDirectory(string workspaceDirectory)
-        => AgentWorkspace.GetMemoryCuratedDirectory(AgentWorkspace.GetMemoryDirectory(workspaceDirectory));
-
-    private static string GetCuratedPath(string curatedDirectory, string id)
-        => Path.Combine(curatedDirectory, id + ".md");
-
-    private static MemoryRecord ToRecord(MemoryFrontmatter frontmatter, string path, string scope) => new()
-    {
-        Id = frontmatter.Id,
-        Scope = scope,
-        Type = frontmatter.Type,
-        Tags = frontmatter.Tags,
-        Path = path,
-        Body = frontmatter.Body,
-        CreatedAt = frontmatter.CreatedAt,
-        UpdatedAt = frontmatter.UpdatedAt,
-        CreatedBy = frontmatter.CreatedBy,
-        PromotedFrom = frontmatter.PromotedFrom
-    };
-
-    private static string ValidateWriteScope(string scope)
-    {
-        var normalized = MemoryScopes.Normalize(scope);
-
-        if (!MemoryScopes.IsValid(normalized))
-        {
-            throw new ExitException($"The scope '{scope}' is invalid. Use 'project' or 'global'.");
-        }
-
-        return normalized;
-    }
-
-    private static string ValidateReadScope(string scope)
-    {
-        var normalized = MemoryScopes.Normalize(scope);
-
-        if (!MemoryScopes.IsValidReadScope(normalized))
-        {
-            throw new ExitException($"The scope '{scope}' is invalid. Use 'project', 'global', or 'all'.");
-        }
-
-        return normalized;
     }
 
     private static string ValidateType(string type)
@@ -836,20 +475,6 @@ internal sealed class MemoryStore(
         {
             throw new ExitException(
                 $"The type '{type}' is invalid. A type may contain only lowercase letters, digits, "
-                + "and hyphens, up to 40 characters.");
-        }
-
-        return normalized;
-    }
-
-    private static string ValidateTag(string tag)
-    {
-        var normalized = MemoryTags.Normalize(tag);
-
-        if (!MemoryTags.IsValid(normalized))
-        {
-            throw new ExitException(
-                $"The tag '{tag}' is invalid. A tag may contain only lowercase letters, digits, "
                 + "and hyphens, up to 40 characters.");
         }
 
@@ -874,31 +499,18 @@ internal sealed class MemoryStore(
         return normalized;
     }
 
-    private static IReadOnlyList<string> ApplyTagChanges(
-        IReadOnlyList<string> currentTags,
-        IReadOnlyList<string> addTags,
-        IReadOnlyList<string> removeTags)
+    private static string ValidateTag(string tag)
     {
-        var tags = currentTags.ToList();
+        var normalized = MemoryTags.Normalize(tag);
 
-        foreach (var tag in addTags)
+        if (!MemoryTags.IsValid(normalized))
         {
-            var value = ValidateTag(tag);
-
-            if (!tags.Contains(value, StringComparer.Ordinal))
-            {
-                tags.Add(value);
-            }
+            throw new ExitException(
+                $"The tag '{tag}' is invalid. A tag may contain only lowercase letters, digits, "
+                + "and hyphens, up to 40 characters.");
         }
 
-        if (removeTags.Count > 0)
-        {
-            var remove = new HashSet<string>(
-                removeTags.Select(ValidateTag), StringComparer.Ordinal);
-            tags.RemoveAll(remove.Contains);
-        }
-
-        return tags;
+        return normalized;
     }
 
     private static string ValidateActor(string actor)
@@ -913,11 +525,51 @@ internal sealed class MemoryStore(
         return trimmed;
     }
 
-    private void CreateIfMissing(string directory)
+    private sealed class JournalRow
     {
-        if (!fileSystem.DirectoryExists(directory))
+        public required string Id { get; init; }
+        public required string Body { get; init; }
+        public required string CreatedAt { get; init; }
+        public required string CreatedBy { get; init; }
+
+        public MemoryJournalEntry ToEntry() => new()
         {
-            fileSystem.CreateDirectory(directory);
-        }
+            Id = Id,
+            Body = Body,
+            CreatedAt = DateTimeOffset.Parse(CreatedAt, CultureInfo.InvariantCulture),
+            CreatedBy = CreatedBy
+        };
+    }
+
+    private sealed class CuratedTagRow
+    {
+        public required string Id { get; init; }
+        public required string Tag { get; init; }
+    }
+
+    private sealed class CuratedRow
+    {
+        public required string Id { get; init; }
+        public required string Type { get; init; }
+        public required string Body { get; init; }
+        public required string CreatedAt { get; init; }
+        public required string UpdatedAt { get; init; }
+        public required string CreatedBy { get; init; }
+        public string? PromotedFrom { get; init; }
+
+        public MemoryRecord ToRecord(IReadOnlyDictionary<string, IReadOnlyList<string>> tagsById)
+            => ToRecord(tagsById.TryGetValue(Id, out var tags) ? tags : []);
+
+        public MemoryRecord ToRecord(IReadOnlyList<string> tags) => new()
+        {
+            Id = Id,
+            Type = Type,
+            Tags = tags,
+            Body = Body,
+            CreatedAt = DateTimeOffset.Parse(CreatedAt, CultureInfo.InvariantCulture),
+            UpdatedAt = DateTimeOffset.Parse(UpdatedAt, CultureInfo.InvariantCulture),
+            CreatedBy = CreatedBy,
+            PromotedFrom = PromotedFrom
+        };
     }
 }

@@ -33,6 +33,8 @@ public abstract class MemoryTestBase : IDisposable
 
     protected string WorkspaceDirectory => AgentWorkspace.GetDirectory(WorkingDirectory);
 
+    // The markdown layout the v11 import still reads from, and the only
+    // thing AgentWorkspace's memory path helpers are used for now.
     protected string MemoryDirectory => AgentWorkspace.GetMemoryDirectory(WorkspaceDirectory);
 
     protected string CuratedDirectory => AgentWorkspace.GetMemoryCuratedDirectory(MemoryDirectory);
@@ -41,9 +43,20 @@ public abstract class MemoryTestBase : IDisposable
 
     protected string LocalDirectory => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
-    protected string ApplicationDataDirectory => Path.Combine(_tempRoot.FullName, "app-data");
+    /// <summary>
+    /// Creates the workspace database memory now lives in, the same way
+    /// `agent init` would. Every memory read and write goes through it, so a
+    /// test that touches the store has to call this first.
+    /// </summary>
+    protected void InitializeWorkspace()
+    {
+        Directory.CreateDirectory(WorkspaceDirectory);
 
-    protected string GlobalMemoryDirectory => AgentWorkspace.GetGlobalMemoryDirectory(ApplicationDataDirectory);
+        using var connection = new AgentDatabase()
+            .InitializeAsync(WorkspaceDirectory, CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+    }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
 }

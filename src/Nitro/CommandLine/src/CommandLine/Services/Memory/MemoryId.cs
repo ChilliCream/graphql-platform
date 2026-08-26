@@ -51,6 +51,15 @@ internal static class MemoryId
     /// lowercase Crockford base32 characters. Does not check that the id is
     /// actually in use anywhere.
     /// </summary>
+    /// <summary>
+    /// Returns the id unchanged, or throws when it is not a well-formed
+    /// memory id. Guards the one place an id is inlined into SQL rather than
+    /// parameterized (see <c>MemoryStore.LoadCuratedAsync</c>), so an id
+    /// that never came from this store cannot reach the statement text.
+    /// </summary>
+    public static string Require(string value)
+        => IsValid(value) ? value : throw new ExitException($"Invalid memory id '{value}'.");
+
     public static bool IsValid(string value)
     {
         if (value.Length != Length)

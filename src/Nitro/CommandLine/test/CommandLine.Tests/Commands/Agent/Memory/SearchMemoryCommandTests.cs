@@ -26,7 +26,6 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
               --tag <tag>                         A tag; can be used multiple times
               --type <type>                       The memory type (fact, decision, preference, reference, or custom)
               --since <since>                     Only show memories updated at or after this RFC 3339 timestamp
-              --scope <all|global|project>        The memory scope to read from (project, global, or all) [default: all]
               -n, --limit <limit>                 The maximum number of memories to show
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
@@ -382,9 +381,9 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var global = await SeedMemoryAsync("Deploy from global.", scope: "global");
+        var global = await SeedMemoryAsync("Deploy from global.");
         FakeTime.Advance(TimeSpan.FromMinutes(1));
-        var project = await SeedMemoryAsync("Deploy from project.", scope: "project");
+        var project = await SeedMemoryAsync("Deploy from project.");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -401,35 +400,13 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ScopeFilter_Project_OnlyReturnsProjectMemories()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await SeedMemoryAsync("Deploy from global.", scope: "global");
-        var project = await SeedMemoryAsync("Deploy from project.", scope: "project");
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "search", "deploy", "--scope", "project");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var ids = document.RootElement.GetProperty("items")
-            .EnumerateArray()
-            .Select(e => e.GetProperty("id").GetString()!)
-            .ToArray();
-
-        Assert.Equal([project.Id], ids);
-    }
-
-    [Fact]
     public async Task WithLimit_LimitsResultsAcrossBands()
     {
         // arrange
         await InitWorkspaceAsync();
-        await SeedMemoryAsync("Deploy from global.", scope: "global");
+        await SeedMemoryAsync("Deploy from global.");
         FakeTime.Advance(TimeSpan.FromMinutes(1));
-        var project = await SeedMemoryAsync("Deploy from project.", scope: "project");
+        var project = await SeedMemoryAsync("Deploy from project.");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -451,123 +428,4 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
     // (corrupt index file). In every case, `search` must transparently
     // rebuild rather than crash or serve wrong results.
 
-    [Fact]
-    public async Task SelfHealing_FreshClone_BuildsIndexOnFirstSearch()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var match = await SeedMemoryAsync("Deploy checklist for staging.");
-        Assert.False(File.Exists(IndexPath));
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "search", "deploy");
-
-        // assert
-        Assert.True(File.Exists(IndexPath));
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var ids = document.RootElement.GetProperty("items")
-            .EnumerateArray()
-            .Select(e => e.GetProperty("id").GetString()!)
-            .ToArray();
-
-        Assert.Equal([match.Id], ids);
-    }
-
-    [Fact]
-    public async Task SelfHealing_ManualEdit_RebuildsStaleIndex()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var memory = await SeedMemoryAsync("Deploy checklist for staging.");
-        SetupInteractionMode(InteractionMode.JsonOutput);
-        await ExecuteCommandAsync("agent", "memory", "search", "deploy");
-        Assert.True(File.Exists(IndexPath));
-
-        // A manual edit outside the CLI: the file's mtime changes, which
-        // must invalidate the index's stored fingerprint.
-        var content = await File.ReadAllTextAsync(memory.Path, TestContext.Current.CancellationToken);
-        await File.WriteAllTextAsync(
-            memory.Path,
-            content.Replace("Deploy checklist for staging.", "Rollback checklist for staging."),
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "search", "rollback");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var ids = document.RootElement.GetProperty("items")
-            .EnumerateArray()
-            .Select(e => e.GetProperty("id").GetString()!)
-            .ToArray();
-
-        Assert.Equal([memory.Id], ids);
-    }
-
-    [Fact]
-    public async Task SelfHealing_InterruptedWrite_RebuildsCorruptIndex()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var memory = await SeedMemoryAsync("Deploy checklist for staging.");
-        SetupInteractionMode(InteractionMode.JsonOutput);
-        await ExecuteCommandAsync("agent", "memory", "search", "deploy");
-        Assert.True(File.Exists(IndexPath));
-
-        // Simulate a process killed mid-rebuild: the index file is present
-        // but truncated garbage, not a valid SQLite database.
-        await File.WriteAllBytesAsync(
-            IndexPath, "not a sqlite database"u8.ToArray(), TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "search", "deploy");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var ids = document.RootElement.GetProperty("items")
-            .EnumerateArray()
-            .Select(e => e.GetProperty("id").GetString()!)
-            .ToArray();
-
-        Assert.Equal([memory.Id], ids);
-    }
-
-    [Fact]
-    public async Task MalformedFrontmatter_ReturnsError()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        await SeedMemoryAsync("Deploy checklist.");
-        await File.WriteAllTextAsync(
-            Path.Combine(CuratedDirectory, "broken-id.md"),
-            "not frontmatter at all",
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "search", "deploy");
-
-        // assert
-        result.AssertError(
-            "Memory 'broken-id' has malformed frontmatter: "
-            + "Frontmatter must start with a '---' delimiter line.");
-    }
-
-    [Fact]
-    public async Task CrossScopeDuplicateId_ReturnsErrorWithNoPartialOutput()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var projectRecord = await SeedMemoryAsync("Deploy checklist.", scope: "project");
-        Directory.CreateDirectory(GlobalCuratedDirectory);
-        File.Copy(projectRecord.Path, Path.Combine(GlobalCuratedDirectory, projectRecord.Id + ".md"));
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "search", "deploy");
-
-        // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        Assert.Contains("Cross-scope duplicate memory ids found", result.StdErr);
-    }
 }

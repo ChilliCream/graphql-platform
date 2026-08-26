@@ -134,7 +134,6 @@ internal sealed class InitAgentCommand : Command
             var reinitPrefix = AgentWorkspace.NormalizePrefix(explicitPrefix ?? directoryDefaultPrefix);
 
             await store.InitializeWorkspaceAsync(workspaceDirectory, reinitPrefix, cancellationToken);
-            await memoryStore.EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
 
             if (isFallbackLayout)
             {
@@ -161,8 +160,6 @@ internal sealed class InitAgentCommand : Command
 
             await store.EnsureWorkspaceAsync(workspaceDirectory, cancellationToken);
             createdDatabase = true;
-
-            await memoryStore.EnsureProjectWorkspaceAsync(workspaceDirectory, cancellationToken);
 
             if (explicitPrefix is not null)
             {

@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
@@ -10,14 +9,11 @@ internal sealed class ForgetMemoryCommand : Command
 {
     public ForgetMemoryCommand() : base("forget")
     {
-        Description = "Permanently delete a curated memory. This is a hard delete: the markdown "
-            + "file and its index entry are removed, with no tombstone. Git history is not erased, "
-            + "so a merge or checkout can resurrect the deleted content; forget is therefore not a "
-            + "privacy-erasure guarantee.";
+        Description = "Permanently delete a curated memory. This is a hard delete: the row and "
+            + "its tags are removed, with no tombstone.";
 
         Arguments.Add(Opt<MemoryIdArgument>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
-        Options.Add(Opt<MemoryWriteScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
@@ -38,20 +34,18 @@ internal sealed class ForgetMemoryCommand : Command
 
         var id = parseResult.GetRequiredValue(Opt<MemoryIdArgument>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
-        var scope = parseResult.GetRequiredValue(Opt<MemoryWriteScopeOption>.Instance);
 
         // Existence is checked up front, before the confirmation prompt, so
         // a nonexistent memory fails immediately instead of asking to
         // confirm it.
-        await store.GetRequiredAsync(id, scope, cancellationToken);
+        await store.GetRequiredAsync(id, cancellationToken);
 
         if (!force)
         {
             if (console.IsInteractive)
             {
                 var confirmed = await console.ConfirmAsync(
-                    $"Permanently delete memory '{id.EscapeMarkup()}'? "
-                    + "Git history may still retain its content.",
+                    $"Permanently delete memory '{id.EscapeMarkup()}'?",
                     cancellationToken);
 
                 if (!confirmed)
@@ -66,7 +60,7 @@ internal sealed class ForgetMemoryCommand : Command
             }
         }
 
-        var record = await store.ForgetAsync(id, scope, cancellationToken);
+        var record = await store.ForgetAsync(id, cancellationToken);
 
         if (!console.IsHumanReadable)
         {

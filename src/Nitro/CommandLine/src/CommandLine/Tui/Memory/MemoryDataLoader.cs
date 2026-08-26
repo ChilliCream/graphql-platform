@@ -20,31 +20,31 @@ internal sealed class MemoryDataLoader(IMemoryStore store)
     private const int Limit = 200;
 
     public async Task<IReadOnlyList<MemoryRecord>> LoadCuratedAsync(
-        string scope, MemoryQuery query, CancellationToken cancellationToken)
+        MemoryQuery query, CancellationToken cancellationToken)
     {
         if (query.Text.Length > 0)
         {
             return await store.SearchCuratedAsync(
-                query.Text, scope, query.Tags, query.Type, since: null, Limit, cancellationToken)
+                query.Text, query.Tags, query.Type, since: null, Limit, cancellationToken)
                 .ConfigureAwait(false);
         }
 
         if (query.Type is null && query.Tags.Count == 0)
         {
-            return await store.GetRecentCuratedAsync(scope, Limit, cancellationToken).ConfigureAwait(false);
+            return await store.GetRecentCuratedAsync(Limit, cancellationToken).ConfigureAwait(false);
         }
 
-        var recent = await store.GetRecentCuratedAsync(scope, int.MaxValue, cancellationToken).ConfigureAwait(false);
+        var recent = await store.GetRecentCuratedAsync(int.MaxValue, cancellationToken).ConfigureAwait(false);
 
         return FilterCurated(recent, query).Take(Limit).ToList();
     }
 
     public async Task<IReadOnlyList<MemoryJournalEntry>> LoadJournalAsync(
-        string scope, MemoryQuery query, CancellationToken cancellationToken)
+        MemoryQuery query, CancellationToken cancellationToken)
         => query.Text.Length > 0
-            ? await store.SearchJournalAsync(query.Text, scope, since: null, Limit, cancellationToken)
+            ? await store.SearchJournalAsync(query.Text, since: null, Limit, cancellationToken)
                 .ConfigureAwait(false)
-            : await store.GetRecentJournalAsync(scope, Limit, cancellationToken).ConfigureAwait(false);
+            : await store.GetRecentJournalAsync(Limit, cancellationToken).ConfigureAwait(false);
 
     private static IReadOnlyList<MemoryRecord> FilterCurated(IReadOnlyList<MemoryRecord> records, MemoryQuery query)
     {

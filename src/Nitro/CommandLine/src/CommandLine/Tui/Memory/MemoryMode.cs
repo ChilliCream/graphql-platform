@@ -113,7 +113,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
             TuiMessage.OpenSelected => FocusDetail(),
             TuiMessage.RefreshRequested => Refresh(),
             TuiMessage.CycleView(var delta) => CycleCollection(delta),
-            TuiMessage.CycleScopeRequested => CycleScope(),
             TuiMessage.SearchRequested => OpenSearchForm(),
             TuiMessage.PromoteRequested => OpenPromoteForm(),
             TuiMessage.ForgetRequested => OpenForgetDialog(),
@@ -266,13 +265,6 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private IReadOnlyList<TuiMessage> CycleCollection(int delta)
     {
         _state.CycleCollectionAsync(delta, CancellationToken.None).GetAwaiter().GetResult();
-        _detailView.ResetScroll();
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> CycleScope()
-    {
-        _state.CycleScopeAsync(CancellationToken.None).GetAwaiter().GetResult();
         _detailView.ResetScroll();
         return [];
     }
@@ -475,13 +467,13 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         if (_state.Collection == MemoryCollectionFilter.Curated)
         {
             var suffix = _state.SearchText.Length > 0 ? " (filtered)" : "";
-            return $"{collectionName} · {_state.Scope}{suffix}";
+            return collectionName + suffix;
         }
 
         var parsed = MemoryQueryParser.Parse(_state.SearchText);
         var filteredSuffix = parsed.Text.Length > 0 ? " (filtered)" : "";
         var ignoredSuffix = parsed.Type is not null || parsed.Tags.Count > 0 ? " (type/tag ignored)" : "";
-        return $"{collectionName} · {_state.Scope}{filteredSuffix}{ignoredSuffix}";
+        return collectionName + filteredSuffix + ignoredSuffix;
     }
 
     private IRenderable RenderDetailPane(int width, int height)

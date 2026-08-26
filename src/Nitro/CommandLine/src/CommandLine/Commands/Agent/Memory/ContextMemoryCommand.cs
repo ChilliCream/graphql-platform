@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
@@ -45,14 +44,7 @@ internal sealed class ContextMemoryCommand : Command
         // ranks against.
         IReadOnlyList<MemoryRecord> candidates;
 
-        try
-        {
-            candidates = await store.GetRecentCuratedAsync(MemoryScopes.All, null, cancellationToken);
-        }
-        catch (MemoryScopeConflictException exception)
-        {
-            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
-        }
+        candidates = await store.GetRecentCuratedAsync(null, cancellationToken);
 
         if (tags.Length > 0)
         {

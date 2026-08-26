@@ -15,10 +15,8 @@ public sealed class MemoryContextBudgetTests
     private static MemoryRecord CreateRecord(string id, string body, IReadOnlyList<string>? tags = null) => new()
     {
         Id = id,
-        Scope = "project",
         Type = "fact",
         Tags = tags ?? [],
-        Path = $"/memory/{id}.md",
         Body = body,
         CreatedAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero),
         UpdatedAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero),

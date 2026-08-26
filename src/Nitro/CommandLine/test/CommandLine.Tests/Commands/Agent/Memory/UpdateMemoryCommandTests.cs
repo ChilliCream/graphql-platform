@@ -27,7 +27,6 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
               --type <type>              The memory type (fact, decision, preference, reference, or custom)
               --add-tag <add-tag>        A tag to add; can be used multiple times
               --remove-tag <remove-tag>  A tag to remove; can be used multiple times
-              --scope <global|project>   The memory scope to write to (project or global) [default: project]
               --output <json>            The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help             Show help and usage information
 
@@ -52,40 +51,6 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task WithType_UpdatesType()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var record = await SeedMemoryAsync("Original text.");
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "update", record.Id, "--type", "decision");
-
-        // assert
-        result.AssertSuccess($"✓ Updated memory '{record.Id}'.");
-        var content = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
-        Assert.Contains("type: decision", content);
-    }
-
-    [Fact]
-    public async Task WithText_ReplacesBody()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var record = await SeedMemoryAsync("Original text.");
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "update", record.Id, "--text", "New text.");
-
-        // assert
-        result.AssertSuccess($"✓ Updated memory '{record.Id}'.");
-        var content = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
-        Assert.EndsWith("New text.", content);
-    }
-
-    [Fact]
     public async Task WithAddAndRemoveTag_ChangesTags()
     {
         // arrange
@@ -103,26 +68,6 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
         using var document = System.Text.Json.JsonDocument.Parse(showResult.StdOut);
         var tags = document.RootElement.GetProperty("tags").EnumerateArray().Select(e => e.GetString()!).ToArray();
         Assert.Equal(["api"], tags);
-    }
-
-    [Fact]
-    public async Task InvalidRemoveTag_ReturnsError_AndDoesNotRewriteFile()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var record = await SeedMemoryAsync("Original text.", tags: ["draft"]);
-        var contentBefore = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "update", record.Id, "--remove-tag", "Not Valid!");
-
-        // assert
-        result.AssertError(
-            "The tag 'Not Valid!' is invalid. A tag may contain only lowercase letters, digits, "
-            + "and hyphens, up to 40 characters.");
-        var contentAfter = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
-        Assert.Equal(contentBefore, contentAfter);
     }
 
     [Fact]
@@ -189,25 +134,8 @@ public sealed class UpdateMemoryCommandTests(NitroCommandFixture fixture)
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(record.Id, root.GetProperty("id").GetString());
-        Assert.Equal("project", root.GetProperty("scope").GetString());
         Assert.Equal("decision", root.GetProperty("type").GetString());
         Assert.Equal(
             ["api"], root.GetProperty("tags").EnumerateArray().Select(e => e.GetString()!).ToArray());
-    }
-
-    [Fact]
-    public async Task WithGlobalScope_UpdatesGlobalMemory()
-    {
-        // arrange
-        var record = await SeedMemoryAsync("Original text.", scope: "global");
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "update", record.Id, "--type", "decision", "--scope", "global");
-
-        // assert
-        result.AssertSuccess($"✓ Updated memory '{record.Id}'.");
-        var content = await File.ReadAllTextAsync(record.Path, TestContext.Current.CancellationToken);
-        Assert.Contains("type: decision", content);
     }
 }

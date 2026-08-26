@@ -32,7 +32,7 @@ internal static class MemoryLifecycleActions
     {
         try
         {
-            await store.ForgetAsync(record.Id, record.Scope, cancellationToken).ConfigureAwait(false);
+            await store.ForgetAsync(record.Id, cancellationToken).ConfigureAwait(false);
             return new MemoryForgetOutcome.Succeeded($"Deleted memory '{record.Id}'.");
         }
         catch (ExitException ex)

@@ -100,7 +100,6 @@ internal sealed class MemoryDetailView
     {
         var lines = new List<string>
         {
-            $"Scope: {record.Scope}",
             $"Type: {record.Type}",
             $"Tags: {(record.Tags.Count == 0 ? "-" : string.Join(", ", record.Tags))}",
             $"Created: {MemoryDates.Format(record.CreatedAt)} by {record.CreatedBy}",
@@ -122,7 +121,6 @@ internal sealed class MemoryDetailView
     {
         var lines = new List<string>
         {
-            $"Scope: {entry.Scope}",
             $"Created: {MemoryDates.Format(entry.CreatedAt)} by {entry.CreatedBy}",
             "Not yet promoted, or already promoted (press p to promote either way; a repeat is idempotent)."
         };

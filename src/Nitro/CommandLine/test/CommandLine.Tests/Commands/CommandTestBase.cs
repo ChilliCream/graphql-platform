@@ -39,7 +39,6 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private IFileSystem? _fileSystemOverride;
-    private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
@@ -98,10 +97,6 @@ public abstract class CommandTestBase
     /// real machine's application data directory, so tests that exercise
     /// <c>--scope global</c> stay isolated to their own temp directory.
     /// </summary>
-    private protected void SetupGlobalMemoryDirectory(string directory)
-    {
-        _globalMemoryDirectoryProviderOverride = new FixedGlobalMemoryDirectoryProvider(directory);
-    }
 
     /// <summary>
     /// Points the Nitro instance id resolution at a fixed value instead of
@@ -416,11 +411,6 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
 
-        if (_globalMemoryDirectoryProviderOverride is not null)
-        {
-            services.Replace(ServiceDescriptor.Singleton(_globalMemoryDirectoryProviderOverride));
-        }
-
         if (_instanceIdProviderOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_instanceIdProviderOverride));
@@ -680,12 +670,6 @@ public sealed record CommandResult(
     string StdOut,
     string StdErr,
     string ExecutableName);
-
-internal sealed class FixedGlobalMemoryDirectoryProvider(string directory) : IGlobalMemoryDirectoryProvider
-{
-    public string GetDirectory() => directory;
-}
-
 internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvider
 {
     public Task<string> GetIdAsync(string globalConfigDirectory, CancellationToken cancellationToken)

@@ -52,9 +52,9 @@ public sealed class ContextMemoryCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        var global = await SeedMemoryAsync("Global note.", scope: "global");
+        var global = await SeedMemoryAsync("Global note.");
         FakeTime.Advance(TimeSpan.FromMinutes(1));
-        var project = await SeedMemoryAsync("Project note.", scope: "project");
+        var project = await SeedMemoryAsync("Project note.");
 
         // act
         var result = await ExecuteCommandAsync("agent", "memory", "context");
@@ -173,23 +173,5 @@ public sealed class ContextMemoryCommandTests(NitroCommandFixture fixture)
         Assert.Empty(document.RootElement.GetProperty("entries").EnumerateArray());
         Assert.Equal(oversized.Id, document.RootElement.GetProperty("omittedEntryId").GetString());
         Assert.Equal(0, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task CrossScopeDuplicateId_ReturnsErrorWithNoPartialOutput()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var projectRecord = await SeedMemoryAsync("Note.", scope: "project");
-        Directory.CreateDirectory(GlobalCuratedDirectory);
-        File.Copy(projectRecord.Path, Path.Combine(GlobalCuratedDirectory, projectRecord.Id + ".md"));
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "memory", "context");
-
-        // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Empty(result.StdOut);
-        Assert.Contains("Cross-scope duplicate memory ids found", result.StdErr);
     }
 }

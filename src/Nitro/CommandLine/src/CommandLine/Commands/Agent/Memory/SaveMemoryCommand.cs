@@ -19,7 +19,6 @@ internal sealed class SaveMemoryCommand : Command
         Options.Add(Opt<MemoryTypeOption>.Instance);
         Options.Add(Opt<MemoryTagOption>.Instance);
         Options.Add(Opt<MemoryActorOption>.Instance);
-        Options.Add(Opt<MemoryWriteScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         MemoryBody.AddValidator(this);
@@ -58,7 +57,6 @@ internal sealed class SaveMemoryCommand : Command
         var tags = parseResult.GetValue(Opt<MemoryTagOption>.Instance) ?? [];
         var actor = await MemoryActor.ResolveAsync(
             parseResult.GetValue(Opt<MemoryActorOption>.Instance), actorResolver, cancellationToken);
-        var scope = parseResult.GetRequiredValue(Opt<MemoryWriteScopeOption>.Instance);
 
         var record = await store.SaveAsync(
             new MemoryRecordCreation
@@ -66,8 +64,7 @@ internal sealed class SaveMemoryCommand : Command
                 Text = text,
                 Type = type,
                 Tags = tags,
-                Actor = actor,
-                Scope = scope
+                Actor = actor
             },
             cancellationToken);
 

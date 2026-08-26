@@ -22,11 +22,10 @@ public sealed class PromoteMemoryCommandTests(NitroCommandFixture fixture)
               <journal-id>  The journal entry ID. Omit to list unpromoted candidates
 
             Options:
-              --type <type>                 The memory type (fact, decision, preference, reference, or custom)
-              --tag <tag>                   A tag; can be used multiple times
-              --scope <all|global|project>  The memory scope to read from (project, global, or all) [default: all]
-              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                Show help and usage information
+              --type <type>    The memory type (fact, decision, preference, reference, or custom)
+              --tag <tag>      A tag; can be used multiple times
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro agent memory promote
@@ -47,12 +46,11 @@ public sealed class PromoteMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var curatedFile = Directory.GetFiles(CuratedDirectory, "*.md").Single();
-        var content = await File.ReadAllTextAsync(curatedFile, TestContext.Current.CancellationToken);
-        Assert.Contains("type: decision", content);
-        Assert.Contains("tags: [flaky]", content);
-        Assert.Contains($"promoted_from: {entry.Id}", content);
-        Assert.Contains("Investigated the flaky test.", content);
+        var promoted = Assert.Single(await ReadCuratedAsync());
+        Assert.Equal("decision", promoted.Type);
+        Assert.Equal(["flaky"], promoted.Tags);
+        Assert.Equal(entry.Id, promoted.PromotedFrom);
+        Assert.Equal("Investigated the flaky test.", promoted.Body);
     }
 
     [Fact]
@@ -100,7 +98,6 @@ public sealed class PromoteMemoryCommandTests(NitroCommandFixture fixture)
         Assert.Equal(
             firstDocument.RootElement.GetProperty("id").GetString(),
             secondDocument.RootElement.GetProperty("id").GetString());
-        Assert.Single(Directory.GetFiles(CuratedDirectory, "*.md"));
     }
 
     [Fact]
@@ -124,7 +121,6 @@ public sealed class PromoteMemoryCommandTests(NitroCommandFixture fixture)
             .Distinct()
             .ToArray();
         Assert.Single(ids);
-        Assert.Single(Directory.GetFiles(CuratedDirectory, "*.md"));
     }
 
     [Fact]

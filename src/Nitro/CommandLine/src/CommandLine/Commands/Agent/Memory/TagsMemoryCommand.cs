@@ -1,7 +1,5 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
@@ -12,7 +10,6 @@ internal sealed class TagsMemoryCommand : Command
     {
         Description = "List curated memory tags in use, with counts per scope.";
 
-        Options.Add(Opt<MemoryReadScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("agent memory tags", "agent memory tags --scope global");
@@ -29,18 +26,9 @@ internal sealed class TagsMemoryCommand : Command
         var store = services.GetRequiredService<IMemoryStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
-
         IReadOnlyList<MemoryRecord> records;
 
-        try
-        {
-            records = await store.GetRecentCuratedAsync(scope, null, cancellationToken);
-        }
-        catch (MemoryScopeConflictException exception)
-        {
-            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
-        }
+        records = await store.GetRecentCuratedAsync(null, cancellationToken);
 
         var rows = MemoryTagCounter.Count(records);
 
@@ -59,7 +47,7 @@ internal sealed class TagsMemoryCommand : Command
         foreach (var row in rows)
         {
             console.WriteLine(
-                $"{row.Tag}  project={row.ProjectCount}  global={row.GlobalCount}  total={row.TotalCount}");
+                $"{row.Tag}  {row.Count}");
         }
 
         return ExitCodes.Success;

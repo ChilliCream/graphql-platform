@@ -22,7 +22,6 @@ public abstract class MemoryCommandTestBase : CommandTestBase
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
         Directory.CreateDirectory(WorkingDirectory);
         SetupFileSystem(new TestFileSystem(WorkingDirectory));
-        SetupGlobalMemoryDirectory(GlobalMemoryDirectory);
     }
 
     protected string WorkingDirectory { get; }
@@ -42,20 +41,19 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     protected string LocalDirectory
         => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
-    protected string IndexPath
-        => AgentWorkspace.GetMemoryIndexDatabasePath(LocalDirectory);
+    /// <summary>
+    /// Every curated memory in the workspace, newest first, read back
+    /// through the store: the database is the source of truth, so this is
+    /// what a test asserts a write against.
+    /// </summary>
+    internal Task<IReadOnlyList<MemoryRecord>> ReadCuratedAsync()
+        => CreateStore().GetRecentCuratedAsync(limit: null, TestContext.Current.CancellationToken);
 
-    protected string ApplicationDataDirectory
-        => Path.Combine(_tempRoot.FullName, "app-data");
-
-    protected string GlobalMemoryDirectory
-        => AgentWorkspace.GetGlobalMemoryDirectory(ApplicationDataDirectory);
-
-    protected string GlobalCuratedDirectory
-        => AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory);
-
-    protected string GlobalJournalDirectory
-        => AgentWorkspace.GetMemoryJournalDirectory(GlobalMemoryDirectory);
+    /// <summary>
+    /// Every journal entry in the workspace, newest first.
+    /// </summary>
+    internal Task<IReadOnlyList<MemoryJournalEntry>> ReadJournalAsync()
+        => CreateStore().GetRecentJournalAsync(limit: null, TestContext.Current.CancellationToken);
 
     protected async Task InitWorkspaceAsync()
     {
@@ -64,12 +62,11 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Creates an <see cref="IMemoryStore"/> bound to this test's workspace,
-    /// global directory, and clock, for seeding data without going through
-    /// the CLI.
+    /// Creates an <see cref="IMemoryStore"/> bound to this test's workspace
+    /// database and clock, for seeding data without going through the CLI.
     /// </summary>
     internal MemoryStore CreateStore()
-        => new(new TestFileSystem(WorkingDirectory), FakeTime, GlobalMemoryDirectory);
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
 
     /// <summary>
     /// Saves a curated memory directly against the store.
@@ -78,16 +75,14 @@ public abstract class MemoryCommandTestBase : CommandTestBase
         string text,
         string type = "fact",
         IReadOnlyList<string>? tags = null,
-        string actor = "test-agent",
-        string scope = "project")
+        string actor = "test-agent")
         => CreateStore().SaveAsync(
             new MemoryRecordCreation
             {
                 Text = text,
                 Type = type,
                 Tags = tags ?? [],
-                Actor = actor,
-                Scope = scope
+                Actor = actor
             },
             TestContext.Current.CancellationToken);
 
@@ -96,14 +91,12 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     /// </summary>
     internal Task<MemoryJournalEntry> SeedJournalEntryAsync(
         string text,
-        string actor = "test-agent",
-        string scope = "project")
+        string actor = "test-agent")
         => CreateStore().LogAsync(
             new MemoryJournalEntryCreation
             {
                 Text = text,
-                Actor = actor,
-                Scope = scope
+                Actor = actor
             },
             TestContext.Current.CancellationToken);
 

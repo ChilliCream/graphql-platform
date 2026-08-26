@@ -24,7 +24,6 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
             Options:
               --file <file>               A file to read the memory text from
               --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
-              --scope <global|project>    The memory scope to write to (project or global) [default: project]
               --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
 
@@ -46,7 +45,7 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Single(Directory.GetFiles(JournalDirectory, "*.md", SearchOption.AllDirectories));
+        Assert.Single(await ReadJournalAsync());
     }
 
     [Fact]
@@ -60,9 +59,8 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var dateDirectory = Path.Combine(JournalDirectory, FakeTime.GetUtcNow().ToString("yyyy-MM-dd"));
-        Assert.True(Directory.Exists(dateDirectory));
-        Assert.Single(Directory.GetFiles(dateDirectory, "*.md"));
+        var logged = Assert.Single(await ReadJournalAsync());
+        Assert.Equal(FakeTime.GetUtcNow(), logged.CreatedAt);
     }
 
     [Fact]
@@ -78,9 +76,8 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var loggedFile = Directory.GetFiles(JournalDirectory, "*.md", SearchOption.AllDirectories).Single();
-        Assert.EndsWith("Line one\nLine two\n", await File.ReadAllTextAsync(
-            loggedFile, TestContext.Current.CancellationToken));
+        var logged = Assert.Single(await ReadJournalAsync());
+        Assert.Equal("Line one\nLine two\n", logged.Body);
     }
 
     [Fact]
@@ -101,24 +98,10 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(26, root.GetProperty("id").GetString()!.Length);
-        Assert.Equal("project", root.GetProperty("scope").GetString());
         Assert.Equal("test-agent", root.GetProperty("createdBy").GetString());
-        Assert.True(root.TryGetProperty("path", out _));
         Assert.True(root.TryGetProperty("createdAt", out _));
         Assert.False(root.TryGetProperty("type", out _));
         Assert.False(root.TryGetProperty("tags", out _));
-    }
-
-    [Fact]
-    public async Task WithGlobalScope_LogsToGlobalStore()
-    {
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "log", "Some global capture.", "--scope", "global");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Single(Directory.GetFiles(GlobalJournalDirectory, "*.md", SearchOption.AllDirectories));
     }
 
     [Fact]
@@ -153,19 +136,15 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act: two "simultaneous" log invocations racing to capture into the
-        // same journal date directory.
+        // same journal.
         var firstTask = ExecuteCommandAsync("agent", "memory", "log", "First capture.");
         var secondTask = ExecuteCommandAsync("agent", "memory", "log", "Second capture.");
         var results = await Task.WhenAll(firstTask, secondTask);
 
         // assert
         Assert.All(results, result => Assert.Equal(0, result.ExitCode));
-        var files = Directory.GetFiles(JournalDirectory, "*.md", SearchOption.AllDirectories);
-        Assert.Equal(2, files.Length);
-
-        var bodies = files
-            .Select(path => File.ReadAllText(path))
-            .Select(content => content[(content.LastIndexOf("---", StringComparison.Ordinal) + 3)..].Trim())
+        var bodies = (await ReadJournalAsync())
+            .Select(entry => entry.Body)
             .OrderBy(body => body, StringComparer.Ordinal)
             .ToArray();
         Assert.Equal(["First capture.", "Second capture."], bodies);

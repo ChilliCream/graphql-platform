@@ -791,7 +791,7 @@ public sealed class AgentDatabaseTests : IDisposable
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 11;", cancellationToken);
+            await ExecuteAsync(connection, $"PRAGMA user_version = {AgentDatabase.CurrentVersion + 1};", cancellationToken);
         }
 
         // act & assert
@@ -864,7 +864,7 @@ public sealed class AgentDatabaseTests : IDisposable
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 11;", cancellationToken);
+            await ExecuteAsync(connection, $"PRAGMA user_version = {AgentDatabase.CurrentVersion + 1};", cancellationToken);
         }
 
         // act & assert

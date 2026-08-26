@@ -21,7 +21,7 @@ internal static class MemoryRowBadge
     private const string UnselectedPrefix = "  ";
     private const string NoTags = "-";
 
-    public readonly record struct Widths(int Scope, int Type, int Age);
+    public readonly record struct Widths(int Type, int Age);
 
     /// <summary>
     /// Computes <see cref="Widths"/> across <paramref name="rows"/> (the
@@ -31,18 +31,16 @@ internal static class MemoryRowBadge
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<MemoryRecord> rows, DateTimeOffset now)
     {
-        var scopeWidth = 0;
         var typeWidth = 0;
         var ageWidth = 0;
 
         foreach (var record in rows)
         {
-            scopeWidth = Math.Max(scopeWidth, record.Scope.Length);
             typeWidth = Math.Max(typeWidth, record.Type.Length);
             ageWidth = Math.Max(ageWidth, MailAges.Format(record.UpdatedAt, now).Length);
         }
 
-        return new Widths(scopeWidth, typeWidth, ageWidth);
+        return new Widths(typeWidth, ageWidth);
     }
 
     /// <summary>
@@ -60,27 +58,23 @@ internal static class MemoryRowBadge
         }
 
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var scope = record.Scope.PadRight(widths.Scope);
         var type = record.Type.PadRight(widths.Type);
         var age = MailAges.Format(record.UpdatedAt, now).PadRight(widths.Age);
         var tagsText = record.Tags.Count == 0 ? NoTags : string.Join(",", record.Tags);
 
         var fixedPlainLength = prefix.Length
-            + scope.Length + 1
             + type.Length + 1
             + age.Length + 1;
 
         var tagsBudget = Math.Max(0, maxWidth - fixedPlainLength);
         var truncatedTags = Truncate(tagsText, tagsBudget);
 
-        var scopeStyle = ThemeTokens.GetStyle("memory.list.scope").ToMarkup();
         var typeStyle = ThemeTokens.GetStyle("memory.list.type").ToMarkup();
         var tagsStyle = ThemeTokens.GetStyle("memory.list.tags").ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
 
         var line =
             $"{Markup.Escape(prefix)}"
-            + $"{Stylize(scopeStyle, Markup.Escape(scope))} "
             + $"{Stylize(typeStyle, Markup.Escape(type))} "
             + $"{Stylize(tagsStyle, Markup.Escape(truncatedTags))} "
             + $"{Stylize(ageStyle, Markup.Escape(age))}";

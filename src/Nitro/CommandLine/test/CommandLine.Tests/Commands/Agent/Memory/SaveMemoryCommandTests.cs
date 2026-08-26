@@ -26,7 +26,6 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
               --type <type>               The memory type (fact, decision, preference, reference, or custom)
               --tag <tag>                 A tag; can be used multiple times
               --actor <actor> (REQUIRED)  The actor performing this command; allocate one with `nitro agent login`
-              --scope <global|project>    The memory scope to write to (project or global) [default: project]
               --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
 
@@ -48,7 +47,7 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Single(Directory.GetFiles(CuratedDirectory, "*.md"));
+        Assert.Single(await ReadCuratedAsync());
     }
 
     [Fact]
@@ -65,9 +64,8 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var savedFile = Directory.GetFiles(CuratedDirectory, "*.md").Single();
-        Assert.EndsWith("Line one\nLine two\n", await File.ReadAllTextAsync(
-            savedFile, TestContext.Current.CancellationToken));
+        var saved = Assert.Single(await ReadCuratedAsync());
+        Assert.Equal("Line one\nLine two\n", saved.Body);
     }
 
     [Fact]
@@ -84,9 +82,8 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var savedFile = Directory.GetFiles(CuratedDirectory, "*.md").Single();
-        Assert.EndsWith("Line one\nLine two\n", await File.ReadAllTextAsync(
-            savedFile, TestContext.Current.CancellationToken));
+        var saved = Assert.Single(await ReadCuratedAsync());
+        Assert.Equal("Line one\nLine two\n", saved.Body);
     }
 
     [Fact]
@@ -108,42 +105,12 @@ public sealed class SaveMemoryCommandTests(NitroCommandFixture fixture)
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(26, root.GetProperty("id").GetString()!.Length);
-        Assert.Equal("project", root.GetProperty("scope").GetString());
         Assert.Equal("preference", root.GetProperty("type").GetString());
         Assert.Equal(
             ["build", "tooling"], root.GetProperty("tags").EnumerateArray().Select(e => e.GetString()!).ToArray());
         Assert.Equal("test-agent", root.GetProperty("createdBy").GetString());
-        Assert.True(root.TryGetProperty("path", out _));
         Assert.True(root.TryGetProperty("createdAt", out _));
         Assert.True(root.TryGetProperty("updatedAt", out _));
-    }
-
-    [Fact]
-    public async Task WithGlobalScope_SavesToGlobalStore()
-    {
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "save", "Some global text.", "--type", "fact", "--scope", "global");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Single(Directory.GetFiles(GlobalCuratedDirectory, "*.md"));
-    }
-
-    [Fact]
-    public async Task WithGlobalScope_JsonOutput_ReportsGlobalScope()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "save", "Some global text.", "--type", "fact", "--scope", "global");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal("global", document.RootElement.GetProperty("scope").GetString());
     }
 
     [Fact]

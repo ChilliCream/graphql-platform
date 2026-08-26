@@ -7,5 +7,4 @@ internal sealed record MemoryJournalEntryCreation
 {
     public required string Text { get; init; }
     public required string Actor { get; init; }
-    public string Scope { get; init; } = MemoryScopes.Project;
 }

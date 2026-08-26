@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -10,6 +11,9 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class ActorGuardTests : AgentCommandTestBase
 {
+    private MemoryStore CreateStore()
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
+
     public ActorGuardTests(NitroCommandFixture fixture) : base(fixture)
     {
         // The guard lives in the real resolver, so this suite must not run
@@ -17,10 +21,6 @@ public sealed class ActorGuardTests : AgentCommandTestBase
         SetupRealActingActor();
         DefaultActor = null;
     }
-
-    private string CuratedDirectory
-        => AgentWorkspace.GetMemoryCuratedDirectory(
-            AgentWorkspace.GetMemoryDirectory(WorkspaceDirectory));
 
     [Theory]
     [InlineData("tasks", "create", "Fix the parser")]
@@ -93,10 +93,9 @@ public sealed class ActorGuardTests : AgentCommandTestBase
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var saved = Assert.Single(Directory.GetFiles(CuratedDirectory, "*.md"));
-        Assert.Contains(
-            $"created_by: {actor}",
-            await File.ReadAllTextAsync(saved, TestContext.Current.CancellationToken));
+        var saved = Assert.Single(await CreateStore().GetRecentCuratedAsync(
+            limit: null, TestContext.Current.CancellationToken));
+        Assert.Equal(actor, saved.CreatedBy);
     }
 
     /// <summary>

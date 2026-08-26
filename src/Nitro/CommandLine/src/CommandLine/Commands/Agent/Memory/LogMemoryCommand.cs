@@ -18,7 +18,6 @@ internal sealed class LogMemoryCommand : Command
 
         Options.Add(Opt<MemoryFileOption>.Instance);
         Options.Add(Opt<MemoryActorOption>.Instance);
-        Options.Add(Opt<MemoryWriteScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         MemoryBody.AddValidator(this);
@@ -44,14 +43,12 @@ internal sealed class LogMemoryCommand : Command
         var text = await MemoryBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
         var actor = await MemoryActor.ResolveAsync(
             parseResult.GetValue(Opt<MemoryActorOption>.Instance), actorResolver, cancellationToken);
-        var scope = parseResult.GetRequiredValue(Opt<MemoryWriteScopeOption>.Instance);
 
         var entry = await store.LogAsync(
             new MemoryJournalEntryCreation
             {
                 Text = text,
-                Actor = actor,
-                Scope = scope
+                Actor = actor
             },
             cancellationToken);
 

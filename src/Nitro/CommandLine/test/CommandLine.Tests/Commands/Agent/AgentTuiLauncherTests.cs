@@ -103,12 +103,10 @@ public sealed class AgentTuiLauncherTests
         {
             var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
             Directory.CreateDirectory(workingDirectory);
-            var globalMemoryDirectory = Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory");
-
             var memoryStore = new MemoryStore(
                 new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
                 timeProvider,
-                globalMemoryDirectory);
+                new AgentDatabase());
 
             var tabs = AgentTuiLauncher.BuildTabs(
                 taskStore,
@@ -200,7 +198,7 @@ public sealed class AgentTuiLauncherTests
             var memoryStore = new MemoryStore(
                 new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
                 new FakeTimeProvider(Now),
-                Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory"));
+                new AgentDatabase());
 
             var outConsole = new TestConsole();
             outConsole.Profile.Capabilities.Interactive = true;
@@ -267,7 +265,7 @@ public sealed class AgentTuiLauncherTests
             var memoryStore = new MemoryStore(
                 new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
                 new FakeTimeProvider(Now),
-                Path.Combine(tempRoot.FullName, "app-data", "nitro", "memory"));
+                new AgentDatabase());
 
             var outConsole = new TestConsole();
             outConsole.Profile.Capabilities.Interactive = true;

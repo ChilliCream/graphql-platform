@@ -9,19 +9,11 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// </summary>
 internal sealed class MemoryState(MemoryDataLoader loader)
 {
-    private static readonly List<string> s_scopeCycle = [MemoryScopes.All, MemoryScopes.Project, MemoryScopes.Global];
-
     /// <summary>
     /// Which collection <see cref="CuratedRecords"/>/<see cref="JournalEntries"/>
     /// is populated for.
     /// </summary>
     public MemoryCollectionFilter Collection { get; private set; } = MemoryCollectionFilter.Curated;
-
-    /// <summary>
-    /// The scope reads are narrowed to: one of <see cref="MemoryScopes.All"/>,
-    /// <see cref="MemoryScopes.Project"/>, or <see cref="MemoryScopes.Global"/>.
-    /// </summary>
-    public string Scope { get; private set; } = MemoryScopes.All;
 
     /// <summary>
     /// The search box text last applied to the loaded list, parsed by
@@ -60,8 +52,7 @@ internal sealed class MemoryState(MemoryDataLoader loader)
 
     /// <summary>
     /// A diagnostic message from the last <see cref="RefreshAsync"/>, set
-    /// when the read hit invalid data: either <see cref="Scope"/> is
-    /// <see cref="MemoryScopes.All"/> and a cross-scope duplicate id makes
+    /// when the read hit invalid data:
     /// the merged read invalid data (per the store's own contract, no
     /// partial result is served), or the store rejected a file it read with
     /// an <see cref="ExitException"/> such as malformed frontmatter; null
@@ -93,7 +84,7 @@ internal sealed class MemoryState(MemoryDataLoader loader)
 
     /// <summary>
     /// Reloads whichever list <see cref="Collection"/> currently shows for
-    /// <see cref="Scope"/> and <see cref="SearchText"/>. The selected item
+    /// <see cref="SearchText"/>. The selected item
     /// stays selected when it is still present in the reloaded list;
     /// otherwise the selected row is clamped to the new list's bounds.
     /// </summary>
@@ -108,19 +99,14 @@ internal sealed class MemoryState(MemoryDataLoader loader)
         {
             if (Collection == MemoryCollectionFilter.Curated)
             {
-                CuratedRecords = await loader.LoadCuratedAsync(Scope, query, cancellationToken).ConfigureAwait(false);
+                CuratedRecords = await loader.LoadCuratedAsync(query, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                JournalEntries = await loader.LoadJournalAsync(Scope, query, cancellationToken).ConfigureAwait(false);
+                JournalEntries = await loader.LoadJournalAsync(query, cancellationToken).ConfigureAwait(false);
             }
 
             LoadError = null;
-        }
-        catch (MemoryScopeConflictException exception)
-        {
-            LoadError = FormatConflictMessage(exception);
-            ClearActiveCollection();
         }
         catch (ExitException exception)
         {
@@ -150,17 +136,6 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     }
 
     /// <summary>
-    /// Advances <see cref="Scope"/> to the next value in the all, project,
-    /// global cycle and reloads.
-    /// </summary>
-    public async Task CycleScopeAsync(CancellationToken cancellationToken)
-    {
-        var index = s_scopeCycle.IndexOf(Scope);
-        Scope = s_scopeCycle[(index + 1) % s_scopeCycle.Count];
-        await RefreshAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
     /// Applies a new search box text and reloads.
     /// </summary>
     public async Task ApplySearchAsync(string text, CancellationToken cancellationToken)
@@ -180,12 +155,6 @@ internal sealed class MemoryState(MemoryDataLoader loader)
         {
             JournalEntries = [];
         }
-    }
-
-    private static string FormatConflictMessage(MemoryScopeConflictException exception)
-    {
-        var ids = string.Join(", ", exception.Conflicts.Select(c => c.Id));
-        return $"Cross-scope duplicate id(s), narrow --scope or run memory doctor: {ids}";
     }
 
     private int IndexOf(string id)

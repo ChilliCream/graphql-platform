@@ -3,18 +3,14 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Comment;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Epic;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Label;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
@@ -94,18 +90,12 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MemoryRecordResult))]
 [JsonSerializable(typeof(ListResult<MemoryRecordResult>))]
 [JsonSerializable(typeof(MemoryRecordDetailResult))]
-[JsonSerializable(typeof(MemoryScopeConflictResult))]
-[JsonSerializable(typeof(WhereMemoryCommand.MemoryLocationResult))]
-[JsonSerializable(typeof(ListResult<WhereMemoryCommand.MemoryLocationResult>))]
 [JsonSerializable(typeof(MemoryContextResult))]
 [JsonSerializable(typeof(MemoryTagCount))]
 [JsonSerializable(typeof(ListResult<MemoryTagCount>))]
-[JsonSerializable(typeof(MemoryIndexRebuildResult))]
-[JsonSerializable(typeof(ListResult<MemoryIndexRebuildResult>))]
 [JsonSerializable(typeof(MemoryJournalEntryResult))]
 [JsonSerializable(typeof(ListResult<MemoryJournalEntryResult>))]
 [JsonSerializable(typeof(MemoryPromotionResult))]
 [JsonSerializable(typeof(MemoryEntryResult))]
 [JsonSerializable(typeof(ListResult<MemoryEntryResult>))]
-[JsonSerializable(typeof(DoctorMemoryCommand.MemoryDoctorResult))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

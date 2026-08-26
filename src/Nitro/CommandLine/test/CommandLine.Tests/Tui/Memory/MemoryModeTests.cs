@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
@@ -20,8 +21,8 @@ public sealed class MemoryModeTests : MemoryTestBase
 
     public MemoryModeTests() : base("nitro-memory-mode-tests")
     {
-        _store = new MemoryStore(FileSystem, TimeProvider, GlobalMemoryDirectory);
-        _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, CancellationToken.None).GetAwaiter().GetResult();
+        _store = new MemoryStore(FileSystem, TimeProvider, new AgentDatabase());
+        InitializeWorkspace();
     }
 
     private static ConsoleKeyInfo Key(char c) => new(c, ConsoleKey.NoName, false, false, false);
@@ -40,14 +41,14 @@ public sealed class MemoryModeTests : MemoryTestBase
 
     private MemoryMode CreateMode() => new(_store, TimeProvider);
 
-    private Task<MemoryRecord> SaveAsync(string text = "Some text.", string type = "fact", string scope = "project")
+    private Task<MemoryRecord> SaveAsync(string text = "Some text.", string type = "fact")
         => _store.SaveAsync(
-            new MemoryRecordCreation { Text = text, Type = type, Actor = "test-agent", Scope = scope },
+            new MemoryRecordCreation { Text = text, Type = type, Actor = "test-agent" },
             TestContext.Current.CancellationToken);
 
-    private Task<MemoryJournalEntry> LogAsync(string text = "Journal note.", string scope = "project")
+    private Task<MemoryJournalEntry> LogAsync(string text = "Journal note.")
         => _store.LogAsync(
-            new MemoryJournalEntryCreation { Text = text, Actor = "test-agent", Scope = scope },
+            new MemoryJournalEntryCreation { Text = text, Actor = "test-agent" },
             TestContext.Current.CancellationToken);
 
     [Fact]
@@ -119,29 +120,6 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task CycleScopeRequested_Should_AdvanceThroughAllProjectGlobal()
-    {
-        // arrange
-        await SaveAsync("Project memory.", scope: "project");
-        var mode = CreateMode();
-        mode.OnEnter();
-        Assert.Equal("all", mode.State.Scope);
-
-        // act
-        mode.Handle(new TuiMessage.CycleScopeRequested());
-
-        // assert
-        Assert.Equal("project", mode.State.Scope);
-
-        // act
-        mode.Handle(new TuiMessage.CycleScopeRequested());
-
-        // assert
-        Assert.Equal("global", mode.State.Scope);
-        Assert.Empty(mode.State.CuratedRecords);
-    }
-
-    [Fact]
     public async Task RefreshRequested_Should_ReloadMemories()
     {
         // arrange
@@ -204,7 +182,7 @@ public sealed class MemoryModeTests : MemoryTestBase
         // assert
         Assert.Empty(followUp);
         Assert.True(mode.IsInputCapturing);
-        var stillThere = await _store.FindAsync(saved.Id, "project", TestContext.Current.CancellationToken);
+        var stillThere = await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken);
         Assert.NotNull(stillThere);
     }
 
@@ -242,7 +220,7 @@ public sealed class MemoryModeTests : MemoryTestBase
         Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
         Assert.False(mode.IsInputCapturing);
         Assert.Empty(mode.State.CuratedRecords);
-        var deleted = await _store.FindAsync(saved.Id, "project", TestContext.Current.CancellationToken);
+        var deleted = await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken);
         Assert.Null(deleted);
     }
 
@@ -262,7 +240,7 @@ public sealed class MemoryModeTests : MemoryTestBase
         Assert.Empty(followUp);
         Assert.False(mode.IsInputCapturing);
         Assert.Single(mode.State.CuratedRecords);
-        var stillThere = await _store.FindAsync(saved.Id, "project", TestContext.Current.CancellationToken);
+        var stillThere = await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken);
         Assert.NotNull(stillThere);
     }
 
@@ -318,8 +296,8 @@ public sealed class MemoryModeTests : MemoryTestBase
         Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
         Assert.False(mode.IsInputCapturing);
 
-        var curatedId = MemoryPromotedId.Derive(entry.Scope, entry.Id);
-        var promoted = await _store.FindAsync(curatedId, "project", TestContext.Current.CancellationToken);
+        var curatedId = MemoryPromotedId.Derive(entry.Id);
+        var promoted = await _store.FindAsync(curatedId, TestContext.Current.CancellationToken);
         Assert.NotNull(promoted);
         Assert.Equal("decision", promoted!.Type);
     }
@@ -331,7 +309,7 @@ public sealed class MemoryModeTests : MemoryTestBase
         // example via the CLI); promoting it again from the tab must be
         // idempotent, not an error.
         var entry = await LogAsync("Note one.");
-        await _store.PromoteAsync(entry.Id, entry.Scope, "fact", [], TestContext.Current.CancellationToken);
+        await _store.PromoteAsync(entry.Id, "fact", [], TestContext.Current.CancellationToken);
 
         var mode = CreateMode();
         mode.OnEnter();
@@ -428,30 +406,6 @@ public sealed class MemoryModeTests : MemoryTestBase
 
         // assert
         Assert.Contains("(type/tag ignored)", text);
-    }
-
-    [Fact]
-    public void OnEnter_Should_SetLoadError_Instead_Of_Throwing_When_ACuratedFileHasMalformedFrontmatter()
-    {
-        // arrange: a curated markdown file written directly into the store,
-        // bypassing SaveAsync, the only way malformed frontmatter reaches
-        // disk (the store itself never writes an unparsable file). OnEnter
-        // only marks a refresh pending; the deferred read happens lazily on
-        // the first Render or Handle call, exercised here via a manual
-        // refresh in place of the shell rendering the tab.
-        Directory.CreateDirectory(CuratedDirectory);
-        File.WriteAllText(Path.Combine(CuratedDirectory, "mem-broken.md"), "not frontmatter at all");
-        var mode = CreateMode();
-        mode.OnEnter();
-
-        // act
-        var exception = Record.Exception(() => mode.Handle(new TuiMessage.RefreshRequested()));
-
-        // assert
-        Assert.Null(exception);
-        Assert.NotNull(mode.State.LoadError);
-        Assert.Contains("malformed frontmatter", mode.State.LoadError, StringComparison.OrdinalIgnoreCase);
-        Assert.Empty(mode.State.CuratedRecords);
     }
 
     [Fact]

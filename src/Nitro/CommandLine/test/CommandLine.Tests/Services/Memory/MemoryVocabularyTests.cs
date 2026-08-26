@@ -30,20 +30,4 @@ public sealed class MemoryVocabularyTests
     [InlineData("foo bar", false)]
     public void MemoryTags_IsValid_Should_EnforceCharacterPolicy(string value, bool expected)
         => Assert.Equal(expected, MemoryTags.IsValid(value));
-
-    [Theory]
-    [InlineData("project", true)]
-    [InlineData("global", true)]
-    [InlineData("all", false)]
-    [InlineData("other", false)]
-    public void MemoryScopes_IsValid_Should_OnlyAcceptStorageScopes(string value, bool expected)
-        => Assert.Equal(expected, MemoryScopes.IsValid(value));
-
-    [Theory]
-    [InlineData("project", true)]
-    [InlineData("global", true)]
-    [InlineData("all", true)]
-    [InlineData("other", false)]
-    public void MemoryScopes_IsValidReadScope_Should_AlsoAcceptAll(string value, bool expected)
-        => Assert.Equal(expected, MemoryScopes.IsValidReadScope(value));
 }

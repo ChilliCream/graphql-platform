@@ -17,7 +17,7 @@ internal static class MemoryJournalRowBadge
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
 
-    public readonly record struct Widths(int Scope, int Day);
+    public readonly record struct Widths(int Day);
 
     /// <summary>
     /// Computes <see cref="Widths"/> across <paramref name="rows"/> (the
@@ -27,16 +27,14 @@ internal static class MemoryJournalRowBadge
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<MemoryJournalEntry> rows)
     {
-        var scopeWidth = 0;
         var dayWidth = 0;
 
         foreach (var entry in rows)
         {
-            scopeWidth = Math.Max(scopeWidth, entry.Scope.Length);
             dayWidth = Math.Max(dayWidth, FormatDay(entry.CreatedAt).Length);
         }
 
-        return new Widths(scopeWidth, dayWidth);
+        return new Widths(dayWidth);
     }
 
     /// <summary>
@@ -55,20 +53,17 @@ internal static class MemoryJournalRowBadge
         }
 
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var scope = entry.Scope.PadRight(widths.Scope);
         var day = FormatDay(entry.CreatedAt).PadRight(widths.Day);
         var preview = FirstLine(entry.Body);
 
-        var fixedPlainLength = prefix.Length + scope.Length + 1 + day.Length + 1;
+        var fixedPlainLength = prefix.Length + day.Length + 1;
         var previewBudget = Math.Max(0, maxWidth - fixedPlainLength);
         var truncatedPreview = Truncate(preview, previewBudget);
 
-        var scopeStyle = ThemeTokens.GetStyle("memory.list.scope").ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
 
         var line =
             $"{Markup.Escape(prefix)}"
-            + $"{Stylize(scopeStyle, Markup.Escape(scope))} "
             + $"{Stylize(ageStyle, Markup.Escape(day))} "
             + Markup.Escape(truncatedPreview);
 

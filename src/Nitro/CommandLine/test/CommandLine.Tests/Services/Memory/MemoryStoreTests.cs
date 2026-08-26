@@ -3,347 +3,357 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
+/// <summary>
+/// Exercises <see cref="MemoryStore"/> against the workspace database that
+/// holds memory alongside tasks and mail: the curated vertical (save,
+/// update, forget, find, recent, search) and the journal vertical (log,
+/// promote, unpromoted).
+/// </summary>
 public sealed class MemoryStoreTests : MemoryTestBase
 {
     private readonly MemoryStore _store;
 
     public MemoryStoreTests() : base("nitro-memory-store-tests")
     {
-        _store = new MemoryStore(FileSystem, TimeProvider, GlobalMemoryDirectory);
+        InitializeWorkspace();
+        _store = new MemoryStore(FileSystem, TimeProvider, new AgentDatabase());
     }
 
-    private async Task<MemoryRecord> SaveAsync(string scope, string text = "Some text.")
-        => await _store.SaveAsync(
+    private Task<MemoryRecord> SaveAsync(
+        string text = "Some text.", string type = "fact", IReadOnlyList<string>? tags = null)
+        => _store.SaveAsync(
             new MemoryRecordCreation
             {
                 Text = text,
-                Type = "fact",
-                Actor = "test-agent",
-                Scope = scope
+                Type = type,
+                Tags = tags ?? [],
+                Actor = "test-agent"
             },
             TestContext.Current.CancellationToken);
 
+    private Task<MemoryJournalEntry> LogAsync(string text = "Journal note.")
+        => _store.LogAsync(
+            new MemoryJournalEntryCreation { Text = text, Actor = "test-agent" },
+            TestContext.Current.CancellationToken);
+
     [Fact]
-    public async Task EnsureProjectWorkspaceAsync_Should_CreateCuratedJournalAndLocalDirectories()
+    public async Task SaveAsync_Should_PersistEveryFieldAndItsTags()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
 
         // act
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
+        var saved = await SaveAsync("Prefer pnpm.", "preference", ["build", "tooling"]);
+        var found = await _store.FindAsync(saved.Id, cancellationToken);
 
         // assert
-        Assert.True(Directory.Exists(CuratedDirectory));
-        Assert.True(Directory.Exists(JournalDirectory));
-        Assert.True(Directory.Exists(LocalDirectory));
+        Assert.NotNull(found);
+        Assert.Equal("Prefer pnpm.", found.Body);
+        Assert.Equal("preference", found.Type);
+        Assert.Equal(["build", "tooling"], found.Tags);
+        Assert.Equal("test-agent", found.CreatedBy);
     }
 
     [Fact]
-    public async Task EnsureProjectWorkspaceAsync_Should_BeIdempotent_When_CalledTwice()
+    public async Task SaveAsync_Should_Throw_When_NoWorkspaceExists()
     {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-        var markerPath = Path.Combine(CuratedDirectory, "existing.md");
-        File.WriteAllText(markerPath, "kept");
+        // arrange: a store rooted outside any agent workspace.
+        var outside = Directory.CreateTempSubdirectory("nitro-memory-no-workspace");
 
-        // act
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
+        try
+        {
+            var store = new MemoryStore(
+                new TestFileSystem(outside.FullName), TimeProvider, new AgentDatabase());
 
-        // assert
-        Assert.Equal("kept", await File.ReadAllTextAsync(markerPath, cancellationToken));
+            // act & assert
+            await Assert.ThrowsAsync<ExitException>(
+                () => store.SaveAsync(
+                    new MemoryRecordCreation { Text = "x", Type = "fact", Actor = "test-agent" },
+                    TestContext.Current.CancellationToken));
+        }
+        finally
+        {
+            outside.Delete(recursive: true);
+        }
     }
 
     [Fact]
-    public void FindProjectWorkspaceDirectory_Should_ReturnNull_When_NoWorkspaceExists()
+    public async Task FindAsync_Should_ReturnNull_When_TheMemoryDoesNotExist()
     {
-        // arrange
-        Directory.CreateDirectory(WorkingDirectory);
-
-        // act
-        var found = _store.FindProjectWorkspaceDirectory();
+        // arrange & act
+        var found = await _store.FindAsync(
+            "01m0x9svd4a9h8835319mamxpg", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(found);
     }
 
     [Fact]
-    public async Task FindProjectWorkspaceDirectory_Should_ReturnDirectory_When_ProvisionedByEnsure()
+    public async Task GetRecentCuratedAsync_Should_OrderByUpdatedAtDescending()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-
-        // act
-        var found = _store.FindProjectWorkspaceDirectory();
-
-        // assert
-        Assert.Equal(WorkspaceDirectory, found);
-    }
-
-    [Fact]
-    public async Task SaveAsync_Should_WriteToGlobalStore_When_ScopeIsGlobal_AndCreateItsDirectoriesLazily()
-    {
-        // act
-        var record = await SaveAsync(MemoryScopes.Global);
-
-        // assert
-        Assert.Equal(MemoryScopes.Global, record.Scope);
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory)));
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryJournalDirectory(GlobalMemoryDirectory)));
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryLocalDirectory(GlobalMemoryDirectory)));
-        Assert.StartsWith(AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory), record.Path);
-    }
-
-    [Fact]
-    public async Task SaveAsync_Should_Throw_When_ScopeIsProject_AndNoWorkspaceExists()
-    {
-        // act
-        var exception = await Record.ExceptionAsync(() => SaveAsync(MemoryScopes.Project));
-
-        // assert
-        var exitException = Assert.IsType<ExitException>(exception);
-        Assert.Equal("No agent workspace found. Run `nitro agent init` first.", exitException.Message);
-    }
-
-    [Fact]
-    public async Task SaveAsync_Should_NotFallBackToGlobal_When_ProjectScopeHasNoWorkspace()
-    {
-        // act
-        await Record.ExceptionAsync(() => SaveAsync(MemoryScopes.Project));
-
-        // assert: no lazily created global store as a silent fallback.
-        Assert.False(Directory.Exists(GlobalMemoryDirectory));
-    }
-
-    [Fact]
-    public async Task GetRecentCuratedAsync_Should_ReturnProjectBandFirst_ThenGlobalBand()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-
-        var globalFirst = await SaveAsync(MemoryScopes.Global, "Global first.");
+        var first = await SaveAsync("First.");
         TimeProvider.Advance(TimeSpan.FromMinutes(1));
-        var projectFirst = await SaveAsync(MemoryScopes.Project, "Project first.");
+        var second = await SaveAsync("Second.");
+
+        // act
+        var recent = await _store.GetRecentCuratedAsync(limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([second.Id, first.Id], recent.Select(record => record.Id));
+    }
+
+    [Fact]
+    public async Task GetRecentCuratedAsync_Should_RespectTheLimit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SaveAsync("First.");
         TimeProvider.Advance(TimeSpan.FromMinutes(1));
-        var globalSecond = await SaveAsync(MemoryScopes.Global, "Global second.");
-        TimeProvider.Advance(TimeSpan.FromMinutes(1));
-        var projectSecond = await SaveAsync(MemoryScopes.Project, "Project second.");
+        var second = await SaveAsync("Second.");
 
         // act
-        var records = await _store.GetRecentCuratedAsync(MemoryScopes.All, limit: null, cancellationToken);
+        var recent = await _store.GetRecentCuratedAsync(limit: 1, cancellationToken);
 
-        // assert: project band (each entry newest first), then global band.
-        Assert.Equal(
-            [projectSecond.Id, projectFirst.Id, globalSecond.Id, globalFirst.Id],
-            records.Select(record => record.Id).ToArray());
+        // assert
+        Assert.Equal([second.Id], recent.Select(record => record.Id));
     }
 
     [Fact]
-    public async Task GetRecentCuratedAsync_Should_ReturnOnlyGlobal_When_NoProjectWorkspaceExists()
+    public async Task UpdateAsync_Should_ReplaceTextAndTypeAndMoveUpdatedAt()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var globalRecord = await SaveAsync(MemoryScopes.Global);
-
-        // act
-        var records = await _store.GetRecentCuratedAsync(MemoryScopes.All, limit: null, cancellationToken);
-
-        // assert
-        Assert.Equal([globalRecord.Id], records.Select(record => record.Id).ToArray());
-    }
-
-    [Fact]
-    public async Task FindAsync_Should_ReturnRecord_When_ExistsInOnlyOneScope()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var record = await SaveAsync(MemoryScopes.Global);
-
-        // act
-        var found = await _store.FindAsync(record.Id, MemoryScopes.All, cancellationToken);
-
-        // assert
-        Assert.NotNull(found);
-        Assert.Equal(MemoryScopes.Global, found.Scope);
-    }
-
-    [Fact]
-    public async Task FindAsync_Should_Throw_MemoryScopeConflictException_When_SameIdExistsInBothScopes()
-    {
-        // arrange: a same-id collision between project and global is invalid
-        // data (ids are collision-resistant) and only reachable by writing
-        // outside the CLI, which this test simulates directly.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-        var projectRecord = await SaveAsync(MemoryScopes.Project);
-
-        var globalCuratedDirectory = AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory);
-        Directory.CreateDirectory(globalCuratedDirectory);
-        File.Copy(
-            projectRecord.Path,
-            Path.Combine(globalCuratedDirectory, projectRecord.Id + ".md"));
-
-        // act
-        var exception = await Record.ExceptionAsync(
-            () => _store.FindAsync(projectRecord.Id, MemoryScopes.All, cancellationToken));
-
-        // assert
-        var conflictException = Assert.IsType<MemoryScopeConflictException>(exception);
-        var conflict = Assert.Single(conflictException.Conflicts);
-        Assert.Equal(projectRecord.Id, conflict.Id);
-        Assert.Equal([MemoryScopes.Project, MemoryScopes.Global], conflict.Scopes);
-    }
-
-    [Fact]
-    public async Task FindAsync_Should_ReturnRecord_When_ScopeExplicitlyDisambiguatesAConflict()
-    {
-        // arrange: the same collision as above, but explicit scopes still
-        // work for investigation.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-        var projectRecord = await SaveAsync(MemoryScopes.Project);
-
-        var globalCuratedDirectory = AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory);
-        Directory.CreateDirectory(globalCuratedDirectory);
-        File.Copy(
-            projectRecord.Path,
-            Path.Combine(globalCuratedDirectory, projectRecord.Id + ".md"));
-
-        // act
-        var project = await _store.FindAsync(projectRecord.Id, MemoryScopes.Project, cancellationToken);
-        var global = await _store.FindAsync(projectRecord.Id, MemoryScopes.Global, cancellationToken);
-
-        // assert
-        Assert.NotNull(project);
-        Assert.Equal(MemoryScopes.Project, project.Scope);
-        Assert.NotNull(global);
-        Assert.Equal(MemoryScopes.Global, global.Scope);
-    }
-
-    [Fact]
-    public async Task GetRecentCuratedAsync_Should_Throw_MemoryScopeConflictException_When_SameIdExistsInBothScopes()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-        var projectRecord = await SaveAsync(MemoryScopes.Project);
-
-        var globalCuratedDirectory = AgentWorkspace.GetMemoryCuratedDirectory(GlobalMemoryDirectory);
-        Directory.CreateDirectory(globalCuratedDirectory);
-        File.Copy(
-            projectRecord.Path,
-            Path.Combine(globalCuratedDirectory, projectRecord.Id + ".md"));
-
-        // act
-        var exception = await Record.ExceptionAsync(
-            () => _store.GetRecentCuratedAsync(MemoryScopes.All, limit: null, cancellationToken));
-
-        // assert
-        Assert.IsType<MemoryScopeConflictException>(exception);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_Should_Throw_When_ScopeIsProject_AndNoWorkspaceExists()
-    {
-        // act
-        var exception = await Record.ExceptionAsync(() => _store.UpdateAsync(
-            "01hqzxk8xdtd3fk3f0z7c5g8vm",
-            MemoryScopes.Project,
-            new MemoryRecordUpdate { Type = "decision", TypeGiven = true },
-            TestContext.Current.CancellationToken));
-
-        // assert
-        var exitException = Assert.IsType<ExitException>(exception);
-        Assert.Equal("No agent workspace found. Run `nitro agent init` first.", exitException.Message);
-    }
-
-    [Fact]
-    public async Task ForgetAsync_Should_Throw_When_ScopeIsProject_AndNoWorkspaceExists()
-    {
-        // act
-        var exception = await Record.ExceptionAsync(() => _store.ForgetAsync(
-            "01hqzxk8xdtd3fk3f0z7c5g8vm", MemoryScopes.Project, TestContext.Current.CancellationToken));
-
-        // assert
-        var exitException = Assert.IsType<ExitException>(exception);
-        Assert.Equal("No agent workspace found. Run `nitro agent init` first.", exitException.Message);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_Should_UpdateGlobalRecord_When_ScopeIsGlobal()
-    {
-        // arrange
-        var record = await SaveAsync(MemoryScopes.Global);
+        var saved = await SaveAsync("Before.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var updated = await _store.UpdateAsync(
-            record.Id,
-            MemoryScopes.Global,
-            new MemoryRecordUpdate { Type = "decision", TypeGiven = true },
-            TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(MemoryScopes.Global, updated.Scope);
-        Assert.Equal("decision", updated.Type);
-    }
-
-    [Fact]
-    public async Task ForgetAsync_Should_DeleteGlobalRecord_When_ScopeIsGlobal()
-    {
-        // arrange
-        var record = await SaveAsync(MemoryScopes.Global);
-
-        // act
-        await _store.ForgetAsync(record.Id, MemoryScopes.Global, TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.False(File.Exists(record.Path));
-    }
-
-    [Fact]
-    public async Task PromoteAsync_Should_ReturnWinnersRecord_When_LosingCreateRace()
-    {
-        // arrange: a rival promote of the same journal entry creates the
-        // curated file first, so this store's own create attempt lands in
-        // the catch (IOException) branch between the pre-check and the
-        // create call.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await _store.EnsureProjectWorkspaceAsync(WorkspaceDirectory, cancellationToken);
-        var entry = await _store.LogAsync(
-            new MemoryJournalEntryCreation
+            saved.Id,
+            new MemoryRecordUpdate
             {
-                Text = "Investigated the flaky test.",
-                Actor = "test-agent",
-                Scope = MemoryScopes.Project
+                Text = "After.",
+                TextGiven = true,
+                Type = "decision",
+                TypeGiven = true
             },
             cancellationToken);
 
-        var curatedId = MemoryPromotedId.Derive(MemoryScopes.Project, entry.Id);
-        var curatedPath = Path.Combine(CuratedDirectory, curatedId + ".md");
-        var rivalContent = MemoryFrontmatterWriter.Write(new MemoryFrontmatter(
-            MemoryFrontmatterParser.SupportedSchemaVersion,
-            curatedId,
-            "decision",
-            ["flaky"],
-            TimeProvider.GetUtcNow(),
-            TimeProvider.GetUtcNow(),
-            entry.CreatedBy,
-            entry.Id,
-            entry.Body));
+        // assert
+        Assert.Equal("After.", updated.Body);
+        Assert.Equal("decision", updated.Type);
+        Assert.True(updated.UpdatedAt > updated.CreatedAt);
+    }
 
-        var racingStore = new MemoryStore(
-            new RacingFileSystem(FileSystem, curatedPath, rivalContent), TimeProvider, GlobalMemoryDirectory);
+    [Fact]
+    public async Task UpdateAsync_Should_AddAndRemoveTags()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var saved = await SaveAsync(tags: ["keep", "drop"]);
 
         // act
-        var outcome = await racingStore.PromoteAsync(
-            entry.Id, MemoryScopes.Project, "fact", [], cancellationToken);
+        var updated = await _store.UpdateAsync(
+            saved.Id,
+            new MemoryRecordUpdate { AddTags = ["added"], RemoveTags = ["drop"] },
+            cancellationToken);
 
-        // assert: the winner's content, not this store's own "fact"/[] attempt.
-        Assert.True(outcome.AlreadyPromoted);
+        // assert
+        Assert.Equal(["added", "keep"], updated.Tags);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Should_Throw_When_TheMemoryDoesNotExist()
+    {
+        // arrange & act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UpdateAsync(
+                "01m0x9svd4a9h8835319mamxpg",
+                new MemoryRecordUpdate { Text = "x", TextGiven = true },
+                TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ForgetAsync_Should_DeleteTheMemoryAndItsTags()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var saved = await SaveAsync(tags: ["gone"]);
+
+        // act
+        var forgotten = await _store.ForgetAsync(saved.Id, cancellationToken);
+
+        // assert: the record is returned as it was, and no longer readable.
+        Assert.Equal(saved.Id, forgotten.Id);
+        Assert.Null(await _store.FindAsync(saved.Id, cancellationToken));
+    }
+
+    [Fact]
+    public async Task SearchCuratedAsync_Should_MatchBodyText()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var wanted = await SaveAsync("The parser rejects trailing commas.");
+        await SaveAsync("Unrelated note about deploys.");
+
+        // act
+        var results = await _store.SearchCuratedAsync(
+            "parser", [], type: null, since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([wanted.Id], results.Select(record => record.Id));
+    }
+
+    [Fact]
+    public async Task SearchCuratedAsync_Should_NarrowByTypeAndTag()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var wanted = await SaveAsync("Deploy on Fridays.", "decision", ["ops"]);
+        await SaveAsync("Deploy on Fridays.", "fact", ["ops"]);
+        await SaveAsync("Deploy on Fridays.", "decision", ["other"]);
+
+        // act
+        var results = await _store.SearchCuratedAsync(
+            "deploy", ["ops"], "decision", since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([wanted.Id], results.Select(record => record.Id));
+    }
+
+    [Fact]
+    public async Task SearchCuratedAsync_Should_TreatTheQueryAsLiteralText()
+    {
+        // arrange: FTS5 operator syntax must be matched as text, not run.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await SaveAsync("Plain note.");
+
+        // act
+        var results = await _store.SearchCuratedAsync(
+            "note OR anything", [], type: null, since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task SearchCuratedAsync_Should_SeeAnUpdatedBody()
+    {
+        // arrange: the schema's triggers keep the index in step, so there is
+        // no rebuild step between the write and the search that finds it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var saved = await SaveAsync("Original wording.");
+
+        await _store.UpdateAsync(
+            saved.Id,
+            new MemoryRecordUpdate { Text = "Replacement wording.", TextGiven = true },
+            cancellationToken);
+
+        // act
+        var stale = await _store.SearchCuratedAsync(
+            "original", [], type: null, since: null, limit: null, cancellationToken);
+        var fresh = await _store.SearchCuratedAsync(
+            "replacement", [], type: null, since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Empty(stale);
+        Assert.Equal([saved.Id], fresh.Select(record => record.Id));
+    }
+
+    [Fact]
+    public async Task LogAsync_Should_PersistTheEntry()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act
+        var entry = await LogAsync("Investigated the flaky test.");
+        var found = await _store.FindJournalEntryAsync(entry.Id, cancellationToken);
+
+        // assert
+        Assert.NotNull(found);
+        Assert.Equal("Investigated the flaky test.", found.Body);
+        Assert.Equal("test-agent", found.CreatedBy);
+    }
+
+    [Fact]
+    public async Task SearchJournalAsync_Should_MatchEveryWordAsASubstring()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var wanted = await LogAsync("Investigated the flaky watcher test.");
+        await LogAsync("Investigated the deploy pipeline.");
+
+        // act
+        var results = await _store.SearchJournalAsync(
+            "flaky investigated", since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([wanted.Id], results.Select(entry => entry.Id));
+    }
+
+    [Fact]
+    public async Task PromoteAsync_Should_CopyTheEntryIntoACuratedMemory()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var entry = await LogAsync("Investigated the flaky test.");
+
+        // act
+        var outcome = await _store.PromoteAsync(entry.Id, "decision", ["flaky"], cancellationToken);
+
+        // assert
+        Assert.False(outcome.AlreadyPromoted);
+        Assert.Equal("Investigated the flaky test.", outcome.Record.Body);
         Assert.Equal("decision", outcome.Record.Type);
         Assert.Equal(["flaky"], outcome.Record.Tags);
-        Assert.Single(Directory.GetFiles(CuratedDirectory, "*.md"));
+        Assert.Equal(entry.Id, outcome.Record.PromotedFrom);
+    }
+
+    [Fact]
+    public async Task PromoteAsync_Should_ReturnTheFirstOutcome_When_PromotedTwice()
+    {
+        // arrange: the unique promoted_from index makes the second promote
+        // affect no rows, so it reports what the first one produced rather
+        // than duplicating or failing.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var entry = await LogAsync("Investigated the flaky test.");
+        var first = await _store.PromoteAsync(entry.Id, "decision", ["flaky"], cancellationToken);
+
+        // act
+        var second = await _store.PromoteAsync(entry.Id, "fact", [], cancellationToken);
+
+        // assert: the winner's type and tags, not this call's own attempt.
+        Assert.True(second.AlreadyPromoted);
+        Assert.Equal(first.Record.Id, second.Record.Id);
+        Assert.Equal("decision", second.Record.Type);
+        Assert.Equal(["flaky"], second.Record.Tags);
+    }
+
+    [Fact]
+    public async Task PromoteAsync_Should_Throw_When_TheJournalEntryDoesNotExist()
+    {
+        // arrange & act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.PromoteAsync(
+                "01m0x9svd4a9h8835319mamxpg", "fact", [], TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetUnpromotedJournalEntriesAsync_Should_ExcludePromotedEntries()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var promoted = await LogAsync("Already curated.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        var pending = await LogAsync("Still raw.");
+        await _store.PromoteAsync(promoted.Id, "fact", [], cancellationToken);
+
+        // act
+        var unpromoted = await _store.GetUnpromotedJournalEntriesAsync(cancellationToken);
+
+        // assert
+        Assert.Equal([pending.Id], unpromoted.Select(entry => entry.Id));
     }
 }

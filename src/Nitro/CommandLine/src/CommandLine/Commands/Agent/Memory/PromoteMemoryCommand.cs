@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
@@ -17,7 +16,6 @@ internal sealed class PromoteMemoryCommand : Command
 
         Options.Add(Opt<MemoryTypeOption>.Instance);
         Options.Add(Opt<MemoryTagOption>.Instance);
-        Options.Add(Opt<MemoryReadScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         Validators.Add(result =>
@@ -54,11 +52,10 @@ internal sealed class PromoteMemoryCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetValue(Opt<MemoryJournalIdArgument>.Instance);
-        var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
 
         if (id is null)
         {
-            return await ListUnpromotedAsync(console, store, resultHolder, scope, cancellationToken);
+            return await ListUnpromotedAsync(console, store, resultHolder, cancellationToken);
         }
 
         var type = parseResult.GetRequiredValue(Opt<MemoryTypeOption>.Instance);
@@ -66,14 +63,7 @@ internal sealed class PromoteMemoryCommand : Command
 
         MemoryPromotionOutcome outcome;
 
-        try
-        {
-            outcome = await store.PromoteAsync(id, scope, type, tags, cancellationToken);
-        }
-        catch (MemoryScopeConflictException exception)
-        {
-            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
-        }
+        outcome = await store.PromoteAsync(id, type, tags, cancellationToken);
 
         if (!console.IsHumanReadable)
         {
@@ -98,19 +88,11 @@ internal sealed class PromoteMemoryCommand : Command
         INitroConsole console,
         IMemoryStore store,
         IResultHolder resultHolder,
-        string scope,
         CancellationToken cancellationToken)
     {
         IReadOnlyList<MemoryJournalEntry> candidates;
 
-        try
-        {
-            candidates = await store.GetUnpromotedJournalEntriesAsync(scope, cancellationToken);
-        }
-        catch (MemoryScopeConflictException exception)
-        {
-            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
-        }
+        candidates = await store.GetUnpromotedJournalEntriesAsync(cancellationToken);
 
         if (!console.IsHumanReadable)
         {
@@ -129,7 +111,7 @@ internal sealed class PromoteMemoryCommand : Command
 
         foreach (var candidate in candidates)
         {
-            console.WriteLine($"{candidate.Id}  {candidate.Scope}  {MemoryDates.Format(candidate.CreatedAt)}");
+            console.WriteLine($"{candidate.Id}  {MemoryDates.Format(candidate.CreatedAt)}");
         }
 
         return ExitCodes.Success;

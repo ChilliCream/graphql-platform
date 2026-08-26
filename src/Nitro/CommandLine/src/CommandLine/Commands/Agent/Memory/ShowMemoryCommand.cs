@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
@@ -13,7 +12,6 @@ internal sealed class ShowMemoryCommand : Command
         Description = "Show a curated memory's details.";
 
         Arguments.Add(Opt<MemoryIdArgument>.Instance);
-        Options.Add(Opt<MemoryReadScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("agent memory show \"01hqzxk8xdtd3fk3f0z7c5g8vm\"");
@@ -31,18 +29,10 @@ internal sealed class ShowMemoryCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<MemoryIdArgument>.Instance);
-        var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
 
         MemoryRecord record;
 
-        try
-        {
-            record = await store.GetRequiredAsync(id, scope, cancellationToken);
-        }
-        catch (MemoryScopeConflictException exception)
-        {
-            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
-        }
+        record = await store.GetRequiredAsync(id, cancellationToken);
 
         if (!console.IsHumanReadable)
         {
@@ -51,7 +41,6 @@ internal sealed class ShowMemoryCommand : Command
         }
 
         console.WriteLine($"{record.Id} ({record.Type})");
-        console.WriteLine($"Scope: {record.Scope}");
 
         if (record.Tags.Count > 0)
         {

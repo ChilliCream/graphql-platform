@@ -19,7 +19,6 @@ internal sealed class UpdateMemoryCommand : Command
         Options.Add(Opt<MemoryTypeOption>.Instance);
         Options.Add(Opt<MemoryAddTagOption>.Instance);
         Options.Add(Opt<MemoryRemoveTagOption>.Instance);
-        Options.Add(Opt<MemoryWriteScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         Validators.Add(result =>
@@ -80,11 +79,8 @@ internal sealed class UpdateMemoryCommand : Command
             text = await MemoryBody.ReadFileAsync(fileSystem, file, cancellationToken);
         }
 
-        var scope = parseResult.GetRequiredValue(Opt<MemoryWriteScopeOption>.Instance);
-
         var record = await store.UpdateAsync(
             id,
-            scope,
             new MemoryRecordUpdate
             {
                 Text = text,

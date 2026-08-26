@@ -336,38 +336,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task EmptyDirectory_ProvisionsMemoryDirectories()
-    {
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        var memoryDirectory = AgentWorkspace.GetMemoryDirectory(WorkspaceDirectory);
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryCuratedDirectory(memoryDirectory)));
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryJournalDirectory(memoryDirectory)));
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryLocalDirectory(memoryDirectory)));
-    }
-
-    [Fact]
-    public async Task AlreadyInitialized_Force_ProvisionsMissingMemoryDirectories()
-    {
-        // arrange: a workspace initialized before memory storage existed.
-        await InitWorkspaceAsync();
-        var memoryDirectory = AgentWorkspace.GetMemoryDirectory(WorkspaceDirectory);
-        Directory.Delete(memoryDirectory, recursive: true);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init", "--force");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryCuratedDirectory(memoryDirectory)));
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryJournalDirectory(memoryDirectory)));
-        Assert.True(Directory.Exists(AgentWorkspace.GetMemoryLocalDirectory(memoryDirectory)));
-    }
-
-    [Fact]
     public async Task JsonOutput_ReturnsWorkspacePathAndPrefix()
     {
         // arrange

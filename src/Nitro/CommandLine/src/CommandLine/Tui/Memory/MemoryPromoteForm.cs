@@ -35,7 +35,6 @@ internal sealed class MemoryPromoteForm
     ];
 
     private readonly string _journalId;
-    private readonly string _scope;
     private readonly Form _form;
     private readonly TextField _typeField;
     private readonly TextField _tagsField;
@@ -45,7 +44,6 @@ internal sealed class MemoryPromoteForm
         ArgumentNullException.ThrowIfNull(entry);
 
         _journalId = entry.Id;
-        _scope = entry.Scope;
         _typeField = new TextField(TypeFieldId, "Type", required: true, validator: RequireType);
         _tagsField = new TextField(TagsFieldId, "Tags (comma separated)");
 
@@ -84,7 +82,7 @@ internal sealed class MemoryPromoteForm
 
         try
         {
-            var outcome = await store.PromoteAsync(_journalId, _scope, type, tags, cancellationToken)
+            var outcome = await store.PromoteAsync(_journalId, type, tags, cancellationToken)
                 .ConfigureAwait(false);
 
             var toastText = outcome.AlreadyPromoted

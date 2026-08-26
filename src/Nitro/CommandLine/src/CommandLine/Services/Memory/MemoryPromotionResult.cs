@@ -9,10 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 internal sealed record MemoryPromotionResult
 {
     public required string Id { get; init; }
-    public required string Scope { get; init; }
     public required string Type { get; init; }
     public required IReadOnlyList<string> Tags { get; init; }
-    public required string Path { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
     public required string CreatedBy { get; init; }
@@ -22,10 +20,8 @@ internal sealed record MemoryPromotionResult
     public static MemoryPromotionResult Create(MemoryPromotionOutcome outcome) => new()
     {
         Id = outcome.Record.Id,
-        Scope = outcome.Record.Scope,
         Type = outcome.Record.Type,
         Tags = outcome.Record.Tags,
-        Path = outcome.Record.Path,
         CreatedAt = outcome.Record.CreatedAt,
         UpdatedAt = outcome.Record.UpdatedAt,
         CreatedBy = outcome.Record.CreatedBy,

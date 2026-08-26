@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Memory.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
@@ -17,7 +16,6 @@ internal sealed class SearchMemoryCommand : Command
         Options.Add(Opt<MemoryTagOption>.Instance);
         Options.Add(Opt<MemoryTypeOption>.Instance);
         Options.Add(Opt<MemorySinceOption>.Instance);
-        Options.Add(Opt<MemoryReadScopeOption>.Instance);
         Options.Add(Opt<MemoryLimitOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
@@ -43,7 +41,6 @@ internal sealed class SearchMemoryCommand : Command
         var tags = parseResult.GetValue(Opt<MemoryTagOption>.Instance) ?? [];
         var type = parseResult.GetValue(Opt<MemoryTypeOption>.Instance);
         var since = parseResult.GetValue(Opt<MemorySinceOption>.Instance);
-        var scope = parseResult.GetRequiredValue(Opt<MemoryReadScopeOption>.Instance);
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
 
         // Collection band, curated first: `--tag`/`--type` can never match a
@@ -56,8 +53,8 @@ internal sealed class SearchMemoryCommand : Command
         // handing each band the full limit and truncating the concatenation
         // afterward, which let curated results starve the journal band.
         var splitBands = collection is MemoryCollections.All && !hasCuratedFilter;
-        int? curatedLimit = limit;
-        int? journalLimit = limit;
+        var curatedLimit = limit;
+        var journalLimit = limit;
 
         if (splitBands && limit is { } explicitLimit)
         {
@@ -67,48 +64,41 @@ internal sealed class SearchMemoryCommand : Command
         List<MemoryEntryResult> curated = [];
         List<MemoryEntryResult> journal = [];
 
-        try
+        if (collection is MemoryCollections.Curated or MemoryCollections.All)
         {
-            if (collection is MemoryCollections.Curated or MemoryCollections.All)
+            var curatedRecords = await store.SearchCuratedAsync(
+                query, tags, type, since, curatedLimit, cancellationToken);
+            curated = curatedRecords.Select(MemoryEntryResult.FromCurated).ToList();
+
+            if (splitBands && limit is not null)
             {
-                var curatedRecords = await store.SearchCuratedAsync(
-                    query, scope, tags, type, since, curatedLimit, cancellationToken);
-                curated = curatedRecords.Select(MemoryEntryResult.FromCurated).ToList();
-
-                if (splitBands && limit is not null)
-                {
-                    // Unused remainder from a short curated band flows to
-                    // the journal band.
-                    journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
-                        curatedLimit!.Value, curatedRecords.Count, journalLimit!.Value);
-                }
-            }
-
-            if (collection is MemoryCollections.Journal or MemoryCollections.All
-                && !hasCuratedFilter)
-            {
-                var journalEntries = await store.SearchJournalAsync(
-                    query, scope, since, journalLimit, cancellationToken);
-                journal = journalEntries.Select(MemoryEntryResult.FromJournal).ToList();
-
-                if (splitBands
-                    && limit is { } journalExplicitLimit
-                    && journalEntries.Count < journalLimit
-                    && curated.Count == curatedLimit)
-                {
-                    // Unused remainder from a short journal band flows back
-                    // to the curated band.
-                    var curatedShare = MemoryBandLimit.GrowCuratedWithJournalShortfall(
-                        journalExplicitLimit, journalEntries.Count);
-                    var curatedRecords = await store.SearchCuratedAsync(
-                        query, scope, tags, type, since, curatedShare, cancellationToken);
-                    curated = curatedRecords.Select(MemoryEntryResult.FromCurated).ToList();
-                }
+                // Unused remainder from a short curated band flows to
+                // the journal band.
+                journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
+                    curatedLimit!.Value, curatedRecords.Count, journalLimit!.Value);
             }
         }
-        catch (MemoryScopeConflictException exception)
+
+        if (collection is MemoryCollections.Journal or MemoryCollections.All
+            && !hasCuratedFilter)
         {
-            return MemoryScopeConflictReporting.Report(console, resultHolder, exception);
+            var journalEntries = await store.SearchJournalAsync(
+                query, since, journalLimit, cancellationToken);
+            journal = journalEntries.Select(MemoryEntryResult.FromJournal).ToList();
+
+            if (splitBands
+                && limit is { } journalExplicitLimit
+                && journalEntries.Count < journalLimit
+                && curated.Count == curatedLimit)
+            {
+                // Unused remainder from a short journal band flows back
+                // to the curated band.
+                var curatedShare = MemoryBandLimit.GrowCuratedWithJournalShortfall(
+                    journalExplicitLimit, journalEntries.Count);
+                var curatedRecords = await store.SearchCuratedAsync(
+                    query, tags, type, since, curatedShare, cancellationToken);
+                curated = curatedRecords.Select(MemoryEntryResult.FromCurated).ToList();
+            }
         }
 
         var entries = curated.Concat(journal).ToList();

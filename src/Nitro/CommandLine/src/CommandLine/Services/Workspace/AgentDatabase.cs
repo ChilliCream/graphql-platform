@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
@@ -19,7 +20,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 10;
+    public const int CurrentVersion = 11;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -54,6 +55,9 @@ internal sealed class AgentDatabase
     /// The v8-to-v9 upgrade preserves task tables and external memory files,
     /// but resets legacy agent, connection, mail, and wake state so the v9
     /// one-session/one-actor invariant starts from a consistent state. The
+    /// v10-to-v11 upgrade adds the memory tables and carries any markdown
+    /// memory store found beside the workspace into them; see
+    /// <see cref="MemoryMarkdownImport"/>. The
     /// v9-to-v10 upgrade drops the <c>pid</c> and <c>proc_start</c> columns
     /// (and <c>agent_sessions</c>' <c>process_scope</c> and
     /// <c>proc_start_legacy</c>) from all three tables that carried them:
@@ -63,7 +67,7 @@ internal sealed class AgentDatabase
     /// constraint also triggers on a surviving <c>pid</c> column and copies
     /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -148,6 +152,19 @@ internal sealed class AgentDatabase
         // method.
         await connection.ExecuteAsync(MailWakeSchema.Create, transaction: transaction);
         await connection.ExecuteAsync(SessionPingGateSchema.Create, transaction: transaction);
+
+        // v11: memory moved out of markdown files and into this database,
+        // beside tasks and mail. Brand new tables, so the same unconditional
+        // CREATE TABLE IF NOT EXISTS shape covers a fresh database and every
+        // upgradable version alike.
+        await connection.ExecuteAsync(MemoryStoreSchema.Create, transaction: transaction);
+
+        // Runs against every version, not just v10: the markdown store is
+        // detected by its own presence on disk, and the import skips ids the
+        // database already carries, so a workspace that has already been
+        // carried across is a no-op on every later open.
+        await MemoryMarkdownImport.ImportAsync(
+            connection, transaction, workspaceDirectory, cancellationToken);
 
         // v8: mail_wake_targets' and session_ping_gates' harness CHECK
         // constraints predate the nitro-board value on a v7 database, the

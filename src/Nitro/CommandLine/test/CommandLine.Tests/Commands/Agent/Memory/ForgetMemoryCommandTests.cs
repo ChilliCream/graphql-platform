@@ -13,7 +13,7 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
         result.AssertHelpOutput(
             """
             Description:
-              Permanently delete a curated memory. This is a hard delete: the markdown file and its index entry are removed, with no tombstone. Git history is not erased, so a merge or checkout can resurrect the deleted content; forget is therefore not a privacy-erasure guarantee.
+              Permanently delete a curated memory. This is a hard delete: the row and its tags are removed, with no tombstone.
 
             Usage:
               nitro agent memory forget <id> [options]
@@ -22,10 +22,9 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
               <id>  The memory ID
 
             Options:
-              --force                   Skip confirmation prompts for deletes and overwrites
-              --scope <global|project>  The memory scope to write to (project or global) [default: project]
-              --output <json>           The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help            Show help and usage information
+              --force          Skip confirmation prompts for deletes and overwrites
+              --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help   Show help and usage information
 
             Example:
               nitro agent memory forget "01hqzxk8xdtd3fk3f0z7c5g8vm"
@@ -45,8 +44,7 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess($"✓ Deleted memory '{record.Id}'.");
-        Assert.False(File.Exists(record.Path));
-        Assert.Empty(Directory.GetFiles(CuratedDirectory, "*.md"));
+        Assert.Null(await CreateStore().FindAsync(record.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -61,7 +59,7 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertError("Use --force to delete without confirmation.");
-        Assert.True(File.Exists(record.Path));
+        Assert.NotNull(await CreateStore().FindAsync(record.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -81,7 +79,7 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("Aborted.", result.StdOut);
-        Assert.True(File.Exists(record.Path));
+        Assert.NotNull(await CreateStore().FindAsync(record.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -131,21 +129,5 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(record.Id, root.GetProperty("id").GetString());
-        Assert.Equal("project", root.GetProperty("scope").GetString());
-    }
-
-    [Fact]
-    public async Task WithGlobalScope_DeletesGlobalMemory()
-    {
-        // arrange
-        var record = await SeedMemoryAsync("Original text.", scope: "global");
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "memory", "forget", record.Id, "--force", "--scope", "global");
-
-        // assert
-        result.AssertSuccess($"✓ Deleted memory '{record.Id}'.");
-        Assert.False(File.Exists(record.Path));
     }
 }

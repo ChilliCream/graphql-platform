@@ -11,10 +11,8 @@ internal sealed record MemoryEntryResult
 {
     public required string Collection { get; init; }
     public required string Id { get; init; }
-    public required string Scope { get; init; }
     public string? Type { get; init; }
     public IReadOnlyList<string> Tags { get; init; } = [];
-    public required string Path { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
     public required string CreatedBy { get; init; }
@@ -24,10 +22,8 @@ internal sealed record MemoryEntryResult
     {
         Collection = MemoryCollections.Curated,
         Id = record.Id,
-        Scope = record.Scope,
         Type = record.Type,
         Tags = record.Tags,
-        Path = record.Path,
         CreatedAt = record.CreatedAt,
         UpdatedAt = record.UpdatedAt,
         CreatedBy = record.CreatedBy,
@@ -38,8 +34,6 @@ internal sealed record MemoryEntryResult
     {
         Collection = MemoryCollections.Journal,
         Id = entry.Id,
-        Scope = entry.Scope,
-        Path = entry.Path,
         CreatedAt = entry.CreatedAt,
         CreatedBy = entry.CreatedBy
     };
