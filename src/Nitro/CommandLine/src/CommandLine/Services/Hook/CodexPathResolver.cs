@@ -1,6 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
-internal sealed class CodexPathResolver(IEnvironmentVariableProvider environmentVariables) : ICodexPathResolver
+internal sealed class CodexPathResolver(IEnvironmentVariableProvider environmentVariables)
+    : ICodexPathResolver
 {
     public string ResolveHooksJson() => Path.Combine(ResolveCodexHome(), "hooks.json");
 
