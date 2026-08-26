@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.SourceSchema;
 
 internal sealed class FusionSourceSchemaCommand : Command
 {

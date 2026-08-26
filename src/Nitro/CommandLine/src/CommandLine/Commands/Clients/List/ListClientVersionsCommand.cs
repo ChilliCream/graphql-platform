@@ -7,7 +7,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
+namespace ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 
 internal sealed class ListClientVersionsCommand : Command
 {

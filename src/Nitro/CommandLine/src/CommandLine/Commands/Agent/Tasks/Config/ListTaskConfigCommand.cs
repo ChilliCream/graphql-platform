@@ -3,7 +3,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
 
 internal sealed class ListTaskConfigCommand : Command
 {

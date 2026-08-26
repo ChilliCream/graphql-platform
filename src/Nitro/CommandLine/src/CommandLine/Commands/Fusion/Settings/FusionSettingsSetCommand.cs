@@ -7,7 +7,7 @@ using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Settings;
 
 #if !NET9_0_OR_GREATER
 [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]

@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 
 internal sealed class FusionConfigurationPublishBeginCommand : Command
 {

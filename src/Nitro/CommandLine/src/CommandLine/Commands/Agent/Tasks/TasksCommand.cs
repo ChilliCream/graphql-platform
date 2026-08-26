@@ -1,3 +1,9 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Comment;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Epic;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Label;
+
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 
 internal sealed class TasksCommand : Command

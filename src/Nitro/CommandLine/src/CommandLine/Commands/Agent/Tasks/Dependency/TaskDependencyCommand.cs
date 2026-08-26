@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
 
 internal sealed class TaskDependencyCommand : Command
 {

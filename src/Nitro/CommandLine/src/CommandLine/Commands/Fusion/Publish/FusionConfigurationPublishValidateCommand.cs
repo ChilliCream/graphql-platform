@@ -2,7 +2,7 @@ using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 
 internal sealed class FusionConfigurationPublishValidateCommand : Command
 {

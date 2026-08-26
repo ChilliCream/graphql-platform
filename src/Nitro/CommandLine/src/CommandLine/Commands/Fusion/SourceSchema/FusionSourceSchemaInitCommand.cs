@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.SourceSchema;
 
 internal sealed class FusionSourceSchemaInitCommand : Command
 {

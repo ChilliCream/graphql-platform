@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
+namespace ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 
 internal sealed class ListClientCommand : Command
 {

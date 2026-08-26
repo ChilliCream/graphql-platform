@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Comment;
 
 internal sealed class TaskCommentCommand : Command
 {

@@ -5,7 +5,7 @@ using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
+namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
 
 internal sealed class RemoveTaskDependencyCommand : Command
 {

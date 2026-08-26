@@ -4,14 +4,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.SourceSchema.Packaging;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 
 #if !NET9_0_OR_GREATER
 [RequiresDynamicCode(

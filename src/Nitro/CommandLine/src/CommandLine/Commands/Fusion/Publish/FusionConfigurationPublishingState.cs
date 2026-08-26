@@ -1,6 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 
 internal static class FusionConfigurationPublishingState
 {
