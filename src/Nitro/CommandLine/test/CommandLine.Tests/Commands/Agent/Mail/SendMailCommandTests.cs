@@ -51,7 +51,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
@@ -149,7 +149,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "Dave!", "--subject", "hi", "--body", "yo");
+            "agent", "mail", "send", "--to", "Dave!", "--subject", "hi", "--body", "yo");
 
         // assert
         result.AssertError(
@@ -164,7 +164,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync(
-            "agent", "mail", "send", "dave", "--subject", "hi", "--body", "yo");
+            "agent", "mail", "send", "--to", "dave", "--subject", "hi", "--body", "yo");
 
         // act
         var beforeRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
@@ -197,7 +197,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -232,7 +232,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "dave", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "dave", "--subject", "Status", "--body", "All good.");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -253,7 +253,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "hi");
+            "agent", "mail", "send", "--to", "bob", "--subject", "hi");
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -270,7 +270,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "hi",
+            "agent", "mail", "send", "--to", "bob", "--subject", "hi",
             "--body", "x", "--body-file", "notes.txt");
 
         // assert
@@ -288,7 +288,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "hi", "--body", "");
+            "agent", "mail", "send", "--to", "bob", "--subject", "hi", "--body", "");
 
         // assert
         result.AssertError(
@@ -310,7 +310,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "File body", "--body-file", "body.txt");
+            "agent", "mail", "send", "--to", "bob", "--subject", "File body", "--body-file", "body.txt");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -329,7 +329,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "hi", "--body-file", "empty.txt");
+            "agent", "mail", "send", "--to", "bob", "--subject", "hi", "--body-file", "empty.txt");
 
         // assert
         result.AssertError(
@@ -347,7 +347,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "hi", "--body-file", "missing.txt");
+            "agent", "mail", "send", "--to", "bob", "--subject", "hi", "--body-file", "missing.txt");
 
         // assert
         result.AssertError(
@@ -366,7 +366,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "test-agent", "--subject", "Note", "--body", "Remember this.");
+            "agent", "mail", "send", "--to", "test-agent", "--subject", "Note", "--body", "Remember this.");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -410,7 +410,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert: exactly one clean JSON object on stdout, nothing on
         // stderr, even though the command exits nonzero.
@@ -439,7 +439,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert: the message is stored but the wake failed - human text
         // says so on stderr and stdout stays empty, matching how every
@@ -469,7 +469,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         Assert.Empty(result.StdErr);
@@ -512,7 +512,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
@@ -542,7 +542,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         Assert.Empty(result.StdErr);
@@ -576,7 +576,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
@@ -593,7 +593,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "hi", "--body", "yo");
+            "agent", "mail", "send", "--to", "bob", "--subject", "hi", "--body", "yo");
 
         // assert
         result.AssertError(

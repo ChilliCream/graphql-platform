@@ -527,7 +527,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         await SeedAgentAsync("bob");
         var sendResult = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "Merged.");
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "Merged.");
 
         // assert
         Assert.Equal(1, sendResult.ExitCode);

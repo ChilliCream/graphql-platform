@@ -55,7 +55,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         var replyId = await QueryScalarAsync(
@@ -77,7 +77,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "x", "--actor", "alice");
+            "agent", "mail", "reply", "--message", originalId, "--body", "x", "--actor", "alice");
 
         // assert
         result.AssertError(
@@ -96,7 +96,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "x", "--actor", "carol");
+            "agent", "mail", "reply", "--message", originalId, "--body", "x", "--actor", "carol");
 
         // assert
         result.AssertError(
@@ -111,7 +111,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", "m-does-not-exist", "--body", "x");
+            "agent", "mail", "reply", "--message", "m-does-not-exist", "--body", "x");
 
         // assert
         result.AssertError(
@@ -133,7 +133,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -164,7 +164,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert: the notifier never alters mail's own exit code or stdout -
         // a single clean JSON result, nothing else, even though it now
@@ -200,7 +200,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         var replyId = await QueryScalarAsync(
@@ -230,7 +230,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         var replyId = await QueryScalarAsync(
@@ -260,7 +260,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         Assert.Empty(result.StdErr);
