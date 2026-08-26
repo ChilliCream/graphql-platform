@@ -270,14 +270,12 @@ public sealed partial class DescriptorContext : IDescriptorContext
         IFeatureCollection? features = null,
         SchemaBuilder.LazySchema? schema = null,
         TypeInterceptor? typeInterceptor = null)
-#pragma warning disable IDE0002 // Simplify Member Access
         => new DescriptorContext(
             () => options ??= new SchemaOptions(),
-            schemaServices ?? HotChocolate.Utilities.EmptyServiceProvider.Instance,
+            schemaServices ?? EmptyServiceProvider.Instance,
             features ?? new FeatureCollection(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
-#pragma warning restore IDE0002 // Simplify Member Access
 
     internal static DescriptorContext Create(
         Func<IReadOnlySchemaOptions> options,
