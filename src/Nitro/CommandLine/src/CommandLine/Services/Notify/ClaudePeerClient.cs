@@ -155,6 +155,8 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             return null;
         }
 
+        JsonException? malformed = null;
+
         foreach (var path in Directory.EnumerateFiles(
             _sessionDirectory, "*.json", SearchOption.TopDirectoryOnly))
         {
@@ -176,12 +178,16 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
                     return json;
                 }
             }
-            catch (JsonException)
+            catch (JsonException exception)
             {
+                // Remembered, not thrown: another file may still carry this
+                // session. Only when none does is a row this reader could not
+                // parse worth reporting, since it may have been the one.
+                malformed ??= exception;
             }
         }
 
-        return null;
+        return malformed is null ? null : throw malformed;
     }
 
     private static bool TryReadRegistry(

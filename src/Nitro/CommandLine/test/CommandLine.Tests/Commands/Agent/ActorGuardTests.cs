@@ -8,8 +8,16 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// rejects a name no allocation ever minted, and accepts one
 /// <c>agent login</c> did.
 /// </summary>
-public sealed class ActorGuardTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
+public sealed class ActorGuardTests : AgentCommandTestBase
 {
+    public ActorGuardTests(NitroCommandFixture fixture) : base(fixture)
+    {
+        // The guard lives in the real resolver, so this suite must not run
+        // behind the fixed one every other command test uses.
+        SetupRealActingActor();
+        DefaultActor = null;
+    }
+
     private string CuratedDirectory
         => AgentWorkspace.GetMemoryCuratedDirectory(
             AgentWorkspace.GetMemoryDirectory(WorkspaceDirectory));

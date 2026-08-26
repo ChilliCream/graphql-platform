@@ -189,6 +189,17 @@ public abstract class CommandTestBase
         _actingActorResolverOverride = new FixedActingActorResolver(actor);
     }
 
+    /// <summary>
+    /// Drops the fixed <see cref="Services.Workspace.IActingActorResolver"/>
+    /// so the real one runs, including its guard that the actor was actually
+    /// allocated. For tests about that guard itself; every other test keeps
+    /// the fixed resolver so it does not have to seed an actor first.
+    /// </summary>
+    protected void SetupRealActingActor()
+    {
+        _actingActorResolverOverride = null;
+    }
+
     protected void SetupNoAuthentication()
     {
         _authenticated = false;

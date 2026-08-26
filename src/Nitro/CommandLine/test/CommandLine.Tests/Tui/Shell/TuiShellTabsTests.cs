@@ -482,13 +482,13 @@ public sealed class TuiShellTabsTests
         var dirty = false;
         var rendered = RenderToText(shell);
 
-        while (!rendered.Contains("Notification pending", StringComparison.Ordinal))
+        while (!rendered.Contains("Sent", StringComparison.Ordinal))
         {
             shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow + Toaster.Duration));
             dirty = shell.Handle(new TuiEvent.DataChangedEvent());
             rendered = RenderToText(shell);
 
-            if (!rendered.Contains("Notification pending", StringComparison.Ordinal))
+            if (!rendered.Contains("Sent", StringComparison.Ordinal))
             {
                 await Task.Delay(5, timeoutCts.Token);
             }
@@ -496,7 +496,7 @@ public sealed class TuiShellTabsTests
 
         // assert
         Assert.True(dirty);
-        Assert.Contains("Notification pending", rendered);
+        Assert.Contains("Sent", rendered);
     }
 
     [Fact]

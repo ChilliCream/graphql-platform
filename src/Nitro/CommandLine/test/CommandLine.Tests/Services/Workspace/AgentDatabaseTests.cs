@@ -868,7 +868,7 @@ public sealed class AgentDatabaseTests : IDisposable
         }
 
         // act & assert
-        var exception = await Assert.ThrowsAsync<AgentWorkspaceSchemaMismatchException>(
+        var exception = await Assert.ThrowsAsync<ExitException>(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
         Assert.Contains("newer version", exception.Message);
     }

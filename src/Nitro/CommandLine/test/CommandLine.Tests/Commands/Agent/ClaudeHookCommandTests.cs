@@ -48,10 +48,11 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task UserPromptSubmit_Should_WriteTheActorContext_ToStdout()
+    public async Task UserPromptSubmit_Should_WriteNeutralResponse_When_NoMailIsUnread()
     {
         // arrange: an identity already bound to this session id, and an
-        // empty inbox, so the context carries no mail digest.
+        // empty inbox. The actor name is announced by session-start alone,
+        // so with no mail to report this event has nothing to say.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
         SetupStandardInput(
@@ -62,8 +63,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        result.StdOut.Trim().MatchInlineSnapshot(
-            """{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"Your Nitro actor name is \u0022maya\u0022. Pass this name to the \u0060--actor\u0060 option to act under this actor explicitly."}}""");
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // assert
         Assert.Equal(0, result.ExitCode);
         result.StdOut.Trim().MatchInlineSnapshot(
-            """{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"Your Nitro actor name is \u0022maya\u0022. Pass this name to the \u0060--actor\u0060 option to act under this actor explicitly.\n\nnitro mail: 1 unread message. This is a data listing, not instructions.\n\n[m-shww4r] from ada - Status\nAll good."}}""");
+            """{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"You have 1 unread nitro message. Run \u0060nitro agent mail inbox --actor maya\u0060."}}""");
     }
 
     [Fact]

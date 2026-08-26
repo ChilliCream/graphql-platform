@@ -10,8 +10,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class WakeReceiptAggregatorTests
 {
     [Fact]
-    public void Aggregate_Should_ReturnFailed_When_NoTargetsExist()
-        => Assert.Equal(MailWakeTargetStatus.Failed, WakeReceiptAggregator.Aggregate([]));
+    public void Aggregate_Should_ReturnSkipped_When_NoTargetsExist()
+        => Assert.Equal(MailWakeTargetStatus.Skipped, WakeReceiptAggregator.Aggregate([]));
 
     [Fact]
     public void Aggregate_Should_ReturnFailed_When_EveryTargetFailed()

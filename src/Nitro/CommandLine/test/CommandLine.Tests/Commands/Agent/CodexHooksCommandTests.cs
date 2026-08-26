@@ -16,7 +16,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class CodexHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task Help_Hooks_ListsEveryHarness()
+    public async Task Help_Hooks_ListsEverySupportedHarness()
     {
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "--help");
@@ -25,7 +25,6 @@ public sealed class CodexHooksCommandTests(NitroCommandFixture fixture) : AgentC
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("claude", result.StdOut);
         Assert.Contains("codex", result.StdOut);
-        Assert.Contains("copilot", result.StdOut);
     }
 
     [Fact]

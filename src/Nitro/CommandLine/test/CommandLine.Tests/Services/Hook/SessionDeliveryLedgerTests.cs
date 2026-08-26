@@ -129,10 +129,10 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         command.CommandText =
             """
             INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+                harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', 'session-1', NULL, 'none', 'host-1', 1, '2026-01-10T12:00:00Z',
+                'claude-code', 'session-1', NULL, 'none', 'host-1',
                 '/work', '/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00Z', '2026-01-10T12:00:00Z'
             );
             """;

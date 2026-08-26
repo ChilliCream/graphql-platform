@@ -213,10 +213,10 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         await QueryScalarAsync(
             $"""
             INSERT INTO agent_sessions (
-                harness, session_id, host, pid, proc_start, cwd, workspace_path,
+                harness, session_id, host, cwd, workspace_path,
                 endpoint_kind, endpoint_addr, started_at, last_beat_at)
             VALUES (
-                'claude-code', 's1', 'host', 1, 'ps', '{WorkingDirectory}', '{WorkspaceDirectory}',
+                'claude-code', 's1', 'host', '{WorkingDirectory}', '{WorkspaceDirectory}',
                 'none', '', '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00');
             """);
         Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
@@ -529,9 +529,9 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         var sendResult = await ExecuteCommandAsync(
             "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "Merged.");
 
-        // assert
-        Assert.Equal(1, sendResult.ExitCode);
-        Assert.Contains("message stored, but wake failed: no-live-session.", sendResult.StdErr);
+        // assert: the recipient has no live session, which is not an error;
+        // the mail is stored and bob reads it on his next pull.
+        Assert.Equal(0, sendResult.ExitCode);
         Assert.Equal(
             AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM messages"));

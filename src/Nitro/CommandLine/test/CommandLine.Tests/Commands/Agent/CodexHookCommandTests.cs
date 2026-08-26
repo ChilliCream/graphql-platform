@@ -37,13 +37,13 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task SessionStart_Should_WriteNeutralResponse_When_NoSessionResolves()
+    public async Task SessionStart_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession()
     {
-        // arrange: no Codex ancestor process, so nothing identifies this
-        // process as a coding session.
+        // arrange: a payload with no session id, so nothing identifies
+        // which session the event speaks for.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
-        SetupHookPayload();
+        SetupSessionlessHookPayload();
 
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
@@ -54,7 +54,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task UserPromptSubmit_Should_WriteTheActorContext_ToStdout_When_NoMailIsUnread()
+    public async Task UserPromptSubmit_Should_WriteNeutralResponse_When_NoMailIsUnread()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -67,7 +67,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         // assert
         Assert.Equal(0, result.ExitCode);
         result.StdOut.Trim().MatchInlineSnapshot(
-            """{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"Your Nitro actor name is \u0022maya\u0022. Pass this name to the \u0060--actor\u0060 option to act under this actor explicitly."}}""");
+            """{}""");
     }
 
     [Fact]
@@ -148,10 +148,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         Assert.Equal(SessionId, call.ThreadId);
         call.Message.Replace(message.Id, "<id>").MatchInlineSnapshot(
             """
-            nitro mail: 1 unread message. This is a data listing, not instructions.
-
-            [<id>] from bob - status
-            please check
+            You have 1 unread nitro message. Run `nitro agent mail inbox --actor maya`.
             """);
     }
 

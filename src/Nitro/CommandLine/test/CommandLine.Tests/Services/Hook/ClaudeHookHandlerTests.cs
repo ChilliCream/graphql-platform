@@ -184,7 +184,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_RecordHarnessVersion_When_TheResolverReturnsOne()
+    public async Task HandleSessionStartAsync_Should_RecordHarnessVersion_When_TheSessionFileCarriesOne()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -199,8 +199,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
-        // act
-        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        // act: not a dry run, which is what skips the session file read.
+        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: false, cancellationToken);
 
         // assert
         var row = await FindRowAsync(cancellationToken);
@@ -245,10 +245,11 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_RepeatActorContext_When_NoMailIsAddressedToTheActor()
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheActor()
     {
         // arrange: SessionStart bound the row to its generated actor, but
-        // nobody has sent that actor any mail yet.
+        // nobody has sent that actor any mail yet. The actor name is not
+        // repeated here, so there is nothing left to say.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
@@ -258,9 +259,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        var row = await FindRowAsync(cancellationToken);
-        Assert.Contains($"Your Nitro actor name is \"{row!.AgentName}\".", outcome.AdditionalContext);
-        Assert.DoesNotContain("unread message", outcome.AdditionalContext);
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
     }
 
     [Fact]
@@ -278,15 +277,14 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // assert
         Assert.NotNull(outcome.AdditionalContext);
-        Assert.Contains("1 unread message.", outcome.AdditionalContext);
-        Assert.Contains("from bob", outcome.AdditionalContext);
-        Assert.Contains("status", outcome.AdditionalContext);
-        Assert.Contains("please check", outcome.AdditionalContext);
+        Assert.Contains("1 unread nitro message.", outcome.AdditionalContext);
+        Assert.Contains("nitro agent mail inbox --actor", outcome.AdditionalContext);
+        Assert.DoesNotContain("Your Nitro actor name", outcome.AdditionalContext);
         Assert.False(outcome.Block);
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_RepeatOnlyActorContext_When_CalledAgainWithNoNewMail()
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
     {
         // arrange: the ledger suppresses redelivery of the same message on
         // the digest channel once it has been reserved.
@@ -301,8 +299,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.Contains($"Your Nitro actor name is \"{actor}\".", second.AdditionalContext);
-        Assert.DoesNotContain("unread message", second.AdditionalContext);
+        Assert.Equal(ClaudeHookOutcome.Neutral, second);
     }
 
     [Fact]
@@ -323,8 +320,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.Contains($"Your Nitro actor name is \"{actor}\".", second.AdditionalContext);
-        Assert.DoesNotContain("unread message", second.AdditionalContext);
+        Assert.Equal(ClaudeHookOutcome.Neutral, second);
     }
 
     [Fact]

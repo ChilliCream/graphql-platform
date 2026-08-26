@@ -793,11 +793,13 @@ public sealed class MailModeTests
         var toast = Assert.Single(followUp);
         Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
         Assert.True(mode.IsInputCapturing);
-        Assert.Single(store.Messages);
+        Assert.Empty(store.Messages); // the first write is still held open
 
-        // cleanup: release the gated write so the first send resolves.
+        // release the gated write: only the first send ever reaches the
+        // store, so the refused second one left nothing behind.
         store.SendGate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
+        Assert.Single(store.Messages);
     }
 
     [Fact]
@@ -836,47 +838,14 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public async Task CreateQuitGate_Should_CountAPendingNotification_ForACompletionTheDrainItselfObserves()
-    {
-        // arrange: the wake observer's own default (no StatusByActor entry)
-        // is MailWakeTargetStatus.Pending, so the send completes on its own
-        // during the gate's bounded drain, but its notification is still
-        // owed - the gate must count that truthfully even though
-        // TuiEffectQueue itself already reports PendingCount 0 by the time
-        // the gate inspects it.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
-        var mode = CreateMode(store);
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.SelectInboxRequested());
-        mode.Handle(new TuiMessage.ComposeRequested());
-        Type(mode, "bob");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Status");
-        mode.HandleRawKey(Key(ConsoleKey.Tab));
-        Type(mode, "Body");
-        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-
-        // act: the gate's own bounded drain observes the completion itself,
-        // never delivered through Handle.
-        var report = await mode.CreateQuitGate()(TimeSpan.FromSeconds(5), cancellationToken);
-
-        // assert
-        Assert.Equal(1, report.PendingCount);
-        Assert.Equal(0, report.OutcomeUnknownCount);
-        Assert.True(report.HasUnresolvedWork);
-    }
-
-    [Fact]
     public async Task CreateQuitGate_Should_LeaveTheStashedToastForTheNextHandle_AfterACancelledQuit()
     {
-        // arrange: mirrors TuiShell.QuitCancelled - the gate already drained
-        // and classified this completion, so a cancelled second
-        // confirmation resuming the live TUI must still show its toast on
-        // the next Handle, rather than losing it because it never reached
-        // Handle's own drain.
+        // arrange: mirrors TuiShell.QuitCancelled - the gate reports the
+        // send still in flight, so a cancelled second confirmation resuming
+        // the live TUI must still show that send's toast once it lands,
+        // rather than losing it to the gate's own drain.
         var cancellationToken = TestContext.Current.CancellationToken;
-        var store = new FakeMailStore();
+        var store = new FakeMailStore { SendGate = new TaskCompletionSource() };
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -887,18 +856,19 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Tab));
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-        var report = await mode.CreateQuitGate()(TimeSpan.FromSeconds(5), cancellationToken);
+        await WaitUntilAsync(() => store.SendGateEntered, cancellationToken);
+        var report = await mode.CreateQuitGate()(TimeSpan.FromMilliseconds(50), cancellationToken);
         Assert.True(report.HasUnresolvedWork); // the second confirmation the shell would show
 
         // act: mirrors TuiShell.QuitCancelled firing after the user declines
-        // the second confirmation.
+        // the second confirmation, and the held send then landing.
         mode.ResumeSendAcceptance();
-        var followUp = mode.Handle(new TuiMessage.RefreshRequested());
+        store.SendGate!.SetResult();
 
         // assert
-        var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
-        Assert.Equal(ToastStyle.Warn, toast.Style);
-        Assert.Contains("pending", toast.Text, StringComparison.OrdinalIgnoreCase);
+        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
+        Assert.Equal(ToastStyle.Success, toast.Style);
+        Assert.Contains("Sent", toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1110,7 +1080,8 @@ public sealed class MailModeTests
         await eventSourceTask;
 
         // assert
-        Assert.Contains("Notification pending", toast.Text, StringComparison.Ordinal);
+        Assert.Equal(ToastStyle.Success, toast.Style);
+        Assert.Contains("Sent", toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]

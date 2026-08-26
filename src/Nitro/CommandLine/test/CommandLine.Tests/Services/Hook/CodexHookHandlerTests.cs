@@ -232,7 +232,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_RepeatActorContext_When_NoMailIsAddressedToTheActor()
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheActor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -240,9 +240,7 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        var row = await FindRowAsync(cancellationToken);
-        Assert.Contains($"Your Nitro actor name is \"{row!.AgentName}\".", outcome.AdditionalContext);
-        Assert.DoesNotContain("unread message", outcome.AdditionalContext);
+        Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
 
     [Fact]
@@ -256,14 +254,13 @@ public sealed class CodexHookHandlerTests : IDisposable
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         Assert.NotNull(outcome.AdditionalContext);
-        Assert.Contains("1 unread message.", outcome.AdditionalContext);
-        Assert.Contains("from bob", outcome.AdditionalContext);
-        Assert.Contains("status", outcome.AdditionalContext);
-        Assert.Contains("please check", outcome.AdditionalContext);
+        Assert.Contains("1 unread nitro message.", outcome.AdditionalContext);
+        Assert.Contains("nitro agent mail inbox --actor", outcome.AdditionalContext);
+        Assert.DoesNotContain("Your Nitro actor name", outcome.AdditionalContext);
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_RepeatOnlyActorContext_When_CalledAgainWithNoNewMail()
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -274,8 +271,7 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        Assert.Contains($"Your Nitro actor name is \"{actor}\".", second.AdditionalContext);
-        Assert.DoesNotContain("unread message", second.AdditionalContext);
+        Assert.Equal(CodexHookOutcome.Neutral, second);
     }
 
     // ---------- SessionEnd ----------
@@ -363,7 +359,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         Assert.True(outcome.Queued);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(SessionId, call.ThreadId);
-        Assert.Contains("from bob", call.Message);
+        Assert.Contains("nitro agent mail inbox --actor", call.Message);
     }
 
     [Fact]

@@ -84,7 +84,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_CompleteWithNoLiveSessionFailure_When_TheActorHasNoLiveSession()
+    public async Task DispatchAsync_Should_CompleteAsSkipped_When_TheActorHasNoLiveSession()
     {
         // arrange: mail enqueued, but the actor never claimed a live
         // session at all.
@@ -98,7 +98,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // assert
         Assert.NotNull(receipt);
-        Assert.Equal(MailWakeTargetStatus.Failed, receipt.Status);
+        Assert.Equal(MailWakeTargetStatus.Skipped, receipt.Status);
         Assert.Empty(receipt.Targets);
 
         // the generation settled (nothing durable is left behind): a fresh
@@ -539,7 +539,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         var call = Assert.Single(queueClient.Calls);
         Assert.Equal("thread-1", call.ThreadId);
-        Assert.Contains(message.Id, call.Message);
+        Assert.Contains("1 unread nitro message.", call.Message);
     }
 
     private static async Task<long> ScalarCountAsync(

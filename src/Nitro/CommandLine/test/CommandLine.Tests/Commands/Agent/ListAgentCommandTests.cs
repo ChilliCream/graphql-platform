@@ -46,14 +46,14 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task Execute_Should_IgnoreMailActor_When_NoSessionIdentityExists()
+    public async Task Execute_Should_ListTheActor_When_ItHasNoSession()
     {
         await InitWorkspaceAsync();
         await SeedAgentAsync("alpha");
 
         var result = await ExecuteCommandAsync("agent", "list");
 
-        result.AssertSuccess("No actors.");
+        result.AssertSuccess("alpha  offline  no session  last heard 2026-01-01 00:00");
     }
 
     [Fact]

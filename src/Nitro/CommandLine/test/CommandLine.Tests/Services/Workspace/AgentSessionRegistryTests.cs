@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// <summary>
 /// Exercises <see cref="AgentSessionRegistry"/>'s lifecycle: SessionStart
 /// binding rules and same/different-generation handling, the v5
-/// role/harness_version/process_scope columns defaulting on creation,
+/// role/harness_version columns defaulting on creation,
 /// surviving a same-generation duplicate SessionStart, and resetting on a
 /// different-generation rebind, the claim state machine's five transitions
 /// plus force-rebind, conditional SessionEnd, reaping (current-instance dead
@@ -178,7 +178,6 @@ public sealed class AgentSessionRegistryTests : IDisposable
             envActor: null, cancellationToken);
 
         // assert: role and harness_version are not captured yet (a later
-        // bead's job), but process_scope is captured at StartAsync time -
         Assert.Equal("", record.Role);
         Assert.Equal("", record.HarnessVersion);
     }
@@ -193,7 +192,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
-        await SetSessionMetadataAsync(generation, "frontend", "1.2.3-beta", "pidns:4242", cancellationToken);
+        await SetSessionMetadataAsync(generation, "frontend", "1.2.3-beta", cancellationToken);
 
         // act
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
@@ -213,7 +212,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
-        await SetSessionMetadataAsync(generation, "backend", "2.1.0", "scope-a", cancellationToken);
+        await SetSessionMetadataAsync(generation, "backend", "2.1.0", cancellationToken);
 
         // act: a duplicate SessionStart for the exact same generation must
         // not reset metadata captured after the row was first created.
@@ -236,7 +235,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.StartAsync(
             firstGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
-        await SetSessionMetadataAsync(firstGeneration, "backend", "2.1.0", "scope-a", cancellationToken);
+        await SetSessionMetadataAsync(firstGeneration, "backend", "2.1.0", cancellationToken);
 
         var restartedGeneration = firstGeneration with { Host = OtherHost };
 
@@ -778,7 +777,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             originalGeneration with { Host = OtherHost }, "/work", "/work/.nitro/agents",
             AgentSessionEndpointKind.None, "", envActor: "pascal", cancellationToken);
 
-        // act: the late end targets the pid the row no longer carries.
+        // act: the late end targets a generation the row no longer carries.
         var deleted = await _sessions.EndAsync(originalGeneration, cancellationToken);
 
         // assert
@@ -789,15 +788,18 @@ public sealed class AgentSessionRegistryTests : IDisposable
     // ---------- ReapAsync / ListAsync ----------
 
     [Fact]
-    public async Task ReapAsync_Should_DeleteDeadCurrentInstanceRow()
+    public async Task ReapAsync_Should_DeleteStaleCurrentInstanceRow()
     {
-        // arrange
+        // arrange: a row that has not beaten since well before the stale
+        // window, which is what a harness that ended without its SessionEnd
+        // hook running leaves behind.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var deadGeneration = Generation("session-dead");
         await _sessions.StartAsync(
             deadGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
 
         // act
         var reaped = await _sessions.ReapAsync(cancellationToken);
@@ -809,7 +811,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
-    public async Task ReapAsync_Should_NotTouchAliveCurrentInstanceRow()
+    public async Task ReapAsync_Should_NotTouchFreshlyBeatenCurrentInstanceRow()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -828,15 +830,17 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
-    public async Task ReapAsync_Should_NotTouchDeadRemoteRow()
+    public async Task ReapAsync_Should_NotTouchStaleRemoteRow()
     {
-        // arrange
+        // arrange: stale, but recorded by a different Nitro instance, which
+        // this reader never reaps on that instance's behalf.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var remoteDeadGeneration = Generation("session-remote") with { Host = RemoteHost };
         await _sessions.StartAsync(
             remoteDeadGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
 
         // act
         var reaped = await _sessions.ReapAsync(cancellationToken);
@@ -876,9 +880,16 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task ListAsync_Should_ComputeStates_When_MixOfOnlineUnreachableAndRemoteRows()
     {
-        // arrange
+        // arrange: the stale row is started first and left behind by the
+        // clock, so only it falls outside the reaper's window.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+
+        var dead = Generation("session-dead");
+        await _sessions.StartAsync(
+            dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
 
         var online = Generation("session-online");
         await _sessions.StartAsync(
@@ -893,11 +904,6 @@ public sealed class AgentSessionRegistryTests : IDisposable
         var remote = Generation("session-remote") with { Host = RemoteHost };
         await _sessions.StartAsync(
             remote, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
-            envActor: null, cancellationToken);
-
-        var dead = Generation("session-dead");
-        await _sessions.StartAsync(
-            dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
 
         // act
@@ -1120,7 +1126,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
-    public async Task ListParticipantsAsync_Should_ReapDeadCurrentInstanceRow_Before_Listing()
+    public async Task ListParticipantsAsync_Should_ReapStaleCurrentInstanceRow_Before_Listing()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1129,6 +1135,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.StartAsync(
             dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
 
         // act
         var participants = await _sessions.ListParticipantsAsync(cancellationToken);
@@ -1379,62 +1386,25 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     /// <summary>
-    /// Sets the v5 role/harness_version/process_scope columns directly via
-    /// raw SQL, standing in for the not-yet-written production caller (a
-    /// later bead) that will populate them.
+    /// Sets the v5 role and harness_version columns directly via raw SQL,
+    /// standing in for the production callers that populate them.
     /// </summary>
     private async Task SetSessionMetadataAsync(
         AgentSessionGeneration generation,
         string role,
         string harnessVersion,
-        string processScope,
         CancellationToken cancellationToken)
     {
         await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText =
-            "UPDATE agent_sessions SET role = $role, harness_version = $harnessVersion, "
-            + "process_scope = $processScope WHERE harness = $harness AND session_id = $sessionId "
-            + "AND pid = $pid AND proc_start = $procStart AND host = $host;";
+            "UPDATE agent_sessions SET role = $role, harness_version = $harnessVersion "
+            + "WHERE harness = $harness AND session_id = $sessionId AND host = $host;";
         command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
-        command.Parameters.AddWithValue("$processScope", processScope);
         command.Parameters.AddWithValue("$harness", generation.Harness);
         command.Parameters.AddWithValue("$sessionId", generation.SessionId);
         command.Parameters.AddWithValue("$host", generation.Host);
-
-        await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// Inserts an <c>agent_sessions</c> row directly with
-    /// <c>proc_start_legacy = 1</c>, standing in for a row a v5-to-v6
-    /// migration carried forward: <see cref="AgentSessionRegistry.StartAsync"/>
-    /// only ever writes fresh (non-legacy) rows, so this bypasses it to
-    /// reach the legacy state a migration alone produces.
-    /// </summary>
-    private async Task InsertLegacySessionRowAsync(
-        string sessionId, int pid, string procStart, CancellationToken cancellationToken)
-    {
-        var now = _timeProvider.GetUtcNow();
-
-        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
-        await using var command = connection.CreateCommand();
-        command.CommandText =
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                proc_start_legacy
-            ) VALUES (
-                $harness, $sessionId, NULL, 'none', $host, $pid, $procStart,
-                '/work', '/work/.nitro/agents', 'none', '', $now, $now, 1
-            );
-            """;
-        command.Parameters.AddWithValue("$harness", Harness);
-        command.Parameters.AddWithValue("$sessionId", sessionId);
-        command.Parameters.AddWithValue("$host", CurrentHost);
-        command.Parameters.AddWithValue("$now", now);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -1458,7 +1428,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await using var command = connection.CreateCommand();
         command.CommandText =
             "SELECT COUNT(*) FROM agent_sessions WHERE harness = $harness AND session_id = $sessionId "
-            + "AND pid = $pid AND proc_start = $procStart AND host = $host;";
+            + "AND host = $host;";
         command.Parameters.AddWithValue("$harness", generation.Harness);
         command.Parameters.AddWithValue("$sessionId", generation.SessionId);
         command.Parameters.AddWithValue("$host", generation.Host);

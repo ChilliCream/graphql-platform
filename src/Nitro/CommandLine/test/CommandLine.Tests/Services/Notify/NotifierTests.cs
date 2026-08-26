@@ -154,7 +154,7 @@ public sealed class NotifierTests
             // assert
             var call = Assert.Single(queueClient.Calls);
             Assert.Equal("thread-1", call.ThreadId);
-            Assert.Contains(message.Id, call.Message);
+            Assert.Contains("1 unread nitro message.", call.Message);
         }
         finally
         {

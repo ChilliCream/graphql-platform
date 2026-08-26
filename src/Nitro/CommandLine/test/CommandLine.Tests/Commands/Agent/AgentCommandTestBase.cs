@@ -184,7 +184,7 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
         command.Parameters.AddWithValue("$bindingKind", agentName is null ? "none" : "explicit");
         command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$stale", DateTimeOffset.UtcNow.AddDays(-30));
+        command.Parameters.AddWithValue("$stale", FakeTime.GetUtcNow().AddDays(-30));
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }

@@ -82,8 +82,9 @@ public sealed class PingSessionExecutorTests : IDisposable
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(ThreadId, call.ThreadId);
-        Assert.Contains(message.Id, call.Message);
-        Assert.Contains("check", call.Message);
+        Assert.Contains("1 unread nitro message.", call.Message);
+        Assert.Contains("nitro agent mail inbox --actor", call.Message);
+        Assert.DoesNotContain(message.Id, call.Message);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
     }
@@ -183,8 +184,9 @@ public sealed class PingSessionExecutorTests : IDisposable
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_claudePeerClient.Calls);
                 Assert.Equal(SessionId, call.SessionId);
-        Assert.Contains(message.Id, call.Message);
-        Assert.Contains("check", call.Message);
+        Assert.Contains("1 unread nitro message.", call.Message);
+        Assert.Contains("nitro agent mail inbox --actor", call.Message);
+        Assert.DoesNotContain(message.Id, call.Message);
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
     }
