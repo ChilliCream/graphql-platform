@@ -42,9 +42,7 @@ internal sealed class ContextMemoryCommand : Command
         // Context is curated only, never journal, and always reads the
         // merged project-then-global candidate order the budget algorithm
         // ranks against.
-        IReadOnlyList<MemoryRecord> candidates;
-
-        candidates = await store.GetRecentCuratedAsync(null, cancellationToken);
+        var candidates = await store.GetRecentCuratedAsync(null, cancellationToken);
 
         if (tags.Length > 0)
         {

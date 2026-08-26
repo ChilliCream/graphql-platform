@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
