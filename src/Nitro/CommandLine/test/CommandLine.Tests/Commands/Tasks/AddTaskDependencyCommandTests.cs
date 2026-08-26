@@ -25,7 +25,7 @@ public sealed class AddTaskDependencyCommandTests(NitroCommandFixture fixture)
 
             Options:
               --type <type>    The dependency type (blocks, parent-child, waits-for, related, ...; default blocks)
-              --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --actor <actor>  The actor recorded on the audit log; inferred from the current session when omitted
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 

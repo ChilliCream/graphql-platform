@@ -80,7 +80,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Pending, observation.Status);
-        Assert.False(observation.IsZero);
+        Assert.False(observation.IsSuccessful);
         Assert.Empty(observation.Targets);
     }
 
@@ -102,7 +102,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
         // assert: delivered zero, the exact frozen target, and no duplicate
         // message row was written by a send preceding this observation.
         Assert.Equal(MailWakeTargetStatus.Delivered, observation.Status);
-        Assert.True(observation.IsZero);
+        Assert.True(observation.IsSuccessful);
         var target = Assert.Single(observation.Targets);
         Assert.Equal(generation, target.Target);
         var sent = await _mail.QuerySentAsync("pascal", null, cancellationToken);
@@ -141,7 +141,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Failed, observation.Status);
-        Assert.False(observation.IsZero);
+        Assert.False(observation.IsSuccessful);
         var target = Assert.Single(observation.Targets);
         Assert.Equal(MailWakeTargetStatus.Failed, target.Status);
     }
@@ -165,7 +165,7 @@ public sealed class MailWakeReceiptObserverTests : IDisposable
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Pending, observation.Status);
-        Assert.False(observation.IsZero);
+        Assert.False(observation.IsSuccessful);
         var target = Assert.Single(observation.Targets);
         Assert.Equal(generation, target.Target);
         Assert.NotNull(target.OfferedGeneration);

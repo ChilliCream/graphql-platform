@@ -4,8 +4,7 @@ internal sealed class MemoryActorOption : Option<string>
 {
     public MemoryActorOption() : base("--actor")
     {
-        Description = "The acting identity recorded on memory writes "
-            + "(defaults to NITRO_MEMORY_ACTOR, NITRO_TASK_ACTOR, or the OS user name)";
+        Description = "The actor recorded on memory writes; inferred from the current session when omitted";
         Required = false;
     }
 }

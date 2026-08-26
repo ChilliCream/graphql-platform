@@ -25,7 +25,7 @@ public sealed class QuickTaskCommandTests(NitroCommandFixture fixture)
               --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog); list/ready also accept a range like 0-1 or p0-p1
               --type <type>          The task type (task, bug, feature, epic, chore, docs, question, or custom)
               --label <label>        A label; can be used multiple times
-              --actor <actor>        The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --actor <actor>        The actor recorded on the audit log; inferred from the current session when omitted
               --output <json>        The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help         Show help and usage information
 

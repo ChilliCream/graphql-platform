@@ -15,7 +15,7 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     protected MemoryCommandTestBase(NitroCommandFixture fixture) : base(fixture)
     {
         SetupNoAuthentication();
-        SetupEnvironmentVariable("MEMORY_ACTOR", "test-agent");
+        SetupEnvironmentVariable("ACTOR", "test-agent");
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-memory-command-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");

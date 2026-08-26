@@ -57,7 +57,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     // ---------- StartAsync ----------
 
     [Fact]
-    public async Task StartAsync_Should_CreateUnclaimedRow_When_NoEnvActorGiven()
+    public async Task StartAsync_Should_AssignActor_When_NoEnvActorGiven()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -70,8 +70,8 @@ public sealed class AgentSessionRegistryTests : IDisposable
             envActor: null, cancellationToken);
 
         // assert
-        Assert.Null(record.AgentName);
-        Assert.Equal(AgentSessionBindingKind.None, record.BindingKind);
+        Assert.Contains(record.AgentName, AgentActorAllocator.BaseActors);
+        Assert.Equal(AgentSessionBindingKind.Explicit, record.BindingKind);
     }
 
     [Fact]
@@ -90,6 +90,74 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // assert
         Assert.Equal("pascal", record.AgentName);
         Assert.Equal(AgentSessionBindingKind.Env, record.BindingKind);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_UseEveryBaseActorBeforeSuffixingTheNextWave()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actors = new List<string>();
+
+        for (var i = 0; i <= AgentActorAllocator.BaseActors.Count; i++)
+        {
+            var record = await _sessions.StartAsync(
+                AliveGeneration($"session-{i}"),
+                "/work",
+                "/work/.nitro/agents",
+                AgentSessionEndpointKind.None,
+                "",
+                envActor: null,
+                cancellationToken);
+            actors.Add(record.AgentName!);
+        }
+
+        Assert.Equal(
+            AgentActorAllocator.BaseActors.Order(StringComparer.Ordinal),
+            actors.Take(AgentActorAllocator.BaseActors.Count).Order(StringComparer.Ordinal));
+        Assert.EndsWith("-1", actors[^1], StringComparison.Ordinal);
+        Assert.Contains(actors[^1][..^2], AgentActorAllocator.BaseActors);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_ReconcileLiveRow_When_LegacySessionHasNoIdentity()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = AliveGeneration("session-legacy");
+        await _sessions.StartAsync(
+            generation,
+            "/work",
+            "/work/.nitro/agents",
+            AgentSessionEndpointKind.None,
+            "",
+            envActor: "legacy-actor",
+            cancellationToken);
+        await InsertDeliveryAsync(generation, "message-old", cancellationToken);
+
+        await using (var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken))
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText =
+                "DELETE FROM agent_session_identities WHERE harness = $harness AND session_id = $sessionId";
+            command.Parameters.AddWithValue("$harness", generation.Harness);
+            command.Parameters.AddWithValue("$sessionId", generation.SessionId);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        var reconciled = await _sessions.StartAsync(
+            generation,
+            "/work",
+            "/work/.nitro/agents",
+            AgentSessionEndpointKind.None,
+            "",
+            envActor: null,
+            cancellationToken);
+
+        Assert.Contains(reconciled.AgentName, AgentActorAllocator.BaseActors);
+        Assert.Equal(0, await CountDeliveriesAsync(generation, cancellationToken));
+        var identity = Assert.Single(await _sessions.ListIdentitiesAsync(cancellationToken));
+        Assert.Equal(reconciled.AgentName, identity.Identity.Actor);
     }
 
     [Fact]
@@ -235,14 +303,14 @@ public sealed class AgentSessionRegistryTests : IDisposable
             envActor: "someone-else", cancellationToken);
 
         // assert
-        Assert.Equal("someone-else", record.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Env, record.BindingKind);
+        Assert.Equal("pascal", record.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Explicit, record.BindingKind);
         Assert.Equal(0, record.BlockBudgetUsed);
         Assert.Equal(0, await CountDeliveriesAsync(firstGeneration, cancellationToken));
     }
 
     [Fact]
-    public async Task StartAsync_Should_AdoptTheProvisionalRow_When_ACanonicalSessionIdArrivesForTheSameProcessGeneration()
+    public async Task StartAsync_Should_NotAdoptProvisionalIdentity_When_CanonicalSessionIdArrives()
     {
         // arrange: a provisional row (no authoritative session id was
         // available yet) already claimed and carrying ledger/budget state
@@ -268,33 +336,27 @@ public sealed class AgentSessionRegistryTests : IDisposable
             canonicalGeneration, "/other-work", "/other-work/.nitro/agents", AgentSessionEndpointKind.CodexThread,
             "canonical-session-1", envActor: null, cancellationToken);
 
-        // assert: adopted under the canonical key - binding, role, delivery
-        // ledger, and block budget carried over untouched from the
-        // provisional row, only the endpoint, location, and heartbeat
-        // refreshed, and no second row left behind.
+        // assert: a process-derived provisional id is never merged into an
+        // authoritative durable session.
         Assert.Equal("canonical-session-1", record.SessionId);
-        Assert.Equal("pascal", record.AgentName);
+        Assert.NotEqual("pascal", record.AgentName);
         Assert.Equal(AgentSessionBindingKind.Explicit, record.BindingKind);
         Assert.Equal("", record.Role);
-        Assert.Equal(1, record.BlockBudgetUsed);
+        Assert.Equal(0, record.BlockBudgetUsed);
         Assert.Equal(AgentSessionEndpointKind.CodexThread, record.EndpointKind);
         Assert.Equal("canonical-session-1", record.EndpointAddr);
         Assert.Equal("/other-work", record.Cwd);
         Assert.Equal("/other-work/.nitro/agents", record.WorkspacePath);
         Assert.Equal(_timeProvider.GetUtcNow(), record.LastBeatAt);
-        // The delivery ledger's foreign key follows the row's new key (the
-        // same re-key EndAsync's cascade would apply if the row were
-        // deleted instead), so its row content survives under the
-        // canonical session id rather than the provisional one.
-        Assert.Equal(1, await CountDeliveriesAsync(canonicalGeneration, cancellationToken));
-        Assert.Equal(0, await CountDeliveriesAsync(provisionalGeneration, cancellationToken));
-        Assert.Equal(0, await CountSessionRowsAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(0, await CountDeliveriesAsync(canonicalGeneration, cancellationToken));
+        Assert.Equal(1, await CountDeliveriesAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(1, await CountSessionRowsAsync(provisionalGeneration, cancellationToken));
         Assert.Equal(1, await CountSessionRowsAsync(canonicalGeneration, cancellationToken));
-        Assert.Equal(1, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
+        Assert.Equal(2, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
     }
 
     [Fact]
-    public async Task StartAsync_Should_AdoptTheProvisionalRow_When_AStaleRowAlreadyOccupiesTheCanonicalSessionId()
+    public async Task StartAsync_Should_PreserveCanonicalActor_When_ProvisionalRowAlsoExists()
     {
         // arrange: a stale row already sits under the canonical session id,
         // left behind at an older process generation (for example a prior
@@ -323,15 +385,14 @@ public sealed class AgentSessionRegistryTests : IDisposable
             canonicalGeneration, "/other-work", "/other-work/.nitro/agents", AgentSessionEndpointKind.CodexThread,
             "canonical-1", envActor: null, cancellationToken);
 
-        // assert: the adopted row's binding comes from the provisional row,
-        // not the stale row it replaced, and the stale row leaves no second
-        // participant behind.
+        // assert: the canonical durable session keeps its actor; the
+        // provisional row is unrelated and is not merged into it.
         Assert.Equal("canonical-1", record.SessionId);
-        Assert.Equal("pascal", record.AgentName);
+        Assert.Equal("stale-actor", record.AgentName);
         Assert.Equal(AgentSessionBindingKind.Explicit, record.BindingKind);
         Assert.Equal(1, await CountSessionRowsAsync(canonicalGeneration, cancellationToken));
-        Assert.Equal(0, await CountSessionRowsAsync(provisionalGeneration, cancellationToken));
-        Assert.Equal(1, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
+        Assert.Equal(1, await CountSessionRowsAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(2, await CountAllSessionRowsAsync(_workspaceDirectory, cancellationToken));
     }
 
     [Fact]
@@ -1437,7 +1498,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
-    public async Task ListParticipantsAsync_Should_JoinDurableAgentIdentity_When_SessionIsClaimed()
+    public async Task ListParticipantsAsync_Should_JoinAssignedActorForEveryCodingSession()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1461,8 +1522,8 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Equal("pascal", claimedParticipant.Agent?.Name);
         Assert.Equal(AgentSessionState.Online, claimedParticipant.State);
 
-        var unclaimedParticipant = Assert.Single(participants, p => p.Session.SessionId == "session-unclaimed");
-        Assert.Null(unclaimedParticipant.Agent);
+        var assignedParticipant = Assert.Single(participants, p => p.Session.SessionId == "session-unclaimed");
+        Assert.Equal(assignedParticipant.Session.AgentName, assignedParticipant.Agent?.Name);
     }
 
     [Fact]
@@ -1612,12 +1673,12 @@ public sealed class AgentSessionRegistryTests : IDisposable
         var remote = AliveGeneration("session-remote") with { Host = RemoteHost };
         await _sessions.StartAsync(
             remote, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
-            envActor: "pascal", cancellationToken);
+            envActor: null, cancellationToken);
 
         var dead = DeadGeneration("session-dead");
         await _sessions.StartAsync(
             dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
-            envActor: "pascal", cancellationToken);
+            envActor: null, cancellationToken);
 
         // act
         var live = await _sessions.FindLiveClaimedByAgentNameAsync("pascal", cancellationToken);

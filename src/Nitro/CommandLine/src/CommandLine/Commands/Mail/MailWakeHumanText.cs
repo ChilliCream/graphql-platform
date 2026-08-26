@@ -12,9 +12,7 @@ internal static class MailWakeHumanText
     /// <summary>
     /// Writes the zero-exit wake summary line to stdout, following the
     /// command's own "Sent" line: what delivered, what was no longer needed,
-    /// or that a dashboard accepted responsibility. Writes nothing for
-    /// <see cref="MailWakeTargetStatus.Skipped"/>, the explicit no-op the
-    /// caller itself asked for with <c>--no-ping</c>.
+    /// or that a dashboard accepted responsibility.
     /// </summary>
     public static void WriteDelivered(INitroConsole console, MailNotificationResult notification)
     {
@@ -79,7 +77,7 @@ internal static class MailWakeHumanText
 
     /// <summary>
     /// The representative machine reason for a <see cref="MailWakeTargetStatus.Failed"/>
-    /// or <see cref="WakeReceiptAggregator.Partial"/> notification: the first
+    /// or <see cref="MailWakeTargetStatus.Failed"/> notification: the first
     /// recipient's <see cref="MailWakeRecipientResult.LastAttempt"/> reason,
     /// or the notification's own status when no recipient carries one.
     /// </summary>

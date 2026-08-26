@@ -24,7 +24,7 @@ public sealed class AddTaskLabelCommandTests(NitroCommandFixture fixture)
               <labels>  One or more labels
 
             Options:
-              --actor <actor>  The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --actor <actor>  The actor recorded on the audit log; inferred from the current session when omitted
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 

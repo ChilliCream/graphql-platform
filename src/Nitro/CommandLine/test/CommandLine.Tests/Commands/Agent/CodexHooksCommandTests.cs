@@ -16,17 +16,16 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class CodexHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task Help_Hooks_ListsCodexAlongsideTheExistingClaudeVerbs()
+    public async Task Help_Hooks_ListsEveryHarness()
     {
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "--help");
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Contains("install", result.StdOut);
-        Assert.Contains("status", result.StdOut);
-        Assert.Contains("uninstall", result.StdOut);
+        Assert.Contains("claude", result.StdOut);
         Assert.Contains("codex", result.StdOut);
+        Assert.Contains("copilot", result.StdOut);
     }
 
     [Fact]

@@ -112,6 +112,38 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Contains("proc_start_legacy", sessionColumns);
     }
 
+    [Fact]
+    public async Task InitializeAsync_Should_PreserveTasksAndResetIdentityAndMail_When_UpgradingV8()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO tasks (id, title, created_at, updated_at)
+                VALUES ('task-1', 'Keep me', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+                INSERT INTO agents (name, registered_at, last_seen_at)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+                INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
+                VALUES ('mail-1', 'mail-1', 'maya', 'Old mail', 'Discard me', '2026-01-10T12:00:00+00:00');
+                INSERT INTO message_recipients (message_id, recipient, ordinal)
+                VALUES ('mail-1', 'maya', 0);
+                """,
+                cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 8", cancellationToken);
+        }
+
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM tasks", cancellationToken));
+        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM messages", cancellationToken));
+        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken));
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+    }
+
     /// <summary>
     /// A row created fresh against the current schema defaults to
     /// <c>proc_start_legacy = 0</c> without any caller needing to set it
@@ -777,7 +809,7 @@ public sealed class AgentDatabaseTests : IDisposable
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await StampVersionOnNewFileAsync(9, cancellationToken);
+        await StampVersionOnNewFileAsync(10, cancellationToken);
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
@@ -790,14 +822,14 @@ public sealed class AgentDatabaseTests : IDisposable
     /// CLI understands must still be rejected, force or not.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion9()
+    public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstVersion10()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 9;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 10;", cancellationToken);
         }
 
         // act & assert
@@ -870,7 +902,7 @@ public sealed class AgentDatabaseTests : IDisposable
         await using (var connection =
             await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
-            await ExecuteAsync(connection, "PRAGMA user_version = 9;", cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA user_version = 10;", cancellationToken);
         }
 
         // act & assert

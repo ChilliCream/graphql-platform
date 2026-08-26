@@ -1,21 +1,15 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
 /// <summary>
 /// Resolves the acting identity recorded on task mutations.
 /// </summary>
 internal static class TaskActor
 {
-    public const string EnvironmentVariableName = "TASK_ACTOR";
-
-    /// <summary>
-    /// Resolves the actor from the given option value, the NITRO_TASK_ACTOR
-    /// environment variable, or the OS user name, in that order.
-    /// </summary>
-    public static string Resolve(
+    public static Task<string> ResolveAsync(
         string? optionValue,
-        IEnvironmentVariableProvider environmentVariables)
-        => optionValue
-            ?? environmentVariables.GetEnvironmentVariable(
-                "NITRO_" + EnvironmentVariableName)
-            ?? Environment.UserName;
+        IActingActorResolver resolver,
+        CancellationToken cancellationToken)
+        => resolver.ResolveAsync(optionValue, cancellationToken);
 }

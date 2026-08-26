@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -34,7 +35,7 @@ internal sealed class QuickTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var title = parseResult.GetRequiredValue(Opt<TaskTitleArgument>.Instance);
@@ -62,8 +63,8 @@ internal sealed class QuickTaskCommand : Command
             throw new ExitException("Labels must be non-empty.");
         }
 
-        var actor = TaskActor.Resolve(
-            parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariables);
+        var actor = await TaskActor.ResolveAsync(
+            parseResult.GetValue(Opt<TaskActorOption>.Instance), actorResolver, cancellationToken);
 
         var result = await store.CreateTaskAsync(
             new TaskCreation

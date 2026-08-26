@@ -2,6 +2,7 @@ using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
@@ -17,7 +18,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     protected MailCommandTestBase(NitroCommandFixture fixture) : base(fixture)
     {
         SetupNoAuthentication();
-        SetupEnvironmentVariable("MAIL_ACTOR", "test-agent");
+        SetupEnvironmentVariable("ACTOR", "test-agent");
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-mail-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
@@ -86,8 +87,8 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// <summary>
     /// Registers an agent directly against the registry.
     /// </summary>
-    internal Task<AgentRecord> SeedAgentAsync(string name)
-        => CreateRegistry().RegisterAsync(name, role: "", client: "", TestContext.Current.CancellationToken);
+    internal Task<AgentRecord> SeedAgentAsync(string name, string role = "")
+        => CreateRegistry().RegisterAsync(name, role, client: "", TestContext.Current.CancellationToken);
 
     /// <summary>
     /// Sends a message directly against the store, starting a new thread.
@@ -124,6 +125,25 @@ public abstract class MailCommandTestBase : CommandTestBase
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: threadId);
 
     /// <summary>
+    /// Configures successful foreground wake delivery for each named agent.
+    /// Use this in command tests whose primary concern requires a successful
+    /// send but is unrelated to the wake transport itself.
+    /// </summary>
+    private protected async Task SetupSuccessfulWakeAsync(string host, params string[] agentNames)
+    {
+        SetupInstanceId(host);
+        SetupCodexQueueClient(new FakeCodexQueueClient());
+
+        foreach (var agentName in agentNames)
+        {
+            await SeedAliveSessionAsync(
+                $"session-{agentName}", agentName, role: "", host,
+                endpointKind: AgentSessionEndpointKind.CodexThread,
+                endpointAddr: $"thread-{agentName}");
+        }
+    }
+
+    /// <summary>
     /// Seeds an alive <c>agent_sessions</c> row directly against the
     /// workspace database, on the host id <see cref="SetupInstanceId"/> was
     /// pointed at (a test calling this must call that first, so the
@@ -150,6 +170,18 @@ public abstract class MailCommandTestBase : CommandTestBase
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        if (agentName is not null)
+        {
+            await using var agentCommand = connection.CreateCommand();
+            agentCommand.CommandText =
+                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
+                + "VALUES ($name, $now, $now);";
+            agentCommand.Parameters.AddWithValue("$name", agentName);
+            agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+            await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
         await using var command = connection.CreateCommand();
         command.CommandText =
             """

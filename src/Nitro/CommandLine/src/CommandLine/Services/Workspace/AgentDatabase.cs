@@ -19,7 +19,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 8;
+    public const int CurrentVersion = 9;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -56,8 +56,11 @@ internal sealed class AgentDatabase
     /// way, rebuilt in place by
     /// <see cref="RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync"/>
     /// and <see cref="RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync"/>.
+    /// The v8-to-v9 upgrade preserves task tables and external memory files,
+    /// but resets legacy agent, connection, mail, and wake state so the v9
+    /// one-session/one-actor invariant starts from a consistent state.
     /// </summary>
-    private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6, 7];
+    private static readonly int[] UpgradableVersions = [2, 3, 4, 5, 6, 7, 8];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -133,6 +136,7 @@ internal sealed class AgentDatabase
         await connection.ExecuteAsync(AgentRegistrySchema.Create, transaction: transaction);
         await connection.ExecuteAsync(MailStoreSchema.Create, transaction: transaction);
         await connection.ExecuteAsync(AgentSessionSchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(AgentSessionIdentitySchema.Create, transaction: transaction);
 
         // v7: every mail-wake and session-ping-gate table is brand new, so
         // (like AgentSessionSchema.Create above) applying it unconditionally
@@ -173,6 +177,11 @@ internal sealed class AgentDatabase
         // carries out the v5-to-v6 migration this bead adds.
         await UpgradeAgentSessionsProcStartLegacyColumnAsync(connection, transaction);
 
+        if (version == 8)
+        {
+            await ResetLegacyAgentStateAsync(connection, transaction);
+        }
+
         await connection.ExecuteAsync(
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
 
@@ -191,6 +200,26 @@ internal sealed class AgentDatabase
 
         return connection;
     }
+
+    private static Task ResetLegacyAgentStateAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+        => connection.ExecuteAsync(
+            """
+            DELETE FROM mail_wake_targets;
+            DELETE FROM mail_wake_batches;
+            DELETE FROM mail_wake_outbox;
+            DELETE FROM mail_wake_daemons;
+            DELETE FROM session_ping_gates;
+            DELETE FROM session_deliveries;
+            DELETE FROM ping_leases;
+            DELETE FROM message_recipients;
+            DELETE FROM messages;
+            DELETE FROM agent_sessions;
+            DELETE FROM agent_session_identities;
+            DELETE FROM agents;
+            """,
+            transaction: transaction);
 
     /// <summary>
     /// Adds the agents table's role, implicit, and client columns when the
@@ -646,8 +675,7 @@ internal sealed class AgentDatabase
         {
             throw new ExitException(
                 $"The database at this path has schema v{version}, which the unified agent "
-                + "workspace does not accept here. A legacy task or mail database is migrated "
-                + "by `nitro agent init`, not opened directly.");
+                + "workspace does not support.");
         }
     }
 

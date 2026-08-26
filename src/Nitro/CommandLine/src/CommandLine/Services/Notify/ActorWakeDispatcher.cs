@@ -6,33 +6,30 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
 /// Claims one actor's outstanding <c>mail_wake_outbox</c> generation as a
-/// frozen <c>mail_wake_batches</c> row and dispatches every materialized
-/// target in the foreground, entirely in-process (no detached worker):
+/// frozen <c>mail_wake_batches</c> row and dispatches its one materialized
+/// coding-session target in the foreground, entirely in-process (no detached worker):
 /// <list type="bullet">
 /// <item>Nothing outstanding, not yet due, or another owner already holds a
 /// live batch for this actor: <see cref="DispatchAsync"/> returns null.</item>
 /// <item>The frozen target set is empty (no live claimed session): the
 /// batch completes immediately with an explicit no-live-session failure.</item>
-/// <item>The actor has no unread mail left by dispatch time: every target
+/// <item>The actor has no unread mail left by dispatch time: the target
 /// settles <see cref="MailWakeTargetStatus.Satisfied"/> without attempting
 /// any transport.</item>
-/// <item>Otherwise, every target is re-resolved against its exact frozen
+/// <item>Otherwise, the target is re-resolved against its exact frozen
 /// generation (a session that ended or rebound since the claim disappears
-/// as a failure, not a stale write). A target whose endpoint is
-/// <see cref="AgentSessionEndpointKind.DbWatch"/> (a Nitro board) is recorded
-/// <see cref="MailWakeTargetStatus.Delivered"/> outright, no lease
-/// reservation or transport attempted, since the board's own db-file watcher
-/// already observes the committed message. Every other target is reserved
-/// through <see cref="ISessionGateCoordinator"/> and dispatched through
-/// <see cref="IPingSessionExecutor"/>, up to <see cref="WakeDispatchPolicy.MaxConcurrentTransports"/>
-/// at once. A Claude access-denied outcome offers only that one target
-/// (recorded pending, not failed) and lets its live siblings finish rather
-/// than aborting them.</item>
+/// as a failure, not a stale write). Nitro board sessions are never targets;
+/// the board is an alternate dispatcher for work a sandboxed sender leaves
+/// pending. The coding-session target is reserved through
+/// <see cref="ISessionGateCoordinator"/> and dispatched through
+/// <see cref="IPingSessionExecutor"/>. A Claude access-denied outcome leaves
+/// the target pending so a Nitro board daemon can retry the same delivery
+/// outside the sender's sandbox.</item>
 /// </list>
 /// The batch's own lease is renewed periodically while dispatch is in
-/// flight; losing that renewal to a fresher claimant cancels every target
-/// still in flight or not yet started, and this attempt makes no further
-/// claim about their outcome (left <see cref="MailWakeTargetStatus.Pending"/>,
+/// flight; losing that renewal to a fresher claimant cancels the target,
+/// and this attempt makes no further claim about its outcome (left
+/// <see cref="MailWakeTargetStatus.Pending"/>,
 /// never asserted as failed or delivered) and does not touch the batch row
 /// again, since a newer owner already holds it. When this attempt still
 /// holds the batch at the end, it completes (settles the claimed generation)
@@ -99,6 +96,9 @@ internal sealed class ActorWakeDispatcher(
         var sessions = await sessionRegistry.FindLiveClaimedByAgentNameAsync(actor, cancellationToken);
 
         return sessions
+            .Where(s => s.Harness != AgentSessionHarness.NitroBoard)
+            .OrderByDescending(s => s.LastBeatAt)
+            .Take(1)
             .Select(s => new AgentSessionGeneration(s.Harness, s.SessionId, s.Host, s.Pid, s.ProcStart))
             .ToList();
     }
@@ -110,27 +110,21 @@ internal sealed class ActorWakeDispatcher(
         string batchAttemptId,
         CancellationToken cancellationToken)
     {
-        var receipts = new List<ActorWakeTargetReceipt>(claim.Targets.Count);
-
-        foreach (var target in claim.Targets)
-        {
-            var recordedAt = timeProvider.GetUtcNow();
-            var recorded = await batchStore.TryRecordTargetOutcomeAsync(
-                claim.BatchId, target, ownerId, batchAttemptId, MailWakeTargetStatus.Satisfied,
-                offeredGeneration: null, acceptedGeneration: claim.ClaimedGeneration,
-                lastError: "mail-already-read", recordedAt, cancellationToken);
-
-            receipts.Add(recorded
-                ? new ActorWakeTargetReceipt(
-                    target, MailWakeTargetStatus.Satisfied, null, claim.ClaimedGeneration, "mail-already-read")
-                : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null));
-        }
+        var target = claim.Targets.Single();
+        var recordedAt = timeProvider.GetUtcNow();
+        var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+            claim.BatchId, target, ownerId, batchAttemptId, MailWakeTargetStatus.Satisfied,
+            offeredGeneration: null, acceptedGeneration: claim.ClaimedGeneration,
+            lastError: "mail-already-read", recordedAt, cancellationToken);
+        var receipt = recorded
+            ? new ActorWakeTargetReceipt(
+                target, MailWakeTargetStatus.Satisfied, null, claim.ClaimedGeneration, "mail-already-read")
+            : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
 
         await batchStore.TryCompleteAsync(
             claim.BatchId, ownerId, batchAttemptId, timeProvider.GetUtcNow(), cancellationToken);
 
-        return new ActorWakeReceipt(
-            actor, WakeReceiptAggregator.Aggregate(receipts.Select(r => r.Status).ToList()), receipts);
+        return new ActorWakeReceipt(actor, receipt.Status, [receipt]);
     }
 
     private async Task<ActorWakeReceipt> DispatchTargetsAsync(
@@ -149,19 +143,20 @@ internal sealed class ActorWakeDispatcher(
         var renewalTask = RenewLoopAsync(
             claim.BatchId, ownerId, batchAttemptId, renewalLossSource, renewalDoneSource.Token, cancellationToken);
 
-        using var concurrencyGate = new SemaphoreSlim(WakeDispatchPolicy.MaxConcurrentTransports);
-
-        var targetTasks = claim.Targets
-            .Select(target => DispatchTargetAsync(
-                claim.BatchId, ownerId, batchAttemptId, actor, target, claim.ClaimedGeneration, batchDeadline,
-                concurrencyGate, dispatchSource.Token, cancellationToken))
-            .ToList();
-
-        ActorWakeTargetReceipt[] receipts;
+        ActorWakeTargetReceipt receipt;
 
         try
         {
-            receipts = await Task.WhenAll(targetTasks);
+            receipt = await DispatchTargetAsync(
+                claim.BatchId,
+                ownerId,
+                batchAttemptId,
+                actor,
+                claim.Targets.Single(),
+                claim.ClaimedGeneration,
+                batchDeadline,
+                dispatchSource.Token,
+                cancellationToken);
         }
         finally
         {
@@ -185,7 +180,7 @@ internal sealed class ActorWakeDispatcher(
         if (!renewalLossSource.IsCancellationRequested)
         {
             var finalNow = timeProvider.GetUtcNow();
-            var hasOffered = receipts.Any(r => r.Status == MailWakeTargetStatus.Pending);
+            var hasOffered = receipt.Status == MailWakeTargetStatus.Pending;
 
             if (hasOffered)
             {
@@ -203,8 +198,7 @@ internal sealed class ActorWakeDispatcher(
         // renewal was lost); it owns completing or releasing it now, not
         // this attempt.
 
-        return new ActorWakeReceipt(
-            actor, WakeReceiptAggregator.Aggregate(receipts.Select(r => r.Status).ToList()), receipts);
+        return new ActorWakeReceipt(actor, receipt.Status, [receipt]);
     }
 
     /// <summary>
@@ -265,17 +259,11 @@ internal sealed class ActorWakeDispatcher(
         AgentSessionGeneration target,
         long claimedGeneration,
         DateTimeOffset batchDeadline,
-        SemaphoreSlim concurrencyGate,
         CancellationToken dispatchToken,
         CancellationToken callerToken)
     {
-        var acquiredGate = false;
-
         try
         {
-            await concurrencyGate.WaitAsync(dispatchToken);
-            acquiredGate = true;
-
             var session = await sessionRegistry.FindByGenerationAsync(target, dispatchToken);
 
             if (session is null)
@@ -288,15 +276,11 @@ internal sealed class ActorWakeDispatcher(
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "no-endpoint");
             }
 
-            if (session.EndpointKind == AgentSessionEndpointKind.DbWatch)
+            if (session.EndpointKind is AgentSessionEndpointKind.DbWatch
+                or AgentSessionEndpointKind.CopilotExtension)
             {
-                // A Nitro board's endpoint is the shared workspace database
-                // file itself: the message this batch was claimed to deliver
-                // is already visible to it the moment it commits, observed
-                // through the board's own db-file watcher, not through any
-                // transport this dispatcher fires. Recorded delivered
-                // outright: no lease reservation, no ping worker, and no
-                // fake unsupported or error result.
+                // Database-watching endpoints observe the committed message
+                // themselves. No direct transport is required.
                 return await RecordDeliveredAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration);
             }
 
@@ -368,13 +352,6 @@ internal sealed class ActorWakeDispatcher(
             // wrote to the wire. Never asserted delivered or failed; its row
             // stays whatever it already durably was.
             return new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
-        }
-        finally
-        {
-            if (acquiredGate)
-            {
-                concurrencyGate.Release();
-            }
         }
     }
 

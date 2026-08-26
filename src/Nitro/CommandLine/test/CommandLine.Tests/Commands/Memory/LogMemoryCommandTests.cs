@@ -23,7 +23,7 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
 
             Options:
               --file <file>             A file to read the memory text from
-              --actor <actor>           The acting identity recorded on memory writes (defaults to NITRO_MEMORY_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --actor <actor>           The actor recorded on memory writes; inferred from the current session when omitted
               --scope <global|project>  The memory scope to write to (project or global) [default: project]
               --output <json>           The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help            Show help and usage information

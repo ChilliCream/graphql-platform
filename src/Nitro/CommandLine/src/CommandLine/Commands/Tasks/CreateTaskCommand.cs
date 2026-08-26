@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -41,7 +42,7 @@ internal sealed class CreateTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var title = parseResult.GetRequiredValue(Opt<TaskTitleArgument>.Instance);
@@ -85,8 +86,8 @@ internal sealed class CreateTaskCommand : Command
         var dependsOn = parseResult.GetValue(Opt<TaskDependsOnOption>.Instance) ?? [];
         var parentId = parseResult.GetValue(Opt<TaskParentOption>.Instance);
 
-        var actor = TaskActor.Resolve(
-            parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariables);
+        var actor = await TaskActor.ResolveAsync(
+            parseResult.GetValue(Opt<TaskActorOption>.Instance), actorResolver, cancellationToken);
 
         var dependencyRequests = dependsOn.Select(dependency =>
         {

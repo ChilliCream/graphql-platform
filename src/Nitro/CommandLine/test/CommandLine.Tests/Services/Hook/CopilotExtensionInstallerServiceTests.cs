@@ -33,6 +33,15 @@ public sealed class CopilotExtensionInstallerServiceTests : IDisposable
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
     [Fact]
+    public void CurrentAsset_Should_RegisterOnceAndPropagateTheReturnedActor()
+    {
+        Assert.Contains("'agent', 'register', '--output', 'json'", CopilotExtensionAsset.Content);
+        Assert.Contains("registration.actor", CopilotExtensionAsset.Content);
+        Assert.Contains("'--actor', actor", CopilotExtensionAsset.Content);
+        Assert.Contains("'agent', 'hook', 'copilot', 'session-end'", CopilotExtensionAsset.Content);
+    }
+
+    [Fact]
     public async Task InstallAsync_MissingFile_CreatesTheAssetAndTheConfig()
     {
         var ct = TestContext.Current.CancellationToken;

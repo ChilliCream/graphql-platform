@@ -45,6 +45,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
         services.TryAddSingleton<ICopilotHarnessVersionResolver, CopilotHarnessVersionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
+        services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
         services.TryAddSingleton<IBoardSessionLifecycle, BoardSessionLifecycle>();
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();

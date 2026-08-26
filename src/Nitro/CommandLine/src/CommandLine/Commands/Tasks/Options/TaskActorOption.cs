@@ -4,8 +4,7 @@ internal sealed class TaskActorOption : Option<string>
 {
     public TaskActorOption() : base("--actor")
     {
-        Description = "The acting identity recorded on the audit log "
-            + "(defaults to NITRO_TASK_ACTOR or the OS user name)";
+        Description = "The actor recorded on the audit log; inferred from the current session when omitted";
         Required = false;
     }
 }

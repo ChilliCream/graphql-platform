@@ -28,30 +28,36 @@ internal sealed class AgentSessionRegistry(
         var now = timeProvider.GetUtcNow();
         var (normalizedEndpointKind, normalizedEndpointAddr) = NormalizeEndpoint(endpointKind, endpointAddr);
 
-        string? boundAgentName = null;
-
-        if (envActor is not null)
-        {
-            boundAgentName = MailAgentName.Normalize(envActor);
-            await agentRegistry.EnsureImplicitAsync(boundAgentName, cancellationToken);
-        }
-
-        var bindingKind = boundAgentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Env;
-
         await using var connection = await ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction(deferred: false);
 
-        if (!AgentSessionProvisionalSessionId.IsProvisional(generation.SessionId))
+        string? boundAgentName;
+        string bindingKind;
+        string identityRole;
+
+        if (generation.Harness is AgentSessionHarness.ClaudeCode
+            or AgentSessionHarness.Codex
+            or AgentSessionHarness.Copilot)
         {
-            var adopted = await TryAdoptProvisionalRowAsync(
-                connection, transaction, generation, cwd, workspacePath, normalizedEndpointKind,
-                normalizedEndpointAddr, now, cancellationToken);
+            var identity = await EnsureCodingIdentityWithinTransactionAsync(
+                connection, transaction, generation, now, envActor, cancellationToken);
+            boundAgentName = identity.Actor;
+            bindingKind = envActor is not null
+                && identity.Actor == MailAgentName.Normalize(envActor)
+                    ? AgentSessionBindingKind.Env
+                    : AgentSessionBindingKind.Explicit;
+            identityRole = identity.Role;
+        }
+        else
+        {
+            boundAgentName = envActor is null ? null : MailAgentName.Normalize(envActor);
+            bindingKind = boundAgentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Env;
+            identityRole = string.Empty;
 
-            if (adopted is not null)
+            if (boundAgentName is not null)
             {
-                await transaction.CommitAsync(cancellationToken);
-
-                return adopted.ToRecord();
+                await EnsureImplicitActorWithinTransactionAsync(
+                    connection, transaction, boundAgentName, now, cancellationToken);
             }
         }
 
@@ -68,10 +74,10 @@ internal sealed class AgentSessionRegistry(
                 INSERT INTO agent_sessions (
                     harness, session_id, agent_name, binding_kind, host, pid, proc_start,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, process_scope
+                    block_budget_used, role, process_scope
                 ) VALUES (
                     @harness, @sessionId, @agentName, @bindingKind, @host, @pid, @procStart,
-                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @processScope
+                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @role, @processScope
                 );
                 """,
                 new
@@ -88,6 +94,7 @@ internal sealed class AgentSessionRegistry(
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
+                    role = identityRole,
                     processScope = processInfoProvider.GetProcessScope(),
                     cancellationToken
                 },
@@ -95,23 +102,59 @@ internal sealed class AgentSessionRegistry(
         }
         else if (IsSameGeneration(existing, generation))
         {
-            // Same-generation duplicate SessionStart: preserves binding,
-            // ledger, and counters, only refreshing the heartbeat.
-            await connection.ExecuteAsync(
-                "UPDATE agent_sessions SET last_beat_at = @now "
-                + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND pid = @pid AND proc_start = @procStart AND host = @host",
-                new
-                {
-                    now,
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    pid = generation.Pid,
-                    procStart = generation.ProcStart,
-                    host = generation.Host,
-                    cancellationToken
-                },
-                transaction);
+            // Normal duplicate SessionStart only refreshes the heartbeat.
+            // A pre-v9 row can have no durable identity yet, however. When
+            // EnsureCodingIdentity created one above, reconcile the copied
+            // live-row actor and clear its old delivery ledger atomically.
+            if (existing.AgentName == boundAgentName)
+            {
+                await connection.ExecuteAsync(
+                    "UPDATE agent_sessions SET last_beat_at = @now "
+                    + "WHERE harness = @harness AND session_id = @sessionId "
+                    + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                    new
+                    {
+                        now,
+                        harness = generation.Harness,
+                        sessionId = generation.SessionId,
+                        pid = generation.Pid,
+                        procStart = generation.ProcStart,
+                        host = generation.Host,
+                        cancellationToken
+                    },
+                    transaction);
+            }
+            else
+            {
+                await connection.ExecuteAsync(
+                    "UPDATE agent_sessions SET agent_name = @agentName, binding_kind = @bindingKind, "
+                    + "role = @role, last_beat_at = @now "
+                    + "WHERE harness = @harness AND session_id = @sessionId "
+                    + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+                    new
+                    {
+                        agentName = boundAgentName,
+                        bindingKind,
+                        role = identityRole,
+                        now,
+                        harness = generation.Harness,
+                        sessionId = generation.SessionId,
+                        pid = generation.Pid,
+                        procStart = generation.ProcStart,
+                        host = generation.Host,
+                        cancellationToken
+                    },
+                    transaction);
+                await connection.ExecuteAsync(
+                    "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId",
+                    new
+                    {
+                        harness = generation.Harness,
+                        sessionId = generation.SessionId,
+                        cancellationToken
+                    },
+                    transaction);
+            }
         }
         else
         {
@@ -155,7 +198,7 @@ internal sealed class AgentSessionRegistry(
                     last_ping_attempt = NULL,
                     last_ping_result = NULL,
                     last_ping_detail = NULL,
-                    role = '',
+                    role = @role,
                     harness_version = '',
                     process_scope = @processScope
                 WHERE harness = @harness AND session_id = @sessionId
@@ -175,6 +218,7 @@ internal sealed class AgentSessionRegistry(
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
                     now,
+                    role = identityRole,
                     processScope = processInfoProvider.GetProcessScope(),
                     oldPid = existing.Pid,
                     oldProcStart = existing.ProcStart,
@@ -202,6 +246,82 @@ internal sealed class AgentSessionRegistry(
 
         return row.ToRecord();
     }
+
+    private async Task<AgentSessionIdentityRecord> EnsureCodingIdentityWithinTransactionAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        AgentSessionGeneration generation,
+        DateTimeOffset now,
+        string? preferredActor,
+        CancellationToken cancellationToken)
+    {
+        var identity = await connection.QueryFirstOrDefaultAsync<AgentSessionIdentityRecord>(
+            $"SELECT {AgentSessionIdentityRecord.Columns} FROM agent_session_identities "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
+
+        if (identity is null)
+        {
+            var actor = preferredActor is null
+                ? await AgentActorAllocator.AllocateAsync(connection, transaction)
+                : MailAgentName.Normalize(preferredActor);
+            await AgentRegistry.UpsertWithinTransactionAsync(
+                connection, transaction, timeProvider, actor, string.Empty, generation.Harness, cancellationToken);
+
+            identity = await connection.QueryFirstAsync<AgentSessionIdentityRecord>(
+                """
+                INSERT INTO agent_session_identities (
+                    harness, session_id, actor, role, actor_revision, created_at, last_seen_at)
+                VALUES (@harness, @sessionId, @actor, '', 1, @now, @now)
+                RETURNING
+                    harness AS Harness,
+                    session_id AS SessionId,
+                    actor AS Actor,
+                    role AS Role,
+                    actor_revision AS ActorRevision,
+                    created_at AS CreatedAt,
+                    last_seen_at AS LastSeenAt
+                """,
+                new
+                {
+                    harness = generation.Harness,
+                    sessionId = generation.SessionId,
+                    actor,
+                    now,
+                    cancellationToken
+                },
+                transaction);
+        }
+        else
+        {
+            await connection.ExecuteAsync(
+                "UPDATE agent_session_identities SET last_seen_at = @now "
+                + "WHERE harness = @harness AND session_id = @sessionId",
+                new { now, harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+                transaction);
+            await AgentRegistry.UpsertWithinTransactionAsync(
+                connection, transaction, timeProvider, identity.Actor, identity.Role,
+                generation.Harness, cancellationToken);
+        }
+
+        return identity;
+    }
+
+    private static Task EnsureImplicitActorWithinTransactionAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        string actor,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+        => connection.ExecuteAsync(
+            """
+            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
+            VALUES (@actor, @now, @now, '', '', 1)
+            ON CONFLICT (name) DO UPDATE SET name = excluded.name
+            """,
+            new { actor, now, cancellationToken },
+            transaction);
 
     /// <summary>
     /// When a provisional row (see <see cref="AgentSessionProvisionalSessionId"/>)
@@ -370,8 +490,19 @@ internal sealed class AgentSessionRegistry(
         var previousBindingKind = row.BindingKind;
         var previousAgentName = row.AgentName;
 
+        var durableActor = await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT actor FROM agent_session_identities "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
+        var effectivePreviousBindingKind = previousBindingKind == AgentSessionBindingKind.Explicit
+            && durableActor == previousAgentName
+            && durableActor != normalizedActor
+                ? AgentSessionBindingKind.None
+                : previousBindingKind;
+
         var (newBindingKind, resetLedger, changed) = ComputeClaimTransition(
-            previousBindingKind, previousAgentName, normalizedActor, forceRebind, generation.SessionId);
+            effectivePreviousBindingKind, previousAgentName, normalizedActor, forceRebind, generation.SessionId);
 
         if (changed)
         {
@@ -387,7 +518,11 @@ internal sealed class AgentSessionRegistry(
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new AgentSessionClaimResult(updated.ToRecord(), changed, previousBindingKind, previousAgentName);
+        return new AgentSessionClaimResult(
+            updated.ToRecord(),
+            changed,
+            effectivePreviousBindingKind,
+            effectivePreviousBindingKind == AgentSessionBindingKind.None ? null : previousAgentName);
     }
 
     public async Task<AgentSessionRegisterResult> RegisterAsync(
@@ -431,19 +566,25 @@ internal sealed class AgentSessionRegistry(
 
         RequireObservableProcessScope(generation, row.ProcessScope);
 
-        // Shares THIS transaction rather than calling AgentRegistry.RegisterAsync
-        // (which opens its own connection): SQLite allows only one writer
-        // transaction per connection, and the identity upsert and the
-        // participant bind/role write below must commit or roll back
-        // together, the atomicity this method's contract promises.
         var agent = await AgentRegistry.UpsertWithinTransactionAsync(
             connection, transaction, timeProvider, normalizedActor, normalizedRole, client, cancellationToken);
 
         var previousBindingKind = row.BindingKind;
         var previousAgentName = row.AgentName;
 
+        var durableActor = await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT actor FROM agent_session_identities "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
+        var effectivePreviousBindingKind = previousBindingKind == AgentSessionBindingKind.Explicit
+            && durableActor == previousAgentName
+            && durableActor != normalizedActor
+                ? AgentSessionBindingKind.None
+                : previousBindingKind;
+
         var (newBindingKind, resetLedger, bindingChanged) = ComputeClaimTransition(
-            previousBindingKind, previousAgentName, normalizedActor, forceRebind, generation.SessionId);
+            effectivePreviousBindingKind, previousAgentName, normalizedActor, forceRebind, generation.SessionId);
 
         if (bindingChanged)
         {
@@ -479,7 +620,189 @@ internal sealed class AgentSessionRegistry(
         await transaction.CommitAsync(cancellationToken);
 
         return new AgentSessionRegisterResult(
-            agent, updated.ToRecord(), bindingChanged || roleChanged, previousBindingKind, previousAgentName);
+            agent,
+            updated.ToRecord(),
+            bindingChanged || roleChanged,
+            effectivePreviousBindingKind,
+            effectivePreviousBindingKind == AgentSessionBindingKind.None ? null : previousAgentName);
+    }
+
+    public async Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string? actor,
+        bool actorGiven,
+        string? role,
+        bool roleGiven,
+        CancellationToken cancellationToken)
+        => await RegisterAsync(
+            generation, actor, actorGiven, role, roleGiven, force: false, cancellationToken);
+
+    public async Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string? actor,
+        bool actorGiven,
+        string? role,
+        bool roleGiven,
+        bool force,
+        CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction(deferred: false);
+
+        var row = await connection.QueryFirstOrDefaultAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND pid = @pid AND proc_start = @procStart AND host = @host",
+            new
+            {
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                pid = generation.Pid,
+                procStart = generation.ProcStart,
+                host = generation.Host,
+                cancellationToken
+            },
+            transaction);
+
+        if (row is null)
+        {
+            throw new ExitException(
+                $"No session found for '{generation.Harness}' session '{generation.SessionId}' "
+                + $"at pid {generation.Pid} on this host. If hooks were never installed, run "
+                + $"`nitro agent hooks {HooksInstallCommandName(generation.Harness)} install` and "
+                + "start a new session; otherwise it may have ended or been reaped.");
+        }
+
+        RequireObservableProcessScope(generation, row.ProcessScope);
+
+        var identity = await connection.QueryFirstOrDefaultAsync<AgentSessionIdentityRecord>(
+            $"SELECT {AgentSessionIdentityRecord.Columns} FROM agent_session_identities "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction)
+            ?? await EnsureCodingIdentityWithinTransactionAsync(
+                connection, transaction, generation, now, preferredActor: null, cancellationToken);
+
+        var normalizedActor = actorGiven
+            ? MailAgentName.Normalize(actor ?? string.Empty)
+            : identity.Actor;
+        var normalizedRole = roleGiven ? AgentRole.Normalize(role) : identity.Role;
+
+        var conflictingIdentity = await connection.QueryFirstOrDefaultAsync<AgentSessionIdentityRecord>(
+            """
+            SELECT
+                harness AS Harness,
+                session_id AS SessionId,
+                actor AS Actor,
+                role AS Role,
+                actor_revision AS ActorRevision,
+                created_at AS CreatedAt,
+                last_seen_at AS LastSeenAt
+            FROM agent_session_identities
+            WHERE actor = @actor
+              AND NOT (harness = @harness AND session_id = @sessionId)
+            """,
+            new
+            {
+                actor = normalizedActor,
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                cancellationToken
+            },
+            transaction);
+
+        if (conflictingIdentity is not null && !force)
+        {
+            throw new ExitException(
+                $"Actor '{normalizedActor}' is already assigned to another session.");
+        }
+
+        if (conflictingIdentity is not null)
+        {
+            await connection.ExecuteAsync(
+                "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId",
+                new
+                {
+                    harness = conflictingIdentity.Harness,
+                    sessionId = conflictingIdentity.SessionId,
+                    cancellationToken
+                },
+                transaction);
+            await connection.ExecuteAsync(
+                "DELETE FROM agent_session_identities WHERE harness = @harness AND session_id = @sessionId",
+                new
+                {
+                    harness = conflictingIdentity.Harness,
+                    sessionId = conflictingIdentity.SessionId,
+                    cancellationToken
+                },
+                transaction);
+        }
+
+        var agent = await AgentRegistry.UpsertWithinTransactionAsync(
+            connection, transaction, timeProvider, normalizedActor, normalizedRole,
+            generation.Harness, cancellationToken);
+
+        var previousBindingKind = row.BindingKind;
+        var previousAgentName = row.AgentName;
+        var actorChanged = identity.Actor != normalizedActor;
+        var roleChanged = identity.Role != normalizedRole;
+
+        await connection.ExecuteAsync(
+            """
+            UPDATE agent_session_identities SET
+                actor = @actor,
+                role = @role,
+                actor_revision = actor_revision + CASE WHEN actor <> @actor THEN 1 ELSE 0 END,
+                last_seen_at = @now
+            WHERE harness = @harness AND session_id = @sessionId
+            """,
+            new
+            {
+                actor = normalizedActor,
+                role = normalizedRole,
+                now,
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                cancellationToken
+            },
+            transaction);
+
+        await connection.ExecuteAsync(
+            "UPDATE agent_sessions SET agent_name = @actor, binding_kind = 'explicit', "
+            + "role = @role, last_beat_at = @now "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new
+            {
+                actor = normalizedActor,
+                role = normalizedRole,
+                now,
+                harness = generation.Harness,
+                sessionId = generation.SessionId,
+                cancellationToken
+            },
+            transaction);
+
+        if (actorChanged)
+        {
+            await connection.ExecuteAsync(
+                "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId",
+                new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+                transaction);
+        }
+
+        var updated = await connection.QueryFirstAsync<AgentSessionRow>(
+            $"SELECT {AgentSessionRecord.Columns} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = generation.Harness, sessionId = generation.SessionId, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new AgentSessionRegisterResult(
+            agent, updated.ToRecord(), actorChanged || roleChanged, previousBindingKind, previousAgentName);
     }
 
     public async Task<IReadOnlyList<AgentSessionRecord>> FindByProcessAsync(
@@ -509,8 +832,8 @@ internal sealed class AgentSessionRegistry(
     }
 
     /// <summary>
-    /// The claim state machine <see cref="ClaimAsync"/> and <see
-    /// cref="RegisterAsync"/> both apply: none binds, env promotes to
+    /// The claim state machine <see cref="ClaimAsync"/> and registration
+    /// both apply: none binds, env promotes to
     /// explicit (resetting the ledger only for a different actor), explicit
     /// for the same actor is a no-op, and explicit for a different actor
     /// requires <paramref name="forceRebind"/>.
@@ -671,6 +994,46 @@ internal sealed class AgentSessionRegistry(
         return rowsAffected > 0;
     }
 
+    public async Task<bool> EndEphemeralCopilotAsync(
+        string host,
+        int pid,
+        string procStart,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction(deferred: false);
+        var sessionId = await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT session_id FROM agent_sessions "
+            + "WHERE harness = @harness AND host = @host AND pid = @pid AND proc_start = @procStart",
+            new
+            {
+                harness = AgentSessionHarness.Copilot,
+                host,
+                pid,
+                procStart,
+                cancellationToken
+            },
+            transaction);
+
+        if (sessionId is null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return false;
+        }
+
+        await connection.ExecuteAsync(
+            "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = AgentSessionHarness.Copilot, sessionId, cancellationToken },
+            transaction);
+        await connection.ExecuteAsync(
+            "DELETE FROM agent_session_identities WHERE harness = @harness AND session_id = @sessionId",
+            new { harness = AgentSessionHarness.Copilot, sessionId, cancellationToken },
+            transaction);
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
+    }
+
     public async Task<AgentSessionRecord?> FindByGenerationAsync(
         AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
@@ -806,6 +1169,19 @@ internal sealed class AgentSessionRegistry(
             if (rowsAffected > 0)
             {
                 reaped.Add(record);
+
+                if (record.Harness == AgentSessionHarness.Copilot)
+                {
+                    await connection.ExecuteAsync(
+                        "DELETE FROM agent_session_identities "
+                        + "WHERE harness = @harness AND session_id = @sessionId",
+                        new
+                        {
+                            harness = record.Harness,
+                            sessionId = record.SessionId,
+                            cancellationToken
+                        });
+                }
             }
         }
 
@@ -934,6 +1310,25 @@ internal sealed class AgentSessionRegistry(
         }
 
         return participants;
+    }
+
+    public async Task<IReadOnlyList<AgentSessionIdentityView>> ListIdentitiesAsync(
+        CancellationToken cancellationToken)
+    {
+        var participants = await ListParticipantsAsync(cancellationToken);
+        var bySession = participants.ToDictionary(
+            participant => (participant.Session.Harness, participant.Session.SessionId));
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        var identities = await connection.QueryAsync<AgentSessionIdentityRecord>(
+            $"SELECT {AgentSessionIdentityRecord.Columns} FROM agent_session_identities "
+            + "ORDER BY actor");
+
+        return identities
+            .Select(identity => new AgentSessionIdentityView(
+                identity,
+                bySession.GetValueOrDefault((identity.Harness, identity.SessionId))))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(

@@ -1,3 +1,4 @@
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -9,7 +10,6 @@ internal sealed class CodexHookHandler(
     IAgentSessionRegistry sessionRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
-    IEnvironmentVariableProvider environmentVariables,
     IProcessInfoProvider processInfoProvider,
     ICodexAncestorSessionResolver ancestorResolver,
     ICodexHarnessVersionResolver harnessVersionResolver,
@@ -17,6 +17,35 @@ internal sealed class CodexHookHandler(
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     ICodexQueueClient queueClient) : ICodexHookHandler
 {
+    public CodexHookHandler(
+        IFileSystem fileSystem,
+        TimeProvider timeProvider,
+        IAgentSessionRegistry sessionRegistry,
+        ISessionDeliveryLedger ledger,
+        IMailStore mailStore,
+        IEnvironmentVariableProvider environmentVariableProvider,
+        IProcessInfoProvider processInfoProvider,
+        ICodexAncestorSessionResolver ancestorResolver,
+        ICodexHarnessVersionResolver harnessVersionResolver,
+        INitroInstanceIdProvider instanceIdProvider,
+        IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
+        ICodexQueueClient queueClient)
+        : this(
+            fileSystem,
+            timeProvider,
+            sessionRegistry,
+            ledger,
+            mailStore,
+            processInfoProvider,
+            ancestorResolver,
+            harnessVersionResolver,
+            instanceIdProvider,
+            globalConfigDirectoryProvider,
+            queueClient)
+    {
+        ArgumentNullException.ThrowIfNull(environmentVariableProvider);
+    }
+
     /// <summary>
     /// The digest's per-call message cap, before the byte ceiling
     /// <see cref="ClaudeHookDigestFormatter"/> applies on top of it. Shared
@@ -38,13 +67,6 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        // No explicit actor (NITRO_MAIL_ACTOR/NITRO_TASK_ACTOR) configured: a
-        // deterministic, harness-namespaced actor generated from the full
-        // session id keeps this live session mail-addressable rather than
-        // settling as an unbound presence row.
-        var envActor = MailActor.TryResolve(null, environmentVariables)
-            ?? AgentSessionActorNaming.Generate(resolved.Generation.Harness, resolved.Generation.SessionId);
-
         // The Codex endpoint address is the thread id itself, which equals
         // the session id. Unlike Claude's ancestor-derived peer name, Codex has no
         // live per-pid registry to read a "name" from.
@@ -52,13 +74,13 @@ internal sealed class CodexHookHandler(
             ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
             : (AgentSessionEndpointKind.None, string.Empty);
 
-        await sessionRegistry.StartAsync(
+        var session = await sessionRegistry.StartAsync(
             resolved.Generation,
             payload.Cwd!,
             resolved.WorkspaceDirectory,
             endpointKind,
             endpointAddr,
-            envActor,
+            envActor: null,
             cancellationToken);
 
         var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.SessionId, resolved.Generation.Pid);
@@ -68,7 +90,10 @@ internal sealed class CodexHookHandler(
             await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
         }
 
-        return CodexHookOutcome.Neutral;
+        return new CodexHookOutcome
+        {
+            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+        };
     }
 
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
@@ -81,19 +106,47 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
-
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
-        if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
+        if (row is null)
+        {
+            var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
+                ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
+                : (AgentSessionEndpointKind.None, string.Empty);
+            row = await sessionRegistry.StartAsync(
+                resolved.Generation,
+                payload.Cwd!,
+                resolved.WorkspaceDirectory,
+                endpointKind,
+                endpointAddr,
+                envActor: null,
+                cancellationToken);
+        }
+        else
+        {
+            await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+        }
+
+        if (row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
         {
             return CodexHookOutcome.Neutral;
         }
 
+        var actorContext = AgentActorContext.Format(row.AgentName, row.Role);
+        var digestByteBudget = ClaudeHookDigestFormatter.MaxByteLength
+            - Encoding.UTF8.GetByteCount(actorContext)
+            - 2;
         var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
+            resolved.Generation,
+            row.AgentName,
+            AgentSessionChannel.Digest,
+            cancellationToken,
+            digestByteBudget);
 
-        return digest is null ? CodexHookOutcome.Neutral : new CodexHookOutcome { AdditionalContext = digest };
+        return new CodexHookOutcome
+        {
+            AdditionalContext = AgentActorContext.Combine(actorContext, digest)
+        };
     }
 
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
@@ -159,7 +212,11 @@ internal sealed class CodexHookHandler(
     }
 
     private async Task<string?> BuildDigestAsync(
-        AgentSessionGeneration generation, string actor, string channel, CancellationToken cancellationToken)
+        AgentSessionGeneration generation,
+        string actor,
+        string channel,
+        CancellationToken cancellationToken,
+        int maxByteLength = ClaudeHookDigestFormatter.MaxByteLength)
     {
         var unread = await mailStore.QueryInboxAsync(
             new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
@@ -194,7 +251,7 @@ internal sealed class CodexHookHandler(
 
         var totalUnread = await mailStore.CountUnreadAsync(actor, cancellationToken);
 
-        return ClaudeHookDigestFormatter.Format(totalUnread, newEntries);
+        return ClaudeHookDigestFormatter.Format(totalUnread, newEntries, maxByteLength);
     }
 
     /// <summary>
@@ -272,11 +329,13 @@ internal sealed class CodexHookHandler(
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
-        var sessionId = string.IsNullOrWhiteSpace(payload.SessionId)
-            ? AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.Codex, host, pid, procStart)
-            : payload.SessionId;
+        if (string.IsNullOrWhiteSpace(payload.SessionId))
+        {
+            return null;
+        }
 
-        var generation = new AgentSessionGeneration(AgentSessionHarness.Codex, sessionId, host, pid, procStart);
+        var generation = new AgentSessionGeneration(
+            AgentSessionHarness.Codex, payload.SessionId, host, pid, procStart);
 
         return new ResolvedGeneration(generation, payloadWorkspace);
     }

@@ -30,7 +30,7 @@ public sealed class CreateTaskCommandTests(NitroCommandFixture fixture)
               --due <due>                  The due date as an ISO 8601 date or timestamp
               --defer-until <defer-until>  Hide the task from ready work until this ISO 8601 date or timestamp
               --estimate <estimate>        The estimated effort in minutes
-              --actor <actor>              The acting identity recorded on the audit log (defaults to NITRO_TASK_ACTOR or the OS user name)
+              --actor <actor>              The actor recorded on the audit log; inferred from the current session when omitted
               --depends-on <depends-on>    A dependency as 'id' or 'type:id'; can be used multiple times
               --parent <parent>            The parent task ID; the new task becomes its child
               --output <json>              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]

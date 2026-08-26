@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Runs the agent registry commands (register, whoami, list) against a real
+/// Runs the agent registry commands (register and list) against a real
 /// SQLite workspace in a per-test temp directory named "acme".
 /// </summary>
 public abstract class AgentCommandTestBase : CommandTestBase
@@ -15,7 +15,7 @@ public abstract class AgentCommandTestBase : CommandTestBase
     protected AgentCommandTestBase(NitroCommandFixture fixture) : base(fixture)
     {
         SetupNoAuthentication();
-        SetupEnvironmentVariable("MAIL_ACTOR", "test-agent");
+        SetupEnvironmentVariable("ACTOR", "test-agent");
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-agent-registry-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
@@ -30,6 +30,33 @@ public abstract class AgentCommandTestBase : CommandTestBase
 
     protected string DatabasePath
         => AgentWorkspace.GetDatabasePath(WorkspaceDirectory);
+
+    protected async Task SeedAgentAsync(string actor, string role = "")
+        => await new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase())
+            .RegisterAsync(actor, role, client: "", TestContext.Current.CancellationToken);
+
+    protected async Task InsertSessionIdentityAsync(
+        string actor,
+        string sessionId,
+        string harness = AgentSessionHarness.ClaudeCode,
+        string role = "")
+    {
+        await SeedAgentAsync(actor, role);
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "INSERT INTO agent_session_identities "
+            + "(harness, session_id, actor, role, actor_revision, created_at, last_seen_at) "
+            + "VALUES ($harness, $sessionId, $actor, $role, 1, $now, $now)";
+        command.Parameters.AddWithValue("$harness", harness);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$actor", actor);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
 
     protected async Task InitWorkspaceAsync()
     {
@@ -68,6 +95,18 @@ public abstract class AgentCommandTestBase : CommandTestBase
 
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        if (agentName is not null)
+        {
+            await using var agentCommand = connection.CreateCommand();
+            agentCommand.CommandText =
+                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
+                + "VALUES ($name, $now, $now);";
+            agentCommand.Parameters.AddWithValue("$name", agentName);
+            agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+            await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
         await using var command = connection.CreateCommand();
         command.CommandText =
             """
@@ -129,6 +168,18 @@ public abstract class AgentCommandTestBase : CommandTestBase
     {
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        if (agentName is not null)
+        {
+            await using var agentCommand = connection.CreateCommand();
+            agentCommand.CommandText =
+                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
+                + "VALUES ($name, $now, $now);";
+            agentCommand.Parameters.AddWithValue("$name", agentName);
+            agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
+            await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        }
+
         await using var command = connection.CreateCommand();
         command.CommandText =
             """

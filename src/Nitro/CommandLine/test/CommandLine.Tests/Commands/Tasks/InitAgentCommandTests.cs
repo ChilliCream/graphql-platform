@@ -8,20 +8,11 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Tasks;
 /// <summary>
 /// Covers the unified <c>nitro agent init</c> command: fresh init in both
 /// the <c>.git/nitro</c> and <c>.nitro/agents</c> layouts, --force,
-/// --migrate, and migration from a legacy pre-unification
-/// <c>.nitro/tasks</c> and/or <c>.nitro/mail</c> workspace.
+/// and --migrate, including in-place database schema upgrades.
 /// </summary>
 public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     : TasksCommandTestBase(fixture)
 {
-    private string LegacyTasksDirectory => Path.Combine(WorkingDirectory, ".nitro", "tasks");
-
-    private string LegacyTasksDatabasePath => Path.Combine(LegacyTasksDirectory, "tasks.db");
-
-    private string LegacyTasksJsonlPath => Path.Combine(LegacyTasksDirectory, "tasks.jsonl");
-
-    private string LegacyMailDatabasePath => Path.Combine(WorkingDirectory, ".nitro", "mail", "mail.db");
-
     private string GitWorkspaceDirectory => Path.Combine(WorkingDirectory, ".git", "nitro");
 
     private string GitDatabasePath => Path.Combine(GitWorkspaceDirectory, "agents.db");
@@ -180,39 +171,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Migrate_ImportsAndRemovesLegacyJsonl_AtTheNewLocation()
-    {
-        // arrange: a workspace with a leftover tasks.jsonl from the retired
-        // JSONL sync model that moves along with the migration.
-        await InitWorkspaceAsync();
-        await File.WriteAllTextAsync(
-            Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName),
-            """
-            {"id":"acme-9","title":"From jsonl","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Moved agent workspace from '.nitro/agents' to '.git/nitro'.
-            ✓ Imported 1 task from 'tasks.jsonl' and removed it.
-
-            If '.nitro/agents' was committed, remove it from git with:
-              git rm -r --cached .nitro/agents
-            """);
-        Assert.Equal("1", await QueryScalarAsync(
-            "SELECT COUNT(*) FROM tasks WHERE id = 'acme-9'", GitDatabasePath));
-        Assert.False(File.Exists(
-            Path.Combine(GitWorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName)));
-    }
-
-    [Fact]
     public async Task Migrate_TargetDirectoryAlreadyExists_Errors()
     {
         // arrange
@@ -244,25 +202,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             """
             No agent workspace found. Run `nitro agent init` first.
             """);
-    }
-
-    [Fact]
-    public async Task Migrate_LeavesNitroRoot_When_LegacyDirectoriesRemain()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        Directory.CreateDirectory(LegacyTasksDirectory);
-        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
-
-        // assert: the workspace moved, the non-empty .nitro root stays for
-        // the legacy cleanup the user still owes.
-        Assert.Equal(0, result.ExitCode);
-        Assert.True(File.Exists(GitDatabasePath));
-        Assert.False(Directory.Exists(WorkspaceDirectory));
-        Assert.True(Directory.Exists(LegacyTasksDirectory));
     }
 
     [Fact]
@@ -310,8 +249,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(WorkspaceDirectory, root.GetProperty("from").GetString());
         Assert.Equal(GitWorkspaceDirectory, root.GetProperty("to").GetString());
-        Assert.Equal(
-            System.Text.Json.JsonValueKind.Null, root.GetProperty("importedCount").ValueKind);
+        Assert.False(root.TryGetProperty("importedCount", out _));
     }
 
     [Fact]
@@ -393,7 +331,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             ✓ Task ID prefix set to 'acme'.
             """);
         Assert.True(File.Exists(DatabasePath));
-        Assert.False(File.Exists(Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName)));
         Assert.Equal("acme", await QueryScalarAsync(
             "SELECT value FROM config WHERE key = 'prefix'"));
     }
@@ -431,7 +368,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JsonOutput_ReturnsWorkspacePathPrefixAndCounts()
+    public async Task JsonOutput_ReturnsWorkspacePathAndPrefix()
     {
         // arrange
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -446,8 +383,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(WorkspaceDirectory, root.GetProperty("path").GetString());
         Assert.Equal("acme", root.GetProperty("prefix").GetString());
-        Assert.Equal(0, root.GetProperty("migratedTasks").GetInt32());
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("importedCount").ValueKind);
+        Assert.False(root.TryGetProperty("migratedTasks", out _));
+        Assert.False(root.TryGetProperty("importedCount", out _));
     }
 
     [Fact]
@@ -514,70 +451,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task PlainInit_ImportsAndRemovesLegacyJsonl_When_ExistingVersionIsUpgradable()
-    {
-        // arrange: an upgradable workspace with a tasks.jsonl left over from
-        // the retired JSONL sync model.
-        await SeedV3WorkspaceAsync("legacy3");
-        var jsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName);
-        await File.WriteAllTextAsync(
-            jsonlPath,
-            """
-            {"key":"prefix","value":"jsonl"}
-            {"id":"legacy3-1","title":"From jsonl","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert: the task is imported, the file is gone, and the database's
-        // own prefix wins over the one in the file.
-        result.AssertSuccess(
-            $"""
-            ✓ Upgraded agent workspace schema at '.nitro/agents' to v{AgentDatabase.CurrentVersion}.
-            ✓ Imported 1 task from 'tasks.jsonl'.
-            ✓ Removed 'tasks.jsonl'; the task database is the source of truth.
-
-            If 'tasks.jsonl' was committed, remove it from git with:
-              git rm --cached .nitro/agents/tasks.jsonl
-            """);
-        Assert.False(File.Exists(jsonlPath));
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM tasks WHERE id = 'legacy3-1'"));
-        Assert.Equal("legacy3", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
-    }
-
-    [Fact]
-    public async Task JsonOutput_UpgradeWithLegacyJsonl_ReportsImportedCount()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
-        await SeedV3WorkspaceAsync("legacy3");
-        var jsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName);
-        await File.WriteAllTextAsync(
-            jsonlPath,
-            """
-            {"id":"legacy3-1","title":"From jsonl","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal("legacy3", root.GetProperty("prefix").GetString());
-        Assert.Equal(0, root.GetProperty("migratedTasks").GetInt32());
-        Assert.Equal(1, root.GetProperty("importedCount").GetInt32());
-        Assert.False(File.Exists(jsonlPath));
-    }
-
-    [Fact]
     public async Task AlreadyInitialized_Force_ResetsPrefix()
     {
         // arrange
@@ -627,68 +500,12 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task AlreadyInitialized_Force_ImportsAndRemovesLegacyJsonl()
-    {
-        // arrange: a workspace with a tasks.jsonl left over from the retired
-        // JSONL sync model.
-        await InitWorkspaceAsync();
-        var jsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName);
-        await File.WriteAllTextAsync(
-            jsonlPath,
-            """
-            {"key":"prefix","value":"jsonl"}
-            {"id":"acme-9","title":"From jsonl","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init", "--force");
-
-        // assert: the task is imported, the file is gone, and the reinit
-        // prefix wins over the one in the file.
-        result.AssertSuccess(
-            """
-            ✓ Initialized agent workspace at '.nitro/agents'.
-            ✓ Task ID prefix set to 'acme'.
-            ✓ Imported 1 task from 'tasks.jsonl'.
-            ✓ Removed 'tasks.jsonl'; the task database is the source of truth.
-
-            If 'tasks.jsonl' was committed, remove it from git with:
-              git rm --cached .nitro/agents/tasks.jsonl
-            """);
-        Assert.False(File.Exists(jsonlPath));
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM tasks WHERE id = 'acme-9'"));
-        Assert.Equal("acme", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
-    }
-
-    [Fact]
-    public async Task AlreadyInitialized_Force_MalformedJsonl_FailsAndLeavesFileAndDatabase()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        var jsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName);
-        await File.WriteAllTextAsync(jsonlPath, "not json\n", TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init", "--force");
-
-        // assert: the failed import leaves the file for the user to fix or
-        // delete, and the database keeps working.
-        Assert.Equal(1, result.ExitCode);
-        Assert.True(File.Exists(jsonlPath));
-        Assert.True(File.Exists(DatabasePath));
-        Assert.Equal("acme", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
-    }
-
-    [Fact]
     public async Task AlreadyInitialized_Force_PreservesSeededTaskAndMailRows()
     {
         // arrange
         await InitWorkspaceAsync();
         await CreateTaskAsync("Ship the unified workspace");
-        var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        Assert.Equal(0, registerResult.ExitCode);
+        await SeedAgentAsync("bob");
 
         // act
         var result = await ExecuteCommandAsync("agent", "init", "--force");
@@ -700,210 +517,21 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task LegacyTasksDatabase_MigratesTasksEventsAndChildCounters()
-    {
-        // arrange: a task-v1 seed with a task, an event, and an advanced
-        // child counter, at the pre-unification .nitro/tasks/tasks.db path.
-        await SeedLegacyTasksDatabaseAsync();
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Initialized agent workspace at '.nitro/agents'.
-            ✓ Task ID prefix set to 'legacy'.
-            ✓ Migrated 1 task from the legacy '.nitro/tasks' workspace.
-
-            The legacy '.nitro/tasks' workspace has been migrated. Remove it from git with:
-              git rm -r .nitro/tasks
-              git add .nitro/agents
-            """);
-        Assert.Equal("1", await QueryScalarAsync(
-            "SELECT COUNT(*) FROM events WHERE task_id = 'legacy-1'"));
-        Assert.Equal("3", await QueryScalarAsync(
-            "SELECT last_child FROM child_counters WHERE parent_id = 'legacy-1'"));
-    }
-
-    [Fact]
-    public async Task LegacyTasksJsonlOnly_ImportsTasks()
-    {
-        // arrange: a legacy tasks.jsonl with no database beside it.
-        Directory.CreateDirectory(LegacyTasksDirectory);
-        await File.WriteAllTextAsync(
-            LegacyTasksJsonlPath,
-            """
-            {"key":"prefix","value":"jsonl"}
-            {"id":"jsonl-1","title":"From jsonl","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Initialized agent workspace at '.nitro/agents'.
-            ✓ Task ID prefix set to 'jsonl'.
-            ✓ Imported 1 task from 'tasks.jsonl'.
-
-            The legacy '.nitro/tasks' workspace has been migrated. Remove it from git with:
-              git rm -r .nitro/tasks
-              git add .nitro/agents
-            """);
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM tasks WHERE id = 'jsonl-1'"));
-        Assert.False(File.Exists(Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName)));
-    }
-
-    [Fact]
-    public async Task LegacyAndWorkspaceJsonl_ImportsBothAndRemovesWorkspaceFile()
-    {
-        // arrange: a legacy-path tasks.jsonl and a workspace-path tasks.jsonl
-        // at the same time, each holding a different task.
-        Directory.CreateDirectory(LegacyTasksDirectory);
-        await File.WriteAllTextAsync(
-            LegacyTasksJsonlPath,
-            """
-            {"key":"prefix","value":"jsonl"}
-            {"id":"jsonl-1","title":"From legacy","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-        Directory.CreateDirectory(WorkspaceDirectory);
-        var workspaceJsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName);
-        await File.WriteAllTextAsync(
-            workspaceJsonlPath,
-            """
-            {"key":"prefix","value":"cloned"}
-            {"id":"cloned-1","title":"From workspace","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """,
-            TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Initialized agent workspace at '.nitro/agents'.
-            ✓ Task ID prefix set to 'cloned'.
-            ✓ Imported 2 tasks from 'tasks.jsonl'.
-            ✓ Removed 'tasks.jsonl'; the task database is the source of truth.
-
-            If 'tasks.jsonl' was committed, remove it from git with:
-              git rm --cached .nitro/agents/tasks.jsonl
-
-            The legacy '.nitro/tasks' workspace has been migrated. Remove it from git with:
-              git rm -r .nitro/tasks
-              git add .nitro/agents
-            """);
-        Assert.Equal("2", await QueryScalarAsync(
-            "SELECT COUNT(*) FROM tasks WHERE id IN ('jsonl-1', 'cloned-1')"));
-        Assert.False(File.Exists(workspaceJsonlPath));
-    }
-
-    [Fact]
-    public async Task FreshCloneOfJsonlLayout_ImportsAndRemovesJsonl_KeepsCommittedGitIgnore()
-    {
-        // arrange: the retired JSONL sync layout as committed (tasks.jsonl
-        // and .gitignore present) but no database, as after a fresh git clone.
-        Directory.CreateDirectory(WorkspaceDirectory);
-        var jsonlPath = Path.Combine(WorkspaceDirectory, AgentWorkspace.LegacyJsonlFileName);
-        var gitIgnorePath = Path.Combine(WorkspaceDirectory, AgentWorkspace.GitIgnoreFileName);
-        const string committedJsonl =
-            """
-            {"key":"prefix","value":"cloned"}
-            {"id":"cloned-1","title":"From clone","description":"","design":"","acceptanceCriteria":"","notes":"","status":"open","priority":2,"type":"task","createdAt":"2026-01-01T00:00:00+00:00","createdBy":"","updatedAt":"2026-01-01T00:00:00+00:00","closeReason":"","deleteReason":"","labels":[],"dependencies":[],"comments":[]}
-
-            """;
-        await File.WriteAllTextAsync(jsonlPath, committedJsonl, TestContext.Current.CancellationToken);
-        await File.WriteAllTextAsync(gitIgnorePath, "custom\n", TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Initialized agent workspace at '.nitro/agents'.
-            ✓ Task ID prefix set to 'cloned'.
-            ✓ Imported 1 task from 'tasks.jsonl'.
-            ✓ Removed 'tasks.jsonl'; the task database is the source of truth.
-
-            If 'tasks.jsonl' was committed, remove it from git with:
-              git rm --cached .nitro/agents/tasks.jsonl
-            """);
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM tasks WHERE id = 'cloned-1'"));
-        Assert.False(File.Exists(jsonlPath));
-        Assert.Equal(
-            "custom\n",
-            await File.ReadAllTextAsync(gitIgnorePath, TestContext.Current.CancellationToken));
-    }
-
-    [Fact]
-    public async Task LegacyMailDatabase_ReportedObsoleteAndNotMigrated()
-    {
-        // arrange
-        var legacyMailDirectory = Path.GetDirectoryName(LegacyMailDatabasePath)!;
-        Directory.CreateDirectory(legacyMailDirectory);
-        await File.WriteAllTextAsync(
-            LegacyMailDatabasePath, "not a real db", TestContext.Current.CancellationToken);
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init");
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Initialized agent workspace at '.nitro/agents'.
-            ✓ Task ID prefix set to 'acme'.
-
-            Found a legacy mail workspace at '.nitro/mail'. It was never released, so its data was not migrated. Delete it with:
-              rm -rf .nitro/mail
-            """);
-        Assert.True(File.Exists(LegacyMailDatabasePath));
-    }
-
-    [Fact]
-    public async Task MalformedLegacyJsonl_LeavesNoWorkspace_RetryableAfterward()
-    {
-        // arrange
-        Directory.CreateDirectory(LegacyTasksDirectory);
-        await File.WriteAllTextAsync(
-            LegacyTasksJsonlPath, "not json\n", TestContext.Current.CancellationToken);
-
-        // act
-        var firstResult = await ExecuteCommandAsync("agent", "init");
-
-        // assert: the failed attempt left no database behind, so fixing the
-        // source and retrying succeeds.
-        Assert.Equal(1, firstResult.ExitCode);
-        Assert.False(File.Exists(DatabasePath));
-
-        await File.WriteAllTextAsync(LegacyTasksJsonlPath, "", TestContext.Current.CancellationToken);
-        var secondResult = await ExecuteCommandAsync("agent", "init");
-        Assert.Equal(0, secondResult.ExitCode);
-    }
-
-    [Fact]
     public async Task TasksAndMail_ShareTheSameUnifiedWorkspace()
     {
         // arrange
         await InitWorkspaceAsync();
         var taskId = await CreateTaskAsync("Ship the unified workspace");
+        SetupInstanceId("host-unified-workspace-test");
 
         // act
-        var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAgentAsync("bob");
         var sendResult = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--no-ping", "--subject", "Status", "--body", "Merged.");
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "Merged.");
 
         // assert
-        Assert.Equal(0, registerResult.ExitCode);
-        Assert.Equal(0, sendResult.ExitCode);
+        Assert.Equal(1, sendResult.ExitCode);
+        Assert.Contains("message stored, but wake failed: no-live-session.", sendResult.StdErr);
         Assert.Equal(
             AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM messages"));
@@ -955,42 +583,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         await using (var command = connection.CreateCommand())
         {
             command.CommandText = "PRAGMA user_version = 3;";
-            await command.ExecuteNonQueryAsync(cancellationToken);
-        }
-    }
-
-    private async Task SeedLegacyTasksDatabaseAsync()
-    {
-        Directory.CreateDirectory(LegacyTasksDirectory);
-        var cancellationToken = TestContext.Current.CancellationToken;
-
-        await using var connection =
-            new SqliteConnection($"Data Source={LegacyTasksDatabasePath};Pooling=False");
-        await connection.OpenAsync(cancellationToken);
-
-        await using (var command = connection.CreateCommand())
-        {
-            command.CommandText = TaskStoreSchema.Create;
-            await command.ExecuteNonQueryAsync(cancellationToken);
-        }
-
-        await using (var command = connection.CreateCommand())
-        {
-            command.CommandText = "PRAGMA user_version = 1;";
-            await command.ExecuteNonQueryAsync(cancellationToken);
-        }
-
-        await using (var command = connection.CreateCommand())
-        {
-            command.CommandText =
-                """
-                INSERT INTO tasks (id, title, status, task_type, created_at, updated_at)
-                VALUES ('legacy-1', 'Legacy task', 'open', 'task', '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00');
-                INSERT INTO events (task_id, event_type, created_at)
-                VALUES ('legacy-1', 'created', '2026-01-01T00:00:00+00:00');
-                INSERT INTO child_counters (parent_id, last_child) VALUES ('legacy-1', 3);
-                INSERT INTO config (key, value) VALUES ('prefix', 'legacy');
-                """;
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
     }

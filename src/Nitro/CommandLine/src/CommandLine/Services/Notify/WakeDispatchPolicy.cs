@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// The timing and concurrency constants the actor-batch foreground
 /// dispatcher fixes for one <see cref="ActorWakeDispatcher.DispatchAsync"/>
 /// call: the post-commit budget every recipient/target of one claimed batch
-/// shares, how many transports run at once, how long the batch's own lease
+/// shares, how long the batch's own lease
 /// and a per-target session gate are held, and how often the batch lease is
 /// renewed while dispatch is in flight. <see cref="BatchLeaseDuration"/> is
 /// strictly longer than <see cref="BatchDeadline"/>, so a batch dispatched
@@ -27,12 +27,6 @@ internal static class WakeDispatchPolicy
     /// spending it on transport work.
     /// </summary>
     public static readonly TimeSpan HandoffObservationReserve = TimeSpan.FromMilliseconds(500);
-
-    /// <summary>
-    /// The most transports one batch dispatches at once, matching
-    /// <c>ping_leases</c>' four fixed slots.
-    /// </summary>
-    public const int MaxConcurrentTransports = 4;
 
     public static readonly TimeSpan BatchLeaseDuration = TimeSpan.FromSeconds(30);
 

@@ -41,7 +41,7 @@ internal sealed record MailWakeAttemptResult
 /// <summary>
 /// One recipient's actor-wake outcome for a sent or replied message: its
 /// aggregate lattice status derived from every session it addressed (a
-/// <see cref="MailWakeTargetStatus"/> value or <see cref="WakeReceiptAggregator.Partial"/>),
+/// <see cref="MailWakeTargetStatus"/> value),
 /// the wake generation this message committed for it (null when the send
 /// used <see cref="MailWakePolicy.Skip"/>), and its target sessions in
 /// deterministic order.

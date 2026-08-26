@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -20,7 +21,6 @@ internal sealed class SendMailCommand : Command
         Options.Add(Opt<MailBodyFileOption>.Instance);
         Options.Add(Opt<MailCcOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
-        Options.Add(Opt<MailNoPingOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         MailBody.AddValidator(this);
@@ -43,15 +43,14 @@ internal sealed class SendMailCommand : Command
         var wakeObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
-        var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var to = parseResult.GetRequiredValue(Opt<MailRecipientsArgument>.Instance);
         var cc = parseResult.GetValue(Opt<MailCcOption>.Instance) ?? [];
         var subject = parseResult.GetRequiredValue(Opt<MailSubjectOption>.Instance);
-        var noPing = parseResult.GetValue(Opt<MailNoPingOption>.Instance);
-        var actor = MailActor.Resolve(
-            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
+        var actor = await MailActor.ResolveAsync(
+            parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
 
         var body = await MailBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
 
@@ -63,7 +62,7 @@ internal sealed class SendMailCommand : Command
                 Body = body,
                 To = to,
                 Cc = cc,
-                WakePolicy = noPing ? MailWakePolicy.Skip : MailWakePolicy.Enqueue
+                WakePolicy = MailWakePolicy.Enqueue
             },
             cancellationToken);
 
@@ -71,8 +70,8 @@ internal sealed class SendMailCommand : Command
         // and nothing from here on can make it not exist. It can still make
         // this command's own exit code and output report the wake truthfully.
         var notification = await MailWakeDispatch.RunAsync(
-            message, noPing, dispatcher, wakeObserver, timeProvider, cancellationToken);
-        var delivered = WakeReceiptAggregator.IsZero(notification.Status);
+            message, dispatcher, wakeObserver, timeProvider, cancellationToken);
+        var delivered = WakeReceiptAggregator.IsSuccessful(notification.Status);
 
         var result = MailSendResult.Create(message, notification);
 

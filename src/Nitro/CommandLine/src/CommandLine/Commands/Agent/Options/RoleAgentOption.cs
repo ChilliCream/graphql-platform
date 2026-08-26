@@ -4,7 +4,7 @@ internal sealed class RoleAgentOption : Option<string>
 {
     public RoleAgentOption() : base("--role")
     {
-        Description = "The agent's role, free text, normalized lowercase (defaults to empty)";
+        Description = "The actor role, normalized lowercase";
         Required = false;
     }
 }

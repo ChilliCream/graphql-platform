@@ -1,7 +1,6 @@
 using System.CommandLine.Help;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Session;
 using ChilliCream.Nitro.CommandLine.Commands.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Memory;
 using ChilliCream.Nitro.CommandLine.Commands.Tasks;
@@ -26,9 +25,7 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new MailCommand());
         Subcommands.Add(new MemoryCommand());
         Subcommands.Add(new RegisterAgentCommand());
-        Subcommands.Add(new WhoamiAgentCommand());
         Subcommands.Add(new ListAgentCommand());
-        Subcommands.Add(new SessionCommand());
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
 
@@ -62,7 +59,10 @@ internal sealed class AgentCommand : Command
                 var agentSessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
                 var activityReader = services.GetRequiredService<IClaudeSessionActivityReader>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
-                var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+                var actorResolver = services.GetRequiredService<IActingActorResolver>();
+                var actor = await actorResolver.ResolveAsync(
+                    optionValue: null,
+                    cancellationToken);
 
                 // Resolved, and its lifetime owned by AgentTuiLauncher.RunAsync,
                 // only on this interactive-plus-workspace path: a noninteractive
@@ -81,7 +81,7 @@ internal sealed class AgentCommand : Command
                     agentSessionRegistry,
                     activityReader,
                     timeProvider,
-                    environmentVariableProvider,
+                    actor,
                     workspaceDirectory,
                     mailWakeDaemonCoordinator,
                     mailWakeReceiptObserver,

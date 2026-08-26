@@ -644,12 +644,11 @@ public sealed class MailModeTests
     [InlineData("delegated", "Success")]
     [InlineData("pending", "Warn")]
     [InlineData("failed", "Error")]
-    [InlineData("partial", "Error")]
     public async Task ComposeForm_Submit_Should_StoreTheMessage_And_ReportTheObservedWakeStatusTruthfully(
         string wakeStatus, string expectedStyleName)
     {
         // arrange: a store write alone is never reported delivered; only an
-        // IsZero wake status (delivered/satisfied/delegated) shows green,
+        // A successful wake status (delivered/satisfied/delegated) shows green,
         // matching the truthful-receipt design (perles-net-4mn comment 156).
         // InlineData cannot carry the internal ToastStyle enum directly (a
         // public test method's parameter types must be at least as
@@ -680,11 +679,6 @@ public sealed class MailModeTests
         Assert.Equal("alice", sent.Sender);
         Assert.Equal("Status", sent.Subject);
         Assert.Single(sent.WakeReceipts); // exactly one transactional wake generation, for bob
-
-        if (wakeStatus == "partial")
-        {
-            Assert.Contains("Notification partial", toast.Text, StringComparison.Ordinal);
-        }
     }
 
     [Fact]

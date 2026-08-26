@@ -8,12 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal sealed record ClaudeAncestorSession(int Pid, string SessionId, string Cwd, string Name);
 
 /// <summary>
-/// Zero-config self-identification for <c>nitro agent session claim</c> on
-/// Linux with Claude Code: walks the current process's ancestors looking for
-/// one Claude Code registered a live session file for. Other platforms and
-/// harnesses have no ancestor-walk path; binding for them happens at
-/// SessionStart via the harness's launch environment instead (the hook
-/// adapter bead).
+/// Zero-config self-identification for Nitro commands running under Claude
+/// Code on Linux: walks the current process's ancestors looking for one
+/// Claude Code registered a live session file for.
 /// </summary>
 internal interface IClaudeAncestorSessionResolver
 {

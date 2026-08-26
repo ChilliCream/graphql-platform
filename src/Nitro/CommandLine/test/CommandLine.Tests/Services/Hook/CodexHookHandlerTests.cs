@@ -87,15 +87,15 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        // assert: never left unbound - a deterministic, harness-namespaced
-        // actor keeps the live session mail-addressable, role untouched.
-        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        // assert: startup assigns a friendly actor and injects it into the
+        // harness context immediately.
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Equal($"codex-{SessionId}", row.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.Contains($"Your Nitro actor is `{row.AgentName}`.", outcome.AdditionalContext);
+        Assert.DoesNotContain(SessionId, row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
         Assert.Equal("", row.Role);
-        Assert.NotNull(await _agentRegistry.GetAsync($"codex-{SessionId}", cancellationToken));
+        Assert.NotNull(await _agentRegistry.GetAsync(row.AgentName!, cancellationToken));
     }
 
     [Fact]
@@ -103,19 +103,19 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        Assert.Equal(CodexHookOutcome.Neutral, outcome);
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Equal($"codex-{SessionId}", row.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.Equal(first.AdditionalContext, outcome.AdditionalContext);
+        Assert.Contains($"Your Nitro actor is `{row.AgentName}`.", outcome.AdditionalContext);
+        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_BindTheRow_When_NitroMailActorIsSet()
+    public async Task HandleSessionStartAsync_Should_IgnoreLegacyActorEnvironmentVariables()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -125,8 +125,8 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Equal("pascal", row.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Env, row.BindingKind);
+        Assert.NotEqual("pascal", row.AgentName);
+        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
     }
 
     [Fact]
@@ -180,13 +180,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_CreateOneIdempotentProvisionalRow_When_SessionIdIsMissing()
+    public async Task HandleSessionStartAsync_Should_NotCreateAProvisionalIdentity_When_SessionIdIsMissing()
     {
-        // arrange: a missing session id does not fail open by itself - with
-        // an observable process identity (the dry-run sentinel here stands
-        // in for a real ancestor), the deterministic provisional session id
-        // for it is used instead, and a duplicate SessionStart for the same
-        // process generation is idempotent.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new CodexHookPayload { SessionId = null, Cwd = _workspaceRoot };
@@ -198,19 +193,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         // assert
         Assert.Equal(CodexHookOutcome.Neutral, first);
         Assert.Equal(CodexHookOutcome.Neutral, second);
-        var provisionalGeneration = new AgentSessionGeneration(
-            AgentSessionHarness.Codex,
-            AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.Codex, "host-1", 1, "0"),
-            "host-1", 1, "0");
-        var row = await _sessions.FindByGenerationAsync(provisionalGeneration, cancellationToken);
-        Assert.NotNull(row);
-        Assert.Equal(1L, await CountAllSessionRowsAsync(cancellationToken));
-
-        // act: SessionEnd removes the exact provisional row.
-        await _handler.HandleSessionEndAsync(payload, dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Null(await _sessions.FindByGenerationAsync(provisionalGeneration, cancellationToken));
+        Assert.Equal(0L, await CountAllSessionRowsAsync(cancellationToken));
     }
 
     [Fact]
@@ -270,7 +253,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheGeneratedActor()
+    public async Task HandleUserPromptSubmitAsync_Should_RepeatActorContext_When_NoMailIsAddressedToTheActor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -278,7 +261,9 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Contains($"Your Nitro actor is `{row!.AgentName}`.", outcome.AdditionalContext);
+        Assert.DoesNotContain("unread message", outcome.AdditionalContext);
     }
 
     [Fact]
@@ -286,9 +271,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
@@ -300,19 +284,19 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
+    public async Task HandleUserPromptSubmitAsync_Should_RepeatOnlyActorContext_When_CalledAgainWithNoNewMail()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
         var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
         Assert.NotNull(first.AdditionalContext);
 
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        Assert.Equal(CodexHookOutcome.Neutral, second);
+        Assert.Contains($"Your Nitro actor is `{actor}`.", second.AdditionalContext);
+        Assert.DoesNotContain("unread message", second.AdditionalContext);
     }
 
     // ---------- SessionEnd ----------
@@ -364,9 +348,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleNotifyAsync(
             NotifyPayload(SessionId, type: "something-else"), dryRun: true, cancellationToken);
@@ -393,9 +376,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
@@ -415,9 +397,8 @@ public sealed class CodexHookHandlerTests : IDisposable
         // the notify/queue loop never terminates.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
 
         var first = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
         Assert.True(first.Queued);
@@ -438,12 +419,11 @@ public sealed class CodexHookHandlerTests : IDisposable
         // earlier message was already queued and delivered.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
         await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
-        await SendMailAsync("carol", "alice", cancellationToken);
+        await SendMailAsync("carol", actor, cancellationToken);
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
         Assert.True(outcome.Queued);
@@ -455,9 +435,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        _environmentVariables.Set("NITRO_MAIL_ACTOR", "alice");
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", "alice", cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
         _queueClient.NextResult = CodexQueueResult.Error;
 
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
@@ -490,6 +469,14 @@ public sealed class CodexHookHandlerTests : IDisposable
         => await _mail.SendMessageAsync(
             new MailMessageCreation { Sender = sender, Subject = "status", Body = "please check", To = [recipient] },
             cancellationToken);
+
+    private async Task<string> StartAndGetActorAsync(CancellationToken cancellationToken)
+    {
+        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var row = await FindRowAsync(cancellationToken);
+
+        return row!.AgentName!;
+    }
 
     private async Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
         => await _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);

@@ -22,28 +22,14 @@ using Spectre.Console.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 
 /// <summary>
-/// Covers <see cref="AgentTuiLauncher.BuildMailTab"/>: the task actor and
-/// the mail actor resolve independently from their own environment
-/// variables, and an invalid mail actor (an <see cref="ExitException"/>
-/// from <see cref="MailActor.Resolve"/>) renders the Mail tab in an error
-/// state instead of preventing the shell from opening on the Tasks tab.
+/// Covers <see cref="AgentTuiLauncher"/>'s unified actor wiring and daemon,
+/// board-presence, and shutdown lifecycle.
 /// </summary>
 public sealed class AgentTuiLauncherTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    private static Mock<IEnvironmentVariableProvider> CreateEnvironment(
-        string? mailActor = null, string? taskActor = null)
-    {
-        var environment = new Mock<IEnvironmentVariableProvider>();
-        environment
-            .Setup(x => x.GetEnvironmentVariable(MailActor.EnvironmentVariableName))
-            .Returns(mailActor);
-        environment
-            .Setup(x => x.GetEnvironmentVariable(MailActor.FallbackEnvironmentVariableName))
-            .Returns(taskActor);
-        return environment;
-    }
+    private static Mock<IEnvironmentVariableProvider> CreateEnvironment() => new();
 
     /// <summary>
     /// A working <see cref="IBoardSessionLifecycle"/> mock: StartAsync
@@ -91,58 +77,30 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_ResolveMailActor_FromItsOwnVariable_IndependentlyOfTaskActor()
+    public void BuildMailTab_Should_UseTheResolvedSessionActor()
     {
-        // arrange: NITRO_TASK_ACTOR and NITRO_MAIL_ACTOR diverge.
-        var environment = CreateEnvironment(mailActor: "mail-actor", taskActor: "task-actor");
         var store = new FakeMailStore();
 
-        // act
-        var taskActor = TaskActor.Resolve(null, environment.Object);
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object,
+            store,
+            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
+            new FakeTimeProvider(Now),
+            "session-actor",
             new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
-        // assert: each actor came from its own variable, not the other's.
-        Assert.Equal("task-actor", taskActor);
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
-        Assert.Equal("mail-actor", mailMode.State.Actor);
-    }
-
-    [Fact]
-    public void BuildMailTab_Should_HostAnErrorState_When_MailActorFallsBackToAnInvalidTaskActor()
-    {
-        // arrange: no NITRO_MAIL_ACTOR, so MailActor.Resolve falls back to
-        // NITRO_TASK_ACTOR, whose value fails MailAgentName.Normalize (the
-        // dot is not a valid agent-name character); TaskActor.Resolve has
-        // no such validation and accepts the same value unchanged.
-        var environment = CreateEnvironment(mailActor: null, taskActor: "pascal.senn");
-        var store = new FakeMailStore();
-
-        // act
-        var taskActor = TaskActor.Resolve(null, environment.Object);
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object,
-            new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
-
-        // assert: the tasks actor is unaffected by the mail actor's
-        // validation failure, and the mail tab hosts the error state
-        // instead of a working MailMode, labeled exactly "Mail" (no badge).
-        Assert.Equal("pascal.senn", taskActor);
-        Assert.IsType<MailUnavailableMode>(mailTab.RootMode);
-        Assert.Equal("Mail", mailTab.Title);
+        Assert.Equal("session-actor", mailMode.State.Actor);
     }
 
     [Fact]
     public void BuildMailTab_Should_HostAWorkingMailMode_When_TheActorIsValid()
     {
         // arrange
-        var environment = CreateEnvironment(mailActor: "valid-actor", taskActor: null);
         var store = new FakeMailStore();
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment.Object,
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), "valid-actor",
             new FakeMailWakeReceiptObserver(), TestContext.Current.CancellationToken);
 
         // assert: today's behavior, unchanged: a working MailMode, badge-free
@@ -162,13 +120,12 @@ public sealed class AgentTuiLauncherTests
         // is exactly what the toast shows: the unified daemon acceptance
         // case.
         var cancellationToken = TestContext.Current.CancellationToken;
-        var environment = CreateEnvironment(mailActor: "alice").Object;
         var store = new FakeMailStore();
         var wakeObserver = new FakeMailWakeReceiptObserver();
         wakeObserver.StatusByActor["bob"] =
             FakeMailWakeReceiptObserver.Observation("bob", MailWakeTargetStatus.Delegated);
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), environment,
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now), "alice",
             wakeObserver, cancellationToken);
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
         mailMode.OnEnter();
@@ -237,12 +194,11 @@ public sealed class AgentTuiLauncherTests
         // past WakeDispatchPolicy.BatchDeadline lets the wait give up and
         // report the daemon truthfully did not settle it in time.
         var cancellationToken = TestContext.Current.CancellationToken;
-        var environment = CreateEnvironment(mailActor: "alice").Object;
         var store = new FakeMailStore();
         var wakeObserver = new FakeMailWakeReceiptObserver();
         var timeProvider = new FakeTimeProvider(Now);
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), timeProvider, environment,
+            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), timeProvider, "alice",
             wakeObserver, cancellationToken);
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
         mailMode.OnEnter();
@@ -318,7 +274,6 @@ public sealed class AgentTuiLauncherTests
         var mailStore = new FakeMailStore();
         var agentRegistry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
         var timeProvider = new FakeTimeProvider(Now);
-        var environment = CreateEnvironment(mailActor: "alice").Object;
 
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
 
@@ -341,7 +296,7 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 timeProvider,
-                environment,
+                "alice",
                 new FakeMailWakeReceiptObserver(),
                 TestContext.Current.CancellationToken);
 
@@ -371,33 +326,6 @@ public sealed class AgentTuiLauncherTests
         {
             tempRoot.Delete(recursive: true);
         }
-    }
-
-    [Fact]
-    public void Shell_Should_StillOpenOnTheTasksTab_When_TheMailTabIsInTheErrorState()
-    {
-        // arrange: the same invalid-fallback scenario, this time wired all
-        // the way through the tabbed TuiShell the way AgentTuiLauncher.RunAsync
-        // builds it.
-        var environment = CreateEnvironment(mailActor: null, taskActor: "pascal.senn");
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            new FakeMailStore(),
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-            new FakeTimeProvider(Now),
-            environment.Object,
-            new FakeMailWakeReceiptObserver(),
-            TestContext.Current.CancellationToken);
-
-        // act: construction alone must not throw despite the Mail tab's
-        // actor resolution failure.
-        var shell = BuildShell(mailTab);
-        var text = RenderToText(shell);
-
-        // assert: the shell opened and both tabs render (the mail tab's
-        // exact title, "Mail" with no unread badge, is covered at the
-        // BuildMailTab level above).
-        Assert.Contains("[T]asks", text);
-        Assert.Contains("[M]ail", text);
     }
 
     [Theory]
@@ -482,7 +410,7 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                CreateEnvironment(mailActor: "alice").Object,
+                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),
@@ -554,7 +482,7 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                CreateEnvironment(mailActor: "alice").Object,
+                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),
@@ -624,7 +552,7 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                CreateEnvironment(mailActor: "alice").Object,
+                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),
@@ -704,7 +632,7 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                CreateEnvironment(mailActor: "alice").Object,
+                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),
@@ -724,12 +652,10 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public async Task RunAsync_Should_LeaveNoLiveBoardSessionToEnd_When_TheMailActorIsInvalid()
+    public async Task RunAsync_Should_LeaveNoLiveBoardSessionToEnd_When_BoardStartupFails()
     {
-        // arrange: an invalid mail actor (the same ExitException
-        // MailUnavailableMode already surfaces on the Mail tab) must not
-        // fail the whole dashboard launch, and must leave no live board
-        // session behind to end.
+        // arrange: board presence is optional; a startup failure must not
+        // fail the dashboard or leave a session to end.
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-board-session-tests");
 
@@ -768,8 +694,6 @@ public sealed class AgentTuiLauncherTests
 
             using var runCts = new CancellationTokenSource();
 
-            // act: no NITRO_MAIL_ACTOR, so MailActor.Resolve falls back to
-            // NITRO_TASK_ACTOR, whose value fails MailAgentName.Normalize.
             var runTask = AgentTuiLauncher.RunAsync(
                 console,
                 new FakeTaskStore(),
@@ -779,7 +703,7 @@ public sealed class AgentTuiLauncherTests
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
                 new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
                 new FakeTimeProvider(Now),
-                CreateEnvironment(mailActor: null, taskActor: "pascal.senn").Object,
+                "alice",
                 workspaceDirectory,
                 coordinator.Object,
                 new FakeMailWakeReceiptObserver(),

@@ -38,7 +38,9 @@ internal static class ClaudeHookDigestFormatter
     /// <paramref name="totalUnreadCount"/> rather than <c>entries.Count</c>.
     /// </summary>
     public static string Format(
-        int totalUnreadCount, IReadOnlyList<(string Id, string From, string Subject, string Body)> entries)
+        int totalUnreadCount,
+        IReadOnlyList<(string Id, string From, string Subject, string Body)> entries,
+        int maxByteLength = MaxByteLength)
     {
         var header =
             $"nitro mail: {totalUnreadCount} unread message{(totalUnreadCount == 1 ? "" : "s")}. "
@@ -54,7 +56,7 @@ internal static class ClaudeHookDigestFormatter
             var shell = Shell(id, from, subject);
             var fullEntryByteLength = Utf8Length(shell) + Utf8Length(body);
 
-            if (builderByteLength + fullEntryByteLength + trailerReserve <= MaxByteLength)
+            if (builderByteLength + fullEntryByteLength + trailerReserve <= maxByteLength)
             {
                 builder.Append(shell).Append(body);
                 builderByteLength += fullEntryByteLength;
@@ -65,7 +67,7 @@ internal static class ClaudeHookDigestFormatter
             var notice = TruncationNotice(id);
             var noticeByteLength = Utf8Length(notice);
             var availableForBody =
-                MaxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength - trailerReserve;
+                maxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength - trailerReserve;
 
             if (availableForBody < 0 && subject.Length > 0)
             {
@@ -77,7 +79,7 @@ internal static class ClaudeHookDigestFormatter
 
                 var bodyByteLength = Utf8Length(body);
 
-                if (builderByteLength + Utf8Length(shell) + bodyByteLength + trailerReserve <= MaxByteLength)
+                if (builderByteLength + Utf8Length(shell) + bodyByteLength + trailerReserve <= maxByteLength)
                 {
                     // Dropping the subject alone left enough room for the
                     // full body: no truncation notice is needed.
@@ -88,7 +90,7 @@ internal static class ClaudeHookDigestFormatter
                 }
 
                 availableForBody =
-                    MaxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength - trailerReserve;
+                    maxByteLength - builderByteLength - Utf8Length(shell) - noticeByteLength - trailerReserve;
             }
 
             if (availableForBody < 0)

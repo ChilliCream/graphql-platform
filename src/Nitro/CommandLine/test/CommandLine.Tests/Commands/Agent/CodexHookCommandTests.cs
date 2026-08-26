@@ -13,15 +13,15 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task HookHelp_ListsCodexAlongsideClaude()
+    public async Task HookHelp_StaysHidden()
     {
         // arrange & act
         var result = await ExecuteCommandAsync("agent", "hook", "--help");
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Contains("claude", result.StdOut);
-        Assert.Contains("codex", result.StdOut);
+        Assert.Empty(result.StdOut);
+        Assert.Empty(result.StdErr);
     }
 
     [Fact]

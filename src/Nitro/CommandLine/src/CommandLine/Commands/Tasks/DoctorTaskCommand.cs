@@ -26,7 +26,6 @@ internal sealed class DoctorTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var fileSystem = services.GetRequiredService<IFileSystem>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var workspaceDirectory = store.FindWorkspaceDirectory()
@@ -37,8 +36,6 @@ internal sealed class DoctorTaskCommand : Command
         var taskCount = await store.CountTasksAsync(cancellationToken);
         var integrity = await store.CheckIntegrityAsync(cancellationToken);
         var cycles = await FindBlockingCyclesAsync(store, cancellationToken);
-        var legacyDirectories = FindLegacyDirectories(fileSystem, workspaceDirectory);
-
         var healthy = integrity.QuickCheckOk
             && cycles.Count == 0
             && integrity.OrphanDependencies.Count == 0
@@ -59,8 +56,7 @@ internal sealed class DoctorTaskCommand : Command
                 integrity.OrphanLabels,
                 integrity.OrphanComments,
                 integrity.TombstonedParentEdges,
-                healthy,
-                legacyDirectories)));
+                healthy)));
 
             return healthy ? ExitCodes.Success : ExitCodes.Error;
         }
@@ -106,66 +102,7 @@ internal sealed class DoctorTaskCommand : Command
             integrity.TombstonedParentEdges.Count == 0,
             integrity.TombstonedParentEdges.Select(edge => $"{edge.TaskId} -> {edge.DependsOnId}"));
 
-        if (legacyDirectories.Count > 0)
-        {
-            console.WriteLine();
-            console.WriteLine("WARN Leftover legacy workspace directories:");
-
-            foreach (var directory in legacyDirectories)
-            {
-                console.WriteLine($"  {directory}");
-            }
-        }
-
         return healthy ? ExitCodes.Success : ExitCodes.Error;
-    }
-
-    /// <summary>
-    /// Returns the legacy <c>.nitro/tasks</c> and <c>.nitro/mail</c>
-    /// directories, from before the two were unified, that still exist in
-    /// the project owning the given workspace directory.
-    /// </summary>
-    private static IReadOnlyList<string> FindLegacyDirectories(
-        IFileSystem fileSystem,
-        string workspaceDirectory)
-    {
-        var parent = Path.GetDirectoryName(workspaceDirectory);
-
-        if (parent is null)
-        {
-            return [];
-        }
-
-        string? nitroDirectory;
-
-        if (AgentWorkspace.IsFallbackLayout(workspaceDirectory))
-        {
-            nitroDirectory = parent;
-        }
-        else if (Path.GetFileName(parent) == AgentWorkspace.GitDirectoryName)
-        {
-            var projectDirectory = Path.GetDirectoryName(parent);
-            nitroDirectory = projectDirectory is null
-                ? null
-                : Path.Combine(projectDirectory, AgentWorkspace.RootDirectoryName);
-        }
-        else
-        {
-            nitroDirectory = null;
-        }
-
-        if (nitroDirectory is null)
-        {
-            return [];
-        }
-
-        var candidates = new[]
-        {
-            Path.Combine(nitroDirectory, "tasks"),
-            Path.Combine(nitroDirectory, "mail")
-        };
-
-        return candidates.Where(fileSystem.DirectoryExists).ToArray();
     }
 
     private static void WriteCheck(
@@ -218,6 +155,5 @@ internal sealed class DoctorTaskCommand : Command
         IReadOnlyList<TaskOrphanLabel> OrphanLabels,
         IReadOnlyList<TaskOrphanComment> OrphanComments,
         IReadOnlyList<TaskDependencyReference> TombstonedParentEdges,
-        bool Healthy,
-        IReadOnlyList<string> LegacyDirectories);
+        bool Healthy);
 }

@@ -26,8 +26,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
             Options:
               --body <body>            The message body. Exactly one of --body or --body-file is required
               --body-file <body-file>  A file to read the message body from. Exactly one of --body or --body-file is required
-              --actor <actor>          The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
-              --no-ping                Skip the best-effort wake ping to recipients with a live claimed session
+              --actor <actor>          The actor performing this command; inferred from the current session when omitted
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -39,16 +38,8 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
 
     private async Task<string> SendOriginalMessageAsync(string sender, string subject, params string[] to)
     {
-        var args = new List<string>
-        {
-            "agent", "mail", "send"
-        };
-        args.AddRange(to);
-        args.AddRange(["--subject", subject, "--body", "Original body.", "--actor", sender, "--no-ping"]);
-
-        await ExecuteCommandAsync(args.ToArray());
-
-        return (await QueryScalarAsync($"SELECT id FROM messages WHERE subject = '{subject}'"))!;
+        var message = await SeedMessageAsync(sender, subject, to, body: "Original body.");
+        return message.Id;
     }
 
     [Fact]
@@ -60,15 +51,20 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await ExecuteCommandAsync("agent", "register", "--actor", "carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
+        await SetupSuccessfulWakeAsync("host-reply-all-test", "alice", "carol");
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob", "--no-ping");
+            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         var replyId = await QueryScalarAsync(
             "SELECT id FROM messages WHERE in_reply_to = '" + originalId + "'");
-        result.AssertSuccess($"✓ Sent '{replyId}' to alice, carol.");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{replyId}' to alice, carol.
+            wake delivered.
+            """);
     }
 
     [Fact]
@@ -132,11 +128,12 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await ExecuteCommandAsync("agent", "register", "--actor", "alice");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var originalId = await SendOriginalMessageAsync("alice", "Root subject", "bob");
+        await SetupSuccessfulWakeAsync("host-reply-thread-test", "alice");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob", "--no-ping");
+            "agent", "mail", "reply", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -149,7 +146,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal("Root subject", root.GetProperty("subject").GetString());
         Assert.Equal(["alice"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
         Assert.True(root.GetProperty("messageStored").GetBoolean());
-        Assert.Equal("skipped", root.GetProperty("notification").GetProperty("status").GetString());
+        Assert.Equal("delivered", root.GetProperty("notification").GetProperty("status").GetString());
     }
 
     [Fact]

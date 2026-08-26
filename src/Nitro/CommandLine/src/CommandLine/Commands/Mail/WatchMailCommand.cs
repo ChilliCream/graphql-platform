@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -42,11 +43,11 @@ internal sealed class WatchMailCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
-        var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var actor = MailActor.Resolve(
-            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
+        var actor = await MailActor.ResolveAsync(
+            parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
         var timeoutSeconds = parseResult.GetValue(Opt<MailTimeoutOption>.Instance);
         var afterCursor = parseResult.GetValue(Opt<MailAfterOption>.Instance);
         var includeExisting = parseResult.GetValue(Opt<MailIncludeExistingOption>.Instance);

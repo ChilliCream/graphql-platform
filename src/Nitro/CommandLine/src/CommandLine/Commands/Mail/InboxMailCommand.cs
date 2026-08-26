@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mail;
 
@@ -36,11 +37,11 @@ internal sealed class InboxMailCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
-        var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var actor = MailActor.Resolve(
-            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
+        var actor = await MailActor.ResolveAsync(
+            parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
 
         var filter = new MailInboxFilter
         {

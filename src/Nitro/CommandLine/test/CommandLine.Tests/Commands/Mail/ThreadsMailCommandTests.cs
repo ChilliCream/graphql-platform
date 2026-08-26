@@ -20,7 +20,7 @@ public sealed class ThreadsMailCommandTests(NitroCommandFixture fixture)
 
             Options:
               --limit <limit>  The maximum number of messages to show
-              --actor <actor>  The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --actor <actor>  The actor performing this command; inferred from the current session when omitted
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 

@@ -3,9 +3,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// <summary>
 /// The <c>mail_wake_targets.status</c> values, matching the table's CHECK
 /// constraint. <see cref="Delivered"/>, <see cref="Satisfied"/>,
-/// <see cref="Delegated"/>, and <see cref="Skipped"/> are the lattice's zero
-/// (successful, nothing further owed) statuses; <see cref="Pending"/> and
-/// <see cref="Failed"/> are its nonzero ones. See <see cref="WakeReceiptAggregator"/>.
+/// <see cref="Delegated"/>, and <see cref="Skipped"/> are successful terminal
+/// statuses. <see cref="Pending"/> is unresolved and <see cref="Failed"/> is a
+/// terminal failure.
 /// </summary>
 internal static class MailWakeTargetStatus
 {

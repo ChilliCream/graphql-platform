@@ -35,13 +35,13 @@ internal sealed class ReadMailCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
         var registry = services.GetRequiredService<IAgentRegistry>();
-        var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var messageId = parseResult.GetRequiredValue(Opt<MailMessageIdArgument>.Instance);
         var thread = parseResult.GetValue(Opt<MailThreadOption>.Instance);
-        var actor = MailActor.Resolve(
-            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
+        var actor = await MailActor.ResolveAsync(
+            parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
 
         var message = await store.GetRequiredMessageAsync(messageId, cancellationToken);
 

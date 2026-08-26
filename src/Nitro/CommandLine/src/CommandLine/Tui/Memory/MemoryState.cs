@@ -65,11 +65,9 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     /// the merged read invalid data (per the store's own contract, no
     /// partial result is served), or the store rejected a file it read with
     /// an <see cref="ExitException"/> such as malformed frontmatter; null
-    /// otherwise. Mirrors how <c>MailUnavailableMode</c> keeps a hard read
-    /// failure from crashing the tab, shown in the detail pane when nothing
-    /// is selected instead of replacing the whole mode, since unlike a
-    /// failed mail actor resolution this can recur on every refresh rather
-    /// than only at tab construction.
+    /// otherwise. A hard read failure is shown in the detail pane when
+    /// nothing is selected instead of replacing the whole mode because it
+    /// can recur on every refresh.
     /// </summary>
     public string? LoadError { get; private set; }
 

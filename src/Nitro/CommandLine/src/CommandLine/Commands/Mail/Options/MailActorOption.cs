@@ -4,8 +4,7 @@ internal sealed class MailActorOption : Option<string>
 {
     public MailActorOption() : base("--actor")
     {
-        Description = "The acting identity used on mail commands "
-            + "(defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)";
+        Description = "The actor performing this command; inferred from the current session when omitted";
         Required = false;
     }
 }

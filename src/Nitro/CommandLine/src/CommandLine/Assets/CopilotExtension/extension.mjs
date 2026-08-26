@@ -1,4 +1,4 @@
-// nitro-mail-extension-version: 3
+// nitro-mail-extension-version: 4
 //
 // Installed by `nitro agent hooks copilot install --scope project`
 // into <repo>/.github/extensions/nitro-mail/extension.mjs. Loaded by the
@@ -368,6 +368,23 @@ export async function main() {
   const config = await loadConfig();
   let state = createInitialState();
   state = { ...state, cursor: await loadCursor() };
+  let actor;
+
+  try {
+    const registrationJson = await runNitro(config, [
+      'agent', 'register', '--output', 'json',
+    ]);
+    const registration = JSON.parse(registrationJson);
+    actor = registration.actor;
+
+    if (!actor) {
+      throw new Error('registration returned no actor');
+    }
+  } catch (err) {
+    console.error('nitro-mail extension: could not register the Copilot session, exiting.', err);
+    process.exitCode = 1;
+    return;
+  }
 
   // Set when a `mail watch` poll exits 1 too fast to be a real timeout (see
   // `watchLoop`): most likely a purged/unknown `--after` id cursor
@@ -397,8 +414,13 @@ export async function main() {
           state = onAgentStop(state, payload?.stopHookActive === true);
           void tryFlush();
         },
-        onSessionEnd: () => {
+        onSessionEnd: async () => {
           state = onSessionEnd(state);
+          try {
+            await runNitro(config, ['agent', 'hook', 'copilot', 'session-end']);
+          } catch (err) {
+            console.error('nitro-mail extension: session cleanup failed.', err);
+          }
         },
       },
     });
@@ -406,6 +428,19 @@ export async function main() {
     console.error('nitro-mail extension: could not join the Copilot session, exiting.', err);
     process.exitCode = 1;
     return;
+  }
+
+  try {
+    await session.send({
+      prompt:
+        `Your Nitro actor is \`${actor}\`. `
+        + 'Nitro uses it automatically when this session can be identified. '
+        + 'Pass `--actor <actor>` to act under another actor explicitly. '
+        + 'To change this session\'s actor, run '
+        + '`nitro agent register --actor <actor>` from this session.',
+    });
+  } catch (err) {
+    console.error('nitro-mail extension: could not inject the actor context.', err);
   }
 
   async function tryFlush() {
@@ -419,7 +454,7 @@ export async function main() {
 
     try {
       const totalUnreadJson = await runNitro(config, [
-        'agent', 'mail', 'inbox', '--unread', '--output', 'json',
+        'agent', 'mail', 'inbox', '--unread', '--actor', actor, '--output', 'json',
       ]);
       const totalUnread = toMailEntries(totalUnreadJson).length;
 
@@ -445,8 +480,8 @@ export async function main() {
         ? (useTimestampCursorFallback ? afterCursor.createdAt : afterCursor.id)
         : null;
       const args = afterValue
-        ? ['agent', 'mail', 'watch', '--after', afterValue, '--timeout', String(WATCH_TIMEOUT_SECONDS), '--output', 'json']
-        : ['agent', 'mail', 'watch', '--include-existing', '--timeout', String(WATCH_TIMEOUT_SECONDS), '--output', 'json'];
+        ? ['agent', 'mail', 'watch', '--after', afterValue, '--timeout', String(WATCH_TIMEOUT_SECONDS), '--actor', actor, '--output', 'json']
+        : ['agent', 'mail', 'watch', '--include-existing', '--timeout', String(WATCH_TIMEOUT_SECONDS), '--actor', actor, '--output', 'json'];
 
       const startedAt = Date.now();
       let stdout;

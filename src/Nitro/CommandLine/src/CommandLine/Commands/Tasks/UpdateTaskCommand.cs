@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -50,14 +51,14 @@ internal sealed class UpdateTaskCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var ids = parseResult.GetRequiredValue(Opt<TaskIdsArgument>.Instance)
             .Distinct()
             .ToArray();
-        var actor = TaskActor.Resolve(
-            parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariables);
+        var actor = await TaskActor.ResolveAsync(
+            parseResult.GetValue(Opt<TaskActorOption>.Instance), actorResolver, cancellationToken);
 
         var titleGiven = parseResult.GetResult(Opt<TaskTitleOption>.Instance) is { Implicit: false };
         var descriptionGiven =

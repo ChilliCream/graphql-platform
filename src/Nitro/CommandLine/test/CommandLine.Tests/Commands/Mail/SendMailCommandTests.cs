@@ -31,8 +31,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
               --body <body>                   The message body. Exactly one of --body or --body-file is required
               --body-file <body-file>         A file to read the message body from. Exactly one of --body or --body-file is required
               --cc <cc>                       A recipient to carbon-copy; can be used multiple times
-              --actor <actor>                 The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
-              --no-ping                       Skip the best-effort wake ping to recipients with a live claimed session
+              --actor <actor>                 The actor performing this command; inferred from the current session when omitted
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
 
@@ -48,14 +47,19 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SetupSuccessfulWakeAsync("host-send-single-test", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--no-ping", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
-        result.AssertSuccess($"✓ Sent '{id}' to bob.");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{id}' to bob.
+            wake delivered.
+            """);
     }
 
     [Fact]
@@ -65,11 +69,12 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await ExecuteCommandAsync("agent", "register", "--actor", "carol");
+        await SetupSuccessfulWakeAsync("host-send-dedupe-test", "bob", "carol");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "carol", "--cc", "bob", "--no-ping",
+            "agent", "mail", "send", "bob", "carol", "--cc", "bob",
             "--subject", "Status", "--body", "All good.");
 
         // assert
@@ -92,15 +97,18 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "dave", "eve", "--no-ping", "--subject", "hi", "--body", "yo");
+            "agent", "mail", "send", "dave", "eve", "--subject", "hi", "--body", "yo");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
-        result.AssertSuccess(
+        result.AssertError(
             $"""
-            ✓ Sent '{id}' to dave, eve.
+            Stored '{id}' to dave, eve.
             note: 'dave' has never registered.
             note: 'eve' has never registered.
+            message stored, but wake failed: no-live-session.
+              dave: failed (no-live-session)
+              eve: failed (no-live-session)
             """);
         Assert.Equal(
             "1",
@@ -116,17 +124,20 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SetupSuccessfulWakeAsync("host-send-known-unknown-test", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "dave", "--no-ping", "--subject", "hi", "--body", "yo");
+            "agent", "mail", "send", "bob", "dave", "--subject", "hi", "--body", "yo");
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
-        result.AssertSuccess(
+        result.AssertError(
             $"""
-            ✓ Sent '{id}' to bob, dave.
+            Stored '{id}' to bob, dave.
             note: 'dave' has never registered.
+            message stored, but wake failed: no-live-session.
+              dave: failed (no-live-session)
             """);
     }
 
@@ -148,12 +159,12 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ImplicitRecipient_CanReadInboxBeforeAndAfterRegistering()
+    public async Task ImplicitRecipient_CanReadInboxButCannotRegisterWithoutASession()
     {
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync(
-            "agent", "mail", "send", "dave", "--no-ping", "--subject", "hi", "--body", "yo");
+            "agent", "mail", "send", "dave", "--subject", "hi", "--body", "yo");
 
         // act
         var beforeRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
@@ -167,11 +178,11 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var afterRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
 
         // assert
-        Assert.Equal(0, registerResult.ExitCode);
+        Assert.Equal(1, registerResult.ExitCode);
         Assert.Equal(0, afterRegister.ExitCode);
         Assert.Contains("hi", afterRegister.StdOut);
         Assert.Equal(
-            "0",
+            "1",
             await QueryScalarAsync("SELECT implicit FROM agents WHERE name = 'dave'"));
     }
 
@@ -180,12 +191,13 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAgentAsync("bob");
+        await SetupSuccessfulWakeAsync("host-send-json-test", "bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--no-ping", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
@@ -203,12 +215,12 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         Assert.Empty(root.GetProperty("unregistered").EnumerateArray());
         Assert.True(root.GetProperty("messageStored").GetBoolean());
         var notification = root.GetProperty("notification");
-        Assert.Equal("skipped", notification.GetProperty("status").GetString());
+        Assert.Equal("delivered", notification.GetProperty("status").GetString());
         Assert.False(notification.GetProperty("deliveryPending").GetBoolean());
         var recipient = Assert.Single(notification.GetProperty("recipients").EnumerateArray());
         Assert.Equal("bob", recipient.GetProperty("actor").GetString());
-        Assert.Equal("skipped", recipient.GetProperty("status").GetString());
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, recipient.GetProperty("wakeGeneration").ValueKind);
+        Assert.Equal("delivered", recipient.GetProperty("status").GetString());
+        Assert.True(recipient.GetProperty("wakeGeneration").GetInt64() > 0);
     }
 
     [Fact]
@@ -220,14 +232,14 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "dave", "--no-ping", "--subject", "Status", "--body", "All good.");
+            "agent", "mail", "send", "dave", "--subject", "Status", "--body", "All good.");
 
         // assert
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
         var root = document.RootElement;
 
         Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(1, result.ExitCode);
         Assert.Equal(
             ["dave"], root.GetProperty("unregistered").EnumerateArray().Select(e => e.GetString()!).ToArray());
     }
@@ -291,13 +303,14 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SetupSuccessfulWakeAsync("host-send-body-file-test", "bob");
         var bodyFilePath = Path.Combine(WorkingDirectory, "body.txt");
         await File.WriteAllTextAsync(
             bodyFilePath, "Line one\r\nLine two\r\n", TestContext.Current.CancellationToken);
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "bob", "--no-ping", "--subject", "File body", "--body-file", "body.txt");
+            "agent", "mail", "send", "bob", "--subject", "File body", "--body-file", "body.txt");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -349,10 +362,11 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register");
+        await SetupSuccessfulWakeAsync("host-send-self-test", "test-agent");
 
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "test-agent", "--no-ping", "--subject", "Note", "--body", "Remember this.");
+            "agent", "mail", "send", "test-agent", "--subject", "Note", "--body", "Remember this.");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -363,28 +377,23 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task NoPing_Should_SkipWakeEntirely_And_NeverCreateAWakeGeneration()
+    public async Task NoPing_Should_ReturnParseError_When_Provided()
     {
         // arrange
         await InitWorkspaceAsync();
-        SetupInstanceId("host-send-noping-test");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SeedAliveCodexThreadSessionAsync("bob", "thread-bob", "host-send-noping-test");
 
         // act
         var result = await ExecuteCommandAsync(
             "agent", "mail", "send", "bob", "--no-ping", "--subject", "Status", "--body", "All good.");
 
-        // assert: --no-ping stores with MailWakePolicy.Skip, so no wake
-        // generation is ever created for bob and the live session is left
-        // untouched.
-        Assert.Equal(0, result.ExitCode);
-        var outboxRows = await QueryScalarAsync(
-            "SELECT COUNT(*) FROM mail_wake_outbox WHERE actor = 'bob' AND nitro_instance_id = 'host-send-noping-test'");
-        Assert.Equal("0", outboxRows);
-        var pingResult = await QueryScalarAsync(
-            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-1'");
-        Assert.Null(pingResult);
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(
+            "Unrecognized command or argument '--no-ping'.",
+            result.StdOut + result.StdErr,
+            StringComparison.Ordinal);
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM messages"));
     }
 
     [Fact]
@@ -426,7 +435,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         SetupInstanceId("host-send-nolive-human-test");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAgentAsync("bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -512,62 +521,6 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             ✓ Sent '{id}' to bob.
             wake delivered.
             """);
-    }
-
-    [Fact]
-    public async Task JsonOutput_Should_ReportPartial_When_ARecipientHasOneDeliveredAndOneFailingSession()
-    {
-        // arrange: alpha has a single live codex-thread session that
-        // delivers. bob has two live sessions - one codex-thread session
-        // that also delivers and one with no endpoint at all - so bob's own
-        // recipient status aggregates to "partial". Sent in alpha-then-bob
-        // order, this proves the command's own exit is controlled by bob's
-        // partial status even though alpha, listed first, delivered cleanly,
-        // and that the targets array is returned in deterministic
-        // (harness, sessionId) order.
-        await InitWorkspaceAsync();
-        const string host = "host-send-partial-recipient-test";
-        SetupInstanceId(host);
-        SetupCodexQueueClient(new FakeCodexQueueClient());
-        await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SeedAliveSessionAsync(
-            "session-alpha", "alpha", role: "", host,
-            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alpha");
-        await SeedAliveSessionAsync(
-            "session-bob-1", "bob", role: "", host,
-            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob");
-        await SeedAliveSessionAsync(
-            "session-bob-2", "bob", role: "", host,
-            endpointKind: AgentSessionEndpointKind.None);
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "alpha", "bob", "--subject", "Status", "--body", "All good.");
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-        var notification = root.GetProperty("notification");
-        Assert.Equal("partial", notification.GetProperty("status").GetString());
-        var recipients = notification.GetProperty("recipients").EnumerateArray().ToArray();
-        Assert.Equal(2, recipients.Length);
-        Assert.Equal("alpha", recipients[0].GetProperty("actor").GetString());
-        Assert.Equal("delivered", recipients[0].GetProperty("status").GetString());
-        Assert.Equal("bob", recipients[1].GetProperty("actor").GetString());
-        Assert.Equal("partial", recipients[1].GetProperty("status").GetString());
-
-        var targets = recipients[1].GetProperty("targets").EnumerateArray().ToArray();
-        Assert.Equal(2, targets.Length);
-        Assert.Equal("session-bob-1", targets[0].GetProperty("sessionId").GetString());
-        Assert.Equal("delivered", targets[0].GetProperty("status").GetString());
-        Assert.Equal("session-bob-2", targets[1].GetProperty("sessionId").GetString());
-        Assert.Equal("failed", targets[1].GetProperty("status").GetString());
-        Assert.Equal(
-            "no-endpoint", targets[1].GetProperty("lastAttempt").GetProperty("reason").GetString());
     }
 
     [Fact]

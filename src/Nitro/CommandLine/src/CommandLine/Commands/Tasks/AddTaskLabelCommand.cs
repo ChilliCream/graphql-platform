@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Tasks;
 
@@ -29,13 +30,13 @@ internal sealed class AddTaskLabelCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
-        var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
         var labels = parseResult.GetRequiredValue(Opt<LabelsArgument>.Instance);
-        var actor = TaskActor.Resolve(
-            parseResult.GetValue(Opt<TaskActorOption>.Instance), environmentVariableProvider);
+        var actor = await TaskActor.ResolveAsync(
+            parseResult.GetValue(Opt<TaskActorOption>.Instance), actorResolver, cancellationToken);
 
         var results = await store.AddLabelAsync(id, labels, actor, cancellationToken);
 

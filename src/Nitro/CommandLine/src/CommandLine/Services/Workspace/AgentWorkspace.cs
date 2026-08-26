@@ -14,7 +14,6 @@ internal static class AgentWorkspace
     public const string RootDirectoryName = ".nitro";
     public const string AgentsDirectoryName = "agents";
     public const string DatabaseFileName = "agents.db";
-    public const string LegacyJsonlFileName = "tasks.jsonl";
     public const string GitIgnoreFileName = ".gitignore";
     public const string FallbackPrefix = "task";
     public const string DisplayPath = RootDirectoryName + "/" + AgentsDirectoryName;
@@ -99,13 +98,6 @@ internal static class AgentWorkspace
 
     public static string GetDatabasePath(string workspaceDirectory)
         => Path.Combine(workspaceDirectory, DatabaseFileName);
-
-    /// <summary>
-    /// The tasks.jsonl path from the retired JSONL sync model. The file is
-    /// imported and removed during init; the database is the source of truth.
-    /// </summary>
-    public static string GetLegacyJsonlPath(string workspaceDirectory)
-        => Path.Combine(workspaceDirectory, LegacyJsonlFileName);
 
     /// <summary>
     /// The project memory root, nested under the shared agent workspace

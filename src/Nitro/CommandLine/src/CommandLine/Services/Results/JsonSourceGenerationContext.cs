@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Session;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
@@ -77,11 +76,7 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 [JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
-[JsonSerializable(typeof(WhoamiAgentCommand.AgentWhoamiResult))]
 [JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
-[JsonSerializable(typeof(ClaimSessionCommand.SessionClaimResult))]
-[JsonSerializable(typeof(ListResult<ListSessionCommand.SessionRowResult>))]
-[JsonSerializable(typeof(StatusSessionCommand.SessionStatusResult))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(MailSendResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]

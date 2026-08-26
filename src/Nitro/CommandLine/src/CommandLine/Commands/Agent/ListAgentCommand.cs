@@ -12,7 +12,7 @@ internal sealed class ListAgentCommand : Command
 {
     public ListAgentCommand() : base("list")
     {
-        Description = "List live agent participants: one row per harness session, including unbound sessions.";
+        Description = "List current actors and their durable harness sessions.";
 
         Options.Add(Opt<RoleAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
@@ -33,81 +33,80 @@ internal sealed class ListAgentCommand : Command
 
         var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance);
 
-        var participants = await sessionRegistry.ListParticipantsAsync(cancellationToken);
+        var identities = await sessionRegistry.ListIdentitiesAsync(cancellationToken);
 
         if (role is not null)
         {
             var normalizedRole = AgentRole.Normalize(role);
-            participants = participants.Where(p => p.MatchesRole(normalizedRole)).ToArray();
+            identities = identities.Where(view => view.Identity.Role == normalizedRole).ToArray();
         }
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ListResult<AgentListRowResult>(participants.Select(ToRow).ToArray()));
+            resultHolder.SetResult(new ListResult<AgentListRowResult>(identities.Select(ToRow).ToArray()));
             return ExitCodes.Success;
         }
 
-        if (participants.Count == 0)
+        if (identities.Count == 0)
         {
-            console.WriteLine("No live agent participants.");
+            console.WriteLine("No actors.");
             return ExitCodes.Success;
         }
 
-        foreach (var participant in participants)
+        foreach (var identity in identities)
         {
-            console.WriteLine(FormatLine(participant));
+            console.WriteLine(FormatLine(identity));
         }
 
         return ExitCodes.Success;
     }
 
     /// <summary>
-    /// Renders the human-readable line for one participant: the bound actor
-    /// (or <see cref="AgentParticipantRow.UnboundLabel"/>), the live state,
-    /// the harness with its exact version when captured, the mutable role
-    /// when set, and when it was last heard from. Full session id,
-    /// cwd/workspace, and endpoint/host diagnostics are machine output only
-    /// (<c>--output json</c>); <c>agent session list</c> is the lower-level
-    /// surface for those on a human terminal.
+    /// Renders one durable session identity: actor, online/offline state,
+    /// harness, optional role, and last-seen time. Connection diagnostics
+    /// remain available in machine output when the session is online.
     /// </summary>
-    private static string FormatLine(AgentSessionParticipant participant)
+    private static string FormatLine(AgentSessionIdentityView view)
     {
-        var session = participant.Session;
-        var actor = session.AgentName ?? AgentParticipantRow.UnboundLabel;
-        var versionSuffix = session.HarnessVersion.Length > 0 ? $" {session.HarnessVersion}" : "";
-        var roleSuffix = session.Role.Length > 0 ? $"  role {session.Role}" : "";
+        var identity = view.Identity;
+        var session = view.Participant?.Session;
+        var versionSuffix = session?.HarnessVersion.Length > 0 ? $" {session.HarnessVersion}" : "";
+        var roleSuffix = identity.Role.Length > 0 ? $"  role {identity.Role}" : "";
+        var lastSeenAt = view.LastSeenAt;
 
-        return $"{actor}  {participant.State}  {session.Harness}{versionSuffix}{roleSuffix}"
-            + $"  last heard {TaskDates.Format(session.LastBeatAt)}";
+        return $"{identity.Actor}  {view.State}  {identity.Harness}{versionSuffix}{roleSuffix}"
+            + $"  last heard {TaskDates.Format(lastSeenAt)}";
     }
 
-    private static AgentListRowResult ToRow(AgentSessionParticipant participant) => new(
-        participant.Session.Harness,
-        participant.Session.SessionId,
-        participant.Session.AgentName,
-        participant.Session.Role,
-        participant.Session.HarnessVersion,
-        participant.State,
-        participant.Session.StartedAt,
-        participant.Session.LastBeatAt,
-        participant.Session.Cwd,
-        participant.Session.WorkspacePath,
-        participant.Session.Host,
-        participant.Session.EndpointKind,
-        participant.Session.EndpointAddr);
+    private static AgentListRowResult ToRow(AgentSessionIdentityView view) => new(
+        view.Identity.Actor,
+        view.Identity.Role,
+        view.Identity.Harness,
+        view.Identity.SessionId,
+        view.Online,
+        view.State,
+        view.Participant?.Session.HarnessVersion ?? "",
+        view.Participant?.Session.StartedAt,
+        view.LastSeenAt,
+        view.Participant?.Session.Cwd,
+        view.Participant?.Session.WorkspacePath,
+        view.Participant?.Session.Host,
+        view.Participant?.Session.EndpointKind,
+        view.Participant?.Session.EndpointAddr);
 
     public sealed record AgentListRowResult(
+        string Actor,
+        string Role,
         string Harness,
         string SessionId,
-        string? Actor,
-        string Role,
-        string HarnessVersion,
+        bool Online,
         string State,
-        DateTimeOffset StartedAt,
+        string HarnessVersion,
+        DateTimeOffset? StartedAt,
         DateTimeOffset LastHeardAt,
-        string Cwd,
-        string WorkspacePath,
-        string Host,
-        string EndpointKind,
-        string EndpointAddr);
+        string? Cwd,
+        string? WorkspacePath,
+        string? Host,
+        string? EndpointKind,
+        string? EndpointAddr);
 }

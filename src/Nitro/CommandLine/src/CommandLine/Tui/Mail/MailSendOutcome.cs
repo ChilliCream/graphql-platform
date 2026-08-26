@@ -59,8 +59,8 @@ internal abstract record MailSendOutcome
     /// <summary>
     /// The toast this outcome should show once observed: green only for a
     /// <see cref="Succeeded"/> outcome whose <see cref="MailNotificationResult.Status"/>
-    /// is one of <see cref="WakeReceiptAggregator.IsZero"/>'s zero statuses;
-    /// every other case (still pending, partial, failed, unresolved, a
+    /// is one of <see cref="WakeReceiptAggregator.IsSuccessful"/>'s successful statuses;
+    /// every other case (still pending, failed, unresolved, a
     /// rejected write, or the intermediate <see cref="Stored"/> signal) is
     /// styled to reflect that the recipient's wake is not yet, or was never,
     /// confirmed.
@@ -93,7 +93,7 @@ internal abstract record MailSendOutcome
         var recipients = string.Join(", ", succeeded.Message.Recipients.Select(r => r.Name));
         var status = succeeded.Notification.Status;
 
-        if (WakeReceiptAggregator.IsZero(status))
+        if (WakeReceiptAggregator.IsSuccessful(status))
         {
             var phrase = status switch
             {
@@ -113,10 +113,8 @@ internal abstract record MailSendOutcome
         }
 
         var reason = DescribeFailure(succeeded.Notification);
-        var kind = status == WakeReceiptAggregator.Partial ? "partial" : "failed";
-
         return new TuiMessage.ShowToast(
-            $"Stored '{id}' to {recipients}. Notification {kind}: {reason}.", ToastStyle.Error);
+            $"Stored '{id}' to {recipients}. Notification failed: {reason}.", ToastStyle.Error);
     }
 
     /// <summary>

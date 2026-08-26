@@ -4,9 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises the approved status lattice <see cref="WakeReceiptAggregator"/>
-/// derives from a batch's target statuses: the zero/nonzero split, the
-/// no-live-session empty case, and failed-plus-nonfailed-sibling collapsing
-/// to partial.
+/// derives from a batch's connection statuses: successful terminal states,
+/// unresolved work, the no-live-connection case, and mixed terminal results.
 /// </summary>
 public sealed class WakeReceiptAggregatorTests
 {
@@ -21,15 +20,15 @@ public sealed class WakeReceiptAggregatorTests
             WakeReceiptAggregator.Aggregate([MailWakeTargetStatus.Failed, MailWakeTargetStatus.Failed]));
 
     [Fact]
-    public void Aggregate_Should_ReturnPartial_When_FailedAndDeliveredSiblingsExist()
+    public void Aggregate_Should_ReturnFailed_When_FailedAndDeliveredRecipientsExist()
         => Assert.Equal(
-            WakeReceiptAggregator.Partial,
+            MailWakeTargetStatus.Failed,
             WakeReceiptAggregator.Aggregate([MailWakeTargetStatus.Failed, MailWakeTargetStatus.Delivered]));
 
     [Fact]
-    public void Aggregate_Should_ReturnPartial_When_FailedAndPendingSiblingsExist()
+    public void Aggregate_Should_ReturnPending_When_FailedAndPendingSiblingsExist()
         => Assert.Equal(
-            WakeReceiptAggregator.Partial,
+            MailWakeTargetStatus.Pending,
             WakeReceiptAggregator.Aggregate([MailWakeTargetStatus.Failed, MailWakeTargetStatus.Pending]));
 
     [Fact]
@@ -50,6 +49,13 @@ public sealed class WakeReceiptAggregatorTests
             MailWakeTargetStatus.Satisfied,
             WakeReceiptAggregator.Aggregate([MailWakeTargetStatus.Satisfied, MailWakeTargetStatus.Satisfied]));
 
+    [Fact]
+    public void Aggregate_Should_ReturnDelivered_When_SuccessfulStatusesDiffer()
+        => Assert.Equal(
+            MailWakeTargetStatus.Delivered,
+            WakeReceiptAggregator.Aggregate(
+                [MailWakeTargetStatus.Satisfied, MailWakeTargetStatus.Delivered]));
+
     [Theory]
     [InlineData(MailWakeTargetStatus.Delivered, true)]
     [InlineData(MailWakeTargetStatus.Satisfied, true)]
@@ -57,6 +63,6 @@ public sealed class WakeReceiptAggregatorTests
     [InlineData(MailWakeTargetStatus.Skipped, true)]
     [InlineData(MailWakeTargetStatus.Pending, false)]
     [InlineData(MailWakeTargetStatus.Failed, false)]
-    public void IsZero_Should_ClassifyEveryStatus(string status, bool expected)
-        => Assert.Equal(expected, WakeReceiptAggregator.IsZero(status));
+    public void IsSuccessful_Should_ClassifyEveryStatus(string status, bool expected)
+        => Assert.Equal(expected, WakeReceiptAggregator.IsSuccessful(status));
 }

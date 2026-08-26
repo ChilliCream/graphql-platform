@@ -24,7 +24,7 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
               --timeout <timeout>  Exit with an error after this many seconds if no new mail arrives (waits until cancelled when omitted)
               --after <after>      Deliver every message created after this cursor immediately, then keep watching. The cursor is either an RFC 3339 timestamp or a message ID.
               --include-existing   Treat mail already unread at start as arrived and print it immediately, then keep watching
-              --actor <actor>      The acting identity used on mail commands (defaults to NITRO_MAIL_ACTOR, NITRO_TASK_ACTOR, or the OS user name)
+              --actor <actor>      The actor performing this command; inferred from the current session when omitted
               --output <json>      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help       Show help and usage information
 

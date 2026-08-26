@@ -15,7 +15,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
     protected TasksCommandTestBase(NitroCommandFixture fixture) : base(fixture)
     {
         SetupNoAuthentication();
-        SetupEnvironmentVariable(TaskActor.EnvironmentVariableName, "test-agent");
+        SetupEnvironmentVariable("ACTOR", "test-agent");
 
         _tempRoot = Directory.CreateTempSubdirectory("nitro-task-tests");
         WorkingDirectory = Path.Combine(_tempRoot.FullName, "acme");
@@ -30,6 +30,10 @@ public abstract class TasksCommandTestBase : CommandTestBase
 
     protected string DatabasePath
         => AgentWorkspace.GetDatabasePath(WorkspaceDirectory);
+
+    protected async Task SeedAgentAsync(string actor, string role = "")
+        => await new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase())
+            .RegisterAsync(actor, role, client: "", TestContext.Current.CancellationToken);
 
     protected async Task InitWorkspaceAsync()
     {

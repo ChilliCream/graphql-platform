@@ -20,9 +20,11 @@ internal interface IAgentSessionRegistry
     /// of inserting a second one, preserving its binding, role, delivery
     /// ledger, and block budget, and only refreshing the endpoint, location,
     /// and heartbeat columns.</item>
-    /// <item>No existing row (and no provisional row to adopt): inserts one,
-    /// bound (<c>binding_kind = 'env'</c>) when <paramref name="envActor"/>
-    /// is given, otherwise unclaimed.</item>
+    /// <item>No existing coding-session row: creates or reuses its durable
+    /// identity, allocating an actor when <paramref name="envActor"/> is not
+    /// supplied. Production coding hooks do not supply it; the parameter is
+    /// retained for non-coding board sessions and low-level lifecycle
+    /// callers.</item>
     /// <item>An existing row at the SAME generation: a duplicate delivery,
     /// preserves binding, ledger, and counters, only refreshing the
     /// heartbeat.</item>
@@ -77,6 +79,13 @@ internal interface IAgentSessionRegistry
     /// Returns whether a row was actually deleted.
     /// </summary>
     Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    Task<bool> EndEphemeralCopilotAsync(
+        string host,
+        int pid,
+        string procStart,
+        CancellationToken cancellationToken)
+        => Task.FromResult(false);
 
     /// <summary>
     /// Returns the row matching <paramref name="generation"/> exactly (the
@@ -160,6 +169,27 @@ internal interface IAgentSessionRegistry
     /// </summary>
     Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken);
 
+    async Task<IReadOnlyList<AgentSessionIdentityView>> ListIdentitiesAsync(CancellationToken cancellationToken)
+    {
+        var participants = await ListParticipantsAsync(cancellationToken);
+
+        return participants
+            .Where(participant => participant.Session.AgentName is not null)
+            .Select(participant => new AgentSessionIdentityView(
+                new AgentSessionIdentityRecord
+                {
+                    Harness = participant.Session.Harness,
+                    SessionId = participant.Session.SessionId,
+                    Actor = participant.Session.AgentName!,
+                    Role = participant.Session.Role,
+                    ActorRevision = 1,
+                    CreatedAt = participant.Session.StartedAt.ToString("O"),
+                    LastSeenAt = participant.Session.LastBeatAt.ToString("O")
+                },
+                participant))
+            .ToList();
+    }
+
     /// <summary>
     /// Atomically upserts the durable identity for <paramref name="actor"/>
     /// and binds/promotes it onto the row matching <paramref
@@ -181,6 +211,46 @@ internal interface IAgentSessionRegistry
         string client,
         bool forceRebind,
         CancellationToken cancellationToken);
+
+    async Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string? actor,
+        bool actorGiven,
+        string? role,
+        bool roleGiven,
+        CancellationToken cancellationToken)
+    {
+        var current = await FindByGenerationAsync(generation, cancellationToken)
+            ?? throw new ExitException("The current session is no longer connected.");
+
+        return await RegisterAsync(
+            generation,
+            actorGiven
+                ? actor ?? string.Empty
+                : current.AgentName ?? throw new ExitException("The current session has no actor."),
+            roleGiven ? role ?? string.Empty : current.Role,
+            generation.Harness,
+            forceRebind: true,
+            cancellationToken);
+    }
+
+    async Task<AgentSessionRegisterResult> RegisterAsync(
+        AgentSessionGeneration generation,
+        string? actor,
+        bool actorGiven,
+        string? role,
+        bool roleGiven,
+        bool force,
+        CancellationToken cancellationToken)
+    {
+        if (force)
+        {
+            throw new ExitException("This session registry does not support forced actor takeover.");
+        }
+
+        return await RegisterAsync(
+            generation, actor, actorGiven, role, roleGiven, cancellationToken);
+    }
 
     /// <summary>
     /// Returns every row matching <paramref name="harness"/>, <paramref

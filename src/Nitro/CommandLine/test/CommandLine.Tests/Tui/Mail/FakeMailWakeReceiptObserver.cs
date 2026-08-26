@@ -47,7 +47,7 @@ internal sealed class FakeMailWakeReceiptObserver : IMailWakeReceiptObserver
         }
 
         return new MailWakeObservation(
-            receipt.Actor, receipt.Generation, MailWakeTargetStatus.Pending, IsZero: false, Targets: []);
+            receipt.Actor, receipt.Generation, MailWakeTargetStatus.Pending, IsSuccessful: false, Targets: []);
     }
 
     /// <summary>
@@ -55,5 +55,5 @@ internal sealed class FakeMailWakeReceiptObserver : IMailWakeReceiptObserver
     /// ready to assign into <see cref="StatusByActor"/>.
     /// </summary>
     public static MailWakeObservation Observation(string actor, string status, long generation = 1) =>
-        new(actor, generation, status, WakeReceiptAggregator.IsZero(status), []);
+        new(actor, generation, status, WakeReceiptAggregator.IsSuccessful(status), []);
 }

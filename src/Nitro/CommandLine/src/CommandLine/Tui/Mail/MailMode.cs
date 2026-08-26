@@ -883,7 +883,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         try
         {
             var notification = await MailWakeDispatch.RunAsync(
-                    message, noPing: false, _wakeDispatcher, _wakeObserver, _timeProvider, cancellationToken)
+                    message, _wakeDispatcher, _wakeObserver, _timeProvider, cancellationToken)
                 .ConfigureAwait(false);
 
             return new MailSendOutcome.Succeeded(message, notification);

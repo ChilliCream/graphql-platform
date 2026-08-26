@@ -1,3 +1,4 @@
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -9,13 +10,39 @@ internal sealed class ClaudeHookHandler(
     IAgentSessionRegistry sessionRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
-    IEnvironmentVariableProvider environmentVariables,
     IProcessInfoProvider processInfoProvider,
     IClaudeAncestorSessionResolver ancestorResolver,
     IClaudeHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
 {
+    public ClaudeHookHandler(
+        IFileSystem fileSystem,
+        TimeProvider timeProvider,
+        IAgentSessionRegistry sessionRegistry,
+        ISessionDeliveryLedger ledger,
+        IMailStore mailStore,
+        IEnvironmentVariableProvider environmentVariableProvider,
+        IProcessInfoProvider processInfoProvider,
+        IClaudeAncestorSessionResolver ancestorResolver,
+        IClaudeHarnessVersionResolver harnessVersionResolver,
+        INitroInstanceIdProvider instanceIdProvider,
+        IGlobalConfigDirectoryProvider globalConfigDirectoryProvider)
+        : this(
+            fileSystem,
+            timeProvider,
+            sessionRegistry,
+            ledger,
+            mailStore,
+            processInfoProvider,
+            ancestorResolver,
+            harnessVersionResolver,
+            instanceIdProvider,
+            globalConfigDirectoryProvider)
+    {
+        ArgumentNullException.ThrowIfNull(environmentVariableProvider);
+    }
+
     /// <summary>
     /// The per-turn Stop gate block budget, reset on <c>UserPromptSubmit</c>
     /// so normal mail volume can never silently disable the gate for the
@@ -43,25 +70,18 @@ internal sealed class ClaudeHookHandler(
             return ClaudeHookOutcome.Neutral;
         }
 
-        // No explicit actor (NITRO_MAIL_ACTOR/NITRO_TASK_ACTOR) configured: a
-        // deterministic, harness-namespaced actor generated from the full
-        // session id keeps this live session mail-addressable rather than
-        // settling as an unbound presence row.
-        var envActor = MailActor.TryResolve(null, environmentVariables)
-            ?? AgentSessionActorNaming.Generate(resolved.Generation.Harness, resolved.Generation.SessionId);
-
         var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
             && EndpointAddress.IsValid(name)
                 ? (AgentSessionEndpointKind.ClaudePeer, name)
                 : (AgentSessionEndpointKind.None, string.Empty);
 
-        await sessionRegistry.StartAsync(
+        var session = await sessionRegistry.StartAsync(
             resolved.Generation,
             payload.Cwd!,
             resolved.WorkspaceDirectory,
             endpointKind,
             endpointAddr,
-            envActor,
+            envActor: null,
             cancellationToken);
 
         var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.Pid);
@@ -71,7 +91,10 @@ internal sealed class ClaudeHookHandler(
             await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
         }
 
-        return ClaudeHookOutcome.Neutral;
+        return new ClaudeHookOutcome
+        {
+            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+        };
     }
 
     public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
@@ -84,20 +107,46 @@ internal sealed class ClaudeHookHandler(
             return ClaudeHookOutcome.Neutral;
         }
 
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
-
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
-        if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
+        if (row is null)
+        {
+            var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
+                && EndpointAddress.IsValid(name)
+                    ? (AgentSessionEndpointKind.ClaudePeer, name)
+                    : (AgentSessionEndpointKind.None, string.Empty);
+            row = await sessionRegistry.StartAsync(
+                resolved.Generation,
+                payload.Cwd!,
+                resolved.WorkspaceDirectory,
+                endpointKind,
+                endpointAddr,
+                envActor: null,
+                cancellationToken);
+        }
+        else
+        {
+            await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+        }
+
+        if (row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
         {
             return ClaudeHookOutcome.Neutral;
         }
 
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
-        var digest = await BuildDigestAsync(resolved.Generation, row.AgentName, cancellationToken);
+        var actorContext = AgentActorContext.Format(row.AgentName, row.Role);
+        var digestByteBudget = ClaudeHookDigestFormatter.MaxByteLength
+            - Encoding.UTF8.GetByteCount(actorContext)
+            - 2;
+        var digest = await BuildDigestAsync(
+            resolved.Generation, row.AgentName, digestByteBudget, cancellationToken);
 
-        return digest is null ? ClaudeHookOutcome.Neutral : new ClaudeHookOutcome { AdditionalContext = digest };
+        return new ClaudeHookOutcome
+        {
+            AdditionalContext = AgentActorContext.Combine(actorContext, digest)
+        };
     }
 
     public async Task<ClaudeHookOutcome> HandleStopAsync(
@@ -181,7 +230,10 @@ internal sealed class ClaudeHookHandler(
     }
 
     private async Task<string?> BuildDigestAsync(
-        AgentSessionGeneration generation, string actor, CancellationToken cancellationToken)
+        AgentSessionGeneration generation,
+        string actor,
+        int maxByteLength,
+        CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
             new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
@@ -216,7 +268,7 @@ internal sealed class ClaudeHookHandler(
 
         var totalUnread = await mailStore.CountUnreadAsync(actor, cancellationToken);
 
-        return ClaudeHookDigestFormatter.Format(totalUnread, newEntries);
+        return ClaudeHookDigestFormatter.Format(totalUnread, newEntries, maxByteLength);
     }
 
     /// <summary>
@@ -288,11 +340,13 @@ internal sealed class ClaudeHookHandler(
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
-        var sessionId = string.IsNullOrWhiteSpace(payload.SessionId)
-            ? AgentSessionProvisionalSessionId.Derive(AgentSessionHarness.ClaudeCode, host, pid, procStart)
-            : payload.SessionId;
+        if (string.IsNullOrWhiteSpace(payload.SessionId))
+        {
+            return null;
+        }
 
-        var generation = new AgentSessionGeneration(AgentSessionHarness.ClaudeCode, sessionId, host, pid, procStart);
+        var generation = new AgentSessionGeneration(
+            AgentSessionHarness.ClaudeCode, payload.SessionId, host, pid, procStart);
 
         return new ResolvedGeneration(generation, payloadWorkspace, endpointName);
     }

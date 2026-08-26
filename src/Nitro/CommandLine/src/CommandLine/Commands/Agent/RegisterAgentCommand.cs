@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Session.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -13,13 +12,11 @@ internal sealed class RegisterAgentCommand : Command
 {
     public RegisterAgentCommand() : base("register")
     {
-        Description = "Register the resolved actor as an agent, with an optional role. "
-            + "--actor is per invocation; set NITRO_MAIL_ACTOR to persist an identity.";
+        Description = "Ensure the current session has an actor, or update its actor and role.";
 
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<RoleAgentOption>.Instance);
-        Options.Add(Opt<ClientAgentOption>.Instance);
-        Options.Add(Opt<ForceRebindSessionOption>.Instance);
+        Options.Add(Opt<ForceActorTakeoverOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("agent register", "agent register --role \"backend\"");
@@ -33,7 +30,6 @@ internal sealed class RegisterAgentCommand : Command
         CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<INitroConsole>();
-        var registry = services.GetRequiredService<IAgentRegistry>();
         var sessions = services.GetRequiredService<IAgentSessionRegistry>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var processInfoProvider = services.GetRequiredService<IProcessInfoProvider>();
@@ -45,13 +41,16 @@ internal sealed class RegisterAgentCommand : Command
         var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var actor = MailActor.Resolve(
-            parseResult.GetValue(Opt<MailActorOption>.Instance), environmentVariableProvider);
-        var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance) ?? "";
-        var client = parseResult.GetValue(Opt<ClientAgentOption>.Instance)
-            ?? DetectClient(environmentVariableProvider)
-            ?? "";
-        var forceRebind = parseResult.GetValue(Opt<ForceRebindSessionOption>.Instance);
+        var actorGiven = parseResult.GetResult(Opt<MailActorOption>.Instance) is { Implicit: false };
+        var roleGiven = parseResult.GetResult(Opt<RoleAgentOption>.Instance) is { Implicit: false };
+        var actor = parseResult.GetValue(Opt<MailActorOption>.Instance);
+        var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance);
+        var force = parseResult.GetValue(Opt<ForceActorTakeoverOption>.Instance);
+
+        if (force && !actorGiven)
+        {
+            throw new ExitException("Option '--force' requires '--actor'.");
+        }
 
         var resolution = await TryResolveGenerationAsync(
             fileSystem,
@@ -67,36 +66,13 @@ internal sealed class RegisterAgentCommand : Command
 
         if (resolution.Generation is null)
         {
-            // No trustworthy live session evidence (no harness ancestor, no
-            // authoritative session id with a matching row): the durable
-            // identity still registers successfully, honestly reporting
-            // that no live session was bound and why, rather than fabricating
-            // a binding or failing the whole command.
-            var reason = resolution.NoLiveBindingReason!;
-            var agent = await registry.RegisterAsync(actor, role, client, cancellationToken);
-
-            if (!console.IsHumanReadable)
-            {
-                resultHolder.SetResult(
-                    new ObjectResult(
-                        new AgentRegisterResult(
-                            agent.Name, agent.Role, agent.Client, agent.RegisteredAt, agent.LastSeenAt,
-                            Harness: "", SessionId: "", HarnessVersion: "", BindingKind: AgentSessionBindingKind.None,
-                            Changed: false, LiveBinding: false, NoLiveBindingReason: reason)));
-                return ExitCodes.Success;
-            }
-
-            console.OkLine(
-                agent.Role.Length > 0
-                    ? $"Registered '{agent.Name.EscapeMarkup()}' as '{agent.Role.EscapeMarkup()}'."
-                    : $"Registered '{agent.Name.EscapeMarkup()}'.");
-            console.OkLine($"No live session bound: {reason.EscapeMarkup()}.");
-
-            return ExitCodes.Success;
+            throw new ExitException(
+                "Could not identify the current Claude, Codex, or Copilot session: "
+                + $"{resolution.NoLiveBindingReason}. Install Nitro hooks and retry from that session.");
         }
 
         var result = await sessions.RegisterAsync(
-            resolution.Generation, actor, role, client, forceRebind, cancellationToken);
+            resolution.Generation, actor, actorGiven, role, roleGiven, force, cancellationToken);
 
         if (!console.IsHumanReadable)
         {
@@ -106,20 +82,15 @@ internal sealed class RegisterAgentCommand : Command
 
         console.OkLine(
             result.Session.Role.Length > 0
-                ? $"Registered '{result.Agent.Name.EscapeMarkup()}' as '{result.Session.Role.EscapeMarkup()}', "
-                    + $"bound to {result.Session.Harness.EscapeMarkup()} session "
-                    + $"'{result.Session.SessionId.EscapeMarkup()}'."
-                : $"Registered '{result.Agent.Name.EscapeMarkup()}', bound to "
-                    + $"{result.Session.Harness.EscapeMarkup()} session '{result.Session.SessionId.EscapeMarkup()}'.");
+                ? $"Actor '{result.Agent.Name.EscapeMarkup()}', role '{result.Session.Role.EscapeMarkup()}'."
+                : $"Actor '{result.Agent.Name.EscapeMarkup()}'.");
 
         return ExitCodes.Success;
     }
 
     /// <summary>
-    /// The outcome of <see cref="TryResolveGenerationAsync"/>: either a live
-    /// generation to bind, or, when no trustworthy live session evidence
-    /// exists, the reason a caller reports alongside its identity-only
-    /// registration. Exactly one of the two is set.
+    /// The outcome of <see cref="TryResolveGenerationAsync"/>: either the
+    /// current live generation or the reason it could not be identified.
     /// </summary>
     private readonly record struct GenerationResolution(AgentSessionGeneration? Generation, string? NoLiveBindingReason)
     {
@@ -138,17 +109,13 @@ internal sealed class RegisterAgentCommand : Command
     /// legacy wall-clock value), and a row missing entirely is bootstrapped
     /// on the spot (the SessionStart hook may never have fired for it); Codex
     /// and Copilot give only an ancestor pid, so the session already recorded
-    /// for that exact (host, pid, process-start) is looked up instead, or, if
-    /// none exists yet, a deterministic provisional row is created and bound
-    /// for that process generation. When no Codex ancestor pid can be walked
+    /// for that exact (host, pid, process-start) is looked up instead. When no Codex ancestor pid can be walked
     /// (a sandboxed invocation, whose <c>/proc</c> ancestry does not reach
     /// the real Codex process), the authoritative
     /// <c>CODEX_SESSION_ID</c>/<c>CODEX_THREAD_ID</c> launch environment
     /// resolves the session by id instead. Returns an unbound resolution,
     /// carrying the reason, when no harness context is found at all, or when
-    /// an authoritative session id has no matching row (register then falls
-    /// back to identity-only registration, honestly reporting why no live
-    /// session was bound). Throws <see cref="ExitException"/> for the unsafe
+    /// an authoritative session id has no matching row. Throws <see cref="ExitException"/> for the unsafe
     /// contradictions that remain real problems rather than a missing-session
     /// no-op: this process's own workspace disagreeing with the session's,
     /// more than one candidate row for the same process identity, or a
@@ -248,7 +215,7 @@ internal sealed class RegisterAgentCommand : Command
         {
             return GenerationResolution.Bound(
                 await ResolveByProcessAsync(
-                    AgentSessionHarness.Codex, codexAncestor.Pid, host, cwd, cwdWorkspacePath,
+                    AgentSessionHarness.Codex, codexAncestor.Pid, host, cwdWorkspacePath,
                     processInfoProvider, sessions, cancellationToken));
         }
 
@@ -263,10 +230,31 @@ internal sealed class RegisterAgentCommand : Command
                     $"CODEX_SESSION_ID '{codexSessionId}' has no live session row on this host");
         }
 
-        return GenerationResolution.Bound(
-            await ResolveByProcessAsync(
-                AgentSessionHarness.Copilot, copilotAncestor!.Pid, host, cwd, cwdWorkspacePath,
-                processInfoProvider, sessions, cancellationToken));
+        var copilotProcessStart = processInfoProvider.GetStartTicks(copilotAncestor!.Pid)
+            ?? throw new ExitException(
+                $"Process {copilotAncestor.Pid} for the detected Copilot session is no longer running.");
+        var copilotSessionId = $"generated:{host}:{copilotAncestor.Pid}:{copilotProcessStart}";
+        var copilotGeneration = new AgentSessionGeneration(
+            AgentSessionHarness.Copilot,
+            copilotSessionId,
+            host,
+            copilotAncestor.Pid,
+            copilotProcessStart);
+        var copilotRow = await sessions.FindByGenerationAsync(copilotGeneration, cancellationToken);
+
+        if (copilotRow is null)
+        {
+            await sessions.StartAsync(
+                copilotGeneration,
+                cwd,
+                cwdWorkspacePath,
+                AgentSessionEndpointKind.CopilotExtension,
+                "mail-watch",
+                envActor: null,
+                cancellationToken);
+        }
+
+        return GenerationResolution.Bound(copilotGeneration);
     }
 
     /// <summary>
@@ -284,9 +272,7 @@ internal sealed class RegisterAgentCommand : Command
     /// Resolves a harness's own live session by its session id alone (no
     /// process identity to walk to), reading the (pid, proc_start) an
     /// earlier, authoritative SessionStart already recorded for it. Returns
-    /// null when no row is recorded for that session id: an authoritative id
-    /// with no matching row is not a hard error, it degrades to the caller's
-    /// identity-only fallback.
+    /// null when no row is recorded for that session id.
     /// </summary>
     private static async Task<AgentSessionGeneration?> ResolveBySessionIdAsync(
         string harness,
@@ -311,17 +297,13 @@ internal sealed class RegisterAgentCommand : Command
     /// <summary>
     /// Resolves a harness's own live session by (host, pid, process-start)
     /// rather than a session id, for a harness whose ancestor process
-    /// exposes no session file to read one from directly. When no row is
-    /// recorded yet for that exact process generation, derives and binds the
-    /// deterministic provisional session id for it instead of failing: the
-    /// harness process itself is a trustworthy live signal even without a
-    /// SessionStart hook or an authoritative session id.
+    /// exposes no session file to read one from directly. A hook-created live
+    /// row is required so a process alone can never create a second identity.
     /// </summary>
     private static async Task<AgentSessionGeneration> ResolveByProcessAsync(
         string harness,
         int pid,
         string host,
-        string cwd,
         string cwdWorkspacePath,
         IProcessInfoProvider processInfoProvider,
         IAgentSessionRegistry sessions,
@@ -334,14 +316,9 @@ internal sealed class RegisterAgentCommand : Command
 
         if (candidates.Count == 0)
         {
-            var provisionalGeneration = new AgentSessionGeneration(
-                harness, AgentSessionProvisionalSessionId.Derive(harness, host, pid, procStart), host, pid, procStart);
-
-            await sessions.StartAsync(
-                provisionalGeneration, cwd, cwdWorkspacePath, AgentSessionEndpointKind.None, string.Empty,
-                envActor: null, cancellationToken);
-
-            return provisionalGeneration;
+            throw new ExitException(
+                $"No authoritative {harness} session is registered for pid {pid}. "
+                + $"Run `nitro agent hooks {HooksInstallCommandName(harness)} install` and start a new session.");
         }
 
         if (candidates.Count > 1)
@@ -366,47 +343,24 @@ internal sealed class RegisterAgentCommand : Command
         }
     }
 
-    /// <summary>
-    /// Detects the CLI's client program from environment markers, used as
-    /// the fallback when <c>--client</c> is not given. Only markers
-    /// confirmed present in a real session of the corresponding tool are
-    /// checked; an unconfirmed tool is left undetected rather than guessed,
-    /// so its identity can only be recorded via <c>--client</c>.
-    ///
-    /// | Marker present | Detected as   |
-    /// |-----------------|---------------|
-    /// | <c>CLAUDECODE</c> | <c>claude-code</c> |
-    /// </summary>
-    internal static string? DetectClient(IEnvironmentVariableProvider environmentVariables)
-        => environmentVariables.GetEnvironmentVariable("CLAUDECODE") is not null
-            ? "claude-code"
-            : null;
+    private static string HooksInstallCommandName(string harness)
+        => harness == AgentSessionHarness.ClaudeCode ? "claude" : harness;
 
     private static AgentRegisterResult ToResult(AgentSessionRegisterResult result) => new(
         result.Agent.Name,
         result.Session.Role,
-        result.Agent.Client,
-        result.Agent.RegisteredAt,
-        result.Agent.LastSeenAt,
         result.Session.Harness,
         result.Session.SessionId,
         result.Session.HarnessVersion,
-        result.Session.BindingKind,
         result.Changed,
-        LiveBinding: true,
-        NoLiveBindingReason: "");
+        Connected: true);
 
     public sealed record AgentRegisterResult(
-        string Name,
+        string Actor,
         string Role,
-        string Client,
-        DateTimeOffset RegisteredAt,
-        DateTimeOffset LastSeenAt,
         string Harness,
         string SessionId,
         string HarnessVersion,
-        string BindingKind,
         bool Changed,
-        bool LiveBinding,
-        string NoLiveBindingReason);
+        bool Connected);
 }

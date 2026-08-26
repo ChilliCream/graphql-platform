@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Memory;
 
@@ -37,12 +38,12 @@ internal sealed class LogMemoryCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMemoryStore>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
-        var environmentVariableProvider = services.GetRequiredService<IEnvironmentVariableProvider>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var text = await MemoryBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
-        var actor = MemoryActor.Resolve(
-            parseResult.GetValue(Opt<MemoryActorOption>.Instance), environmentVariableProvider);
+        var actor = await MemoryActor.ResolveAsync(
+            parseResult.GetValue(Opt<MemoryActorOption>.Instance), actorResolver, cancellationToken);
         var scope = parseResult.GetRequiredValue(Opt<MemoryWriteScopeOption>.Instance);
 
         var entry = await store.LogAsync(

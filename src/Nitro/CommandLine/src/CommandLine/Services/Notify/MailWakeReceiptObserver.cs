@@ -60,12 +60,16 @@ internal sealed class MailWakeReceiptObserver(
             // outbox has not caught up to it, or failed (its batch's target
             // rows are gone) once the outbox has settled at or past it
             // without one ever showing up here.
-            var status = settledGeneration < receipt.Generation
+            var noBatchStatus = settledGeneration < receipt.Generation
                 ? MailWakeTargetStatus.Pending
                 : MailWakeTargetStatus.Failed;
 
             return new MailWakeObservation(
-                receipt.Actor, receipt.Generation, status, WakeReceiptAggregator.IsZero(status), []);
+                receipt.Actor,
+                receipt.Generation,
+                noBatchStatus,
+                WakeReceiptAggregator.IsSuccessful(noBatchStatus),
+                []);
         }
 
         var targetRows = (await connection.QueryAsync<TargetRow>(
@@ -90,10 +94,15 @@ internal sealed class MailWakeReceiptObserver(
                 row.LastError))
             .ToList();
 
-        var aggregate = WakeReceiptAggregator.Aggregate(targets.Select(t => t.Status).ToList());
+        // One durable session owns an actor and one live connection owns a
+        // session, so a wake batch has at most one coding-session target.
+        // The board daemon is a retrying dispatcher, never another target.
+        var status = targets.Count == 1
+            ? targets[0].Status
+            : MailWakeTargetStatus.Failed;
 
         return new MailWakeObservation(
-            receipt.Actor, receipt.Generation, aggregate, WakeReceiptAggregator.IsZero(aggregate), targets);
+            receipt.Actor, receipt.Generation, status, WakeReceiptAggregator.IsSuccessful(status), targets);
     }
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)

@@ -62,12 +62,12 @@ public sealed class AgentWorkspaceTests : IDisposable
     }
 
     [Fact]
-    public void Find_Should_ReturnNull_When_OnlyLegacyJsonlExists()
+    public void Find_Should_ReturnNull_When_OnlyJsonlExists()
     {
         // arrange
         var workspaceDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
         Directory.CreateDirectory(workspaceDirectory);
-        File.WriteAllText(AgentWorkspace.GetLegacyJsonlPath(workspaceDirectory), "");
+        File.WriteAllText(Path.Combine(workspaceDirectory, "tasks.jsonl"), "");
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
 
         // act

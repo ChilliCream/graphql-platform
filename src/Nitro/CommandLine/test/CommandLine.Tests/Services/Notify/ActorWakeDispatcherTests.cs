@@ -286,86 +286,6 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_OfferOnlyTheDeniedTarget_And_LetLiveSiblingsFinish_When_ClaudeAccessIsDenied()
-    {
-        // arrange: two live sessions, one Claude peer (denied), one Codex
-        // thread (delivers normally) - the sibling must still complete.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var claudeGeneration = await SeedLiveSessionAsync(
-            AgentSessionEndpointKind.ClaudePeer, "peer-a", cancellationToken, sessionId: "claude-session");
-        var codexGeneration = await SeedLiveSessionAsync(
-            AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken, sessionId: "codex-session");
-        await SendEnqueuedMailAsync(cancellationToken);
-        var executor = new FakePingSessionExecutor();
-        executor.ReasonBySessionId[claudeGeneration.SessionId] = PingAttemptReason.AccessDenied;
-        var dispatcher = CreateDispatcher(executor);
-
-        // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-
-        // assert: pending - one offered (pending, not failed), one
-        // delivered; no target actually failed, so the lattice reports
-        // pending rather than partial.
-        Assert.NotNull(receipt);
-        Assert.Equal(MailWakeTargetStatus.Pending, receipt.Status);
-        Assert.Equal(2, receipt.Targets.Count);
-
-        var deniedTarget = Assert.Single(receipt.Targets, t => t.Target == claudeGeneration);
-        Assert.Equal(MailWakeTargetStatus.Pending, deniedTarget.Status);
-        Assert.Equal("access-denied", deniedTarget.LastError);
-        Assert.NotNull(deniedTarget.OfferedGeneration);
-
-        var deliveredTarget = Assert.Single(receipt.Targets, t => t.Target == codexGeneration);
-        Assert.Equal(MailWakeTargetStatus.Delivered, deliveredTarget.Status);
-
-        // the denied target's session gate was released without a cooldown:
-        // a fresh reservation attempt against it succeeds immediately.
-        var retryReservation = await _gateCoordinator.TryReserveAsync(
-            claudeGeneration, "retry-attempt", _timeProvider.GetUtcNow(), cancellationToken);
-        Assert.NotNull(retryReservation.Reservation);
-
-        // the batch was released with durable offered work, not completed:
-        // a fresh dispatch retries it once its rescheduled due_at arrives.
-        var immediateRetry = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        Assert.Null(immediateRetry);
-
-        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        var rescheduledExecutor = new FakePingSessionExecutor();
-        var rescheduledDispatcher = CreateDispatcher(rescheduledExecutor);
-        var rescheduled = await rescheduledDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        Assert.NotNull(rescheduled);
-    }
-
-    [Fact]
-    public async Task DispatchAsync_Should_DispatchEveryTarget_Without_ExceedingFourConcurrentTransports_When_MoreThanFourLiveSessionsExist()
-    {
-        // arrange: six live sessions for the same actor.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-
-        for (var i = 0; i < 6; i++)
-        {
-            await SeedLiveSessionAsync(
-                AgentSessionEndpointKind.CodexThread, $"thread-{i}", cancellationToken, sessionId: $"session-{i}");
-        }
-
-        await SendEnqueuedMailAsync(cancellationToken);
-        var executor = new FakePingSessionExecutor { ConcurrentDelay = TimeSpan.FromMilliseconds(30) };
-        var dispatcher = CreateDispatcher(executor);
-
-        // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-
-        // assert
-        Assert.NotNull(receipt);
-        Assert.Equal(6, receipt.Targets.Count);
-        Assert.All(receipt.Targets, t => Assert.Equal(MailWakeTargetStatus.Delivered, t.Status));
-        Assert.Equal(6, executor.Calls.Count);
-        Assert.InRange(executor.MaxObservedConcurrency, 1, WakeDispatchPolicy.MaxConcurrentTransports);
-    }
-
-    [Fact]
     public async Task DispatchAsync_Should_ClampTheAttemptDeadline_When_TheSharedDeadlineIsAlreadyWithinTheHandoffReserve()
     {
         // arrange: a caller-supplied deadline only 200ms out, well inside
@@ -564,98 +484,11 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     /// <summary>
-    /// Wired like a real end-to-end dispatch (the real
-    /// <see cref="PingSessionExecutor"/> and <see cref="SessionGateCoordinator"/>,
-    /// only the outermost Codex transport faked), not the scripted
-    /// <see cref="FakePingSessionExecutor"/> the tests above use: a false
-    /// transport attempt against the board's db-watch endpoint must be
-    /// observable here, not merely absent from a fake's own call log.
+    /// A board process may run the fallback dispatcher, but is not itself a
+    /// recipient target. The one coding session still receives the wake.
     /// </summary>
     [Fact]
-    public async Task DispatchAsync_Should_DeliverTheDbWatchTargetWithoutTransport_When_TheActorHasALiveBoardSession()
-    {
-        // arrange: a live Nitro board session (endpoint_kind = db-watch) for
-        // "pascal", whose mail is already delivered the moment it commits.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-
-        var pid = Environment.ProcessId;
-        var procStart = new ProcessInfoProvider().GetStartTicks(pid)!;
-        var boardGeneration = new AgentSessionGeneration(
-            AgentSessionHarness.NitroBoard, "board-1", InstanceId, pid, procStart);
-        await _sessions.StartAsync(
-            boardGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.DbWatch, "local",
-            envActor: "pascal", cancellationToken);
-
-        var message = await _mail.SendMessageAsync(
-            new MailMessageCreation
-            {
-                Sender = "codex-worker",
-                Subject = "status",
-                Body = "check",
-                To = ["pascal"],
-                WakePolicy = MailWakePolicy.Enqueue
-            },
-            cancellationToken);
-        var receipt = Assert.Single(message.WakeReceipts);
-
-        var queueClient = new FakeCodexQueueClient();
-        var executor = new PingSessionExecutor(
-            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
-        var dispatcher = new ActorWakeDispatcher(
-            _batches,
-            _sessions,
-            _gateCoordinator,
-            executor,
-            _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
-            _timeProvider);
-
-        // act
-        var dispatchReceipt = await dispatcher.DispatchAsync("pascal", Deadline(), cancellationToken);
-
-        // assert
-        Assert.NotNull(dispatchReceipt);
-        Assert.Equal(MailWakeTargetStatus.Delivered, dispatchReceipt.Status);
-        var target = Assert.Single(dispatchReceipt.Targets);
-        Assert.Equal(boardGeneration, target.Target);
-        Assert.Equal(MailWakeTargetStatus.Delivered, target.Status);
-        Assert.Null(target.LastError);
-
-        // no Codex transport was ever attempted, and no session gate or ping
-        // lease row was ever created for the board generation: dispatch
-        // short-circuits before reaching gateCoordinator.TryReserveAsync or
-        // the executor at all.
-        Assert.Empty(queueClient.Calls);
-
-        await using (var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken))
-        {
-            var gateCount = await ScalarCountAsync(
-                connection,
-                "SELECT COUNT(*) FROM session_ping_gates WHERE session_id = @sessionId",
-                boardGeneration.SessionId,
-                cancellationToken);
-            var leaseCount = await ScalarCountAsync(
-                connection, "SELECT COUNT(*) FROM ping_leases", null, cancellationToken);
-            Assert.Equal(0, gateCount);
-            Assert.Equal(0, leaseCount);
-        }
-
-        var observer = new MailWakeReceiptObserver(
-            _fileSystem, _database, _instanceIdProvider, _globalConfigDirectoryProvider);
-        var observation = await observer.ObserveAsync(receipt, Deadline(), cancellationToken);
-        Assert.Equal(MailWakeTargetStatus.Delivered, observation.Status);
-        Assert.True(observation.IsZero);
-    }
-
-    /// <summary>
-    /// The same actor can hold both a live board session and a live coding-
-    /// harness session at once: the db-watch target settles delivered
-    /// outright while its sibling still goes through the real transport.
-    /// </summary>
-    [Fact]
-    public async Task DispatchAsync_Should_DeliverTheDbWatchTarget_And_StillPingTheCodexTarget_When_TheActorHasBothSessionKinds()
+    public async Task DispatchAsync_Should_PingOnlyTheCodexTarget_When_TheActorAlsoHasABoardSession()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -704,13 +537,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // assert
         Assert.NotNull(dispatchReceipt);
-        Assert.Equal(2, dispatchReceipt.Targets.Count);
-
-        var boardTarget = Assert.Single(dispatchReceipt.Targets, t => t.Target == boardGeneration);
-        Assert.Equal(MailWakeTargetStatus.Delivered, boardTarget.Status);
-        Assert.Null(boardTarget.LastError);
-
-        var codexTarget = Assert.Single(dispatchReceipt.Targets, t => t.Target == codexGeneration);
+        var codexTarget = Assert.Single(dispatchReceipt.Targets);
+        Assert.Equal(codexGeneration, codexTarget.Target);
         Assert.Equal(MailWakeTargetStatus.Delivered, codexTarget.Status);
 
         var call = Assert.Single(queueClient.Calls);

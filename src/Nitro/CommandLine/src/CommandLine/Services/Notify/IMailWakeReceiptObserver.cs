@@ -7,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// against <c>mail_wake_batches</c>/<c>mail_wake_targets</c>: its echoed
 /// <see cref="Actor"/> and <see cref="Generation"/>, its aggregate
 /// <see cref="Status"/> (a <see cref="WakeReceiptAggregator"/> value), the
-/// corresponding <see cref="WakeReceiptAggregator.IsZero"/> verdict, and
+/// corresponding <see cref="WakeReceiptAggregator.IsSuccessful"/> verdict, and
 /// every target row this generation's batch reached. <see cref="Targets"/>
 /// is empty both when the generation has not been claimed yet
 /// (<see cref="Status"/> is <see cref="MailWakeTargetStatus.Pending"/>) and
@@ -18,7 +18,7 @@ internal sealed record MailWakeObservation(
     string Actor,
     long Generation,
     string Status,
-    bool IsZero,
+    bool IsSuccessful,
     IReadOnlyList<ActorWakeTargetReceipt> Targets);
 
 /// <summary>
