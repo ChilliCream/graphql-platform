@@ -102,7 +102,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // harness context immediately.
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
-        Assert.Contains($"Your Nitro actor is `{row.AgentName}`.", outcome.AdditionalContext);
+        Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
         Assert.DoesNotContain(SessionId, row.AgentName);
         Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
         Assert.Equal("", row.Role);
@@ -125,7 +125,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
         Assert.Equal(first.AdditionalContext, second.AdditionalContext);
-        Assert.Contains($"Your Nitro actor is `{row.AgentName}`.", second.AdditionalContext);
+        Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", second.AdditionalContext);
         Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
     }
 
@@ -269,7 +269,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // assert
         var row = await FindRowAsync(cancellationToken);
-        Assert.Contains($"Your Nitro actor is `{row!.AgentName}`.", outcome.AdditionalContext);
+        Assert.Contains($"Your Nitro actor name is \"{row!.AgentName}\".", outcome.AdditionalContext);
         Assert.DoesNotContain("unread message", outcome.AdditionalContext);
     }
 
@@ -311,7 +311,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.Contains($"Your Nitro actor is `{actor}`.", second.AdditionalContext);
+        Assert.Contains($"Your Nitro actor name is \"{actor}\".", second.AdditionalContext);
         Assert.DoesNotContain("unread message", second.AdditionalContext);
     }
 
@@ -333,7 +333,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.Contains($"Your Nitro actor is `{actor}`.", second.AdditionalContext);
+        Assert.Contains($"Your Nitro actor name is \"{actor}\".", second.AdditionalContext);
         Assert.DoesNotContain("unread message", second.AdditionalContext);
     }
 

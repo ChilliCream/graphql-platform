@@ -4,13 +4,11 @@ internal static class AgentActorContext
 {
     public static string Format(string actor, string role)
     {
-        var context = $"Your Nitro actor is `{actor}`.\n"
-            + "Nitro uses it automatically when this session can be identified. "
-            + "Pass `--actor <actor>` to act under another actor explicitly.\n"
-            + "To change this session's actor, run "
-            + "`nitro agent register --actor <actor>` from this session.";
+        var context =
+            $"Your Nitro actor name is \"{actor}\". Pass this name to the `--actor` option "
+            + "to act under this actor explicitly.";
 
-        return role.Length == 0 ? context : $"{context}\nYour Nitro role is `{role}`.";
+        return role.Length == 0 ? context : $"{context}\nYour Nitro role is \"{role}\".";
     }
 
     public static string Combine(string actorContext, string? mailContext)
