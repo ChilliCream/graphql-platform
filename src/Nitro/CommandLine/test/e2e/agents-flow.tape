@@ -21,13 +21,12 @@
 # a static SQL fixture can pin byte-stably).
 #
 # perles-net-nhs (feat(nitro-agent): register both board entry points as
-# live operator sessions) now starts a live nitro-board session for bare
-# `nitro agent` itself, before the shell even opens: this tape's own launch
-# registers a second, real agent_sessions row for the resolved mail actor
-# (NITRO_MAIL_ACTOR, falling back to NITRO_TASK_ACTOR=e2e-agent below), so
-# the tab shows two rows, not one. ListParticipantsAsync orders by harness
-# then session id, and "claude-code" sorts ahead of "nitro-board", so bob
-# stays row 0 and selected by default; the board's own row lands second.
+# live operator sessions) starts a live nitro-board session for bare
+# `nitro agent` itself, before the shell even opens, so the tab can show a
+# second row for the board alongside the seeded one. ListParticipantsAsync
+# orders by harness then session id, and "claude-code" sorts ahead of
+# "nitro-board", so bob stays row 0 and selected by default; the board's own
+# row lands second.
 # That row's fields are all deterministic except its two ages: actor
 # e2e-agent (the resolved mail actor), harness nitro-board, state online
 # (its host always matches the current instance, and the process is,
@@ -71,7 +70,6 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_TASK_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter

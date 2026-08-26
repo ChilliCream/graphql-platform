@@ -17,24 +17,21 @@
 -- from the row's `host` column against the CURRENT machine's own instance
 -- id (NitroInstanceIdProvider, a hash of /etc/machine-id or a generated
 -- fallback): a row whose host differs from that id renders `Remote` (`◇`)
--- unconditionally, with no PID-liveness check at all, since
--- AgentSessionRegistry.ReapAsync only ever reaps rows matching the CURRENT
--- host. `Online`/`Unreachable`, by contrast, both require ReapAsync's
--- IsAlive(pid, proc_start) check to pass against the CURRENT host's real
--- process table, which cannot be faked from a static SQL fixture applied
--- before any tape process exists, so this fixture seeds exactly one Remote
--- session (bob), the only state a static fixture can pin byte-stably;
+-- unconditionally and is never reaped, since AgentSessionRegistry.ReapAsync
+-- only ever reaps rows matching the CURRENT host. That also keeps this row
+-- stable against the heartbeat staleness rule reaping now uses: a
+-- last_beat_at this old would be swept immediately on the current host.
 -- `host` below is an arbitrary string that can never coincidentally equal a
 -- real machine's hashed instance id or generated fallback GUID.
 
 BEGIN TRANSACTION;
 
 INSERT INTO agent_sessions (
-    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
+    harness, session_id, agent_name, binding_kind, host,
     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
 ) VALUES (
-    'claude-code', 'e2e-remote-session', 'bob', 'explicit', 'e2e-remote-host-fixture', 424242,
-    '2026-01-01 06:00:00.0000000+00:00', '/tmp/remote-cwd', '/tmp/remote-workspace',
+    'claude-code', 'e2e-remote-session', 'bob', 'explicit', 'e2e-remote-host-fixture',
+    '/tmp/remote-cwd', '/tmp/remote-workspace',
     'none', '', '2026-01-01 06:00:00.0000000+00:00', '2026-01-01 06:00:00.0000000+00:00'
 );
 

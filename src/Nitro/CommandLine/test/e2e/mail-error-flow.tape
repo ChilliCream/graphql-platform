@@ -33,7 +33,6 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_MAIL_ACTOR=agent-a` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cd /tmp/work` Enter
 Type `nitro agent init >/dev/null` Enter
@@ -41,7 +40,7 @@ Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent mail send "not.a.valid.agent" --subject "Status update" --body "All good."; echo "[nitro exit: $?]"` Enter
+Type `nitro agent mail send --to "not.a.valid.agent" --subject "Status update" --body "All good." --actor agent-a; echo "[nitro exit: $?]"` Enter
 
 Wait+Screen@30s /\[nitro exit: 1\]/
 Sleep 1500ms

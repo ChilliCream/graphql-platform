@@ -4,9 +4,8 @@
 # message ids).
 #
 # init (unified `nitro agent init`, the same command tasks use) -> register
-# two actors at the `nitro agent` root (--actor, one invocation each; the
-# persistent NITRO_MAIL_ACTOR env var form is exercised by mail-board-flow
-# instead), agent-a with a --role so the flow demonstrates RegisterAgentCommand's
+# two actors at the `nitro agent` root (--actor, one invocation each),
+# agent-a with a --role so the flow demonstrates RegisterAgentCommand's
 # role and ReadMailCommand's "From: name (role)" header -> agent-a sends to
 # agent-b, cc'ing itself (--cc) -> agent-b's inbox shows it unread -> agent-b
 # replies (ReplyMessageAsync flattens the original's sender/to/cc into the
@@ -14,16 +13,10 @@
 # back with --thread as agent-a, printing both messages, the first one's
 # header showing agent-a's role.
 #
-# Neither actor here has a live session bound (both registrations print "No
-# live session bound"), so `send`'s default MailWakePolicy.Enqueue wake
-# attempt fails with `no-live-session`: the command prints
-# "Stored '<id>' to ...", "message stored, but wake failed: no-live-session.",
-# one "  <actor>: failed (no-live-session)" line per recipient, and exits 1.
-# The send step is left on this default deliberately: this is the epic's
-# whole point, a storage success no longer masquerades as a delivered wake.
-# The reply step instead passes --no-ping: it exists to demonstrate
-# ReplyMessageAsync's participant flattening, not wake delivery, so it keeps
-# the plain "Sent '<id>' to ..." / exit 0 output the flow had before upj.7.
+# Neither actor here has a live session bound, so neither send nor reply can
+# push a nudge. That is not an error: the mail is stored, the command prints
+# "Sent '<id>' to ..." and exits 0, and the recipient sees it on their next
+# pull. A missing session only costs the push, never the message.
 #
 # Every typed command is kept short and a `Sleep 500ms` follows each
 # Wait+Screen (mirroring close-reopen-flow.tape's chained-command pattern):
@@ -84,8 +77,8 @@ Sleep 500ms
 
 # Send from agent-a to agent-b, cc'ing agent-a itself so the run exercises
 # --cc without needing a third registered actor.
-Type `nitro agent mail send agent-b --actor agent-a --cc agent-a --subject Status --body All-good` Enter
-Wait+Screen@30s /agent-a: failed \(no-live-session\)/
+Type `nitro agent mail send --to agent-b --actor agent-a --cc agent-a --subject Status --body All-good` Enter
+Wait+Screen@30s /Sent '/
 Sleep 500ms
 
 Type `nitro agent mail inbox --actor agent-b` Enter
@@ -100,7 +93,7 @@ Type `echo "captured $MSG_ID"` Enter
 Wait+Screen@30s /captured m-/
 Sleep 500ms
 
-Type `nitro agent mail reply "$MSG_ID" --actor agent-b --body Thanks-noted --no-ping` Enter
+Type `nitro agent mail reply --message "$MSG_ID" --actor agent-b --body Thanks-noted` Enter
 Wait+Screen@30s /Sent '/
 Sleep 500ms
 
@@ -108,7 +101,7 @@ Sleep 500ms
 # once ReplyMessageAsync flattens participants): prints both messages,
 # oldest first, marks agent-a's copy of the reply read, and shows agent-a's
 # "reviewer" role in the first message's From header.
-Type `nitro agent mail read "$MSG_ID" --thread --actor agent-a` Enter
+Type `nitro agent mail read --message "$MSG_ID" --thread --actor agent-a` Enter
 Wait+Screen@30s /Thanks-noted/
 
 Sleep 1500ms

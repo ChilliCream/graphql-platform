@@ -173,7 +173,7 @@ rm -rf "$FIXTURE_DIR"
 # repository's tree, and without it `nitro agent init` would walk up, find the
 # repo's .git, and initialize .git/nitro instead of the fixture directory.
 mkdir -p "$FIXTURE_DIR/.nitro/agents"
-if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" agent init >/dev/null ); then
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent init >/dev/null ); then
   echo "==> fixture prepare FAILED: 'nitro agent init' did not succeed" >&2
   exit 2
 fi
@@ -206,7 +206,7 @@ if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXT
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
-if ! ( cd "$FIXTURE_DIR" && NITRO_MAIL_ACTOR=e2e-agent "$BIN_DIR/nitro" agent mail inbox ) \
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent mail inbox --actor e2e-agent ) \
     | grep -q "$FIXTURE_MAIL_MARKER"; then
   echo "==> fixture guard FAILED: 'nitro agent mail inbox' did not show '$FIXTURE_MAIL_MARKER'" >&2
   echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
