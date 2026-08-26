@@ -4,7 +4,7 @@ internal sealed class MailBodyFileOption : Option<string>
 {
     public MailBodyFileOption() : base("--body-file")
     {
-        Description = "A file to read the message body from. Exactly one of --body or --body-file is required";
+        Description = "A file to read the message body from; use it instead of --body";
         Required = false;
     }
 }

@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -14,15 +13,14 @@ internal sealed class ReadMailCommand : Command
     {
         Description = "Print a message and mark it read.";
 
-        Arguments.Add(Opt<MailMessageIdArgument>.Instance);
-
+        Options.Add(Opt<MailMessageOption>.Instance);
         Options.Add(Opt<MailThreadOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "agent mail read \"m-abc123\"",
-            "agent mail read \"m-abc123\" --thread");
+            "agent mail read --message \"m-abc123\" --actor \"maya\"",
+            "agent mail read --message \"m-abc123\" --thread --actor \"maya\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -38,7 +36,7 @@ internal sealed class ReadMailCommand : Command
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var messageId = parseResult.GetRequiredValue(Opt<MailMessageIdArgument>.Instance);
+        var messageId = parseResult.GetRequiredValue(Opt<MailMessageOption>.Instance);
         var thread = parseResult.GetValue(Opt<MailThreadOption>.Instance);
         var actor = await MailActor.ResolveAsync(
             parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);

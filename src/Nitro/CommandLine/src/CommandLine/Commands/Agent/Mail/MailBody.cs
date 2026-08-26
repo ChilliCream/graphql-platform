@@ -17,11 +17,8 @@ internal static class MailBody
     {
         command.Validators.Add(result =>
         {
-            var bodyResult = result.GetResult(Opt<MailBodyOption>.Instance);
-            var bodyFileResult = result.GetResult(Opt<MailBodyFileOption>.Instance);
-
-            var hasBody = bodyResult is { Implicit: false };
-            var hasBodyFile = bodyFileResult is { Implicit: false };
+            var hasBody = result.GetResult(Opt<MailBodyOption>.Instance) is { Implicit: false };
+            var hasBodyFile = result.GetResult(Opt<MailBodyFileOption>.Instance) is { Implicit: false };
 
             if (hasBody == hasBodyFile)
             {

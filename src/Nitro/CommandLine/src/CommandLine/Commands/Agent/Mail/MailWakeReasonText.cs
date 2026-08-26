@@ -9,7 +9,6 @@ internal static class MailWakeReasonText
 {
     public static string Describe(string reason) => reason switch
     {
-        "no-live-session" => "No live session was claimed for this recipient.",
         "session-gone" => "The session ended before the wake could be attempted.",
         "no-endpoint" => "The session has no endpoint the wake could reach.",
         "unsupported" or "Unsupported" => "The session's endpoint does not support the automatic wake.",

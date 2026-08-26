@@ -4,7 +4,7 @@ internal sealed class MailActorOption : Option<string>
 {
     public MailActorOption() : base("--actor")
     {
-        Description = "The actor performing this command; inferred from the current session when omitted";
-        Required = false;
+        Description = "The actor performing this command; allocate one with `nitro agent login`";
+        Required = true;
     }
 }

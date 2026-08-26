@@ -12,7 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// <item>Nothing outstanding, not yet due, or another owner already holds a
 /// live batch for this actor: <see cref="DispatchAsync"/> returns null.</item>
 /// <item>The frozen target set is empty (no live claimed session): the
-/// batch completes immediately with an explicit no-live-session failure.</item>
+/// batch completes immediately as skipped: that actor takes no push.</item>
 /// <item>The actor has no unread mail left by dispatch time: the target
 /// settles <see cref="MailWakeTargetStatus.Satisfied"/> without attempting
 /// any transport.</item>
@@ -70,12 +70,8 @@ internal sealed class ActorWakeDispatcher(
 
         if (claim.Targets.Count == 0)
         {
-            // No live claimed session to address at all: nobody was, or
-            // could be, notified. Nothing durable is left behind, so the
-            // claimed generation settles now rather than being retried
-            // against a still-empty candidate set.
             await batchStore.TryCompleteAsync(claim.BatchId, ownerId, batchAttemptId, now, cancellationToken);
-            return new ActorWakeReceipt(normalizedActor, MailWakeTargetStatus.Failed, []);
+            return new ActorWakeReceipt(normalizedActor, MailWakeTargetStatus.Skipped, []);
         }
 
         var unread = await mailStore.CountUnreadAsync(normalizedActor, cancellationToken);

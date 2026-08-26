@@ -39,17 +39,12 @@ internal sealed record MailWakeRecipientResult
         var attemptSource = targets.FirstOrDefault(t => t.Status is MailWakeTargetStatus.Pending or MailWakeTargetStatus.Failed)
             ?? targets.FirstOrDefault(t => t.LastAttempt is not null);
 
-        var lastAttempt = attemptSource?.LastAttempt
-            ?? (observation.Status == MailWakeTargetStatus.Failed && targets.Length == 0
-                ? MailWakeAttemptResult.Create("no-live-session")
-                : null);
-
         return new MailWakeRecipientResult
         {
             Actor = receipt.Actor,
             Status = observation.Status,
             WakeGeneration = receipt.Generation,
-            LastAttempt = lastAttempt,
+            LastAttempt = attemptSource?.LastAttempt,
             Targets = targets
         };
     }

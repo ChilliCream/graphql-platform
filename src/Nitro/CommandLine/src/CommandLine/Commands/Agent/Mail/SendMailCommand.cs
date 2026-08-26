@@ -14,10 +14,9 @@ internal sealed class SendMailCommand : Command
     {
         Description = "Send a message to one or more agents.";
 
-        Arguments.Add(Opt<MailRecipientsArgument>.Instance);
-
-        Options.Add(Opt<MailSubjectOption>.Instance);
+        Options.Add(Opt<MailToOption>.Instance);
         Options.Add(Opt<MailBodyOption>.Instance);
+        Options.Add(Opt<MailSubjectOption>.Instance);
         Options.Add(Opt<MailBodyFileOption>.Instance);
         Options.Add(Opt<MailCcOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
@@ -26,8 +25,9 @@ internal sealed class SendMailCommand : Command
         MailBody.AddValidator(this);
 
         this.AddExamples(
-            "agent mail send \"agent-a\" --subject \"Status\" --body \"All good.\"",
-            "agent mail send \"agent-a\" \"agent-b\" --cc \"agent-c\" --subject \"Status\" --body-file notes.txt");
+            "agent mail send --to \"agent-a\" --subject \"Status\" --body \"All good.\" --actor \"maya\"",
+            "agent mail send --body-file notes.txt --to \"agent-a\" --to \"agent-b\" --cc \"agent-c\" "
+            + "--subject \"Status\" --actor \"maya\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -46,7 +46,7 @@ internal sealed class SendMailCommand : Command
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var to = parseResult.GetRequiredValue(Opt<MailRecipientsArgument>.Instance);
+        var to = parseResult.GetRequiredValue(Opt<MailToOption>.Instance);
         var cc = parseResult.GetValue(Opt<MailCcOption>.Instance) ?? [];
         var subject = parseResult.GetRequiredValue(Opt<MailSubjectOption>.Instance);
         var actor = await MailActor.ResolveAsync(

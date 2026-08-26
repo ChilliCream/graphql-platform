@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -13,14 +12,13 @@ internal sealed class AckMailCommand : Command
     {
         Description = "Mark one or more messages read without printing them.";
 
-        Arguments.Add(Opt<MailMessageIdsArgument>.Instance);
-
+        Options.Add(Opt<MailMessagesOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "agent mail ack \"m-abc123\"",
-            "agent mail ack \"m-abc123\" \"m-def456\"");
+            "agent mail ack --message \"m-abc123\" --actor \"maya\"",
+            "agent mail ack --message \"m-abc123\" --message \"m-def456\" --actor \"maya\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -35,7 +33,7 @@ internal sealed class AckMailCommand : Command
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var ids = parseResult.GetRequiredValue(Opt<MailMessageIdsArgument>.Instance)
+        var ids = parseResult.GetRequiredValue(Opt<MailMessagesOption>.Instance)
             .Distinct()
             .ToArray();
         var actor = await MailActor.ResolveAsync(

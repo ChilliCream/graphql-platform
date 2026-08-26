@@ -1,10 +1,8 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
@@ -12,7 +10,7 @@ internal sealed class ListAgentCommand : Command
 {
     public ListAgentCommand() : base("list")
     {
-        Description = "List current actors and their durable harness sessions.";
+        Description = "List the actors this workspace knows, with their session when they have one.";
 
         Options.Add(Opt<RoleAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
@@ -33,29 +31,36 @@ internal sealed class ListAgentCommand : Command
 
         var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance);
 
+        // Actors are the unit: an actor allocated by `agent login` has no
+        // session until a hook binds one, and must still be listed.
+        var agents = services.GetRequiredService<IAgentRegistry>();
         var identities = await sessionRegistry.ListIdentitiesAsync(cancellationToken);
+        var byActor = identities.ToDictionary(view => view.Identity.Actor, StringComparer.Ordinal);
+        var rows = (await agents.ListAsync(role: null, staleBefore: null, cancellationToken))
+            .Select(agent => new AgentListRow(agent, byActor.GetValueOrDefault(agent.Name)))
+            .ToArray();
 
         if (role is not null)
         {
             var normalizedRole = AgentRole.Normalize(role);
-            identities = identities.Where(view => view.Identity.Role == normalizedRole).ToArray();
+            rows = rows.Where(row => row.Role == normalizedRole).ToArray();
         }
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ListResult<AgentListRowResult>(identities.Select(ToRow).ToArray()));
+            resultHolder.SetResult(new ListResult<AgentListRowResult>(rows.Select(ToRow).ToArray()));
             return ExitCodes.Success;
         }
 
-        if (identities.Count == 0)
+        if (rows.Length == 0)
         {
             console.WriteLine("No actors.");
             return ExitCodes.Success;
         }
 
-        foreach (var identity in identities)
+        foreach (var row in rows)
         {
-            console.WriteLine(FormatLine(identity));
+            console.WriteLine(FormatLine(row));
         }
 
         return ExitCodes.Success;
@@ -66,33 +71,47 @@ internal sealed class ListAgentCommand : Command
     /// harness, optional role, and last-seen time. Connection diagnostics
     /// remain available in machine output when the session is online.
     /// </summary>
-    private static string FormatLine(AgentSessionIdentityView view)
+    private static string FormatLine(AgentListRow row)
     {
-        var identity = view.Identity;
-        var session = view.Participant?.Session;
+        var session = row.View?.Participant?.Session;
         var versionSuffix = session?.HarnessVersion.Length > 0 ? $" {session.HarnessVersion}" : "";
-        var roleSuffix = identity.Role.Length > 0 ? $"  role {identity.Role}" : "";
-        var lastSeenAt = view.LastSeenAt;
+        var roleSuffix = row.Role.Length > 0 ? $"  role {row.Role}" : "";
+        var harness = row.View?.Identity.Harness ?? "no session";
 
-        return $"{identity.Actor}  {view.State}  {identity.Harness}{versionSuffix}{roleSuffix}"
-            + $"  last heard {TaskDates.Format(lastSeenAt)}";
+        return $"{row.Actor}  {row.State}  {harness}{versionSuffix}{roleSuffix}"
+            + $"  last heard {TaskDates.Format(row.LastSeenAt)}";
     }
 
-    private static AgentListRowResult ToRow(AgentSessionIdentityView view) => new(
-        view.Identity.Actor,
-        view.Identity.Role,
-        view.Identity.Harness,
-        view.Identity.SessionId,
-        view.Online,
-        view.State,
-        view.Participant?.Session.HarnessVersion ?? "",
-        view.Participant?.Session.StartedAt,
-        view.LastSeenAt,
-        view.Participant?.Session.Cwd,
-        view.Participant?.Session.WorkspacePath,
-        view.Participant?.Session.Host,
-        view.Participant?.Session.EndpointKind,
-        view.Participant?.Session.EndpointAddr);
+    /// <summary>
+    /// One actor, with the durable session identity bound to it when a hook
+    /// has bound one.
+    /// </summary>
+    private sealed record AgentListRow(AgentRecord Agent, AgentSessionIdentityView? View)
+    {
+        public string Actor => Agent.Name;
+
+        public string Role => View?.Identity.Role is { Length: > 0 } role ? role : Agent.Role;
+
+        public string State => View?.State ?? "offline";
+
+        public DateTimeOffset LastSeenAt => View?.LastSeenAt ?? Agent.LastSeenAt;
+    }
+
+    private static AgentListRowResult ToRow(AgentListRow row) => new(
+        row.Actor,
+        row.Role,
+        row.View?.Identity.Harness ?? "",
+        row.View?.Identity.SessionId ?? "",
+        row.View?.Online ?? false,
+        row.State,
+        row.View?.Participant?.Session.HarnessVersion ?? "",
+        row.View?.Participant?.Session.StartedAt,
+        row.LastSeenAt,
+        row.View?.Participant?.Session.Cwd,
+        row.View?.Participant?.Session.WorkspacePath,
+        row.View?.Participant?.Session.Host,
+        row.View?.Participant?.Session.EndpointKind,
+        row.View?.Participant?.Session.EndpointAddr);
 
     public sealed record AgentListRowResult(
         string Actor,

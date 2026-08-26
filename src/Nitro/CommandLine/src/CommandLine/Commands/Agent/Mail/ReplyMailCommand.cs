@@ -14,8 +14,7 @@ internal sealed class ReplyMailCommand : Command
     {
         Description = "Reply to a message.";
 
-        Arguments.Add(Opt<MailMessageIdArgument>.Instance);
-
+        Options.Add(Opt<MailMessageOption>.Instance);
         Options.Add(Opt<MailBodyOption>.Instance);
         Options.Add(Opt<MailBodyFileOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
@@ -24,8 +23,8 @@ internal sealed class ReplyMailCommand : Command
         MailBody.AddValidator(this);
 
         this.AddExamples(
-            "agent mail reply \"m-abc123\" --body \"On it.\"",
-            "agent mail reply \"m-abc123\" --body-file reply.txt");
+            "agent mail reply --message \"m-abc123\" --body \"On it.\" --actor \"maya\"",
+            "agent mail reply --body-file reply.txt --message \"m-abc123\" --actor \"maya\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -44,7 +43,7 @@ internal sealed class ReplyMailCommand : Command
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var messageId = parseResult.GetRequiredValue(Opt<MailMessageIdArgument>.Instance);
+        var messageId = parseResult.GetRequiredValue(Opt<MailMessageOption>.Instance);
         var actor = await MailActor.ResolveAsync(
             parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
 

@@ -4,7 +4,7 @@ internal sealed class MemoryActorOption : Option<string>
 {
     public MemoryActorOption() : base("--actor")
     {
-        Description = "The actor recorded on memory writes; inferred from the current session when omitted";
-        Required = false;
+        Description = "The actor performing this command; allocate one with `nitro agent login`";
+        Required = true;
     }
 }

@@ -25,8 +25,9 @@ internal sealed class BroadcastMailCommand : Command
         MailBody.AddValidator(this);
 
         this.AddExamples(
-            "agent mail broadcast --subject \"Heads up\" --body \"Deploying at 5pm.\"",
-            "agent mail broadcast --role \"backend\" --subject \"Heads up\" --body \"Deploying at 5pm.\"");
+            "agent mail broadcast --subject \"Heads up\" --body \"Deploying at 5pm.\" --actor \"maya\"",
+            "agent mail broadcast --role \"backend\" --subject \"Heads up\" --body \"Deploying at 5pm.\" "
+            + "--actor \"maya\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

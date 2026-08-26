@@ -4,7 +4,7 @@ internal sealed class TaskActorOption : Option<string>
 {
     public TaskActorOption() : base("--actor")
     {
-        Description = "The actor recorded on the audit log; inferred from the current session when omitted";
-        Required = false;
+        Description = "The actor recorded on the audit log; allocate one with `nitro agent login`";
+        Required = true;
     }
 }

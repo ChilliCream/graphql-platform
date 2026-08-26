@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -14,15 +13,14 @@ internal sealed class SearchMailCommand : Command
         Description = "Search the acting agent's sent and received messages by subject, body, "
             + "and sender, case-insensitively. Archived messages are included.";
 
-        Arguments.Add(Opt<MailSearchTextArgument>.Instance);
-
+        Options.Add(Opt<MailSearchTextOption>.Instance);
         Options.Add(Opt<MailLimitOption>.Instance);
         Options.Add(Opt<MailActorOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
-            "agent mail search \"deploy\"",
-            "agent mail search \"deploy\" --limit 10");
+            "agent mail search --text \"deploy\" --actor \"maya\"",
+            "agent mail search --text \"deploy\" --limit 10 --actor \"maya\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -38,7 +36,7 @@ internal sealed class SearchMailCommand : Command
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var text = parseResult.GetRequiredValue(Opt<MailSearchTextArgument>.Instance);
+        var text = parseResult.GetRequiredValue(Opt<MailSearchTextOption>.Instance);
         var actor = await MailActor.ResolveAsync(
             parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
         var limit = parseResult.GetValue(Opt<MailLimitOption>.Instance);
