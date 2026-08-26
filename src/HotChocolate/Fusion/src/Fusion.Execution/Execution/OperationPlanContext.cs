@@ -768,6 +768,27 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         var resultDocument = _resultStore.Result;
 
+        // A node that failed after its exception escaped the node's own error handling
+        // has not reported a GraphQL error explaining the missing data. Surface those
+        // failures here so the response never silently drops a part of the result, and
+        // never pairs missing data with an empty error list.
+        if (_executionState.FailedNodeExceptions is { Count: > 0 } failedNodeExceptions)
+        {
+            foreach (var exception in failedNodeExceptions)
+            {
+                _resultStore.AddError(
+                    _errorHandler.Handle(ErrorBuilder.FromException(exception).Build()));
+            }
+        }
+        else if (resultDocument.Data.IsInvalidated && _resultStore.Errors is not { Count: > 0 })
+        {
+            _resultStore.AddError(
+                _errorHandler.Handle(
+                    ErrorBuilder.New()
+                        .SetMessage("Unexpected Execution Error")
+                        .Build()));
+        }
+
         // Deferred responses keep result resources available for incremental
         // plans. If no delivery groups remain active, ownership is transferred
         // to the completed result.

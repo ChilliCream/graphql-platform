@@ -147,6 +147,120 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_ExecuteNode_When_CreateScopeThrows()
+    {
+        var node = new TestExecutionNode(0, TestOutcome.Success)
+        {
+            ScopeFactory = () => throw new InvalidOperationException("scope creation failed")
+        };
+        node.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(false, node);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        var result = await ExecuteNodeAsync(fixture, node, CancellationToken.None);
+        fixture.State.CompleteNode(fixture.Plan, node, result);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Null(result.Exception);
+        Assert.Equal(1, node.ExecutionCount);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_CompleteNode_When_ScopeDisposeThrows()
+    {
+        var scope = new ThrowingScope();
+        var node = new TestExecutionNode(0, TestOutcome.Success)
+        {
+            ScopeFactory = () => scope
+        };
+        node.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(false, node);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        // a throwing scope dispose must not swallow the node's completion;
+        // otherwise this await would hang until the test times out.
+        var result = await ExecuteNodeAsync(fixture, node, CancellationToken.None);
+        fixture.State.CompleteNode(fixture.Plan, node, result);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Null(result.Exception);
+        Assert.True(scope.Disposed);
+        Assert.False(fixture.State.HasActiveNodes());
+    }
+
+    [Fact]
+    public async Task Complete_Should_SurfaceError_When_NodeFailsWithUnhandledException()
+    {
+        var failure = new InvalidOperationException("execution failed");
+        var node = new TestExecutionNode(0, TestOutcome.Failed, failure);
+        node.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(false, node);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        var result = await ExecuteNodeAsync(fixture, node, CancellationToken.None);
+        fixture.State.CompleteNode(fixture.Plan, node, result);
+
+        Assert.Same(failure, result.Exception);
+
+        await using var operationResult = fixture.Context.Complete();
+
+        var error = Assert.Single(operationResult.Errors);
+        Assert.Equal("Unexpected Execution Error", error.Message);
+    }
+
+    [Fact]
+    public async Task Complete_Should_SurfaceError_When_AnotherNodeAlreadyReportedAnError()
+    {
+        var failure = new InvalidOperationException("execution failed");
+        var node = new TestExecutionNode(0, TestOutcome.Failed, failure);
+        node.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(false, node);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        // an unrelated error that was already collected for another part of the
+        // result must not suppress surfacing this node's unhandled failure.
+        fixture.Context.GetResultStoreForChildDefer().AddError(
+            ErrorBuilder.New().SetMessage("handled error").Build());
+
+        var result = await ExecuteNodeAsync(fixture, node, CancellationToken.None);
+        fixture.State.CompleteNode(fixture.Plan, node, result);
+
+        await using var operationResult = fixture.Context.Complete();
+
+        Assert.Collection(
+            operationResult.Errors,
+            error => Assert.Equal("handled error", error.Message),
+            error => Assert.Equal("Unexpected Execution Error", error.Message));
+    }
+
+    [Fact]
+    public async Task CompleteNode_Should_NotTrackException_When_ErrorAlreadyReported()
+    {
+        var failure = new InvalidOperationException("merge failed");
+        var node = new TestExecutionNode(0, TestOutcome.Success);
+        node.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(false, node);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        var result = await ExecuteNodeAsync(fixture, node, CancellationToken.None);
+        result = result with
+        {
+            Status = ExecutionStatus.Failed,
+            Exception = failure,
+            ErrorReported = true
+        };
+
+        fixture.State.CompleteNode(fixture.Plan, node, result);
+
+        Assert.Null(fixture.State.FailedNodeExceptions);
+    }
+
+    [Fact]
     public void ApplyPendingMergeFailure_Should_CopyStructWithFailureStatus_When_NodeHasPendingMergeFailure()
     {
         var state = new ExecutionState();
@@ -181,7 +295,8 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
             result with
             {
                 Status = ExecutionStatus.Failed,
-                Exception = exception
+                Exception = exception,
+                ErrorReported = true
             },
             failed);
         Assert.Equal(ExecutionStatus.Success, result.Status);
@@ -251,6 +366,11 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
 
         public IOperationPlanNode? SkippedDefinition { get; set; }
 
+        public Func<IDisposable?>? ScopeFactory { get; set; }
+
+        protected override IDisposable? CreateScope(OperationPlanContext context)
+            => ScopeFactory is { } scopeFactory ? scopeFactory() : base.CreateScope(context);
+
         protected override bool IsSkipped(OperationPlanContext context)
             => Outcome is TestOutcome.Skipped;
 
@@ -293,6 +413,17 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
             IDisposable? scope,
             Exception error)
         {
+        }
+    }
+
+    private sealed class ThrowingScope : IDisposable
+    {
+        public bool Disposed { get; private set; }
+
+        public void Dispose()
+        {
+            Disposed = true;
+            throw new InvalidOperationException("scope dispose failed");
         }
     }
 
