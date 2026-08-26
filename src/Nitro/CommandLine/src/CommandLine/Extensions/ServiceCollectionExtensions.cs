@@ -40,6 +40,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IGlobalConfigDirectoryProvider, GlobalConfigDirectoryProvider>();
         services.TryAddSingleton<INitroInstanceIdProvider, NitroInstanceIdProvider>();
         services.TryAddSingleton<IProcessInfoProvider, ProcessInfoProvider>();
+        services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
         services.TryAddSingleton<IClaudeAncestorSessionResolver, ClaudeAncestorSessionResolver>();
         services.TryAddSingleton<ICodexAncestorSessionResolver, CodexAncestorSessionResolver>();
         services.TryAddSingleton<ICopilotAncestorSessionResolver, CopilotAncestorSessionResolver>();
@@ -55,8 +56,8 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
         services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
         services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
+        services.TryAddSingleton<IMailNudge, MailNudge>();
         services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
-        services.TryAddSingleton<IMailWakeReceiptObserver, MailWakeReceiptObserver>();
         services.TryAddSingleton<INotifier, Notifier>();
         services.TryAddSingleton<IMailWakeDaemonLeaderStore, MailWakeDaemonLeaderStore>();
         services.TryAddSingleton(MailWakeDaemonPolicy.Default);

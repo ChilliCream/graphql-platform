@@ -147,10 +147,8 @@ internal sealed class PingSessionExecutor(
             return null;
         }
 
-        var totalUnread = await mailStore.CountUnreadAsync(actorName, cancellationToken);
-        var entries = unread.Select(m => (m.Id, m.Sender, m.Subject, m.Body)).ToList();
-
-        return ClaudeHookDigestFormatter.Format(totalUnread, entries);
+        return MailNudgeText.Format(
+            actorName, await mailStore.CountUnreadAsync(actorName, cancellationToken));
     }
 
     /// <summary>

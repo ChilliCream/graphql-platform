@@ -124,9 +124,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> completion: both
     /// mean the send effect itself never reached a <see cref="MailSendOutcome"/>
     /// at all. Every path once <see cref="_store"/>'s write returns
-    /// successfully is shielded into a definite outcome (see
-    /// <see cref="ReconcileWakeAsync"/>), so this almost always means the
-    /// write was never attempted or never returned; but only an observed
+    /// successfully is shielded into a definite outcome, so this almost
+    /// always means the write was never attempted or never returned; but
+    /// only an observed
     /// <see cref="ExitException"/> (see <see cref="MailSendOutcome.Failed"/>)
     /// actually proves a rejected write, so this text states the commit's
     /// outcome as unknown rather than asserting the message was not stored.
@@ -157,8 +157,6 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     private readonly IMailStore _store;
     private readonly IAgentRegistry _agentRegistry;
-    private readonly IActorWakeDispatcher _wakeDispatcher;
-    private readonly IMailWakeReceiptObserver _wakeObserver;
     private readonly MailState _state;
     private readonly MailDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
@@ -176,8 +174,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// One <see cref="MailSendOutcome.Stored"/> notice per submitted send,
     /// posted by <see cref="RunSendEffectAsync"/>/<see cref="RunReplyEffectAsync"/>
-    /// right after the store commit and before <see cref="ReconcileWakeAsync"/>
-    /// begins, alongside a <see cref="TuiEffectQueue{TResult}.SignalWake"/>
+    /// right after the store commit, alongside a
+    /// <see cref="TuiEffectQueue{TResult}.SignalWake"/>
     /// call on <see cref="_sendEffects"/> so this side channel's own wake
     /// reaches the event loop through the same path a terminal completion
     /// does, rather than depending on some unrelated event (a key press, a
@@ -230,40 +228,24 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// write is refused.
     /// </param>
     /// <param name="agentRegistry">Resolves every registered agent's client attribution.</param>
-    /// <param name="wakeDispatcher">
-    /// Dispatches or defers wake work for a compose or reply's recipients,
-    /// run as part of <see cref="MailWakeDispatch.RunAsync"/> off the input
-    /// thread. The unified dashboard passes
-    /// <see cref="DaemonOwnedActorWakeDispatcher"/> because its
-    /// <see cref="IMailWakeDaemonCoordinator"/> already owns dispatch for the
-    /// whole session, so this mode only observes what the daemon settles.
-    /// </param>
-    /// <param name="wakeObserver">Reads back a submission's durable wake outcome.</param>
     /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>.</param>
     /// <param name="effectCancellationToken">
-    /// Cancels a pending send's post-commit wake dispatch/observe step (see
-    /// <see cref="ReconcileWakeAsync"/>); the store write itself is always
-    /// shielded from it. Defaults to <see cref="CancellationToken.None"/>
+    /// Cancels a pending send's post-commit work; the store write itself is
+    /// always shielded from it. Defaults to <see cref="CancellationToken.None"/>
     /// for a caller with no shutdown signal to plumb through.
     /// </param>
     public MailMode(
         IMailStore store,
         string? actor,
         IAgentRegistry agentRegistry,
-        IActorWakeDispatcher wakeDispatcher,
-        IMailWakeReceiptObserver wakeObserver,
         TimeProvider? timeProvider = null,
         CancellationToken effectCancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(agentRegistry);
-        ArgumentNullException.ThrowIfNull(wakeDispatcher);
-        ArgumentNullException.ThrowIfNull(wakeObserver);
 
         _store = store;
         _agentRegistry = agentRegistry;
-        _wakeDispatcher = wakeDispatcher;
-        _wakeObserver = wakeObserver;
         _state = new MailState(actor, new MailDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
         _effectCancellationToken = effectCancellationToken;
@@ -825,9 +807,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// The compose send effect body: writes the message, then hands off to
-    /// <see cref="ReconcileWakeAsync"/>. The store write itself uses
-    /// <see cref="CancellationToken.None"/>, never <paramref name="cancellationToken"/>:
+    /// The compose send effect body: writes the message. The store write
+    /// uses <see cref="CancellationToken.None"/> throughout:
     /// a submitted send must always either fully commit or fully roll back
     /// on its own terms, never be left ambiguous by an unrelated shutdown
     /// signal arriving mid-write (see the type remarks on
@@ -838,7 +819,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <see cref="DrainEffectQueue"/> also reports as unsent.
     /// </summary>
     private async Task<MailSendOutcome> RunSendEffectAsync(
-        MailMessageCreation creation, CancellationToken cancellationToken)
+        MailMessageCreation creation, CancellationToken _)
     {
         MailMessage message;
 
@@ -853,14 +834,14 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
         _storedNotices.Enqueue(new MailSendOutcome.Stored(message));
         _sendEffects.SignalWake();
-        return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
+        return new MailSendOutcome.Succeeded(message);
     }
 
     /// <summary>
     /// The reply form's counterpart to <see cref="RunSendEffectAsync"/>.
     /// </summary>
     private async Task<MailSendOutcome> RunReplyEffectAsync(
-        MailReplyRequest request, CancellationToken cancellationToken)
+        MailReplyRequest request, CancellationToken _)
     {
         MailMessage message;
 
@@ -877,38 +858,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
         _storedNotices.Enqueue(new MailSendOutcome.Stored(message));
         _sendEffects.SignalWake();
-        return await ReconcileWakeAsync(message, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Runs the actor-wake dispatch-and-observe step for an already-committed
-    /// <paramref name="message"/>: <see cref="_wakeDispatcher"/> and
-    /// <see cref="_wakeObserver"/> either dispatch wake work or observe what
-    /// the running daemon settles (see the constructor's remarks on
-    /// <c>wakeDispatcher</c>). <paramref name="message"/> is
-    /// already known and durable by the time this runs, so any failure here,
-    /// cancellation included, can never mean the message itself was not
-    /// sent - only that its wake outcome could not be reconciled this time,
-    /// reported as <see cref="MailSendOutcome.Reconciled"/> rather than
-    /// letting the exception reach the effect queue as a
-    /// <see cref="TuiEffectCompletion{TResult}.Faulted"/> or
-    /// <see cref="TuiEffectCompletion{TResult}.Cancelled"/> completion, which
-    /// would obscure that the store write itself already succeeded.
-    /// </summary>
-    private async Task<MailSendOutcome> ReconcileWakeAsync(MailMessage message, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var notification = await MailWakeDispatch.RunAsync(
-                    message, _wakeDispatcher, _wakeObserver, _timeProvider, cancellationToken)
-                .ConfigureAwait(false);
-
-            return new MailSendOutcome.Succeeded(message, notification);
-        }
-        catch (Exception)
-        {
-            return new MailSendOutcome.Reconciled(message);
-        }
+        return new MailSendOutcome.Succeeded(message);
     }
 
     /// <summary>
@@ -1077,14 +1027,6 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         {
             switch (completion)
             {
-                case TuiEffectCompletion<MailSendOutcome>.Completed
-                {
-                    Result: MailSendOutcome.Succeeded { Notification.Status: MailWakeTargetStatus.Pending }
-                }:
-                    pendingCount++;
-                    operationIds.Add(completion.OperationId);
-                    break;
-
                 case TuiEffectCompletion<MailSendOutcome>.Completed { Result: MailSendOutcome.Reconciled }:
                 case TuiEffectCompletion<MailSendOutcome>.Faulted:
                 case TuiEffectCompletion<MailSendOutcome>.Cancelled:

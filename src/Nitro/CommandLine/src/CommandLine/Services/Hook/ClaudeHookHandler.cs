@@ -1,5 +1,6 @@
 using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
@@ -11,7 +12,7 @@ internal sealed class ClaudeHookHandler(
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
     IProcessInfoProvider processInfoProvider,
-    IClaudeAncestorSessionResolver ancestorResolver,
+    IClaudeSessionFileReader sessionFileReader,
     IClaudeHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
@@ -24,7 +25,7 @@ internal sealed class ClaudeHookHandler(
         IMailStore mailStore,
         IEnvironmentVariableProvider environmentVariableProvider,
         IProcessInfoProvider processInfoProvider,
-        IClaudeAncestorSessionResolver ancestorResolver,
+        IClaudeSessionFileReader sessionFileReader,
         IClaudeHarnessVersionResolver harnessVersionResolver,
         INitroInstanceIdProvider instanceIdProvider,
         IGlobalConfigDirectoryProvider globalConfigDirectoryProvider)
@@ -35,7 +36,7 @@ internal sealed class ClaudeHookHandler(
             ledger,
             mailStore,
             processInfoProvider,
-            ancestorResolver,
+            sessionFileReader,
             harnessVersionResolver,
             instanceIdProvider,
             globalConfigDirectoryProvider)
@@ -51,8 +52,7 @@ internal sealed class ClaudeHookHandler(
     public const int MaxBlocksPerTurn = 3;
 
     /// <summary>
-    /// The digest's per-call message cap, before the byte ceiling
-    /// <see cref="ClaudeHookDigestFormatter"/> applies on top of it.
+    /// How many unread messages one nudge accounts for.
     /// </summary>
     public const int MaxDigestMessages = 10;
 
@@ -137,11 +137,7 @@ internal sealed class ClaudeHookHandler(
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
         var actorContext = AgentActorContext.Format(row.AgentName, row.Role);
-        var digestByteBudget = ClaudeHookDigestFormatter.MaxByteLength
-            - Encoding.UTF8.GetByteCount(actorContext)
-            - 2;
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, digestByteBudget, cancellationToken);
+        var digest = await BuildDigestAsync(resolved.Generation, row.AgentName, cancellationToken);
 
         return new ClaudeHookOutcome
         {
@@ -229,10 +225,14 @@ internal sealed class ClaudeHookHandler(
         return ClaudeHookOutcome.Neutral;
     }
 
+    /// <summary>
+    /// The unread-mail nudge for this session, or null when nothing is
+    /// unread or every unread message was already announced to it. It names
+    /// the command that reads the mail; the mail itself stays in the inbox.
+    /// </summary>
     private async Task<string?> BuildDigestAsync(
         AgentSessionGeneration generation,
         string actor,
-        int maxByteLength,
         CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
@@ -257,18 +257,7 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
-
-        // `unread` is already newest-first (IMailStore.QueryInboxAsync);
-        // filtering preserves that order.
-        var newEntries = unread
-            .Where(m => reservedIds.Contains(m.Id))
-            .Select(m => (m.Id, m.Sender, m.Subject, m.Body))
-            .ToList();
-
-        var totalUnread = await mailStore.CountUnreadAsync(actor, cancellationToken);
-
-        return ClaudeHookDigestFormatter.Format(totalUnread, newEntries, maxByteLength);
+        return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
     }
 
     /// <summary>
@@ -318,23 +307,26 @@ internal sealed class ClaudeHookHandler(
         }
         else
         {
-            var ancestor = ancestorResolver.Resolve();
+            // The event names its own session, so the session file that
+            // carries that id identifies the process exactly. Nothing is
+            // inferred from the process tree.
+            var session = sessionFileReader.Find(payload.SessionId ?? string.Empty);
 
-            if (ancestor is null)
+            if (session is null)
             {
                 return null;
             }
 
-            var resolvedStart = processInfoProvider.GetStartTicks(ancestor.Pid);
+            var resolvedStart = processInfoProvider.GetStartTicks(session.Pid);
 
             if (resolvedStart is null)
             {
                 return null;
             }
 
-            pid = ancestor.Pid;
+            pid = session.Pid;
             procStart = resolvedStart;
-            endpointName = ancestor.Name;
+            endpointName = session.Name;
         }
 
         var host = await instanceIdProvider.GetIdAsync(

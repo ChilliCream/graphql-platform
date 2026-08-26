@@ -8,14 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// <summary>
 /// The outcome of a <see cref="MailComposeForm"/> or <see cref="MailReplyForm"/>
 /// submission run through <see cref="MailMode"/>'s own async send effect.
-/// Unlike the pre-epic design, a store write alone is never reported as an
-/// unconditional "Sent": <see cref="Succeeded"/> only ever means the commit
-/// landed, and its own <see cref="MailNotificationResult.Status"/> still
-/// decides whether <see cref="ToShowToast"/> shows green. <see cref="Stored"/>
-/// is a third, intermediate case: posted the moment the commit lands, ahead
-/// of the terminal <see cref="Succeeded"/> or <see cref="Reconciled"/>
-/// outcome the actor-wake dispatch-and-observe step can take up to
-/// <see cref="WakeDispatchPolicy.BatchDeadline"/> longer to reach.
+/// <see cref="Succeeded"/> means the commit landed; nudging the recipients
+/// is best effort and never reported. <see cref="Stored"/> is an
+/// intermediate signal posted the moment the commit lands.
 /// </summary>
 internal abstract record MailSendOutcome
 {
@@ -29,16 +24,15 @@ internal abstract record MailSendOutcome
     /// after the store commit, so <see cref="MailMode"/> can show a truthful
     /// "Stored" toast before that step even begins, rather than leaving the
     /// transient "Sending" toast the only visible state until the terminal
-    /// <see cref="Succeeded"/> or <see cref="Reconciled"/> outcome arrives.
+    /// <see cref="Succeeded"/> outcome arrives.
     /// </summary>
     public sealed record Stored(MailMessage Message) : MailSendOutcome;
 
     /// <summary>
-    /// The message committed, and the actor-wake dispatch-and-observe step
-    /// ran to completion, so <paramref name="Notification"/> is a truthful,
-    /// fully-resolved (or fully-observed-pending) lattice status.
+    /// The message committed. Nudging its recipients is best effort and
+    /// never reported here.
     /// </summary>
-    public sealed record Succeeded(MailMessage Message, MailNotificationResult Notification) : MailSendOutcome;
+    public sealed record Succeeded(MailMessage Message) : MailSendOutcome;
 
     /// <summary>
     /// The message committed, but its wake outcome could not be reconciled
@@ -57,12 +51,10 @@ internal abstract record MailSendOutcome
     public sealed record Failed(string ToastText) : MailSendOutcome;
 
     /// <summary>
-    /// The toast this outcome should show once observed: green only for a
-    /// <see cref="Succeeded"/> outcome whose <see cref="MailNotificationResult.Status"/>
-    /// is one of <see cref="WakeReceiptAggregator.IsSuccessful"/>'s successful statuses;
-    /// every other case (still pending, failed, unresolved, a
-    /// rejected write, or the intermediate <see cref="Stored"/> signal) is
-    /// styled to reflect that the recipient's wake is not yet, or was never,
+    /// The toast this outcome should show once observed: green for a
+    /// <see cref="Succeeded"/> commit; a rejected write or the intermediate
+    /// <see cref="Stored"/> signal is styled to reflect that the write is
+    /// not yet, or was never,
     /// confirmed.
     /// </summary>
     public TuiMessage.ShowToast ToShowToast() => this switch
@@ -91,38 +83,7 @@ internal abstract record MailSendOutcome
     {
         var id = succeeded.Message.Id;
         var recipients = string.Join(", ", succeeded.Message.Recipients.Select(r => r.Name));
-        var status = succeeded.Notification.Status;
 
-        if (WakeReceiptAggregator.IsSuccessful(status))
-        {
-            var phrase = status switch
-            {
-                MailWakeTargetStatus.Satisfied => "the mail was already read",
-                MailWakeTargetStatus.Delegated => "a dashboard accepted delivery",
-                MailWakeTargetStatus.Skipped => "no wake was requested",
-                _ => "the wake delivered"
-            };
-
-            return new TuiMessage.ShowToast($"Sent '{id}' to {recipients}: {phrase}.", ToastStyle.Success);
-        }
-
-        if (status == MailWakeTargetStatus.Pending)
-        {
-            return new TuiMessage.ShowToast(
-                $"Stored '{id}' to {recipients}. Notification pending.", ToastStyle.Warn);
-        }
-
-        var reason = DescribeFailure(succeeded.Notification);
-        return new TuiMessage.ShowToast(
-            $"Stored '{id}' to {recipients}. Notification failed: {reason}.", ToastStyle.Error);
+        return new TuiMessage.ShowToast($"Sent '{id}' to {recipients}.", ToastStyle.Success);
     }
-
-    /// <summary>
-    /// The representative machine reason for a nonzero, non-pending
-    /// notification: the first recipient's own last-attempt reason, or the
-    /// notification's own status when no recipient carries one.
-    /// </summary>
-    private static string DescribeFailure(MailNotificationResult notification) =>
-        notification.Recipients.FirstOrDefault(recipient => recipient.LastAttempt is not null)?.LastAttempt?.Reason
-        ?? notification.Status;
 }

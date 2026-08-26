@@ -15,16 +15,11 @@ internal sealed class CodexAncestorSessionResolver(
 
     private const string CodexProcessName = "codex";
 
-    private readonly Func<int, int?> _parentPidReader = parentPidReader ?? ReadParentPid;
-    private readonly Func<int, string?> _commReader = commReader ?? ReadComm;
+    private readonly Func<int, int?> _parentPidReader = parentPidReader ?? ProcessAncestry.GetParentPid;
+    private readonly Func<int, string?> _commReader = commReader ?? ProcessAncestry.GetProcessName;
 
     public CodexAncestorSession? Resolve()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return null;
-        }
-
         var pid = Environment.ProcessId;
 
         for (var hop = 0; hop < MaxAncestorHops; hop++)
@@ -47,62 +42,5 @@ internal sealed class CodexAncestorSessionResolver(
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Reads the parent pid of <paramref name="pid"/> from
-    /// <c>/proc/&lt;pid&gt;/status</c>. Any failure (the process already
-    /// exited, permission denied) just ends the walk, the documented
-    /// always-available fallback for self-identification being env binding
-    /// at SessionStart.
-    /// </summary>
-    private static int? ReadParentPid(int pid)
-    {
-        try
-        {
-            foreach (var line in File.ReadLines($"/proc/{pid}/status"))
-            {
-                if (line.StartsWith("PPid:", StringComparison.Ordinal))
-                {
-                    var value = line["PPid:".Length..].Trim();
-
-                    return int.TryParse(value, out var parsed) ? parsed : null;
-                }
-            }
-        }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return null;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Reads <paramref name="pid"/>'s executable name (<c>comm</c>, trimmed
-    /// of its trailing newline) from <c>/proc/&lt;pid&gt;/comm</c>. Never
-    /// truncated for "codex" (5 characters, well under the kernel's 15-byte
-    /// comm limit).
-    /// </summary>
-    private static string? ReadComm(int pid)
-    {
-        try
-        {
-            var path = $"/proc/{pid}/comm";
-
-            return File.Exists(path) ? File.ReadAllText(path).Trim() : null;
-        }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return null;
-        }
     }
 }

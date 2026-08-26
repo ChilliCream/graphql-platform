@@ -1,5 +1,5 @@
-using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
@@ -11,7 +11,6 @@ internal sealed class CodexHookHandler(
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
     IProcessInfoProvider processInfoProvider,
-    ICodexAncestorSessionResolver ancestorResolver,
     ICodexHarnessVersionResolver harnessVersionResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
@@ -47,13 +46,7 @@ internal sealed class CodexHookHandler(
     }
 
     /// <summary>
-    /// The digest's per-call message cap, before the byte ceiling
-    /// <see cref="ClaudeHookDigestFormatter"/> applies on top of it. Shared
-    /// with Claude's cap deliberately: the digest envelope, cap, and byte
-    /// ceiling are harness-neutral by design (Layer A's "Digest content"
-    /// section makes no per-harness distinction), so this reuses
-    /// <see cref="ClaudeHookDigestFormatter"/> directly rather than
-    /// duplicating its byte-budgeting logic.
+    /// How many unread messages one nudge accounts for.
     /// </summary>
     public const int MaxDigestMessages = 10;
 
@@ -133,15 +126,8 @@ internal sealed class CodexHookHandler(
         }
 
         var actorContext = AgentActorContext.Format(row.AgentName, row.Role);
-        var digestByteBudget = ClaudeHookDigestFormatter.MaxByteLength
-            - Encoding.UTF8.GetByteCount(actorContext)
-            - 2;
         var digest = await BuildDigestAsync(
-            resolved.Generation,
-            row.AgentName,
-            AgentSessionChannel.Digest,
-            cancellationToken,
-            digestByteBudget);
+            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
         return new CodexHookOutcome
         {
@@ -211,12 +197,17 @@ internal sealed class CodexHookHandler(
         return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
     }
 
+    /// <summary>
+    /// The unread-mail nudge for this session on <paramref name="channel"/>,
+    /// or null when nothing is unread or every unread message was already
+    /// announced there. It names the command that reads the mail; the mail
+    /// itself stays in the inbox.
+    /// </summary>
     private async Task<string?> BuildDigestAsync(
         AgentSessionGeneration generation,
         string actor,
         string channel,
-        CancellationToken cancellationToken,
-        int maxByteLength = ClaudeHookDigestFormatter.MaxByteLength)
+        CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
             new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
@@ -240,18 +231,7 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
-
-        // `unread` is already newest-first (IMailStore.QueryInboxAsync);
-        // filtering preserves that order.
-        var newEntries = unread
-            .Where(m => reservedIds.Contains(m.Id))
-            .Select(m => (m.Id, m.Sender, m.Subject, m.Body))
-            .ToList();
-
-        var totalUnread = await mailStore.CountUnreadAsync(actor, cancellationToken);
-
-        return ClaudeHookDigestFormatter.Format(totalUnread, newEntries, maxByteLength);
+        return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
     }
 
     /// <summary>
@@ -293,38 +273,12 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        int pid;
-        string procStart;
-
-        if (dryRun)
-        {
-            // Pid 1, not 0: the agent_sessions schema's `pid > 0` CHECK
-            // rejects zero. Any fixed positive pid is exactly as safe a
-            // sentinel here, since pairing it with the "0" proc_start below
-            // (no live process ever reports 0 start ticks) is what actually
-            // makes collision with a real session's generation impossible.
-            pid = 1;
-            procStart = "0";
-        }
-        else
-        {
-            var ancestor = ancestorResolver.Resolve();
-
-            if (ancestor is null)
-            {
-                return null;
-            }
-
-            var resolvedStart = processInfoProvider.GetStartTicks(ancestor.Pid);
-
-            if (resolvedStart is null)
-            {
-                return null;
-            }
-
-            pid = ancestor.Pid;
-            procStart = resolvedStart;
-        }
+        // The event names its own session and delivery addresses the thread
+        // id, so no process is involved. The schema still requires a
+        // positive pid, and (harness, session_id) is what identifies a row,
+        // so a fixed sentinel is enough until those columns are dropped.
+        const int pid = 1;
+        const string procStart = "0";
 
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);

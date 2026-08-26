@@ -31,13 +31,7 @@ internal sealed record MailSendResult
     /// </summary>
     public required bool MessageStored { get; init; }
 
-    /// <summary>
-    /// The actor-wake notification outcome for this message's recipients,
-    /// separate from and never overriding <see cref="MessageStored"/>.
-    /// </summary>
-    public required MailNotificationResult Notification { get; init; }
-
-    public static MailSendResult Create(MailMessage message, MailNotificationResult notification) => new()
+    public static MailSendResult Create(MailMessage message) => new()
     {
         Id = message.Id,
         ThreadId = message.ThreadId,
@@ -56,7 +50,6 @@ internal sealed record MailSendResult
         Subject = message.Subject,
         CreatedAt = message.CreatedAt,
         Unregistered = message.Unregistered,
-        MessageStored = true,
-        Notification = notification
+        MessageStored = true
     };
 }

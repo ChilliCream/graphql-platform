@@ -36,8 +36,7 @@ internal sealed class ReplyMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
-        var dispatcher = services.GetRequiredService<IActorWakeDispatcher>();
-        var wakeObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
+        var nudge = services.GetRequiredService<IMailNudge>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
@@ -52,32 +51,22 @@ internal sealed class ReplyMailCommand : Command
         var message = await store.ReplyMessageAsync(
             messageId, actor, body, MailWakePolicy.Enqueue, cancellationToken);
 
-        // Strictly post-commit: the message is already durably written above,
-        // and nothing from here on can make it not exist. It can still make
-        // this command's own exit code and output report the wake truthfully.
-        var notification = await MailWakeDispatch.RunAsync(
-            message, dispatcher, wakeObserver, timeProvider, cancellationToken);
-        var delivered = WakeReceiptAggregator.IsSuccessful(notification.Status);
-
-        var result = MailMessageResult.Create(message, notification);
+        // Strictly post-commit: the message is durably written above. The
+        // nudge only wakes recipients that have a live session; everyone
+        // else sees it when they pull, so it can never fail this command.
+        await nudge.NudgeAsync(
+            [.. message.Recipients.Select(recipient => recipient.Name)], cancellationToken);
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(result));
-            return delivered ? ExitCodes.Success : ExitCodes.Error;
-        }
+            resultHolder.SetResult(new ObjectResult(MailMessageResult.Create(message)));
 
-        if (!delivered)
-        {
-            MailWakeHumanText.WriteStoredButUnconfirmed(console, message, notification, []);
-            return ExitCodes.Error;
+            return ExitCodes.Success;
         }
 
         console.OkLine(
             $"Sent '{message.Id.EscapeMarkup()}' to "
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
-
-        MailWakeHumanText.WriteDelivered(console, notification);
 
         return ExitCodes.Success;
     }

@@ -62,7 +62,6 @@ internal sealed class AgentCommand : Command
                 var activityReader = services.GetRequiredService<IClaudeSessionActivityReader>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
-                var mailWakeReceiptObserver = services.GetRequiredService<IMailWakeReceiptObserver>();
 
                 return await AgentTuiLauncher.RunAsync(
                     console,
@@ -75,7 +74,6 @@ internal sealed class AgentCommand : Command
                     timeProvider,
                     workspaceDirectory,
                     mailWakeDaemonCoordinator,
-                    mailWakeReceiptObserver,
                     cancellationToken);
             }
         }

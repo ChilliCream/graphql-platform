@@ -32,8 +32,9 @@ internal static class WakeReceiptAggregator
     /// <summary>
     /// Combines every recipient's status into one command-level verdict.
     /// <list type="bullet">
-    /// <item>No targets at all: <see cref="MailWakeTargetStatus.Failed"/>
-    /// (no-live-session).</item>
+    /// <item>No targets at all: <see cref="MailWakeTargetStatus.Skipped"/>,
+    /// since an actor with no live session takes no push and pulls its own
+    /// mail instead.</item>
     /// <item>At least one unresolved target:
     /// <see cref="MailWakeTargetStatus.Pending"/>.</item>
     /// <item>Every target failed: <see cref="MailWakeTargetStatus.Failed"/>.</item>
@@ -46,7 +47,7 @@ internal static class WakeReceiptAggregator
     {
         if (recipientStatuses.Count == 0)
         {
-            return MailWakeTargetStatus.Failed;
+            return MailWakeTargetStatus.Skipped;
         }
 
         foreach (var status in recipientStatuses)

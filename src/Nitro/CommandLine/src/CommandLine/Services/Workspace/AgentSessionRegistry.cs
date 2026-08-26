@@ -525,6 +525,30 @@ internal sealed class AgentSessionRegistry(
             effectivePreviousBindingKind == AgentSessionBindingKind.None ? null : previousAgentName);
     }
 
+    /// <summary>
+    /// Fails when no agent carries this name. Actor names are allocated,
+    /// never invented: only <c>agent login</c> and the session-start hooks
+    /// mint one.
+    /// </summary>
+    private static async Task RequireKnownActorAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var known = await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT name FROM agents WHERE name = @name",
+            new { name = actor, cancellationToken },
+            transaction);
+
+        if (known is null)
+        {
+            throw new ExitException(
+                $"Unknown actor '{actor}'. Run `nitro agent login` to allocate one, "
+                + "or `nitro agent list` to see the actors this workspace knows.");
+        }
+    }
+
     public async Task<AgentSessionRegisterResult> RegisterAsync(
         AgentSessionGeneration generation,
         string actor,
@@ -566,19 +590,7 @@ internal sealed class AgentSessionRegistry(
 
         RequireObservableProcessScope(generation, row.ProcessScope);
 
-        // Actor names are allocated, never invented: `register` binds a name
-        // `agent login` or a session-start hook already minted.
-        var known = await connection.QueryFirstOrDefaultAsync<string>(
-            "SELECT name FROM agents WHERE name = @name",
-            new { name = normalizedActor, cancellationToken },
-            transaction);
-
-        if (known is null)
-        {
-            throw new ExitException(
-                $"Unknown actor '{normalizedActor}'. Run `nitro agent login` to allocate one, "
-                + "or `nitro agent list` to see the actors this workspace knows.");
-        }
+        await RequireKnownActorAsync(connection, transaction, normalizedActor, cancellationToken);
 
         var agent = await AgentRegistry.UpsertWithinTransactionAsync(
             connection, transaction, timeProvider, normalizedActor, normalizedRole, client, cancellationToken);
@@ -702,6 +714,28 @@ internal sealed class AgentSessionRegistry(
         var normalizedActor = actorGiven
             ? MailAgentName.Normalize(actor ?? string.Empty)
             : identity.Actor;
+
+        if (actorGiven)
+        {
+            await RequireKnownActorAsync(connection, transaction, normalizedActor, cancellationToken);
+        }
+
+        // Actor names are allocated, never invented: `register` binds a name
+        // `agent login` or a session-start hook already minted.
+        if (actorGiven)
+        {
+            var known = await connection.QueryFirstOrDefaultAsync<string>(
+                "SELECT name FROM agents WHERE name = @name",
+                new { name = normalizedActor, cancellationToken },
+                transaction);
+
+            if (known is null)
+            {
+                throw new ExitException(
+                    $"Unknown actor '{normalizedActor}'. Run `nitro agent login` to allocate one, "
+                    + "or `nitro agent list` to see the actors this workspace knows.");
+            }
+        }
         var normalizedRole = roleGiven ? AgentRole.Normalize(role) : identity.Role;
 
         var conflictingIdentity = await connection.QueryFirstOrDefaultAsync<AgentSessionIdentityRecord>(

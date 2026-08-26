@@ -40,12 +40,10 @@ internal static class AgentTuiLauncher
         TimeProvider timeProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
-        IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken cancellationToken)
         => RunShellAsync(
             console, taskStore, mailStore, memoryStore, agentRegistry, agentSessionRegistry, activityReader,
-            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator,
-            mailWakeReceiptObserver, cancellationToken);
+            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator, cancellationToken);
 
     private static async Task<int> RunShellAsync(
         INitroConsole console,
@@ -58,7 +56,6 @@ internal static class AgentTuiLauncher
         TimeProvider timeProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
-        IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken cancellationToken)
     {
         var searchMode = new SearchMode(taskStore);
@@ -75,7 +72,6 @@ internal static class AgentTuiLauncher
             agentSessionRegistry,
             activityReader,
             timeProvider,
-            mailWakeReceiptObserver,
             quitCts.Token);
 
         // An unavailable Mail tab has no send effects to drain on exit.
@@ -145,7 +141,6 @@ internal static class AgentTuiLauncher
         IAgentSessionRegistry agentSessionRegistry,
         IClaudeSessionActivityReader activityReader,
         TimeProvider timeProvider,
-        IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken effectCancellationToken = default)
     {
         var loader = new BoardDataLoader(taskStore, timeProvider);
@@ -153,7 +148,7 @@ internal static class AgentTuiLauncher
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var mailTab = BuildMailTab(
-            mailStore, agentRegistry, timeProvider, mailWakeReceiptObserver,
+            mailStore, agentRegistry, timeProvider,
             effectCancellationToken);
 
         var agentsMode = new AgentsMode(taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
@@ -174,15 +169,12 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IAgentRegistry agentRegistry,
         TimeProvider timeProvider,
-        IMailWakeReceiptObserver mailWakeReceiptObserver,
         CancellationToken effectCancellationToken = default)
     {
         var mailMode = new MailMode(
             mailStore,
             actor: null,
             agentRegistry,
-            new DaemonOwnedActorWakeDispatcher(),
-            new DaemonSettledMailWakeReceiptObserver(mailWakeReceiptObserver, timeProvider),
             timeProvider,
             effectCancellationToken);
 

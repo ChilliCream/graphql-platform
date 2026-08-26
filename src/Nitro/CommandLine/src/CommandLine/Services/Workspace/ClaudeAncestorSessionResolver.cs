@@ -14,16 +14,11 @@ internal sealed class ClaudeAncestorSessionResolver(
     /// </summary>
     private const int MaxAncestorHops = 64;
 
-    private readonly Func<int, int?> _parentPidReader = parentPidReader ?? ReadParentPid;
+    private readonly Func<int, int?> _parentPidReader = parentPidReader ?? ProcessAncestry.GetParentPid;
     private readonly Func<int, string?> _sessionFileReader = sessionFileReader ?? ReadSessionFile;
 
     public ClaudeAncestorSession? Resolve()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return null;
-        }
-
         var pid = Environment.ProcessId;
 
         for (var hop = 0; hop < MaxAncestorHops; hop++)
@@ -43,39 +38,6 @@ internal sealed class ClaudeAncestorSessionResolver(
             }
 
             pid = parentPid.Value;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Reads the parent pid of <paramref name="pid"/> from
-    /// <c>/proc/&lt;pid&gt;/status</c>. Any failure (the process already
-    /// exited, permission denied) just ends the walk, the documented
-    /// always-available fallback for self-claim being env binding at
-    /// SessionStart.
-    /// </summary>
-    private static int? ReadParentPid(int pid)
-    {
-        try
-        {
-            foreach (var line in File.ReadLines($"/proc/{pid}/status"))
-            {
-                if (line.StartsWith("PPid:", StringComparison.Ordinal))
-                {
-                    var value = line["PPid:".Length..].Trim();
-
-                    return int.TryParse(value, out var parsed) ? parsed : null;
-                }
-            }
-        }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return null;
         }
 
         return null;
