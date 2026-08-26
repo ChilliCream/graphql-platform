@@ -24,7 +24,7 @@ internal static class ClaudeHookCommandExtensions
             var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
             return await ClaudeHookExecutor.RunAsync(
                 environmentVariables,
-                Console.In,
+                services.GetRequiredService<IStandardInputReader>().Reader,
                 parseResult.InvocationConfiguration.Output,
                 (payload, ct) => handle(handler, payload, ct),
                 hookEventName,

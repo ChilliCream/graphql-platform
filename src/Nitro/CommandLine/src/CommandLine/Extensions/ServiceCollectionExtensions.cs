@@ -27,6 +27,8 @@ internal static class ServiceCollectionExtensions
 
         services.TryAddSingleton<IEnvironmentVariableProvider, EnvironmentVariableProvider>();
 
+        services.TryAddSingleton<IStandardInputReader, StandardInputReader>();
+
         services.TryAddSingleton<IResultHolder, ResultHolder>();
         services.TryAddSingleton<IResultFormatter, JsonResultFormatter>();
 

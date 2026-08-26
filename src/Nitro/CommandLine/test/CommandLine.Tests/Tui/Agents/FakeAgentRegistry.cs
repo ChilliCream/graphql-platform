@@ -4,15 +4,18 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
 /// An in-memory <see cref="IAgentRegistry"/> exercising the surface
-/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentsMode"/> consumes
+/// <see cref="CommandLine.Tui.Agents.AgentsMode"/> consumes
 /// (<see cref="ListAsync"/>) and the surface
-/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentDetailModel"/>
+/// <see cref="CommandLine.Tui.Agents.AgentDetailModel"/>
 /// consumes (<see cref="GetAsync"/>). Every other member throws
 /// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentRegistry : IAgentRegistry
 {
     public List<AgentRecord> Agents { get; } = [];
+
+    public Task<AgentRecord> AllocateAsync(CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 
     public Task<IReadOnlyList<AgentRecord>> ListAsync(
         string? role,

@@ -3,10 +3,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// <summary>
 /// Covers command wiring (help text) only. The event state machine, digest,
 /// gate, and ledger behavior are exercised directly against
-/// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.ClaudeHookHandler"/>
+/// <see cref="Services.Hook.ClaudeHookHandler"/>
 /// in <c>ClaudeHookHandlerTests</c>, and the fail-open envelope, stdin
 /// parsing, and captured payload fixtures against
-/// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.ClaudeHookExecutor"/>
+/// <see cref="how Services.Hook.ClaudeHookExecutor"/>
 /// in <c>ClaudeHookExecutorTests</c>: this command's own action reads real
 /// stdin, which the test host cannot supply deterministically (mirrors
 /// <c>ClaimSessionCommandTests</c>'s reasoning for staying wiring-only here).

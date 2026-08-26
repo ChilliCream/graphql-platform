@@ -17,7 +17,7 @@ public sealed class ActingActorResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_Should_InferTheCurrentSessionsActor_When_Omitted()
     {
-        var (resolver, sessions, generation) = await CreateAsync();
+        var (resolver, sessions, generation, _) = await CreateAsync();
         await sessions.RegisterAsync(
             generation, "nova", actorGiven: true, role: null, roleGiven: false,
             TestContext.Current.CancellationToken);
@@ -31,10 +31,14 @@ public sealed class ActingActorResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_Should_AllowAnExplicitDifferentActor_WithoutChangingTheSession()
     {
-        var (resolver, sessions, generation) = await CreateAsync();
+        var (resolver, sessions, generation, agentRegistry) = await CreateAsync();
         await sessions.RegisterAsync(
             generation, "nova", actorGiven: true, role: null, roleGiven: false,
             TestContext.Current.CancellationToken);
+
+        // The name must already be allocated: `--actor` binds an existing
+        // actor, it never invents one.
+        await agentRegistry.EnsureImplicitAsync("maya", TestContext.Current.CancellationToken);
 
         var actor = await resolver.ResolveAsync(
             optionValue: "Maya", TestContext.Current.CancellationToken);
@@ -45,7 +49,7 @@ public sealed class ActingActorResolverTests : IDisposable
         Assert.Equal("nova", current!.AgentName);
     }
 
-    private async Task<(ActingActorResolver Resolver, AgentSessionRegistry Sessions, AgentSessionGeneration Generation)>
+    private async Task<(ActingActorResolver Resolver, AgentSessionRegistry Sessions, AgentSessionGeneration Generation, AgentRegistry AgentRegistry)>
         CreateAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -95,9 +99,10 @@ public sealed class ActingActorResolverTests : IDisposable
             new FixedCopilotAncestorSessionResolver(null),
             instanceId,
             globalConfig,
+            agentRegistry,
             sessions);
 
-        return (resolver, sessions, generation);
+        return (resolver, sessions, generation, agentRegistry);
     }
 
     private sealed class EmptyEnvironmentVariableProvider : IEnvironmentVariableProvider

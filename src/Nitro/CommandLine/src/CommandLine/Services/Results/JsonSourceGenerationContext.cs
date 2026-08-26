@@ -78,6 +78,7 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(TaskComment))]
 [JsonSerializable(typeof(TaskConfigEntry))]
 [JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceInitResult))]
+[JsonSerializable(typeof(LoginAgentCommand.AgentLoginResult))]
 [JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceMigrateResult))]
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]

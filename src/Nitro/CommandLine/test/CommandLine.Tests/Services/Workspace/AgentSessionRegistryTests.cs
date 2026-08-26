@@ -578,6 +578,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -604,6 +605,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // AgentRole.Normalize applies on the write path, not just reads.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -624,6 +626,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -649,6 +652,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -672,6 +676,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -693,6 +698,8 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("codex", cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -717,6 +724,8 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // the same transaction.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("codex", cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -744,6 +753,8 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("codex", cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
@@ -770,6 +781,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // for this generation yet.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
 
         // act & assert
@@ -787,6 +799,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // refuse to bind rather than risk a false match.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
         var generation = AliveGeneration("session-1");
         await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",

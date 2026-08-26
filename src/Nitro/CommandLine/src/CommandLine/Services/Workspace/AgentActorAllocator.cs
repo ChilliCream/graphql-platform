@@ -22,8 +22,15 @@ internal static class AgentActorAllocator
         SqliteConnection connection,
         DbTransaction transaction)
     {
+        // Both tables, not just the bound ones: `agent login` mints a name
+        // into agents that no session holds yet, and handing that same name
+        // to a starting session would give two agents one identity.
         var occupied = (await connection.QueryAsync<string>(
-                "SELECT actor FROM agent_session_identities",
+                """
+                SELECT actor FROM agent_session_identities
+                UNION
+                SELECT name FROM agents
+                """,
                 transaction: transaction))
             .ToHashSet(StringComparer.Ordinal);
         var order = Enumerable.Range(0, s_baseActors.Length).ToArray();

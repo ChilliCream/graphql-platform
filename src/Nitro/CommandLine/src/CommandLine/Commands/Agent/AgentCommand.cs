@@ -24,6 +24,7 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new TasksCommand());
         Subcommands.Add(new MailCommand());
         Subcommands.Add(new MemoryCommand());
+        Subcommands.Add(new LoginAgentCommand());
         Subcommands.Add(new RegisterAgentCommand());
         Subcommands.Add(new ListAgentCommand());
         Subcommands.Add(new HookCommand());

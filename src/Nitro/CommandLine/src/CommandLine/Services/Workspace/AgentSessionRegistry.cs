@@ -566,6 +566,20 @@ internal sealed class AgentSessionRegistry(
 
         RequireObservableProcessScope(generation, row.ProcessScope);
 
+        // Actor names are allocated, never invented: `register` binds a name
+        // `agent login` or a session-start hook already minted.
+        var known = await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT name FROM agents WHERE name = @name",
+            new { name = normalizedActor, cancellationToken },
+            transaction);
+
+        if (known is null)
+        {
+            throw new ExitException(
+                $"Unknown actor '{normalizedActor}'. Run `nitro agent login` to allocate one, "
+                + "or `nitro agent list` to see the actors this workspace knows.");
+        }
+
         var agent = await AgentRegistry.UpsertWithinTransactionAsync(
             connection, transaction, timeProvider, normalizedActor, normalizedRole, client, cancellationToken);
 

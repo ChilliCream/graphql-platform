@@ -37,7 +37,7 @@ internal static class CodexHookCommandExtensions
             var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
             return await CodexHookExecutor.RunAsync(
                 environmentVariables,
-                Console.In,
+                services.GetRequiredService<IStandardInputReader>().Reader,
                 parseResult.InvocationConfiguration.Output,
                 (payload, ct) => handle(handler, payload, ct),
                 hookEventName,

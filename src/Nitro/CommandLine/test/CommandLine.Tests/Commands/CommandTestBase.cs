@@ -41,6 +41,7 @@ public abstract class CommandTestBase
     private IFileSystem? _fileSystemOverride;
     private IGlobalMemoryDirectoryProvider? _globalMemoryDirectoryProviderOverride;
     private INitroInstanceIdProvider? _instanceIdProviderOverride;
+    private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
     // Default to no ancestor found for every command test, not just ones
     // that call SetupAncestorSessionResolvers explicitly: `agent register`
@@ -140,6 +141,15 @@ public abstract class CommandTestBase
     /// cannot control or predict deterministically. All three default to no
     /// ancestor found when not given.
     /// </summary>
+    /// <summary>
+    /// Feeds <paramref name="payload"/> to a command that reads standard
+    /// input, such as a hook adapter.
+    /// </summary>
+    protected void SetupStandardInput(string payload)
+    {
+        _standardInputOverride = new FixedStandardInputReader(payload);
+    }
+
     private protected void SetupAncestorSessionResolvers(
         ClaudeAncestorSession? claude = null,
         CodexAncestorSession? codex = null,
@@ -411,6 +421,12 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
+
+        if (_standardInputOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_standardInputOverride));
+        }
+
         services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_browserLauncherMock.Object));

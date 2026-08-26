@@ -28,6 +28,20 @@ internal sealed class AgentRegistry(
         return agent;
     }
 
+    public async Task<AgentRecord> AllocateAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var actor = await AgentActorAllocator.AllocateAsync(connection, transaction);
+        var agent = await UpsertWithinTransactionAsync(
+            connection, transaction, timeProvider, actor, string.Empty, string.Empty, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return agent;
+    }
+
     /// <summary>
     /// The agents upsert <see cref="RegisterAsync"/> applies (sets
     /// last_seen_at to now, implicit to false, and role and client to the

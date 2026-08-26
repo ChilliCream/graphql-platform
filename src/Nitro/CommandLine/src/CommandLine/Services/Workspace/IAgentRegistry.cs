@@ -19,6 +19,13 @@ internal interface IAgentRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Allocates an unused actor name and records it, so a harness with no
+    /// session-start hook can obtain one and bind it with <c>register</c>.
+    /// The name belongs to no session until then.
+    /// </summary>
+    Task<AgentRecord> AllocateAsync(CancellationToken cancellationToken);
+
+    /// <summary>
     /// Normalizes the given name, then upserts the agent: sets last_seen_at
     /// to now and implicit to false, without touching role. Used by the
     /// implicit auto-registration mail send and reply perform on the acting

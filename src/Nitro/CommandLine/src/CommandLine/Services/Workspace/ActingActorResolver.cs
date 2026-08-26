@@ -11,6 +11,7 @@ internal sealed class ActingActorResolver(
     ICopilotAncestorSessionResolver copilotAncestorResolver,
     INitroInstanceIdProvider instanceIdProvider,
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
+    IAgentRegistry agents,
     IAgentSessionRegistry sessions) : IActingActorResolver
 {
     public async Task<string> ResolveAsync(
@@ -19,7 +20,18 @@ internal sealed class ActingActorResolver(
     {
         if (optionValue is not null)
         {
-            return MailAgentName.Normalize(optionValue);
+            var requested = MailAgentName.Normalize(optionValue);
+
+            // Actor names are allocated, never invented: only `agent login`
+            // and the session-start hooks mint one.
+            if (await agents.GetAsync(requested, cancellationToken) is null)
+            {
+                throw new ExitException(
+                    $"Unknown actor '{requested}'. Run `nitro agent login` to allocate one, "
+                    + "or `nitro agent list` to see the actors this workspace knows.");
+            }
+
+            return requested;
         }
 
         var session = await TryResolveSessionAsync(cancellationToken);
