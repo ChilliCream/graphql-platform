@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text.Json;
 using CookieCrumble;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
@@ -1526,6 +1527,34 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
+    public async Task AsSelector_Should_Evict_Narrow_Selector_When_Wide_Variants_Reach_Aggregate_Capacity()
+    {
+        // arrange
+        var diagnostics = new ConditionalCacheDiagnostics();
+        await using var context = await CreateConditionalTestContextAsync(2, diagnostics);
+        var wideDocument = CreateWideConditionalSelectorDocument();
+
+        // act
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+        await ExecuteConditionalRequestAsync(
+            context,
+            wideDocument,
+            CreateWideConditionalVariables(include: false));
+        await ExecuteConditionalRequestAsync(
+            context,
+            wideDocument,
+            CreateWideConditionalVariables(include: true));
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+
+        // assert
+        Assert.Equal(4, context.SelectorCapture.Selectors.Count);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[3]);
+        Assert.Equal(1, diagnostics.CapacityGaugeRegistrations);
+        Assert.Equal(2, diagnostics.CapacityGauge!());
+        Assert.InRange(diagnostics.SizeGauge!(), 0, 2);
+    }
+
+    [Fact]
     public async Task AsSelector_Should_Reuse_Selection_Cached_Selector_When_Subtree_Is_Unconditional_In_Conditional_Operation()
     {
         // arrange
@@ -1613,8 +1642,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         return $"""
             query({string.Join(", ", variables)}) {{
               {string.Join(Environment.NewLine + "  ", fields)}
-              tenantsCapturedWide: tenantsCapturedWide {{
-                id
+              tenantsCapturedWide: tenantsCapturedWide {{id
                 workspaces @include(if: $wide) {{
                   id
                 }}
@@ -1636,7 +1664,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         return variables;
     }
 
-    private static async Task<ConditionalTestContext> CreateConditionalTestContextAsync()
+    private static async Task<ConditionalTestContext> CreateConditionalTestContextAsync(
+        int cacheCapacity = 4096,
+        CacheDiagnostics? cacheDiagnostics = null)
     {
         var dbFile = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
@@ -1645,12 +1675,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         var sqlCapture = new ConditionalSqlCapture();
         var selectorCapture = new ConditionalSelectorCapture();
 
-        var services = new ServiceCollection()
+        var serviceCollection = new ServiceCollection()
             .AddSingleton(sqlCapture)
             .AddSingleton(selectorCapture)
-            .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+            .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString));
+
+        if (cacheDiagnostics is not null)
+        {
+            serviceCollection.AddSingleton<CacheDiagnostics>(cacheDiagnostics);
+        }
+
+        var services = serviceCollection
             .AddGraphQL()
-            .AddProjectionSelectorCache()
+            .AddProjectionSelectorCache(cacheCapacity)
             .AddQueryType<ConditionalQuery>()
             .AddType<ConditionalTenantType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -1849,6 +1886,30 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public sealed class ConditionalSelectorCapture
     {
         public List<LambdaExpression> Selectors { get; } = [];
+    }
+
+    private sealed class ConditionalCacheDiagnostics : CacheDiagnostics
+    {
+        public int CapacityGaugeRegistrations { get; private set; }
+
+        public Func<long>? CapacityGauge { get; private set; }
+
+        public Func<long>? SizeGauge { get; private set; }
+
+        public override void RegisterCapacityGauge(Func<long> capacityProvider)
+        {
+            CapacityGaugeRegistrations++;
+            CapacityGauge = capacityProvider;
+        }
+
+        public override void RegisterSizeGauge(Func<long> sizeProvider)
+            => SizeGauge = sizeProvider;
+
+        public override void Hit() { }
+
+        public override void Miss() { }
+
+        public override void Evict() { }
     }
 
     private sealed class ConditionalTestContext(

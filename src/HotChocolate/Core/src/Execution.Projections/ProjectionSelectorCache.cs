@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Processing;
 
@@ -10,15 +11,27 @@ internal sealed class ProjectionSelectorCache
 {
     public const int DefaultCapacity = 4096;
 
-    private readonly Cache<SelectorCacheKey, SelectorExpression> _cache;
-    private readonly Cache<WideSelectorCacheKey, SelectorExpression> _wideCache;
+    private readonly int _capacity;
+    private readonly CacheEntry?[] _ring;
+    private readonly ConcurrentDictionary<SelectorCacheKey, NarrowCacheEntry> _cache;
+    private readonly CacheDiagnostics? _diagnostics;
+    private ConcurrentDictionary<WideSelectorCacheKey, WideCacheEntry>? _wideCache;
+    private uint _hand = uint.MaxValue;
 
     public ProjectionSelectorCache(
         int capacity = DefaultCapacity,
         CacheDiagnostics? diagnostics = null)
     {
-        _cache = new Cache<SelectorCacheKey, SelectorExpression>(capacity, diagnostics);
-        _wideCache = new Cache<WideSelectorCacheKey, SelectorExpression>(capacity, diagnostics);
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
+
+        _capacity = capacity;
+        _ring = new CacheEntry[capacity];
+        _cache = new ConcurrentDictionary<SelectorCacheKey, NarrowCacheEntry>(
+            concurrencyLevel: Environment.ProcessorCount,
+            capacity: capacity);
+        _diagnostics = diagnostics;
+        _diagnostics?.RegisterCapacityGauge(() => _capacity);
+        _diagnostics?.RegisterSizeGauge(() => _cache.Count + (_wideCache?.Count ?? 0));
     }
 
     internal SelectorExpression<TValue> GetOrCreate<TValue>(
@@ -32,10 +45,23 @@ internal sealed class ProjectionSelectorCache
             includeFlags,
             typeof(TValue));
 
-        return (SelectorExpression<TValue>)_cache.GetOrCreate(
+        if (_cache.TryGetValue(key, out var entry))
+        {
+            Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics?.Hit();
+            return (SelectorExpression<TValue>)entry.Value;
+        }
+
+        entry = _cache.GetOrAdd(
             key,
-            static (_, state) => state.Create(state.Selection, state.IncludeFlags),
-            new SelectorCacheCreateState<TValue>(selection, includeFlags, create));
+            static (key, state) => state.Cache.InsertNew(
+                new NarrowCacheEntry(
+                    key,
+                    state.Create(state.Selection, state.IncludeFlags))),
+            new SelectorCacheCreateState<TValue>(this, selection, includeFlags, create));
+
+        Volatile.Write(ref entry.Accessed, 1);
+        return (SelectorExpression<TValue>)entry.Value;
     }
 
     internal SelectorExpression<TValue> GetOrCreate<TValue>(
@@ -49,10 +75,77 @@ internal sealed class ProjectionSelectorCache
             includeFlags,
             typeof(TValue));
 
-        return (SelectorExpression<TValue>)_wideCache.GetOrCreate(
+        var cache = Volatile.Read(ref _wideCache);
+        if (cache is null)
+        {
+            var newCache = new ConcurrentDictionary<WideSelectorCacheKey, WideCacheEntry>(
+                concurrencyLevel: Environment.ProcessorCount,
+                capacity: _capacity);
+            cache = Interlocked.CompareExchange(ref _wideCache, newCache, null) ?? newCache;
+        }
+
+        if (cache.TryGetValue(key, out var entry))
+        {
+            Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics?.Hit();
+            return (SelectorExpression<TValue>)entry.Value;
+        }
+
+        entry = cache.GetOrAdd(
             key,
-            static (_, state) => state.Create(state.Selection, state.IncludeFlags),
-            new WideSelectorCacheCreateState<TValue>(selection, includeFlags, create));
+            static (key, state) => state.Cache.InsertNew(
+                new WideCacheEntry(
+                    key,
+                    state.Create(state.Selection, state.IncludeFlags))),
+            new WideSelectorCacheCreateState<TValue>(this, selection, includeFlags, create));
+
+        Volatile.Write(ref entry.Accessed, 1);
+        return (SelectorExpression<TValue>)entry.Value;
+    }
+
+    private TEntry InsertNew<TEntry>(TEntry newEntry)
+        where TEntry : CacheEntry
+    {
+        _diagnostics?.Miss();
+
+        var maxSpins = _capacity * 2;
+        var spins = 0;
+
+        while (true)
+        {
+            var handle = Interlocked.Increment(ref _hand);
+            var idx = (int)(handle % (uint)_capacity);
+            var entry = _ring[idx];
+
+            if (++spins > maxSpins && entry is not null)
+            {
+                var previous = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
+                if (ReferenceEquals(previous, entry))
+                {
+                    entry.Remove(this);
+                    _diagnostics?.Evict();
+                    return newEntry;
+                }
+            }
+
+            if (entry is null)
+            {
+                if (Interlocked.CompareExchange(ref _ring[idx], newEntry, null) is null)
+                {
+                    return newEntry;
+                }
+            }
+            else if (Interlocked.CompareExchange(ref entry.Accessed, 0, 1) == 0)
+            {
+                var previous = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
+                if (ReferenceEquals(previous, entry))
+                {
+                    entry.Remove(this);
+                    _diagnostics?.Evict();
+                    return newEntry;
+                }
+            }
+        }
     }
 
     private readonly record struct SelectorCacheKey(
@@ -62,6 +155,7 @@ internal sealed class ProjectionSelectorCache
         Type ValueType);
 
     private readonly record struct SelectorCacheCreateState<TValue>(
+        ProjectionSelectorCache Cache,
         Selection Selection,
         ulong IncludeFlags,
         Func<Selection, ulong, SelectorExpression<TValue>> Create);
@@ -106,7 +200,31 @@ internal sealed class ProjectionSelectorCache
     }
 
     private readonly record struct WideSelectorCacheCreateState<TValue>(
+        ProjectionSelectorCache Cache,
         Selection Selection,
         ConditionFlags IncludeFlags,
         Func<Selection, ConditionFlags, SelectorExpression<TValue>> Create);
+
+    private abstract class CacheEntry(SelectorExpression value)
+    {
+        public readonly SelectorExpression Value = value;
+
+        public int Accessed = 1;
+
+        public abstract void Remove(ProjectionSelectorCache cache);
+    }
+
+    private sealed class NarrowCacheEntry(SelectorCacheKey key, SelectorExpression value)
+        : CacheEntry(value)
+    {
+        public override void Remove(ProjectionSelectorCache cache)
+            => cache._cache.TryRemove(key, out _);
+    }
+
+    private sealed class WideCacheEntry(WideSelectorCacheKey key, SelectorExpression value)
+        : CacheEntry(value)
+    {
+        public override void Remove(ProjectionSelectorCache cache)
+            => cache._wideCache?.TryRemove(key, out _);
+    }
 }
