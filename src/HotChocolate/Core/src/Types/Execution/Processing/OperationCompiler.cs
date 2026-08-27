@@ -143,6 +143,7 @@ public sealed partial class OperationCompiler
                 parentIsInternal: false,
                 parentIsProjectionRequirement: false,
                 hasWideIncludeFlags,
+                includeConditions.Count,
                 hasWideDeferFlags,
                 ref lastId);
 
@@ -271,6 +272,7 @@ public sealed partial class OperationCompiler
                 selection.IsInternal,
                 selection.IsProjectionRequirement,
                 hasWideIncludeFlags,
+                includeConditions.Count,
                 hasWideDeferFlags,
                 ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
@@ -436,6 +438,7 @@ public sealed partial class OperationCompiler
         bool parentIsInternal,
         bool parentIsProjectionRequirement,
         bool hasWideIncludeFlags,
+        int includeConditionCount,
         bool hasWideDeferFlags,
         ref int lastId)
     {
@@ -446,6 +449,7 @@ public sealed partial class OperationCompiler
         var includeFlags = new List<ulong>();
         // Aligned with includeFlags per path; only materialized for wide operations.
         var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
+        var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
         var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
         foreach (var (responseName, nodes) in fieldMap)
@@ -528,6 +532,19 @@ public sealed partial class OperationCompiler
                 CollapseIncludeFlags(includeFlags);
             }
 
+            ulong[]? flatWideIncludeFlags = null;
+            if (wideIncludeFlags is { Count: > 0 })
+            {
+                flatWideIncludeFlags = new ulong[wideIncludeFlags.Count * wideIncludeFlagsStride];
+
+                for (var j = 0; j < wideIncludeFlags.Count; j++)
+                {
+                    var pathOverflow = wideIncludeFlags[j];
+                    pathOverflow.AsSpan().CopyTo(
+                        flatWideIncludeFlags.AsSpan(j * wideIncludeFlagsStride, pathOverflow.Length));
+                }
+            }
+
             // If any field node is not inside a deferred fragment, the selection
             // is not deferred — it must be included in the initial response.
             DeferUsage[]? finalDeferUsage = null;
@@ -597,7 +614,8 @@ public sealed partial class OperationCompiler
                 nodes.ToArray(),
                 includeFlags.Count > 0 ? includeFlags.ToArray() : [],
                 isProjectionRequirement,
-                wideIncludeFlags: wideIncludeFlags is { Count: > 0 } ? wideIncludeFlags.ToArray() : null,
+                wideIncludeFlags: flatWideIncludeFlags,
+                wideIncludeFlagsStride: wideIncludeFlagsStride,
                 deferUsage: finalDeferUsage,
                 deferMask: deferMask,
                 wideDeferMask: wideDeferMask,

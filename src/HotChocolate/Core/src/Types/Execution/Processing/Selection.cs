@@ -14,7 +14,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
-    private readonly ulong[][]? _wideIncludeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
+    private readonly int _wideIncludeFlagsStride;
     private readonly byte[] _utf8ResponseName;
     private readonly DeferUsage[] _deferUsage;
     private readonly ulong _deferMask;
@@ -30,7 +31,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isProjectionRequirement,
-        ulong[][]? wideIncludeFlags = null,
+        ulong[]? wideIncludeFlags = null,
+        int wideIncludeFlagsStride = 0,
         DeferUsage[]? deferUsage = null,
         ulong deferMask = 0,
         ulong[]? wideDeferMask = null,
@@ -65,6 +67,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _wideIncludeFlags = wideIncludeFlags;
+        _wideIncludeFlagsStride = wideIncludeFlagsStride;
         _deferUsage = deferUsage ?? [];
         _deferMask = deferMask;
         _wideDeferMask = wideDeferMask;
@@ -97,7 +100,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         IType type,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
-        ulong[][]? wideIncludeFlags,
+        ulong[]? wideIncludeFlags,
+        int wideIncludeFlagsStride,
         DeferUsage[] deferUsage,
         ulong deferMask,
         ulong[]? wideDeferMask,
@@ -121,6 +125,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _wideIncludeFlags = wideIncludeFlags;
+        _wideIncludeFlagsStride = wideIncludeFlagsStride;
         _deferUsage = deferUsage;
         _deferMask = deferMask;
         _wideDeferMask = wideDeferMask;
@@ -397,6 +402,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         }
 
         var wide = _wideIncludeFlags;
+        var stride = _wideIncludeFlagsStride;
 
         for (var i = 0; i < _includeFlags.Length; i++)
         {
@@ -407,18 +413,17 @@ public sealed class Selection : ISelection, IFeatureProvider
                 continue;
             }
 
-            var overflow = wide?[i];
-
-            if (overflow is null || overflow.Length == 0)
+            if (wide is null)
             {
                 return true;
             }
 
             var satisfied = true;
+            var offset = i * stride;
 
-            for (var w = 0; w < overflow.Length; w++)
+            for (var w = 0; w < stride; w++)
             {
-                var pathWord = overflow[w];
+                var pathWord = wide[offset + w];
                 var requestWord = w < wideIncludeFlags.Length ? wideIncludeFlags[w] : 0ul;
 
                 if ((pathWord & requestWord) != pathWord)
@@ -948,6 +953,7 @@ nextItem:
             _syntaxNodes,
             _includeFlags,
             _wideIncludeFlags,
+            _wideIncludeFlagsStride,
             _deferUsage,
             _deferMask,
             _wideDeferMask,
@@ -977,6 +983,7 @@ nextItem:
             _syntaxNodes,
             _includeFlags,
             _wideIncludeFlags,
+            _wideIncludeFlagsStride,
             _deferUsage,
             _deferMask,
             _wideDeferMask,
