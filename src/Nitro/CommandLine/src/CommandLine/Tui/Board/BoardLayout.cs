@@ -1,55 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// The arrangement a <see cref="BoardLayoutDecision"/> resolves to for one frame.
-/// </summary>
-internal enum BoardLayoutKind
-{
-    /// <summary>Every column is rendered side by side at equal width.</summary>
-    Grid,
-
-    /// <summary>Only the focused column is rendered, at the full content width.</summary>
-    Maximized,
-
-    /// <summary>
-    /// Columns are stacked vertically, each sharing an equal slice of the
-    /// available height. On frames too short to give every column a usable
-    /// slice, the focused column expands instead and the rest collapse to a
-    /// single title line.
-    /// </summary>
-    Stacked
-}
-
-/// <summary>
-/// One column's computed slot within a <see cref="BoardLayoutDecision"/>.
-/// </summary>
-/// <param name="Width">The column's width in cells.</param>
-/// <param name="Height">The column's height in cells.</param>
-/// <param name="Expanded">
-/// Whether the column renders its full panel, as opposed to a collapsed
-/// title line.
-/// </param>
-internal readonly record struct BoardColumnLayout(int Width, int Height, bool Expanded);
-
-/// <summary>
-/// The layout chosen for one frame: which <see cref="BoardLayoutKind"/> applies
-/// and the slot each column renders into, indexed the same as the board's
-/// column list.
-/// </summary>
-internal sealed class BoardLayoutDecision
-{
-    /// <summary>
-    /// The arrangement this decision resolved to.
-    /// </summary>
-    public required BoardLayoutKind Kind { get; init; }
-
-    /// <summary>
-    /// Each column's computed slot, indexed the same as the board's column list.
-    /// </summary>
-    public required IReadOnlyList<BoardColumnLayout> Columns { get; init; }
-}
-
-/// <summary>
 /// Computes how a board's columns are arranged for one frame: a pure function
 /// of terminal size, column count, focus, and the maximize toggle, with no
 /// dependency on rendering or a console.

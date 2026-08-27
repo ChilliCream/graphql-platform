@@ -259,7 +259,7 @@ internal sealed class DependencyTreeView : ITuiMode
 
     private void RefreshBlocking()
     {
-        var tasks = _store.QueryTasksAsync(new TaskFilter { IncludeAll = true }, CancellationToken.None)
+        var tasks = _store.QueryTasksAsync(new TaskFilter { IncludeAll = true, IncludeArchived = true }, CancellationToken.None)
             .GetAwaiter().GetResult();
         _tasksById = tasks.ToDictionary(t => t.Id);
         _edges = _store.GetDependencyEdgesAsync(CancellationToken.None).GetAwaiter().GetResult();

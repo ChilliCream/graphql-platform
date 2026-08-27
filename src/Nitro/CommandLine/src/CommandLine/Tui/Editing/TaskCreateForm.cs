@@ -8,38 +8,6 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 
 /// <summary>
-/// The outcome of submitting a <see cref="TaskCreateForm"/> against the task
-/// store.
-/// </summary>
-internal abstract record TaskCreateOutcome
-{
-    private TaskCreateOutcome()
-    {
-    }
-
-    /// <summary>
-    /// The task was created, carrying the id the store allocated for it.
-    /// </summary>
-    public sealed record Succeeded(string TaskId, string ToastText) : TaskCreateOutcome;
-
-    /// <summary>
-    /// The store rejected the write, carrying its <see cref="ExitException"/> message.
-    /// </summary>
-    public sealed record Failed(string ToastText) : TaskCreateOutcome;
-
-    /// <summary>
-    /// The shell toast this outcome should show: success styled for
-    /// <see cref="Succeeded"/>, error styled for <see cref="Failed"/>.
-    /// </summary>
-    public TuiMessage.ShowToast ToShowToast() => this switch
-    {
-        Succeeded succeeded => new TuiMessage.ShowToast(succeeded.ToastText, ToastStyle.Success),
-        Failed failed => new TuiMessage.ShowToast(failed.ToastText, ToastStyle.Error),
-        _ => throw new NotSupportedException()
-    };
-}
-
-/// <summary>
 /// The task create form: title, type, priority, labels, and description.
 /// Status is always open on create and is not a field; due, defer, and
 /// estimate are not fields either. Built with an optional parent task id: when
@@ -91,7 +59,7 @@ internal sealed class TaskCreateForm
 
     private const string DefaultPriorityId = "2";
 
-    private static readonly SelectOption[] WellKnownTypes =
+    private static readonly SelectOption[] s_wellKnownTypes =
     [
         new(TaskTypes.Task, "Task"),
         new(TaskTypes.Bug, "Bug"),
@@ -102,7 +70,7 @@ internal sealed class TaskCreateForm
         new(TaskTypes.Question, "Question")
     ];
 
-    private static readonly SelectOption[] WellKnownPriorities =
+    private static readonly SelectOption[] s_wellKnownPriorities =
     [
         new("0", TaskPriorities.Format(0)),
         new("1", TaskPriorities.Format(1)),
@@ -137,7 +105,7 @@ internal sealed class TaskCreateForm
         _typeField = new SelectField(
             TypeFieldId,
             "Type",
-            WellKnownTypes,
+            s_wellKnownTypes,
             initialSelectedId: typePreset);
 
         // A selected board row becomes the new task's parent by default, but
@@ -158,7 +126,7 @@ internal sealed class TaskCreateForm
         _priorityField = new SelectField(
             PriorityFieldId,
             "Priority",
-            WellKnownPriorities,
+            s_wellKnownPriorities,
             initialSelectedId: DefaultPriorityId);
 
         _labelsField = new EditableListField(LabelsFieldId, "Labels");
