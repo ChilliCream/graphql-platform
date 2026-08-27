@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
@@ -273,6 +274,228 @@ public class OperationCompilerTests : FusionTestBase
 
         Assert.False(typeName.IsInternal);
         Assert.False(typeName.IsIncluded(flags));
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeTrue_When_FieldItselfCarriesPolicy()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              fieldPolicy {
+                value
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "fieldPolicy");
+
+        // assert
+        Assert.True(selection.HasPolicy);
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeTrue_When_ConcreteReturnTypeCarriesPolicy()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              objectPolicy {
+                value
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "objectPolicy");
+
+        // assert
+        Assert.True(selection.HasPolicy);
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeTrue_When_InterfaceReturnHasOneGuardedImplementor()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              node {
+                id
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "node");
+
+        // assert
+        Assert.True(selection.HasPolicy);
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeTrue_When_UnionMemberCarriesPolicy()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              unionField {
+                __typename
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "unionField");
+
+        // assert
+        Assert.True(selection.HasPolicy);
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeTrue_When_ListOfNonNullInterfaceHasGuardedImplementor()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              nodes {
+                id
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "nodes");
+
+        // assert
+        Assert.True(selection.HasPolicy);
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeTrue_When_InterfaceHasInaccessibleGuardedImplementor()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              node {
+                id
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "node");
+
+        // assert
+        Assert.True(selection.HasPolicy);
+    }
+
+    [Fact]
+    public void Selection_HasPolicy_Should_BeFalse_When_NoPolicyAppliesAnywhere()
+    {
+        // arrange
+        const string sourceText =
+            """
+            {
+              plain {
+                value
+              }
+            }
+            """;
+        var schema = CreatePolicyAwareSchema();
+
+        // act
+        var selection = CompileRootSelection(schema, sourceText, "plain");
+
+        // assert
+        Assert.False(selection.HasPolicy);
+    }
+
+    private static Selection CompileRootSelection(
+        FusionSchemaDefinition schema,
+        string sourceText,
+        string responseName)
+    {
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var rewritten = new DocumentRewriter(schema).RewriteDocument(document, operationName: null);
+        var operationDefinition = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+
+        var fieldMapPool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new FieldMapPooledObjectPolicy());
+        var compiler = new OperationCompiler(schema, fieldMapPool);
+        var operation = compiler.Compile("1", "1", operationDefinition);
+
+        return GetSelection(operation.RootSelectionSet, responseName);
+    }
+
+    private static FusionSchemaDefinition CreatePolicyAwareSchema()
+    {
+        const string sourceText =
+            """
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+              repeatable on OBJECT | FIELD_DEFINITION
+
+            enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              fieldPolicy: PlainObject @policy(names: "CanReadField")
+              objectPolicy: GuardedObject
+              plain: PlainObject
+              node: Node
+              nodes: [Node!]!
+              unionField: SearchResult
+            }
+
+            type PlainObject {
+              value: String
+            }
+
+            type GuardedObject @policy(names: "CanReadGuarded") {
+              value: String
+            }
+
+            type GuardedNode implements Node @policy(names: "CanReadGuardedNode") {
+              id: ID!
+            }
+
+            type PlainNode implements Node {
+              id: ID!
+            }
+
+            type InaccessibleGuardedNode implements Node @policy(names: "CanReadInaccessibleNode") @inaccessible {
+              id: ID!
+            }
+
+            union SearchResult = PlainObject | GuardedObject
+            """;
+
+        var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(
+                _ => new TestPolicyProvider(
+                    new TestPolicy("CanReadField"),
+                    new TestPolicy("CanReadGuarded"),
+                    new TestPolicy("CanReadGuardedNode"),
+                    new TestPolicy("CanReadInaccessibleNode")))
+            .BuildServiceProvider();
+
+        var compositeSchemaDoc = ComposeSchemaDocument(sourceText);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc, services);
     }
 
     public static FusionSchemaDefinition CreateSchema()

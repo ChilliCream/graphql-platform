@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Definitions;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
@@ -9,6 +11,11 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// </summary>
 internal static class RemoveFederationInfrastructure
 {
+    // Apollo's policy sub-spec is linked separately from the main federation spec, e.g.
+    // @link(url: "https://specs.apollo.dev/policy/v0.1", import: ["@policy"]).
+    private const string PolicySpecUrlPrefix = "specs.apollo.dev/policy";
+    private const string PoliciesArgumentName = "policies";
+
     private static readonly HashSet<string> s_federationDirectiveNames =
     [
         with(StringComparer.Ordinal),
@@ -23,8 +30,7 @@ internal static class RemoveFederationInfrastructure
         FederationDirectiveNames.Tag,
         FederationDirectiveNames.ComposeDirective,
         FederationDirectiveNames.Authenticated,
-        FederationDirectiveNames.RequiresScopes,
-        FederationDirectiveNames.Policy
+        FederationDirectiveNames.RequiresScopes
     ];
 
     private static readonly HashSet<string> s_federationScalarNames =
@@ -32,7 +38,8 @@ internal static class RemoveFederationInfrastructure
         with(StringComparer.Ordinal),
         FederationTypeNames.Any,
         FederationTypeNames.FieldSet,
-        FederationTypeNames.LegacyFieldSet
+        FederationTypeNames.LegacyFieldSet,
+        FederationTypeNames.Policy
     ];
 
     /// <summary>
@@ -43,6 +50,11 @@ internal static class RemoveFederationInfrastructure
     /// </param>
     public static void Apply(MutableSchemaDefinition schema)
     {
+        // Rewrite Apollo's @policy applications into Fusion's @policy(names:) shape before the
+        // Apollo directive definitions are dropped below, so the authorization semantic survives
+        // the import instead of being silently discarded.
+        TranslatePolicyDirective(schema);
+
         // Remove federation directive definitions.
         foreach (var name in s_federationDirectiveNames)
         {
@@ -133,5 +145,167 @@ internal static class RemoveFederationInfrastructure
         }
 
         return referencedTypeNames;
+    }
+
+    /// <summary>
+    /// Rewrites every application of Apollo's <c>@policy(policies: [[...]])</c> directive into
+    /// Fusion's <c>@policy(names: [[...]])</c> shape, and replaces Apollo's directive definition
+    /// with the canonical Fusion one. Apollo's <c>policies</c> and Fusion's <c>names</c> arguments
+    /// share the same disjunctive-normal-form shape, so the argument value is carried over as is.
+    /// Apollo's directive carries no denial behavior, so the rewritten applications omit
+    /// <c>onDenied</c> and inherit the schema-wide default. Does nothing when the source schema
+    /// does not link Apollo's policy spec.
+    /// </summary>
+    private static void TranslatePolicyDirective(MutableSchemaDefinition schema)
+    {
+        var localName = ResolvePolicyLocalName(schema);
+
+        if (localName is null)
+        {
+            return;
+        }
+
+        var applications = CollectPolicyApplications(schema, localName);
+
+        if (applications.Count == 0)
+        {
+            return;
+        }
+
+        if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(
+                SpecScalarNames.String.Name, out var stringType))
+        {
+            stringType = BuiltIns.String.Create();
+        }
+
+        if (!schema.Types.TryGetType<MutableEnumTypeDefinition>(
+                WellKnownTypeNames.PolicyDenialBehavior, out var policyDenialBehaviorType))
+        {
+            policyDenialBehaviorType = PolicyDenialBehaviorMutableEnumTypeDefinition.Create();
+            schema.Types.Add(policyDenialBehaviorType);
+        }
+
+        var fusionPolicyDefinition = new PolicyMutableDirectiveDefinition(stringType, policyDenialBehaviorType);
+
+        foreach (var (directives, directive) in applications)
+        {
+            directives.Replace(
+                directive,
+                new Directive(
+                    fusionPolicyDefinition,
+                    new ArgumentAssignment(
+                        WellKnownArgumentNames.Names,
+                        directive.Arguments[PoliciesArgumentName])));
+        }
+
+        schema.DirectiveDefinitions.Remove(localName);
+        schema.DirectiveDefinitions.Add(fusionPolicyDefinition);
+    }
+
+    /// <summary>
+    /// Resolves the local (possibly renamed via <c>@link(import: [{name, as}])</c>) name that
+    /// Apollo's <c>@policy</c> directive was imported under, or <c>null</c> when the schema does
+    /// not link Apollo's policy spec, or links it without importing <c>@policy</c>.
+    /// </summary>
+    internal static string? ResolvePolicyLocalName(MutableSchemaDefinition schema)
+    {
+        foreach (var directive in schema.Directives[FederationDirectiveNames.Link])
+        {
+            if (!directive.Arguments.TryGetValue("url", out var urlValue)
+                || urlValue is not StringValueNode urlString
+                || !urlString.Value.Contains(PolicySpecUrlPrefix, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!directive.Arguments.TryGetValue("import", out var importValue)
+                || importValue is not ListValueNode importList)
+            {
+                // Linked without an explicit import list: the directive is available under
+                // its spec-defined name.
+                return FederationDirectiveNames.Policy;
+            }
+
+            foreach (var item in importList.Items)
+            {
+                switch (item)
+                {
+                    case StringValueNode importName
+                        when TrimLeadingAt(importName.Value) == FederationDirectiveNames.Policy:
+                        return FederationDirectiveNames.Policy;
+
+                    case ObjectValueNode importObject:
+                        var name = importObject.Fields.FirstOrDefault(f => f.Name.Value == "name")?.Value;
+
+                        if (name is not StringValueNode nameNode
+                            || TrimLeadingAt(nameNode.Value) != FederationDirectiveNames.Policy)
+                        {
+                            continue;
+                        }
+
+                        var alias = importObject.Fields.FirstOrDefault(f => f.Name.Value == "as")?.Value;
+
+                        return alias is StringValueNode aliasNode
+                            ? TrimLeadingAt(aliasNode.Value)
+                            : FederationDirectiveNames.Policy;
+                }
+            }
+
+            // The policy spec is linked, but @policy is not in its import list.
+            return null;
+        }
+
+        return null;
+    }
+
+    private static string TrimLeadingAt(string value)
+        => value.StartsWith('@') ? value[1..] : value;
+
+    /// <summary>
+    /// Collects every application of <paramref name="localName"/> on an object or interface type,
+    /// or on a field of one, paired with the directive collection it lives in, so a caller can
+    /// decide whether to install the canonical directive definition before mutating anything.
+    /// Fusion's canonical <c>@policy</c> definition only allows the OBJECT and FIELD_DEFINITION
+    /// locations, so applications on any other kind of type (for example a scalar or an enum) are
+    /// left untouched here and reported by <see cref="FederationSchemaAnalyzer"/> instead.
+    /// Applications missing the <c>policies</c> argument are skipped: they are malformed
+    /// regardless of translation and are left for schema validation to report.
+    /// </summary>
+    private static List<(DirectiveCollection Directives, Directive Directive)> CollectPolicyApplications(
+        MutableSchemaDefinition schema,
+        string localName)
+    {
+        var applications = new List<(DirectiveCollection, Directive)>();
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not MutableComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            CollectDirectives(complexType.Directives, localName, applications);
+
+            foreach (var field in complexType.Fields)
+            {
+                CollectDirectives(field.Directives, localName, applications);
+            }
+        }
+
+        return applications;
+    }
+
+    private static void CollectDirectives(
+        DirectiveCollection directives,
+        string localName,
+        List<(DirectiveCollection, Directive)> applications)
+    {
+        foreach (var directive in directives[localName])
+        {
+            if (directive.Arguments.ContainsName(PoliciesArgumentName))
+            {
+                applications.Add((directives, directive));
+            }
+        }
     }
 }

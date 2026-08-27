@@ -23,15 +23,9 @@ internal sealed class PolicyMutableDirectiveDefinition : MutableDirectiveDefinit
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.OnDenied,
-                new NonNullType(policyDenialBehaviorType))
-            {
-                DefaultValue = new EnumValueNode("NULL")
-            });
+                policyDenialBehaviorType));
         IsRepeatable = true;
-        Locations =
-            DirectiveLocation.Object
-            | DirectiveLocation.Interface
-            | DirectiveLocation.FieldDefinition;
+        Locations = DirectiveLocation.Object | DirectiveLocation.FieldDefinition;
     }
 
     public static PolicyMutableDirectiveDefinition Create(ISchemaDefinition schema)

@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
@@ -23,10 +22,7 @@ internal sealed class FusionPolicyMutableDirectiveDefinition : MutableDirectiveD
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.OnDenied,
-                new NonNullType(policyDenialBehaviorType))
-            {
-                DefaultValue = new EnumValueNode("NULL")
-            });
+                new NonNullType(policyDenialBehaviorType)));
         IsRepeatable = true;
         Locations = DirectiveLocation.Object | DirectiveLocation.FieldDefinition;
     }

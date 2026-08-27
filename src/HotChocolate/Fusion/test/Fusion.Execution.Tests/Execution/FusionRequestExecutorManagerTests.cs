@@ -254,6 +254,91 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Executor_Should_NotRebuild_When_PolicyContentChangesIncludingResourceRequirements()
+    {
+        // arrange
+        var evictions = 0;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var configProvider = new TestFusionConfigurationProvider(
+            CreateConfigurationWithPolicy("{ id }", "grant-v1"u8));
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Evicted)
+            {
+                Interlocked.Increment(ref evictions);
+            }
+        }));
+
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var channel = initialExecutor.Schema.Services
+            .GetRequiredService<MutableFusionConfigurationProvider>();
+
+        // act
+        // A rego source-only change keeps the schema and settings unchanged, so it is adopted
+        // without rebuilding the executor: it is delivered through the schema generation's
+        // configuration channel instead.
+        configProvider.UpdateConfiguration(
+            CreateConfigurationWithPolicy("{ id }", "grant-v2"u8));
+
+        // A resource requirements change also leaves the schema and settings unchanged. It is no
+        // longer a rebuild trigger: it is handled by targeted plan-cache eviction inside
+        // PolicyCollection, adopted the same way as a source-only change.
+        var finalConfiguration = CreateConfigurationWithPolicy("{ id name }", "grant-v2"u8);
+        configProvider.UpdateConfiguration(finalConfiguration);
+
+        while (!ReferenceEquals(channel.Configuration, finalConfiguration))
+        {
+            cts.Token.ThrowIfCancellationRequested();
+            await Task.Delay(10, cts.Token);
+        }
+
+        var executorAfterChange = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        // Neither change rebuilt the executor, so no eviction occurred and the same instance is
+        // still served.
+        Assert.Equal(
+            (Evictions: 0, SameExecutor: true),
+            (Evictions: evictions, SameExecutor: ReferenceEquals(initialExecutor, executorAfterChange)));
+    }
+
+    private static FusionConfiguration CreateConfigurationWithPolicy(
+        string requirements,
+        ReadOnlySpan<byte> source)
+    {
+        var policy = new PolicyContent(
+            "CanReadProduct.allow",
+            PolicyContentType.Rego,
+            source.ToArray(),
+            new PolicyRequirements
+            {
+                Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements)
+            },
+            "digest"u8.ToArray());
+
+        var snapshot = new PolicyContentSnapshot(
+            "rego",
+            new Version(1, 0, 0),
+            [policy],
+            default,
+            default,
+            dataOwner: null);
+
+        return CreateFusionConfiguration("type Query { field: String! }") with { Policies = snapshot };
+    }
+
+    [Fact]
     public async Task Calling_GetExecutorAsync_Multiple_Times_Only_Creates_One_Executor()
     {
         // arrange

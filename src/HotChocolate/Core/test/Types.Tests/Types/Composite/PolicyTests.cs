@@ -49,89 +49,22 @@ public static class PolicyTests
 
             The onDenied argument defines the consequence when the expression does not evaluate
             to true: NULL sets the guarded value to null without an error, ERROR sets it to null
-            and adds an authorization error, ABORT terminates the request.
+            and adds an authorization error, ABORT terminates the request. When the argument is
+            absent, the consequence is inherited from the schema-wide default.
 
 
             Repeated applications on the same member combine with AND and the most severe
             consequence wins.
 
 
-            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL) repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior) repeatable on OBJECT | FIELD_DEFINITION
             """
             directive @policy(
               "The policy expression in disjunctive normal form. Names within an inner list combine with AND, the outer list combines with OR."
               names: [[String!]!]!
               "The consequence that applies when the policy expression denies access."
-              onDenied: PolicyDenialBehavior! = NULL
-            ) repeatable on OBJECT | FIELD_DEFINITION | INTERFACE
-            """");
-    }
-
-    [Fact]
-    public static async Task Policy_Attribute_Should_Emit_Directives_When_Applied_To_Interface_Type_And_Fields()
-    {
-        // arrange & act
-        var schema =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryWithInterface>()
-                .AddType<Document>()
-                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        schema.MatchInlineSnapshot(
-            """"
-            schema {
-              query: QueryWithInterface
-            }
-
-            type QueryWithInterface {
-              secured: Secured!
-            }
-
-            type Document implements Secured {
-              token: String!
-            }
-
-            interface Secured @policy(names: "hasAccess") {
-              token: String!
-                @policy(names: [["isAdmin", "isFinance"], ["isOwner"]], onDenied: ABORT)
-            }
-
-            "Defines the consequence that applies when a policy expression denies access."
-            enum PolicyDenialBehavior {
-              "The guarded value is set to null without an error."
-              NULL
-              "The guarded value is set to null and an authorization error is added."
-              ERROR
-              "The request is terminated."
-              ABORT
-            }
-
-            """
-            The @policy directive restricts access to the annotated type or field with a policy
-            expression in disjunctive normal form. Names within an inner list combine with AND,
-            the outer list combines with OR. The expression [["a", "b"], ["c"]] reads as
-            (a AND b) OR c. Access is granted only when the expression evaluates to true.
-
-
-            The onDenied argument defines the consequence when the expression does not evaluate
-            to true: NULL sets the guarded value to null without an error, ERROR sets it to null
-            and adds an authorization error, ABORT terminates the request.
-
-
-            Repeated applications on the same member combine with AND and the most severe
-            consequence wins.
-
-
-            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL) repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
-            """
-            directive @policy(
-              "The policy expression in disjunctive normal form. Names within an inner list combine with AND, the outer list combines with OR."
-              names: [[String!]!]!
-              "The consequence that applies when the policy expression denies access."
-              onDenied: PolicyDenialBehavior! = NULL
-            ) repeatable on OBJECT | FIELD_DEFINITION | INTERFACE
+              onDenied: PolicyDenialBehavior
+            ) repeatable on OBJECT | FIELD_DEFINITION
             """");
     }
 
@@ -153,12 +86,6 @@ public static class PolicyTests
                         .Resolve("log")
                         .Policy("isAdmin", PolicyDenialBehavior.Error);
                 })
-                .AddInterfaceType(d =>
-                {
-                    d.Name("Secured");
-                    d.Policy([["isAdmin", "isFinance"], ["isOwner"]], PolicyDenialBehavior.Abort);
-                    d.Field("token").Type<NonNullType<StringType>>().Policy("isOwner");
-                })
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
@@ -171,11 +98,6 @@ public static class PolicyTests
             type Query @policy(names: "hasAccess") {
               financeReport: String @policy(names: [["isAdmin", "isFinance"], ["isOwner"]])
               auditLog: String @policy(names: "isAdmin", onDenied: ERROR)
-            }
-
-            interface Secured
-              @policy(names: [["isAdmin", "isFinance"], ["isOwner"]], onDenied: ABORT) {
-              token: String! @policy(names: "isOwner")
             }
 
             "Defines the consequence that applies when a policy expression denies access."
@@ -197,21 +119,22 @@ public static class PolicyTests
 
             The onDenied argument defines the consequence when the expression does not evaluate
             to true: NULL sets the guarded value to null without an error, ERROR sets it to null
-            and adds an authorization error, ABORT terminates the request.
+            and adds an authorization error, ABORT terminates the request. When the argument is
+            absent, the consequence is inherited from the schema-wide default.
 
 
             Repeated applications on the same member combine with AND and the most severe
             consequence wins.
 
 
-            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL) repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior) repeatable on OBJECT | FIELD_DEFINITION
             """
             directive @policy(
               "The policy expression in disjunctive normal form. Names within an inner list combine with AND, the outer list combines with OR."
               names: [[String!]!]!
               "The consequence that applies when the policy expression denies access."
-              onDenied: PolicyDenialBehavior! = NULL
-            ) repeatable on OBJECT | FIELD_DEFINITION | INTERFACE
+              onDenied: PolicyDenialBehavior
+            ) repeatable on OBJECT | FIELD_DEFINITION
             """");
     }
 
@@ -313,6 +236,42 @@ public static class PolicyTests
         Assert.Equal(
             "The names argument on @policy must be a string or a list of policy name groups.",
             exception.Message);
+    }
+
+    [Fact]
+    public static async Task Policy_SchemaFirst_Should_Fail_When_Applied_To_Interface()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              secured: Secured
+            }
+
+            interface Secured @policy(names: "hasAccess") {
+              token: String!
+            }
+
+            type Document implements Secured {
+              token: String!
+            }
+            """;
+
+        // act
+        async Task Error() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(sdl)
+                .AddType<Policy>()
+                .UseField(next => next)
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal(
+            "The specified directive `@policy` is not allowed on the current location `Interface`.",
+            error.Message);
     }
 
     [Fact]
@@ -420,6 +379,17 @@ public static class PolicyTests
     }
 
     [Fact]
+    public static void Policy_ToString_Should_Include_OnDenied_When_Explicitly_Null()
+    {
+        // arrange & act
+        var policy = new Policy("hasAccess", PolicyDenialBehavior.Null);
+
+        // assert
+        // an explicit NULL is distinct from an absent argument and must round-trip as such
+        Assert.Equal("""@policy(names: "hasAccess", onDenied: NULL)""", policy.ToString());
+    }
+
+    [Fact]
     public static async Task PolicyAttribute_Should_Throw_When_Applied_To_Input_Object_Type()
     {
         // arrange
@@ -439,8 +409,7 @@ public static class PolicyTests
         var inner = Assert.IsType<SchemaException>(error.Exception);
         var innerError = Assert.Single(inner.Errors);
         Assert.Equal(
-            "Policy directive is only supported on object types, interface "
-            + "types, and field definitions.",
+            "Policy directive is only supported on object types and field definitions.",
             innerError.Message);
     }
 
@@ -471,23 +440,5 @@ public static class PolicyTests
         [Policy("isAdmin")]
         [Policy("isFinance", OnDenied = PolicyDenialBehavior.Abort)]
         public string GetSalary() => "salary";
-    }
-
-    public class QueryWithInterface
-    {
-        public ISecured GetSecured() => new Document();
-    }
-
-    [InterfaceType("Secured")]
-    [Policy("hasAccess")]
-    public interface ISecured
-    {
-        [Policy("isAdmin isFinance", "isOwner", OnDenied = PolicyDenialBehavior.Abort)]
-        string Token { get; }
-    }
-
-    public class Document : ISecured
-    {
-        public string Token => "token";
     }
 }

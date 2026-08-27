@@ -388,4 +388,26 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId);
+
+    /// <summary>
+    /// Called when an authorization policy fails to compile.
+    /// </summary>
+    /// <param name="policyName">
+    /// The name of the policy that failed to compile.
+    /// </param>
+    /// <param name="error">
+    /// The exception that occurred during compilation.
+    /// </param>
+    void PolicyCompilationError(
+        string policyName,
+        Exception error);
+
+    /// <summary>
+    /// Called when an authorization policy update fails to apply.
+    /// </summary>
+    /// <param name="error">
+    /// The exception that occurred while the update was applied.
+    /// </param>
+    void PolicyUpdateError(
+        Exception error);
 }

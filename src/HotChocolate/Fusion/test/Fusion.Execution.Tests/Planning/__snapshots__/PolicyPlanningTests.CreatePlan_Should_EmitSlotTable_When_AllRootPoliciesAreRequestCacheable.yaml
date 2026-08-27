@@ -1,0 +1,44 @@
+operation:
+  - document: |
+      {
+        product {
+          id
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+        }
+      }
+  - id: 2
+    type: Policy
+    targets:
+      - kind: Object
+        path: $
+        typeName: Query
+        policies:
+          - names: [["CanReadQuery"]]
+            onDenied: Error
+          - names: [["CanAudit"]]
+            onDenied: Null
+    dependencies:
+      - id: 1
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    names: [["CanReadQuery"]]
+    rmax: Null
+    expression: CanReadQuery
+  - ordinal: 1
+    variable: $__fusion_policy_1
+    names: [["CanAudit"]]
+    rmax: Null
+    expression: CanAudit

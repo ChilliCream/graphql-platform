@@ -412,6 +412,22 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public void PolicyCompilationError(string policyName, Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyCompilationError(policyName, error);
+        }
+    }
+
+    public void PolicyUpdateError(Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyUpdateError(error);
+        }
+    }
+
     private sealed class AggregateActivityScope(IDisposable[] scopes) : IDisposable
     {
         private bool _disposed;

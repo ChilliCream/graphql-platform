@@ -21,13 +21,13 @@ namespace HotChocolate.Types.Composite;
 [AttributeUsage(
     AttributeTargets.Class
     | AttributeTargets.Struct
-    | AttributeTargets.Interface
     | AttributeTargets.Method
     | AttributeTargets.Property,
     AllowMultiple = true)]
 public sealed class PolicyAttribute : DescriptorAttribute
 {
     private readonly string[][] _names;
+    private PolicyDenialBehavior? _onDenied;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PolicyAttribute"/> class.
@@ -76,8 +76,15 @@ public sealed class PolicyAttribute : DescriptorAttribute
 
     /// <summary>
     /// Gets or sets the consequence that applies when the policy expression denies access.
+    /// Leaving this unset inherits the schema-wide default.
     /// </summary>
-    public PolicyDenialBehavior OnDenied { get; set; } = PolicyDenialBehavior.Null;
+    // the property type must stay non-nullable because Nullable<T> is not a valid attribute
+    // argument type in C#; the unset state is tracked separately in _onDenied
+    public PolicyDenialBehavior OnDenied
+    {
+        get => _onDenied ?? PolicyDenialBehavior.Null;
+        set => _onDenied = value;
+    }
 
     protected internal override void TryConfigure(
         IDescriptorContext context,
@@ -87,27 +94,19 @@ public sealed class PolicyAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectTypeDescriptor objectType:
-                objectType.Policy(_names, OnDenied);
-                break;
-
-            case IInterfaceTypeDescriptor interfaceType:
-                interfaceType.Policy(_names, OnDenied);
+                objectType.Policy(_names, _onDenied);
                 break;
 
             case IObjectFieldDescriptor objectField:
-                objectField.Policy(_names, OnDenied);
-                break;
-
-            case IInterfaceFieldDescriptor interfaceField:
-                interfaceField.Policy(_names, OnDenied);
+                objectField.Policy(_names, _onDenied);
                 break;
 
             default:
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage(
-                            "Policy directive is only supported on object types, interface "
-                            + "types, and field definitions.")
+                            "Policy directive is only supported on object types and "
+                            + "field definitions.")
                         .SetExtension("member", attributeProvider)
                         .SetExtension("descriptor", descriptor)
                         .Build());

@@ -12,20 +12,21 @@ namespace HotChocolate.Fusion.Policies.Rego;
 
 public sealed class RegoPolicyIntegrationTests
 {
-    private const string PolicyName = "CanReadProduct";
+    private const string PairName = "CanReadProduct";
+    private const string PolicyName = "CanReadProduct.allow";
     private const string Requirements = "{ id }";
     private const string SchemaText = "type Query { product: Product } type Product { id: ID }";
 
     private const string GrantByDataRego =
         "package CanReadProduct\n"
         + "import rego.v1\n"
-        + "allow := [object.get(data.permissions.product_readers, entity.id, false) | "
-        + "some entity in input.entities]\n";
+        + "default allow := false\n"
+        + "allow if { data.permissions.product_readers[input.resource.id] }\n";
 
     private const string GrantAllRego =
         "package CanReadProduct\n"
         + "import rego.v1\n"
-        + "allow := [true | some entity in input.entities]\n";
+        + "default allow := true\n";
 
     private static readonly Version s_version = new("1.0.0");
 
@@ -45,9 +46,10 @@ public sealed class RegoPolicyIntegrationTests
             configurations.Add(v1);
 
             await using var configProvider = new MutableFusionConfigurationProvider(v1);
-            await using var dataProvider = new ArchiveRegoPolicyDataProvider(configProvider);
-            await using var policyProvider = new RegoPolicyProvider(configProvider, [dataProvider], new NoopDiagnostics());
-            using var registry = new PolicyCollection([policyProvider]);
+            await using var policyProvider = new RegoPolicyProvider(
+                configProvider,
+                new NoopDiagnostics());
+            using var registry = new PolicyCollection(policyProvider);
             registry.Connect();
 
             // act
@@ -110,7 +112,7 @@ public sealed class RegoPolicyIntegrationTests
         using (var archive = FusionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetRegoPolicyAsync(
-                PolicyName,
+                PairName,
                 Encoding.UTF8.GetBytes(GrantAllRego),
                 Encoding.UTF8.GetBytes(Requirements),
                 new Version(2, 0, 0),
@@ -141,13 +143,13 @@ public sealed class RegoPolicyIntegrationTests
         using (var archive = FusionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetRegoPolicyAsync(
-                PolicyName,
+                PairName,
                 Encoding.UTF8.GetBytes(GrantAllRego),
                 Encoding.UTF8.GetBytes(Requirements),
                 new Version(1, 0, 0),
                 ct);
             await archive.SetRegoPolicyAsync(
-                PolicyName,
+                PairName,
                 Encoding.UTF8.GetBytes(GrantAllRego),
                 Encoding.UTF8.GetBytes(Requirements),
                 new Version(2, 0, 0),
@@ -176,12 +178,9 @@ public sealed class RegoPolicyIntegrationTests
     {
         var policy = registry.Get(PolicyName);
         using var entity = RegoPolicyTestEntities.CreateEntity(productId, "code", "extra");
-        var context = new RegoPolicyTestEntities.TestPolicyContext();
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new[] { entity.Data });
 
-        await policy.EvaluateAsync(
-            context,
-            new[] { entity.Data },
-            cancellationToken);
+        await policy.EvaluateAsync(context, cancellationToken);
 
         return context.DeniedIndices.Contains(0);
     }
@@ -203,7 +202,7 @@ public sealed class RegoPolicyIntegrationTests
                 },
                 cancellationToken);
             await archive.SetRegoPolicyAsync(
-                PolicyName,
+                PairName,
                 Encoding.UTF8.GetBytes(rego),
                 Encoding.UTF8.GetBytes(Requirements),
                 s_version,

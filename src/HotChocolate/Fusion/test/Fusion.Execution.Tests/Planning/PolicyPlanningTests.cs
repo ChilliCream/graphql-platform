@@ -136,6 +136,94 @@ public sealed class PolicyPlanningTests : FusionTestBase
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CreatePlan_Should_UseNewRequirement_When_PolicySetIsRepublished()
+    {
+        // arrange
+        var provider = new TestPolicyProvider(
+            new TestPolicy("CanReadSecret", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(
+            Utf8GraphQLParser.Parse(
+                """
+                schema {
+                  query: Query
+                }
+
+                type Query @fusion__type(schema: A) {
+                  secret: String
+                    @fusion__field(schema: A)
+                    @fusion__policy(names: "CanReadSecret")
+                  id: ID! @fusion__field(schema: A)
+                  ownerId: ID! @fusion__field(schema: A)
+                }
+
+                enum fusion__Schema {
+                  A @fusion__schema_metadata(name: "A")
+                }
+                """),
+            services);
+
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var compiler = new OperationCompiler(schema, pool);
+        var planner = new OperationPlanner(schema, compiler);
+
+        var operationDocument = Utf8GraphQLParser.Parse(
+            """
+            {
+              secret
+            }
+            """);
+        var rewritten = new DocumentRewriter(schema).RewriteDocument(
+            operationDocument,
+            operationName: null);
+        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var firstPlan = planner.CreatePlan(
+            "123456789101112",
+            "123456789101112",
+            "123456789101112",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // The provider republishes "CanReadSecret" with a grown resource requirement. The
+        // planner is a schema-lifetime singleton, so this proves a later CreatePlan call through
+        // the SAME instance re-plans against the new requirement instead of the one captured in
+        // its constructor.
+        provider.Emit(
+            new TestPolicy("CanReadSecret", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id ownerId }")));
+
+        var secondPlan = planner.CreatePlan(
+            "223456789101112",
+            "223456789101112",
+            "223456789101112",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var firstRequirement = Assert.Single(
+            firstPlan.AllNodes
+                .OfType<PolicyExecutionNode>()
+                .SelectMany(t => t.Targets.ToArray())
+                .Single(t => t.Policies.Any(
+                    p => p.Groups.Any(g => g.Contains("CanReadSecret", StringComparer.Ordinal))))
+                .Requirements);
+        var secondRequirement = Assert.Single(
+            secondPlan.AllNodes
+                .OfType<PolicyExecutionNode>()
+                .SelectMany(t => t.Targets.ToArray())
+                .Single(t => t.Policies.Any(
+                    p => p.Groups.Any(g => g.Contains("CanReadSecret", StringComparer.Ordinal))))
+                .Requirements);
+
+        Assert.Equal("{ id }", firstRequirement.SelectionSet.ToString(indented: false));
+        Assert.Equal("{ id ownerId }", secondRequirement.SelectionSet.ToString(indented: false));
+    }
+
     [Theory]
     [InlineData(
         "[]",
@@ -205,8 +293,8 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 """
                 enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                  repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
 
                 type Query {
                   topProducts: [Product!]
@@ -254,6 +342,265 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         Assert.Contains(downstream.Dependencies.ToArray(), d => ReferenceEquals(d, policy));
         Assert.Contains(policy.Dependents.ToArray(), d => ReferenceEquals(d, downstream));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_EmitSlotTable_When_AllRootPoliciesAreRequestCacheable()
+    {
+        // arrange
+        var schema = CreateRootConditionSlotSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product {
+                id
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RetainPolicyNode_When_MixedCoordinateHasDataBearingAbortApplication()
+    {
+        // arrange
+        // The repo-xx5 pin case: a request-cacheable NULL application shares its coordinate
+        // with a data-bearing ABORT application. The residual set N(c) is non-empty (the ABORT
+        // application is Npure), so Rmax(c) = Abort. The NULL application's own denial behavior
+        // (Null) does not cover Rmax, so it must not gate the fetch: gating it could suppress
+        // the fetch on a slot-only denial while silently losing the more severe ABORT outcome
+        // that only the kept policy node can decide.
+        var schema = CreateMixedResidualCoordinateSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product {
+                id
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_CapPolicySlots_When_RootCarriesMoreThanMaxPolicySlots()
+    {
+        // arrange
+        // 65 distinct, request-cacheable root applications exceed the registry's 64-slot cap
+        // (PolicySlotRegistry.MaxPolicySlots), so the first 64 are recorded in the plan-time
+        // slot table and the 65th is not slot-classified. Every application still appears on
+        // the root policy execution target regardless of slot classification.
+        var schema = CreateManyRootPoliciesSchema(65);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product {
+                id
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void JsonParser_Should_RoundTripPolicySlots()
+    {
+        // arrange
+        var schema = CreateRootConditionSlotSchema();
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product {
+                id
+              }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, plan);
+
+        var compiler = new OperationCompiler(schema, pool);
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        MatchInline(
+            parsedPlan,
+            """
+            operation:
+              - document: |
+                  {
+                    product {
+                      id
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 1
+            nodes:
+              - id: 1
+                type: Operation
+                schema: A
+                operation: |
+                  query Op_123456789101112_1 {
+                    product {
+                      id
+                    }
+                  }
+              - id: 2
+                type: Policy
+                targets:
+                  - kind: Object
+                    path: $
+                    typeName: Query
+                    policies:
+                      - names: [["CanReadQuery"]]
+                        onDenied: Error
+                      - names: [["CanAudit"]]
+                        onDenied: Null
+                dependencies:
+                  - id: 1
+            policySlots:
+              - ordinal: 0
+                variable: $__fusion_policy_0
+                names: [["CanReadQuery"]]
+                rmax: Null
+                expression: CanReadQuery
+              - ordinal: 1
+                variable: $__fusion_policy_1
+                names: [["CanAudit"]]
+                rmax: Null
+                expression: CanAudit
+            """);
+    }
+
+    /// <summary>
+    /// Builds a schema whose Query root carries two request-cacheable policy applications
+    /// (per <see cref="PolicyRequirements.IsRequestCacheable"/>) and no other policy targets, so
+    /// both are recorded in the plan-time slot table.
+    /// </summary>
+    private static FusionSchemaDefinition CreateRootConditionSlotSchema()
+        => CreateSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query
+              @fusion__type(schema: A)
+              @fusion__policy(names: "CanReadQuery", onDenied: ERROR)
+              @fusion__policy(names: "CanAudit", onDenied: NULL) {
+              product: Product @fusion__field(schema: A)
+            }
+
+            type Product @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """,
+            new TestPolicy("CanReadQuery"),
+            new TestPolicy("CanAudit"));
+
+    /// <summary>
+    /// Builds a schema whose Query root carries one request-cacheable NULL application
+    /// (<c>CanAudit</c>) and one data-bearing ABORT application (<c>CanReadQueryData</c>) on the
+    /// same coordinate, so the residual set N(c) is non-empty and the coordinate must keep its
+    /// policy execution target (repo-xx5 pin case).
+    /// </summary>
+    private static FusionSchemaDefinition CreateMixedResidualCoordinateSchema()
+        => CreateSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query
+              @fusion__type(schema: A)
+              @fusion__policy(names: "CanAudit", onDenied: NULL)
+              @fusion__policy(names: "CanReadQueryData", onDenied: ABORT) {
+              product: Product @fusion__field(schema: A)
+            }
+
+            type Product @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """,
+            new TestPolicy("CanAudit"),
+            new TestPolicy(
+                "CanReadQueryData",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ product { id } }")));
+
+    /// <summary>
+    /// Builds a schema whose Query root carries <paramref name="count"/> distinct,
+    /// request-cacheable policy applications, each on its own single-name group, so the
+    /// registry's <c>MaxPolicySlots</c> cap can be exercised deterministically.
+    /// </summary>
+    private static FusionSchemaDefinition CreateManyRootPoliciesSchema(int count)
+    {
+        var names = Enumerable.Range(0, count)
+            .Select(i => $"CanReadQuery{i}")
+            .ToArray();
+
+        var directiveLines = string.Join(
+            "\n",
+            names.Select(name => $"  @fusion__policy(names: \"{name}\", onDenied: NULL)"));
+
+        var schemaText = $$"""
+            schema {
+              query: Query
+            }
+
+            type Query
+              @fusion__type(schema: A)
+            {{directiveLines}} {
+              product: Product @fusion__field(schema: A)
+            }
+
+            type Product @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """;
+
+        return CreateSchema(
+            schemaText,
+            [.. names.Select(name => new TestPolicy(name))]);
     }
 
     private static FusionSchemaDefinition CreatePolicySchema()

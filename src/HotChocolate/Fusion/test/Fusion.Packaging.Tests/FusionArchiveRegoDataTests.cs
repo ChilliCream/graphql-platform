@@ -482,6 +482,105 @@ public class FusionArchiveRegoDataTests
             () => archive.TryGetRegoDataDocumentAsync(s_version, TestContext.Current.CancellationToken));
     }
 
+    [Fact]
+    public async Task SetRegoData_Should_Succeed_When_DataIsAtConfiguredSizeCap()
+    {
+        // arrange
+        const int cap = 40;
+        var data = CreatePaddedJson(cap);
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Open(
+            stream,
+            FusionArchiveMode.Create,
+            leaveOpen: true,
+            options: new FusionArchiveOptions { MaxAllowedPolicyDataSize = cap });
+
+        // act
+        await archive.SetRegoDataAsync("", data, s_version, TestContext.Current.CancellationToken);
+
+        // assert
+        var stored = await archive.TryGetRegoDataAsync("", s_version, TestContext.Current.CancellationToken);
+        Assert.Equal(data, stored!.Value.ToArray());
+    }
+
+    [Fact]
+    public async Task SetRegoData_Should_Throw_When_DataExceedsConfiguredSizeCap()
+    {
+        // arrange
+        const int cap = 40;
+        var data = CreatePaddedJson(cap + 1);
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Open(
+            stream,
+            FusionArchiveMode.Create,
+            leaveOpen: true,
+            options: new FusionArchiveOptions { MaxAllowedPolicyDataSize = cap });
+
+        // act
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => archive.SetRegoDataAsync("", data, s_version, TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal("data", exception.ParamName);
+        Assert.Equal(cap + 1, exception.ActualValue);
+        Assert.StartsWith(
+            "The Rego data document exceeds the maximum allowed size of 40 bytes for a data mount.",
+            exception.Message,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TryGetRegoData_Should_ReturnData_When_ForeignArchiveMountIsAtConfiguredSizeCap()
+    {
+        // arrange
+        const int cap = 40;
+        var data = CreatePaddedJson(cap);
+        await using var stream = CreateArchive(("policies/rego/1.0.0/data/data.json", data));
+        using var archive = FusionArchive.Open(
+            stream,
+            leaveOpen: true,
+            options: new FusionArchiveOptions { MaxAllowedPolicyDataSize = cap });
+
+        // act
+        var stored = await archive.TryGetRegoDataAsync("", s_version, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(data, stored!.Value.ToArray());
+    }
+
+    [Fact]
+    public async Task TryGetRegoData_Should_Throw_When_ForeignArchiveMountExceedsConfiguredSizeCap()
+    {
+        // arrange
+        const int cap = 40;
+        var data = CreatePaddedJson(cap + 1);
+        await using var stream = CreateArchive(("policies/rego/1.0.0/data/data.json", data));
+        using var archive = FusionArchive.Open(
+            stream,
+            leaveOpen: true,
+            options: new FusionArchiveOptions { MaxAllowedPolicyDataSize = cap });
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.TryGetRegoDataAsync("", s_version, TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal("File is too large and exceeds the allowed size of 40.", exception.Message);
+    }
+
+    /// <summary>
+    /// Builds a minimal JSON object of exactly the requested UTF-8 byte length, in the form
+    /// <c>{"pad":"xx...xx"}</c>, so size-cap boundary tests can construct payloads of a precise size.
+    /// </summary>
+    private static byte[] CreatePaddedJson(int length)
+    {
+        const string prefix = "{\"pad\":\"";
+        const string suffix = "\"}";
+        var padLength = length - prefix.Length - suffix.Length;
+        ArgumentOutOfRangeException.ThrowIfNegative(padLength);
+        return Encoding.UTF8.GetBytes(prefix + new string('x', padLength) + suffix);
+    }
+
     private static MemoryStream CreateArchive(params (string Path, string Content)[] files)
     {
         var stream = new MemoryStream();
@@ -493,6 +592,24 @@ public class FusionArchiveRegoDataTests
                 var entry = archive.CreateEntry(file.Path);
                 using var writer = new StreamWriter(entry.Open(), Encoding.UTF8, leaveOpen: false);
                 writer.Write(file.Content);
+            }
+        }
+
+        stream.Position = 0;
+        return stream;
+    }
+
+    private static MemoryStream CreateArchive(params (string Path, byte[] Content)[] files)
+    {
+        var stream = new MemoryStream();
+
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var file in files)
+            {
+                var entry = archive.CreateEntry(file.Path);
+                using var entryStream = entry.Open();
+                entryStream.Write(file.Content);
             }
         }
 

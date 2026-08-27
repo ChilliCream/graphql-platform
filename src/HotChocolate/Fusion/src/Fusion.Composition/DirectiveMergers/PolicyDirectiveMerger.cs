@@ -55,8 +55,20 @@ internal sealed class PolicyDirectiveMerger(DirectiveMergeBehavior mergeBehavior
                 .GroupBy(p => p.CanonicalKey, StringComparer.Ordinal)
                 .Select(g => PolicyDirective.Create(
                     g.First().Groups,
-                    g.MaxBy(p => GetOnDeniedRank(p.OnDenied))!.OnDenied))
+                    GetMaxOnDenied(g)))
         ];
+    }
+
+    // Merges the onDenied behavior over explicit contributions only. An application that leaves
+    // onDenied absent never participates in the merge; when every contribution for a canonical
+    // key is absent, the merged result stays absent and is resolved to the schema-wide default
+    // when the policy is stamped onto the composed schema.
+    private static string? GetMaxOnDenied(IEnumerable<PolicyDirective> policies)
+    {
+        return policies
+            .Where(p => p.OnDenied is not null)
+            .MaxBy(p => GetOnDeniedRank(p.OnDenied!))
+            ?.OnDenied;
     }
 
     public static void AddPolicyDirectives(
@@ -71,12 +83,12 @@ internal sealed class PolicyDirectiveMerger(DirectiveMergeBehavior mergeBehavior
                 new(ArgumentNames.Names, CreateNamesValue(policyDirective.Groups))
             };
 
-            if (policyDirective.OnDenied != "NULL")
+            if (policyDirective.OnDenied is { } onDenied)
             {
                 arguments.Add(
                     new ArgumentAssignment(
                         ArgumentNames.OnDenied,
-                        new EnumValueNode(policyDirective.OnDenied)));
+                        new EnumValueNode(onDenied)));
             }
 
             member.AddDirective(new Directive(directiveDefinition, arguments));

@@ -34,7 +34,6 @@ nodes:
       - kind: Field
         path: $.product
         typeName: Query
-        fieldName: product
         policies:
           - names: [["CanReadProductField"]]
             onDenied: Abort
@@ -47,7 +46,6 @@ nodes:
       - kind: Field
         path: $.product.name
         typeName: Product
-        fieldName: name
         policies:
           - names: [["CanAdmin"], ["CanAudit", "CanReadName"]]
             onDenied: Error
@@ -56,3 +54,9 @@ nodes:
             passingValue: true
     dependencies:
       - id: 1
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    names: [["CanReadQuery"]]
+    rmax: Null
+    expression: CanReadQuery

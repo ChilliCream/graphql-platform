@@ -130,6 +130,31 @@ public sealed class Cache<TValue>
     }
 
     /// <summary>
+    /// Removes a value from the cache if present.
+    /// </summary>
+    /// <param name="key">
+    /// The key to remove.
+    /// </param>
+    /// <returns>
+    /// True if a value was removed, otherwise false.
+    /// </returns>
+    public bool TryRemove(string key)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
+        if (_map.TryRemove(key, out var entry))
+        {
+            // The CAS only clears the slot if it still holds this exact entry, so a
+            // concurrent clock-hand replacement of the same slot is unaffected.
+            Interlocked.CompareExchange(ref _ring[entry.Slot], null, entry);
+            _diagnostics.Evict();
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Gets a value from the cache or creates it if it does not exist.
     /// </summary>
     /// <param name="key">
@@ -364,6 +389,7 @@ public sealed class Cache<TValue>
 
             if (++spins > maxSpins && entry is not null)
             {
+                newEntry.Slot = idx;
                 var prev = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
                 if (ReferenceEquals(prev, entry))
                 {
@@ -377,6 +403,7 @@ public sealed class Cache<TValue>
             {
                 // if the current cache slot is empty, we will try to insert
                 // our entry into it with an atomic compare and swap.
+                newEntry.Slot = idx;
                 if (Interlocked.CompareExchange(ref _ring[idx], newEntry, null) is null)
                 {
                     return newEntry;
@@ -387,6 +414,7 @@ public sealed class Cache<TValue>
                 // If we found a slot that was not recently retrieved, we will try to
                 // replace it with our new entry. This will only succeed if no other thread
                 // was able to replace the entry in the meantime. This operation is atomic.
+                newEntry.Slot = idx;
                 var prev = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
 
                 // If we were successful in replacing the entry, we will
@@ -435,6 +463,11 @@ public sealed class Cache<TValue>
         /// 1 = accessed recently
         /// </summary>
         public int Accessed = 1;
+
+        /// <summary>
+        /// The ring slot this entry currently occupies.
+        /// </summary>
+        public int Slot;
     }
 
     private readonly struct CacheEntryCreateArgs<TState>(

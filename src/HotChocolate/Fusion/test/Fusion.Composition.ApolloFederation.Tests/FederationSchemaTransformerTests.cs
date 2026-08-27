@@ -901,4 +901,189 @@ public sealed class FederationSchemaTransformerTests
             .Add(result.Value, "Transformed SDL", "graphql")
             .MatchMarkdownSnapshot();
     }
+
+    // Ruling repo-ftx: an Apollo @policy(policies:) application on an object type must be
+    // translated into Fusion's @policy(names:) shape (same DNF list-of-list shape, no onDenied
+    // so the schema default applies) rather than being dropped by the federation import.
+    [Fact]
+    public void Transform_PolicyDirective_OnObjectType()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema
+              @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+              @link(url: "https://specs.apollo.dev/policy/v0.1", import: ["@policy"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") @policy(policies: [["internal"], ["support"]]) {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              product(id: ID!): Product
+            }
+
+            scalar FieldSet
+            scalar federation__Policy
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            directive @policy(policies: [[federation__Policy!]!]!) repeatable
+              on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    // Ruling repo-ftx: the same translation applies to an Apollo @policy(policies:) application
+    // on a field.
+    [Fact]
+    public void Transform_PolicyDirective_OnField()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema
+              @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+              @link(url: "https://specs.apollo.dev/policy/v0.1", import: ["@policy"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+              internalNotes: String @policy(policies: [["internal"]])
+            }
+
+            type Query {
+              product(id: ID!): Product
+            }
+
+            scalar FieldSet
+            scalar federation__Policy
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            directive @policy(policies: [[federation__Policy!]!]!) repeatable
+              on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    // Ruling repo-ftx: @policy must still be recognized and translated when the policy spec is
+    // imported under a renamed local directive name, e.g.
+    // @link(import: [{name: "@policy", as: "@authz"}]). The rewritten application still carries
+    // Fusion's canonical @policy name regardless of the source-schema alias.
+    [Fact]
+    public void Transform_PolicyDirective_RenamedImport()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema
+              @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+              @link(
+                url: "https://specs.apollo.dev/policy/v0.1"
+                import: [{ name: "@policy", as: "@authz" }]
+              ) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String @authz(policies: [["internal"]])
+            }
+
+            type Query {
+              product(id: ID!): Product
+            }
+
+            scalar FieldSet
+            scalar federation__Policy
+            scalar link__Import
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [link__Import]) repeatable on SCHEMA
+            directive @authz(policies: [[federation__Policy!]!]!) repeatable
+              on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    // Ruling repo-ftx: Fusion's canonical @policy directive only allows the OBJECT and
+    // FIELD_DEFINITION locations. An Apollo @policy(policies:) application on a scalar or enum
+    // type cannot be carried over by the rewrite, so it must fail composition loudly instead of
+    // being silently dropped.
+    [Fact]
+    public void Transform_PolicyDirective_OnEnumOrScalar()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema
+              @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+              @link(url: "https://specs.apollo.dev/policy/v0.1", import: ["@policy"]) {
+              query: Query
+            }
+
+            type Query {
+              color: Color
+              money: Money
+            }
+
+            enum Color @policy(policies: [["internal"]]) {
+              RED
+              BLUE
+            }
+
+            scalar Money @policy(policies: [["finance"]])
+
+            scalar FieldSet
+            scalar federation__Policy
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            directive @policy(policies: [[federation__Policy!]!]!) repeatable
+              on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(string.Join(Environment.NewLine, result.Errors.Select(e => e.Message)), "Errors")
+            .MatchMarkdownSnapshot();
+    }
 }

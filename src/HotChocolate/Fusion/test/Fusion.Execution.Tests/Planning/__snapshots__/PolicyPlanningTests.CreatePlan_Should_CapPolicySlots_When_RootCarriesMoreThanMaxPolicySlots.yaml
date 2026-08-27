@@ -1,0 +1,480 @@
+operation:
+  - document: |
+      {
+        product {
+          id
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+        }
+      }
+  - id: 2
+    type: Policy
+    targets:
+      - kind: Object
+        path: $
+        typeName: Query
+        policies:
+          - names: [["CanReadQuery0"]]
+            onDenied: Null
+          - names: [["CanReadQuery1"]]
+            onDenied: Null
+          - names: [["CanReadQuery2"]]
+            onDenied: Null
+          - names: [["CanReadQuery3"]]
+            onDenied: Null
+          - names: [["CanReadQuery4"]]
+            onDenied: Null
+          - names: [["CanReadQuery5"]]
+            onDenied: Null
+          - names: [["CanReadQuery6"]]
+            onDenied: Null
+          - names: [["CanReadQuery7"]]
+            onDenied: Null
+          - names: [["CanReadQuery8"]]
+            onDenied: Null
+          - names: [["CanReadQuery9"]]
+            onDenied: Null
+          - names: [["CanReadQuery10"]]
+            onDenied: Null
+          - names: [["CanReadQuery11"]]
+            onDenied: Null
+          - names: [["CanReadQuery12"]]
+            onDenied: Null
+          - names: [["CanReadQuery13"]]
+            onDenied: Null
+          - names: [["CanReadQuery14"]]
+            onDenied: Null
+          - names: [["CanReadQuery15"]]
+            onDenied: Null
+          - names: [["CanReadQuery16"]]
+            onDenied: Null
+          - names: [["CanReadQuery17"]]
+            onDenied: Null
+          - names: [["CanReadQuery18"]]
+            onDenied: Null
+          - names: [["CanReadQuery19"]]
+            onDenied: Null
+          - names: [["CanReadQuery20"]]
+            onDenied: Null
+          - names: [["CanReadQuery21"]]
+            onDenied: Null
+          - names: [["CanReadQuery22"]]
+            onDenied: Null
+          - names: [["CanReadQuery23"]]
+            onDenied: Null
+          - names: [["CanReadQuery24"]]
+            onDenied: Null
+          - names: [["CanReadQuery25"]]
+            onDenied: Null
+          - names: [["CanReadQuery26"]]
+            onDenied: Null
+          - names: [["CanReadQuery27"]]
+            onDenied: Null
+          - names: [["CanReadQuery28"]]
+            onDenied: Null
+          - names: [["CanReadQuery29"]]
+            onDenied: Null
+          - names: [["CanReadQuery30"]]
+            onDenied: Null
+          - names: [["CanReadQuery31"]]
+            onDenied: Null
+          - names: [["CanReadQuery32"]]
+            onDenied: Null
+          - names: [["CanReadQuery33"]]
+            onDenied: Null
+          - names: [["CanReadQuery34"]]
+            onDenied: Null
+          - names: [["CanReadQuery35"]]
+            onDenied: Null
+          - names: [["CanReadQuery36"]]
+            onDenied: Null
+          - names: [["CanReadQuery37"]]
+            onDenied: Null
+          - names: [["CanReadQuery38"]]
+            onDenied: Null
+          - names: [["CanReadQuery39"]]
+            onDenied: Null
+          - names: [["CanReadQuery40"]]
+            onDenied: Null
+          - names: [["CanReadQuery41"]]
+            onDenied: Null
+          - names: [["CanReadQuery42"]]
+            onDenied: Null
+          - names: [["CanReadQuery43"]]
+            onDenied: Null
+          - names: [["CanReadQuery44"]]
+            onDenied: Null
+          - names: [["CanReadQuery45"]]
+            onDenied: Null
+          - names: [["CanReadQuery46"]]
+            onDenied: Null
+          - names: [["CanReadQuery47"]]
+            onDenied: Null
+          - names: [["CanReadQuery48"]]
+            onDenied: Null
+          - names: [["CanReadQuery49"]]
+            onDenied: Null
+          - names: [["CanReadQuery50"]]
+            onDenied: Null
+          - names: [["CanReadQuery51"]]
+            onDenied: Null
+          - names: [["CanReadQuery52"]]
+            onDenied: Null
+          - names: [["CanReadQuery53"]]
+            onDenied: Null
+          - names: [["CanReadQuery54"]]
+            onDenied: Null
+          - names: [["CanReadQuery55"]]
+            onDenied: Null
+          - names: [["CanReadQuery56"]]
+            onDenied: Null
+          - names: [["CanReadQuery57"]]
+            onDenied: Null
+          - names: [["CanReadQuery58"]]
+            onDenied: Null
+          - names: [["CanReadQuery59"]]
+            onDenied: Null
+          - names: [["CanReadQuery60"]]
+            onDenied: Null
+          - names: [["CanReadQuery61"]]
+            onDenied: Null
+          - names: [["CanReadQuery62"]]
+            onDenied: Null
+          - names: [["CanReadQuery63"]]
+            onDenied: Null
+          - names: [["CanReadQuery64"]]
+            onDenied: Null
+    dependencies:
+      - id: 1
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    names: [["CanReadQuery0"]]
+    rmax: Null
+    expression: CanReadQuery0
+  - ordinal: 1
+    variable: $__fusion_policy_1
+    names: [["CanReadQuery1"]]
+    rmax: Null
+    expression: CanReadQuery1
+  - ordinal: 2
+    variable: $__fusion_policy_2
+    names: [["CanReadQuery2"]]
+    rmax: Null
+    expression: CanReadQuery2
+  - ordinal: 3
+    variable: $__fusion_policy_3
+    names: [["CanReadQuery3"]]
+    rmax: Null
+    expression: CanReadQuery3
+  - ordinal: 4
+    variable: $__fusion_policy_4
+    names: [["CanReadQuery4"]]
+    rmax: Null
+    expression: CanReadQuery4
+  - ordinal: 5
+    variable: $__fusion_policy_5
+    names: [["CanReadQuery5"]]
+    rmax: Null
+    expression: CanReadQuery5
+  - ordinal: 6
+    variable: $__fusion_policy_6
+    names: [["CanReadQuery6"]]
+    rmax: Null
+    expression: CanReadQuery6
+  - ordinal: 7
+    variable: $__fusion_policy_7
+    names: [["CanReadQuery7"]]
+    rmax: Null
+    expression: CanReadQuery7
+  - ordinal: 8
+    variable: $__fusion_policy_8
+    names: [["CanReadQuery8"]]
+    rmax: Null
+    expression: CanReadQuery8
+  - ordinal: 9
+    variable: $__fusion_policy_9
+    names: [["CanReadQuery9"]]
+    rmax: Null
+    expression: CanReadQuery9
+  - ordinal: 10
+    variable: $__fusion_policy_10
+    names: [["CanReadQuery10"]]
+    rmax: Null
+    expression: CanReadQuery10
+  - ordinal: 11
+    variable: $__fusion_policy_11
+    names: [["CanReadQuery11"]]
+    rmax: Null
+    expression: CanReadQuery11
+  - ordinal: 12
+    variable: $__fusion_policy_12
+    names: [["CanReadQuery12"]]
+    rmax: Null
+    expression: CanReadQuery12
+  - ordinal: 13
+    variable: $__fusion_policy_13
+    names: [["CanReadQuery13"]]
+    rmax: Null
+    expression: CanReadQuery13
+  - ordinal: 14
+    variable: $__fusion_policy_14
+    names: [["CanReadQuery14"]]
+    rmax: Null
+    expression: CanReadQuery14
+  - ordinal: 15
+    variable: $__fusion_policy_15
+    names: [["CanReadQuery15"]]
+    rmax: Null
+    expression: CanReadQuery15
+  - ordinal: 16
+    variable: $__fusion_policy_16
+    names: [["CanReadQuery16"]]
+    rmax: Null
+    expression: CanReadQuery16
+  - ordinal: 17
+    variable: $__fusion_policy_17
+    names: [["CanReadQuery17"]]
+    rmax: Null
+    expression: CanReadQuery17
+  - ordinal: 18
+    variable: $__fusion_policy_18
+    names: [["CanReadQuery18"]]
+    rmax: Null
+    expression: CanReadQuery18
+  - ordinal: 19
+    variable: $__fusion_policy_19
+    names: [["CanReadQuery19"]]
+    rmax: Null
+    expression: CanReadQuery19
+  - ordinal: 20
+    variable: $__fusion_policy_20
+    names: [["CanReadQuery20"]]
+    rmax: Null
+    expression: CanReadQuery20
+  - ordinal: 21
+    variable: $__fusion_policy_21
+    names: [["CanReadQuery21"]]
+    rmax: Null
+    expression: CanReadQuery21
+  - ordinal: 22
+    variable: $__fusion_policy_22
+    names: [["CanReadQuery22"]]
+    rmax: Null
+    expression: CanReadQuery22
+  - ordinal: 23
+    variable: $__fusion_policy_23
+    names: [["CanReadQuery23"]]
+    rmax: Null
+    expression: CanReadQuery23
+  - ordinal: 24
+    variable: $__fusion_policy_24
+    names: [["CanReadQuery24"]]
+    rmax: Null
+    expression: CanReadQuery24
+  - ordinal: 25
+    variable: $__fusion_policy_25
+    names: [["CanReadQuery25"]]
+    rmax: Null
+    expression: CanReadQuery25
+  - ordinal: 26
+    variable: $__fusion_policy_26
+    names: [["CanReadQuery26"]]
+    rmax: Null
+    expression: CanReadQuery26
+  - ordinal: 27
+    variable: $__fusion_policy_27
+    names: [["CanReadQuery27"]]
+    rmax: Null
+    expression: CanReadQuery27
+  - ordinal: 28
+    variable: $__fusion_policy_28
+    names: [["CanReadQuery28"]]
+    rmax: Null
+    expression: CanReadQuery28
+  - ordinal: 29
+    variable: $__fusion_policy_29
+    names: [["CanReadQuery29"]]
+    rmax: Null
+    expression: CanReadQuery29
+  - ordinal: 30
+    variable: $__fusion_policy_30
+    names: [["CanReadQuery30"]]
+    rmax: Null
+    expression: CanReadQuery30
+  - ordinal: 31
+    variable: $__fusion_policy_31
+    names: [["CanReadQuery31"]]
+    rmax: Null
+    expression: CanReadQuery31
+  - ordinal: 32
+    variable: $__fusion_policy_32
+    names: [["CanReadQuery32"]]
+    rmax: Null
+    expression: CanReadQuery32
+  - ordinal: 33
+    variable: $__fusion_policy_33
+    names: [["CanReadQuery33"]]
+    rmax: Null
+    expression: CanReadQuery33
+  - ordinal: 34
+    variable: $__fusion_policy_34
+    names: [["CanReadQuery34"]]
+    rmax: Null
+    expression: CanReadQuery34
+  - ordinal: 35
+    variable: $__fusion_policy_35
+    names: [["CanReadQuery35"]]
+    rmax: Null
+    expression: CanReadQuery35
+  - ordinal: 36
+    variable: $__fusion_policy_36
+    names: [["CanReadQuery36"]]
+    rmax: Null
+    expression: CanReadQuery36
+  - ordinal: 37
+    variable: $__fusion_policy_37
+    names: [["CanReadQuery37"]]
+    rmax: Null
+    expression: CanReadQuery37
+  - ordinal: 38
+    variable: $__fusion_policy_38
+    names: [["CanReadQuery38"]]
+    rmax: Null
+    expression: CanReadQuery38
+  - ordinal: 39
+    variable: $__fusion_policy_39
+    names: [["CanReadQuery39"]]
+    rmax: Null
+    expression: CanReadQuery39
+  - ordinal: 40
+    variable: $__fusion_policy_40
+    names: [["CanReadQuery40"]]
+    rmax: Null
+    expression: CanReadQuery40
+  - ordinal: 41
+    variable: $__fusion_policy_41
+    names: [["CanReadQuery41"]]
+    rmax: Null
+    expression: CanReadQuery41
+  - ordinal: 42
+    variable: $__fusion_policy_42
+    names: [["CanReadQuery42"]]
+    rmax: Null
+    expression: CanReadQuery42
+  - ordinal: 43
+    variable: $__fusion_policy_43
+    names: [["CanReadQuery43"]]
+    rmax: Null
+    expression: CanReadQuery43
+  - ordinal: 44
+    variable: $__fusion_policy_44
+    names: [["CanReadQuery44"]]
+    rmax: Null
+    expression: CanReadQuery44
+  - ordinal: 45
+    variable: $__fusion_policy_45
+    names: [["CanReadQuery45"]]
+    rmax: Null
+    expression: CanReadQuery45
+  - ordinal: 46
+    variable: $__fusion_policy_46
+    names: [["CanReadQuery46"]]
+    rmax: Null
+    expression: CanReadQuery46
+  - ordinal: 47
+    variable: $__fusion_policy_47
+    names: [["CanReadQuery47"]]
+    rmax: Null
+    expression: CanReadQuery47
+  - ordinal: 48
+    variable: $__fusion_policy_48
+    names: [["CanReadQuery48"]]
+    rmax: Null
+    expression: CanReadQuery48
+  - ordinal: 49
+    variable: $__fusion_policy_49
+    names: [["CanReadQuery49"]]
+    rmax: Null
+    expression: CanReadQuery49
+  - ordinal: 50
+    variable: $__fusion_policy_50
+    names: [["CanReadQuery50"]]
+    rmax: Null
+    expression: CanReadQuery50
+  - ordinal: 51
+    variable: $__fusion_policy_51
+    names: [["CanReadQuery51"]]
+    rmax: Null
+    expression: CanReadQuery51
+  - ordinal: 52
+    variable: $__fusion_policy_52
+    names: [["CanReadQuery52"]]
+    rmax: Null
+    expression: CanReadQuery52
+  - ordinal: 53
+    variable: $__fusion_policy_53
+    names: [["CanReadQuery53"]]
+    rmax: Null
+    expression: CanReadQuery53
+  - ordinal: 54
+    variable: $__fusion_policy_54
+    names: [["CanReadQuery54"]]
+    rmax: Null
+    expression: CanReadQuery54
+  - ordinal: 55
+    variable: $__fusion_policy_55
+    names: [["CanReadQuery55"]]
+    rmax: Null
+    expression: CanReadQuery55
+  - ordinal: 56
+    variable: $__fusion_policy_56
+    names: [["CanReadQuery56"]]
+    rmax: Null
+    expression: CanReadQuery56
+  - ordinal: 57
+    variable: $__fusion_policy_57
+    names: [["CanReadQuery57"]]
+    rmax: Null
+    expression: CanReadQuery57
+  - ordinal: 58
+    variable: $__fusion_policy_58
+    names: [["CanReadQuery58"]]
+    rmax: Null
+    expression: CanReadQuery58
+  - ordinal: 59
+    variable: $__fusion_policy_59
+    names: [["CanReadQuery59"]]
+    rmax: Null
+    expression: CanReadQuery59
+  - ordinal: 60
+    variable: $__fusion_policy_60
+    names: [["CanReadQuery60"]]
+    rmax: Null
+    expression: CanReadQuery60
+  - ordinal: 61
+    variable: $__fusion_policy_61
+    names: [["CanReadQuery61"]]
+    rmax: Null
+    expression: CanReadQuery61
+  - ordinal: 62
+    variable: $__fusion_policy_62
+    names: [["CanReadQuery62"]]
+    rmax: Null
+    expression: CanReadQuery62
+  - ordinal: 63
+    variable: $__fusion_policy_63
+    names: [["CanReadQuery63"]]
+    rmax: Null
+    expression: CanReadQuery63

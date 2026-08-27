@@ -1,12 +1,60 @@
+using System.Collections.Immutable;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
 public class OperationPlanCacheTests : FusionTestBase
 {
+    [Fact]
+    public void Add_Should_NotDriftIndexCount_When_PlanRepeatsPolicyName()
+    {
+        // arrange
+        // The same policy name reached through two condition slots (for example the same policy
+        // applied at two roots with a different residual denial threshold) mirrors what
+        // OperationPlan.CreatePolicyPlanEntries legitimately emits as two distinct entries that
+        // share one PolicyName.
+        var schema = FusionSchemaDefinition.Create(
+            ComposeSchemaDocument(
+                """
+                type Query {
+                  field: String!
+                }
+                """));
+        var basePlan = PlanOperation(schema, "{ field }");
+        var groups = ImmutableArray.Create(ImmutableArray.Create("Shared"));
+        var policySlots = ImmutableArray.Create(
+            new PolicyConditionSlot { Ordinal = 0, Groups = groups, Rmax = PolicyDenialBehavior.Null },
+            new PolicyConditionSlot { Ordinal = 1, Groups = groups, Rmax = PolicyDenialBehavior.Error });
+        var plan = OperationPlan.Create(
+            "plan-with-duplicate-policy-name",
+            basePlan.Operation,
+            basePlan.RootNodes,
+            basePlan.AllNodes,
+            basePlan.DeliveryGroups,
+            basePlan.IncrementalPlans,
+            policySlots,
+            basePlan.SearchSpace,
+            basePlan.ExpandedNodes);
+        Assert.Equal(2, plan.Policies.Count(p => p.PolicyName == "Shared"));
+
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        var session = planCache.Capture();
+
+        // act
+        // Add the same id twice: once with the duplicate PolicyName entry, once more to also
+        // exercise a re-Add of an id that is already indexed.
+        planCache.Add(session, "plan", plan);
+        planCache.Add(session, "plan", plan);
+
+        // assert
+        Assert.Equal(1, planCache.IndexedIdCountForTesting);
+    }
+
     [Fact]
     public async Task Plan_Cache_Should_Have_Configured_Capacity()
     {

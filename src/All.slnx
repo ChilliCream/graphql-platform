@@ -246,6 +246,7 @@
     <Project Path="HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Policies.Rego.Tests/HotChocolate.Fusion.Policies.Rego.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.SourceSchema.Packaging.Tests/HotChocolate.Fusion.SourceSchema.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Tests.Shared/HotChocolate.Fusion.Tests.Shared.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />

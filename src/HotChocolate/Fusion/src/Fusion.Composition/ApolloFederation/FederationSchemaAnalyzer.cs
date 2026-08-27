@@ -3,6 +3,7 @@ using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
+using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
@@ -14,12 +15,14 @@ internal static class FederationSchemaAnalyzer
 {
     internal const string FederationUrlPrefix = "specs.apollo.dev/federation";
 
+    // @policy is intentionally absent: it is accepted and translated to Fusion's @policy(names:)
+    // by RemoveFederationInfrastructure instead of being rejected here. @authenticated and
+    // @requiresScopes stay unsupported; mapping them to Fusion policies is a separate decision.
     private static readonly HashSet<string> s_unsupportedDirectives =
     [
         FederationDirectiveNames.ComposeDirective,
         FederationDirectiveNames.Authenticated,
-        FederationDirectiveNames.RequiresScopes,
-        FederationDirectiveNames.Policy
+        FederationDirectiveNames.RequiresScopes
     ];
 
     /// <summary>
@@ -41,6 +44,7 @@ internal static class FederationSchemaAnalyzer
 
         ValidateFederationVersion(schema, log);
         ValidateUnsupportedDirectives(schema, log);
+        ValidatePolicyLocations(schema, log);
 
         // Pre-existing entries on the log are not ours to report on; this run reports
         // failure only when it wrote new entries (all of which are errors) of its own.
@@ -117,6 +121,34 @@ internal static class FederationSchemaAnalyzer
                         .SetSeverity(LogSeverity.Error)
                         .SetSchema(schema)
                         .Build());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fusion's canonical <c>@policy</c> directive only allows the OBJECT and FIELD_DEFINITION
+    /// locations, so an Apollo <c>@policy</c> application on a scalar or enum type cannot be
+    /// carried over by <see cref="RemoveFederationInfrastructure"/>. Reporting that here, before
+    /// the rewrite runs, turns what would otherwise be a silently dropped policy into a
+    /// composition error.
+    /// </summary>
+    private static void ValidatePolicyLocations(
+        MutableSchemaDefinition schema,
+        ICompositionLog log)
+    {
+        var localName = RemoveFederationInfrastructure.ResolvePolicyLocalName(schema);
+
+        if (localName is null)
+        {
+            return;
+        }
+
+        foreach (var type in schema.Types)
+        {
+            if (type is MutableScalarTypeDefinition or MutableEnumTypeDefinition
+                && type.Directives.ContainsName(localName))
+            {
+                log.Write(FederationPolicyLocationNotSupported(type, schema));
             }
         }
     }

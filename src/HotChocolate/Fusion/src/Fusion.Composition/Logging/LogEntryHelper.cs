@@ -448,6 +448,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry FederationPolicyLocationNotSupported(
+        ITypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_FederationPolicyLocationNotSupported,
+                type.Name,
+                schema.Name)
+            .SetCode(LogEntryCodes.FederationPolicyLocationNotSupported)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(type)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry FieldArgumentTypesNotMergeable(
         MutableInputFieldDefinition argument,
         MutableSchemaDefinition schemaA,
@@ -1159,6 +1175,54 @@ internal static class LogEntryHelper
             .SetCode(LogEntryCodes.OverrideOnInterface)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyDefinitionInvalid(
+        MutableSchemaDefinition schema,
+        string expectedDefinition)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyDefinitionInvalid,
+                schema.Name,
+                expectedDefinition)
+            .SetCode(LogEntryCodes.PolicyDefinitionInvalid)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(schema)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyOnInterfaceField(
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyOnInterfaceField,
+                field.Coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.PolicyOnInterface)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyOnInterfaceType(
+        MutableComplexTypeDefinition interfaceType,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyOnInterfaceType,
+                interfaceType.Name,
+                schema.Name)
+            .SetCode(LogEntryCodes.PolicyOnInterface)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(interfaceType)
             .SetSchema(schema)
             .Build();
     }

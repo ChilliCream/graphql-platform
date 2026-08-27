@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion;
 
@@ -137,5 +138,59 @@ public sealed class CompositionSettingsTests
         Assert.Equal(
             ShareableFieldRuntimeTypeRouting.SourceLocal,
             settings.ApolloFederationCompatibility.ToOptions().ShareableFieldRuntimeTypeRouting);
+    }
+
+    [Fact]
+    public void Authorization_Should_RoundTrip_When_Serialized()
+    {
+        // arrange
+        const string json =
+            """
+            {
+              "authorization": {
+                "onDenied": "Abort"
+              }
+            }
+            """;
+
+        // act
+        var settings = JsonSerializer.Deserialize(
+            json,
+            SettingsJsonSerializerContext.Default.CompositionSettings)!;
+        using var document = JsonSerializer.SerializeToDocument(
+            settings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        // assert
+        Assert.Equal(PolicyDenialBehavior.Abort, settings.Authorization.OnDenied);
+        Assert.Equal(
+            "Abort",
+            document.RootElement
+                .GetProperty("authorization")
+                .GetProperty("onDenied")
+                .GetString());
+    }
+
+    [Fact]
+    public void MergeInto_Should_PreserveExistingOnDeniedDefault_When_OverrideIsUnset()
+    {
+        // arrange
+        var mergerOptions = new SourceSchemaMergerOptions
+        {
+            PolicyOnDeniedDefault = PolicyDenialBehavior.Abort
+        };
+
+        // act
+        new CompositionSettings.AuthorizationSettings().MergeInto(mergerOptions);
+
+        // assert
+        Assert.Equal(PolicyDenialBehavior.Abort, mergerOptions.PolicyOnDeniedDefault);
+
+        // act
+        new CompositionSettings.AuthorizationSettings { OnDenied = PolicyDenialBehavior.Null }
+            .MergeInto(mergerOptions);
+
+        // assert
+        Assert.Equal(PolicyDenialBehavior.Null, mergerOptions.PolicyOnDeniedDefault);
     }
 }

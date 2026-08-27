@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -5,14 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class PolicyCollectionTests
+public sealed class PolicyCollectionTests : FusionTestBase
 {
     [Fact]
     public void Get_Should_ReturnPolicy_When_NameMatchesExactly()
     {
         // arrange
         var policy = new TestPolicy("CanReadSecret");
-        using var registry = new PolicyCollection([new TestPolicyProvider(policy)]);
+        using var registry = new PolicyCollection(new TestPolicyProvider(policy));
         registry.Connect();
 
         // act & assert
@@ -23,7 +24,8 @@ public sealed class PolicyCollectionTests
     public void TryGet_Should_ReturnFalse_When_NameDiffersByCase()
     {
         // arrange
-        using var registry = new PolicyCollection([new TestPolicyProvider(new TestPolicy("CanReadSecret"))]);
+        using var registry = new PolicyCollection(
+            new TestPolicyProvider(new TestPolicy("CanReadSecret")));
         registry.Connect();
 
         // act & assert
@@ -34,7 +36,8 @@ public sealed class PolicyCollectionTests
     public void Get_Should_ThrowFailClosed_When_PolicyNameIsUnknown()
     {
         // arrange
-        using var registry = new PolicyCollection([new TestPolicyProvider(new TestPolicy("CanReadSecret"))]);
+        using var registry = new PolicyCollection(
+            new TestPolicyProvider(new TestPolicy("CanReadSecret")));
         registry.Connect();
 
         // act & assert
@@ -46,7 +49,7 @@ public sealed class PolicyCollectionTests
     {
         // arrange
         using var registry = new PolicyCollection(
-            [new TestPolicyProvider(new TestPolicy(string.Empty))]);
+            new TestPolicyProvider(new TestPolicy(string.Empty)));
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(() => registry.Connect());
@@ -56,11 +59,11 @@ public sealed class PolicyCollectionTests
     }
 
     [Fact]
-    public void Connect_Should_ApplyUpserts_When_ProviderReplaysCurrentSet()
+    public void Connect_Should_ApplySnapshot_When_ProviderReplaysCurrentSet()
     {
         // arrange
         var provider = new TestPolicyProvider(new TestPolicy("A"));
-        using var registry = new PolicyCollection([provider]);
+        using var registry = new PolicyCollection(provider);
 
         // act
         registry.Connect();
@@ -74,27 +77,27 @@ public sealed class PolicyCollectionTests
     {
         // arrange
         var provider = new TestPolicyProvider(new TestPolicy("A"));
-        using var registry = new PolicyCollection([provider]);
+        using var registry = new PolicyCollection(provider);
         registry.Connect();
         var replacement = new TestPolicy("A");
 
         // act
-        provider.Emit(new PolicyUpdate("A", replacement));
+        provider.Emit(replacement);
 
         // assert
         Assert.Same(replacement, registry.Get("A"));
     }
 
     [Fact]
-    public void Apply_Should_RemovePolicy_When_ProviderEmitsNull()
+    public void Apply_Should_RemovePolicy_When_ProviderEmitsEmptySnapshot()
     {
         // arrange
         var provider = new TestPolicyProvider(new TestPolicy("A"));
-        using var registry = new PolicyCollection([provider]);
+        using var registry = new PolicyCollection(provider);
         registry.Connect();
 
         // act
-        provider.Emit(new PolicyUpdate("A", null));
+        provider.Emit();
 
         // assert
         Assert.False(registry.TryGet("A", out _));
@@ -105,48 +108,30 @@ public sealed class PolicyCollectionTests
     {
         // arrange
         var provider = new TestPolicyProvider(new TestPolicy("A"));
-        using var registry = new PolicyCollection([provider]);
+        using var registry = new PolicyCollection(provider);
         registry.Connect();
         var current = registry.Get("A");
 
         // act
-        provider.Emit(new PolicyUpdate("A", current));
+        provider.Emit(current);
 
         // assert
         Assert.Same(current, registry.Get("A"));
     }
 
     [Fact]
-    public void Connect_Should_Throw_When_ProvidersShareAPolicyName()
+    public void Apply_Should_Throw_When_SnapshotDuplicatesAPolicyName()
     {
         // arrange
-        var first = new TestPolicyProvider(new TestPolicy("Shared"));
-        var second = new TestPolicyProvider(new TestPolicy("Shared"));
-        using var registry = new PolicyCollection([first, second]);
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(registry.Connect);
-
-        // assert
-        Assert.Equal(
-            "Authorization policy 'Shared' is registered more than once.",
-            exception.Message);
-    }
-
-    [Fact]
-    public void Apply_Should_Throw_When_LiveUpdateDuplicatesAnotherProvidersName()
-    {
-        // arrange
-        var first = new TestPolicyProvider(new TestPolicy("A"));
-        var second = new TestPolicyProvider(new TestPolicy("B"));
-        using var registry = new PolicyCollection([first, second]);
+        var provider = new TestPolicyProvider(new TestPolicy("A"));
+        using var registry = new PolicyCollection(provider);
         registry.Connect();
 
         // act
-        // The second provider emits a name already owned by the first provider, which the registry
-        // rejects out of the applying observer.
+        // The provider republishes a complete snapshot that itself carries a duplicate name, which
+        // the registry rejects out of the applying observer.
         var exception = Assert.Throws<InvalidOperationException>(
-            () => second.Emit(new PolicyUpdate("A", new TestPolicy("A"))));
+            () => provider.Emit(new TestPolicy("A"), new TestPolicy("A")));
 
         // assert
         Assert.Equal(
@@ -155,75 +140,165 @@ public sealed class PolicyCollectionTests
     }
 
     [Fact]
-    public void Pin_Should_ReturnNull_When_NameIsUnknown()
+    public async Task Apply_Should_EvictOnlyPlansReferencingChangedPolicy_When_OneRequirementChanges()
     {
         // arrange
-        var provider = new TestPolicyProvider(new TestPolicy("A"));
-        using var registry = new PolicyCollection([provider]);
-        registry.Connect();
+        var provider = new TestPolicyProvider(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(CreateTwoSecretsSchemaDocument(), services);
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        schema.Policies.AttachPlanCache(planCache);
+        var session = planCache.Capture();
+        var planA = PlanOperation(schema, "{ secretA }");
+        var planB = PlanOperation(schema, "{ secretB }");
+        planCache.Add(session, "planA", planA);
+        planCache.Add(session, "planB", planB);
 
-        // act & assert
-        Assert.Null(registry.Pin("Unknown"));
+        // act
+        // Only "A"'s resource requirement changes; "B" keeps the same requirement.
+        provider.Emit(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id ownerId }")),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+        // assert
+        // Targeted eviction removes only the plan that referenced the changed policy, in the
+        // same cache instance, instead of discarding every cached plan.
+        Assert.Same(session.Cache, planCache.Current);
+        Assert.False(session.Cache.TryGet("planA", out _));
+        Assert.True(session.Cache.TryGet("planB", out _));
     }
 
     [Fact]
-    public void Pin_Should_ResolveReplacement_When_InstanceIsRetiredBetweenLookupAndPin()
+    public async Task Apply_Should_NotCachePlan_When_AddHappensAfterTargetedEviction()
     {
         // arrange
-        var replacement = new CountingLifetimePolicy("A");
-        TestPolicyProvider provider = null!;
-        var retiring = new RetiringLifetimePolicy(
-            "A",
-            () => provider.Emit(new PolicyUpdate("A", replacement)));
-        provider = new TestPolicyProvider(disposePolicies: false, retiring);
-        using var registry = new PolicyCollection([provider]);
-        registry.Connect();
+        var provider = new TestPolicyProvider(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(CreateTwoSecretsSchemaDocument(), services);
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        schema.Policies.AttachPlanCache(planCache);
+
+        // A request captures the session before planning, exactly like the middleware does, so
+        // the plan below is built against the snapshot that is about to become stale.
+        var session = planCache.Capture();
+        var plan = PlanOperation(schema, "{ secretA }");
 
         // act
-        // The first pin attempt fails because the instance is being retired, which swaps in the
-        // replacement so the retry resolves it.
-        var pinned = registry.Pin("A");
+        // The policy's requirement changes while the plan above is still in flight, which runs
+        // EvictPolicies (and bumps the cache's version) before the late Add below.
+        provider.Emit(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id ownerId }")),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        planCache.Add(session, "plan", plan);
 
         // assert
-        Assert.Same(replacement, pinned);
+        // The version check in Add must reject the late insert instead of letting a plan built
+        // for the old requirement land in the live cache.
+        Assert.False(planCache.Current.TryGet("plan", out _));
     }
 
     [Fact]
-    public void Pin_Should_KeepPinnedInstanceAlive_When_RegistrySwapsMidUse()
+    public async Task Apply_Should_EvictPlan_When_AnyReferencedPolicyChanges()
     {
         // arrange
-        var first = new CountingLifetimePolicy("P");
-        var provider = new TestPolicyProvider(disposePolicies: false, first);
-        using var registry = new PolicyCollection([provider]);
-        registry.Connect();
-        var pinned = registry.Pin("P");
+        var provider = new TestPolicyProvider(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(CreateTwoSecretsSchemaDocument(), services);
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        schema.Policies.AttachPlanCache(planCache);
+        var session = planCache.Capture();
+
+        // A single plan referencing both policies A and B.
+        var plan = PlanOperation(schema, "{ secretA secretB }");
+        planCache.Add(session, "plan", plan);
 
         // act
-        var second = new CountingLifetimePolicy("P");
-        provider.Emit(new PolicyUpdate("P", second));
+        // Only "B"'s resource requirement changes; "A" keeps the same requirement.
+        provider.Emit(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id ownerId }")));
 
         // assert
-        Assert.Same(first, pinned);
-        Assert.Same(second, registry.Get("P"));
+        // The plan is evicted even though only one of the two policies it references changed.
+        Assert.False(session.Cache.TryGet("plan", out _));
     }
 
     [Fact]
-    public void Apply_Should_LeaveReleaseToProvider_When_PolicyIsReplaced()
+    public void Apply_Should_NotResetPlanCache_When_PolicyRequirementIsUnchanged()
     {
         // arrange
-        var first = new CountingLifetimePolicy("P");
-        var provider = new TestPolicyProvider(disposePolicies: false, first);
-        using var registry = new PolicyCollection([provider]);
+        var resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
+        var provider = new TestPolicyProvider(new TestPolicy("A", resource));
+        using var registry = new PolicyCollection(provider);
         registry.Connect();
-        var second = new CountingLifetimePolicy("P");
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        registry.AttachPlanCache(planCache);
+        var cacheBeforeChange = planCache.Current;
 
         // act
-        // The provider owns and releases the retired instance; the registry must not release it too.
-        provider.Emit(new PolicyUpdate("P", second));
+        // A new policy instance whose requirement selects the same fields as before must not evict
+        // plans that are still valid against it.
+        provider.Emit(new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
 
         // assert
-        Assert.Same(second, registry.Get("P"));
-        Assert.Equal(1, first.ReleaseCount);
+        Assert.Same(cacheBeforeChange, planCache.Current);
+    }
+
+    [Fact]
+    public void Apply_Should_ResetPlanCache_When_PolicyIsRemovedAndReAdded()
+    {
+        // arrange
+        var provider = new TestPolicyProvider(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        using var registry = new PolicyCollection(provider);
+        registry.Connect();
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        registry.AttachPlanCache(planCache);
+
+        // act
+        // A plan that referenced "A" while it was absent skips the unknown name instead of
+        // failing closed, so re-adding it with a requirement must still evict that plan even
+        // though the removal already reset the cache once in between.
+        provider.Emit();
+        var cacheAfterRemoval = planCache.Current;
+        provider.Emit(new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id ownerId }")));
+
+        // assert
+        Assert.NotSame(cacheAfterRemoval, planCache.Current);
+    }
+
+    [Fact]
+    public void Apply_Should_ResetPlanCache_When_PolicyIsAdded()
+    {
+        // arrange
+        var provider = new TestPolicyProvider(new TestPolicy("A", (SelectionSetNode?)null));
+        using var registry = new PolicyCollection(provider);
+        registry.Connect();
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        registry.AttachPlanCache(planCache);
+        var cacheBeforeChange = planCache.Current;
+
+        // act
+        // A pure addition can already be referenced by a plan planned while the name was
+        // missing, so it must reset the cache rather than being treated as a no-op.
+        provider.Emit(
+            new TestPolicy("A", (SelectionSetNode?)null),
+            new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+        // assert
+        Assert.NotSame(cacheBeforeChange, planCache.Current);
     }
 
     [Fact]
@@ -288,86 +363,40 @@ public sealed class PolicyCollectionTests
             }
             """);
 
-    private sealed class CountingLifetimePolicy(string name) : IPolicy, IPolicyLifetime
-    {
-        private int _refCount = 1;
-
-        public string Name { get; } = name;
-
-        public SelectionSetNode? Requirements => null;
-
-        public int ReleaseCount { get; private set; }
-
-        public ValueTask EvaluateAsync(
-            IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
-            => ValueTask.CompletedTask;
-
-        public bool TryAddRef()
-        {
-            if (_refCount <= 0)
-            {
-                return false;
+    private static DocumentNode CreateTwoSecretsSchemaDocument()
+        => Utf8GraphQLParser.Parse(
+            """
+            schema {
+              query: Query
             }
 
-            _refCount++;
-            return true;
-        }
-
-        public void Release()
-        {
-            ReleaseCount++;
-            _refCount--;
-        }
-    }
-
-    // A lifetime policy that fails its first pin attempt and swaps in a replacement, so the pinning
-    // retry loop resolves the new instance.
-    private sealed class RetiringLifetimePolicy(string name, Action onFirstTryAddRef)
-        : IPolicy, IPolicyLifetime
-    {
-        private bool _retired;
-
-        public string Name { get; } = name;
-
-        public SelectionSetNode? Requirements => null;
-
-        public ValueTask EvaluateAsync(
-            IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
-            => ValueTask.CompletedTask;
-
-        public bool TryAddRef()
-        {
-            if (_retired)
-            {
-                return true;
+            type Query @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+              ownerId: ID! @fusion__field(schema: A)
+              secretA: String
+                @fusion__field(schema: A)
+                @fusion__policy(names: "A")
+              secretB: String
+                @fusion__field(schema: A)
+                @fusion__policy(names: "B")
             }
 
-            _retired = true;
-            onFirstTryAddRef();
-            return false;
-        }
-
-        public void Release()
-        {
-        }
-    }
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """);
 
     private sealed class DisposablePolicy : IPolicy, IDisposable
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public int DisposeCalls { get; private set; }
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
 
         public void Dispose() => DisposeCalls++;

@@ -256,6 +256,62 @@ public class CacheTests
         Assert.Throws<ArgumentException>(() => cache.GetOrCreate(string.Empty, _ => "value"));
     }
 
+    [Fact]
+    public void TryRemove_Should_RemoveEntry_When_KeyExists()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+        cache.TryAdd("key", "value");
+
+        // act
+        var removed = cache.TryRemove("key");
+
+        // assert
+        Assert.True(removed);
+        Assert.False(cache.TryGet("key", out _));
+    }
+
+    [Fact]
+    public void TryRemove_Should_NotOrphan_RingSlot_When_KeyIsReAdded_And_HandCyclesPastIt()
+    {
+        // arrange
+        // Regression for the ring/map pairing invariant: TryRemove must clear the ring slot it
+        // owned, otherwise re-adding the same key creates a second ring entry, and when the
+        // clock hand later recycles the stale slot it removes the LIVE entry from the map by
+        // key while leaving its own slot occupied as an orphan.
+        //
+        // The sequence below reproduces this deterministically: "k" is added and removed while
+        // the ring is otherwise empty, so its freed slot is the very first one the clock hand
+        // used, then re-added into the next free slot without ever touching that first slot
+        // again. Filling every remaining slot (capacity - 2 inserts, since "k" itself now
+        // occupies one) leaves only the freed slot open, so the next insert forces the clock
+        // hand all the way around the ring and back to it, giving an unfixed TryRemove's orphan
+        // exactly the two passes (once to clear its accessed flag, once to evict it) it needs to
+        // be recycled, at which point it wrongly removes the re-added "k" from the map.
+        const int capacity = 8;
+        var cache = new Cache<string>(capacity);
+
+        cache.TryAdd("k", "v1");
+        Assert.True(cache.TryRemove("k"));
+
+        for (var i = 0; i < capacity - 2; i++)
+        {
+            var item = $"filler-{i}";
+            cache.TryAdd(item, item);
+        }
+
+        cache.TryAdd("k", "v2");
+
+        // act
+        // One more insert is enough to force the clock hand back around to "k"'s original,
+        // now-freed slot.
+        cache.TryAdd("filler-last", "x");
+
+        // assert
+        Assert.True(cache.TryGet("k", out var value));
+        Assert.Equal("v2", value);
+    }
+
 #if NET9_0_OR_GREATER
     [Fact]
     public void TryGet_Should_ReturnTrue_When_KeyExists_UsingSpan()

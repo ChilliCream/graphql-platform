@@ -13,12 +13,14 @@ internal sealed record CompositionSettings
         PreprocessorSettings? preprocessor = null,
         MergerSettings? merger = null,
         SatisfiabilitySettings? satisfiability = null,
-        ApolloFederationCompatibilitySettings? apolloFederationCompatibility = null)
+        ApolloFederationCompatibilitySettings? apolloFederationCompatibility = null,
+        AuthorizationSettings? authorization = null)
     {
         Preprocessor = preprocessor ?? new();
         Merger = merger ?? new();
         Satisfiability = satisfiability ?? new();
         ApolloFederationCompatibility = apolloFederationCompatibility ?? new();
+        Authorization = authorization ?? new();
     }
 
     public PreprocessorSettings Preprocessor { get; init; }
@@ -28,6 +30,8 @@ internal sealed record CompositionSettings
     public SatisfiabilitySettings Satisfiability { get; init; }
 
     public ApolloFederationCompatibilitySettings ApolloFederationCompatibility { get; init; }
+
+    public AuthorizationSettings Authorization { get; init; }
 
     internal sealed record PreprocessorSettings
     {
@@ -59,5 +63,15 @@ internal sealed record CompositionSettings
         public bool? AllowNonResolvableInterfaceObjects { get; set; }
 
         public ShareableFieldRuntimeTypeRouting? ShareableFieldRuntimeTypeRouting { get; set; }
+    }
+
+    internal sealed record AuthorizationSettings
+    {
+        /// <summary>
+        /// The default consequence applied to a <c>@policy</c> application when its expression
+        /// denies access and no source schema contributed an explicit <c>onDenied</c> value
+        /// for it. Absent means the merger's own default is used.
+        /// </summary>
+        public PolicyDenialBehavior? OnDenied { get; set; }
     }
 }

@@ -3,6 +3,8 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
@@ -18,7 +20,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class PolicyExecutionNodeTests : FusionTestBase
+public sealed partial class PolicyExecutionNodeTests : FusionTestBase
 {
     [Fact]
     public async Task ExecuteAsync_Should_CoFetchAndHideValidPolicyRequirement()
@@ -148,7 +150,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 {
                   "message": "Authorization policy execution failed.",
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE"
                   }
                 }
               ],
@@ -195,18 +197,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied by test policy",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "secret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanReadSecret"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -231,7 +233,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
@@ -241,8 +243,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     "secret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanReadSecret"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -267,18 +269,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         // assert
         Assert.Equal(1, policy.EvaluationCount);
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied by counting policy",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "otherSecret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanReadSecret"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -345,28 +347,17 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             services.GetRequiredService<INodeIdParser>(),
             services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
             services.GetRequiredService<IErrorHandler>());
-        var type = schema.Types.GetType<ITypeDefinition>("Query");
-        var entities = new CompositeResultElement[1];
-
         try
         {
             // act
             var first = context.EvaluatePolicyOnceAsync(
                 policy,
-                selection: null,
-                type,
                 new ClaimsPrincipal(),
-                PolicyDenialBehavior.Null,
-                entities[0],
                 TestContext.Current.CancellationToken).AsTask();
             await policy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
             var second = context.EvaluatePolicyOnceAsync(
                 policy,
-                selection: null,
-                type,
                 new ClaimsPrincipal(),
-                PolicyDenialBehavior.Null,
-                entities[0],
                 TestContext.Current.CancellationToken).AsTask();
 
             policy.Release.TrySetResult();
@@ -397,29 +388,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             services.GetRequiredService<INodeIdParser>(),
             services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
             services.GetRequiredService<IErrorHandler>());
-        var type = schema.Types.GetType<ITypeDefinition>("Query");
-        var entity = default(CompositeResultElement);
-
         try
         {
             // act
             var firstError = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => context.EvaluatePolicyOnceAsync(
                     policy,
-                    selection: null,
-                    type,
                     new ClaimsPrincipal(),
-                    PolicyDenialBehavior.Null,
-                    entity,
                     TestContext.Current.CancellationToken).AsTask());
             var secondError = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => context.EvaluatePolicyOnceAsync(
                     policy,
-                    selection: null,
-                    type,
                     new ClaimsPrincipal(),
-                    PolicyDenialBehavior.Null,
-                    entity,
                     TestContext.Current.CancellationToken).AsTask());
 
             // assert
@@ -446,18 +426,15 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied by test policy",
-                  "path": [
-                    "secret"
-                  ],
+                  "message": "The current user is not authorized to access this resource.",
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanReadSecret"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -506,18 +483,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied by CanDeny",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "secret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanAllow AND CanDeny"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -570,18 +547,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied by CanAlsoDeny",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "secret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanAlsoDeny"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -636,18 +613,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied by CanDeny",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "secret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanDeny"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -659,12 +636,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_EvaluateSharedPolicyOnceWithMostSevereOnDenied_When_NameIsSharedAcrossApplications()
+    public async Task ExecuteAsync_Should_EvaluateSharedPolicyOnce_When_NameIsSharedAcrossApplications()
     {
         // arrange
-        // CanShared appears in both applications; it must be evaluated once and
-        // observe the most severe onDenied of the applications that contain it.
-        var sharedPolicy = new CaptureOnDeniedPolicy("CanShared");
+        // CanShared appears in both applications, but must be evaluated only once.
+        var sharedPolicy = new CountingAllowPolicy("CanShared");
         var executor = await CreateExpressionExecutorAsync(
             """@policy(names: "CanShared") @policy(names: [["CanShared", "CanOther"]], onDenied: ERROR)""",
             sharedPolicy,
@@ -677,7 +653,6 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         // assert
         Assert.Equal(1, sharedPolicy.EvaluationCount);
-        Assert.Equal(PolicyDenialBehavior.Error, sharedPolicy.ObservedOnDenied);
         result.ToJson().MatchInlineSnapshot(
             """
             {
@@ -737,18 +712,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied loudly",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "secret"
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanDenyQuietly AND CanDenyWithReason"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -791,7 +766,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 {
                   "message": "Authorization policy execution failed.",
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE"
                   }
                 }
               ],
@@ -859,7 +834,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 {
                   "message": "Authorization policy execution failed.",
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE"
                   }
                 }
               ],
@@ -892,9 +867,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_ProvideRootObjectContext_When_QueryTypeIsProtected()
+    public async Task ExecuteAsync_Should_ProvideNoSelection_When_QueryTypeIsProtected()
     {
         // arrange
+        // The policy declares no resource requirement, so it produces a request-constant decision
+        // and observes no guarded selection at all, regardless of the object target it applies to.
         var policy = new RootContextPolicy();
         var executor = await CreateRootObjectPolicyExecutorAsync(policy);
 
@@ -905,8 +882,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         // assert
         Assert.Equal(
-            (Evaluated: true, SelectionWasNull: true, TypeName: "Query"),
-            (policy.Evaluated, policy.SelectionWasNull, policy.TypeName));
+            (Evaluated: true, SelectionWasNull: true),
+            (policy.Evaluated, policy.SelectionWasNull));
         result.ToJson().MatchInlineSnapshot(
             """
             {
@@ -915,6 +892,27 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ProvideNoSelection_When_NestedTypeIsProtected()
+    {
+        // arrange
+        // The policy declares no resource requirement, so it produces a request-constant decision
+        // and observes no guarded selection even when the guarded value is produced by an
+        // enclosing field.
+        var policy = new RootContextPolicy();
+        var executor = await CreateNestedTypePolicyExecutorAsync(policy);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ product { id } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            (Evaluated: true, SelectionWasNull: true),
+            (policy.Evaluated, policy.SelectionWasNull));
     }
 
     [Fact]
@@ -975,6 +973,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             [policyNode],
             [],
             [],
+            [],
             searchSpace: 0,
             expandedNodes: 0);
         var schemaServices = executor.Schema.Services;
@@ -1031,7 +1030,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     {
                       "message": "Authorization policy execution failed.",
                       "extensions": {
-                        "code": "AUTH_NOT_AUTHORIZED"
+                        "code": "UNAUTHORIZED_FIELD_OR_TYPE"
                       }
                     }
                   ],
@@ -1114,7 +1113,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         // arrange
         var downstreamClient = new RecordingLookupClient();
         var listener = new ExecutionNodeStartListener();
-        var executor = await CreatePartialLookupExecutorAsync(downstreamClient, listener);
+        var executor = await CreatePartialLookupExecutorAsync(
+            downstreamClient,
+            PolicyDenialBehavior.Error,
+            new DenySecondProductPolicy(),
+            listener);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -1133,19 +1136,19 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             }
             variables: {"__fusion_1_id":"1"}
             """);
-        result.ToJson().MatchInlineSnapshot(
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
             """
             {
               "errors": [
                 {
-                  "message": "denied product 2",
+                  "message": "The current user is not authorized to access this resource.",
                   "path": [
                     "topProducts",
                     1
                   ],
                   "extensions": {
-                    "code": "AUTH_NOT_AUTHORIZED",
-                    "policy": "CanReadSecret"
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
                   }
                 }
               ],
@@ -1157,6 +1160,78 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                   null
                 ]
               }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_OmitPathAndNotDispatch_When_AbortDenialOccursUnderListPosition()
+    {
+        // arrange
+        // Decision repo-1y0: an ABORT denial never carries a path, even one resolvable to a
+        // real list index, since a pre-execution short-circuit (the plan-time slot path, not
+        // yet implemented) cannot resolve list positions at all; this keeps the execution-time
+        // PolicyExecutionNode path byte-identical to that short-circuit for the same denial.
+        var downstreamClient = new RecordingLookupClient();
+        var executor = await CreatePartialLookupExecutorAsync(
+            downstreamClient,
+            PolicyDenialBehavior.Abort,
+            new DenySecondProductPolicy());
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ topProducts { price } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, downstreamClient.ExecutionCount);
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EmitSingleError_When_AbortDenialCoversEveryListPosition()
+    {
+        // arrange
+        var downstreamClient = new RecordingLookupClient();
+        var executor = await CreatePartialLookupExecutorAsync(
+            downstreamClient,
+            PolicyDenialBehavior.Abort,
+            new DenyAllProductsPolicy());
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ topProducts { price } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, downstreamClient.ExecutionCount);
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
             }
             """);
     }
@@ -1331,6 +1406,21 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
             """);
     }
 
+    // Policy denial errors carry a fresh GUID correlation id (extensions.reasonId) that
+    // cannot be asserted verbatim in an inline snapshot. This confirms a well-formed GUID
+    // was actually emitted, then collapses it to a fixed placeholder so the remainder of
+    // the error shape can still be asserted byte-for-byte.
+    [GeneratedRegex("""(?<="reasonId": ")[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=")""")]
+    private static partial Regex ReasonIdPattern();
+
+    private static string NormalizeReasonId(string json)
+    {
+        var match = ReasonIdPattern().Match(json);
+        Assert.True(match.Success, "Expected a well-formed extensions.reasonId GUID.");
+        Assert.True(Guid.TryParse(match.Value, out _));
+        return ReasonIdPattern().Replace(json, "00000000-0000-0000-0000-000000000000");
+    }
+
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         PolicyDenialBehavior behavior,
         IPolicy? policy = null,
@@ -1349,8 +1439,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       secret: String @policy(names: "CanReadSecret", onDenied: {{behavior.ToString().ToUpperInvariant()}})
@@ -1406,8 +1496,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       secret: String {{secretFieldDirectives}}
@@ -1442,8 +1532,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       topProducts: [Product]
@@ -1482,8 +1572,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       secret: String @policy(names: "CanReadSecret")
@@ -1518,8 +1608,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       secret: String @policy(names: "CanReadSecret")
@@ -1558,8 +1648,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       secret: String @policy(names: "CanReadSecret")
@@ -1606,8 +1696,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       topProducts: [Product!]
@@ -1689,8 +1779,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query @policy(names: "CanReadSecret") {
                       secret: String
@@ -1709,9 +1799,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 
-    private static async Task<IRequestExecutor> CreatePartialLookupExecutorAsync(
-        RecordingLookupClient downstreamClient,
-        FusionExecutionDiagnosticEventListener? diagnosticListener = null)
+    private static async Task<IRequestExecutor> CreateNestedTypePolicyExecutorAsync(
+        IPolicy policy)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1724,15 +1813,57 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
+
+                    type Query {
+                      product: Product
+                    }
+
+                    type Product @policy(names: "CanReadSecret") {
+                      id: ID!
+                    }
+                    """));
+
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(
+                ("a", new RecordingRequirementClient("""{"data":{"product":{"id":"1"}}}"""))));
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
+    private static async Task<IRequestExecutor> CreatePartialLookupExecutorAsync(
+        RecordingLookupClient downstreamClient,
+        PolicyDenialBehavior onDenied,
+        IPolicy policy,
+        FusionExecutionDiagnosticEventListener? diagnosticListener = null)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    $$"""
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       topProducts: [Product]
                     }
 
                     type Product @key(fields: "id")
-                      @policy(names: "CanReadSecret", onDenied: ERROR) {
+                      @policy(names: "CanReadSecret", onDenied: {{onDenied.ToString().ToUpperInvariant()}}) {
                       id: ID!
                     }
                     """,
@@ -1750,7 +1881,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         ConfigurePolicies(
             builder,
-            new TestPolicyProvider(new DenySecondProductPolicy()));
+            new TestPolicyProvider(policy));
 
         if (diagnosticListener is not null)
         {
@@ -1792,8 +1923,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       topProducts: [Product]
@@ -1864,8 +1995,8 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
 
-                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL)
-                      repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
                       topProducts: [Product]
@@ -1926,18 +2057,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
-            for (var i = 0; i < entities.Length; i++)
-            {
-                context.Deny(i, "denied by test policy");
-            }
-
+            context.Deny(0, "denied by test policy");
             return ValueTask.CompletedTask;
         }
     }
@@ -1947,19 +2073,15 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => name;
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             if (deny)
             {
-                for (var i = 0; i < entities.Length; i++)
-                {
-                    context.Deny(i, reason);
-                }
+                context.Deny(0, reason);
             }
 
             return ValueTask.CompletedTask;
@@ -1970,53 +2092,47 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => name;
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => throw new InvalidOperationException("policy backend unavailable");
     }
 
-    private sealed class CaptureOnDeniedPolicy(string name) : IPolicy
+    private sealed class CountingAllowPolicy(string name) : IPolicy
     {
         private int _evaluationCount;
 
         public string Name => name;
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
-        public PolicyDenialBehavior? ObservedOnDenied { get; private set; }
-
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _evaluationCount);
-            ObservedOnDenied = context.OnDenied;
             return ValueTask.CompletedTask;
         }
     }
 
     private sealed class DenyMatchingIdPolicy(string name, string deniedId) : IPolicy
     {
-        private static readonly SelectionSetNode s_requirements =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }") };
 
         public string Name => name;
 
-        public SelectionSetNode? Requirements => s_requirements;
+        public PolicyRequirements Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
-            var span = entities.Span;
+            var span = context.Selection!.Entities.Span;
 
             for (var i = 0; i < span.Length; i++)
             {
@@ -2032,20 +2148,19 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private sealed class CountingRequirementPolicy(string name) : IPolicy
     {
-        private static readonly SelectionSetNode s_requirements =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }");
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }") };
         private int _evaluationCount;
 
         public string Name => name;
 
-        public SelectionSetNode? Requirements => s_requirements;
+        public PolicyRequirements Requirements => s_requirements;
 
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _evaluationCount);
             return ValueTask.CompletedTask;
@@ -2056,18 +2171,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
-            for (var i = 0; i < entities.Length; i++)
-            {
-                context.Deny(i);
-            }
-
+            context.Deny(0);
             return ValueTask.CompletedTask;
         }
     }
@@ -2078,14 +2188,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _evaluationCount);
             context.Deny(0, "denied by counting policy");
@@ -2099,7 +2208,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
@@ -2111,8 +2220,7 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         public async ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _evaluationCount);
             Started.TrySetResult();
@@ -2123,12 +2231,12 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private sealed class RoleRequirementPolicy : IPolicy
     {
-        private static readonly SelectionSetNode s_requirements =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }");
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }") };
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => s_requirements;
+        public PolicyRequirements Requirements => s_requirements;
 
         public bool Evaluated { get; private set; }
 
@@ -2136,9 +2244,9 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
+            var entities = context.Selection!.Entities;
             Assert.Equal(1, entities.Length);
             Evaluated = true;
             Role = entities.Span[0].GetProperty("role").GetString();
@@ -2148,35 +2256,35 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private sealed class UnknownRequirementPolicy : IPolicy
     {
-        private static readonly SelectionSetNode s_requirements =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }");
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }") };
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => s_requirements;
+        public PolicyRequirements Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
     }
 
     private sealed class DriftingRequirementsPolicy : IPolicy
     {
-        private static readonly SelectionSetNode s_requirements =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }");
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unknown }") };
         private int _readCount;
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements
-            => Interlocked.Increment(ref _readCount) == 1 ? null : s_requirements;
+        public PolicyRequirements Requirements
+            => Interlocked.Increment(ref _readCount) == 1
+                ? PolicyRequirements.Empty
+                : s_requirements;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
     }
 
@@ -2184,12 +2292,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
     }
 
@@ -2199,14 +2306,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public int EvaluationCount => Volatile.Read(ref _evaluationCount);
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _evaluationCount);
             throw new InvalidOperationException("test failure");
@@ -2218,14 +2324,13 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public bool Evaluated { get; private set; }
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Evaluated = true;
             cancellationSource.Cancel();
@@ -2238,12 +2343,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => throw new OperationCanceledException("non-cooperative cancellation");
     }
 
@@ -2251,12 +2355,11 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => throw new InvalidOperationException("test name failure");
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
     }
 
@@ -2264,13 +2367,12 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements
+        public PolicyRequirements Requirements
             => throw new InvalidOperationException("test requirements failure");
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
     }
 
@@ -2278,22 +2380,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
     {
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => null;
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
 
         public bool Evaluated { get; private set; }
 
         public bool SelectionWasNull { get; private set; }
 
-        public string? TypeName { get; private set; }
-
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Evaluated = true;
             SelectionWasNull = context.Selection is null;
-            TypeName = context.Type.Name;
             return ValueTask.CompletedTask;
         }
     }
@@ -2385,19 +2483,18 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
 
     private sealed class DenySecondProductPolicy : IPolicy
     {
-        private static readonly SelectionSetNode s_requirements =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }") };
 
         public string Name => "CanReadSecret";
 
-        public SelectionSetNode? Requirements => s_requirements;
+        public PolicyRequirements Requirements => s_requirements;
 
         public ValueTask EvaluateAsync(
             IPolicyContext context,
-            ReadOnlyMemory<CompositeResultElement> entities,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
-            var span = entities.Span;
+            var span = context.Selection!.Entities.Span;
 
             for (var i = 0; i < span.Length; i++)
             {
@@ -2405,6 +2502,30 @@ public sealed class PolicyExecutionNodeTests : FusionTestBase
                 {
                     context.Deny(i, "denied product 2");
                 }
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class DenyAllProductsPolicy : IPolicy
+    {
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }") };
+
+        public string Name => "CanReadSecret";
+
+        public PolicyRequirements Requirements => s_requirements;
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            var span = context.Selection!.Entities.Span;
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                context.Deny(i, "denied all products");
             }
 
             return ValueTask.CompletedTask;

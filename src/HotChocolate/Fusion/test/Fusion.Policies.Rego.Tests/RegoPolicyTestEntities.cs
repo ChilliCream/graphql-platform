@@ -96,19 +96,34 @@ internal static class RegoPolicyTestEntities
 
     public sealed class TestPolicyContext : IPolicyContext
     {
-        public List<int> DeniedIndices { get; } = [];
+        private readonly PolicySelection? _selection;
 
-        public ISelection? Selection => null;
+        public TestPolicyContext(
+            ClaimsPrincipal? user = null,
+            ISelection? selection = null,
+            ReadOnlyMemory<CompositeResultElement> entities = default)
+        {
+            User = user ?? new ClaimsPrincipal();
 
-        public ITypeDefinition Type => throw new NotSupportedException();
+            if (!entities.IsEmpty)
+            {
+                var policySelection = new PolicySelection();
+                policySelection.Reset(null!, selection, VariableValueCollection.Empty, entities);
+                _selection = policySelection;
+            }
+        }
 
-        public PolicyDenialBehavior OnDenied => PolicyDenialBehavior.Null;
+        public List<(int Index, string? Reason)> Denials { get; } = [];
 
-        public ClaimsPrincipal User { get; } = new();
+        public IReadOnlyList<int> DeniedIndices => [.. Denials.Select(static d => d.Index)];
+
+        public PolicySelection? Selection => _selection;
+
+        public ClaimsPrincipal User { get; }
 
         public IFeatureCollection Features { get; } = new FeatureCollection();
 
         public void Deny(int index, string? reason = null)
-            => DeniedIndices.Add(index);
+            => Denials.Add((index, reason));
     }
 }

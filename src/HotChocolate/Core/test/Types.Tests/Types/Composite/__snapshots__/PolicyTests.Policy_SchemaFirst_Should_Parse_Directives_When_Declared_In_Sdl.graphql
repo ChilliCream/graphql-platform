@@ -27,18 +27,19 @@ the outer list combines with OR. The expression [["a", "b"], ["c"]] reads as
 
 The onDenied argument defines the consequence when the expression does not evaluate
 to true: NULL sets the guarded value to null without an error, ERROR sets it to null
-and adds an authorization error, ABORT terminates the request.
+and adds an authorization error, ABORT terminates the request. When the argument is
+absent, the consequence is inherited from the schema-wide default.
 
 
 Repeated applications on the same member combine with AND and the most severe
 consequence wins.
 
 
-directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL) repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior) repeatable on OBJECT | FIELD_DEFINITION
 """
 directive @policy(
   "The policy expression in disjunctive normal form. Names within an inner list combine with AND, the outer list combines with OR."
   names: [[String!]!]!
   "The consequence that applies when the policy expression denies access."
-  onDenied: PolicyDenialBehavior! = NULL
-) repeatable on OBJECT | FIELD_DEFINITION | INTERFACE
+  onDenied: PolicyDenialBehavior
+) repeatable on OBJECT | FIELD_DEFINITION

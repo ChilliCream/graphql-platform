@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using HotChocolate.Fusion.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -70,6 +71,9 @@ internal class FusionRunCommand : Command
                     .AddHttpClient("fusion")
                     .AddHeaderPropagation();
 
+                services.AddSingleton<IFusionExecutionDiagnosticEvents>(
+                    new ConsoleFusionExecutionDiagnosticEventListener(console));
+
                 services.AddRouting()
                     .AddGraphQLGatewayServer()
                     .AddFileSystemConfiguration(archiveFilePath)
@@ -131,5 +135,12 @@ internal class FusionRunCommand : Command
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
         return port;
+    }
+
+    private sealed class ConsoleFusionExecutionDiagnosticEventListener(INitroConsole console)
+        : FusionExecutionDiagnosticEventListener
+    {
+        public override void ConfigurationReadError(Exception error)
+            => console.Error.WriteErrorLine($"Failed to read the Fusion configuration: {error.Message}");
     }
 }

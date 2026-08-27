@@ -13,19 +13,20 @@ namespace HotChocolate.Types.Composite;
 /// <para>
 /// The onDenied argument defines the consequence when the expression does not evaluate
 /// to true: NULL sets the guarded value to null without an error, ERROR sets it to null
-/// and adds an authorization error, ABORT terminates the request.
+/// and adds an authorization error, ABORT terminates the request. When the argument is
+/// absent, the consequence is inherited from the schema-wide default.
 /// </para>
 /// <para>
 /// Repeated applications on the same member combine with AND and the most severe
 /// consequence wins.
 /// </para>
 /// <para>
-/// directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior! = NULL) repeatable on OBJECT | INTERFACE | FIELD_DEFINITION
+/// directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior) repeatable on OBJECT | FIELD_DEFINITION
 /// </para>
 /// </summary>
 [DirectiveType(
     DirectiveNames.Policy.Name,
-    DirectiveLocation.Object | DirectiveLocation.Interface | DirectiveLocation.FieldDefinition,
+    DirectiveLocation.Object | DirectiveLocation.FieldDefinition,
     IsRepeatable = true)]
 [PolicySyntax]
 public sealed class Policy
@@ -38,7 +39,8 @@ public sealed class Policy
     /// combine with AND, the outer list combines with OR.
     /// </param>
     /// <param name="onDenied">
-    /// The consequence that applies when the policy expression denies access.
+    /// The consequence that applies when the policy expression denies access, or
+    /// <c>null</c> to inherit the schema-wide default.
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="names"/> is <c>null</c>.
@@ -49,7 +51,7 @@ public sealed class Policy
     /// </exception>
     public Policy(
         IReadOnlyList<IReadOnlyList<string>> names,
-        PolicyDenialBehavior onDenied = PolicyDenialBehavior.Null)
+        PolicyDenialBehavior? onDenied = null)
     {
         ArgumentNullException.ThrowIfNull(names);
 
@@ -97,13 +99,14 @@ public sealed class Policy
     /// </summary>
     /// <param name="name">The policy name.</param>
     /// <param name="onDenied">
-    /// The consequence that applies when the policy expression denies access.
+    /// The consequence that applies when the policy expression denies access, or
+    /// <c>null</c> to inherit the schema-wide default.
     /// </param>
     /// <exception cref="ArgumentException">
     /// The <paramref name="name"/> is <c>null</c>, empty, whitespace, or has leading
     /// or trailing whitespace.
     /// </exception>
-    public Policy(string name, PolicyDenialBehavior onDenied = PolicyDenialBehavior.Null)
+    public Policy(string name, PolicyDenialBehavior? onDenied = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -130,22 +133,22 @@ public sealed class Policy
     public IReadOnlyList<IReadOnlyList<string>> Names { get; }
 
     /// <summary>
-    /// Gets the consequence that applies when the policy expression denies access.
+    /// Gets the consequence that applies when the policy expression denies access, or
+    /// <c>null</c> when the schema-wide default is inherited.
     /// </summary>
     [GraphQLName(DirectiveNames.Policy.Arguments.OnDenied)]
     [GraphQLDescription("The consequence that applies when the policy expression denies access.")]
-    [GraphQLType<NonNullType<PolicyDenialBehaviorType>>]
-    [DefaultValueSyntax("NULL")]
-    public PolicyDenialBehavior OnDenied { get; }
+    [GraphQLType<PolicyDenialBehaviorType>]
+    public PolicyDenialBehavior? OnDenied { get; }
 
     /// <inheritdoc />
     public override string ToString()
     {
         var names = FormatNames(Names).ToString(false);
 
-        return OnDenied is PolicyDenialBehavior.Null
+        return OnDenied is null
             ? $"@policy(names: {names})"
-            : $"@policy(names: {names}, onDenied: {FormatOnDenied(OnDenied).Value})";
+            : $"@policy(names: {names}, onDenied: {FormatOnDenied(OnDenied.Value).Value})";
     }
 
     internal static IValueNode FormatNames(IReadOnlyList<IReadOnlyList<string>> names)
@@ -201,12 +204,12 @@ file sealed class PolicySyntaxAttribute : DirectiveTypeDescriptorAttribute
                     new(DirectiveNames.Policy.Arguments.Names, Policy.FormatNames(policy.Names))
                 };
 
-                if (policy.OnDenied is not PolicyDenialBehavior.Null)
+                if (policy.OnDenied is not null)
                 {
                     arguments.Add(
                         new ArgumentNode(
                             DirectiveNames.Policy.Arguments.OnDenied,
-                            Policy.FormatOnDenied(policy.OnDenied)));
+                            Policy.FormatOnDenied(policy.OnDenied.Value)));
                 }
 
                 return new DirectiveNode(DirectiveNames.Policy.Name, arguments);
@@ -283,11 +286,11 @@ file sealed class PolicySyntaxAttribute : DirectiveTypeDescriptorAttribute
         }
     }
 
-    private static PolicyDenialBehavior ParseOnDenied(IValueNode? value)
+    private static PolicyDenialBehavior? ParseOnDenied(IValueNode? value)
     {
-        if (value is null)
+        if (value is null or NullValueNode)
         {
-            return PolicyDenialBehavior.Null;
+            return null;
         }
 
         if (value is EnumValueNode enumValue)

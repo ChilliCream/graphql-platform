@@ -168,6 +168,78 @@ public sealed class PolicyApplicationsTests : FusionTestBase
     }
 
     [Fact]
+    public void Create_Should_Throw_When_PolicyIsAppliedToInterfaceType()
+    {
+        // arrange
+        const string schemaText =
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: String @fusion__field(schema: A)
+            }
+
+            interface Node
+              @fusion__type(schema: A)
+              @fusion__policy(names: "CanReadNode") {
+              id: ID! @fusion__field(schema: A)
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """;
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionSchemaDefinition.Create(Utf8GraphQLParser.Parse(schemaText)));
+
+        // assert
+        Assert.Equal(
+            "The @fusion__policy directive cannot be applied to interface type `Node`. "
+            + "Policies are only supported on object types and their fields.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void Create_Should_Throw_When_PolicyIsAppliedToInterfaceField()
+    {
+        // arrange
+        const string schemaText =
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: String @fusion__field(schema: A)
+            }
+
+            interface Node @fusion__type(schema: A) {
+              id: ID!
+                @fusion__field(schema: A)
+                @fusion__policy(names: "CanReadId")
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """;
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => FusionSchemaDefinition.Create(Utf8GraphQLParser.Parse(schemaText)));
+
+        // assert
+        Assert.Equal(
+            "The @fusion__policy directive cannot be applied to interface field `Node.id`. "
+            + "Policies are only supported on object types and their fields.",
+            exception.Message);
+    }
+
+    [Fact]
     public void Equals_Should_UseValueSemantics_When_GroupsContainSameNames()
     {
         // arrange

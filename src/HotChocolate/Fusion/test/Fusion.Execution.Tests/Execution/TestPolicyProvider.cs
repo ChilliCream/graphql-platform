@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Text.Json;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
@@ -10,9 +10,9 @@ internal sealed class TestPolicyProvider : IPolicyProvider
 #else
     private readonly object _sync = new();
 #endif
-    private readonly List<IObserver<PolicyUpdate>> _observers = [];
-    private readonly Dictionary<string, IPolicy> _current = new(StringComparer.Ordinal);
+    private readonly List<IObserver<ImmutableArray<IPolicy>>> _observers = [];
     private readonly bool _disposePolicies;
+    private ImmutableArray<IPolicy> _current;
 
     public TestPolicyProvider(params IPolicy[] policies)
         : this(true, policies)
@@ -34,57 +34,44 @@ internal sealed class TestPolicyProvider : IPolicyProvider
 
     private void Add(IReadOnlyList<IPolicy> policies)
     {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var policy in policies)
         {
-            if (!_current.TryAdd(policy.Name, policy))
+            if (!names.Add(policy.Name))
             {
                 throw ThrowHelper.PolicyNameDuplicate(policy.Name);
             }
         }
+
+        _current = [.. policies];
     }
 
     public bool IsDisposed { get; private set; }
 
     /// <summary>
-    /// Pushes a single per-policy update to the subscribers, replacing or removing the policy with
-    /// the same name. A replaced or removed instance that manages its own lifetime is released after
-    /// the update has been delivered, mirroring the ownership contract of a real provider.
+    /// Pushes a complete replacement snapshot to subscribers.
     /// </summary>
-    public void Emit(PolicyUpdate update)
+    public void Emit(params IPolicy[] policies)
     {
-        IObserver<PolicyUpdate>[] observers;
-        IPolicy? previous;
+        IObserver<ImmutableArray<IPolicy>>[] observers;
+        ImmutableArray<IPolicy> snapshot = [.. policies];
 
         lock (_sync)
         {
-            _current.TryGetValue(update.Name, out previous);
-
-            if (update.Policy is null)
-            {
-                _current.Remove(update.Name);
-            }
-            else
-            {
-                _current[update.Name] = update.Policy;
-            }
-
+            _current = snapshot;
             observers = [.. _observers];
         }
 
         foreach (var observer in observers)
         {
-            observer.OnNext(update);
-        }
-
-        if (previous is IPolicyLifetime lifetime && !ReferenceEquals(previous, update.Policy))
-        {
-            lifetime.Release();
+            observer.OnNext(snapshot);
         }
     }
 
-    public IDisposable Subscribe(IObserver<PolicyUpdate> observer)
+    public IDisposable Subscribe(IObserver<ImmutableArray<IPolicy>> observer)
     {
-        KeyValuePair<string, IPolicy>[] current;
+        ImmutableArray<IPolicy> current;
 
         lock (_sync)
         {
@@ -92,15 +79,12 @@ internal sealed class TestPolicyProvider : IPolicyProvider
             current = [.. _current];
         }
 
-        foreach (var (name, policy) in current)
-        {
-            observer.OnNext(new PolicyUpdate(name, policy));
-        }
+        observer.OnNext(current);
 
         return new Subscription(this, observer);
     }
 
-    private void Unsubscribe(IObserver<PolicyUpdate> observer)
+    private void Unsubscribe(IObserver<ImmutableArray<IPolicy>> observer)
     {
         lock (_sync)
         {
@@ -120,16 +104,12 @@ internal sealed class TestPolicyProvider : IPolicyProvider
             }
 
             IsDisposed = true;
-            policies = [.. _current.Values];
+            policies = [.. _current];
         }
 
         foreach (var policy in policies)
         {
-            if (policy is IPolicyLifetime lifetime)
-            {
-                lifetime.Release();
-            }
-            else if (_disposePolicies && policy is IDisposable disposable)
+            if (_disposePolicies && policy is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -138,7 +118,9 @@ internal sealed class TestPolicyProvider : IPolicyProvider
         return ValueTask.CompletedTask;
     }
 
-    private sealed class Subscription(TestPolicyProvider provider, IObserver<PolicyUpdate> observer)
+    private sealed class Subscription(
+        TestPolicyProvider provider,
+        IObserver<ImmutableArray<IPolicy>> observer)
         : IDisposable
     {
         public void Dispose() => provider.Unsubscribe(observer);
@@ -148,13 +130,24 @@ internal sealed class TestPolicyProvider : IPolicyProvider
 internal sealed class TestPolicy : IPolicy
 {
     public TestPolicy(string name)
-        : this(name, null)
+        : this(name, PolicyRequirements.Empty)
     {
     }
 
     public TestPolicy(
         string name,
-        SelectionSetNode? requirements)
+        SelectionSetNode? resource)
+        : this(
+            name,
+            resource is null
+                ? PolicyRequirements.Empty
+                : new PolicyRequirements { Resource = resource })
+    {
+    }
+
+    public TestPolicy(
+        string name,
+        PolicyRequirements requirements)
     {
         Name = name;
         Requirements = requirements;
@@ -162,11 +155,10 @@ internal sealed class TestPolicy : IPolicy
 
     public string Name { get; }
 
-    public SelectionSetNode? Requirements { get; }
+    public PolicyRequirements Requirements { get; }
 
     public ValueTask EvaluateAsync(
         IPolicyContext context,
-        ReadOnlyMemory<CompositeResultElement> entities,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 }

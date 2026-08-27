@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using Directive = HotChocolate.Types.Mutable.Directive;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion;
 
@@ -259,6 +260,17 @@ public sealed class PolicyDirectiveTests
         Assert.Equal(
             "The `names` argument on @policy must be a string or a list of policy name groups.",
             exception.Message);
+    }
+
+    [Fact]
+    public void Locations_Should_ExcludeInterface_When_DirectiveIsCreated()
+    {
+        // arrange
+        // act
+        var locations = s_policyDirective.Locations;
+
+        // assert
+        Assert.Equal(DirectiveLocation.Object | DirectiveLocation.FieldDefinition, locations);
     }
 
     private static readonly PolicyDenialBehaviorMutableEnumTypeDefinition s_policyDenialBehaviorEnum = new();
