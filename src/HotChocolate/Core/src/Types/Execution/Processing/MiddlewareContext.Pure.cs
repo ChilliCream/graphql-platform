@@ -68,7 +68,9 @@ internal partial class MiddlewareContext
 
         public ulong IncludeFlags => parentContext.IncludeFlags;
 
-        public ReadOnlySpan<ulong> WideIncludeFlags => parentContext.WideIncludeFlags;
+        public ConditionFlags IncludeConditionFlags => parentContext.IncludeConditionFlags;
+
+        public ReadOnlySpan<ulong> WideIncludeFlags => IncludeConditionFlags.Overflow;
 
         public CancellationToken RequestAborted => parentContext.RequestAborted;
 

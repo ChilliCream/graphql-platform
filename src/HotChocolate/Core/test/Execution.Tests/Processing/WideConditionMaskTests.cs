@@ -165,12 +165,12 @@ public class WideConditionMaskTests
         }
 
         // only the condition bit of this selection set -> included.
-        Assert.True(selection!.IsIncluded(word0, wide));
+        Assert.True(selection!.IsIncluded(new ConditionFlags(word0, wide)));
 
         // every bit except the condition bit set -> not included.
         var allWord0 = ~word0;
         var allWide = new[] { ~wide[0], ~wide[1] };
-        Assert.False(selection.IsIncluded(allWord0, allWide));
+        Assert.False(selection.IsIncluded(new ConditionFlags(allWord0, allWide)));
     }
 
     [Fact]
@@ -206,10 +206,10 @@ public class WideConditionMaskTests
         const ulong v0 = 1ul;
         var v128 = new ulong[] { 0, 1 };
 
-        Assert.True(selection!.IsIncluded(v0, v128));
-        Assert.False(selection.IsIncluded(v0, new ulong[2]));
-        Assert.False(selection.IsIncluded(0, v128));
-        Assert.False(selection.IsIncluded(0, new ulong[2]));
+        Assert.True(selection!.IsIncluded(new ConditionFlags(v0, v128)));
+        Assert.False(selection.IsIncluded(new ConditionFlags(v0, new ulong[2])));
+        Assert.False(selection.IsIncluded(new ConditionFlags(0, v128)));
+        Assert.False(selection.IsIncluded(new ConditionFlags(0, new ulong[2])));
     }
 
     [Theory]
@@ -238,13 +238,13 @@ public class WideConditionMaskTests
             wide[word - 1] = bit;
         }
 
-        Assert.True(selection!.IsDeferred(word0, wide));
-        Assert.False(selection.IsDeferred(0ul, new ulong[2]));
+        Assert.True(selection!.IsDeferred(new ConditionFlags(word0, wide)));
+        Assert.False(selection.IsDeferred(new ConditionFlags(0ul, new ulong[2])));
 
-        var activeUsages = selection.GetActiveDeferUsages(word0, wide);
+        var activeUsages = selection.GetActiveDeferUsages(new ConditionFlags(word0, wide));
         Assert.NotNull(activeUsages);
         Assert.Equal(index, Assert.Single(activeUsages).DeferConditionIndex);
-        Assert.Null(selection.GetActiveDeferUsages(0ul, new ulong[2]));
+        Assert.Null(selection.GetActiveDeferUsages(new ConditionFlags(0ul, new ulong[2])));
     }
 
     [Fact]

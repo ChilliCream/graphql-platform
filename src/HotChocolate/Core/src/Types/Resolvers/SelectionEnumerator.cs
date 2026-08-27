@@ -1,4 +1,5 @@
 using System.Collections;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Resolvers;
@@ -36,11 +37,11 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
         Current = null!;
     }
 
-    internal SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags, ulong[]? wideIncludeFlags)
+    internal SelectionEnumerator(SelectionSet selectionSet, ConditionFlags includeFlags)
     {
         _selectionSet = selectionSet;
-        _includeFlags = includeFlags;
-        _wideIncludeFlags = wideIncludeFlags;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
         Current = null!;
     }
 

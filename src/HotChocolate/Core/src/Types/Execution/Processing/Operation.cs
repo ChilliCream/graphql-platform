@@ -333,69 +333,65 @@ public sealed class Operation : IOperation
     }
 
     /// <summary>
-    /// Creates the include flag overflow words (condition indexes 64 and above)
-    /// for the specified variable values.
+    /// Creates the include condition flags for the specified variable values.
     /// </summary>
-    /// <param name="variables">
-    /// The variable values.
-    /// </param>
-    /// <returns>
-    /// The overflow words, or <c>null</c> if this operation has at most 64 include conditions.
-    /// </returns>
-    internal ulong[]? CreateIncludeFlagsOverflow(IVariableValueCollection variables)
+    public ConditionFlags CreateIncludeConditionFlags(IVariableValueCollection variables)
     {
-        if (!HasWideIncludeFlags)
-        {
-            return null;
-        }
-
-        var overflow = new ulong[(_includeConditions.Count - 1) >> 6];
+        ulong[]? overflow = HasWideIncludeFlags
+            ? new ulong[(_includeConditions.Count - 1) >> 6]
+            : null;
         var index = 0;
+        var word0 = 0ul;
 
         foreach (var includeCondition in _includeConditions)
         {
-            if (index >= 64 && includeCondition.IsIncluded(variables))
+            if (includeCondition.IsIncluded(variables))
             {
-                overflow[(index >> 6) - 1] |= 1ul << (index & 63);
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
             }
 
             index++;
         }
 
-        return overflow;
+        return new ConditionFlags(word0, overflow);
     }
 
     /// <summary>
-    /// Creates the defer flag overflow words (condition indexes 64 and above)
-    /// for the specified variable values.
+    /// Creates the defer condition flags for the specified variable values.
     /// </summary>
-    /// <param name="variables">
-    /// The variable values.
-    /// </param>
-    /// <returns>
-    /// The overflow words, or <c>null</c> if this operation has at most 64 defer conditions.
-    /// </returns>
-    internal ulong[]? CreateDeferFlagsOverflow(IVariableValueCollection variables)
+    public ConditionFlags CreateDeferConditionFlags(IVariableValueCollection variables)
     {
-        if (!HasWideDeferFlags)
-        {
-            return null;
-        }
-
-        var overflow = new ulong[(_deferConditions.Count - 1) >> 6];
+        ulong[]? overflow = HasWideDeferFlags
+            ? new ulong[(_deferConditions.Count - 1) >> 6]
+            : null;
         var index = 0;
+        var word0 = 0ul;
 
         foreach (var deferCondition in _deferConditions)
         {
-            if (index >= 64 && deferCondition.IsDeferred(variables))
+            if (deferCondition.IsDeferred(variables))
             {
-                overflow[(index >> 6) - 1] |= 1ul << (index & 63);
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
             }
 
             index++;
         }
 
-        return overflow;
+        return new ConditionFlags(word0, overflow);
     }
 
     internal Selection GetSelectionById(int id)

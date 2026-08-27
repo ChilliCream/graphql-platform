@@ -128,11 +128,7 @@ public interface ISelection
     /// for operations with more than 64 include conditions.
     /// </summary>
     /// <param name="includeFlags">
-    /// The conditional inclusion flags for the condition indexes 0-63 (word 0).
-    /// </param>
-    /// <param name="wideIncludeFlags">
-    /// The overflow words holding the flags for condition indexes 64 and above;
-    /// empty for operations with at most 64 include conditions.
+    /// The conditional inclusion flags.
     /// </param>
     /// <returns>
     /// <c>true</c> if this selection should be executed given the current
@@ -141,8 +137,7 @@ public interface ISelection
     /// <remarks>
     /// For non-conditional selections, this always returns <c>true</c>.
     /// </remarks>
-    bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
-        => IsIncluded(includeFlags);
+    bool IsIncluded(ConditionFlags includeFlags);
 
     /// <summary>
     /// Determines whether this selection is deferred based on the <c>@defer</c> directive flags.
@@ -176,11 +171,7 @@ public interface ISelection
     /// for operations with more than 64 defer conditions.
     /// </summary>
     /// <param name="deferFlags">
-    /// The defer condition flags for the condition indexes 0-63 (word 0).
-    /// </param>
-    /// <param name="wideDeferFlags">
-    /// The overflow words holding the flags for condition indexes 64 and above;
-    /// empty for operations with at most 64 defer conditions.
+    /// The defer condition flags.
     /// </param>
     /// <returns>
     /// <c>true</c> if this selection should be deferred and delivered incrementally
@@ -189,6 +180,5 @@ public interface ISelection
     /// <remarks>
     /// For selections without any <c>@defer</c> directive, this always returns <c>false</c>.
     /// </remarks>
-    bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
-        => IsDeferred(deferFlags);
+    bool IsDeferred(ConditionFlags deferFlags);
 }

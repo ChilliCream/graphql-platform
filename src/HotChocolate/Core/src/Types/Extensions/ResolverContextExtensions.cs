@@ -435,13 +435,12 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
-                    var wideIncludeFlags = context.WideIncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
                     {
-                        if (selection.IsIncluded(includeFlags, wideIncludeFlags)
+                        if (selection.IsIncluded(includeFlags)
                             && selection.Field.Name.Equals(fieldName))
                         {
                             return true;
@@ -451,13 +450,12 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
-                var wideIncludeFlags = context.WideIncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
                 {
-                    if (selection.IsIncluded(includeFlags, wideIncludeFlags)
+                    if (selection.IsIncluded(includeFlags)
                         && selection.Field.Name.Equals(fieldName))
                     {
                         return true;
@@ -500,13 +498,12 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
-                    var wideIncludeFlags = context.WideIncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
                     {
-                        if (selection.IsSkipped(includeFlags, wideIncludeFlags))
+                        if (selection.IsSkipped(includeFlags))
                         {
                             continue;
                         }
@@ -520,13 +517,12 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
-                var wideIncludeFlags = context.WideIncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
                 {
-                    if (selection.IsSkipped(includeFlags, wideIncludeFlags))
+                    if (selection.IsSkipped(includeFlags))
                     {
                         continue;
                     }
@@ -578,13 +574,12 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
-                    var wideIncludeFlags = context.WideIncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
                     {
-                        if (selection.IsSkipped(includeFlags, wideIncludeFlags))
+                        if (selection.IsSkipped(includeFlags))
                         {
                             continue;
                         }
@@ -600,13 +595,12 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
-                var wideIncludeFlags = context.WideIncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
                 {
-                    if (selection.IsSkipped(includeFlags, wideIncludeFlags))
+                    if (selection.IsSkipped(includeFlags))
                     {
                         continue;
                     }
@@ -650,13 +644,12 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
-                    var wideIncludeFlags = context.WideIncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
                     {
-                        if (selection.IsIncluded(includeFlags, wideIncludeFlags)
+                        if (selection.IsIncluded(includeFlags)
                             && fieldNames.Contains(selection.Field.Name))
                         {
                             return true;
@@ -666,13 +659,12 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
-                var wideIncludeFlags = context.WideIncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
                 {
-                    if (selection.IsIncluded(includeFlags, wideIncludeFlags)
+                    if (selection.IsIncluded(includeFlags)
                         && fieldNames.Contains(selection.Field.Name))
                     {
                         return true;

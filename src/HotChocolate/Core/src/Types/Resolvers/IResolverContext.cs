@@ -51,11 +51,15 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     ulong IncludeFlags { get; }
 
     /// <summary>
-    /// Gets the include flag overflow words (condition indexes 64 and above);
-    /// empty for operations with at most 64 include conditions.
+    /// Gets the include condition flags.
+    /// </summary>
+    ConditionFlags IncludeConditionFlags { get; }
+
+    /// <summary>
+    /// Gets the include flag overflow words.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    ReadOnlySpan<ulong> WideIncludeFlags => default;
+    ReadOnlySpan<ulong> WideIncludeFlags => IncludeConditionFlags.Overflow;
 
     /// <summary>
     /// Gets the previous (parent) resolver result.

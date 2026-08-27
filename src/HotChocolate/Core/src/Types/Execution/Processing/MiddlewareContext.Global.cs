@@ -40,7 +40,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public ulong IncludeFlags => _operationContext.IncludeFlags;
 
-    public ReadOnlySpan<ulong> WideIncludeFlags => _operationContext.WideIncludeFlags;
+    public ConditionFlags IncludeConditionFlags => _operationContext.IncludeConditionFlags;
+
+    public ReadOnlySpan<ulong> WideIncludeFlags => IncludeConditionFlags.Overflow;
 
     public CancellationToken RequestAborted { get; private set; }
 

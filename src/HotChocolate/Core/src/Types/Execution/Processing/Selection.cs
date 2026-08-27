@@ -295,6 +295,9 @@ public sealed class Selection : ISelection, IFeatureProvider
     public bool IsSkipped(ulong includeFlags)
         => !IsIncluded(includeFlags);
 
+    public bool IsSkipped(ConditionFlags includeFlags)
+        => !IsIncludedWide(includeFlags.Word0, includeFlags.Overflow);
+
     /// <summary>
     /// Determines whether this selection should be skipped based on conditional flags,
     /// including the overflow words of operations with more than 64 include conditions.
@@ -306,7 +309,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <returns>
     /// <c>true</c> if this selection should be skipped; otherwise, <c>false</c>.
     /// </returns>
-    public bool IsSkipped(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
+    internal bool IsSkipped(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
         => !IsIncludedWide(includeFlags, wideIncludeFlags);
 
     /// <inheritdoc />
@@ -327,8 +330,10 @@ public sealed class Selection : ISelection, IFeatureProvider
         return IsIncludedUnchecked(includeFlags);
     }
 
-    /// <inheritdoc cref="ISelection.IsIncluded(ulong, ReadOnlySpan{ulong})" />
-    public bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
+    public bool IsIncluded(ConditionFlags includeFlags)
+        => IsIncludedWide(includeFlags.Word0, includeFlags.Overflow);
+
+    internal bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
         => IsIncludedWide(includeFlags, wideIncludeFlags);
 
     /// <summary>
@@ -450,8 +455,10 @@ public sealed class Selection : ISelection, IFeatureProvider
         return IsDeferredUnchecked(deferFlags);
     }
 
-    /// <inheritdoc cref="ISelection.IsDeferred(ulong, ReadOnlySpan{ulong})" />
-    public bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+    public bool IsDeferred(ConditionFlags deferFlags)
+        => IsDeferredWide(deferFlags.Word0, deferFlags.Overflow);
+
+    internal bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
         => IsDeferredWide(deferFlags, wideDeferFlags);
 
     /// <summary>
@@ -528,9 +535,6 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// evaluating all words of the request defer flags.
     /// </summary>
     /// <param name="deferFlags">The defer condition flags for condition indexes 0-63.</param>
-    /// <param name="wideDeferFlags">
-    /// The overflow words for condition indexes 64 and above; empty for narrow operations.
-    /// </param>
     /// <param name="parentDeferUsage">
     /// The defer usage of the parent context, or <c>null</c> if the parent is not deferred.
     /// </param>
@@ -538,7 +542,10 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <c>true</c> if this selection is deferred and belongs to the specified parent
     /// defer context; otherwise, <c>false</c>.
     /// </returns>
-    public bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeferUsage? parentDeferUsage)
+    public bool IsDeferred(ConditionFlags deferFlags, DeferUsage? parentDeferUsage)
+        => IsDeferred(deferFlags.Word0, deferFlags.Overflow, parentDeferUsage);
+
+    internal bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeferUsage? parentDeferUsage)
     {
         if (IsDeferredWide(deferFlags, wideDeferFlags))
         {
@@ -587,13 +594,13 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// request defer flags.
     /// </summary>
     /// <param name="deferFlags">The defer condition flags for condition indexes 0-63.</param>
-    /// <param name="wideDeferFlags">
-    /// The overflow words for condition indexes 64 and above; empty for narrow operations.
-    /// </param>
     /// <returns>
     /// The primary defer usage, or <c>null</c> if the selection is not deferred or has no active defer usages.
     /// </returns>
-    public DeferUsage? GetPrimaryDeferUsage(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+    public DeferUsage? GetPrimaryDeferUsage(ConditionFlags deferFlags)
+        => GetPrimaryDeferUsage(deferFlags.Word0, deferFlags.Overflow);
+
+    internal DeferUsage? GetPrimaryDeferUsage(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
     {
         if (_deferUsage.Length == 0)
         {
@@ -704,13 +711,13 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// request defer flags.
     /// </summary>
     /// <param name="deferFlags">The defer condition flags for condition indexes 0-63.</param>
-    /// <param name="wideDeferFlags">
-    /// The overflow words for condition indexes 64 and above; empty for narrow operations.
-    /// </param>
     /// <returns>
     /// The array of active defer usages (pruned), or <c>null</c> if the field is not deferred.
     /// </returns>
-    public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+    public DeferUsage[]? GetActiveDeferUsages(ConditionFlags deferFlags)
+        => GetActiveDeferUsages(deferFlags.Word0, deferFlags.Overflow);
+
+    internal DeferUsage[]? GetActiveDeferUsages(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
     {
         if (_deferUsage.Length == 0)
         {
@@ -854,14 +861,14 @@ nextItem:
     /// this selection's active defer usages, evaluating all words of the request defer flags.
     /// </summary>
     /// <param name="deferFlags">The defer condition flags for condition indexes 0-63.</param>
-    /// <param name="wideDeferFlags">
-    /// The overflow words for condition indexes 64 and above; empty for narrow operations.
-    /// </param>
     /// <param name="target">The defer usage to look for.</param>
     /// <returns>
     /// <c>true</c> if <paramref name="target"/> is in the active defer usage set.
     /// </returns>
-    public bool HasActiveDeferUsage(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeferUsage target)
+    public bool HasActiveDeferUsage(ConditionFlags deferFlags, DeferUsage target)
+        => HasActiveDeferUsage(deferFlags.Word0, deferFlags.Overflow, target);
+
+    internal bool HasActiveDeferUsage(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeferUsage target)
     {
         if (_deferUsage.Length == 0)
         {

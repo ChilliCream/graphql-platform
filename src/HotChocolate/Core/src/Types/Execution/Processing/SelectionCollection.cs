@@ -15,22 +15,19 @@ internal sealed class SelectionCollection : ISelectionCollection
     private readonly Schema _schema;
     private readonly Operation _operation;
     private readonly Selection[] _selections;
-    private readonly ulong _includeFlags;
-    private readonly ulong[]? _wideIncludeFlags;
+    private readonly ConditionFlags _includeFlags;
 
     public SelectionCollection(
         Schema schema,
         Operation operation,
         Selection[] selections,
-        ulong includeFlags,
-        ulong[]? wideIncludeFlags = null)
+        ConditionFlags includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(selections);
 
         _includeFlags = includeFlags;
-        _wideIncludeFlags = wideIncludeFlags;
         _schema = schema;
         _operation = operation;
         _selections = selections;
@@ -48,26 +45,26 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         if (!CollectSelections(fieldName, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, [], _includeFlags, _wideIncludeFlags);
+            return new SelectionCollection(_schema, _operation, [], _includeFlags);
         }
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
         ArrayPool<Selection>.Shared.Return(buffer);
-        return new SelectionCollection(_schema, _operation, selections, _includeFlags, _wideIncludeFlags);
+        return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
 
     public ISelectionCollection Select(ReadOnlySpan<string> fieldNames)
     {
         if (!CollectSelections(fieldNames, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, [], _includeFlags, _wideIncludeFlags);
+            return new SelectionCollection(_schema, _operation, [], _includeFlags);
         }
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
         ArrayPool<Selection>.Shared.Return(buffer);
-        return new SelectionCollection(_schema, _operation, selections, _includeFlags, _wideIncludeFlags);
+        return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
 
     public ISelectionCollection Select(ITypeDefinition typeContext)
@@ -76,13 +73,13 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         if (!CollectSelections(typeContext, out var buffer, out var size))
         {
-            return new SelectionCollection(_schema, _operation, [], _includeFlags, _wideIncludeFlags);
+            return new SelectionCollection(_schema, _operation, [], _includeFlags);
         }
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
         ArrayPool<Selection>.Shared.Return(buffer);
-        return new SelectionCollection(_schema, _operation, selections, _includeFlags, _wideIncludeFlags);
+        return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
 
     public bool IsSelected(string fieldName)
@@ -108,7 +105,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                     if (IsChildSelected(
                         _operation,
                         _includeFlags,
-                        _wideIncludeFlags,
                         possibleType,
                         start,
                         fieldName))
@@ -122,7 +118,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                 if (IsChildSelected(
                     _operation,
                     _includeFlags,
-                    _wideIncludeFlags,
                     Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldName))
@@ -138,8 +133,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
-            ulong[]? wideIncludeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName)
@@ -149,7 +143,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
             foreach (var child in selectionSet.Selections)
             {
-                if (child.IsIncludedWide(operationIncludeFlags, wideIncludeFlags)
+                if (child.IsIncluded(operationIncludeFlags)
                     && fieldName.EqualsOrdinal(child.Field.Name))
                 {
                     return true;
@@ -184,7 +178,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                     if (IsChildSelected(
                         _operation,
                         _includeFlags,
-                        _wideIncludeFlags,
                         possibleType,
                         start,
                         fieldName1,
@@ -199,7 +192,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                 if (IsChildSelected(
                     _operation,
                     _includeFlags,
-                    _wideIncludeFlags,
                     Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldName1,
@@ -216,8 +208,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
-            ulong[]? wideIncludeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName1,
@@ -229,7 +220,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
             foreach (var selection in selections)
             {
-                if (selection.IsIncludedWide(operationIncludeFlags, wideIncludeFlags)
+                if (selection.IsIncluded(operationIncludeFlags)
                     && (fieldName1.EqualsOrdinal(selection.Field.Name)
                     || fieldName2.EqualsOrdinal(selection.Field.Name)))
                 {
@@ -266,7 +257,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                     if (IsChildSelected(
                         _operation,
                         _includeFlags,
-                        _wideIncludeFlags,
                         possibleType,
                         start,
                         fieldName1,
@@ -282,7 +272,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                 if (IsChildSelected(
                     _operation,
                     _includeFlags,
-                    _wideIncludeFlags,
                     Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldName1,
@@ -300,8 +289,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
-            ulong[]? wideIncludeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName1,
@@ -314,7 +302,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
             foreach (var selection in selections)
             {
-                if (selection.IsIncludedWide(operationIncludeFlags, wideIncludeFlags)
+                if (selection.IsIncluded(operationIncludeFlags)
                     && (fieldName1.EqualsOrdinal(selection.Field.Name)
                     || fieldName2.EqualsOrdinal(selection.Field.Name)
                     || fieldName3.EqualsOrdinal(selection.Field.Name)))
@@ -347,7 +335,7 @@ internal sealed class SelectionCollection : ISelectionCollection
             {
                 foreach (var possibleType in _schema.GetPossibleTypes(namedType))
                 {
-                    if (IsChildSelected(_operation, _includeFlags, _wideIncludeFlags, possibleType, start, fieldNames))
+                    if (IsChildSelected(_operation, _includeFlags, possibleType, start, fieldNames))
                     {
                         return true;
                     }
@@ -358,7 +346,6 @@ internal sealed class SelectionCollection : ISelectionCollection
                 if (IsChildSelected(
                     _operation,
                     _includeFlags,
-                    _wideIncludeFlags,
                     Unsafe.As<ITypeDefinition, ObjectType>(ref namedType),
                     start,
                     fieldNames))
@@ -374,8 +361,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
-            ulong[]? wideIncludeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             ISet<string> fieldNames)
@@ -386,7 +372,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
             foreach (var selection in selections)
             {
-                if (selection.IsIncludedWide(operationIncludeFlags, wideIncludeFlags)
+                if (selection.IsIncluded(operationIncludeFlags)
                     && fieldNames.Contains(selection.Field.Name))
                 {
                     return true;
@@ -433,7 +419,7 @@ internal sealed class SelectionCollection : ISelectionCollection
                 foreach (var possibleType in _schema.GetPossibleTypes(namedType))
                 {
                     var selectionSet = _operation.GetSelectionSet(selection, possibleType);
-                    CollectFields(fieldNames, _includeFlags, _wideIncludeFlags, ref buffer, selectionSet, size, out var written);
+                    CollectFields(fieldNames, _includeFlags, ref buffer, selectionSet, size, out var written);
                     size += written;
                 }
             }
@@ -441,7 +427,7 @@ internal sealed class SelectionCollection : ISelectionCollection
             {
                 var objectType = Unsafe.As<ITypeDefinition, ObjectType>(ref namedType);
                 var selectionSet = _operation.GetSelectionSet(selection, objectType);
-                CollectFields(fieldNames, _includeFlags, _wideIncludeFlags, ref buffer, selectionSet, size, out var written);
+                CollectFields(fieldNames, _includeFlags, ref buffer, selectionSet, size, out var written);
                 size += written;
             }
         }
@@ -487,8 +473,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
     private static void CollectFields(
         ReadOnlySpan<string> fieldNames,
-        ulong includeFlags,
-        ulong[]? wideIncludeFlags,
+        ConditionFlags includeFlags,
         ref Selection[] buffer,
         SelectionSet selectionSet,
         int index,
@@ -504,7 +489,7 @@ internal sealed class SelectionCollection : ISelectionCollection
         {
             foreach (var fieldName in fieldNames)
             {
-                if (selection.IsIncludedWide(includeFlags, wideIncludeFlags)
+                if (selection.IsIncluded(includeFlags)
                     && selection.Field.Name.EqualsOrdinal(fieldName))
                 {
                     buffer[index++] = selection;

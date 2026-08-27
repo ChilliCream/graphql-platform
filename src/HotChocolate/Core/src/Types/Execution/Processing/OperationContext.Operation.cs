@@ -42,26 +42,24 @@ internal sealed partial class OperationContext
     }
 
     /// <summary>
-    /// Gets the include flags for the current request.
+    /// Gets the include condition flags for the current request.
     /// </summary>
-    public ulong IncludeFlags { get; private set; }
+    public ConditionFlags IncludeConditionFlags { get; private set; }
 
     /// <summary>
-    /// Gets the include flag overflow words (condition indexes 64 and above) for the
-    /// current request, or <c>null</c> if the operation has at most 64 include conditions.
+    /// Gets the defer condition flags for the current request.
     /// </summary>
-    public ulong[]? WideIncludeFlags { get; private set; }
+    public ConditionFlags DeferConditionFlags { get; private set; }
 
     /// <summary>
-    /// Gets the include flags for the current request.
+    /// Gets the include flags for condition indexes 0 through 63.
     /// </summary>
-    public ulong DeferFlags { get; private set; }
+    public ulong IncludeFlags => IncludeConditionFlags.Word0;
 
     /// <summary>
-    /// Gets the defer flag overflow words (condition indexes 64 and above) for the
-    /// current request, or <c>null</c> if the operation has at most 64 defer conditions.
+    /// Gets the defer flags for condition indexes 0 through 63.
     /// </summary>
-    public ulong[]? WideDeferFlags { get; private set; }
+    public ulong DeferFlags => DeferConditionFlags.Word0;
 
     /// <summary>
     /// Gets the value representing the instance of the

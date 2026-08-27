@@ -107,11 +107,9 @@ internal sealed partial class OperationContext
                     : executorOptions.DefaultErrorHandlingMode;
         _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
-        IncludeFlags = operation.CreateIncludeFlags(variables);
-        WideIncludeFlags = operation.CreateIncludeFlagsOverflow(variables);
-        DeferFlags = operation.CreateDeferFlags(variables);
-        WideDeferFlags = operation.CreateDeferFlagsOverflow(variables);
-        Result.Data = new ResultDocument(_memory, operation, IncludeFlags, WideIncludeFlags);
+        IncludeConditionFlags = operation.CreateIncludeConditionFlags(variables);
+        DeferConditionFlags = operation.CreateDeferConditionFlags(variables);
+        Result.Data = new ResultDocument(_memory, operation, IncludeConditionFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 
@@ -155,21 +153,17 @@ internal sealed partial class OperationContext
         _branchId = executionBranchId;
         _isInitialized = true;
 
-        IncludeFlags = context.IncludeFlags;
-        WideIncludeFlags = context.WideIncludeFlags;
-        DeferFlags = context.DeferFlags;
-        WideDeferFlags = context.WideDeferFlags;
+        IncludeConditionFlags = context.IncludeConditionFlags;
+        DeferConditionFlags = context.DeferConditionFlags;
 
         Result.Data = new ResultDocument(
             context._memory!,
             context.Operation,
             selectionSet,
             selectionPath,
-            context.IncludeFlags,
-            context.DeferFlags,
-            deferUsage,
-            context.WideIncludeFlags,
-            context.WideDeferFlags);
+            context.IncludeConditionFlags,
+            context.DeferConditionFlags,
+            deferUsage);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = context._variableIndex;
     }
@@ -211,8 +205,8 @@ internal sealed partial class OperationContext
             _branchId = int.MinValue;
             _propagateNullValues = false;
             _isInitialized = false;
-            WideIncludeFlags = null;
-            WideDeferFlags = null;
+            IncludeConditionFlags = default;
+            DeferConditionFlags = default;
             Result.Reset();
         }
     }

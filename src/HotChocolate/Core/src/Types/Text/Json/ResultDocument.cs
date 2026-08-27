@@ -34,8 +34,15 @@ public sealed partial class ResultDocument : IDisposable
     public ResultDocument(
         IMemoryArena arena,
         Operation operation,
-        ulong includeFlags,
-        ulong[]? wideIncludeFlags = null)
+        ulong includeFlags)
+        : this(arena, operation, new ConditionFlags(includeFlags))
+    {
+    }
+
+    public ResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        ConditionFlags includeFlags)
     {
         ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(operation);
@@ -44,8 +51,8 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb = MetaDb.Create(arena);
         _data = RentDataChunks();
         _operation = operation;
-        _includeFlags = includeFlags;
-        _wideIncludeFlags = wideIncludeFlags;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
 
         Data = CreateObject(Cursor.CreateZero(), operation.RootSelectionSet);
     }
@@ -55,11 +62,9 @@ public sealed partial class ResultDocument : IDisposable
         Operation operation,
         SelectionSet selectionSet,
         Path path,
-        ulong includeFlags,
-        ulong deferFlags,
-        DeferUsage deferUsage,
-        ulong[]? wideIncludeFlags = null,
-        ulong[]? wideDeferFlags = null)
+        ConditionFlags includeFlags,
+        ConditionFlags deferFlags,
+        DeferUsage deferUsage)
     {
         ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(operation);
@@ -70,18 +75,18 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb = MetaDb.Create(arena);
         _data = RentDataChunks();
         _operation = operation;
-        _includeFlags = includeFlags;
-        _wideIncludeFlags = wideIncludeFlags;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
         _rootPath = path;
 
         Data = CreateObject(
             Cursor.CreateZero(),
             selectionSet,
-            includeFlags,
-            deferFlags,
+            includeFlags.Word0,
+            deferFlags.Word0,
             deferUsage,
-            wideIncludeFlags,
-            wideDeferFlags);
+            includeFlags.Overflow,
+            deferFlags.Overflow);
     }
 
     private static MemorySegment[] RentDataChunks()

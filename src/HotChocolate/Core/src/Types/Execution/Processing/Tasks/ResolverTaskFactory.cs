@@ -29,19 +29,18 @@ internal static class ResolverTaskFactory
             if (selectionSet.HasIncrementalParts)
             {
                 var coordinator = operationContext.DeferExecutionCoordinator;
-                var deferFlags = operationContext.DeferFlags;
-                var wideDeferFlags = operationContext.WideDeferFlags;
+                var deferFlags = operationContext.DeferConditionFlags;
                 var branches = ImmutableDictionary<DeferUsage, int>.Empty;
 
                 foreach (var field in data)
                 {
                     var selection = field.AssertSelection();
 
-                    if (selection.IsDeferred(deferFlags, wideDeferFlags))
+                    if (selection.IsDeferred(deferFlags))
                     {
                         // Get all active defer usages for this field.
                         // If IsDeferred is true, there is at least one active usage.
-                        var deferUsages = selection.GetActiveDeferUsages(deferFlags, wideDeferFlags);
+                        var deferUsages = selection.GetActiveDeferUsages(deferFlags);
                         Debug.Assert(deferUsages is not null);
 
                         field.Value.MarkAsDeferred();
@@ -175,8 +174,7 @@ internal static class ResolverTaskFactory
         if (selectionSet.HasIncrementalParts)
         {
             var coordinator = operationContext.DeferExecutionCoordinator;
-            var deferFlags = operationContext.DeferFlags;
-            var wideDeferFlags = operationContext.WideDeferFlags;
+            var deferFlags = operationContext.DeferConditionFlags;
             var branches = ImmutableDictionary<DeferUsage, int>.Empty;
             Path? currentPath = null;
 
@@ -186,9 +184,9 @@ internal static class ResolverTaskFactory
             {
                 var selection = field.AssertSelection();
 
-                if (selection.IsDeferred(deferFlags, wideDeferFlags, parentDeferUsage))
+                if (selection.IsDeferred(deferFlags, parentDeferUsage))
                 {
-                    var deferUsages = selection.GetActiveDeferUsages(deferFlags, wideDeferFlags);
+                    var deferUsages = selection.GetActiveDeferUsages(deferFlags);
                     Debug.Assert(deferUsages is not null);
 
                     field.Value.MarkAsDeferred();
