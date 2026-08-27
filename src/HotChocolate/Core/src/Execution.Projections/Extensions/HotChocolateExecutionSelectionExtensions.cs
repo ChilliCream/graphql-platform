@@ -51,6 +51,7 @@ public static class HotChocolateExecutionSelectionExtensions
     /// Creates a selector expression from a GraphQL selection and projects exactly
     /// the fields included by the runtime @skip/@include flags.
     /// </summary>
+    [Obsolete("Use AsSelector<TValue>(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this ISelection selection,
         ulong includeFlags)
@@ -62,7 +63,21 @@ public static class HotChocolateExecutionSelectionExtensions
                 nameof(selection));
         }
 
-        return AsSelector<TValue>(casted, includeFlags);
+        return AsSelectorWithIncludeFlags<TValue>(casted, includeFlags);
+    }
+
+    internal static Expression<Func<TValue, TValue>> AsSelectorWithIncludeFlags<TValue>(
+        ISelection selection,
+        ulong includeFlags)
+    {
+        if (selection is not Selection casted)
+        {
+            throw new ArgumentException(
+                $"Expected {typeof(Selection).FullName}.",
+                nameof(selection));
+        }
+
+        return AsSelectorWithIncludeFlags<TValue>(casted, includeFlags);
     }
 
     /// <summary>
@@ -106,11 +121,19 @@ public static class HotChocolateExecutionSelectionExtensions
             return GetOrCreateSelectorExpression<TValue>(selection, includeFlags).Expression;
         }
 
-        return AsSelector<TValue>(selection, IncludeAllFlags);
+        return AsSelectorWithIncludeFlags<TValue>(selection, IncludeAllFlags);
     }
 
+    [Obsolete("Use AsSelector<TValue>(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection,
+        ulong includeFlags)
+    {
+        return AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
+    }
+
+    internal static Expression<Func<TValue, TValue>> AsSelectorWithIncludeFlags<TValue>(
+        Selection selection,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(selection);
@@ -151,7 +174,7 @@ public static class HotChocolateExecutionSelectionExtensions
 
         if (!selection.DeclaringOperation.HasWideIncludeFlags)
         {
-            return AsSelector<TValue>(selection, includeFlags.Word0);
+            return AsSelectorWithIncludeFlags<TValue>(selection, includeFlags.Word0);
         }
 
         var operation = selection.DeclaringOperation;
@@ -199,7 +222,7 @@ public static class HotChocolateExecutionSelectionExtensions
 
         if (!selection.DeclaringOperation.HasWideIncludeFlags)
         {
-            return AsSelector<TValue>(selection, includeFlags);
+            return AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
         }
 
         return AsSelector<TValue>(selection, new ConditionFlags(includeFlags, wideIncludeFlags.ToArray()));

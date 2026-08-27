@@ -587,7 +587,7 @@ internal sealed class SelectionExpressionBuilder
             // Wide operations carry their overflow words in the context and never enter
             // the selector cache; without them the narrow check throws for wide operations.
             if (context.WideIncludeFlags is null
-                ? !selection.IsIncluded(context.IncludeFlags)
+                ? !selection.IsIncludedNarrow(context.IncludeFlags)
                 : !selection.IsIncluded(context.IncludeFlags, context.WideIncludeFlags))
             {
                 continue;

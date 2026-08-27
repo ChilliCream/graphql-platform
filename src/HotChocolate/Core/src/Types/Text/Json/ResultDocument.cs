@@ -530,9 +530,9 @@ public sealed partial class ResultDocument : IDisposable
             {
                 foreach (var selection in selectionSet.Selections)
                 {
-                    if (selection.IsIncluded(includeFlags)
-                        && selection.IsDeferred(deferFlags)
-                        && selection.HasActiveDeferUsage(deferFlags, deferUsage))
+                    if (selection.IsIncludedNarrow(includeFlags)
+                        && selection.IsDeferredNarrow(deferFlags)
+                        && selection.HasActiveDeferUsageNarrow(deferFlags, deferUsage))
                     {
                         WriteEmptyProperty(startObjectCursor, selection);
                         selectionCount++;

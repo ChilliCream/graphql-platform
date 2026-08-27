@@ -106,12 +106,13 @@ public class WideConditionMaskTests
 
         // act & assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => conditional!.IsIncluded(ulong.MaxValue));
+            () => ((dynamic)conditional!).IsIncluded(ulong.MaxValue));
         Assert.Contains("wide include flags", exception.Message);
-        Assert.Throws<InvalidOperationException>(() => conditional!.IsSkipped(ulong.MaxValue));
+        Assert.Throws<InvalidOperationException>(
+            () => ((dynamic)conditional!).IsSkipped(ulong.MaxValue));
 
         // non-conditional selections never consult the mask and must not throw.
-        Assert.True(nonConditional!.IsIncluded(0));
+        Assert.True((bool)((dynamic)nonConditional!).IsIncluded(0));
     }
 
     [Fact]
@@ -127,15 +128,15 @@ public class WideConditionMaskTests
 
         // act & assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => deferrable!.IsDeferred(ulong.MaxValue));
+            () => ((dynamic)deferrable!).IsDeferred(ulong.MaxValue));
         Assert.Contains("wide defer flags", exception.Message);
         Assert.Throws<InvalidOperationException>(
-            () => deferrable!.GetActiveDeferUsages(ulong.MaxValue));
+            () => ((dynamic)deferrable!).GetActiveDeferUsages(ulong.MaxValue));
         Assert.Throws<InvalidOperationException>(
-            () => deferrable!.GetPrimaryDeferUsage(ulong.MaxValue));
+            () => ((dynamic)deferrable!).GetPrimaryDeferUsage(ulong.MaxValue));
 
         // selections without defer usage never consult the mask and must not throw.
-        Assert.False(nonDeferrable!.IsDeferred(ulong.MaxValue));
+        Assert.False((bool)((dynamic)nonDeferrable!).IsDeferred(ulong.MaxValue));
     }
 
     [Theory]

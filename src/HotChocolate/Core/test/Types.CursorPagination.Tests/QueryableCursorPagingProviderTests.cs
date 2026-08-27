@@ -573,7 +573,7 @@ public class QueryableCursorPagingProviderTests
             bool allowInternals = false)
         {
             var selectionSet = Operation.GetSelectionSet(selection ?? Selection, typeContext);
-            return new SelectionEnumerator(selectionSet, IncludeFlags);
+            return new SelectionEnumerator(selectionSet, IncludeConditionFlags);
         }
 
         public ISelectionCollection Select()
@@ -609,6 +609,8 @@ public class QueryableCursorPagingProviderTests
         public Path Path => throw new NotImplementedException();
 
         public ulong IncludeFlags => 0;
+        public ConditionFlags IncludeConditionFlags => new(0);
+
 
         public T Parent<T>()
         {

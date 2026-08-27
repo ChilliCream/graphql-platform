@@ -121,6 +121,7 @@ public interface ISelection
     /// <remarks>
     /// For non-conditional selections, this always returns <c>true</c>.
     /// </remarks>
+    [Obsolete("Use IsIncluded(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     bool IsIncluded(ulong includeFlags);
 
     /// <summary>
@@ -164,6 +165,7 @@ public interface ISelection
     /// for the initial result.
     /// </para>
     /// </remarks>
+    [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     bool IsDeferred(ulong deferFlags);
 
     /// <summary>

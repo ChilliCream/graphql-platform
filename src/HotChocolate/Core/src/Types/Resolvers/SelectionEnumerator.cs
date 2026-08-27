@@ -23,6 +23,7 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
     /// <param name="includeFlags">
     /// The include flags representing the selections that shall be included.
     /// </param>
+    [Obsolete("Use SelectionEnumerator(SelectionSet, ConditionFlags) instead. This constructor throws for operations with more than 64 conditions.")]
     public SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags)
     {
         if (selectionSet?.DeclaringOperation.HasWideIncludeFlags == true)
@@ -37,7 +38,7 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
         Current = null!;
     }
 
-    internal SelectionEnumerator(SelectionSet selectionSet, ConditionFlags includeFlags)
+    public SelectionEnumerator(SelectionSet selectionSet, ConditionFlags includeFlags)
     {
         _selectionSet = selectionSet;
         _includeFlags = includeFlags.Word0;

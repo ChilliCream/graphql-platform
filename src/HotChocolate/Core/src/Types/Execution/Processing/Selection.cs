@@ -297,8 +297,9 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <returns>
     /// <c>true</c> if this selection should be included; otherwise, <c>false</c>.
     /// </returns>
+    [Obsolete("Use IsSkipped(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsSkipped(ulong includeFlags)
-        => !IsIncluded(includeFlags);
+        => !IsIncludedNarrow(includeFlags);
 
     public bool IsSkipped(ConditionFlags includeFlags)
         => !IsIncludedWide(includeFlags.Word0, includeFlags.Overflow);
@@ -318,7 +319,11 @@ public sealed class Selection : ISelection, IFeatureProvider
         => !IsIncludedWide(includeFlags, wideIncludeFlags);
 
     /// <inheritdoc />
+    [Obsolete("Use IsIncluded(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsIncluded(ulong includeFlags)
+        => IsIncludedNarrow(includeFlags);
+
+    internal bool IsIncludedNarrow(ulong includeFlags)
     {
         if (_includeFlags.Length == 0)
         {
@@ -329,7 +334,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 include conditions; this check requires "
-                + "the wide include flags. Use IsIncluded(ulong, ReadOnlySpan<ulong>).");
+                + "the wide include flags. Use IsIncluded(ConditionFlags).");
         }
 
         return IsIncludedUnchecked(includeFlags);
@@ -448,13 +453,17 @@ public sealed class Selection : ISelection, IFeatureProvider
     internal bool HasDeferUsage => _deferUsage.Length > 0;
 
     /// <inheritdoc />
+    [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsDeferred(ulong deferFlags)
+        => IsDeferredNarrow(deferFlags);
+
+    internal bool IsDeferredNarrow(ulong deferFlags)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use IsDeferred(ulong, ReadOnlySpan<ulong>).");
+                + "the wide defer flags. Use IsDeferred(ConditionFlags).");
         }
 
         return IsDeferredUnchecked(deferFlags);
@@ -523,13 +532,14 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <c>true</c> if this selection is deferred and belongs to the specified parent
     /// defer context; otherwise, <c>false</c>.
     /// </returns>
+    [Obsolete("Use IsDeferred(ConditionFlags, DeferUsage?) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsDeferred(ulong deferFlags, DeferUsage? parentDeferUsage)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use IsDeferred(ulong, ReadOnlySpan<ulong>, DeferUsage?).");
+                + "the wide defer flags. Use IsDeferred(ConditionFlags, DeferUsage?).");
         }
 
         return IsDeferred(deferFlags, default(ReadOnlySpan<ulong>), parentDeferUsage);
@@ -582,13 +592,14 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <returns>
     /// The primary defer usage, or <c>null</c> if the selection is not deferred or has no active defer usages.
     /// </returns>
+    [Obsolete("Use GetPrimaryDeferUsage(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public DeferUsage? GetPrimaryDeferUsage(ulong deferFlags)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use GetPrimaryDeferUsage(ulong, ReadOnlySpan<ulong>).");
+                + "the wide defer flags. Use GetPrimaryDeferUsage(ConditionFlags).");
         }
 
         return GetPrimaryDeferUsage(deferFlags, default);
@@ -699,13 +710,17 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <returns>
     /// The array of active defer usages (pruned), or <c>null</c> if the field is not deferred.
     /// </returns>
+    [Obsolete("Use GetActiveDeferUsages(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags)
+        => GetActiveDeferUsagesNarrow(deferFlags);
+
+    internal DeferUsage[]? GetActiveDeferUsagesNarrow(ulong deferFlags)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use GetActiveDeferUsages(ulong, ReadOnlySpan<ulong>).");
+                + "the wide defer flags. Use GetActiveDeferUsages(ConditionFlags).");
         }
 
         return GetActiveDeferUsages(deferFlags, default);
@@ -849,13 +864,17 @@ nextItem:
     /// <returns>
     /// <c>true</c> if <paramref name="target"/> is in the active defer usage set.
     /// </returns>
+    [Obsolete("Use HasActiveDeferUsage(ConditionFlags, DeferUsage) instead. This overload throws for operations with more than 64 conditions.")]
     public bool HasActiveDeferUsage(ulong deferFlags, DeferUsage target)
+        => HasActiveDeferUsageNarrow(deferFlags, target);
+
+    internal bool HasActiveDeferUsageNarrow(ulong deferFlags, DeferUsage target)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use HasActiveDeferUsage(ulong, ReadOnlySpan<ulong>, DeferUsage).");
+                + "the wide defer flags. Use HasActiveDeferUsage(ConditionFlags, DeferUsage).");
         }
 
         return HasActiveDeferUsage(deferFlags, default, target);
