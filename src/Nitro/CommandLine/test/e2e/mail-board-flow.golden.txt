@@ -1,9 +1,9 @@
- [T]asks   [M]ail (2)   [A]gents   M[e]mory
-╭─Inbox (3)─────────────────────────────────────────────╮╭─m-fix002 Billing review────────────╮
+ [T]asks   [M]ail   [A]gents   M[e]mory
+╭─Workspace: bob (3)────────────────────────────────────╮╭─m-fix002 Billing review────────────╮
 │         From           To             Su…  Age        ││ From: bob                          │
-│ >     T bob            e2e-agent+1    Bi…  2026-01-01 ││ To: e2e-agent                      │
-│     ● + alice          e2e-agent      Pr…  2026-01-01 ││ Cc: alice                          │
-│     ● + alice          e2e-agent      Re…  2026-01-01 ││ Date: 2026-01-01 10:00             │
+│ >       bob            e2e-agent+1    Bi…  2026-01-01 ││ To: e2e-agent                      │
+│         e2e-agent      bob            St…  2026-01-01 ││ Cc: alice                          │
+│         alice          bob            De…  2026-01-01 ││ Date: 2026-01-01 10:00             │
 │                                                       ││ e2e-agent: read 2026-01-02 08:00   │
 │                                                       ││ alice: unread                      │
 │                                                       ││                                    │
@@ -32,4 +32,4 @@
 │                                                       ││                                    │
 │                                                       ││                                    │
 ╰───────────────────────────────────────────────────────╯╰────────────────────────────────────╯
-hjkl move  tab switch pane  enter focus detail  u read/unread  a archive  r reply  c compose  …
+hjkl move  tab switch pane  enter focus detail  y copy id  f filter  t thread  …

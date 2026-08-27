@@ -12,9 +12,8 @@ Before recording any flow, `run.sh` prepares `out/fixture/acme/` on the host
 (not inside the VHS container):
 
 1. `rm -rf` + `mkdir -p out/fixture/acme` for a clean slate.
-2. Run the freshly published `bin/nitro agent init` inside it, with
-   `NITRO_TASK_ACTOR=e2e-agent` set. This creates the real
-   `.nitro/agents/agents.db` unified schema (via `AgentDatabase.InitializeAsync`,
+2. Run the freshly published `bin/nitro agent init` inside it. This creates
+   the real `.nitro/agents/agents.db` unified schema (via `AgentDatabase.InitializeAsync`,
    composing `TaskStoreSchema` and `MailStoreSchema`) and sets the `acme`
    task ID prefix (via `AgentWorkspace.NormalizePrefix`, derived from the
    `acme` directory name, matching `TasksCommandTestBase`).

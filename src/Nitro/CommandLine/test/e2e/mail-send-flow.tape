@@ -1,7 +1,6 @@
 # End-to-end recording of `nitro agent mail`'s send/inbox/reply round trip in
-# a fresh, live agent workspace (no fixture; unlike mail-board-flow, this
-# flow needs commands to run for real so `send`/`reply` mint their own
-# message ids).
+# a copy of the fixture workspace. The flow runs commands for real so
+# `send` and `reply` mint their own message ids.
 #
 # register two of the fixture's actors at the `nitro agent` root (--actor,
 # one invocation each), alice with a --role so the flow demonstrates
