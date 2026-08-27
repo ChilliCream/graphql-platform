@@ -12,7 +12,7 @@ operation:
         }
         users {
           nodes {
-            __typename
+            __typename @fusion__empty
             id @fusion__requirement
           }
         }
@@ -46,7 +46,6 @@ nodes:
       query t_123456789101112_2 {
         users {
           nodes {
-            __typename
             id
           }
         }

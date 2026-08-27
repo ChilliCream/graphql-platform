@@ -209,6 +209,67 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Defer_KeyOnlyField_Should_KeepTypename_When_ClientSelectsTypenameSibling()
+    {
+        // arrange
+        // The client selects __typename alongside the deferred key field. Absorbing the
+        // redundant defer into the parent step must keep that client-requested selection
+        // in the initial payload, not drop it.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUsers {
+                users {
+                    __typename
+                    ... @defer {
+                        id
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
     public async Task Defer_IfTrue_Variable_Should_Return_Streamed_Result()
     {
         // arrange

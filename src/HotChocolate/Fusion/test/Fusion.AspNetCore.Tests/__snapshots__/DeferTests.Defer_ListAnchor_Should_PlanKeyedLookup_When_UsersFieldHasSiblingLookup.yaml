@@ -16,15 +16,9 @@ stableResponseStream: |
     "initial": {
       "data": {
         "users": [
-          {
-            "__typename": "User"
-          },
-          {
-            "__typename": "User"
-          },
-          {
-            "__typename": "User"
-          }
+          {},
+          {},
+          {}
         ]
       }
     },
@@ -86,17 +80,14 @@ stableResponseStream: |
       "data": {
         "users": [
           {
-            "__typename": "User",
             "id": "VXNlcjox",
             "name": "User: VXNlcjox"
           },
           {
-            "__typename": "User",
             "id": "VXNlcjoy",
             "name": "User: VXNlcjoy"
           },
           {
-            "__typename": "User",
             "id": "VXNlcjoz",
             "name": "User: VXNlcjoz"
           }
@@ -126,7 +117,6 @@ sourceSchemas:
           document: |
             query Op_ffeee14c_1 {
               users {
-                __typename
                 id
               }
             }
@@ -137,15 +127,12 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
-                      "__typename": "User",
                       "id": "VXNlcjox"
                     },
                     {
-                      "__typename": "User",
                       "id": "VXNlcjoy"
                     },
                     {
-                      "__typename": "User",
                       "id": "VXNlcjoz"
                     }
                   ]
@@ -207,7 +194,7 @@ operationPlan:
     - document: |
         {
           users {
-            __typename
+            __typename @fusion__empty
             id @fusion__requirement
           }
         }
@@ -221,7 +208,6 @@ operationPlan:
       operation: |
         query Op_ffeee14c_1 {
           users {
-            __typename
             id
           }
         }

@@ -2,7 +2,7 @@ operation:
   - document: |
       {
         users {
-          __typename @fusion__empty
+          __typename
           id
         }
       }
@@ -16,6 +16,7 @@ nodes:
     operation: |
       query Op_123456789101112_1 {
         users {
+          __typename
           id
         }
       }

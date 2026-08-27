@@ -1,8 +1,9 @@
-title: Defer_KeyOnlyField_Should_Return_NonStreamed_Result
+title: Defer_KeyOnlyField_Should_KeepTypename_When_ClientSelectsTypenameSibling
 request:
   document: |
     query GetUsers {
       users {
+        __typename
         ... @defer {
           id
         }
@@ -13,12 +14,15 @@ stableResponseStream: |
     "data": {
       "users": [
         {
+          "__typename": "User",
           "id": "VXNlcjox"
         },
         {
+          "__typename": "User",
           "id": "VXNlcjoy"
         },
         {
+          "__typename": "User",
           "id": "VXNlcjoz"
         }
       ]
@@ -42,8 +46,9 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUsers_628c0b99_1 {
+            query GetUsers_1570cd73_1 {
               users {
+                __typename
                 id
               }
             }
@@ -54,12 +59,15 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
+                      "__typename": "User",
                       "id": "VXNlcjox"
                     },
                     {
+                      "__typename": "User",
                       "id": "VXNlcjoy"
                     },
                     {
+                      "__typename": "User",
                       "id": "VXNlcjoz"
                     }
                   ]
@@ -83,12 +91,12 @@ operationPlan:
     - document: |
         query GetUsers {
           users {
-            __typename @fusion__empty
+            __typename
             id
           }
         }
       name: GetUsers
-      hash: 628c0b99e91e4161c994c1c554c8ddbf
+      hash: 1570cd734dbc593f8757794efd83e807
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -96,8 +104,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUsers_628c0b99_1 {
+        query GetUsers_1570cd73_1 {
           users {
+            __typename
             id
           }
         }

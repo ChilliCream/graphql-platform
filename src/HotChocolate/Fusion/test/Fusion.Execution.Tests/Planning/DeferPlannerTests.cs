@@ -2205,6 +2205,55 @@ public class DeferPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void Defer_KeyOnlyField_Should_KeepTypename_When_ClientSelectsTypenameSibling()
+    {
+        // arrange
+        // The client selects __typename alongside the deferred key field. Absorbing the
+        // redundant defer into the parent step must keep that client-requested selection,
+        // not just the synthetic placeholder the defer split leaves behind.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    __typename
+                    ... @defer {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Defer_FieldAlreadyRequiredByParent_Should_NotDefer()
     {
         // arrange
