@@ -1,8 +1,6 @@
-using HotChocolate.Types.Analyzers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types;
@@ -157,7 +155,7 @@ public class DataLoaderTests
     }
 
     [Fact]
-    public void Generate_Should_IgnoreGenericMethod_When_OldAttributeLoaderIsValid()
+    public async Task Generate_Should_IgnoreGenericMethod_When_OldAttributeLoaderIsValid()
     {
         // arrange
         const string source =
@@ -171,7 +169,7 @@ public class DataLoaderTests
             internal static class Loaders
             {
                 [DataLoader<IBatchDataLoader<int, string>>]
-                public static Task<IReadOnlyDictionary<int, string>> GetGenericAsync<T>(
+                public static Task<IReadOnlyDictionary<int, string>> GetGenericAsync(
                     IReadOnlyList<int> keys)
                     => default!;
 
@@ -181,23 +179,14 @@ public class DataLoaderTests
                     => default!;
             }
             """;
-        var compilation = TestHelper.CreateCompilation(source);
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new GraphQLServerGenerator());
 
         // act
-        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
-        var result = driver.GetRunResult();
-        var generatedSources = result.Results.SelectMany(t => t.GeneratedSources).ToArray();
+        var genericDataLoader = TryCreateGenericDataLoaderInfo(source, "GetGenericAsync");
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
 
         // assert
-        Assert.Equal(2, generatedSources.Length);
-        Assert.All(
-            generatedSources,
-            generatedSource => Assert.Contains(
-                "OldDataLoader",
-                generatedSource.SourceText.ToString(),
-                StringComparison.Ordinal));
-        Assert.Empty(result.Diagnostics);
+        Assert.IsType<GenericDataLoaderInfo>(genericDataLoader);
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     public static IEnumerable<object?[]> GenericDataLoaderContractCases()
@@ -1529,11 +1518,16 @@ public class DataLoaderTests
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
-    private static GenericDataLoaderInfo? TryCreateGenericDataLoaderInfo(string source)
+    private static GenericDataLoaderInfo? TryCreateGenericDataLoaderInfo(
+        string source,
+        string? methodName = null)
     {
         var compilation = TestHelper.CreateCompilation(source);
         var syntaxTree = compilation.SyntaxTrees.Single();
-        var methodSyntax = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+        var methods = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>();
+        var methodSyntax = methodName is null
+            ? methods.Single()
+            : methods.Single(t => t.Identifier.ValueText == methodName);
         var attributeSyntax = methodSyntax.AttributeLists.SelectMany(t => t.Attributes).Single();
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
         var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodSyntax)!;
