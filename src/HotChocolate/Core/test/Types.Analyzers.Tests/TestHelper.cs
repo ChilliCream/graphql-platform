@@ -134,6 +134,13 @@ internal static partial class TestHelper
         return MetadataReference.CreateFromImage(stream.ToArray());
     }
 
+    public static CSharpCompilation CreateCompilation([StringSyntax("csharp")] string sourceText)
+        => CSharpCompilation.Create(
+            assemblyName: "Tests",
+            syntaxTrees: [CSharpSyntaxTree.ParseText(sourceText)],
+            references: s_references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
         => GetGeneratedSourceSnapshot([sourceText]);
 

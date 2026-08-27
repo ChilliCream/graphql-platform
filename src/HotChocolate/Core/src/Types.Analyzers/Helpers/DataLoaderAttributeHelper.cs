@@ -15,6 +15,12 @@ public static class DataLoaderAttributeHelper
                 "DataLoaderAttribute",
                 StringComparison.Ordinal));
 
+    public static AttributeData GetDataLoaderAttribute(
+        this IMethodSymbol methodSymbol,
+        INamedTypeSymbol attributeType)
+        => methodSymbol.GetAttributes().First(
+            t => SymbolEqualityComparer.Default.Equals(t.AttributeClass, attributeType));
+
     public static ImmutableHashSet<string> GetDataLoaderGroupKeys(this IMethodSymbol methodSymbol)
     {
 #if NET8_0_OR_GREATER

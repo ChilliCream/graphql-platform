@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -35,14 +36,14 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal)
-                        && context.SemanticModel.GetDeclaredSymbol(methodSyntax) is { } methodSymbol)
+                    if (context.SemanticModel.GetDeclaredSymbol(methodSyntax) is not { } methodSymbol)
                     {
-                        var attributeData = methodSymbol.GetAttributes()
-                            .First(a => string.Equals(
-                                a.AttributeClass?.Name,
-                                "DataLoaderAttribute",
-                                Ordinal));
+                        continue;
+                    }
+
+                    if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal))
+                    {
+                        var attributeData = methodSymbol.GetDataLoaderAttribute(attributeContainingTypeSymbol);
 
                         syntaxInfo = new DataLoaderInfo(
                             attributeSyntax,
@@ -50,6 +51,20 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                             attributeData,
                             methodSymbol,
                             methodSyntax);
+                        return true;
+                    }
+
+                    if (fullName.StartsWith(WellKnownAttributes.DataLoaderAttribute, Ordinal)
+                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                        && GenericDataLoaderInfo.TryCreate(
+                            attributeSyntax,
+                            attributeSymbol,
+                            methodSymbol.GetDataLoaderAttribute(attributeContainingTypeSymbol),
+                            methodSymbol,
+                            methodSyntax,
+                            out var genericDataLoader))
+                    {
+                        syntaxInfo = genericDataLoader!;
                         return true;
                     }
                 }

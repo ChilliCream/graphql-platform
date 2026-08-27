@@ -1,3 +1,5 @@
+using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -5,6 +7,125 @@ namespace HotChocolate.Types;
 
 public class DataLoaderTests
 {
+    [Fact]
+    public void TryCreate_Should_CreateBatchModel_When_GenericAttributeUsesClosedKindInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>("Entity")]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var info = TryCreateGenericDataLoaderInfo(source);
+
+        // assert
+        var dataLoader = Assert.IsType<GenericDataLoaderInfo>(info);
+        Assert.Equal(DataLoaderKind.Batch, dataLoader.Kind);
+        Assert.Equal("EntityDataLoader", dataLoader.Name);
+        Assert.Equal("int", dataLoader.KeyType.ToDisplayString());
+        Assert.Equal("string", dataLoader.ValueType.ToDisplayString());
+    }
+
+    [Fact]
+    public void TryCreate_Should_CreateCacheModel_When_GenericAttributeUsesDerivedKindInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : ICacheDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>(ServiceScope = DataLoaderServiceScope.OriginalScope, MaxBatchSize = 10)]
+                public static ValueTask<string> GetEntityByIdAsync(int key)
+                    => default;
+            }
+            """;
+
+        // act
+        var info = TryCreateGenericDataLoaderInfo(source);
+
+        // assert
+        var dataLoader = Assert.IsType<GenericDataLoaderInfo>(info);
+        Assert.Equal(DataLoaderKind.Cache, dataLoader.Kind);
+        Assert.Equal("EntityByIdDataLoader", dataLoader.Name);
+        Assert.False(dataLoader.IsScoped);
+        Assert.Equal(10, dataLoader.MaxBatchSize);
+    }
+
+    [Fact]
+    public void TryCreate_Should_ReturnNull_When_GenericContractOrMethodShapeIsInvalid()
+    {
+        // arrange
+        const string concreteTypeSource =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal sealed class EntityLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<EntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+        const string invalidReturnTypeSource =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : ICacheDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(int key)
+                    => default!;
+            }
+            """;
+
+        // act
+        var concreteTypeInfo = TryCreateGenericDataLoaderInfo(concreteTypeSource);
+        var invalidReturnTypeInfo = TryCreateGenericDataLoaderInfo(invalidReturnTypeSource);
+
+        // assert
+        Assert.Null(concreteTypeInfo);
+        Assert.Null(invalidReturnTypeInfo);
+    }
+
     [Fact]
     public async Task Generate_Should_LinkImplementationToAnnotatedMethod_When_SourceMethodIsOverloaded()
     {
@@ -1159,5 +1280,27 @@ public class DataLoaderTests
                 public int Id { get; set; }
             }
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    private static GenericDataLoaderInfo? TryCreateGenericDataLoaderInfo(string source)
+    {
+        var compilation = TestHelper.CreateCompilation(source);
+        var syntaxTree = compilation.SyntaxTrees.Single();
+        var methodSyntax = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+        var attributeSyntax = methodSyntax.AttributeLists.SelectMany(t => t.Attributes).Single();
+        var semanticModel = compilation.GetSemanticModel(syntaxTree);
+        var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodSyntax)!;
+        var attributeSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(attributeSyntax).Symbol!;
+        var attributeData = methodSymbol.GetAttributes().Single();
+
+        return GenericDataLoaderInfo.TryCreate(
+                attributeSyntax,
+                attributeSymbol,
+                attributeData,
+                methodSymbol,
+                methodSyntax,
+                out var dataLoaderInfo)
+            ? dataLoaderInfo
+            : null;
     }
 }
