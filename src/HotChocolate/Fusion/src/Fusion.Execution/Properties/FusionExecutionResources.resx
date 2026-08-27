@@ -111,4 +111,16 @@
   <data name="FetchResultStore_InvalidTargetValueKind" xml:space="preserve">
     <value>Expected the value at result path '{1}' for selection path '{0}' to be an object or list, but found '{2}'.</value>
   </data>
+  <data name="DocumentRewriter_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="DocumentRewriter_InvalidTypeConditionOnInlineFragment" xml:space="preserve">
+    <value>An inline fragment on type '{0}' has an invalid type condition. The type '{1}' does not exist.</value>
+  </data>
+  <data name="DocumentRewriter_InvalidTypeConditionOnFragment" xml:space="preserve">
+    <value>The fragment '{0}' has an invalid type condition. The type '{1}' does not exist.</value>
+  </data>
+  <data name="DocumentRewriter_FragmentDoesNotExist" xml:space="preserve">
+    <value>A fragment with the name '{0}' does not exist.</value>
+  </data>
 </root>
