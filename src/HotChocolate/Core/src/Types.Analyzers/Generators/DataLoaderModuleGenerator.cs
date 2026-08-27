@@ -16,8 +16,22 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
     {
         var module = GetDataLoaderModuleInfo(syntaxInfos);
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
+        var genericDataLoaderTypeCounts = new Dictionary<ITypeSymbol, int>(SymbolEqualityComparer.Default);
 
-        if (module is null || !syntaxInfos.Any(t => t is DataLoaderInfo or RegisterDataLoaderInfo))
+        foreach (var genericDataLoader in syntaxInfos.OfType<GenericDataLoaderInfo>())
+        {
+            if (genericDataLoader.Diagnostics.Length > 0)
+            {
+                continue;
+            }
+
+            genericDataLoaderTypeCounts.TryGetValue(genericDataLoader.DataLoaderType, out var count);
+            genericDataLoaderTypeCounts[genericDataLoader.DataLoaderType] = count + 1;
+        }
+
+        if (module is null || !syntaxInfos.Any(
+                t => t is DataLoaderInfo or RegisterDataLoaderInfo
+                    || dataLoaderDefaults.RegisterServices && t is GenericDataLoaderInfo))
         {
             return;
         }
@@ -47,6 +61,28 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
                     var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                     var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
                     generator.WriteAddDataLoader(typeName, interfaceTypeName, dataLoaderDefaults.GenerateInterfaces);
+
+                    if (dataLoader.Groups.Count > 0)
+                    {
+                        groups ??= [];
+                        foreach (var groupName in dataLoader.Groups)
+                        {
+                            groups.Add(($"{dataLoader.Namespace}.I{groupName}", $"{dataLoader.Namespace}.{groupName}"));
+                        }
+                    }
+                    break;
+
+                case GenericDataLoaderInfo dataLoader when dataLoaderDefaults.RegisterServices:
+                    if (genericDataLoaderTypeCounts[dataLoader.DataLoaderType] == 1)
+                    {
+                        generator.WriteAddDataLoaderWithService(
+                            dataLoader.DataLoaderType.ToFullyQualifiedWithNullRefQualifier(),
+                            $"global::{dataLoader.FullName}");
+                    }
+                    else
+                    {
+                        generator.WriteAddDataLoader(dataLoader.FullName);
+                    }
 
                     if (dataLoader.Groups.Count > 0)
                     {

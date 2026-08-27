@@ -109,29 +109,56 @@ public sealed class DataLoaderGenerator : ISyntaxGenerator
                 hasDataLoaders = true;
             }
 
-            List<GroupedDataLoaderInfo>? buffer = null;
-            foreach (var dataLoaderGroup in dataLoaders
-                .Where(t => t.Namespace == @namespace)
-                .Where(d => d.Groups.Count > 0)
-                .SelectMany(d => d.Groups, (d, g) => new { DataLoader = d, Group = g })
-                .GroupBy(t => t.Group, t => t.DataLoader, StringComparer.Ordinal)
-                .OrderBy(t => t.Key, StringComparer.Ordinal))
-            {
-                var isPublic = defaults.IsInterfacePublic ?? true;
-                var dataLoaderGroups = dataLoaderGroup.Select(
-                    t => new GroupedDataLoaderInfo(
-                        t.NameWithoutSuffix,
-                        t.InterfaceName,
-                        t.IsInterfacePublic ?? isPublic));
+            var groups = new Dictionary<string, List<GroupedDataLoaderInfo>>(StringComparer.Ordinal);
+            var isInterfacePublic = defaults.IsInterfacePublic ?? true;
 
-                buffer ??= [];
-                buffer.Clear();
-                buffer.AddRange(dataLoaderGroups);
+            foreach (var dataLoader in dataLoaders.Where(t => t.Namespace == @namespace))
+            {
+                foreach (var groupName in dataLoader.Groups)
+                {
+                    if (!groups.TryGetValue(groupName, out var group))
+                    {
+                        group = [];
+                        groups.Add(groupName, group);
+                    }
+
+                    group.Add(
+                        new GroupedDataLoaderInfo(
+                            dataLoader.NameWithoutSuffix,
+                            dataLoader.InterfaceName,
+                            dataLoader.IsInterfacePublic ?? isInterfacePublic));
+                }
+            }
+
+            foreach (var dataLoader in genericDataLoaders.Where(t => t.Namespace == @namespace))
+            {
+                foreach (var groupName in dataLoader.Groups)
+                {
+                    if (!groups.TryGetValue(groupName, out var group))
+                    {
+                        group = [];
+                        groups.Add(groupName, group);
+                    }
+
+                    var dataLoaderType = genericDataLoaders.Count(
+                        t => SymbolEqualityComparer.Default.Equals(t.DataLoaderType, dataLoader.DataLoaderType)) == 1
+                        ? dataLoader.DataLoaderType.ToFullyQualifiedWithNullRefQualifier()
+                        : dataLoader.Name;
+                    group.Add(
+                        new GroupedDataLoaderInfo(
+                            dataLoader.NameWithoutSuffix,
+                            dataLoaderType,
+                            dataLoader.IsInterfacePublic ?? isInterfacePublic));
+                }
+            }
+
+            foreach (var dataLoaderGroup in groups.OrderBy(t => t.Key, StringComparer.Ordinal))
+            {
                 generator.WriteDataLoaderGroupClass(
                     dataLoaderGroup.Key,
-                    buffer,
+                    dataLoaderGroup.Value,
                     defaults.GenerateInterfaces,
-                    defaults.IsInterfacePublic ?? true,
+                    isInterfacePublic,
                     defaults.IsPublic ?? true);
             }
 

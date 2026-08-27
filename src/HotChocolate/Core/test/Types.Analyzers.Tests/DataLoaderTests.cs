@@ -348,6 +348,198 @@ public class DataLoaderTests
             """);
     }
 
+    [Fact]
+    public async Task Generate_Should_RegisterGenericDataLoaderContract_When_ItIsUniqueWithinModule()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_RegisterGenericDataLoadersByClass_When_TheyShareAContract()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetFirstEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetSecondEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_RegisterOldAndGenericDataLoaders_When_ModuleContainsBoth()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            internal interface IGenericLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetOldEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<IGenericLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetGenericEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_ResolveGroupedGenericDataLoadersByContractOrClass_When_Appropriate()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            public interface IUniqueLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            public interface ISharedLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            [DataLoaderGroup("Loaders")]
+            internal static class LoaderMethods
+            {
+                [DataLoader<IUniqueLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetUniqueByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<ISharedLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetFirstByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<ISharedLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetSecondByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_SuppressGenericDataLoaderRegistration_When_RegistrationCodeIsDisabled()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+            [assembly: DataLoaderDefaults(GenerateRegistrationCode = false)]
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
     public static IEnumerable<object?[]> GenericDataLoaderContractCases()
     {
         yield return
