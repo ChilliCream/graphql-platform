@@ -7,6 +7,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
+using HotChocolate.Execution;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
@@ -56,12 +57,13 @@ public class WideConditionMaskBenchmark
 
     private const int SelectionCount = 1000;
 
-    [Params(1, 2, 3, 5)]
-    public int PathCount = 1;
+    [Params(48)]
+    public int PathCount = 48;
 
     private Selection[] _selections = null!;
     private Selection[] _wideSelections = null!;
     private ulong[] _requestFlags = null!;
+    private ConditionFlags[] _conditionFlags = null!;
     private ulong[] _wideRequestFlags = null!;
 
     [GlobalSetup]
@@ -89,10 +91,12 @@ public class WideConditionMaskBenchmark
         // all paths and hits on the last one) and a mask that satisfies none.
         var lastPathBit = 1ul << (PathCount - 1);
         _requestFlags = new ulong[SelectionCount];
+        _conditionFlags = new ConditionFlags[SelectionCount];
 
         for (var i = 0; i < SelectionCount; i++)
         {
             _requestFlags[i] = (i & 1) == 0 ? lastPathBit : 0ul;
+            _conditionFlags[i] = new ConditionFlags(_requestFlags[i]);
         }
 
         // One overflow word; the measured conditions all sit in word 0.
@@ -115,9 +119,18 @@ public class WideConditionMaskBenchmark
             {
                 var baseline = IsIncludedBaseline(_selections[i], mask);
                 var product = _selections[i].IsIncludedUnchecked(mask);
+                var conditionFlags = _selections[i].IsIncluded(new ConditionFlags(mask));
+                var spanPair = _selections[i].IsIncluded(mask, []);
+#pragma warning disable CS0618
+                var raw = _selections[i].IsIncluded(mask);
+#pragma warning restore CS0618
                 var wide = _wideSelections[i].IsIncludedWide(mask, _wideRequestFlags);
 
-                if (baseline != product || baseline != wide)
+                if (baseline != product
+                    || baseline != conditionFlags
+                    || baseline != spanPair
+                    || baseline != raw
+                    || baseline != wide)
                 {
                     throw new InvalidOperationException(
                         $"Kernel divergence for mask {mask} at selection {i}.");
@@ -177,6 +190,73 @@ public class WideConditionMaskBenchmark
         for (var i = 0; i < selections.Length; i++)
         {
             if (IsIncludedBaselineCopy(selections[i], requestFlags[i]))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Carrier comparison for a narrow operation with 48 include conditions. This
+    /// is the public condition-flags API used by request execution.
+    /// </summary>
+    [Benchmark]
+    public int IsIncluded_ConditionFlags()
+    {
+        var count = 0;
+        var selections = _selections;
+        var conditionFlags = _conditionFlags;
+
+        for (var i = 0; i < selections.Length; i++)
+        {
+            if (selections[i].IsIncluded(conditionFlags[i]))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Carrier comparison for the internal word-0 and overflow-span pair used by
+    /// the narrow execution hot path.
+    /// </summary>
+    [Benchmark]
+    public int IsIncluded_SpanPair()
+    {
+        var count = 0;
+        var selections = _selections;
+        var requestFlags = _requestFlags;
+
+        for (var i = 0; i < selections.Length; i++)
+        {
+            if (selections[i].IsIncluded(requestFlags[i], []))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Carrier comparison for the deprecated narrow-only raw-word API.
+    /// </summary>
+    [Benchmark]
+    public int IsIncluded_Ulong()
+    {
+        var count = 0;
+        var selections = _selections;
+        var requestFlags = _requestFlags;
+
+        for (var i = 0; i < selections.Length; i++)
+        {
+#pragma warning disable CS0618
+            if (selections[i].IsIncluded(requestFlags[i]))
+#pragma warning restore CS0618
             {
                 count++;
             }
