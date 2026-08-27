@@ -2254,6 +2254,55 @@ public class DeferPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void Defer_KeyOnlyField_Should_NotDefer_When_TypenameInsideDefer()
+    {
+        // arrange
+        // The client selects __typename together with the entity's own key field inside the
+        // defer. __typename is resolvable for free by every schema, so it must not force a
+        // wasteful incremental plan the key-only field alone would already avoid.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    ... @defer {
+                        __typename
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Defer_FieldAlreadyRequiredByParent_Should_NotDefer()
     {
         // arrange
@@ -2303,6 +2352,68 @@ public class DeferPlannerTests : FusionTestBase
                 product(id: "1") {
                     convertedPrice
                     ... @defer {
+                        price
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_FieldAlreadyRequiredByParent_Should_NotDefer_When_TypenameInsideDefer()
+    {
+        // arrange
+        // Same as Defer_FieldAlreadyRequiredByParent_Should_NotDefer, but the client also
+        // selects __typename inside the defer. It must be surfaced on the main operation
+        // rather than silently dropped when the redundant defer is absorbed.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price: Float!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                convertedPrice(price: Float! @require(field: "price")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                product(id: "1") {
+                    convertedPrice
+                    ... @defer {
+                        __typename
                         price
                     }
                 }

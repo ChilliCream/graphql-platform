@@ -270,6 +270,67 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Defer_KeyOnlyField_Should_KeepTypename_When_TypenameInsideDefer()
+    {
+        // arrange
+        // The client selects __typename together with the entity's own key field inside the
+        // defer itself. Absorbing the redundant defer into the parent step must surface both
+        // in the initial, non-streamed payload rather than silently dropping __typename.
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUsers {
+                users {
+                    ... @defer {
+                        __typename
+                        id
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
     public async Task Defer_IfTrue_Variable_Should_Return_Streamed_Result()
     {
         // arrange

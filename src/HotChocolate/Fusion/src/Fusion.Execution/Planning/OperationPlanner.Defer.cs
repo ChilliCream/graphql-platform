@@ -782,19 +782,35 @@ public sealed partial class OperationPlanner
         // way down to the anchor). A conditionally executed step (guarded by @skip or
         // @include, for example the eager copy a variable-conditioned @defer keeps in
         // the main operation) is excluded: its data is not unconditionally available.
+        // Prefer a parent step on the same source schema as the surviving incremental step
+        // first: when several parent steps reach the anchor path across different schemas,
+        // that is the one whose selection set the fieldNames membership check below actually
+        // needs to inspect. Only when no such step exists (the surviving step's schema never
+        // appears in the parent scope at all) does path/conditions alone decide, so a defer
+        // whose data collapses onto a schema the parent never separately visits can still be
+        // absorbed against whatever schema does cover the anchor path there.
         OperationPlanStep? parentStep = null;
+        OperationPlanStep? fallbackParentStep = null;
 
         foreach (var step in parentContext.ParentSteps)
         {
-            if (step is OperationPlanStep candidate
-                && candidate.Target.IsParentOfOrSame(descriptor.Path)
-                && string.Equals(candidate.SchemaName, onlyStep.SchemaName, StringComparison.Ordinal)
-                && candidate.Conditions.Length == 0)
+            if (step is not OperationPlanStep candidate
+                || !candidate.Target.IsParentOfOrSame(descriptor.Path)
+                || candidate.Conditions.Length != 0)
+            {
+                continue;
+            }
+
+            if (string.Equals(candidate.SchemaName, onlyStep.SchemaName, StringComparison.Ordinal))
             {
                 parentStep = candidate;
                 break;
             }
+
+            fallbackParentStep ??= candidate;
         }
+
+        parentStep ??= fallbackParentStep;
 
         if (parentStep is null)
         {
@@ -833,6 +849,13 @@ public sealed partial class OperationPlanner
         var allAlreadyPresent = true;
         foreach (var fieldName in fieldNames)
         {
+            // Every schema resolves __typename for free, so it is never the field that
+            // decides whether the parent already covers this defer's output.
+            if (fieldName.Equals("__typename", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             if (!alreadyPresent.Contains(fieldName))
             {
                 allAlreadyPresent = false;
@@ -849,10 +872,17 @@ public sealed partial class OperationPlanner
                 return false;
             }
 
-            // The only remaining case is a redundant re-fetch of the parent's own path
-            // (no lookup involved): every field missing from the parent must be a key
-            // field of the anchor type, which any schema exposing the entity resolves
-            // for free alongside whatever it already fetches there.
+            // The only remaining case is a redundant re-fetch of the parent's own path on
+            // the same source schema (no lookup involved): every field missing from the
+            // parent must be a key field of the anchor type, which that schema resolves
+            // for free alongside whatever it already fetches there. A different producing
+            // schema gives no such guarantee, so schema identity is required here even
+            // though the parent-step search above no longer requires it up front.
+            if (!string.Equals(parentStep.SchemaName, onlyStep.SchemaName, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
             if (!TryLocateIncrementalPlanAnchor(descriptor.Operation, descriptor.Path, out _, out var anchorType))
             {
                 return false;
@@ -862,6 +892,11 @@ public sealed partial class OperationPlanner
 
             foreach (var fieldName in fieldNames)
             {
+                if (fieldName.Equals("__typename", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
                 if (!alreadyPresent.Contains(fieldName) && !keyFieldNames.Contains(fieldName))
                 {
                     return false;
@@ -920,7 +955,11 @@ public sealed partial class OperationPlanner
     /// Collects the response names of every top-level field selected in
     /// <paramref name="selectionSet"/>, ignoring aliases. Only flat, unaliased field
     /// selections are supported by <see cref="TryAbsorbFullyRedundantDefer"/>; anything
-    /// else makes the caller decline the optimization.
+    /// else makes the caller decline the optimization. The synthetic <c>fusion__empty</c>
+    /// placeholder is skipped, since it carries no client-visible meaning, but a
+    /// client-selected plain <c>__typename</c> is collected like any other field. A field
+    /// carrying any other directive (an <c>@skip</c>/<c>@include</c> guard, for example) is
+    /// not unconditionally selected, so it makes the caller decline instead.
     /// </summary>
     private static bool TryCollectFlatFieldNames(SelectionSetNode selectionSet, out List<string> fieldNames)
     {
@@ -934,10 +973,20 @@ public sealed partial class OperationPlanner
                 return false;
             }
 
-            if (!field.Name.Value.Equals("__typename", StringComparison.Ordinal))
+            if (field.Name.Value.Equals("__typename", StringComparison.Ordinal)
+                && field.Directives.Count == 1
+                && field.Directives[0].Name.Value.Equals("fusion__empty", StringComparison.Ordinal))
             {
-                fieldNames.Add(field.Name.Value);
+                continue;
             }
+
+            if (field.Directives.Count != 0)
+            {
+                fieldNames = [];
+                return false;
+            }
+
+            fieldNames.Add(field.Name.Value);
         }
 
         return true;
@@ -997,8 +1046,8 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Returns a copy of <paramref name="selectionSet"/> where every field named in
     /// <paramref name="fieldNames"/> is a plain, client-visible selection: an existing
-    /// unaliased field has its <c>fusion__requirement</c> marker removed, and a field not
-    /// yet selected is added.
+    /// unaliased field has its <c>fusion__requirement</c> or <c>fusion__empty</c> marker
+    /// removed, and a field not yet selected is added.
     /// </summary>
     private static SelectionSetNode MakeFieldsVisible(SelectionSetNode selectionSet, List<string> fieldNames)
     {
@@ -1015,7 +1064,8 @@ public sealed partial class OperationPlanner
                 present.Add(field.Name.Value);
 
                 if (fieldNames.Contains(field.Name.Value)
-                    && TryRemoveRequirementDirective(field.Directives, out var strippedDirectives))
+                    && (TryRemoveRequirementDirective(field.Directives, out var strippedDirectives)
+                        || TryRemoveEmptyPlaceholderDirective(field.Directives, out strippedDirectives)))
                 {
                     newSelections.Add(field.WithDirectives(strippedDirectives));
                     changed = true;
@@ -1036,6 +1086,39 @@ public sealed partial class OperationPlanner
         }
 
         return changed ? new SelectionSetNode(newSelections) : selectionSet;
+    }
+
+    /// <summary>
+    /// Attempts to strip the synthetic <c>fusion__empty</c> placeholder marker from
+    /// <paramref name="directives"/>, used by <see cref="MakeFieldsVisible"/> to upgrade an
+    /// existing placeholder <c>__typename</c> selection (kept only to satisfy an
+    /// otherwise-empty selection set) into a plain, client-visible field.
+    /// </summary>
+    private static bool TryRemoveEmptyPlaceholderDirective(
+        IReadOnlyList<DirectiveNode> directives,
+        out IReadOnlyList<DirectiveNode> result)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals("fusion__empty", StringComparison.Ordinal))
+            {
+                var remaining = new List<DirectiveNode>(directives.Count - 1);
+
+                for (var j = 0; j < directives.Count; j++)
+                {
+                    if (!directives[j].Name.Value.Equals("fusion__empty", StringComparison.Ordinal))
+                    {
+                        remaining.Add(directives[j]);
+                    }
+                }
+
+                result = remaining;
+                return true;
+            }
+        }
+
+        result = directives;
+        return false;
     }
 
     /// <summary>
