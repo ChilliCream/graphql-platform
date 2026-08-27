@@ -35,6 +35,19 @@ public class SmokeTests
     }
 
     [Fact]
+    public async Task Skills_Help_Lists_Skills_Commands()
+    {
+        // act
+        var result = await RunNitroAsync("skills --help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("Usage:\n  nitro skills [command] [options]", result.StandardOutput, StringComparison.Ordinal);
+        Assert.Contains("add <source>", result.StandardOutput, StringComparison.Ordinal);
+        Assert.Contains("Manage AI agent skills", result.StandardOutput, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Task_Init_Creates_Workspace_In_Fresh_Directory()
     {
         // arrange

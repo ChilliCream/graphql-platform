@@ -64,6 +64,7 @@
     <PackageVersion Include="ProjNET" Version="2.0.0" />
     <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
     <PackageVersion Include="RavenDB.Client" Version="7.0.0" />
+    <PackageVersion Include="Skills.Library" Version="0.3.1-preview.4" />
     <PackageVersion Include="Spectre.Console.Json" Version="0.55.2" />
     <PackageVersion Include="Spectre.Console" Version="0.55.2" />
     <PackageVersion Include="Spectre.Console.Testing" Version="0.55.2" />
