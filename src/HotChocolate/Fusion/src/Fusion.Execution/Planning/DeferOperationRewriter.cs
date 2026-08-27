@@ -14,6 +14,21 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal sealed class DeferOperationRewriter
 {
+    /// <summary>
+    /// A synthesized <c>__typename</c> selection used to keep an otherwise-empty selection set
+    /// valid after its only content moved into a deferred fragment. The <c>fusion__empty</c>
+    /// marker distinguishes it from a client-selected <c>__typename</c> so later planning steps
+    /// never mistake the two.
+    /// </summary>
+    private static readonly FieldNode s_placeholderTypeNameField =
+        new(
+            null,
+            new NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [new DirectiveNode("fusion__empty")],
+            ImmutableArray<ArgumentNode>.Empty,
+            null);
+
     private readonly bool _inlineUnlabeledNestedDefers;
 
     internal DeferOperationRewriter(bool inlineUnlabeledNestedDefers = true)
@@ -270,7 +285,7 @@ internal sealed class DeferOperationRewriter
 
         if (selections.Count == 0)
         {
-            selections.Add(new FieldNode("__typename"));
+            selections.Add(s_placeholderTypeNameField);
         }
 
         return new SelectionSetNode(selections);
@@ -520,7 +535,7 @@ internal sealed class DeferOperationRewriter
 
         if (selections.Count == 0)
         {
-            selections.Add(new FieldNode("__typename"));
+            selections.Add(s_placeholderTypeNameField);
         }
 
         return new SelectionSetNode(selections);

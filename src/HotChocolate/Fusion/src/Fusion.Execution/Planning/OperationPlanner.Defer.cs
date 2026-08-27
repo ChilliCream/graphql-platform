@@ -801,20 +801,33 @@ public sealed partial class OperationPlanner
             return false;
         }
 
-        var deferredFieldsSelectionSet = LocateSelectionSetAtPath(
+        if (!TryLocateSelectionSetAtPath(
             GetStepEntitySelectionSet(onlyStep),
+            GetStepEntityType(onlyStep),
             descriptor.Path,
-            onlyStep.Target.Length);
+            onlyStep.Target.Length,
+            out var deferredFieldsSelectionSet,
+            out _))
+        {
+            return false;
+        }
 
         if (!TryCollectFlatFieldNames(deferredFieldsSelectionSet, out var fieldNames) || fieldNames.Count == 0)
         {
             return false;
         }
 
-        var parentTargetSelectionSet = LocateSelectionSetAtPath(
+        if (!TryLocateSelectionSetAtPath(
             GetStepEntitySelectionSet(parentStep),
+            GetStepEntityType(parentStep),
             descriptor.Path,
-            parentStep.Target.Length);
+            parentStep.Target.Length,
+            out var parentTargetSelectionSet,
+            out _))
+        {
+            return false;
+        }
+
         var alreadyPresent = CollectPlainFieldNames(parentTargetSelectionSet);
 
         var allAlreadyPresent = true;
@@ -990,18 +1003,10 @@ public sealed partial class OperationPlanner
     private static SelectionSetNode MakeFieldsVisible(SelectionSetNode selectionSet, List<string> fieldNames)
     {
         var selections = selectionSet.Selections;
-        var droppedEmptyPlaceholder = false;
-
-        if (selections is
-            [FieldNode { Name.Value: "__typename", Alias: null, Directives.Count: 0, Arguments.Count: 0 }])
-        {
-            selections = [];
-            droppedEmptyPlaceholder = true;
-        }
 
         var newSelections = new List<ISelectionNode>(selections.Count + fieldNames.Count);
         var present = new HashSet<string>(StringComparer.Ordinal);
-        var changed = droppedEmptyPlaceholder;
+        var changed = false;
 
         foreach (var selection in selections)
         {
