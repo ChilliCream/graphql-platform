@@ -16,7 +16,8 @@ public sealed class Selection : ISelection
 
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
-    private readonly ulong[][]? _wideIncludeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
+    private readonly int _wideIncludeFlagsStride;
     private readonly byte[] _utf8ResponseName;
     private readonly ulong _deferMask;
     private readonly ulong[]? _wideDeferMask;
@@ -37,7 +38,8 @@ public sealed class Selection : ISelection
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isInternal,
-        ulong[][]? wideIncludeFlags = null,
+        ulong[]? wideIncludeFlags = null,
+        int wideIncludeFlagsStride = 0,
         ulong deferMask = 0,
         ulong[]? wideDeferMask = null,
         DeliveryGroup[]? deliveryGroups = null)
@@ -57,6 +59,7 @@ public sealed class Selection : ISelection
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _wideIncludeFlags = wideIncludeFlags;
+        _wideIncludeFlagsStride = wideIncludeFlagsStride;
         _deferMask = deferMask;
         _wideDeferMask = wideDeferMask;
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
@@ -347,6 +350,7 @@ public sealed class Selection : ISelection
         }
 
         var wide = _wideIncludeFlags;
+        var stride = _wideIncludeFlagsStride;
 
         for (var i = 0; i < _includeFlags.Length; i++)
         {
@@ -357,18 +361,17 @@ public sealed class Selection : ISelection
                 continue;
             }
 
-            var overflow = wide?[i];
-
-            if (overflow is null || overflow.Length == 0)
+            if (wide is null)
             {
                 return true;
             }
 
             var satisfied = true;
+            var offset = i * stride;
 
-            for (var w = 0; w < overflow.Length; w++)
+            for (var w = 0; w < stride; w++)
             {
-                var pathWord = overflow[w];
+                var pathWord = wide[offset + w];
                 var requestWord = w < wideIncludeFlags.Length ? wideIncludeFlags[w] : 0ul;
 
                 if ((pathWord & requestWord) != pathWord)

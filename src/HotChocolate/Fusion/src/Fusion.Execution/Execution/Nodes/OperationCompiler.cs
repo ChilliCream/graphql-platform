@@ -125,6 +125,7 @@ public sealed class OperationCompiler
                 rootType,
                 compilationContext,
                 hasWideIncludeFlags,
+                includeConditions.Count,
                 hasWideDeferFlags,
                 ref lastId,
                 declaringSelection: null);
@@ -234,6 +235,7 @@ public sealed class OperationCompiler
                 objectType,
                 compilationContext,
                 hasWideIncludeFlags,
+                includeConditions.Count,
                 hasWideDeferFlags,
                 ref lastId,
                 selection);
@@ -391,6 +393,7 @@ public sealed class OperationCompiler
         FusionComplexTypeDefinition typeContext,
         CompilationContext compilationContext,
         bool hasWideIncludeFlags,
+        int includeConditionCount,
         bool hasWideDeferFlags,
         ref int lastId,
         Selection? declaringSelection)
@@ -402,6 +405,7 @@ public sealed class OperationCompiler
         var includeFlags = new List<ulong>();
         // Aligned with includeFlags per path; only materialized for wide operations.
         var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
+        var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
         var deliveryGroups = new List<DeliveryGroup>();
         var selectionSetId = ++lastId;
 
@@ -453,6 +457,19 @@ public sealed class OperationCompiler
                 // Collapsing is a dedup optimization on single-word masks. Wide path
                 // masks skip it; a word-aware subsumption check is not worth the cost.
                 CollapseIncludeFlags(includeFlags);
+            }
+
+            ulong[]? flatWideIncludeFlags = null;
+            if (wideIncludeFlags is { Count: > 0 })
+            {
+                flatWideIncludeFlags = new ulong[wideIncludeFlags.Count * wideIncludeFlagsStride];
+
+                for (var j = 0; j < wideIncludeFlags.Count; j++)
+                {
+                    var pathOverflow = wideIncludeFlags[j];
+                    pathOverflow.AsSpan().CopyTo(
+                        flatWideIncludeFlags.AsSpan(j * wideIncludeFlagsStride, pathOverflow.Length));
+                }
             }
 
             // If any field node is not inside a deferred fragment, the selection
@@ -521,7 +538,8 @@ public sealed class OperationCompiler
                 nodes.ToArray(),
                 includeFlags.ToArray(),
                 isInternal,
-                wideIncludeFlags: wideIncludeFlags is { Count: > 0 } ? wideIncludeFlags.ToArray() : null,
+                wideIncludeFlags: flatWideIncludeFlags,
+                wideIncludeFlagsStride: wideIncludeFlagsStride,
                 deferMask: deferMask,
                 wideDeferMask: wideDeferMask,
                 deliveryGroups: selectionDeliveryGroups);
