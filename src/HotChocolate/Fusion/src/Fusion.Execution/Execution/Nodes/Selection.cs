@@ -277,8 +277,11 @@ public sealed class Selection : ISelection
         return IsIncludedUnchecked(includeFlags);
     }
 
-    /// <inheritdoc cref="ISelection.IsIncluded(ulong, ReadOnlySpan{ulong})" />
-    public bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
+    /// <inheritdoc />
+    public bool IsIncluded(ConditionFlags includeFlags)
+        => IsIncludedWide(includeFlags.Word0, includeFlags.Overflow);
+
+    internal bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
         => IsIncludedWide(includeFlags, wideIncludeFlags);
 
     /// <summary>
@@ -432,8 +435,11 @@ public sealed class Selection : ISelection
         return IsDeferredUnchecked(deferFlags);
     }
 
-    /// <inheritdoc cref="ISelection.IsDeferred(ulong, ReadOnlySpan{ulong})" />
-    public bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+    /// <inheritdoc />
+    public bool IsDeferred(ConditionFlags deferFlags)
+        => IsDeferredWide(deferFlags.Word0, deferFlags.Overflow);
+
+    internal bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
         => IsDeferredWide(deferFlags, wideDeferFlags);
 
     /// <summary>
@@ -498,6 +504,12 @@ public sealed class Selection : ISelection
     }
 
     /// <summary>
+    /// Returns the active delivery groups for this selection.
+    /// </summary>
+    public DeliveryGroup[]? GetActiveDeliveryGroups(ConditionFlags deferFlags)
+        => GetActiveDeliveryGroups(deferFlags.Word0, deferFlags.Overflow);
+
+    /// <summary>
     /// Returns the active delivery groups for this selection, evaluating all words
     /// of the request defer flags.
     /// </summary>
@@ -509,7 +521,7 @@ public sealed class Selection : ISelection
     /// The active delivery groups (pruned), or <c>null</c> when the selection
     /// belongs to the initial result.
     /// </returns>
-    public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+    internal DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
     {
         if (_deliveryGroups.Length == 0)
         {
@@ -616,6 +628,12 @@ nextItem:
     }
 
     /// <summary>
+    /// Determines whether <paramref name="target"/> is an active delivery group of this selection.
+    /// </summary>
+    public bool HasActiveDeliveryGroup(ConditionFlags deferFlags, DeliveryGroup target)
+        => HasActiveDeliveryGroup(deferFlags.Word0, deferFlags.Overflow, target);
+
+    /// <summary>
     /// Determines whether <paramref name="target"/> is the nearest active delivery
     /// group for any occurrence of this selection, evaluating all words of the
     /// request defer flags. Returns <c>false</c> if any occurrence belongs to the
@@ -629,7 +647,7 @@ nextItem:
     /// <returns>
     /// <c>true</c> if <paramref name="target"/> is an active delivery group of this selection.
     /// </returns>
-    public bool HasActiveDeliveryGroup(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeliveryGroup target)
+    internal bool HasActiveDeliveryGroup(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeliveryGroup target)
     {
         if (_deliveryGroups.Length == 0)
         {

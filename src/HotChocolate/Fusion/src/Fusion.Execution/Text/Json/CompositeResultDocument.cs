@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
@@ -29,6 +30,21 @@ public sealed partial class CompositeResultDocument : IDisposable
         PathSegmentLocalPool? pathPool = null,
         ulong[]? wideIncludeFlags = null,
         ulong[]? wideDeferFlags = null)
+        : this(
+            arena,
+            operation,
+            new ConditionFlags(includeFlags, wideIncludeFlags),
+            new ConditionFlags(deferFlags, wideDeferFlags),
+            pathPool)
+    {
+    }
+
+    internal CompositeResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        ConditionFlags includeFlags,
+        ConditionFlags deferFlags = default,
+        PathSegmentLocalPool? pathPool = null)
     {
         ArgumentNullException.ThrowIfNull(arena);
 
@@ -36,10 +52,10 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         _metaDb = MetaDb.Create(arena);
         _operation = operation;
-        _includeFlags = includeFlags;
-        _deferFlags = deferFlags;
-        _wideIncludeFlags = wideIncludeFlags;
-        _wideDeferFlags = wideDeferFlags;
+        _includeFlags = includeFlags.Word0;
+        _deferFlags = deferFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _wideDeferFlags = deferFlags.Overflow;
         _pathPool = pathPool;
 
         Data = CreateObject(zero, operation.RootSelectionSet);

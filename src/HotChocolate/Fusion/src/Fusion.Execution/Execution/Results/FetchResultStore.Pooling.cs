@@ -25,6 +25,25 @@ internal sealed partial class FetchResultStore
         int pathSegmentLocalPoolCapacity,
         ulong[]? wideIncludeFlags = null,
         ulong[]? wideDeferFlags = null)
+        => Initialize(
+            arena,
+            schema,
+            errorHandler,
+            operation,
+            errorHandlingMode,
+            new ConditionFlags(includeFlags, wideIncludeFlags),
+            new ConditionFlags(deferFlags, wideDeferFlags),
+            pathSegmentLocalPoolCapacity);
+
+    public void Initialize(
+        IMemoryArena arena,
+        FusionSchemaDefinition schema,
+        IErrorHandler errorHandler,
+        Operation operation,
+        ErrorHandlingMode errorHandlingMode,
+        ConditionFlags includeFlags,
+        ConditionFlags deferFlags,
+        int pathSegmentLocalPoolCapacity)
     {
         ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(schema);
@@ -35,10 +54,10 @@ internal sealed partial class FetchResultStore
         _errorHandler = errorHandler;
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
-        _includeFlags = includeFlags;
-        _deferFlags = deferFlags;
-        _wideIncludeFlags = wideIncludeFlags;
-        _wideDeferFlags = wideDeferFlags;
+        _includeFlags = includeFlags.Word0;
+        _deferFlags = deferFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _wideDeferFlags = deferFlags.Overflow;
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
@@ -47,9 +66,7 @@ internal sealed partial class FetchResultStore
             operation,
             includeFlags,
             deferFlags,
-            _pathPool,
-            wideIncludeFlags,
-            wideDeferFlags);
+            _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -89,11 +106,9 @@ internal sealed partial class FetchResultStore
         _result = new CompositeResultDocument(
             _arena,
             _operation,
-            _includeFlags,
-            _deferFlags,
-            _pathPool,
-            _wideIncludeFlags,
-            _wideDeferFlags);
+            new ConditionFlags(_includeFlags, _wideIncludeFlags),
+            new ConditionFlags(_deferFlags, _wideDeferFlags),
+            _pathPool);
 
         _errors?.Clear();
         _pocketedErrors?.Clear();

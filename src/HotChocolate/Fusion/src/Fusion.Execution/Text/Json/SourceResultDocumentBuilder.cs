@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -25,14 +26,23 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         ulong includeFlags,
         ulong[]? wideIncludeFlags = null,
         SelectionSet? selectionSet = null)
+        : this(arena, operation, new ConditionFlags(includeFlags, wideIncludeFlags), selectionSet)
+    {
+    }
+
+    public SourceResultDocumentBuilder(
+        IMemoryArena arena,
+        Operation operation,
+        ConditionFlags includeFlags,
+        SelectionSet? selectionSet = null)
     {
         _arena = arena ?? throw new ArgumentNullException(nameof(arena));
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
-        _wideIncludeFlags = wideIncludeFlags;
+        _wideIncludeFlags = includeFlags.Overflow;
         _metaDb = new MetaDb();
 
         selectionSet ??= operation.RootSelectionSet;
-        var rootIndex = CreateObjectValue(selectionSet.Selections, includeFlags);
+        var rootIndex = CreateObjectValue(selectionSet.Selections, includeFlags.Word0);
         Root = new SourceResultElementBuilder(this, rootIndex);
     }
 

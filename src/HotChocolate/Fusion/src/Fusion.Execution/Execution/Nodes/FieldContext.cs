@@ -1,4 +1,5 @@
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 
@@ -10,13 +11,9 @@ internal abstract class FieldContext
     public abstract ISchemaDefinition Schema { get; }
     public abstract Selection Selection { get; }
     public abstract SourceResultElementBuilder FieldResult { get; }
-    public abstract ulong IncludeFlags { get; }
+    public abstract ConditionFlags IncludeConditionFlags { get; }
 
-    /// <summary>
-    /// Gets the include flag overflow words (condition indexes 64 and above) for the
-    /// current request; empty if the operation has at most 64 include conditions.
-    /// </summary>
-    public abstract ReadOnlySpan<ulong> WideIncludeFlags { get; }
+    public ulong IncludeFlags => IncludeConditionFlags.Word0;
 
     public abstract T Parent<T>();
     public abstract T ArgumentValue<T>(string name) where T : IValueNode;

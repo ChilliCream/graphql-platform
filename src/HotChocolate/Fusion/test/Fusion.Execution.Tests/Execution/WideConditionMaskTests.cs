@@ -148,17 +148,15 @@ public class WideConditionMaskTests : FusionTestBase
 
         // act & assert: only the condition bit of this selection set -> included.
         var onlyIndex = CreateVariables(schema, "v", conditionCount, i => i == index);
-        var flags = operation.CreateIncludeFlags(onlyIndex);
-        var overflow = operation.CreateIncludeFlagsOverflow(onlyIndex);
-        Assert.NotNull(overflow);
-        Assert.True(selection.IsIncluded(flags, overflow));
+        var flags = operation.CreateIncludeConditionFlags(onlyIndex);
+        Assert.NotNull(flags.Overflow);
+        Assert.True(selection.IsIncluded(flags));
 
         // every bit except the condition bit set -> not included.
         var allButIndex = CreateVariables(schema, "v", conditionCount, i => i != index);
-        flags = operation.CreateIncludeFlags(allButIndex);
-        overflow = operation.CreateIncludeFlagsOverflow(allButIndex);
-        Assert.NotNull(overflow);
-        Assert.False(selection.IsIncluded(flags, overflow));
+        flags = operation.CreateIncludeConditionFlags(allButIndex);
+        Assert.NotNull(flags.Overflow);
+        Assert.False(selection.IsIncluded(flags));
     }
 
     [Fact]
@@ -195,27 +193,24 @@ public class WideConditionMaskTests : FusionTestBase
 
         // act & assert: both words satisfied -> included.
         var bothWords = CreateVariables(schema, conditionCount, i => i == 0, x: true);
-        var flags = operation.CreateIncludeFlags(bothWords);
-        var overflow = operation.CreateIncludeFlagsOverflow(bothWords);
-        Assert.NotNull(overflow);
-        Assert.True(selection.IsIncluded(flags, overflow));
+        var flags = operation.CreateIncludeConditionFlags(bothWords);
+        Assert.NotNull(flags.Overflow);
+        Assert.True(selection.IsIncluded(flags));
 
         // the same word 0, but the overflow words dropped -> the path is not satisfied.
-        Assert.False(selection.IsIncluded(flags, new ulong[overflow.Length]));
+        Assert.False(selection.IsIncluded(new ConditionFlags(flags.Word0, new ulong[flags.Overflow!.Length])));
 
         // only the overflow word satisfied -> the path is not satisfied.
         var overflowOnly = CreateVariables(schema, conditionCount, _ => false, x: true);
-        flags = operation.CreateIncludeFlags(overflowOnly);
-        overflow = operation.CreateIncludeFlagsOverflow(overflowOnly);
-        Assert.NotNull(overflow);
-        Assert.False(selection.IsIncluded(flags, overflow));
+        flags = operation.CreateIncludeConditionFlags(overflowOnly);
+        Assert.NotNull(flags.Overflow);
+        Assert.False(selection.IsIncluded(flags));
 
         // only word 0 satisfied -> the path is not satisfied.
         var word0Only = CreateVariables(schema, conditionCount, i => i == 0, x: false);
-        flags = operation.CreateIncludeFlags(word0Only);
-        overflow = operation.CreateIncludeFlagsOverflow(word0Only);
-        Assert.NotNull(overflow);
-        Assert.False(selection.IsIncluded(flags, overflow));
+        flags = operation.CreateIncludeConditionFlags(word0Only);
+        Assert.NotNull(flags.Overflow);
+        Assert.False(selection.IsIncluded(flags));
     }
 
     [Theory]
@@ -237,21 +232,19 @@ public class WideConditionMaskTests : FusionTestBase
 
         // act & assert: deferred when ANY bit of the mask matches in any word.
         var onlyIndex = CreateVariables(schema, "d", conditionCount, i => i == index);
-        var flags = operation.CreateDeferFlags(onlyIndex);
-        var overflow = operation.CreateDeferFlagsOverflow(onlyIndex);
-        Assert.NotNull(overflow);
-        Assert.True(selection.IsDeferred(flags, overflow));
+        var flags = operation.CreateDeferConditionFlags(onlyIndex);
+        Assert.NotNull(flags.Overflow);
+        Assert.True(selection.IsDeferred(flags));
 
-        var activeGroups = selection.GetActiveDeliveryGroups(flags, overflow);
+        var activeGroups = selection.GetActiveDeliveryGroups(flags);
         Assert.NotNull(activeGroups);
         Assert.Equal(index, Assert.Single(activeGroups).DeferConditionIndex);
 
         var none = CreateVariables(schema, "d", conditionCount, _ => false);
-        flags = operation.CreateDeferFlags(none);
-        overflow = operation.CreateDeferFlagsOverflow(none);
-        Assert.NotNull(overflow);
-        Assert.False(selection.IsDeferred(flags, overflow));
-        Assert.Null(selection.GetActiveDeliveryGroups(flags, overflow));
+        flags = operation.CreateDeferConditionFlags(none);
+        Assert.NotNull(flags.Overflow);
+        Assert.False(selection.IsDeferred(flags));
+        Assert.Null(selection.GetActiveDeliveryGroups(flags));
     }
 
     [Fact]
@@ -279,16 +272,14 @@ public class WideConditionMaskTests : FusionTestBase
         Assert.True(operation.RootSelectionSet.TryGetSelection("f65", out var selection));
 
         var only65 = CreateVariables(schema, "v", conditionCount, i => i == 65);
-        var flags = operation.CreateIncludeFlags(only65);
-        var overflow = operation.CreateIncludeFlagsOverflow(only65);
-        Assert.NotNull(overflow);
-        Assert.True(selection.IsIncluded(flags, overflow));
+        var flags = operation.CreateIncludeConditionFlags(only65);
+        Assert.NotNull(flags.Overflow);
+        Assert.True(selection.IsIncluded(flags));
 
         var none = CreateVariables(schema, "v", conditionCount, _ => false);
-        flags = operation.CreateIncludeFlags(none);
-        overflow = operation.CreateIncludeFlagsOverflow(none);
-        Assert.NotNull(overflow);
-        Assert.False(selection.IsIncluded(flags, overflow));
+        flags = operation.CreateIncludeConditionFlags(none);
+        Assert.NotNull(flags.Overflow);
+        Assert.False(selection.IsIncluded(flags));
     }
 
     private static FusionSchemaDefinition CreateSchema()

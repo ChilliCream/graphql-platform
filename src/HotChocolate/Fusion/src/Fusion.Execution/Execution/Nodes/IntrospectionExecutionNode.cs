@@ -58,8 +58,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         var resultBuilder = new SourceResultDocumentBuilder(
             context.Memory,
             context.OperationPlan.Operation,
-            context.IncludeFlags,
-            context.WideIncludeFlags);
+            context.IncludeConditionFlags);
         var root = resultBuilder.Root;
         var index = 0;
 
@@ -67,7 +66,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         {
             if ((selection.Resolver is null && selection.AsyncResolver is null)
                 || !selection.Field.IsIntrospectionField
-                || !selection.IsIncluded(context.IncludeFlags, context.WideIncludeFlags))
+                || !selection.IsIncluded(context.IncludeConditionFlags))
             {
                 continue;
             }
@@ -118,8 +117,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         var fieldContext = new ReusableFieldContext(
             context.Schema,
             context.Variables,
-            context.IncludeFlags,
-            context.WideIncludeFlags,
+            context.IncludeConditionFlags,
             context.CreateRentedBuffer(),
             cancellationToken);
 
@@ -163,7 +161,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                     {
                         var childSelection = selectionSet.Selections[i];
 
-                        if (!childSelection.IsIncluded(context.IncludeFlags, context.WideIncludeFlags))
+                        if (!childSelection.IsIncluded(context.IncludeConditionFlags))
                         {
                             continue;
                         }
@@ -207,7 +205,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                         {
                             var childSelection = selectionSet.Selections[j];
 
-                            if (!childSelection.IsIncluded(context.IncludeFlags, context.WideIncludeFlags))
+                            if (!childSelection.IsIncluded(context.IncludeConditionFlags))
                             {
                                 continue;
                             }
