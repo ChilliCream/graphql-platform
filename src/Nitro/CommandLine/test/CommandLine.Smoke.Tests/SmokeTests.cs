@@ -41,8 +41,9 @@ public class SmokeTests
         var result = await RunNitroAsync("skills --help");
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Contains("Usage:\n  nitro skills [command] [options]", result.StandardOutput, StringComparison.Ordinal);
+Assert.Equal(0, result.ExitCode);
+var normalizedOutput = result.StandardOutput.Replace("\r\n", "\n", StringComparison.Ordinal);
+Assert.Contains("Usage:\n  nitro skills [command] [options]", normalizedOutput, StringComparison.Ordinal);
         Assert.Contains("add <source>", result.StandardOutput, StringComparison.Ordinal);
         Assert.Contains("Manage AI agent skills", result.StandardOutput, StringComparison.Ordinal);
     }
