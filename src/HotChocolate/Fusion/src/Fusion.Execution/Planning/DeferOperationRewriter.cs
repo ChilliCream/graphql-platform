@@ -15,10 +15,9 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed class DeferOperationRewriter
 {
     /// <summary>
-    /// A synthesized <c>__typename</c> selection used to keep an otherwise-empty selection set
-    /// valid after its only content moved into a deferred fragment. The <c>fusion__empty</c>
-    /// marker distinguishes it from a client-selected <c>__typename</c> so later planning steps
-    /// never mistake the two.
+    /// A <c>__typename</c> placeholder that keeps a selection set valid when all of its
+    /// fields are deferred. The <c>fusion__empty</c> directive marks it as synthetic,
+    /// as opposed to a <c>__typename</c> the client selected.
     /// </summary>
     private static readonly FieldNode s_placeholderTypeNameField =
         new(
@@ -201,7 +200,7 @@ internal sealed class DeferOperationRewriter
         return operation.WithSelectionSet(newRoot);
     }
 
-    private SelectionSetNode StripDeferFromSelectionSet(
+    private static SelectionSetNode StripDeferFromSelectionSet(
         SelectionSetNode selectionSet,
         IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment)
     {
@@ -477,10 +476,7 @@ internal sealed class DeferOperationRewriter
                 }
             }
 
-            foreach (var field in unconditional)
-            {
-                selections.Add(field);
-            }
+            selections.AddRange(unconditional);
 
             foreach (var (_, bucketEntry) in byTypeCondition)
             {
