@@ -271,7 +271,7 @@ public sealed class Selection : ISelection
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 include conditions; this check requires "
-                + "the wide include flags. Use IsIncluded(ulong, ReadOnlySpan<ulong>).");
+                + "the wide include flags. Use IsIncluded(ConditionFlags).");
         }
 
         return IsIncludedUnchecked(includeFlags);
@@ -429,7 +429,7 @@ public sealed class Selection : ISelection
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use IsDeferred(ulong, ReadOnlySpan<ulong>).");
+                + "the wide defer flags. Use IsDeferred(ConditionFlags).");
         }
 
         return IsDeferredUnchecked(deferFlags);
@@ -497,7 +497,7 @@ public sealed class Selection : ISelection
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use GetActiveDeliveryGroups(ulong, ReadOnlySpan<ulong>).");
+                + "the wide defer flags. Use GetActiveDeliveryGroups(ConditionFlags).");
         }
 
         return GetActiveDeliveryGroups(deferFlags, default);
@@ -621,7 +621,7 @@ nextItem:
         {
             throw new InvalidOperationException(
                 "The operation has more than 64 defer conditions; this check requires "
-                + "the wide defer flags. Use HasActiveDeliveryGroup(ulong, ReadOnlySpan<ulong>, DeliveryGroup).");
+                + "the wide defer flags. Use HasActiveDeliveryGroup(ConditionFlags, DeliveryGroup).");
         }
 
         return HasActiveDeliveryGroup(deferFlags, default, target);

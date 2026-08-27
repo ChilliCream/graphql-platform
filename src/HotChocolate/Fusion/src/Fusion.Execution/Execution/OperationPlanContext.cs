@@ -157,11 +157,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// </summary>
     public ConditionFlags DeferConditionFlags { get; private set; }
 
-    internal ulong IncludeFlags => IncludeConditionFlags.Word0;
+    public ulong IncludeFlags => IncludeConditionFlags.Word0;
 
     internal ulong[]? WideIncludeFlags => IncludeConditionFlags.Overflow;
 
-    internal ulong DeferFlags => DeferConditionFlags.Word0;
+    public ulong DeferFlags => DeferConditionFlags.Word0;
 
     internal ulong[]? WideDeferFlags => DeferConditionFlags.Overflow;
 
