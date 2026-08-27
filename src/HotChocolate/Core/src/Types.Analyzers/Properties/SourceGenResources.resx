@@ -24,6 +24,9 @@
   <data name="DataLoader_InvalidAccessModifier" xml:space="preserve">
     <value>The DataLoader access modifier must be public or internal</value>
   </data>
+  <data name="DataLoader_KeyParameterInvalid" xml:space="preserve">
+    <value>The first parameter of a [DataLoader&lt;T&gt;] method must be {0}</value>
+  </data>
   <data name="InterceptsAttribute" xml:space="preserve">
     <value>#pragma warning disable CS9113 // Parameter is unread.
 namespace System.Runtime.CompilerServices
@@ -32,5 +35,14 @@ namespace System.Runtime.CompilerServices
     file sealed class InterceptsLocationAttribute(string filePath, int line, int column) : Attribute;
 }
 #pragma warning restore CS9113 // Parameter is unread.</value>
+  </data>
+  <data name="DataLoader_MultipleAttributes" xml:space="preserve">
+    <value>A method can have only one [DataLoader] attribute</value>
+  </data>
+  <data name="DataLoader_ReturnTypeInvalid" xml:space="preserve">
+    <value>The return type of a [DataLoader&lt;T&gt;] method must be {0}</value>
+  </data>
+  <data name="DataLoader_TypeInvalid" xml:space="preserve">
+    <value>The type argument of [DataLoader&lt;T&gt;] must be an interface that derives from exactly one closed IBatchDataLoader&lt;TKey, TValue&gt; or ICacheDataLoader&lt;TKey, TValue&gt; contract</value>
   </data>
 </root>

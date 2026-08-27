@@ -76,6 +76,42 @@ namespace HotChocolate.Types.Analyzers.Properties {
                 return ResourceManager.GetString("DataLoader_KeyParameterMissing", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The first parameter of a [DataLoader&lt;T&gt;] method must be {0}.
+        /// </summary>
+        internal static string DataLoader_KeyParameterInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyParameterInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A method can have only one [DataLoader] attribute.
+        /// </summary>
+        internal static string DataLoader_MultipleAttributes {
+            get {
+                return ResourceManager.GetString("DataLoader_MultipleAttributes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The return type of a [DataLoader&lt;T&gt;] method must be {0}.
+        /// </summary>
+        internal static string DataLoader_ReturnTypeInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_ReturnTypeInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type argument of [DataLoader&lt;T&gt;] must be an interface that derives from exactly one closed IBatchDataLoader&lt;TKey, TValue&gt; or ICacheDataLoader&lt;TKey, TValue&gt; contract.
+        /// </summary>
+        internal static string DataLoader_TypeInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_TypeInvalid", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to #pragma warning disable CS9113 // Parameter is unread.

@@ -248,6 +248,42 @@ public static class Errors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor DataLoaderTypeInvalid =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderTypeInvalid,
+            title: "Invalid DataLoader Type",
+            messageFormat: SourceGenResources.DataLoader_TypeInvalid,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderKeyParameterInvalid =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderKeyParameterInvalid,
+            title: "Invalid DataLoader Key Parameter",
+            messageFormat: SourceGenResources.DataLoader_KeyParameterInvalid,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderReturnTypeInvalid =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderReturnTypeInvalid,
+            title: "Invalid DataLoader Return Type",
+            messageFormat: SourceGenResources.DataLoader_ReturnTypeInvalid,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderMultipleAttributes =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderMultipleAttributes,
+            title: "Multiple DataLoader Attributes",
+            messageFormat: SourceGenResources.DataLoader_MultipleAttributes,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
     public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
         new(
             id: ErrorCodes.Analyzers.InterfaceTypeStaticKeywordMissing,
