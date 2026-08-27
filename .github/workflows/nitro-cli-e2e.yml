@@ -2,6 +2,9 @@ name: nitro-cli-e2e
 
 on:
   push:
+    branches:
+      - main
+      - main-version-*
     paths:
       - 'src/Nitro/CommandLine/**'
       - 'src/Nitro/Common/**'

@@ -1,30 +1,24 @@
-$ nitro agent init
-✓ Initialized agent workspace at '.nitro/agents'.
-✓ Task ID prefix set to 'work'.
-$ nitro agent register --actor agent-a --role reviewer
-✓ Registered 'agent-a' as 'reviewer'.
-✓ No live session bound: no harness process or session id detected.
-$ nitro agent register --actor agent-b
-✓ Registered 'agent-b'.
-✓ No live session bound: no harness process or session id detected.
-$ nitro agent mail send agent-b --actor agent-a --cc agent-a --subject Status --body All-good
-Stored 'm-XXX' to agent-b, agent-a.
-message stored, but wake failed: no-live-session.
-  agent-b: failed (no-live-session)
-  agent-a: failed (no-live-session)
-$ nitro agent mail inbox --actor agent-b
-m-XXX  *  agent-a  Status  now
+$ nitro agent register --actor alice --role reviewer
+✓ Actor 'alice', role 'reviewer'.
+$ nitro agent register --actor bob
+✓ Actor 'bob'.
+$ nitro agent mail send --to bob --actor alice --cc alice --subject Status --body All-good
+✓ Sent 'm-XXX' to bob, alice.
+$ nitro agent mail inbox --actor bob
+m-XXX  *  alice  Status  now
+m-XXX  *  e2e-agent  Standup notes  2026-01-01
+m-XXX  *  alice  Deploy window  2026-01-01
 
-1 message(s)
-$ MSG_ID=$(nitro agent mail inbox --actor agent-b | awk 'NR==1{print $1}')
+3 message(s)
+$ MSG_ID=$(nitro agent mail inbox --actor bob | awk 'NR==1{print $1}')
 $ echo "captured $MSG_ID"
 captured m-XXX
-$ nitro agent mail reply "$MSG_ID" --actor agent-b --body Thanks-noted --no-ping
-✓ Sent 'm-XXX' to agent-a.
-$ nitro agent mail read "$MSG_ID" --thread --actor agent-a
-From: agent-a (reviewer)
-To: agent-b
-Cc: agent-a
+$ nitro agent mail reply --message "$MSG_ID" --actor bob --body Thanks-noted
+✓ Sent 'm-XXX' to alice.
+$ nitro agent mail read --message "$MSG_ID" --thread --actor alice
+From: alice (reviewer)
+To: bob
+Cc: alice
 Date: DATE
 Subject: Status
 Thread: m-XXX
@@ -33,8 +27,8 @@ All-good
 
 ---
 
-From: agent-b
-To: agent-a
+From: bob
+To: alice
 Date: DATE
 Subject: Status
 Thread: m-XXX

@@ -1,9 +1,9 @@
- [T]asks   [M]ail (2)   [A]gents   M[e]mory
-╭─Agents (2)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
-│ >   bob       ◇ claude-code  started        ││ Session                                      │
-│ 2026-01-01 heard 2026-01-01                 ││                                              │
-│     e2e-agent ● nitro-board  started AGE    ││ Actor: bob                                   │
-│  heard AGE                                  ││ Role: -                                      │
+ [T]asks   [M]ail   [A]gents   M[e]mory
+╭─Agents (1)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
+│ >   bob ◇ claude-code  started 2026-01-01   ││ Session                                      │
+│ heard 2026-01-01                            ││                                              │
+│                                             ││ Actor: bob                                   │
+│                                             ││ Role: -                                      │
 │                                             ││ State: remote                                │
 │                                             ││ Harness: claude-code                         │
 │                                             ││ Session id: e2e-remote-session               │
@@ -32,4 +32,4 @@
 │                                             ││                                              │
 │                                             ││                                              │
 ╰─────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
-hjkl move  enter open  r refresh  y copy id  z zoom  e edit  esc back  q quit  …      e2e-agent
+hjkl move  enter open  r refresh  y copy id  z zoom  esc back  q quit  [ ] shift+letter tab

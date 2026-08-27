@@ -1,4 +1,4 @@
- [T]asks   [M]ail (2)   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory
 ╭─acme-epic1 · blocking · depended on by────────────────────╮
 │   ○ [E] P1 acme-epic1 Launch v2 pricing page              │
 │ ├─ > ● [T] P2 acme-epic1.1 Draft new pricing copy         │
@@ -32,4 +32,4 @@
 
 
 
-f follow  m edge mode  d direction  u back  hjkl move  enter open  r refresh  y copy id  …  e2…
+f follow  m edge mode  d direction  u back  hjkl move  enter open  r refresh  y copy id  …
