@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using HotChocolate.Types.Analyzers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -157,7 +158,7 @@ public class DataLoaderTests
     }
 
     [Fact]
-    public async Task Generate_Should_IgnoreGenericMethod_When_OldAttributeLoaderIsValid()
+    public async Task Generate_Should_EmitGenericAndOldDataLoaders_When_BothAttributesAreUsed()
     {
         // arrange
         const string source =
@@ -189,6 +190,162 @@ public class DataLoaderTests
         // assert
         Assert.Single(inspectedDataLoaders.OfType<GenericDataLoaderInfo>());
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitGenericBatchDataLoader_When_ContractIsClosedKindInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>(MaxBatchSize = 2)]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitGenericCacheDataLoader_When_ContractOverridesTheName()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : ICacheDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>("CustomEntity", ServiceScope = DataLoaderServiceScope.OriginalScope)]
+                public static ValueTask<string> GetEntityByIdAsync(int key)
+                    => default;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_UseBatchPath_When_GenericBatchValueIsAnArray()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string[]>>]
+                public static Task<IReadOnlyDictionary<int, string[]>> GetEntitiesByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_ImplementGenericContract_When_ItDeclaresAdditionalMembers()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            public interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+                string Description { get; }
+            }
+
+            public sealed partial class EntityByIdDataLoader
+            {
+                public string Description => "custom";
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public void Generate_Should_EmitNothing_When_GenericDataLoaderMethodIsInvalid()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<ICacheDataLoader<int, string>>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(int key)
+                    => default!;
+            }
+            """;
+
+        // act
+        var output = GetGeneratedOutputSummary(source);
+
+        // assert
+        output.MatchInlineSnapshot(
+            """
+            Generated sources: 0
+            Generator diagnostics: 0
+            Compilation diagnostics: 0
+            """);
     }
 
     public static IEnumerable<object?[]> GenericDataLoaderContractCases()
@@ -1546,6 +1703,20 @@ public class DataLoaderTests
                 out var dataLoaderInfo)
             ? dataLoaderInfo
             : null;
+    }
+
+    private static string GetGeneratedOutputSummary(string source)
+    {
+        var compilation = TestHelper.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new GraphQLServerGenerator());
+        driver = driver.RunGenerators(compilation);
+        var result = driver.GetRunResult().Results.Single();
+
+        return $"""
+            Generated sources: {result.GeneratedSources.Length}
+            Generator diagnostics: {result.Diagnostics.Length}
+            Compilation diagnostics: {compilation.GetDiagnostics().Length}
+            """;
     }
 
     private static IReadOnlyCollection<SyntaxInfo> InspectDataLoaders(string source)
