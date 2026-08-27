@@ -1506,6 +1506,26 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
+    public async Task AsSelector_Should_Not_MisShare_Cached_Wide_Selector_When_Overflow_Flag_Differs()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+        var document = CreateWideConditionalSelectorDocument();
+        var excludedVariables = CreateWideConditionalVariables(include: false);
+        var includedVariables = CreateWideConditionalVariables(include: true);
+
+        // act
+        await ExecuteConditionalRequestAsync(context, document, excludedVariables);
+        await ExecuteConditionalRequestAsync(context, document, includedVariables);
+        await ExecuteConditionalRequestAsync(context, document, excludedVariables);
+
+        // assert
+        Assert.Equal(3, context.SelectorCapture.Selectors.Count);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[1]);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[2]);
+    }
+
+    [Fact]
     public async Task AsSelector_Should_Reuse_Selection_Cached_Selector_When_Subtree_Is_Unconditional_In_Conditional_Operation()
     {
         // arrange
@@ -1549,15 +1569,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             """,
             include);
 
-    private static async Task ExecuteConditionalRequestAsync(
+    private static Task ExecuteConditionalRequestAsync(
         ConditionalTestContext context,
         string document,
         bool include)
+        => ExecuteConditionalRequestAsync(
+            context,
+            document,
+            new Dictionary<string, object?> { ["if"] = include });
+
+    private static async Task ExecuteConditionalRequestAsync(
+        ConditionalTestContext context,
+        string document,
+        IReadOnlyDictionary<string, object?> variables)
     {
         var result = await context.Executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(document)
-                .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
+                .SetVariableValues(variables)
                 .Build(),
             Xunit.TestContext.Current.CancellationToken);
 
@@ -1566,6 +1595,45 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         {
             throw new InvalidOperationException(operationResult.ToJson());
         }
+    }
+
+    private static string CreateWideConditionalSelectorDocument()
+    {
+        var variables = new string[65];
+        var fields = new string[64];
+
+        for (var i = 0; i < 64; i++)
+        {
+            variables[i] = $"$condition{i}: Boolean!";
+            fields[i] = $"tenantNames{i}: tenantNames @include(if: $condition{i})";
+        }
+
+        variables[64] = "$wide: Boolean!";
+
+        return $"""
+            query({string.Join(", ", variables)}) {{
+              {string.Join(Environment.NewLine + "  ", fields)}
+              tenantsCapturedWide: tenantsCapturedWide {{
+                id
+                workspaces @include(if: $wide) {{
+                  id
+                }}
+              }}
+            }}
+            """;
+    }
+
+    private static IReadOnlyDictionary<string, object?> CreateWideConditionalVariables(bool include)
+    {
+        var variables = new Dictionary<string, object?>(65);
+
+        for (var i = 0; i < 64; i++)
+        {
+            variables.Add($"condition{i}", false);
+        }
+
+        variables.Add("wide", include);
+        return variables;
     }
 
     private static async Task<ConditionalTestContext> CreateConditionalTestContextAsync()
@@ -1829,6 +1897,20 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         {
             var selection = context.Selection;
             var selector = selection.AsSelector<ConditionalTenant>(context.IncludeFlags);
+            selectorCapture.Selectors.Add(selector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsCapturedWide(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
             selectorCapture.Selectors.Add(selector);
             var query = database.Tenants.Select(selector);
             sqlCapture.Sql = query.ToQueryString();
