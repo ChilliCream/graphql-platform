@@ -25,7 +25,7 @@
 BEGIN TRANSACTION;
 
 -- agents -----------------------------------------------------------------
--- e2e-agent is the actor the tape opens the board as (NITRO_MAIL_ACTOR).
+-- e2e-agent backs the identity-dependent mail command fixtures.
 INSERT INTO agents (name, registered_at, last_seen_at) VALUES
     ('e2e-agent', '2026-01-01 07:00:00.0000000+00:00', '2026-01-01 07:00:00.0000000+00:00'),
     ('alice', '2026-01-01 07:00:00.0000000+00:00', '2026-01-01 07:00:00.0000000+00:00'),
