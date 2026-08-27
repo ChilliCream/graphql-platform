@@ -1680,13 +1680,15 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddSingleton(selectorCapture)
             .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString));
 
+        var builder = serviceCollection.AddGraphQL();
+
         if (cacheDiagnostics is not null)
         {
-            serviceCollection.AddSingleton<CacheDiagnostics>(cacheDiagnostics);
+            builder.ConfigureSchemaServices(
+                services => services.AddSingleton<CacheDiagnostics>(cacheDiagnostics));
         }
 
-        var services = serviceCollection
-            .AddGraphQL()
+        var services = builder
             .AddProjectionSelectorCache(cacheCapacity)
             .AddQueryType<ConditionalQuery>()
             .AddType<ConditionalTenantType>()
