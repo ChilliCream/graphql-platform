@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
-/// Builds a path include mask for operations with more than 64 include conditions.
+/// Builds a path include mask for an operation.
 /// Word 0 covers the condition indexes 0-63; the overflow words cover the indexes
 /// 64 and above. Adding a condition returns a new builder and never mutates a shared
 /// overflow array, so sibling paths forked during field collection cannot alias.

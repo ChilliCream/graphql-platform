@@ -87,7 +87,6 @@ public sealed class OperationCompiler
         try
         {
             var lastId = 0;
-            const ulong parentIncludeFlags = 0ul;
             var rootType = _schema.GetOperationType(operationDefinition.Operation);
 
             // The include visitor and the defer partitioner have seen the whole
@@ -95,28 +94,14 @@ public sealed class OperationCompiler
             var hasWideIncludeFlags = includeConditions.Count > 64;
             var hasWideDeferFlags = deferConditions.Count > 64;
 
-            if (hasWideIncludeFlags)
-            {
-                CollectFieldsWide(
-                    default,
-                    operationDefinition.SelectionSet.Selections,
-                    rootType,
-                    fields,
-                    includeConditions,
-                    partitioning.ByFragment,
-                    parentDeliveryGroup: null);
-            }
-            else
-            {
-                CollectFields(
-                    parentIncludeFlags,
-                    operationDefinition.SelectionSet.Selections,
-                    rootType,
-                    fields,
-                    includeConditions,
-                    partitioning.ByFragment,
-                    parentDeliveryGroup: null);
-            }
+            CollectFields(
+                default,
+                operationDefinition.SelectionSet.Selections,
+                rootType,
+                fields,
+                includeConditions,
+                partitioning.ByFragment,
+                parentDeliveryGroup: null);
 
             var hasIncrementalParts = HasDeferDirective(operationDefinition);
 
@@ -173,60 +158,29 @@ public sealed class OperationCompiler
             var nodes = selection.SyntaxNodes;
             var first = nodes[0];
 
-            if (hasWideIncludeFlags)
+            CollectFields(
+                new PathIncludeFlagsBuilder(first.PathIncludeFlags, first.PathIncludeFlagsOverflow),
+                first.Node.SelectionSet!.Selections,
+                objectType,
+                fields,
+                includeConditions,
+                deliveryGroupByFragment,
+                parentDeliveryGroup: first.DeliveryGroup);
+
+            if (nodes.Length > 1)
             {
-                CollectFieldsWide(
-                    new PathIncludeFlagsBuilder(first.PathIncludeFlags, first.PathIncludeFlagsOverflow),
-                    first.Node.SelectionSet!.Selections,
-                    objectType,
-                    fields,
-                    includeConditions,
-                    deliveryGroupByFragment,
-                    parentDeliveryGroup: first.DeliveryGroup);
-
-                if (nodes.Length > 1)
+                for (var i = 1; i < nodes.Length; i++)
                 {
-                    for (var i = 1; i < nodes.Length; i++)
-                    {
-                        var node = nodes[i];
+                    var node = nodes[i];
 
-                        CollectFieldsWide(
-                            new PathIncludeFlagsBuilder(node.PathIncludeFlags, node.PathIncludeFlagsOverflow),
-                            node.Node.SelectionSet!.Selections,
-                            objectType,
-                            fields,
-                            includeConditions,
-                            deliveryGroupByFragment,
-                            parentDeliveryGroup: nodes[i].DeliveryGroup);
-                    }
-                }
-            }
-            else
-            {
-                CollectFields(
-                    first.PathIncludeFlags,
-                    first.Node.SelectionSet!.Selections,
-                    objectType,
-                    fields,
-                    includeConditions,
-                    deliveryGroupByFragment,
-                    parentDeliveryGroup: first.DeliveryGroup);
-
-                if (nodes.Length > 1)
-                {
-                    for (var i = 1; i < nodes.Length; i++)
-                    {
-                        var node = nodes[i];
-
-                        CollectFields(
-                            node.PathIncludeFlags,
-                            node.Node.SelectionSet!.Selections,
-                            objectType,
-                            fields,
-                            includeConditions,
-                            deliveryGroupByFragment,
-                            parentDeliveryGroup: nodes[i].DeliveryGroup);
-                    }
+                    CollectFields(
+                        new PathIncludeFlagsBuilder(node.PathIncludeFlags, node.PathIncludeFlagsOverflow),
+                        node.Node.SelectionSet!.Selections,
+                        objectType,
+                        fields,
+                        includeConditions,
+                        deliveryGroupByFragment,
+                        parentDeliveryGroup: node.DeliveryGroup);
                 }
             }
 
@@ -250,77 +204,6 @@ public sealed class OperationCompiler
     }
 
     private void CollectFields(
-        ulong parentIncludeFlags,
-        IReadOnlyList<ISelectionNode> selections,
-        IComplexTypeDefinition typeContext,
-        OrderedDictionary<string, List<FieldSelectionNode>> fields,
-        IncludeConditionCollection includeConditions,
-        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
-        DeliveryGroup? parentDeliveryGroup)
-    {
-        for (var i = 0; i < selections.Count; i++)
-        {
-            var selection = selections[i];
-
-            if (selection is FieldNode fieldNode)
-            {
-                var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
-                var pathIncludeFlags = parentIncludeFlags;
-
-                if (!fields.TryGetValue(responseName, out var nodes))
-                {
-                    nodes = [];
-                    fields.Add(responseName, nodes);
-                }
-
-                if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
-                {
-                    var index = includeConditions.IndexOf(includeCondition);
-
-                    // This path only runs for operations with at most 64 include
-                    // conditions, so the shift cannot wrap.
-                    Debug.Assert((uint)index < 64);
-                    pathIncludeFlags |= 1ul << index;
-                }
-
-                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags, parentDeliveryGroup));
-            }
-            else if (selection is InlineFragmentNode inlineFragmentNode
-                && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
-            {
-                var pathIncludeFlags = parentIncludeFlags;
-
-                if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
-                {
-                    var index = includeConditions.IndexOf(includeCondition);
-
-                    // This path only runs for operations with at most 64 include
-                    // conditions, so the shift cannot wrap.
-                    Debug.Assert((uint)index < 64);
-                    pathIncludeFlags |= 1ul << index;
-                }
-
-                // Look up the canonical DeliveryGroup from the pre-computed
-                // partitioning. The partitioner created one instance per
-                // `... @defer` occurrence; using it here guarantees downstream
-                // set-identity comparisons work correctly.
-                var deliveryGroup = deliveryGroupByFragment.TryGetValue(inlineFragmentNode, out var canonical)
-                    ? canonical
-                    : parentDeliveryGroup;
-
-                CollectFields(
-                    pathIncludeFlags,
-                    inlineFragmentNode.SelectionSet.Selections,
-                    typeContext,
-                    fields,
-                    includeConditions,
-                    deliveryGroupByFragment,
-                    deliveryGroup);
-            }
-        }
-    }
-
-    private void CollectFieldsWide(
         PathIncludeFlagsBuilder parentIncludeFlags,
         IReadOnlyList<ISelectionNode> selections,
         IComplexTypeDefinition typeContext,
@@ -376,7 +259,7 @@ public sealed class OperationCompiler
                     ? canonical
                     : parentDeliveryGroup;
 
-                CollectFieldsWide(
+                CollectFields(
                     pathIncludeFlags,
                     inlineFragmentNode.SelectionSet.Selections,
                     typeContext,
