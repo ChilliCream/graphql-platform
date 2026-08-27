@@ -1,4 +1,4 @@
- [T]asks   [M]ail (2)   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory
 > status:open pricing
 ╭─Results─────────────────────────────────────╮╭─acme-epic1 Launch v2 pricing page──╮
 │   ○ [E] P1 acme-epic1 Launch v2 pricing     ││ Blocks                             │
@@ -32,4 +32,4 @@
                                                │ acme-epic1.1:child-open,           │
                                                │ acme-epic1.2:child-open            │
                                                ╰────────────────────────────────────╯
-esc back  tab open  hjkl move  enter open  r refresh  y copy id  z zoom  e edit  q quit  …  e2…
+esc back  tab open  hjkl move  enter open  r refresh  y copy id  z zoom  q quit  …

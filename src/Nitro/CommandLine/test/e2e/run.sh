@@ -59,7 +59,7 @@ declare -A MARKERS=(
   [detail]="acme-epic1 · blocking · depended on by"
   [mail-send]="Thanks-noted"
   [mail-error]="[nitro exit: 1]"
-  [mail-board]="Inbox (3)"
+  [mail-board]="Workspace: bob (3)"
   [agents]="Billing review"
 )
 ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
@@ -72,17 +72,9 @@ ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error boa
 # normalize it to a fixed placeholder before diffing. The expression is a
 # single literal substitution (no alternation/backreferences) so it cannot
 # fail on a well-formed frame.
-#
-# `agents` renders the board session's list-row Started/Last heard as
-# MailAges.Format relative ages ("now", then "{n}m/h/d"), so they drift with
-# how long the recording takes. The three alternatives below normalize the
-# age text to AGE at equal width, so the row's column layout is unaffected
-# by the substitution itself; this only covers drift in the age text, not a
-# recording slow enough to shift where the row wraps before the scrub runs.
 declare -A SCRUBS=(
   [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
   [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g'
-  [agents]='s/(started|heard) now/\1 AGE/g; s/(started|heard) [0-9][mhd] /\1 AGE/g; s/(started|heard) [0-9]{2}[mhd]/\1 AGE/g'
 )
 
 # --- args: optional --update plus an optional subset of flow names ------------
