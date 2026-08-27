@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types;
@@ -181,11 +183,11 @@ public class DataLoaderTests
             """;
 
         // act
-        var genericDataLoader = TryCreateGenericDataLoaderInfo(source, "GetGenericAsync");
+        var inspectedDataLoaders = InspectDataLoaders(source);
         var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
 
         // assert
-        Assert.IsType<GenericDataLoaderInfo>(genericDataLoader);
+        Assert.Single(inspectedDataLoaders.OfType<GenericDataLoaderInfo>());
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
@@ -1544,6 +1546,33 @@ public class DataLoaderTests
                 out var dataLoaderInfo)
             ? dataLoaderInfo
             : null;
+    }
+
+    private static IReadOnlyCollection<SyntaxInfo> InspectDataLoaders(string source)
+    {
+        var compilation = TestHelper.CreateCompilation(source);
+        var inspected = new ConcurrentQueue<SyntaxInfo>();
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new DataLoaderInspectionGenerator(inspected));
+        driver = driver.RunGenerators(compilation);
+
+        return inspected;
+    }
+
+    private sealed class DataLoaderInspectionGenerator(ConcurrentQueue<SyntaxInfo> inspected)
+        : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context)
+        {
+            var inspector = new DataLoaderInspector();
+            var syntaxInfos = context.SyntaxProvider
+                .CreateSyntaxProvider(
+                    static (node, _) => node is MethodDeclarationSyntax { AttributeLists.Count: > 0 },
+                    (context, _) => inspector.TryHandle(context, out var syntaxInfo) ? syntaxInfo : null)
+                .Where(static t => t is not null)
+                .Select(static (t, _) => t!);
+
+            context.RegisterSourceOutput(syntaxInfos, (_, syntaxInfo) => inspected.Enqueue(syntaxInfo));
+        }
     }
 
     private static string CreateGenericDataLoaderSource(
