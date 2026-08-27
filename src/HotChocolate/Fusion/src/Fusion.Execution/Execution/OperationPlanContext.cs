@@ -153,9 +153,21 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     public ulong IncludeFlags { get; private set; }
 
     /// <summary>
+    /// Gets the include flag overflow words (condition indexes 64 and above) for the
+    /// current request, or <c>null</c> if the operation has at most 64 include conditions.
+    /// </summary>
+    public ulong[]? WideIncludeFlags { get; private set; }
+
+    /// <summary>
     /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
     /// </summary>
     public ulong DeferFlags { get; private set; }
+
+    /// <summary>
+    /// Gets the defer flag overflow words (condition indexes 64 and above) for the
+    /// current request, or <c>null</c> if the operation has at most 64 defer conditions.
+    /// </summary>
+    public ulong[]? WideDeferFlags { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.

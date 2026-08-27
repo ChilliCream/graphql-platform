@@ -8,6 +8,12 @@ public interface ISelectionVisitorContext
 {
     ulong IncludeFlags => ResolverContext.IncludeFlags;
 
+    /// <summary>
+    /// Gets the include flag overflow words (condition indexes 64 and above);
+    /// empty for operations with at most 64 include conditions.
+    /// </summary>
+    ReadOnlySpan<ulong> WideIncludeFlags => ResolverContext.WideIncludeFlags;
+
     Operation Operation => ResolverContext.Operation;
 
     Stack<Selection> Selections { get; }

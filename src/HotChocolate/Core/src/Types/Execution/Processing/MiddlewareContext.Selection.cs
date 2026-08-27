@@ -56,7 +56,10 @@ internal partial class MiddlewareContext
         }
 
         var selectionSet = _operationContext.CollectFields(selection, typeContext);
-        return new SelectionEnumerator(selectionSet, _operationContext.IncludeFlags);
+        return new SelectionEnumerator(
+            selectionSet,
+            _operationContext.IncludeFlags,
+            _operationContext.WideIncludeFlags);
     }
 
     public ISelectionCollection Select()
@@ -65,7 +68,8 @@ internal partial class MiddlewareContext
             _operationContext.Schema,
             Operation,
             [Selection],
-            _operationContext.IncludeFlags);
+            _operationContext.IncludeFlags,
+            _operationContext.WideIncludeFlags);
     }
 
     public ISelectionCollection Select(string fieldName)

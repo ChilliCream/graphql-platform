@@ -14,6 +14,8 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly ulong _deferFlags;
+    private readonly ulong[]? _wideIncludeFlags;
+    private readonly ulong[]? _wideDeferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
@@ -24,7 +26,9 @@ public sealed partial class CompositeResultDocument : IDisposable
         Operation operation,
         ulong includeFlags,
         ulong deferFlags = 0,
-        PathSegmentLocalPool? pathPool = null)
+        PathSegmentLocalPool? pathPool = null,
+        ulong[]? wideIncludeFlags = null,
+        ulong[]? wideDeferFlags = null)
     {
         ArgumentNullException.ThrowIfNull(arena);
 
@@ -34,6 +38,8 @@ public sealed partial class CompositeResultDocument : IDisposable
         _operation = operation;
         _includeFlags = includeFlags;
         _deferFlags = deferFlags;
+        _wideIncludeFlags = wideIncludeFlags;
+        _wideDeferFlags = wideDeferFlags;
         _pathPool = pathPool;
 
         Data = CreateObject(zero, operation.RootSelectionSet);
@@ -444,12 +450,26 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (conditionalSelections.Length > 0)
         {
-            foreach (var index in conditionalSelections)
+            if (_wideIncludeFlags is null && _wideDeferFlags is null)
             {
-                if (IsExcluded(selections[index]))
+                foreach (var index in conditionalSelections)
                 {
-                    // The property row of selection index i is row (i * 2) + 1 of the object block.
-                    excludedRowOffsets[excludedCount++] = (index * 2) + 1;
+                    if (IsExcluded(selections[index]))
+                    {
+                        // The property row of selection index i is row (i * 2) + 1 of the object block.
+                        excludedRowOffsets[excludedCount++] = (index * 2) + 1;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var index in conditionalSelections)
+                {
+                    if (IsExcludedWide(selections[index]))
+                    {
+                        // The property row of selection index i is row (i * 2) + 1 of the object block.
+                        excludedRowOffsets[excludedCount++] = (index * 2) + 1;
+                    }
                 }
             }
         }
@@ -470,8 +490,13 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsExcluded(Selection selection)
-        => !selection.IsIncluded(_includeFlags)
-            || selection.IsDeferred(_deferFlags);
+        => !selection.IsIncludedUnchecked(_includeFlags)
+            || selection.IsDeferredUnchecked(_deferFlags);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsExcludedWide(Selection selection)
+        => !selection.IsIncludedWide(_includeFlags, _wideIncludeFlags)
+            || selection.IsDeferredWide(_deferFlags, _wideDeferFlags);
 
     /// <summary>
     /// Upgrades an interface-typed element produced by an <c>@interfaceObject</c> stand-in to its

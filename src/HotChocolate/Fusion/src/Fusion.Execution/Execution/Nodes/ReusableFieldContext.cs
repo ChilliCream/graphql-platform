@@ -10,6 +10,7 @@ internal sealed class ReusableFieldContext(
     ISchemaDefinition schema,
     IVariableValueCollection variableValues,
     ulong includeFlags,
+    ulong[]? wideIncludeFlags,
     PooledArrayWriter memory,
     CancellationToken cancellationToken)
     : FieldContext
@@ -31,6 +32,8 @@ internal sealed class ReusableFieldContext(
     public List<object?> RuntimeResults => _runtimeResults;
 
     public override ulong IncludeFlags => includeFlags;
+
+    public override ReadOnlySpan<ulong> WideIncludeFlags => wideIncludeFlags;
 
     public override CancellationToken RequestAborted => cancellationToken;
 

@@ -272,6 +272,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public ulong IncludeFlags => _context.IncludeFlags;
 
+        public ReadOnlySpan<ulong> WideIncludeFlags => _context.WideIncludeFlags;
+
         public IServiceProvider RequestServices => _context.RequestServices;
 
         public string ResponseName => _context.ResponseName;

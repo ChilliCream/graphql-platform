@@ -81,4 +81,20 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// <c>false</c> by default.
     /// </summary>
     public bool AllowErrorHandlingModeOverride { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@skip</c>/<c>@include</c>
+    /// conditions an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedIncludeConditions { get; set; } = 1024;
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
+    /// an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedDeferConditions { get; set; } = 1024;
 }

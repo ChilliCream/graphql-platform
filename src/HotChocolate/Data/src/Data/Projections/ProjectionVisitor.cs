@@ -117,13 +117,14 @@ public class ProjectionVisitor<TContext>
             && context.Selections.Peek() is { } pagingFieldSelection)
         {
             var includeFlags = context.IncludeFlags;
+            var wideIncludeFlags = context.WideIncludeFlags;
             var selections = context.Operation.GetSelectionSet(pagingFieldSelection, pageType).Selections;
 
             for (var i = selections.Length - 1; i >= 0; i--)
             {
                 var selection = selections[i];
 
-                if (selection.IsSkipped(includeFlags))
+                if (selection.IsSkipped(includeFlags, wideIncludeFlags))
                 {
                     continue;
                 }

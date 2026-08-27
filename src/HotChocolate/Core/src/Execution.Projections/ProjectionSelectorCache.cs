@@ -3,6 +3,12 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Projections;
 
+/// <summary>
+/// Caches selector expressions per selection and include flags. The cache key carries
+/// only the single-word include flags, so operations with more than 64 include
+/// conditions (wide operations) must bypass this cache; sharing entries across their
+/// requests would project the wrong fields.
+/// </summary>
 internal sealed class ProjectionSelectorCache
 {
     public const int DefaultCapacity = 4096;

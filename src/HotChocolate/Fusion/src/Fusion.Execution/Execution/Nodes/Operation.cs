@@ -70,6 +70,8 @@ public sealed class Operation : IOperation
         _hasIncrementalParts = hasIncrementalParts;
         _lastId = lastId;
         _elementsById = elementsById;
+        HasWideIncludeFlags = includeConditions.Count > 64;
+        HasWideDeferFlags = deferConditions.Count > 64;
 
         _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
@@ -125,6 +127,28 @@ public sealed class Operation : IOperation
     public IFeatureCollection Features => _features;
 
     public bool HasIncrementalParts => _hasIncrementalParts;
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 include
+    /// conditions and therefore requires the wide include flag overloads.
+    /// </summary>
+    public bool HasWideIncludeFlags { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 defer
+    /// conditions and therefore requires the wide defer flag overloads.
+    /// </summary>
+    public bool HasWideDeferFlags { get; }
+
+    /// <summary>
+    /// Gets the number of distinct include conditions of this operation.
+    /// </summary>
+    internal int IncludeConditionCount => _includeConditions.Count;
+
+    /// <summary>
+    /// Gets the number of distinct defer conditions of this operation.
+    /// </summary>
+    internal int DeferConditionCount => _deferConditions.Count;
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
@@ -185,6 +209,8 @@ public sealed class Operation : IOperation
                             (FusionComplexTypeDefinition)typeContext,
                             _includeConditions,
                             _deliveryGroupByFragment,
+                            HasWideIncludeFlags,
+                            HasWideDeferFlags,
                             ref _elementsById,
                             ref _lastId);
                     selectionSet.Seal(this);
@@ -254,6 +280,13 @@ public sealed class Operation : IOperation
             }
 
             index++;
+
+            // Conditions with index >= 64 live in the overflow words created by
+            // CreateIncludeFlagsOverflow; setting their bits here would wrap.
+            if (index == 64)
+            {
+                break;
+            }
         }
 
         return includeFlags;
@@ -281,9 +314,82 @@ public sealed class Operation : IOperation
             }
 
             index++;
+
+            // Conditions with index >= 64 live in the overflow words created by
+            // CreateDeferFlagsOverflow; setting their bits here would wrap.
+            if (index == 64)
+            {
+                break;
+            }
         }
 
         return deferFlags;
+    }
+
+    /// <summary>
+    /// Creates the include flag overflow words (condition indexes 64 and above)
+    /// for the specified variable values.
+    /// </summary>
+    /// <param name="variables">
+    /// The variable values.
+    /// </param>
+    /// <returns>
+    /// The overflow words, or <c>null</c> if this operation has at most 64 include conditions.
+    /// </returns>
+    internal ulong[]? CreateIncludeFlagsOverflow(IVariableValueCollection variables)
+    {
+        if (!HasWideIncludeFlags)
+        {
+            return null;
+        }
+
+        var overflow = new ulong[(_includeConditions.Count - 1) >> 6];
+        var index = 0;
+
+        foreach (var includeCondition in _includeConditions)
+        {
+            if (index >= 64 && includeCondition.IsIncluded(variables))
+            {
+                overflow[(index >> 6) - 1] |= 1ul << (index & 63);
+            }
+
+            index++;
+        }
+
+        return overflow;
+    }
+
+    /// <summary>
+    /// Creates the defer flag overflow words (condition indexes 64 and above)
+    /// for the specified variable values.
+    /// </summary>
+    /// <param name="variables">
+    /// The variable values.
+    /// </param>
+    /// <returns>
+    /// The overflow words, or <c>null</c> if this operation has at most 64 defer conditions.
+    /// </returns>
+    internal ulong[]? CreateDeferFlagsOverflow(IVariableValueCollection variables)
+    {
+        if (!HasWideDeferFlags)
+        {
+            return null;
+        }
+
+        var overflow = new ulong[(_deferConditions.Count - 1) >> 6];
+        var index = 0;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (index >= 64 && deferCondition.IsDeferred(variables))
+            {
+                overflow[(index >> 6) - 1] |= 1ul << (index & 63);
+            }
+
+            index++;
+        }
+
+        return overflow;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

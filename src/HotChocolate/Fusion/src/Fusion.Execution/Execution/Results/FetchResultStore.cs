@@ -54,6 +54,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private ErrorHandlingMode _errorHandlingMode;
     private ulong _includeFlags;
     private ulong _deferFlags;
+    private ulong[]? _wideIncludeFlags;
+    private ulong[]? _wideDeferFlags;
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);

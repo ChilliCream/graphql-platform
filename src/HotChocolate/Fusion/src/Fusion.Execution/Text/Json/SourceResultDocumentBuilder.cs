@@ -9,6 +9,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 {
     private readonly Operation _operation;
     private readonly IMemoryArena _arena;
+    private readonly ulong[]? _wideIncludeFlags;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     internal readonly PooledArrayWriter _data = new();
@@ -22,10 +23,12 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         IMemoryArena arena,
         Operation operation,
         ulong includeFlags,
+        ulong[]? wideIncludeFlags = null,
         SelectionSet? selectionSet = null)
     {
         _arena = arena ?? throw new ArgumentNullException(nameof(arena));
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _wideIncludeFlags = wideIncludeFlags;
         _metaDb = new MetaDb();
 
         selectionSet ??= operation.RootSelectionSet;
@@ -61,16 +64,33 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         var propertyCount = 0;
         var start = _metaDb.Append(ElementTokenType.StartObject);
 
-        foreach (var selection in selections)
+        if (_wideIncludeFlags is null)
         {
-            if (!selection.IsIncluded(includeFlags))
+            foreach (var selection in selections)
             {
-                continue;
-            }
+                if (!selection.IsIncludedUnchecked(includeFlags))
+                {
+                    continue;
+                }
 
-            propertyCount++;
-            _metaDb.Append(ElementTokenType.PropertyName);
-            _metaDb.Append(ElementTokenType.None);
+                propertyCount++;
+                _metaDb.Append(ElementTokenType.PropertyName);
+                _metaDb.Append(ElementTokenType.None);
+            }
+        }
+        else
+        {
+            foreach (var selection in selections)
+            {
+                if (!selection.IsIncludedWide(includeFlags, _wideIncludeFlags))
+                {
+                    continue;
+                }
+
+                propertyCount++;
+                _metaDb.Append(ElementTokenType.PropertyName);
+                _metaDb.Append(ElementTokenType.None);
+            }
         }
 
         var rows = (propertyCount * 2) + 2;

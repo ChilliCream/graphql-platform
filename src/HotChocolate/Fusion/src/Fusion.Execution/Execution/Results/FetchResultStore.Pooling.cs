@@ -22,7 +22,9 @@ internal sealed partial class FetchResultStore
         ErrorHandlingMode errorHandlingMode,
         ulong includeFlags,
         ulong deferFlags,
-        int pathSegmentLocalPoolCapacity)
+        int pathSegmentLocalPoolCapacity,
+        ulong[]? wideIncludeFlags = null,
+        ulong[]? wideDeferFlags = null)
     {
         ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(schema);
@@ -35,10 +37,19 @@ internal sealed partial class FetchResultStore
         _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
         _deferFlags = deferFlags;
+        _wideIncludeFlags = wideIncludeFlags;
+        _wideDeferFlags = wideDeferFlags;
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-        _result = new CompositeResultDocument(arena, operation, includeFlags, deferFlags, _pathPool);
+        _result = new CompositeResultDocument(
+            arena,
+            operation,
+            includeFlags,
+            deferFlags,
+            _pathPool,
+            wideIncludeFlags,
+            wideDeferFlags);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -80,7 +91,9 @@ internal sealed partial class FetchResultStore
             _operation,
             _includeFlags,
             _deferFlags,
-            _pathPool);
+            _pathPool,
+            _wideIncludeFlags,
+            _wideDeferFlags);
 
         _errors?.Clear();
         _pocketedErrors?.Clear();
@@ -136,6 +149,8 @@ internal sealed partial class FetchResultStore
         _errorHandler = default!;
         _operation = default!;
         _arena = default!;
+        _wideIncludeFlags = null;
+        _wideDeferFlags = null;
     }
 
     private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)

@@ -108,8 +108,10 @@ internal sealed partial class OperationContext
         _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
+        WideIncludeFlags = operation.CreateIncludeFlagsOverflow(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
-        Result.Data = new ResultDocument(_memory, operation, IncludeFlags);
+        WideDeferFlags = operation.CreateDeferFlagsOverflow(variables);
+        Result.Data = new ResultDocument(_memory, operation, IncludeFlags, WideIncludeFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 
@@ -154,7 +156,9 @@ internal sealed partial class OperationContext
         _isInitialized = true;
 
         IncludeFlags = context.IncludeFlags;
+        WideIncludeFlags = context.WideIncludeFlags;
         DeferFlags = context.DeferFlags;
+        WideDeferFlags = context.WideDeferFlags;
 
         Result.Data = new ResultDocument(
             context._memory!,
@@ -163,7 +167,9 @@ internal sealed partial class OperationContext
             selectionPath,
             context.IncludeFlags,
             context.DeferFlags,
-            deferUsage);
+            deferUsage,
+            context.WideIncludeFlags,
+            context.WideDeferFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = context._variableIndex;
     }
@@ -205,6 +211,8 @@ internal sealed partial class OperationContext
             _branchId = int.MinValue;
             _propagateNullValues = false;
             _isInitialized = false;
+            WideIncludeFlags = null;
+            WideDeferFlags = null;
             Result.Reset();
         }
     }

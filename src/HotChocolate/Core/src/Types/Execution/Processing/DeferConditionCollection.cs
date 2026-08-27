@@ -4,7 +4,18 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class DeferConditionCollection : ICollection<DeferCondition>
 {
+    /// <summary>
+    /// The default maximum number of defer conditions an operation may declare.
+    /// </summary>
+    public const int DefaultMaxAllowedConditions = 1024;
+
     private readonly OrderedDictionary<DeferCondition, int> _dictionary = [];
+    private readonly int _maxAllowedConditions;
+
+    public DeferConditionCollection(int maxAllowedConditions = DefaultMaxAllowedConditions)
+    {
+        _maxAllowedConditions = maxAllowedConditions;
+    }
 
     public DeferCondition this[int index]
         => _dictionary.GetAt(index).Key;
@@ -15,13 +26,22 @@ internal sealed class DeferConditionCollection : ICollection<DeferCondition>
 
     public bool Add(DeferCondition item)
     {
-        if (_dictionary.Count == 64)
+        if (!_dictionary.TryAdd(item, _dictionary.Count))
         {
-            throw new InvalidOperationException(
-                "The maximum number of defer conditions has been reached.");
+            return false;
         }
 
-        return _dictionary.TryAdd(item, _dictionary.Count);
+        if (_dictionary.Count > _maxAllowedConditions)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The operation exceeds the maximum allowed number of "
+                        + $"defer conditions ({_maxAllowedConditions}).")
+                    .Build());
+        }
+
+        return true;
     }
 
     void ICollection<DeferCondition>.Add(DeferCondition item)

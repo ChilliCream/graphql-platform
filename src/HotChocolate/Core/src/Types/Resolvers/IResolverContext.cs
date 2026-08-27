@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Features;
@@ -48,6 +49,13 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// Gets the selection include flags.
     /// </summary>
     ulong IncludeFlags { get; }
+
+    /// <summary>
+    /// Gets the include flag overflow words (condition indexes 64 and above);
+    /// empty for operations with at most 64 include conditions.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    ReadOnlySpan<ulong> WideIncludeFlags => default;
 
     /// <summary>
     /// Gets the previous (parent) resolver result.

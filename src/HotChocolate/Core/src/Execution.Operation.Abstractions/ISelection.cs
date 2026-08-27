@@ -124,6 +124,27 @@ public interface ISelection
     bool IsIncluded(ulong includeFlags);
 
     /// <summary>
+    /// Determines whether this selection should be included based on conditional flags
+    /// for operations with more than 64 include conditions.
+    /// </summary>
+    /// <param name="includeFlags">
+    /// The conditional inclusion flags for the condition indexes 0-63 (word 0).
+    /// </param>
+    /// <param name="wideIncludeFlags">
+    /// The overflow words holding the flags for condition indexes 64 and above;
+    /// empty for operations with at most 64 include conditions.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if this selection should be executed given the current
+    /// variable values; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// For non-conditional selections, this always returns <c>true</c>.
+    /// </remarks>
+    bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
+        => IsIncluded(includeFlags);
+
+    /// <summary>
     /// Determines whether this selection is deferred based on the <c>@defer</c> directive flags.
     /// </summary>
     /// <param name="deferFlags">
@@ -149,4 +170,25 @@ public interface ISelection
     /// </para>
     /// </remarks>
     bool IsDeferred(ulong deferFlags);
+
+    /// <summary>
+    /// Determines whether this selection is deferred based on the <c>@defer</c> directive flags
+    /// for operations with more than 64 defer conditions.
+    /// </summary>
+    /// <param name="deferFlags">
+    /// The defer condition flags for the condition indexes 0-63 (word 0).
+    /// </param>
+    /// <param name="wideDeferFlags">
+    /// The overflow words holding the flags for condition indexes 64 and above;
+    /// empty for operations with at most 64 defer conditions.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if this selection should be deferred and delivered incrementally
+    /// in a subsequent payload; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// For selections without any <c>@defer</c> directive, this always returns <c>false</c>.
+    /// </remarks>
+    bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+        => IsDeferred(deferFlags);
 }

@@ -10,6 +10,7 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
 {
     private readonly SelectionSet _selectionSet;
     private readonly ulong _includeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
     private int _position = -1;
 
     /// <summary>
@@ -23,8 +24,23 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
     /// </param>
     public SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags)
     {
+        if (selectionSet?.DeclaringOperation.HasWideIncludeFlags == true)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this enumerator "
+                + "requires the wide include flags. Use IResolverContext.GetSelections.");
+        }
+
+        _selectionSet = selectionSet!;
+        _includeFlags = includeFlags;
+        Current = null!;
+    }
+
+    internal SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags, ulong[]? wideIncludeFlags)
+    {
         _selectionSet = selectionSet;
         _includeFlags = includeFlags;
+        _wideIncludeFlags = wideIncludeFlags;
         Current = null!;
     }
 
@@ -48,6 +64,11 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
             return false;
         }
 
+        if (_wideIncludeFlags is not null)
+        {
+            return MoveNextWide();
+        }
+
         var length = _selectionSet.Selections.Length;
 
         while (_position < length)
@@ -60,7 +81,32 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
             }
 
             var selection = _selectionSet.Selections[_position];
-            if (selection.IsIncluded(_includeFlags))
+            if (selection.IsIncludedUnchecked(_includeFlags))
+            {
+                Current = selection;
+                return true;
+            }
+        }
+
+        Current = null!;
+        return false;
+    }
+
+    private bool MoveNextWide()
+    {
+        var length = _selectionSet.Selections.Length;
+
+        while (_position < length)
+        {
+            _position++;
+
+            if (_position >= length)
+            {
+                break;
+            }
+
+            var selection = _selectionSet.Selections[_position];
+            if (selection.IsIncludedWide(_includeFlags, _wideIncludeFlags))
             {
                 Current = selection;
                 return true;
