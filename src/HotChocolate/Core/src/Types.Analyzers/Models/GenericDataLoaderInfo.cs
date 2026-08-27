@@ -135,14 +135,22 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         AttributeData attributeData,
         IMethodSymbol methodSymbol,
         MethodDeclarationSyntax methodSyntax,
+        Compilation compilation,
         out GenericDataLoaderInfo? dataLoaderInfo)
     {
-        if (!TryResolveContract(
+        var wellKnownTypes = DataLoaderSymbols.TryCreate(compilation);
+
+        if (wellKnownTypes is null
+            || !SymbolEqualityComparer.Default.Equals(
+                attributeSymbol.ContainingType.OriginalDefinition,
+                wellKnownTypes.GenericDataLoaderAttribute)
+            || !TryResolveContract(
                 attributeSymbol.ContainingType.TypeArguments[0],
+                wellKnownTypes,
                 out var kind,
                 out var keyType,
                 out var valueType)
-            || !HasValidMethodShape(methodSymbol, kind, keyType, valueType))
+            || !HasValidMethodShape(methodSymbol, kind, keyType, valueType, wellKnownTypes))
         {
             dataLoaderInfo = null;
             return false;
@@ -163,6 +171,7 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
 
     private static bool TryResolveContract(
         ITypeSymbol dataLoaderType,
+        DataLoaderSymbols wellKnownTypes,
         out DataLoaderKind kind,
         out ITypeSymbol keyType,
         out ITypeSymbol valueType)
@@ -181,14 +190,14 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
 
         var contracts = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
 
-        if (IsDataLoaderKindInterface(namedDataLoaderType))
+        if (IsDataLoaderKindInterface(namedDataLoaderType, wellKnownTypes))
         {
             contracts.Add(namedDataLoaderType);
         }
 
         foreach (var interfaceType in namedDataLoaderType.AllInterfaces)
         {
-            if (IsDataLoaderKindInterface(interfaceType))
+            if (IsDataLoaderKindInterface(interfaceType, wellKnownTypes))
             {
                 contracts.Add(interfaceType);
             }
@@ -203,12 +212,11 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         }
 
         var contract = contracts[0];
-        kind = GetTypeNameWithoutGenerics(contract) switch
-        {
-            WellKnownTypes.BatchDataLoader => DataLoaderKind.Batch,
-            WellKnownTypes.CacheDataLoader => DataLoaderKind.Cache,
-            _ => throw new InvalidOperationException()
-        };
+        kind = SymbolEqualityComparer.Default.Equals(
+            contract.ConstructedFrom,
+            wellKnownTypes.BatchDataLoader)
+            ? DataLoaderKind.Batch
+            : DataLoaderKind.Cache;
         keyType = contract.TypeArguments[0];
         valueType = contract.TypeArguments[1];
         return true;
@@ -218,10 +226,14 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         IMethodSymbol methodSymbol,
         DataLoaderKind kind,
         ITypeSymbol keyType,
-        ITypeSymbol valueType)
+        ITypeSymbol valueType,
+        DataLoaderSymbols wellKnownTypes)
     {
         if (methodSymbol.Parameters.Length == 0
             || methodSymbol.IsGenericMethod
+            || methodSymbol.ReturnsByRef
+            || methodSymbol.ReturnsByRefReadonly
+            || methodSymbol.Parameters.Any(t => t.RefKind is not RefKind.None)
             || methodSymbol.DeclaredAccessibility is not (
                 Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedAndInternal))
         {
@@ -229,32 +241,33 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         }
 
         return kind is DataLoaderKind.Batch
-            ? IsBatchMethod(methodSymbol, keyType, valueType)
-            : IsCacheMethod(methodSymbol, keyType, valueType);
+            ? IsBatchMethod(methodSymbol, keyType, valueType, wellKnownTypes)
+            : IsCacheMethod(methodSymbol, keyType, valueType, wellKnownTypes);
     }
 
     private static bool IsBatchMethod(
         IMethodSymbol methodSymbol,
         ITypeSymbol keyType,
-        ITypeSymbol valueType)
-        => IsReadOnlyList(methodSymbol.Parameters[0].Type, keyType)
-            && TryGetAsyncResultType(methodSymbol.ReturnType, out var resultType)
-            && IsDictionary(resultType, keyType, valueType);
+        ITypeSymbol valueType,
+        DataLoaderSymbols wellKnownTypes)
+        => IsReadOnlyList(methodSymbol.Parameters[0].Type, keyType, wellKnownTypes)
+            && TryGetAsyncResultType(methodSymbol.ReturnType, wellKnownTypes, out var resultType)
+            && IsDictionary(resultType, keyType, valueType, wellKnownTypes);
 
     private static bool IsCacheMethod(
         IMethodSymbol methodSymbol,
         ITypeSymbol keyType,
-        ITypeSymbol valueType)
+        ITypeSymbol valueType,
+        DataLoaderSymbols wellKnownTypes)
         => methodSymbol.Parameters[0].Type.Equals(keyType, SymbolEqualityComparer.Default)
-            && TryGetAsyncResultType(methodSymbol.ReturnType, out var resultType)
+            && TryGetAsyncResultType(methodSymbol.ReturnType, wellKnownTypes, out var resultType)
             && resultType.Equals(valueType, SymbolEqualityComparer.Default);
 
-    private static bool IsDataLoaderKindInterface(INamedTypeSymbol type)
-    {
-        var name = GetTypeNameWithoutGenerics(type);
-        return name.Equals(WellKnownTypes.BatchDataLoader, StringComparison.Ordinal)
-            || name.Equals(WellKnownTypes.CacheDataLoader, StringComparison.Ordinal);
-    }
+    private static bool IsDataLoaderKindInterface(
+        INamedTypeSymbol type,
+        DataLoaderSymbols wellKnownTypes)
+        => SymbolEqualityComparer.Default.Equals(type.ConstructedFrom, wellKnownTypes.BatchDataLoader)
+            || SymbolEqualityComparer.Default.Equals(type.ConstructedFrom, wellKnownTypes.CacheDataLoader);
 
     private static bool IsClosed(ITypeSymbol type)
         => type switch
@@ -265,28 +278,39 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
             _ => true
         };
 
-    private static bool IsReadOnlyList(ITypeSymbol type, ITypeSymbol keyType)
+    private static bool IsReadOnlyList(
+        ITypeSymbol type,
+        ITypeSymbol keyType,
+        DataLoaderSymbols wellKnownTypes)
         => type is INamedTypeSymbol { TypeArguments.Length: 1 } namedType
-            && GetTypeNameWithoutGenerics(namedType).Equals(WellKnownTypes.ReadOnlyList, StringComparison.Ordinal)
+            && SymbolEqualityComparer.Default.Equals(
+                namedType.ConstructedFrom,
+                wellKnownTypes.ReadOnlyList)
             && namedType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default);
 
     private static bool IsDictionary(
         ITypeSymbol type,
         ITypeSymbol keyType,
-        ITypeSymbol valueType)
+        ITypeSymbol valueType,
+        DataLoaderSymbols wellKnownTypes)
         => type is INamedTypeSymbol { TypeArguments.Length: 2 } namedType
-            && (GetTypeNameWithoutGenerics(namedType).Equals(WellKnownTypes.ReadOnlyDictionary, StringComparison.Ordinal)
-                || GetTypeNameWithoutGenerics(namedType).Equals(WellKnownTypes.DictionaryInterface, StringComparison.Ordinal))
+            && (SymbolEqualityComparer.Default.Equals(
+                    namedType.ConstructedFrom,
+                    wellKnownTypes.ReadOnlyDictionary)
+                || SymbolEqualityComparer.Default.Equals(
+                    namedType.ConstructedFrom,
+                    wellKnownTypes.DictionaryInterface))
             && namedType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default)
             && namedType.TypeArguments[1].Equals(valueType, SymbolEqualityComparer.Default);
 
     private static bool TryGetAsyncResultType(
         ITypeSymbol returnType,
+        DataLoaderSymbols wellKnownTypes,
         out ITypeSymbol resultType)
     {
         if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType
-            && (GetTypeNameWithoutGenerics(namedType).Equals(WellKnownTypes.Task, StringComparison.Ordinal)
-                || GetTypeNameWithoutGenerics(namedType).Equals(WellKnownTypes.ValueTask, StringComparison.Ordinal)))
+            && (SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, wellKnownTypes.Task)
+                || SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, wellKnownTypes.ValueTask)))
         {
             resultType = namedType.TypeArguments[0];
             return true;
@@ -296,8 +320,67 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         return false;
     }
 
-    private static string GetTypeNameWithoutGenerics(ITypeSymbol type)
-        => $"{type.ContainingNamespace}.{type.Name}";
+    private sealed class DataLoaderSymbols(
+        INamedTypeSymbol genericDataLoaderAttribute,
+        INamedTypeSymbol batchDataLoader,
+        INamedTypeSymbol cacheDataLoader,
+        INamedTypeSymbol readOnlyList,
+        INamedTypeSymbol readOnlyDictionary,
+        INamedTypeSymbol dictionaryInterface,
+        INamedTypeSymbol task,
+        INamedTypeSymbol valueTask)
+    {
+        public INamedTypeSymbol GenericDataLoaderAttribute { get; } = genericDataLoaderAttribute;
+
+        public INamedTypeSymbol BatchDataLoader { get; } = batchDataLoader;
+
+        public INamedTypeSymbol CacheDataLoader { get; } = cacheDataLoader;
+
+        public INamedTypeSymbol ReadOnlyList { get; } = readOnlyList;
+
+        public INamedTypeSymbol ReadOnlyDictionary { get; } = readOnlyDictionary;
+
+        public INamedTypeSymbol DictionaryInterface { get; } = dictionaryInterface;
+
+        public INamedTypeSymbol Task { get; } = task;
+
+        public INamedTypeSymbol ValueTask { get; } = valueTask;
+
+        public static DataLoaderSymbols? TryCreate(Compilation compilation)
+        {
+            var genericDataLoaderAttribute = compilation.GetTypeByMetadataName(
+                WellKnownAttributes.GenericDataLoaderAttribute);
+            var batchDataLoader = compilation.GetTypeByMetadataName("GreenDonut.IBatchDataLoader`2");
+            var cacheDataLoader = compilation.GetTypeByMetadataName("GreenDonut.ICacheDataLoader`2");
+            var readOnlyList = compilation.GetTypeByMetadataName(
+                "System.Collections.Generic.IReadOnlyList`1");
+            var readOnlyDictionary = compilation.GetTypeByMetadataName(
+                "System.Collections.Generic.IReadOnlyDictionary`2");
+            var dictionaryInterface = compilation.GetTypeByMetadataName(
+                "System.Collections.Generic.IDictionary`2");
+            var task = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+            var valueTask = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+            return genericDataLoaderAttribute is not null
+                && batchDataLoader is not null
+                && cacheDataLoader is not null
+                && readOnlyList is not null
+                && readOnlyDictionary is not null
+                && dictionaryInterface is not null
+                && task is not null
+                && valueTask is not null
+                ? new DataLoaderSymbols(
+                    genericDataLoaderAttribute,
+                    batchDataLoader,
+                    cacheDataLoader,
+                    readOnlyList,
+                    readOnlyDictionary,
+                    dictionaryInterface,
+                    task,
+                    valueTask)
+                : null;
+        }
+    }
 
     public override bool Equals(object? obj)
         => obj is GenericDataLoaderInfo other && Equals(other);

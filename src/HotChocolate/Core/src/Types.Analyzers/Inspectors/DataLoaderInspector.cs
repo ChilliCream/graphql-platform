@@ -6,8 +6,6 @@ using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static System.StringComparison;
-
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class DataLoaderInspector : ISyntaxInspector
@@ -22,6 +20,12 @@ public sealed class DataLoaderInspector : ISyntaxInspector
     {
         if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0 } methodSyntax)
         {
+            var compilation = context.SemanticModel.Compilation;
+            var dataLoaderAttribute = compilation.GetTypeByMetadataName(
+                WellKnownAttributes.DataLoaderAttribute);
+            var genericDataLoaderAttribute = compilation.GetTypeByMetadataName(
+                WellKnownAttributes.GenericDataLoaderAttribute);
+
             foreach (var attributeListSyntax in methodSyntax.AttributeLists)
             {
                 foreach (var attributeSyntax in attributeListSyntax.Attributes)
@@ -34,14 +38,16 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                     }
 
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                    var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                     if (context.SemanticModel.GetDeclaredSymbol(methodSyntax) is not { } methodSymbol)
                     {
                         continue;
                     }
 
-                    if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal))
+                    if (dataLoaderAttribute is not null
+                        && SymbolEqualityComparer.Default.Equals(
+                            attributeContainingTypeSymbol.OriginalDefinition,
+                            dataLoaderAttribute))
                     {
                         var attributeData = methodSymbol.GetDataLoaderAttribute(attributeContainingTypeSymbol);
 
@@ -54,14 +60,17 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (fullName.StartsWith(WellKnownAttributes.DataLoaderAttribute, Ordinal)
-                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                    if (genericDataLoaderAttribute is not null
+                        && SymbolEqualityComparer.Default.Equals(
+                            attributeContainingTypeSymbol.OriginalDefinition,
+                            genericDataLoaderAttribute)
                         && GenericDataLoaderInfo.TryCreate(
                             attributeSyntax,
                             attributeSymbol,
                             methodSymbol.GetDataLoaderAttribute(attributeContainingTypeSymbol),
                             methodSymbol,
                             methodSyntax,
+                            compilation,
                             out var genericDataLoader))
                     {
                         syntaxInfo = genericDataLoader!;

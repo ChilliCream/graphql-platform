@@ -1,6 +1,8 @@
+using HotChocolate.Types.Analyzers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types;
@@ -124,6 +126,251 @@ public class DataLoaderTests
         // assert
         Assert.Null(concreteTypeInfo);
         Assert.Null(invalidReturnTypeInfo);
+    }
+
+    [Theory]
+    [MemberData(nameof(GenericDataLoaderContractCases))]
+    public void TryCreate_Should_ModelExpectedContract_When_GenericDataLoaderMethodIsExamined(
+        string source,
+        DataLoaderKind? expectedKind)
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(source);
+
+        // act
+        var info = TryCreateGenericDataLoaderInfo(source);
+
+        // assert
+        Assert.Empty(
+            compilation.GetDiagnostics(TestContext.Current.CancellationToken)
+                .Where(t => t.Severity is DiagnosticSeverity.Error));
+
+        if (expectedKind is { } kind)
+        {
+            var dataLoader = Assert.IsType<GenericDataLoaderInfo>(info);
+            Assert.Equal(kind, dataLoader.Kind);
+        }
+        else
+        {
+            Assert.Null(info);
+        }
+    }
+
+    [Fact]
+    public void Generate_Should_IgnoreGenericMethod_When_OldAttributeLoaderIsValid()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>]
+                public static Task<IReadOnlyDictionary<int, string>> GetGenericAsync<T>(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetOldAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+        var compilation = TestHelper.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new GraphQLServerGenerator());
+
+        // act
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+        var result = driver.GetRunResult();
+        var generatedSources = result.Results.SelectMany(t => t.GeneratedSources).ToArray();
+
+        // assert
+        Assert.Equal(2, generatedSources.Length);
+        Assert.All(
+            generatedSources,
+            generatedSource => Assert.Contains(
+                "OldDataLoader",
+                generatedSource.SourceText.ToString(),
+                StringComparison.Ordinal));
+        Assert.Empty(result.Diagnostics);
+    }
+
+    public static IEnumerable<object?[]> GenericDataLoaderContractCases()
+    {
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            DataLoaderKind.Batch
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IEntityLoader : ICacheDataLoader<int, string> { }",
+                "IEntityLoader",
+                "ValueTask<string> GetAsync(int key) => default;"),
+            DataLoaderKind.Cache
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "ICacheDataLoader<int, string>",
+                "Task<string> GetAsync(int key) => default!;"),
+            DataLoaderKind.Cache
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IEntityLoader : IBatchDataLoader<int, string> { }",
+                "IEntityLoader",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            DataLoaderKind.Batch
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "ValueTask<IDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default;"),
+            DataLoaderKind.Batch
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<string> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IInvalid : IBatchDataLoader<int, string>, ICacheDataLoader<int, string> { }",
+                "IInvalid",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;",
+                """
+                namespace GreenDonut
+                {
+                    public sealed class DataLoaderAttributeXAttribute<T> : System.Attribute { }
+                }
+                """,
+                "DataLoaderAttributeX<IBatchDataLoader<int, string>>"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;",
+                """
+                namespace GreenDonut
+                {
+                    public static class DataLoaderAttributeX
+                    {
+                        public sealed class NestedAttribute<T> : System.Attribute { }
+                    }
+                }
+                """,
+                "DataLoaderAttributeX.Nested<IBatchDataLoader<int, string>>"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IReadOnlyList<T> { }",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal class Task<T> { }",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<Dictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(ref IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(in IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(ref readonly IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(out IReadOnlyList<int> keys) { keys = default!; return default!; }"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys, ref int marker) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "private static Task<IReadOnlyDictionary<int, string>> s_result = default!;",
+                "IBatchDataLoader<int, string>",
+                "ref Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => ref s_result;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "private static Task<IReadOnlyDictionary<int, string>> s_result = default!;",
+                "IBatchDataLoader<int, string>",
+                "ref readonly Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => ref s_result;"),
+            null
+        ];
     }
 
     [Fact]
@@ -1299,8 +1546,34 @@ public class DataLoaderTests
                 attributeData,
                 methodSymbol,
                 methodSyntax,
+                compilation,
                 out var dataLoaderInfo)
             ? dataLoaderInfo
             : null;
     }
+
+    private static string CreateGenericDataLoaderSource(
+        string declarations,
+        string dataLoaderType,
+        string method,
+        string additionalDeclarations = "",
+        string? attribute = null)
+        => $$"""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            {{additionalDeclarations}}
+
+            namespace TestNamespace
+            {
+                internal static class Loaders
+                {
+                    {{declarations}}
+
+                    [{{attribute ?? $"DataLoader<{dataLoaderType}>"}}]
+                    public static {{method}}
+                }
+            }
+            """;
 }
