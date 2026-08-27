@@ -1,5 +1,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -60,7 +61,7 @@ public static class HotChocolateDataQueryableExtensions
     public static IQueryable<T> Select<T>(this IQueryable<T> queryable, Selection selection, ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(selection);
-        return queryable.Select(selection.AsSelector<T>(includeFlags));
+        return queryable.Select(selection.AsSelector<T>(new ConditionFlags(includeFlags)));
     }
 
     /// <summary>
