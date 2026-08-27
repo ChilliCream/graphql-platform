@@ -137,12 +137,11 @@ public class SelectionVisitor<TContext> : SelectionVisitor where TContext : ISel
         try
         {
             var selectionSet = selection.GetSelectionSet(objectType);
-            var includeFlags = context.ResolverContext.IncludeFlags;
-            var wideIncludeFlags = context.ResolverContext.WideIncludeFlags;
+            var includeFlags = context.ResolverContext.IncludeConditionFlags;
 
             foreach (var childSelection in selectionSet.Selections)
             {
-                if (childSelection.IsSkipped(includeFlags, wideIncludeFlags))
+                if (childSelection.IsSkipped(includeFlags))
                 {
                     continue;
                 }

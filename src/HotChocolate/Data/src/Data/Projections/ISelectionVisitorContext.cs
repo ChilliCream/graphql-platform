@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -6,13 +7,10 @@ namespace HotChocolate.Data.Projections;
 
 public interface ISelectionVisitorContext
 {
-    ulong IncludeFlags => ResolverContext.IncludeFlags;
+    [Obsolete("Use IncludeConditionFlags instead.")]
+    ulong IncludeFlags => ResolverContext.IncludeConditionFlags.Word0;
 
-    /// <summary>
-    /// Gets the include flag overflow words (condition indexes 64 and above);
-    /// empty for operations with at most 64 include conditions.
-    /// </summary>
-    ReadOnlySpan<ulong> WideIncludeFlags => ResolverContext.WideIncludeFlags;
+    ConditionFlags IncludeConditionFlags => ResolverContext.IncludeConditionFlags;
 
     Operation Operation => ResolverContext.Operation;
 

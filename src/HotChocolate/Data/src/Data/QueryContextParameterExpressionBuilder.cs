@@ -84,7 +84,7 @@ internal sealed class QueryContextParameterExpressionBuilder()
         var sortContext = context.GetSortingContext();
 
         return new QueryContext<T>(
-            selection.AsSelector<T>(context.IncludeFlags, context.WideIncludeFlags),
+            selection.AsSelector<T>(context.IncludeConditionFlags),
             filterContext?.AsPredicate<T>(),
             sortContext?.AsSortDefinition<T>());
     }

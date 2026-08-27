@@ -270,9 +270,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public Path Path => _context.Path;
 
-        public ulong IncludeFlags => _context.IncludeFlags;
+        public ulong IncludeFlags => _context.IncludeConditionFlags.Word0;
 
-        public ReadOnlySpan<ulong> WideIncludeFlags => _context.WideIncludeFlags;
+        public ConditionFlags IncludeConditionFlags => _context.IncludeConditionFlags;
 
         public IServiceProvider RequestServices => _context.RequestServices;
 

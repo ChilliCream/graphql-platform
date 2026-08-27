@@ -1639,15 +1639,15 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         variables[64] = "$wide: Boolean!";
 
-        return $"""
-            query({string.Join(", ", variables)}) {{
-              {string.Join(Environment.NewLine + "  ", fields)}
-              tenantsCapturedWide: tenantsCapturedWide {{id
-                workspaces @include(if: $wide) {{
+        return $$"""
+            query({{string.Join(", ", variables)}}) {
+              {{string.Join(Environment.NewLine + "  ", fields)}}
+              tenantsCapturedWide: tenantsCapturedWide {id
+                workspaces @include(if: $wide) {
                   id
-                }}
-              }}
-            }}
+                }
+              }
+            }
             """;
     }
 
