@@ -654,7 +654,7 @@ public sealed class OperationCompiler
             {
                 var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
                 _elementsById.AsSpan().CopyTo(newArray);
-                s_objectArrayPool.Return(_elementsById);
+                s_objectArrayPool.Return(_elementsById, clearArray: true);
                 _elementsById = newArray;
             }
 

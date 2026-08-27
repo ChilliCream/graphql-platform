@@ -68,6 +68,20 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
     internal int GetEndIndex(int index) => index + _metaDb.GetNumberOfRows(index) - 1;
 
+    internal int GetPropertyCount(int startIndex)
+    {
+        Debug.Assert(_metaDb.GetElementTokenType(startIndex) is ElementTokenType.StartObject);
+
+        return _metaDb.Get(startIndex).SizeOrLength;
+    }
+
+    internal Selection GetPropertySelection(int propertyIndex)
+    {
+        Debug.Assert(_metaDb.GetElementTokenType(propertyIndex) is ElementTokenType.PropertyName);
+
+        return _operation.GetSelectionById(_metaDb.GetLocation(propertyIndex));
+    }
+
     internal int CreateObjectValue(ReadOnlySpan<Selection> selections, ulong includeFlags)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -83,7 +97,12 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
             }
 
             propertyCount++;
-            _metaDb.Append(ElementTokenType.PropertyName);
+
+            // The property name row carries its selection from the moment the slot is
+            // created. A row left unassigned would be indistinguishable from one that
+            // points at selection 0, and writing the document resolves that id through
+            // an unchecked reinterpreting cast.
+            _metaDb.Append(ElementTokenType.PropertyName, location: selection.Id);
             _metaDb.Append(ElementTokenType.None);
         }
 

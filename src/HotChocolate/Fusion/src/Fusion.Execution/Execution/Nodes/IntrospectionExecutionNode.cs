@@ -27,10 +27,38 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         }
 
         Id = id;
-        _selections = selections;
+
+        // The planner feeds this node from two paths: an introspection-only operation
+        // passes the whole root selection set, a mixed one passes only the introspection
+        // selections. Both are narrowed here, once, to what this node can actually
+        // resolve. Everything left varies per request only through the include flags,
+        // which the result document builder applies on its own.
+        _selections = FilterResolvableSelections(selections);
+
+        // The result selection set stays over the selections as they were handed in.
+        // It backs error pocketing, where a wider set is safe and a narrower one is not.
         var selectionSetNode = new SelectionSetNode(selections.Select(t => t.SyntaxNodes[0].Node).ToArray());
         _resultSelectionSet = ResultSelectionSet.Create(selectionSetNode);
         _conditions = conditions;
+    }
+
+    private static Selection[] FilterResolvableSelections(Selection[] selections)
+    {
+        var resolvable = new Selection[selections.Length];
+        var count = 0;
+
+        foreach (var selection in selections)
+        {
+            if ((selection.Resolver is null && selection.AsyncResolver is null)
+                || !selection.Field.IsIntrospectionField)
+            {
+                continue;
+            }
+
+            resolvable[count++] = selection;
+        }
+
+        return count == selections.Length ? selections : resolvable[..count];
     }
 
     /// <inheritdoc />
@@ -56,35 +84,19 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     {
         var backlog = new Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)>();
 
-        // The result document must contain exactly the selections this node resolves.
-        // Slots for selections that other nodes fulfill would remain unassigned and
-        // corrupt the document that is built below.
-        var selections = new Selection[_selections.Length];
-        var selectionCount = 0;
-
-        foreach (var selection in _selections)
-        {
-            if ((selection.Resolver is null && selection.AsyncResolver is null)
-                || !selection.Field.IsIntrospectionField
-                || !selection.IsIncluded(context.IncludeFlags))
-            {
-                continue;
-            }
-
-            selections[selectionCount++] = selection;
-        }
-
+        // The document is shaped from exactly the selections this node resolves. The
+        // builder drops the ones this request excludes and stamps each remaining slot
+        // with its selection, so enumerating the slots back is what keeps the document
+        // and this node's work in step.
         var resultBuilder = new SourceResultDocumentBuilder(
             context.Memory,
             context.OperationPlan.Operation,
             context.IncludeFlags,
-            selections.AsSpan(0, selectionCount));
-        var root = resultBuilder.Root;
+            _selections);
 
-        for (var i = 0; i < selectionCount; i++)
+        foreach (var (selection, property) in resultBuilder.Root.EnumerateProperties())
         {
-            var property = root.CreateProperty(selections[i], i);
-            backlog.Push((null, selections[i], property));
+            backlog.Push((null, selection, property));
         }
 
         try
@@ -125,7 +137,6 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)> backlog,
         CancellationToken cancellationToken)
     {
-        var operation = context.OperationPlan.Operation;
         var fieldContext = new ReusableFieldContext(
             context.Schema,
             context.Variables,
@@ -159,26 +170,15 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
             {
                 var namedType = selection.Type.NamedType();
 
+                // The resolver shaped these objects through CreateObjectValue, which
+                // resolved the selection set and applied the include flags itself. The
+                // slots it laid out are the authority on what still has to be executed,
+                // so they are read back rather than derived a second time here.
                 if (result.ValueKind is JsonValueKind.Object
                     && (namedType.IsObjectType() || namedType.IsAbstractType()))
                 {
-                    var objectType = ResolveObjectType(
-                        namedType,
-                        fieldContext.RuntimeResults[0],
-                        context.Schema);
-                    var selectionSet = operation.GetSelectionSet(selection, objectType);
-
-                    var j = 0;
-                    for (var i = 0; i < selectionSet.Selections.Length; i++)
+                    foreach (var (childSelection, property) in result.EnumerateProperties())
                     {
-                        var childSelection = selectionSet.Selections[i];
-
-                        if (!childSelection.IsIncluded(context.IncludeFlags))
-                        {
-                            continue;
-                        }
-
-                        var property = result.CreateProperty(childSelection, j++);
                         backlog.Push((fieldContext.RuntimeResults[0], childSelection, property));
                     }
                 }
@@ -186,17 +186,6 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                     && selection.Type.IsListType()
                     && (namedType.IsObjectType() || namedType.IsAbstractType()))
                 {
-                    var isAbstract = namedType.IsAbstractType();
-
-                    // For non-abstract list types, resolve the selection set once.
-                    SelectionSet? staticSelectionSet = null;
-                    if (!isAbstract)
-                    {
-                        var objectType = namedType as IObjectTypeDefinition
-                            ?? selection.Type.NamedType<IObjectTypeDefinition>();
-                        staticSelectionSet = operation.GetSelectionSet(selection, objectType);
-                    }
-
                     var i = 0;
                     foreach (var element in result.EnumerateArray())
                     {
@@ -207,40 +196,13 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                             continue;
                         }
 
-                        var selectionSet = staticSelectionSet
-                            ?? operation.GetSelectionSet(
-                                selection,
-                                ResolveObjectType(namedType, runtimeResult, context.Schema));
-
-                        var k = 0;
-                        for (var j = 0; j < selectionSet.Selections.Length; j++)
+                        foreach (var (childSelection, property) in element.EnumerateProperties())
                         {
-                            var childSelection = selectionSet.Selections[j];
-
-                            if (!childSelection.IsIncluded(context.IncludeFlags))
-                            {
-                                continue;
-                            }
-
-                            var property = element.CreateProperty(childSelection, k++);
                             backlog.Push((runtimeResult, childSelection, property));
                         }
                     }
                 }
             }
         }
-    }
-
-    private static IObjectTypeDefinition ResolveObjectType(
-        IType namedType,
-        object? runtimeResult,
-        ISchemaDefinition schema)
-    {
-        if (namedType is IObjectTypeDefinition objectType)
-        {
-            return objectType;
-        }
-
-        return SchemaDefinitionTypeResolver.ResolveObjectType(schema, runtimeResult);
     }
 }
