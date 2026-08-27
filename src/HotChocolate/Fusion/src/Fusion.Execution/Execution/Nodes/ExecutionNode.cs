@@ -85,17 +85,7 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
 
         try
         {
-            try
-            {
-                scope = CreateScope(context);
-            }
-            catch (Exception ex)
-            {
-                // Opening the diagnostic scope must never affect the execution
-                // of the node itself. If a diagnostic listener throws here, the
-                // node executes without a scope.
-                ReportDiagnosticEventError(context, ex);
-            }
+            scope = CreateScope(context);
 
             if (IsSkipped(context))
             {
@@ -110,31 +100,11 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         {
             error = ex;
             status = ExecutionStatus.Failed;
-
-            try
-            {
-                OnError(context, scope, ex);
-            }
-            catch
-            {
-                // A throwing diagnostic listener must not disrupt the error
-                // flow; the node's failure is already captured above and is
-                // surfaced through the completion.
-            }
+            OnError(context, scope, ex);
         }
         finally
         {
-            try
-            {
-                scope?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                // Disposing the diagnostic scope must never prevent the node
-                // completion below; a throwing scope would otherwise unbalance
-                // the active-node count and stall the executor.
-                ReportDiagnosticEventError(context, ex);
-            }
+            scope?.Dispose();
 
             // A started node must always report exactly one completion so the
             // execution state's active-node count stays balanced. Otherwise the
@@ -163,20 +133,6 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
 
     protected virtual void OnError(OperationPlanContext context, IDisposable? scope, Exception error)
         => context.DiagnosticEvents.ExecutionNodeError(context, this, error);
-
-    private void ReportDiagnosticEventError(OperationPlanContext context, Exception error)
-    {
-        try
-        {
-            context.DiagnosticEvents.ExecutionNodeError(context, this, error);
-        }
-        catch
-        {
-            // The diagnostic event pipeline itself is failing; there is
-            // nowhere left to report to, and diagnostics must never affect
-            // the execution result.
-        }
-    }
 
     protected void EnqueueDependentForExecution(OperationPlanContext context, ExecutionNode dependent)
     {
