@@ -1947,7 +1947,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             [Service] ConditionalSqlCapture sqlCapture)
         {
             var selection = context.Selection;
-            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>(context.IncludeFlags));
+            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags));
             sqlCapture.Sql = query.ToQueryString();
             return query;
         }
@@ -1959,7 +1959,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             [Service] ConditionalSelectorCapture selectorCapture)
         {
             var selection = context.Selection;
-            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeFlags);
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
             selectorCapture.Selectors.Add(selector);
             var query = database.Tenants.Select(selector);
             sqlCapture.Sql = query.ToQueryString();
@@ -1987,7 +1987,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             [Service] ConditionalSelectorCapture selectorCapture)
         {
             var selection = context.Selection;
-            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeFlags);
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
             var defaultSelector = selection.AsSelector<ConditionalTenant>();
             selectorCapture.Selectors.Add(selector);
             selectorCapture.Selectors.Add(defaultSelector);
@@ -2016,7 +2016,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             var selection = context.Selection;
             var query = database.Tenants
                 .OrderBy(t => t.Id)
-                .Select(selection.AsSelector<ConditionalTenant>(context.IncludeFlags));
+                .Select(selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags));
             sqlCapture.Sql = query.ToQueryString();
             return query;
         }
