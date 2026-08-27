@@ -30,9 +30,10 @@ layer: a handful of representative flows, not exhaustive.
 | `board-maximize` | the Tasks tab's maximize toggle (`z`) | the single-column maximized layout |
 | `search` | search mode (`/`) in the Tasks tab (bare `nitro agent`) | live query filtering and opening a result's detail pane |
 | `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
-| `mail-send` | `nitro agent init` then `agent register/mail send/inbox/reply/read --thread` | the mail send/inbox/reply/read round trip in a live workspace, one actor registered with a role |
+| `mail-send` | `agent register/mail send/inbox/reply/read --thread` over a copy of the fixture | the mail send/inbox/reply/read round trip, one actor registered with a role |
 | `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
-| `mail-board` | the Mail tab (bare `nitro agent`, `]` to switch) | unread styling, the detail pane, and the thread toggle |
+| `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | read-only navigation, fold/list/thread toggles, and per-agent filtering |
+| `agents` | the Agents tab (bare `nitro agent`, `A` to switch) | the fixture's remote agent session and detail pane |
 
 `help` is a trivial smoke flow that proves the pipeline itself,
 independently of the fixture-backed flows below it. It asks for help on
@@ -54,8 +55,8 @@ direction, together covering the round trip.
 
 The `mail-*` flows are a handful of representative mail flows, not
 exhaustive per-command coverage (that is the unit tier's job): `mail-send`
-runs live against a fresh workspace (init via the unified `nitro agent
-init`, register two actors via the root `nitro agent register` command
+runs live against a copy of the shared fixture (register two actors via the
+root `nitro agent register` command
 (one with `--role`), send with `--cc`, inbox as the recipient, read with
 `--thread` after a reply), so its ids and dates need the `mail-send`
 SCRUBS entry in [`run.sh`](run.sh); `mail-board` runs against the shared
@@ -107,7 +108,7 @@ diffs under `out/report/` for CI. Exit codes: `0` all PASS, `1` any FAIL/NEW
 (or, under `--update`, any recording failure), `2` usage error, `3` docker
 missing.
 
-Requirements: `docker` + the .NET SDK. Nothing else, `ttyd`, `ffmpeg`, and the
+Requirements: `docker`, `sqlite3`, and the .NET SDK. `ttyd`, `ffmpeg`, and the
 fonts are baked into the pinned container.
 
 ## What makes it deterministic
