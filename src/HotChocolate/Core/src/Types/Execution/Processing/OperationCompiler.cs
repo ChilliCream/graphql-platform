@@ -103,7 +103,6 @@ public sealed partial class OperationCompiler
         try
         {
             var lastId = 0;
-            const ulong parentIncludeFlags = 0ul;
             var rootType = _schema.GetOperationType(operationDefinition.Operation);
 
             // The condition visitors have seen the whole operation, so the mask width
@@ -111,28 +110,14 @@ public sealed partial class OperationCompiler
             var hasWideIncludeFlags = includeConditions.Count > 64;
             var hasWideDeferFlags = deferConditions.Count > 64;
 
-            if (hasWideIncludeFlags)
-            {
-                CollectFieldsWide(
-                    default,
-                    operationDefinition.SelectionSet.Selections,
-                    rootType,
-                    fields,
-                    includeConditions,
-                    deferConditions,
-                    parentDeferUsage: null);
-            }
-            else
-            {
-                CollectFields(
-                    parentIncludeFlags,
-                    operationDefinition.SelectionSet.Selections,
-                    rootType,
-                    fields,
-                    includeConditions,
-                    deferConditions,
-                    parentDeferUsage: null);
-            }
+            CollectFields(
+                default,
+                operationDefinition.SelectionSet.Selections,
+                rootType,
+                fields,
+                includeConditions,
+                deferConditions,
+                parentDeferUsage: null);
 
             var selectionSet = BuildSelectionSet(
                 SelectionPath.Root,
@@ -206,60 +191,29 @@ public sealed partial class OperationCompiler
             var hasWideIncludeFlags = operation.HasWideIncludeFlags;
             var hasWideDeferFlags = operation.HasWideDeferFlags;
 
-            if (hasWideIncludeFlags)
+            CollectFields(
+                new PathIncludeFlagsBuilder(first.PathIncludeFlags, first.PathIncludeFlagsOverflow),
+                first.Node.SelectionSet!.Selections,
+                objectType,
+                fields,
+                includeConditions,
+                deferConditions,
+                parentDeferUsage: first.DeferUsage);
+
+            if (nodes.Length > 1)
             {
-                CollectFieldsWide(
-                    new PathIncludeFlagsBuilder(first.PathIncludeFlags, first.PathIncludeFlagsOverflow),
-                    first.Node.SelectionSet!.Selections,
-                    objectType,
-                    fields,
-                    includeConditions,
-                    deferConditions,
-                    parentDeferUsage: first.DeferUsage);
-
-                if (nodes.Length > 1)
+                for (var i = 1; i < nodes.Length; i++)
                 {
-                    for (var i = 1; i < nodes.Length; i++)
-                    {
-                        var node = nodes[i];
+                    var node = nodes[i];
 
-                        CollectFieldsWide(
-                            new PathIncludeFlagsBuilder(node.PathIncludeFlags, node.PathIncludeFlagsOverflow),
-                            node.Node.SelectionSet!.Selections,
-                            objectType,
-                            fields,
-                            includeConditions,
-                            deferConditions,
-                            parentDeferUsage: nodes[i].DeferUsage);
-                    }
-                }
-            }
-            else
-            {
-                CollectFields(
-                    first.PathIncludeFlags,
-                    first.Node.SelectionSet!.Selections,
-                    objectType,
-                    fields,
-                    includeConditions,
-                    deferConditions,
-                    parentDeferUsage: first.DeferUsage);
-
-                if (nodes.Length > 1)
-                {
-                    for (var i = 1; i < nodes.Length; i++)
-                    {
-                        var node = nodes[i];
-
-                        CollectFields(
-                            node.PathIncludeFlags,
-                            node.Node.SelectionSet!.Selections,
-                            objectType,
-                            fields,
-                            includeConditions,
-                            deferConditions,
-                            parentDeferUsage: nodes[i].DeferUsage);
-                    }
+                    CollectFields(
+                        new PathIncludeFlagsBuilder(node.PathIncludeFlags, node.PathIncludeFlagsOverflow),
+                        node.Node.SelectionSet!.Selections,
+                        objectType,
+                        fields,
+                        includeConditions,
+                        deferConditions,
+                        parentDeferUsage: node.DeferUsage);
                 }
             }
 
@@ -287,79 +241,6 @@ public sealed partial class OperationCompiler
     }
 
     private void CollectFields(
-        ulong parentIncludeFlags,
-        IReadOnlyList<ISelectionNode> selections,
-        IObjectTypeDefinition typeContext,
-        OrderedDictionary<string, List<FieldSelectionNode>> fields,
-        IncludeConditionCollection includeConditions,
-        DeferConditionCollection deferConditions,
-        DeferUsage? parentDeferUsage)
-    {
-        for (var i = 0; i < selections.Count; i++)
-        {
-            var selection = selections[i];
-
-            if (selection is FieldNode fieldNode)
-            {
-                var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
-                var pathIncludeFlags = parentIncludeFlags;
-
-                if (!fields.TryGetValue(responseName, out var nodes))
-                {
-                    nodes = [];
-                    fields.Add(responseName, nodes);
-                }
-
-                if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
-                {
-                    var index = includeConditions.IndexOf(includeCondition);
-
-                    // This path only runs for operations with at most 64 include
-                    // conditions, so the shift cannot wrap.
-                    Debug.Assert((uint)index < 64);
-                    pathIncludeFlags |= 1ul << index;
-                }
-
-                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags, parentDeferUsage));
-            }
-            else if (selection is InlineFragmentNode inlineFragmentNode
-                && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
-            {
-                var pathIncludeFlags = parentIncludeFlags;
-
-                if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
-                {
-                    var index = includeConditions.IndexOf(includeCondition);
-
-                    // This path only runs for operations with at most 64 include
-                    // conditions, so the shift cannot wrap.
-                    Debug.Assert((uint)index < 64);
-                    pathIncludeFlags |= 1ul << index;
-                }
-
-                var newDeferUsage = parentDeferUsage;
-
-                if (DeferCondition.TryCreate(inlineFragmentNode, out var deferCondition))
-                {
-                    deferConditions.Add(deferCondition);
-                    var deferIndex = deferConditions.IndexOf(deferCondition);
-                    var label = GetDeferLabel(inlineFragmentNode);
-                    newDeferUsage = new DeferUsage(label, parentDeferUsage, deferIndex);
-                }
-
-                CollectFields(
-                    pathIncludeFlags,
-                    inlineFragmentNode.SelectionSet.Selections,
-                    typeContext,
-                    fields,
-                    includeConditions,
-                    deferConditions,
-                    newDeferUsage);
-            }
-        }
-    }
-
-    private void CollectFieldsWide(
         PathIncludeFlagsBuilder parentIncludeFlags,
         IReadOnlyList<ISelectionNode> selections,
         IObjectTypeDefinition typeContext,
@@ -417,7 +298,7 @@ public sealed partial class OperationCompiler
                     newDeferUsage = new DeferUsage(label, parentDeferUsage, deferIndex);
                 }
 
-                CollectFieldsWide(
+                CollectFields(
                     pathIncludeFlags,
                     inlineFragmentNode.SelectionSet.Selections,
                     typeContext,
