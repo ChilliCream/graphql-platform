@@ -9,18 +9,3 @@ internal sealed class StageConfigurationOption : Option<string>
             + """[{"name":"stage1","displayName":"Stage 1","conditions":[{"afterStage":"stage2"}]},...]""";
     }
 }
-
-internal sealed class StageConfigurationParameter
-{
-    public string Name { get; set; } = default!;
-
-    public string DisplayName { get; set; } = default!;
-
-    public IReadOnlyList<StageConditionParameter> Conditions { get; set; } =
-        Array.Empty<StageConditionParameter>();
-}
-
-internal sealed class StageConditionParameter
-{
-    public string AfterStage { get; set; } = default!;
-}

@@ -8,72 +8,6 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 
 /// <summary>
-/// The task field values a <see cref="TaskEditorForm"/> was built from, used to
-/// diff the submitted values against what the store last had.
-/// </summary>
-internal sealed record TaskEditorSnapshot(
-    string Title,
-    string Status,
-    int Priority,
-    string Type,
-    IReadOnlyList<string> Labels,
-    string Description,
-    string Notes)
-{
-    /// <summary>
-    /// Captures a snapshot from a task and its labels, normalizing
-    /// <paramref name="task"/>'s description and notes line endings to match
-    /// what <see cref="TaskEditorForm"/>'s text areas will echo back
-    /// unmodified.
-    /// </summary>
-    public static TaskEditorSnapshot FromTask(TaskItem task, IReadOnlyList<string> labels)
-        => new(
-            task.Title,
-            task.Status,
-            task.Priority,
-            task.Type,
-            labels,
-            NormalizeLineEndings(task.Description),
-            NormalizeLineEndings(task.Notes));
-
-    private static string NormalizeLineEndings(string value)
-        => value.Contains('\r') ? value.Replace("\r\n", "\n").Replace('\r', '\n') : value;
-}
-
-/// <summary>
-/// The outcome of submitting a <see cref="TaskEditorForm"/> against the task
-/// store.
-/// </summary>
-internal abstract record TaskEditorOutcome
-{
-    private TaskEditorOutcome()
-    {
-    }
-
-    /// <summary>
-    /// Every field that differed from the snapshot was written. Carries the
-    /// changed store field names, empty when no field differed.
-    /// </summary>
-    public sealed record Succeeded(IReadOnlyList<string> ChangedFields, string ToastText) : TaskEditorOutcome;
-
-    /// <summary>
-    /// The store rejected a write, carrying its <see cref="ExitException"/> message.
-    /// </summary>
-    public sealed record Failed(string ToastText) : TaskEditorOutcome;
-
-    /// <summary>
-    /// The shell toast this outcome should show: success styled for
-    /// <see cref="Succeeded"/>, error styled for <see cref="Failed"/>.
-    /// </summary>
-    public TuiMessage.ShowToast ToShowToast() => this switch
-    {
-        Succeeded succeeded => new TuiMessage.ShowToast(succeeded.ToastText, ToastStyle.Success),
-        Failed failed => new TuiMessage.ShowToast(failed.ToastText, ToastStyle.Error),
-        _ => throw new NotSupportedException()
-    };
-}
-
-/// <summary>
 /// The task edit form: title, status, priority, type, labels, description,
 /// and notes, pre-populated from a task and its labels. Submitting computes
 /// the diff against the loaded snapshot and writes only the changed fields
@@ -108,7 +42,7 @@ internal sealed class TaskEditorForm
         new KeyHint("esc", "cancel")
     ];
 
-    private static readonly SelectOption[] WellKnownStatuses =
+    private static readonly SelectOption[] s_wellKnownStatuses =
     [
         new(TaskStates.Open, "Open"),
         new(TaskStates.InProgress, "In Progress"),
@@ -116,7 +50,7 @@ internal sealed class TaskEditorForm
         new(TaskStates.Deferred, "Deferred")
     ];
 
-    private static readonly SelectOption[] WellKnownPriorities =
+    private static readonly SelectOption[] s_wellKnownPriorities =
     [
         new("0", TaskPriorities.Format(0)),
         new("1", TaskPriorities.Format(1)),
@@ -125,7 +59,7 @@ internal sealed class TaskEditorForm
         new("4", TaskPriorities.Format(4))
     ];
 
-    private static readonly SelectOption[] WellKnownTypes =
+    private static readonly SelectOption[] s_wellKnownTypes =
     [
         new(TaskTypes.Task, "Task"),
         new(TaskTypes.Bug, "Bug"),
@@ -165,19 +99,19 @@ internal sealed class TaskEditorForm
         _statusField = new SelectField(
             StatusFieldId,
             "Status",
-            WithCurrentOption(WellKnownStatuses, _snapshot.Status),
+            WithCurrentOption(s_wellKnownStatuses, _snapshot.Status),
             initialSelectedId: _snapshot.Status);
 
         _priorityField = new SelectField(
             PriorityFieldId,
             "Priority",
-            WithCurrentOption(WellKnownPriorities, _snapshot.Priority.ToString(CultureInfo.InvariantCulture)),
+            WithCurrentOption(s_wellKnownPriorities, _snapshot.Priority.ToString(CultureInfo.InvariantCulture)),
             initialSelectedId: _snapshot.Priority.ToString(CultureInfo.InvariantCulture));
 
         _typeField = new SelectField(
             TypeFieldId,
             "Type",
-            WithCurrentOption(WellKnownTypes, _snapshot.Type),
+            WithCurrentOption(s_wellKnownTypes, _snapshot.Type),
             initialSelectedId: _snapshot.Type);
 
         _labelsField = new EditableListField(LabelsFieldId, "Labels", initialValues: _snapshot.Labels);

@@ -44,6 +44,7 @@ internal sealed class SearchMode : ITuiMode
     private TaskQuery _lastAppliedQuery = TaskQuery.Empty;
     private TaskQuery? _pendingQuery;
     private DateTimeOffset? _pendingQueryDueAt;
+    private bool _refreshRequested;
 
     public SearchMode(ITaskStore store)
     {
@@ -125,8 +126,10 @@ internal sealed class SearchMode : ITuiMode
         switch (message)
         {
             case TuiMessage.RefreshRequested:
-                _pendingQuery = _lastAppliedQuery;
-                _pendingQueryDueAt = null;
+                // Re-runs the last applied query for display on the next tick,
+                // without touching a not-yet-due pending edit: an external
+                // write must not discard text the user is still typing.
+                _refreshRequested = true;
                 return [];
 
             case TuiMessage.MoveCursor(var direction):
@@ -232,27 +235,33 @@ internal sealed class SearchMode : ITuiMode
     }
 
     /// <summary>
-    /// Runs the query pending from a debounced edit, a manual refresh, or
-    /// mode entry, once <paramref name="now"/> reaches its due time. Returns
-    /// whether a query ran.
+    /// Runs the query pending from a debounced edit or mode entry once
+    /// <paramref name="now"/> reaches its due time, and separately re-runs
+    /// the last applied query when a refresh is pending. A refresh never
+    /// clears or delays a not-yet-due pending edit. Returns whether either
+    /// query ran.
     /// </summary>
     public async Task<bool> TickAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
-        if (_pendingQuery is not { } query)
+        var ran = false;
+
+        if (_refreshRequested)
         {
-            return false;
+            _refreshRequested = false;
+            await RunQueryAsync(_lastAppliedQuery, now, cancellationToken).ConfigureAwait(false);
+            ran = true;
         }
 
-        if (_pendingQueryDueAt is { } dueAt && now < dueAt)
+        if (_pendingQuery is { } query && (_pendingQueryDueAt is not { } dueAt || now >= dueAt))
         {
-            return false;
+            _pendingQuery = null;
+            _pendingQueryDueAt = null;
+
+            await RunQueryAsync(query, now, cancellationToken).ConfigureAwait(false);
+            ran = true;
         }
 
-        _pendingQuery = null;
-        _pendingQueryDueAt = null;
-
-        await RunQueryAsync(query, now, cancellationToken).ConfigureAwait(false);
-        return true;
+        return ran;
     }
 
     public IRenderable Render(int width, int height)

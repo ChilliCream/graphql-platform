@@ -51,4 +51,16 @@ internal interface ITuiMode
     void SelectTask(string id)
     {
     }
+
+    /// <summary>
+    /// Hints from the active tab's <see cref="KeyDispatcher.GlobalKeyMap"/>
+    /// that this mode wants hidden from the footer, because its current
+    /// state makes those keys inert (for example the mail mode's Workspace
+    /// mailbox refusing u/a/c/r with a toast rather than acting on them).
+    /// Matched by value against <see cref="KeyHint"/> equality in
+    /// <see cref="KeyDispatcher.CombineHints"/>, so a mode never needs to
+    /// re-check whether the global table still carries the hint it wants
+    /// gone. The default suppresses nothing.
+    /// </summary>
+    IReadOnlyCollection<KeyHint> SuppressedGlobalHints => [];
 }

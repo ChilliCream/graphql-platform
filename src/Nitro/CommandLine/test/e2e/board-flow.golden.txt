@@ -1,3 +1,4 @@
+ [T]asks   [M]ail   [A]gents   M[e]mory
 ╭─Blocked (3)─────────────────────────────────────────────────────────────────────────────────╮
 │   ○ [B] P0 acme-a1b Checkout crashes on Safari                                              │
 │   ○ [E] P1 acme-epic1 Launch v2 pricing page                                                │
@@ -30,6 +31,5 @@
 │   ✓ [F] P3 acme-c3d Add dark mode toggle                                                    │
 │                                                                                             │
 │                                                                                             │
-│                                                                                             │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────╯
-hjkl move  enter open  r refresh  y copy id  z zoom  e edit  esc back  q quit
+hjkl move  enter open  r refresh  y copy id  z zoom  esc back  q quit  [ ] shift+letter tab

@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
@@ -9,65 +10,43 @@ using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
-internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvider) : ITaskStore
+internal sealed class TaskStore(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    AgentDatabase database) : ITaskStore
 {
     private const string PrefixConfigKey = "prefix";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
     private const int MinIdLength = 3;
     private const int MaxIdAttempts = 10;
 
-    private static readonly string[] StatusOrder =
+    private static readonly string[] s_statusOrder =
     [
         TaskStates.Open,
         TaskStates.InProgress,
         TaskStates.Blocked,
         TaskStates.Deferred,
         TaskStates.Closed,
+        TaskStates.Archived,
         TaskStates.Tombstone
     ];
-
-    static TaskStore() => SQLitePCL.Batteries_V2.Init();
 
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)
-    {
-        var connection = await OpenAsync(
-            TaskWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        await connection.ExecuteAsync(TaskStoreSchema.Create);
-        await connection.ExecuteAsync(
-            $"""PRAGMA user_version = {TaskStoreSchema.CurrentVersion};""");
-
-        return connection;
-    }
+        => await database.InitializeAsync(workspaceDirectory, cancellationToken);
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
-        var connection = await OpenAsync(
-            TaskWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
-
-        if (version > TaskStoreSchema.CurrentVersion)
-        {
-            throw new ExitException(
-                "The task workspace was created by a newer version of the Nitro CLI "
-                + $"(schema v{version}, supported up to v{TaskStoreSchema.CurrentVersion}). "
-                + "Update the CLI to use it.");
-        }
-
-        return connection;
+        return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
     public string? FindWorkspaceDirectory()
-        => TaskWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
+        => AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
     private async Task<string?> GetConfigAsync(
         SqliteConnection connection,
@@ -99,7 +78,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
         => await GetConfigAsync(connection, PrefixConfigKey, cancellationToken, transaction)
-            ?? TaskWorkspace.FallbackPrefix;
+            ?? AgentWorkspace.FallbackPrefix;
 
     private async Task<string> CreateTaskIdAsync(
         SqliteConnection connection,
@@ -548,7 +527,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             """
             SELECT e.id AS Id, e.title AS Title, e.status AS Status,
                    COUNT(c.id) AS Total,
-                   SUM(CASE WHEN c.status = @closed THEN 1 ELSE 0 END) AS Closed
+                   SUM(CASE WHEN c.status IN (@closed, @archived) THEN 1 ELSE 0 END) AS Closed
             FROM tasks e
             LEFT JOIN dependencies d
                 ON d.depends_on_id = e.id AND d.dependency_type = @parentChild
@@ -561,6 +540,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             new
             {
                 closed = TaskStates.Closed,
+                archived = TaskStates.Archived,
                 parentChild = TaskDependencyTypes.ParentChild,
                 tombstone = TaskStates.Tombstone,
                 epic = TaskTypes.Epic,
@@ -1167,7 +1147,17 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 throw new ExitException("Use `nitro agent tasks delete` to delete a task.");
             }
 
+            if (status == TaskStates.Archived)
+            {
+                throw new ExitException("Archiving is automatic; tasks cannot be set to archived directly.");
+            }
+
             if (task.Status == TaskStates.Closed)
+            {
+                throw new ExitException("Use `nitro agent tasks reopen` to reopen a task.");
+            }
+
+            if (task.Status == TaskStates.Archived)
             {
                 throw new ExitException("Use `nitro agent tasks reopen` to reopen a task.");
             }
@@ -1349,7 +1339,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         {
             var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
-            if (task.Status == TaskStates.Closed)
+            if (task.Status is TaskStates.Closed or TaskStates.Archived)
             {
                 throw new ExitException($"Task '{id}' is already closed.");
             }
@@ -1404,6 +1394,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         await transaction.CommitAsync(cancellationToken);
 
+        await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
+
         return tasks;
     }
 
@@ -1419,9 +1411,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
-        if (task.Status != TaskStates.Closed)
+        if (task.Status is not (TaskStates.Closed or TaskStates.Archived))
         {
-            throw new ExitException($"Task '{id}' is not closed.");
+            throw new ExitException($"Task '{id}' is not closed or archived.");
         }
 
         var oldStatus = task.Status;
@@ -1709,7 +1701,68 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         await transaction.CommitAsync(cancellationToken);
 
+        await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
+
         return eligible.Select(epic => epic with { Status = TaskStates.Closed }).ToList();
+    }
+
+    // Enforces TaskStates.ClosedTaskCap: when the closed count exceeds the
+    // cap, moves the oldest closed tasks (by closed_at, tie-break id) to
+    // Archived until exactly the cap remains. Runs in its own transaction,
+    // after the caller's close transaction has already committed, so a
+    // failure here never rolls back the close itself.
+    private async Task ArchiveExcessClosedTasksAsync(
+        SqliteConnection connection,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var closedCount = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM tasks WHERE status = @status",
+            new { status = TaskStates.Closed, cancellationToken });
+
+        var excess = closedCount - TaskStates.ClosedTaskCap;
+
+        if (excess <= 0)
+        {
+            return;
+        }
+
+        var idsToArchive = (await connection.QueryAsync<string>(
+            """
+            SELECT id FROM tasks
+            WHERE status = @status
+            ORDER BY closed_at ASC, id ASC
+            LIMIT @limit
+            """,
+            new { status = TaskStates.Closed, limit = excess, cancellationToken })).ToList();
+
+        var now = timeProvider.GetUtcNow();
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        foreach (var id in idsToArchive)
+        {
+            await connection.ExecuteAsync(
+                "UPDATE tasks SET status = @status, updated_at = @updatedAt WHERE id = @id",
+                new { status = TaskStates.Archived, updatedAt = now, id, cancellationToken },
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.Archived,
+                    Actor = actor,
+                    OldValue = TaskStates.Closed,
+                    NewValue = TaskStates.Archived,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task<TaskComment> AddCommentAsync(
@@ -2190,7 +2243,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         string workspaceDirectory,
         CancellationToken cancellationToken)
     {
-        if (fileSystem.FileExists(TaskWorkspace.GetDatabasePath(workspaceDirectory)))
+        if (fileSystem.FileExists(AgentWorkspace.GetDatabasePath(workspaceDirectory)))
         {
             return;
         }
@@ -2201,348 +2254,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         await using var connection = await InitializeAsync(workspaceDirectory, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
-        CancellationToken cancellationToken)
-    {
-        // Every query below runs against a whole table and takes no filter
-        // parameters, so there is nothing for @-placeholder analysis to key
-        // on; cancellation is checked up front instead of plumbed through a
-        // parameter object (see ComputeBlockedAsync).
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        var taskRows = await connection.QueryAsync<TaskRow>(
-            $"SELECT {TaskItem.Columns} FROM tasks ORDER BY id");
-
-        var labelRows = await connection.QueryAsync<TaskLabelRow>(
-            "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label");
-        var labelsByTask = labelRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<string> (group) => [.. group.Select(row => row.Label)]);
-
-        var dependencyRows = await connection.QueryAsync<TaskDependencyRow>(
-            $"""
-            SELECT {TaskDependencyRow.Columns} FROM dependencies
-            ORDER BY task_id, depends_on_id
-            """);
-        var dependenciesByTask = dependencyRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<TaskSyncDependency> (group) =>
-                    [.. group.Select(row => new TaskSyncDependency
-                    {
-                        DependsOnId = row.DependsOnId,
-                        Type = row.Type,
-                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture),
-                        CreatedBy = row.CreatedBy
-                    })]);
-
-        var commentRows = await connection.QueryAsync<TaskCommentRow>(
-            $"SELECT {TaskComment.Columns} FROM comments ORDER BY task_id, created_at, id");
-        var commentsByTask = commentRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<TaskSyncComment> (group) =>
-                    [.. group.Select(row => new TaskSyncComment
-                    {
-                        Id = row.Id,
-                        Author = row.Author,
-                        Text = row.Text,
-                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture)
-                    })]);
-
-        return taskRows.Select(row =>
-        {
-            var task = row.ToTaskItem();
-
-            return new TaskSyncRecord
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                Design = task.Design,
-                AcceptanceCriteria = task.AcceptanceCriteria,
-                Notes = task.Notes,
-                Status = task.Status,
-                Priority = task.Priority,
-                Type = task.Type,
-                Assignee = task.Assignee,
-                EstimatedMinutes = task.EstimatedMinutes,
-                DueAt = task.DueAt,
-                DeferUntil = task.DeferUntil,
-                CreatedAt = task.CreatedAt,
-                CreatedBy = task.CreatedBy,
-                UpdatedAt = task.UpdatedAt,
-                ClosedAt = task.ClosedAt,
-                CloseReason = task.CloseReason,
-                DeletedAt = task.DeletedAt,
-                DeleteReason = task.DeleteReason,
-                Labels = labelsByTask.GetValueOrDefault(task.Id, []),
-                Dependencies = dependenciesByTask.GetValueOrDefault(task.Id, []),
-                Comments = commentsByTask.GetValueOrDefault(task.Id, [])
-            };
-        }).ToList();
-    }
-
-    public async Task<TaskImportResult> ImportTasksAsync(
-        IReadOnlyList<TaskSyncRecord> records,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = await ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        var applied = 0;
-        var skipped = 0;
-
-        foreach (var record in records)
-        {
-            var existing = await GetTaskAsync(connection, record.Id, cancellationToken, transaction);
-
-            if (existing is not null && existing.UpdatedAt > record.UpdatedAt)
-            {
-                skipped++;
-                continue;
-            }
-
-            await connection.ExecuteAsync(
-                """
-                INSERT INTO tasks (id, title, description, design, acceptance_criteria, notes,
-                    status, priority, task_type, assignee, estimated_minutes, due_at, defer_until,
-                    created_at, created_by, updated_at, closed_at, close_reason, deleted_at,
-                    delete_reason)
-                VALUES (@Id, @Title, @Description, @Design, @AcceptanceCriteria, @Notes,
-                    @Status, @Priority, @Type, @Assignee, @EstimatedMinutes, @DueAt, @DeferUntil,
-                    @CreatedAt, @CreatedBy, @UpdatedAt, @ClosedAt, @CloseReason, @DeletedAt,
-                    @DeleteReason)
-                ON CONFLICT (id) DO UPDATE SET
-                    title = excluded.title,
-                    description = excluded.description,
-                    design = excluded.design,
-                    acceptance_criteria = excluded.acceptance_criteria,
-                    notes = excluded.notes,
-                    status = excluded.status,
-                    priority = excluded.priority,
-                    task_type = excluded.task_type,
-                    assignee = excluded.assignee,
-                    estimated_minutes = excluded.estimated_minutes,
-                    due_at = excluded.due_at,
-                    defer_until = excluded.defer_until,
-                    created_at = excluded.created_at,
-                    created_by = excluded.created_by,
-                    updated_at = excluded.updated_at,
-                    closed_at = excluded.closed_at,
-                    close_reason = excluded.close_reason,
-                    deleted_at = excluded.deleted_at,
-                    delete_reason = excluded.delete_reason
-                """,
-                record,
-                transaction);
-
-            await connection.ExecuteAsync(
-                "DELETE FROM labels WHERE task_id = @TaskId",
-                new { TaskId = record.Id, cancellationToken },
-                transaction);
-
-            foreach (var label in record.Labels)
-            {
-                await connection.ExecuteAsync(
-                    """
-                    INSERT INTO labels (
-                        task_id,
-                        label
-                    )
-                    VALUES (
-                        @TaskId,
-                        @Label
-                    )
-                    """,
-                    new { TaskId = record.Id, Label = label, cancellationToken },
-                    transaction);
-            }
-
-            await connection.ExecuteAsync(
-                "DELETE FROM dependencies WHERE task_id = @TaskId",
-                new { TaskId = record.Id, cancellationToken },
-                transaction);
-
-            foreach (var dependency in record.Dependencies)
-            {
-                await connection.ExecuteAsync(
-                    """
-                    INSERT INTO dependencies (
-                        task_id,
-                        depends_on_id,
-                        dependency_type,
-                        created_at,
-                        created_by
-                    )
-                    VALUES (
-                        @TaskId,
-                        @DependsOnId,
-                        @Type,
-                        @CreatedAt,
-                        @CreatedBy
-                    )
-                    """,
-                    new
-                    {
-                        TaskId = record.Id,
-                        dependency.DependsOnId,
-                        dependency.Type,
-                        dependency.CreatedAt,
-                        dependency.CreatedBy,
-                        cancellationToken
-                    },
-                    transaction);
-            }
-
-            await connection.ExecuteAsync(
-                "DELETE FROM comments WHERE task_id = @TaskId",
-                new { TaskId = record.Id, cancellationToken },
-                transaction);
-
-            foreach (var comment in record.Comments)
-            {
-                // comments.id is a database-global AUTOINCREMENT counter, so
-                // the same numeric id can be assigned independently by two
-                // clones to comments on different tasks. Reusing the
-                // exported id verbatim would collide with an unrelated
-                // comment already occupying that id in this database (from
-                // an earlier record in this same import or from a task
-                // outside the imported set); detect that case and let
-                // SQLite assign a fresh id instead of failing the import.
-                var idOwner = await connection.ExecuteScalarAsync<string?>(
-                    "SELECT task_id FROM comments WHERE id = @Id",
-                    new { comment.Id, cancellationToken },
-                    transaction);
-
-                if (idOwner is null || idOwner == record.Id)
-                {
-                    await connection.ExecuteAsync(
-                        """
-                        INSERT INTO comments (
-                            id,
-                            task_id,
-                            author,
-                            text,
-                            created_at
-                        )
-                        VALUES (
-                            @Id,
-                            @TaskId,
-                            @Author,
-                            @Text,
-                            @CreatedAt
-                        )
-                        """,
-                        new
-                        {
-                            comment.Id,
-                            TaskId = record.Id,
-                            comment.Author,
-                            comment.Text,
-                            comment.CreatedAt,
-                            cancellationToken
-                        },
-                        transaction);
-                }
-                else
-                {
-                    await connection.ExecuteAsync(
-                        """
-                        INSERT INTO comments (
-                            task_id,
-                            author,
-                            text,
-                            created_at
-                        )
-                        VALUES (
-                            @TaskId,
-                            @Author,
-                            @Text,
-                            @CreatedAt
-                        )
-                        """,
-                        new
-                        {
-                            TaskId = record.Id,
-                            comment.Author,
-                            comment.Text,
-                            comment.CreatedAt,
-                            cancellationToken
-                        },
-                        transaction);
-                }
-            }
-
-            applied++;
-        }
-
-        await RestoreChildCountersAsync(connection, transaction, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
-
-        return new TaskImportResult(applied, skipped, records.Count);
-    }
-
-    // Import writes task rows directly and never calls CreateTaskIdAsync, so
-    // child_counters is never populated for the imported tasks. Without this,
-    // the next child created for an imported parent collides with a child id
-    // that already exists (e.g. after "flush, delete db, import", creating a
-    // second child for the same parent reuses ".1"). Rebuild each parent's
-    // counter from the highest numeric child suffix present in the tasks
-    // table, never lowering a counter that is already ahead.
-    private static async Task RestoreChildCountersAsync(
-        SqliteConnection connection,
-        DbTransaction transaction,
-        CancellationToken cancellationToken)
-    {
-        var taskIds = await connection.QueryAsync<string>(
-            "SELECT id FROM tasks",
-            transaction: transaction);
-
-        var maxChildByParent = new Dictionary<string, long>();
-
-        foreach (var id in taskIds)
-        {
-            var dotIndex = id.LastIndexOf('.');
-
-            if (dotIndex <= 0
-                || !long.TryParse(
-                    id.AsSpan(dotIndex + 1),
-                    NumberStyles.None,
-                    CultureInfo.InvariantCulture,
-                    out var childNumber))
-            {
-                continue;
-            }
-
-            var parentId = id[..dotIndex];
-
-            if (!maxChildByParent.TryGetValue(parentId, out var current) || childNumber > current)
-            {
-                maxChildByParent[parentId] = childNumber;
-            }
-        }
-
-        foreach (var (parentId, lastChild) in maxChildByParent)
-        {
-            await connection.ExecuteAsync(
-                """
-                INSERT INTO child_counters (parent_id, last_child)
-                VALUES (@parentId, @lastChild)
-                ON CONFLICT (parent_id) DO UPDATE SET last_child = MAX(last_child, excluded.last_child)
-                """,
-                new { parentId, lastChild, cancellationToken },
-                transaction);
-        }
     }
 
     public async Task<TaskIntegrityReport> CheckIntegrityAsync(
@@ -2726,7 +2437,24 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         {
             parameters["closedStatus"] = TaskStates.Closed;
             parameters["tombstoneStatus"] = TaskStates.Tombstone;
-            conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
+
+            if (filter.IncludeArchived)
+            {
+                conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
+            }
+            else
+            {
+                parameters["archivedStatus"] = TaskStates.Archived;
+                conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus, @archivedStatus)");
+            }
+        }
+        else if (!filter.IncludeArchived)
+        {
+            // Archived tasks never come back through the null-Statuses
+            // default, even with IncludeAll: the CLI never returns them
+            // unless a filter explicitly asks via Statuses or IncludeArchived.
+            parameters["archivedStatus"] = TaskStates.Archived;
+            conditions.Add("status != @archivedStatus");
         }
 
         if (filter.ExcludeTombstones)
@@ -2826,9 +2554,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
     private static int StatusOrderIndex(TaskCount statusCount)
     {
-        var index = Array.IndexOf(StatusOrder, statusCount.Value);
+        var index = Array.IndexOf(s_statusOrder, statusCount.Value);
 
-        return index < 0 ? StatusOrder.Length : index;
+        return index < 0 ? s_statusOrder.Length : index;
     }
 
     private static void AddBlocker(
@@ -2857,22 +2585,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         }
 
         return new string(suffix);
-    }
-
-    private static async Task<SqliteConnection> OpenAsync(
-        string databasePath,
-        CancellationToken cancellationToken)
-    {
-        // Pooling would keep the database file open after the connection is
-        // disposed; a CLI process runs one command and exits, so it gains
-        // nothing from the pool.
-        var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
-
-        await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
-        return connection;
     }
 
     // These nested row types are internal, not private: Dapper.AOT's
@@ -3058,8 +2770,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// A task-label pair, for grouping labels by task in
-    /// <see cref="ExportTasksAsync"/>.
+    /// A task-label pair, for the orphan-label check in
+    /// <see cref="CheckIntegrityAsync"/>.
     /// </summary>
     internal sealed class TaskLabelRow
     {
