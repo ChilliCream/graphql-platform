@@ -64,11 +64,11 @@ public interface IUserByIdDataLoader : IBatchDataLoader<int, User>;
 internal static class UserDataLoaders
 {
     [DataLoader<IUserByIdDataLoader>]
-    public static Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
+    public static async Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
         IReadOnlyList<int> ids,
         CatalogContext db,
         CancellationToken ct)
-        => db.Users
+        => await db.Users
             .Where(t => ids.Contains(t.Id))
             .ToDictionaryAsync(t => t.Id, ct);
 }
@@ -78,11 +78,11 @@ The type argument supplies the DataLoader kind, key type, and value type. The so
 
 ```csharp
 [DataLoader<IBatchDataLoader<int, User>>]
-public static Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
+public static async Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
     IReadOnlyList<int> ids,
     CatalogContext db,
     CancellationToken ct)
-    => db.Users
+    => await db.Users
         .Where(t => ids.Contains(t.Id))
         .ToDictionaryAsync(t => t.Id, ct);
 ```
@@ -121,7 +121,7 @@ The `HotChocolate.Types.Analyzers` package validates `[DataLoader<T>]` methods.
 
 | Code | Severity | Meaning |
 | --- | --- | --- |
-| `HC0122` | Error | `T` is not an interface deriving from exactly one closed batch or cache contract. |
+| `HC0122` | Error | `T` is neither a direct closed batch/cache interface nor a custom interface deriving from exactly one such contract. |
 | `HC0123` | Error | The key parameter does not match the selected contract. |
 | `HC0124` | Error | The return type does not match the selected contract. |
 | `HC0125` | Error | The method has more than one `[DataLoader]` attribute. |
@@ -272,7 +272,7 @@ builder.Services
 | `Name`           | `string`                   | Derived from the method name | First constructor argument: `[DataLoader("...")]`. Overrides the generated DataLoader name. Used verbatim, with `DataLoader` appended, so `[DataLoader("BrandLookup")]` generates `BrandLookupDataLoader`.                                                                        |
 | `MaxBatchSize`   | `int`                      | `1024`                       | Maximum number of keys per fetch call. When more keys are pending, they are split into multiple batches. `0` disables splitting.                                                                                                                                                  |
 | `ServiceScope`   | `DataLoaderServiceScope`   | `Default`                    | Controls how injected services are resolved. `DataLoaderScope` creates a dedicated scope per fetch. `OriginalScope` resolves services from the request scope. `Default` defers to the assembly-level `[DataLoaderDefaults]` attribute; without one, a dedicated scope is created. |
-| `AccessModifier` | `DataLoaderAccessModifier` | `Default`                    | Controls generated code visibility. `Public` makes both class and interface public. `Internal` makes both internal. `PublicInterface` makes the interface public and the class internal for `[DataLoader]`. For `[DataLoader<T>]`, `PublicInterface` is treated as `Public` and produces `HC0128`. `Default` defers to `[DataLoaderDefaults]`; without one, both are public. |
+| `AccessModifier` | `DataLoaderAccessModifier` | `Default`                    | Controls generated code visibility. For `[DataLoader<T>]`, `Public` and `Internal` affect only the generated class and `T` keeps its declared accessibility. An explicit method-level `PublicInterface` acts as `Public` and produces `HC0128`; a `[DataLoaderDefaults]` `PublicInterface` default makes the generated class internal and produces no `HC0128`. For `[DataLoader]`, `Public` and `Internal` make both class and interface public or internal; `PublicInterface` makes the interface public and the class internal. `Default` defers to `[DataLoaderDefaults]`; without one, both are public. |
 | `Lookups`        | `string[]`                 | None                         | Names of methods on the same class that derive additional cache keys from loaded values, so an entity fetched by one key can be resolved from the cache by another.                                                                                                               |
 
 > [!NOTE]
