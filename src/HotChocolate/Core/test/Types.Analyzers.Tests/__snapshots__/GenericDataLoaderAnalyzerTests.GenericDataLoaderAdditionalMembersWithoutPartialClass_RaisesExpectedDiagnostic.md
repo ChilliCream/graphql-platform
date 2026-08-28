@@ -68,6 +68,29 @@ namespace TestNamespace
 
 ```
 
+## Compilation Diagnostics
+
+```json
+[
+  {
+    "Id": "CS0535",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (17,10)-(17,45)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'",
+    "Message": "'EntityByIdDataLoader' does not implement interface member 'IEntityLoader.Description'",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  }
+]
+```
+
 ## Analyzer Diagnostics
 
 ```json
@@ -82,6 +105,22 @@ namespace TestNamespace
     "Message": "The DataLoader type 'TestNamespace.IEntityLoader' declares members that must be implemented by the partial 'EntityByIdDataLoader' class",
     "Category": "DataLoader",
     "CustomTags": []
+  },
+  {
+    "Id": "CS0535",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (17,10)-(17,45)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'",
+    "Message": "'EntityByIdDataLoader' does not implement interface member 'IEntityLoader.Description'",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
   }
 ]
 ```

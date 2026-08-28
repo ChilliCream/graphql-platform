@@ -330,7 +330,7 @@ public class GenericDataLoaderAnalyzerTests
             """;
 
         // act
-        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+        var snapshot = TestHelper.GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(source);
 
         // assert
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
@@ -368,7 +368,7 @@ public class GenericDataLoaderAnalyzerTests
             """;
 
         // act
-        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+        var snapshot = TestHelper.GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(source);
 
         // assert
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
@@ -406,7 +406,7 @@ public class GenericDataLoaderAnalyzerTests
             """;
 
         // act
-        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+        var snapshot = TestHelper.GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(source);
 
         // assert
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
@@ -435,36 +435,54 @@ public class GenericDataLoaderAnalyzerTests
                 string this[int index] { get; set; }
                 ref int Current { get; }
                 string Name { get; init; }
-                static abstract int GetCount();
+                void Constrain<TItem>() where TItem : IComparable<TItem>;
             }
 
-            public sealed partial class ExtendedDataLoader : IExtendedDataLoader
+            internal interface IExplicitDataLoader : IBatchDataLoader<int, string>, IExplicitRequirements<int>
+            {
+            }
+
+            internal interface IExplicitRequirements<T>
+            {
+                void Configure<TItem>(TItem item) where TItem : class, new();
+            }
+
+            public sealed partial class ExtendedDataLoader
             {
                 private int _current;
 
-                int IInheritedDataLoaderRequirements<int>.Convert<TItem>(TItem item) => 0;
+                public int Convert<TItem>(TItem item) where TItem : class, new() => 0;
 
-                event EventHandler? IInheritedDataLoaderRequirements<int>.Changed
+                public event EventHandler? Changed
                 {
                     add { }
                     remove { }
                 }
 
-                string IInheritedDataLoaderRequirements<int>.this[int index]
+                public string this[int index]
                 {
                     get => string.Empty;
                     set { }
                 }
 
-                ref int IInheritedDataLoaderRequirements<int>.Current => ref _current;
+                public ref int Current => ref _current;
 
-                string IInheritedDataLoaderRequirements<int>.Name
+                public string Name
                 {
                     get => string.Empty;
                     init { }
                 }
 
-                public static int GetCount() => 0;
+                public void Constrain<TValue>() where TValue : IComparable<TValue>
+                {
+                }
+            }
+
+            public sealed partial class ExplicitDataLoader
+            {
+                void IExplicitRequirements<int>.Configure<TItem>(TItem item)
+                {
+                }
             }
 
             internal static class Loaders
@@ -473,11 +491,16 @@ public class GenericDataLoaderAnalyzerTests
                 internal static Task<IReadOnlyDictionary<int, string>> GetExtendedAsync(
                     IReadOnlyList<int> keys)
                     => default!;
+
+                [DataLoader<IExplicitDataLoader>]
+                internal static Task<IReadOnlyDictionary<int, string>> GetExplicitAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
             }
             """;
 
         // act
-        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+        var snapshot = TestHelper.GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(source);
 
         // assert
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
@@ -507,11 +530,6 @@ public class GenericDataLoaderAnalyzerTests
                 string this[int index] { get; set; }
             }
 
-            internal interface IStaticDataLoader : IBatchDataLoader<int, string>
-            {
-                static abstract int GetCount();
-            }
-
             internal interface IRefReturnDataLoader : IBatchDataLoader<int, string>
             {
                 ref int Current { get; }
@@ -527,6 +545,41 @@ public class GenericDataLoaderAnalyzerTests
                 string Name { get; init; }
             }
 
+            internal interface IConstraintTypeDataLoader : IBatchDataLoader<int, string>
+            {
+                void Set<T>() where T : IComparable<T>;
+            }
+
+            public sealed partial class MethodDataLoader
+            {
+                public void Refresh(int count) { }
+            }
+
+            public sealed partial class EventIndexerDataLoader
+            {
+                public string this[int index] => string.Empty;
+            }
+
+            public sealed partial class RefReturnDataLoader
+            {
+                public int Current => 0;
+            }
+
+            public sealed partial class GenericConstraintDataLoader
+            {
+                public void Configure<T>() where T : class { }
+            }
+
+            public sealed partial class InitDataLoader
+            {
+                public string Name { get; set; } = string.Empty;
+            }
+
+            public sealed partial class ConstraintTypeDataLoader
+            {
+                public void Set<T>() where T : IDisposable { }
+            }
+
             internal static class Loaders
             {
                 [DataLoader<IMethodDataLoader>]
@@ -535,10 +588,6 @@ public class GenericDataLoaderAnalyzerTests
 
                 [DataLoader<IEventIndexerDataLoader>]
                 internal static Task<IReadOnlyDictionary<int, string>> GetEventIndexerAsync(IReadOnlyList<int> keys)
-                    => default!;
-
-                [DataLoader<IStaticDataLoader>]
-                internal static Task<IReadOnlyDictionary<int, string>> GetStaticAsync(IReadOnlyList<int> keys)
                     => default!;
 
                 [DataLoader<IRefReturnDataLoader>]
@@ -552,11 +601,16 @@ public class GenericDataLoaderAnalyzerTests
                 [DataLoader<IInitDataLoader>]
                 internal static Task<IReadOnlyDictionary<int, string>> GetInitAsync(IReadOnlyList<int> keys)
                     => default!;
+
+                [DataLoader<IConstraintTypeDataLoader>]
+                internal static Task<IReadOnlyDictionary<int, string>> GetConstraintTypeAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
             }
             """;
 
         // act
-        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+        var snapshot = TestHelper.GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(source);
 
         // assert
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);

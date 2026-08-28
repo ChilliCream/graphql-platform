@@ -125,7 +125,12 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
 
         foreach (var member in GetRequiredExtraMembers(implementedDataLoaderType, compilationWithInterface))
         {
-            if (generatedTypeWithInterface.FindImplementationForInterfaceMember(member) is null)
+            var implementation = generatedTypeWithInterface.FindImplementationForInterfaceMember(member);
+
+            if (implementation is null
+                || member is IMethodSymbol interfaceMethod
+                && implementation is IMethodSymbol implementationMethod
+                && !HasMatchingTypeParameterConstraints(interfaceMethod, implementationMethod))
             {
                 return true;
             }
@@ -133,6 +138,143 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
 
         return false;
     }
+
+    private static bool HasMatchingTypeParameterConstraints(
+        IMethodSymbol interfaceMethod,
+        IMethodSymbol implementationMethod)
+    {
+        if (interfaceMethod.TypeParameters.Length != implementationMethod.TypeParameters.Length)
+        {
+            return false;
+        }
+
+        var typeParameterMap = new Dictionary<ITypeParameterSymbol, ITypeParameterSymbol>(
+            SymbolEqualityComparer.Default);
+
+        for (var i = 0; i < interfaceMethod.TypeParameters.Length; i++)
+        {
+            typeParameterMap.Add(interfaceMethod.TypeParameters[i], implementationMethod.TypeParameters[i]);
+        }
+
+        for (var i = 0; i < interfaceMethod.TypeParameters.Length; i++)
+        {
+            if (!HasMatchingTypeParameterConstraints(
+                    interfaceMethod.TypeParameters[i],
+                    implementationMethod.TypeParameters[i],
+                    typeParameterMap))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasMatchingTypeParameterConstraints(
+        ITypeParameterSymbol interfaceTypeParameter,
+        ITypeParameterSymbol implementationTypeParameter,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeParameterSymbol> typeParameterMap)
+    {
+        if (interfaceTypeParameter.HasReferenceTypeConstraint
+            != implementationTypeParameter.HasReferenceTypeConstraint
+            || interfaceTypeParameter.HasValueTypeConstraint
+            != implementationTypeParameter.HasValueTypeConstraint
+            || interfaceTypeParameter.HasUnmanagedTypeConstraint
+            != implementationTypeParameter.HasUnmanagedTypeConstraint
+            || interfaceTypeParameter.HasConstructorConstraint
+            != implementationTypeParameter.HasConstructorConstraint
+            || interfaceTypeParameter.AllowsRefLikeType
+            != implementationTypeParameter.AllowsRefLikeType
+            || interfaceTypeParameter.ConstraintTypes.Length != implementationTypeParameter.ConstraintTypes.Length)
+        {
+            return false;
+        }
+
+        var unmatchedConstraints = implementationTypeParameter.ConstraintTypes.ToList();
+
+        foreach (var interfaceConstraint in interfaceTypeParameter.ConstraintTypes)
+        {
+            var constraintIndex = unmatchedConstraints.FindIndex(implementationConstraint =>
+                AreEquivalentConstraintTypes(
+                    interfaceConstraint,
+                    implementationConstraint,
+                    typeParameterMap));
+
+            if (constraintIndex < 0)
+            {
+                return false;
+            }
+
+            unmatchedConstraints.RemoveAt(constraintIndex);
+        }
+
+        return true;
+    }
+
+    private static bool AreEquivalentConstraintTypes(
+        ITypeSymbol interfaceType,
+        ITypeSymbol implementationType,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeParameterSymbol> typeParameterMap)
+    {
+        if (interfaceType is ITypeParameterSymbol interfaceTypeParameter
+            && typeParameterMap.TryGetValue(interfaceTypeParameter, out var implementationTypeParameter))
+        {
+            return SymbolEqualityComparer.Default.Equals(implementationTypeParameter, implementationType);
+        }
+
+        if (interfaceType is IArrayTypeSymbol interfaceArray
+            && implementationType is IArrayTypeSymbol implementationArray)
+        {
+            return interfaceArray.Rank == implementationArray.Rank
+                && AreEquivalentConstraintTypes(
+                    interfaceArray.ElementType,
+                    implementationArray.ElementType,
+                    typeParameterMap);
+        }
+
+        if (interfaceType is INamedTypeSymbol interfaceNamedType
+            && implementationType is INamedTypeSymbol implementationNamedType)
+        {
+            if (!SymbolEqualityComparer.Default.Equals(
+                    interfaceNamedType.OriginalDefinition,
+                    implementationNamedType.OriginalDefinition)
+                || !AreEquivalentContainingTypes(
+                    interfaceNamedType.ContainingType,
+                    implementationNamedType.ContainingType,
+                    typeParameterMap)
+                || interfaceNamedType.TypeArguments.Length != implementationNamedType.TypeArguments.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < interfaceNamedType.TypeArguments.Length; i++)
+            {
+                if (!AreEquivalentConstraintTypes(
+                        interfaceNamedType.TypeArguments[i],
+                        implementationNamedType.TypeArguments[i],
+                        typeParameterMap))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return SymbolEqualityComparer.Default.Equals(interfaceType, implementationType);
+    }
+
+    private static bool AreEquivalentContainingTypes(
+        INamedTypeSymbol? interfaceContainingType,
+        INamedTypeSymbol? implementationContainingType,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeParameterSymbol> typeParameterMap)
+        => interfaceContainingType is null
+            ? implementationContainingType is null
+            : implementationContainingType is not null
+                && AreEquivalentConstraintTypes(
+                    interfaceContainingType,
+                    implementationContainingType,
+                    typeParameterMap);
 
     private static bool IsPartialClass(INamedTypeSymbol type, CancellationToken cancellationToken)
         => type.DeclaringSyntaxReferences.Any(t =>

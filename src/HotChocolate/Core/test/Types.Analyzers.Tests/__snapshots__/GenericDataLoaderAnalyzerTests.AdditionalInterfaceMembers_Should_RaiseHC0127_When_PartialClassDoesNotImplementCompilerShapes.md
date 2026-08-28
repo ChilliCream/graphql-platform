@@ -114,55 +114,6 @@ namespace TestNamespace
     }
 
     /// <summary>
-    /// A DataLoader generated from <see cref="global::TestNamespace.Loaders.GetStaticAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;)"/>.
-    /// </summary>
-    public sealed partial class StaticDataLoader
-        : global::GreenDonut.DataLoaderBase<int, string>
-        , global::TestNamespace.IStaticDataLoader
-    {
-        private readonly global::System.IServiceProvider _services;
-
-        public StaticDataLoader(
-            global::System.IServiceProvider services,
-            global::GreenDonut.IBatchScheduler batchScheduler,
-            global::GreenDonut.DataLoaderOptions options)
-            : base(batchScheduler, options)
-        {
-            _services = services ??
-                throw new global::System.ArgumentNullException(nameof(services));
-        }
-
-        protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
-            global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<string?>> results,
-            global::GreenDonut.DataLoaderFetchContext<string> context,
-            global::System.Threading.CancellationToken ct)
-        {
-            var temp = await global::TestNamespace.Loaders.GetStaticAsync(keys).ConfigureAwait(false);
-            CopyResults(keys, results.Span, temp);
-        }
-
-        private void CopyResults(
-            global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<string?>> results,
-            global::System.Collections.Generic.IReadOnlyDictionary<int, string> resultMap)
-        {
-            for (var i = 0; i < keys.Count; i++)
-            {
-                var key = keys[i];
-                if (resultMap.TryGetValue(key, out var value))
-                {
-                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
-                }
-                else
-                {
-                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// A DataLoader generated from <see cref="global::TestNamespace.Loaders.GetRefReturnAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;)"/>.
     /// </summary>
     public sealed partial class RefReturnDataLoader
@@ -308,6 +259,55 @@ namespace TestNamespace
             }
         }
     }
+
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.Loaders.GetConstraintTypeAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;)"/>.
+    /// </summary>
+    public sealed partial class ConstraintTypeDataLoader
+        : global::GreenDonut.DataLoaderBase<int, string>
+        , global::TestNamespace.IConstraintTypeDataLoader
+    {
+        private readonly global::System.IServiceProvider _services;
+
+        public ConstraintTypeDataLoader(
+            global::System.IServiceProvider services,
+            global::GreenDonut.IBatchScheduler batchScheduler,
+            global::GreenDonut.DataLoaderOptions options)
+            : base(batchScheduler, options)
+        {
+            _services = services ??
+                throw new global::System.ArgumentNullException(nameof(services));
+        }
+
+        protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Memory<GreenDonut.Result<string?>> results,
+            global::GreenDonut.DataLoaderFetchContext<string> context,
+            global::System.Threading.CancellationToken ct)
+        {
+            var temp = await global::TestNamespace.Loaders.GetConstraintTypeAsync(keys).ConfigureAwait(false);
+            CopyResults(keys, results.Span, temp);
+        }
+
+        private void CopyResults(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Span<GreenDonut.Result<string?>> results,
+            global::System.Collections.Generic.IReadOnlyDictionary<int, string> resultMap)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                if (resultMap.TryGetValue(key, out var value))
+                {
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
+                }
+                else
+                {
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
+                }
+            }
+        }
+    }
 }
 
 
@@ -318,70 +318,14 @@ namespace TestNamespace
 ```json
 [
   {
-    "Id": "CS8920",
+    "Id": "CS0425",
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": ": (49,16)-(49,33)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8920)",
-    "MessageFormat": "The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.",
-    "Message": "The interface 'IStaticDataLoader' cannot be used as type argument. Static member 'IStaticDataLoader.GetCount()' does not have a most specific implementation in the interface.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
-```
-
-## Analyzer Diagnostics
-
-```json
-[
-  {
-    "Id": "HC0127",
-    "Title": "Missing DataLoader Interface Implementation",
-    "Severity": "Warning",
-    "WarningLevel": 1,
-    "Location": ": (41,5)-(41,34)",
-    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
-    "Message": "The DataLoader type 'TestNamespace.IMethodDataLoader' declares members that must be implemented by the partial 'MethodDataLoader' class",
-    "Category": "DataLoader",
-    "CustomTags": []
-  },
-  {
-    "Id": "HC0127",
-    "Title": "Missing DataLoader Interface Implementation",
-    "Severity": "Warning",
-    "WarningLevel": 1,
-    "Location": ": (45,5)-(45,40)",
-    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
-    "Message": "The DataLoader type 'TestNamespace.IEventIndexerDataLoader' declares members that must be implemented by the partial 'EventIndexerDataLoader' class",
-    "Category": "DataLoader",
-    "CustomTags": []
-  },
-  {
-    "Id": "HC0127",
-    "Title": "Missing DataLoader Interface Implementation",
-    "Severity": "Warning",
-    "WarningLevel": 1,
-    "Location": ": (49,5)-(49,34)",
-    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
-    "Message": "The DataLoader type 'TestNamespace.IStaticDataLoader' declares members that must be implemented by the partial 'StaticDataLoader' class",
-    "Category": "DataLoader",
-    "CustomTags": []
-  },
-  {
-    "Id": "CS8920",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (49,16)-(49,33)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8920)",
-    "MessageFormat": "The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.",
-    "Message": "The interface 'IStaticDataLoader' cannot be used as type argument. Static member 'IStaticDataLoader.GetCount()' does not have a most specific implementation in the interface.",
+    "Location": ": (56,16)-(56,25)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0425)",
+    "MessageFormat": "The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.",
+    "Message": "The constraints for type parameter 'T' of method 'GenericConstraintDataLoader.Configure<T>()' must match the constraints for type parameter 'T' of interface method 'IGenericConstraintDataLoader.Configure<T>()'. Consider using an explicit interface implementation instead.",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -390,54 +334,14 @@ namespace TestNamespace
     ]
   },
   {
-    "Id": "HC0127",
-    "Title": "Missing DataLoader Interface Implementation",
-    "Severity": "Warning",
-    "WarningLevel": 1,
-    "Location": ": (53,5)-(53,37)",
-    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
-    "Message": "The DataLoader type 'TestNamespace.IRefReturnDataLoader' declares members that must be implemented by the partial 'RefReturnDataLoader' class",
-    "Category": "DataLoader",
-    "CustomTags": []
-  },
-  {
-    "Id": "HC0127",
-    "Title": "Missing DataLoader Interface Implementation",
-    "Severity": "Warning",
-    "WarningLevel": 1,
-    "Location": ": (57,5)-(57,45)",
-    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
-    "Message": "The DataLoader type 'TestNamespace.IGenericConstraintDataLoader' declares members that must be implemented by the partial 'GenericConstraintDataLoader' class",
-    "Category": "DataLoader",
-    "CustomTags": []
-  },
-  {
-    "Id": "HC0127",
-    "Title": "Missing DataLoader Interface Implementation",
-    "Severity": "Warning",
-    "WarningLevel": 1,
-    "Location": ": (61,5)-(61,32)",
-    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
-    "Message": "The DataLoader type 'TestNamespace.IInitDataLoader' declares members that must be implemented by the partial 'InitDataLoader' class",
-    "Category": "DataLoader",
-    "CustomTags": []
-  }
-]
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS8920",
+    "Id": "CS0425",
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": ": (49,16)-(49,33)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8920)",
-    "MessageFormat": "The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.",
-    "Message": "The interface 'IStaticDataLoader' cannot be used as type argument. Static member 'IStaticDataLoader.GetCount()' does not have a most specific implementation in the interface.",
+    "Location": ": (66,16)-(66,19)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0425)",
+    "MessageFormat": "The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.",
+    "Message": "The constraints for type parameter 'T' of method 'ConstraintTypeDataLoader.Set<T>()' must match the constraints for type parameter 'T' of interface method 'IConstraintTypeDataLoader.Set<T>()'. Consider using an explicit interface implementation instead.",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -485,7 +389,149 @@ namespace TestNamespace
     "Location": "GreenDonutDataLoader.735550c.g.cs: (66,10)-(66,55)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
     "MessageFormat": "'{0}' does not implement interface member '{1}'",
-    "Message": "'EventIndexerDataLoader' does not implement interface member 'IEventIndexerDataLoader.this[int]'",
+    "Message": "'EventIndexerDataLoader' does not implement interface member 'IEventIndexerDataLoader.this[int].set'",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8152",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (115,10)-(115,52)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8152)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.",
+    "Message": "'RefReturnDataLoader' does not implement interface member 'IRefReturnDataLoader.Current'. 'RefReturnDataLoader.Current' cannot implement 'IRefReturnDataLoader.Current' because it does not have matching return by reference.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8854",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (213,10)-(213,47)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8854)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.",
+    "Message": "'InitDataLoader' does not implement interface member 'IInitDataLoader.Name.init'. 'InitDataLoader.Name.set' cannot implement 'IInitDataLoader.Name.init'.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  }
+]
+```
+
+## Analyzer Diagnostics
+
+```json
+[
+  {
+    "Id": "CS0425",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (56,16)-(56,25)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0425)",
+    "MessageFormat": "The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.",
+    "Message": "The constraints for type parameter 'T' of method 'GenericConstraintDataLoader.Configure<T>()' must match the constraints for type parameter 'T' of interface method 'IGenericConstraintDataLoader.Configure<T>()'. Consider using an explicit interface implementation instead.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0425",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (66,16)-(66,19)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0425)",
+    "MessageFormat": "The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.",
+    "Message": "The constraints for type parameter 'T' of method 'ConstraintTypeDataLoader.Set<T>()' must match the constraints for type parameter 'T' of interface method 'IConstraintTypeDataLoader.Set<T>()'. Consider using an explicit interface implementation instead.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "HC0127",
+    "Title": "Missing DataLoader Interface Implementation",
+    "Severity": "Warning",
+    "WarningLevel": 1,
+    "Location": ": (71,5)-(71,34)",
+    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
+    "Message": "The DataLoader type 'TestNamespace.IMethodDataLoader' declares members that must be implemented by the partial 'MethodDataLoader' class",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0127",
+    "Title": "Missing DataLoader Interface Implementation",
+    "Severity": "Warning",
+    "WarningLevel": 1,
+    "Location": ": (75,5)-(75,40)",
+    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
+    "Message": "The DataLoader type 'TestNamespace.IEventIndexerDataLoader' declares members that must be implemented by the partial 'EventIndexerDataLoader' class",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0127",
+    "Title": "Missing DataLoader Interface Implementation",
+    "Severity": "Warning",
+    "WarningLevel": 1,
+    "Location": ": (79,5)-(79,37)",
+    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
+    "Message": "The DataLoader type 'TestNamespace.IRefReturnDataLoader' declares members that must be implemented by the partial 'RefReturnDataLoader' class",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0127",
+    "Title": "Missing DataLoader Interface Implementation",
+    "Severity": "Warning",
+    "WarningLevel": 1,
+    "Location": ": (83,5)-(83,45)",
+    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
+    "Message": "The DataLoader type 'TestNamespace.IGenericConstraintDataLoader' declares members that must be implemented by the partial 'GenericConstraintDataLoader' class",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0127",
+    "Title": "Missing DataLoader Interface Implementation",
+    "Severity": "Warning",
+    "WarningLevel": 1,
+    "Location": ": (91,5)-(91,42)",
+    "MessageFormat": "The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class",
+    "Message": "The DataLoader type 'TestNamespace.IConstraintTypeDataLoader' declares members that must be implemented by the partial 'ConstraintTypeDataLoader' class",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "CS0535",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (17,10)-(17,49)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'",
+    "Message": "'MethodDataLoader' does not implement interface member 'IMethodDataLoader.Refresh()'",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -498,10 +544,10 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "GreenDonutDataLoader.735550c.g.cs: (115,10)-(115,49)",
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (66,10)-(66,55)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
     "MessageFormat": "'{0}' does not implement interface member '{1}'",
-    "Message": "'StaticDataLoader' does not implement interface member 'IStaticDataLoader.GetCount()'",
+    "Message": "'EventIndexerDataLoader' does not implement interface member 'IEventIndexerDataLoader.Changed'",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -514,10 +560,81 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "GreenDonutDataLoader.735550c.g.cs: (164,10)-(164,52)",
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (66,10)-(66,55)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
     "MessageFormat": "'{0}' does not implement interface member '{1}'",
-    "Message": "'RefReturnDataLoader' does not implement interface member 'IRefReturnDataLoader.Current'",
+    "Message": "'EventIndexerDataLoader' does not implement interface member 'IEventIndexerDataLoader.this[int].set'",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8152",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (115,10)-(115,52)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8152)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.",
+    "Message": "'RefReturnDataLoader' does not implement interface member 'IRefReturnDataLoader.Current'. 'RefReturnDataLoader.Current' cannot implement 'IRefReturnDataLoader.Current' because it does not have matching return by reference.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8854",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (213,10)-(213,47)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8854)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.",
+    "Message": "'InitDataLoader' does not implement interface member 'IInitDataLoader.Name.init'. 'InitDataLoader.Name.set' cannot implement 'IInitDataLoader.Name.init'.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  }
+]
+```
+
+## Assembly Emit Diagnostics
+
+```json
+[
+  {
+    "Id": "CS0425",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (56,16)-(56,25)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0425)",
+    "MessageFormat": "The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.",
+    "Message": "The constraints for type parameter 'T' of method 'GenericConstraintDataLoader.Configure<T>()' must match the constraints for type parameter 'T' of interface method 'IGenericConstraintDataLoader.Configure<T>()'. Consider using an explicit interface implementation instead.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0425",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (66,16)-(66,19)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0425)",
+    "MessageFormat": "The constraints for type parameter '{0}' of method '{1}' must match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.",
+    "Message": "The constraints for type parameter 'T' of method 'ConstraintTypeDataLoader.Set<T>()' must match the constraints for type parameter 'T' of interface method 'IConstraintTypeDataLoader.Set<T>()'. Consider using an explicit interface implementation instead.",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -530,10 +647,10 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "GreenDonutDataLoader.735550c.g.cs: (213,10)-(213,60)",
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (17,10)-(17,49)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
     "MessageFormat": "'{0}' does not implement interface member '{1}'",
-    "Message": "'GenericConstraintDataLoader' does not implement interface member 'IGenericConstraintDataLoader.Configure<T>()'",
+    "Message": "'MethodDataLoader' does not implement interface member 'IMethodDataLoader.Refresh()'",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
@@ -546,10 +663,58 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "GreenDonutDataLoader.735550c.g.cs: (262,10)-(262,47)",
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (66,10)-(66,55)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
     "MessageFormat": "'{0}' does not implement interface member '{1}'",
-    "Message": "'InitDataLoader' does not implement interface member 'IInitDataLoader.Name'",
+    "Message": "'EventIndexerDataLoader' does not implement interface member 'IEventIndexerDataLoader.Changed'",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS0535",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (66,10)-(66,55)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0535)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'",
+    "Message": "'EventIndexerDataLoader' does not implement interface member 'IEventIndexerDataLoader.this[int].set'",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8152",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (115,10)-(115,52)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8152)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.",
+    "Message": "'RefReturnDataLoader' does not implement interface member 'IRefReturnDataLoader.Current'. 'RefReturnDataLoader.Current' cannot implement 'IRefReturnDataLoader.Current' because it does not have matching return by reference.",
+    "Category": "Compiler",
+    "CustomTags": [
+      "Compiler",
+      "Telemetry",
+      "NotConfigurable"
+    ]
+  },
+  {
+    "Id": "CS8854",
+    "Title": "",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": "GreenDonutDataLoader.735550c.g.cs: (213,10)-(213,47)",
+    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS8854)",
+    "MessageFormat": "'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.",
+    "Message": "'InitDataLoader' does not implement interface member 'IInitDataLoader.Name.init'. 'InitDataLoader.Name.set' cannot implement 'IInitDataLoader.Name.init'.",
     "Category": "Compiler",
     "CustomTags": [
       "Compiler",
