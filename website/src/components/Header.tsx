@@ -9,7 +9,6 @@ import { ChilliCreamWinking } from "@/src/icons/ChilliCreamWinking";
 import { GitHubStarButton } from "./GitHubStarButton";
 import { HeaderNav } from "./header/HeaderNav";
 import { CONTACT_HREF, MOBILE_ITEMS, TOOLS } from "./header/navData";
-import { HeaderShell } from "./HeaderShell";
 import { MobileNav } from "./MobileNav";
 import { Search } from "./Search";
 
@@ -28,7 +27,7 @@ export default async function Header() {
   ) : null;
 
   return (
-    <HeaderShell>
+    <header className="border-cc-white/10 bg-cc-card-bg sticky top-0 z-40 flex h-18 w-full justify-center border-b shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
       <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
         <Link
           href="/"
@@ -66,6 +65,6 @@ export default async function Header() {
           nitroHref={TOOLS.nitro}
         />
       </div>
-    </HeaderShell>
+    </header>
   );
 }
