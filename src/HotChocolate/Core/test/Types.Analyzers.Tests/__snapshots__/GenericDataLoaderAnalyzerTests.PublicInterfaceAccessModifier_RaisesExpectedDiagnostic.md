@@ -18,7 +18,7 @@ namespace TestNamespace
     /// <summary>
     /// A DataLoader generated from <see cref="global::TestNamespace.Loaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;)"/>.
     /// </summary>
-    internal sealed partial class EntityByIdDataLoader
+    public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, string>
         , global::GreenDonut.IBatchDataLoader<int, string>
     {

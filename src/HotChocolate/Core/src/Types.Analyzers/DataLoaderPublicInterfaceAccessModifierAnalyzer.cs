@@ -21,28 +21,35 @@ public sealed class DataLoaderPublicInterfaceAccessModifierAnalyzer : Diagnostic
     private static void AnalyzeMethod(SymbolAnalysisContext context)
     {
         var methodSymbol = (IMethodSymbol)context.Symbol;
-
-        foreach (var attribute in GenericDataLoaderAnalyzerHelper.GetGenericDataLoaderAttributes(
+        var attributes = GenericDataLoaderAnalyzerHelper.GetGenericDataLoaderAttributes(
             methodSymbol,
-            context.Compilation))
+            context.Compilation);
+
+        if (attributes.Length != 1
+            || !GenericDataLoaderAnalyzerHelper.HasExactlyOneDataLoaderAttribute(
+                methodSymbol,
+                context.Compilation))
         {
-            if (!HasPublicInterfaceAccessModifier(attribute)
-                || attribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken)
-                    is not AttributeSyntax attributeSyntax)
-            {
-                continue;
-            }
-
-            var location = attributeSyntax.ArgumentList?.Arguments.FirstOrDefault(t =>
-                    t.NameEquals?.Name.Identifier.ValueText == "AccessModifier")
-                ?.Expression.GetLocation()
-                ?? attributeSyntax.GetLocation();
-
-            context.ReportDiagnostic(Diagnostic.Create(
-                Errors.DataLoaderPublicInterfaceAccessModifier,
-                location));
             return;
         }
+
+        var attribute = attributes[0];
+
+        if (!HasPublicInterfaceAccessModifier(attribute)
+            || attribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken)
+                is not AttributeSyntax attributeSyntax)
+        {
+            return;
+        }
+
+        var location = attributeSyntax.ArgumentList?.Arguments.FirstOrDefault(t =>
+                t.NameEquals?.Name.Identifier.ValueText == "AccessModifier")
+            ?.Expression.GetLocation()
+            ?? attributeSyntax.GetLocation();
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            Errors.DataLoaderPublicInterfaceAccessModifier,
+            location));
     }
 
     private static bool HasPublicInterfaceAccessModifier(AttributeData attribute)

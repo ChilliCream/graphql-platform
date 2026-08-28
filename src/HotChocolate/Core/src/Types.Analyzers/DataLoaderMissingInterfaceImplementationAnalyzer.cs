@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -68,7 +69,7 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
         out string generatedTypeName)
     {
         generatedTypeName = DataLoaderInfo.GetDataLoaderName(methodSymbol.Name, attribute) + "DataLoader";
-        var extraMembers = GetExtraMembers(dataLoaderType).ToArray();
+        var extraMembers = GetRequiredExtraMembers(dataLoaderType, compilation).ToArray();
 
         if (extraMembers.Length == 0)
         {
@@ -81,6 +82,7 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
             .OfType<INamedTypeSymbol>()
             .FirstOrDefault(t => t.TypeKind is TypeKind.Class
                 && t.Arity == 0
+                && t.ContainingType is null
                 && SymbolEqualityComparer.Default.Equals(
                     t.ContainingNamespace,
                     methodSymbol.ContainingNamespace)
@@ -91,9 +93,39 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
             return true;
         }
 
-        foreach (var member in extraMembers)
+        if (!GenericDataLoaderAnalyzerHelper.TryResolveContract(
+                dataLoaderType,
+                compilation,
+                out var contract))
         {
-            if (!IsImplementedBy(generatedType, member))
+            return false;
+        }
+
+        var generatedTypeWithInterface = GetGeneratedTypeWithInterface(
+            generatedType,
+            dataLoaderType,
+            contract,
+            compilation,
+            cancellationToken,
+            out var compilationWithInterface);
+
+        if (generatedTypeWithInterface is null)
+        {
+            return true;
+        }
+
+        var implementedDataLoaderType = generatedTypeWithInterface.Interfaces.FirstOrDefault(t =>
+            t.ToFullyQualifiedWithNullRefQualifier()
+                .Equals(dataLoaderType.ToFullyQualifiedWithNullRefQualifier(), StringComparison.Ordinal));
+
+        if (implementedDataLoaderType is null)
+        {
+            return true;
+        }
+
+        foreach (var member in GetRequiredExtraMembers(implementedDataLoaderType, compilationWithInterface))
+        {
+            if (generatedTypeWithInterface.FindImplementationForInterfaceMember(member) is null)
             {
                 return true;
             }
@@ -107,14 +139,66 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
             t.GetSyntax(cancellationToken) is ClassDeclarationSyntax classDeclaration
             && classDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword));
 
-    private static IEnumerable<ISymbol> GetExtraMembers(
-        INamedTypeSymbol dataLoaderType)
+    private static INamedTypeSymbol? GetGeneratedTypeWithInterface(
+        INamedTypeSymbol generatedType,
+        INamedTypeSymbol dataLoaderType,
+        DataLoaderContract contract,
+        Compilation compilation,
+        CancellationToken cancellationToken,
+        out Compilation compilationWithInterface)
     {
-        foreach (var member in dataLoaderType.GetMembers())
-        {
-            if (IsAbstractInterfaceMember(member))
+        var @namespace = generatedType.ContainingNamespace.ToDisplayString();
+        var namespaceDeclaration = @namespace.Length == 0
+            ? string.Empty
+            : $"namespace {@namespace};";
+        var source = $$"""
+            #nullable enable
+            {{namespaceDeclaration}}
+
+            partial class {{generatedType.Name}}
+                : global::GreenDonut.DataLoaderBase<{{contract.KeyType.ToFullyQualifiedWithNullRefQualifier()}}, {{contract.ValueType.ToFullyQualifiedWithNullRefQualifier()}}>,
+                  {{dataLoaderType.ToFullyQualifiedWithNullRefQualifier()}}
             {
-                yield return member;
+            }
+            """;
+        var parseOptions = compilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions;
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, cancellationToken: cancellationToken);
+        compilationWithInterface = compilation.AddSyntaxTrees(syntaxTree);
+
+        return compilationWithInterface.GetSymbolsWithName(generatedType.Name, SymbolFilter.Type)
+            .OfType<INamedTypeSymbol>()
+            .FirstOrDefault(t => t.TypeKind is TypeKind.Class
+                && t.Arity == 0
+                && t.ContainingType is null
+                && t.ContainingNamespace.ToDisplayString().Equals(@namespace, StringComparison.Ordinal));
+    }
+
+    private static IEnumerable<ISymbol> GetRequiredExtraMembers(
+        INamedTypeSymbol dataLoaderType,
+        Compilation compilation)
+    {
+        var dataLoaderInterfaces = new HashSet<ISymbol>(
+            [
+                compilation.GetTypeByMetadataName("GreenDonut.IDataLoader")!,
+                compilation.GetTypeByMetadataName("GreenDonut.IDataLoader`2")!,
+                compilation.GetTypeByMetadataName("GreenDonut.IBatchDataLoader`2")!,
+                compilation.GetTypeByMetadataName("GreenDonut.ICacheDataLoader`2")!
+            ],
+            SymbolEqualityComparer.Default);
+
+        foreach (var interfaceType in dataLoaderType.AllInterfaces.Prepend(dataLoaderType))
+        {
+            if (dataLoaderInterfaces.Contains(interfaceType.OriginalDefinition))
+            {
+                continue;
+            }
+
+            foreach (var member in interfaceType.GetMembers())
+            {
+                if (IsAbstractInterfaceMember(member))
+                {
+                    yield return member;
+                }
             }
         }
     }
@@ -127,79 +211,4 @@ public sealed class DataLoaderMissingInterfaceImplementationAnalyzer : Diagnosti
             IEventSymbol @event => @event.IsAbstract,
             _ => false
         };
-
-    private static bool IsImplementedBy(INamedTypeSymbol generatedType, ISymbol interfaceMember)
-        => interfaceMember switch
-        {
-            IMethodSymbol method => generatedType.GetMembers(method.Name)
-                .OfType<IMethodSymbol>()
-                .Any(candidate => IsMethodImplementation(candidate, method)),
-            IPropertySymbol property => generatedType.GetMembers(property.Name)
-                .OfType<IPropertySymbol>()
-                .Any(candidate => IsPropertyImplementation(candidate, property)),
-            IEventSymbol @event => generatedType.GetMembers(@event.Name)
-                .OfType<IEventSymbol>()
-                .Any(candidate => !candidate.IsStatic
-                    && candidate.DeclaredAccessibility is Accessibility.Public
-                    && SymbolEqualityComparer.Default.Equals(candidate.Type, @event.Type)),
-            _ => false
-        };
-
-    private static bool IsMethodImplementation(IMethodSymbol candidate, IMethodSymbol interfaceMethod)
-    {
-        if (candidate.IsStatic
-            || candidate.DeclaredAccessibility is not Accessibility.Public
-            || candidate.MethodKind is not MethodKind.Ordinary
-            || candidate.Arity != interfaceMethod.Arity
-            || !SymbolEqualityComparer.Default.Equals(candidate.ReturnType, interfaceMethod.ReturnType)
-            || candidate.Parameters.Length != interfaceMethod.Parameters.Length)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < candidate.Parameters.Length; i++)
-        {
-            if (candidate.Parameters[i].RefKind != interfaceMethod.Parameters[i].RefKind
-                || !SymbolEqualityComparer.Default.Equals(
-                    candidate.Parameters[i].Type,
-                    interfaceMethod.Parameters[i].Type))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool IsPropertyImplementation(
-        IPropertySymbol candidate,
-        IPropertySymbol interfaceProperty)
-    {
-        if (candidate.IsStatic
-            || candidate.DeclaredAccessibility is not Accessibility.Public
-            || !SymbolEqualityComparer.Default.Equals(candidate.Type, interfaceProperty.Type)
-            || candidate.Parameters.Length != interfaceProperty.Parameters.Length
-            || !HasRequiredAccessor(candidate.GetMethod, interfaceProperty.GetMethod)
-            || !HasRequiredAccessor(candidate.SetMethod, interfaceProperty.SetMethod))
-        {
-            return false;
-        }
-
-        for (var i = 0; i < candidate.Parameters.Length; i++)
-        {
-            if (candidate.Parameters[i].RefKind != interfaceProperty.Parameters[i].RefKind
-                || !SymbolEqualityComparer.Default.Equals(
-                    candidate.Parameters[i].Type,
-                    interfaceProperty.Parameters[i].Type))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool HasRequiredAccessor(IMethodSymbol? candidate, IMethodSymbol? interfaceAccessor)
-        => interfaceAccessor is null
-            || candidate is { DeclaredAccessibility: Accessibility.Public };
 }

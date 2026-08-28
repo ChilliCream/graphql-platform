@@ -58,24 +58,59 @@ public sealed class DataLoaderDuplicateTypeAnalyzer : DiagnosticAnalyzer
         CompilationAnalysisContext context,
         ConcurrentQueue<GenericDataLoaderMethod> dataLoaders)
     {
-        foreach (var dataLoaderGroup in dataLoaders
-            .GroupBy(t => t.Type, SymbolEqualityComparer.Default)
-            .OrderBy(t => t.Key!.ToDisplayString(), StringComparer.Ordinal))
+        context.CancellationToken.ThrowIfCancellationRequested();
+
+        var groups = new Dictionary<ITypeSymbol, List<GenericDataLoaderMethod>>(
+            SymbolEqualityComparer.Default);
+
+        foreach (var dataLoader in dataLoaders)
         {
-            var methods = dataLoaderGroup
-                .OrderBy(t => t.Location.SourceTree?.FilePath, StringComparer.Ordinal)
-                .ThenBy(t => t.Location.SourceSpan.Start)
-                .ToArray();
+            context.CancellationToken.ThrowIfCancellationRequested();
+
+            if (!groups.TryGetValue(dataLoader.Type, out var methods))
+            {
+                methods = [];
+                groups.Add(dataLoader.Type, methods);
+            }
+
+            methods.Add(dataLoader);
+        }
+
+        var dataLoaderGroups = groups.ToArray();
+        context.CancellationToken.ThrowIfCancellationRequested();
+        Array.Sort(
+            dataLoaderGroups,
+            static (left, right) => StringComparer.Ordinal.Compare(
+                left.Key.ToDisplayString(),
+                right.Key.ToDisplayString()));
+
+        foreach (var dataLoaderGroup in dataLoaderGroups)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+            var methods = dataLoaderGroup.Value.ToArray();
+            Array.Sort(
+                methods,
+                static (left, right) =>
+                {
+                    var pathComparison = StringComparer.Ordinal.Compare(
+                        left.Location.SourceTree?.FilePath,
+                        right.Location.SourceTree?.FilePath);
+                    return pathComparison != 0
+                        ? pathComparison
+                        : left.Location.SourceSpan.Start.CompareTo(right.Location.SourceSpan.Start);
+                });
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             if (methods.Length < 2)
             {
                 continue;
             }
 
-            var dataLoaderType = dataLoaderGroup.Key!.ToDisplayString();
+            var dataLoaderType = dataLoaderGroup.Key.ToDisplayString();
 
             foreach (var method in methods)
             {
+                context.CancellationToken.ThrowIfCancellationRequested();
                 context.ReportDiagnostic(Diagnostic.Create(
                     Errors.DataLoaderDuplicateType,
                     method.Location,
