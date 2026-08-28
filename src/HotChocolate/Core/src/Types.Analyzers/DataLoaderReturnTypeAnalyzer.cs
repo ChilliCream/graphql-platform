@@ -23,7 +23,9 @@ public sealed class DataLoaderReturnTypeAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
     {
         var methodDeclaration = (MethodDeclarationSyntax)context.Node;
-        var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration);
+        var methodSymbol = context.SemanticModel.GetDeclaredSymbol(
+            methodDeclaration,
+            context.CancellationToken);
 
         if (methodSymbol is null)
         {
@@ -33,7 +35,8 @@ public sealed class DataLoaderReturnTypeAnalyzer : DiagnosticAnalyzer
         var attributes = GenericDataLoaderAnalyzerHelper.GetDataLoaderAttributes(
             context.SemanticModel,
             methodDeclaration,
-            context.Compilation);
+            context.Compilation,
+            context.CancellationToken);
 
         foreach (var attribute in attributes.Where(t => t.IsGeneric))
         {

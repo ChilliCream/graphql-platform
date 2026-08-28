@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,10 +8,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace HotChocolate.Types.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class DataLoaderMultipleAttributesAnalyzer : DiagnosticAnalyzer
+public sealed class GenericDataLoaderMethodAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
-        [Errors.DataLoaderMultipleAttributes];
+        [Errors.DataLoaderCannotBeGeneric, Errors.MethodAccessModifierInvalid];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -22,19 +23,37 @@ public sealed class DataLoaderMultipleAttributesAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
     {
         var methodDeclaration = (MethodDeclarationSyntax)context.Node;
+        var methodSymbol = context.SemanticModel.GetDeclaredSymbol(
+            methodDeclaration,
+            context.CancellationToken);
+
+        if (methodSymbol is null)
+        {
+            return;
+        }
+
         var attributes = GenericDataLoaderAnalyzerHelper.GetDataLoaderAttributes(
             context.SemanticModel,
             methodDeclaration,
             context.Compilation,
             context.CancellationToken);
 
-        if (attributes.Length <= 1)
+        if (!attributes.Any(t => t.IsGeneric))
         {
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            Errors.DataLoaderMultipleAttributes,
-            attributes[1].Syntax.GetLocation()));
+        var location = Location.Create(methodDeclaration.SyntaxTree, methodDeclaration.Modifiers.Span);
+
+        if (methodSymbol.IsGenericMethod)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Errors.DataLoaderCannotBeGeneric, location));
+        }
+
+        if (methodSymbol.DeclaredAccessibility is not (
+            Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedAndInternal))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Errors.MethodAccessModifierInvalid, location));
+        }
     }
 }

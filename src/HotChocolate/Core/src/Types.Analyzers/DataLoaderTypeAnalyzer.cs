@@ -25,7 +25,8 @@ public sealed class DataLoaderTypeAnalyzer : DiagnosticAnalyzer
         var attributes = GenericDataLoaderAnalyzerHelper.GetDataLoaderAttributes(
             context.SemanticModel,
             methodDeclaration,
-            context.Compilation);
+            context.Compilation,
+            context.CancellationToken);
 
         foreach (var attribute in attributes.Where(t => t.IsGeneric))
         {

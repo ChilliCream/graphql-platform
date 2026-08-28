@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,10 +8,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace HotChocolate.Types.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class DataLoaderMultipleAttributesAnalyzer : DiagnosticAnalyzer
+public sealed class DataLoaderParameterModifierAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
-        [Errors.DataLoaderMultipleAttributes];
+        [Errors.DataLoaderParameterModifierInvalid];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -28,13 +29,23 @@ public sealed class DataLoaderMultipleAttributesAnalyzer : DiagnosticAnalyzer
             context.Compilation,
             context.CancellationToken);
 
-        if (attributes.Length <= 1)
+        if (!attributes.Any(t => t.IsGeneric))
         {
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            Errors.DataLoaderMultipleAttributes,
-            attributes[1].Syntax.GetLocation()));
+        foreach (var parameter in methodDeclaration.ParameterList.Parameters)
+        {
+            if (!parameter.Modifiers.Any(t => t.IsKind(SyntaxKind.RefKeyword)
+                || t.IsKind(SyntaxKind.InKeyword)
+                || t.IsKind(SyntaxKind.OutKeyword)))
+            {
+                continue;
+            }
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                Errors.DataLoaderParameterModifierInvalid,
+                Location.Create(methodDeclaration.SyntaxTree, parameter.Modifiers.Span)));
+        }
     }
 }

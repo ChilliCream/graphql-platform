@@ -27,6 +27,9 @@
   <data name="DataLoader_KeyParameterInvalid" xml:space="preserve">
     <value>The first parameter of a [DataLoader&lt;T&gt;] method must be {0}</value>
   </data>
+  <data name="DataLoader_ParameterModifierInvalid" xml:space="preserve">
+    <value>DataLoader method parameters must not be ref/in/out/ref readonly</value>
+  </data>
   <data name="InterceptsAttribute" xml:space="preserve">
     <value>#pragma warning disable CS9113 // Parameter is unread.
 namespace System.Runtime.CompilerServices

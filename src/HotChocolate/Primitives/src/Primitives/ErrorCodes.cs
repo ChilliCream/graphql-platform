@@ -44,6 +44,7 @@ public static class ErrorCodes
         public const string DataLoaderDuplicateType = "HC0126";
         public const string DataLoaderMissingInterfaceImplementation = "HC0127";
         public const string DataLoaderPublicInterfaceAccessModifier = "HC0128";
+        public const string DataLoaderParameterModifierInvalid = "HC0129";
     }
 
     public static class Authentication

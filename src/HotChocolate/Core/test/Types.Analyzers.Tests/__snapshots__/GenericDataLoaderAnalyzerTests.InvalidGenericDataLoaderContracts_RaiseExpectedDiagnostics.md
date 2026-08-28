@@ -1,30 +1,5 @@
 # InvalidGenericDataLoaderContracts_RaiseExpectedDiagnostics
 
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "CS0311",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (17,16)-(17,30)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0311)",
-    "MessageFormat": "The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. There is no implicit reference conversion from '{3}' to '{1}'.",
-    "Message": "The type 'TestNamespace.INotDataLoader' cannot be used as type parameter 'T' in the generic type or method 'DataLoaderAttribute<T>'. There is no implicit reference conversion from 'TestNamespace.INotDataLoader' to 'GreenDonut.IDataLoader'.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
-```
-
-## Analyzer Diagnostics
-
 ```json
 [
   {
@@ -37,22 +12,6 @@
     "Message": "The type argument of [DataLoader<T>] must be an interface that derives from exactly one closed IBatchDataLoader<TKey, TValue> or ICacheDataLoader<TKey, TValue> contract",
     "Category": "DataLoader",
     "CustomTags": []
-  },
-  {
-    "Id": "CS0311",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (17,16)-(17,30)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0311)",
-    "MessageFormat": "The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. There is no implicit reference conversion from '{3}' to '{1}'.",
-    "Message": "The type 'TestNamespace.INotDataLoader' cannot be used as type parameter 'T' in the generic type or method 'DataLoaderAttribute<T>'. There is no implicit reference conversion from 'TestNamespace.INotDataLoader' to 'GreenDonut.IDataLoader'.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
   },
   {
     "Id": "HC0122",
@@ -108,29 +67,6 @@
     "Message": "The return type of a [DataLoader<T>] method must be Task/ValueTask of TValue",
     "Category": "DataLoader",
     "CustomTags": []
-  }
-]
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS0311",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (17,16)-(17,30)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0311)",
-    "MessageFormat": "The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. There is no implicit reference conversion from '{3}' to '{1}'.",
-    "Message": "The type 'TestNamespace.INotDataLoader' cannot be used as type parameter 'T' in the generic type or method 'DataLoaderAttribute<T>'. There is no implicit reference conversion from 'TestNamespace.INotDataLoader' to 'GreenDonut.IDataLoader'.",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
   }
 ]
 ```

@@ -284,6 +284,15 @@ public static class Errors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor DataLoaderParameterModifierInvalid =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderParameterModifierInvalid,
+            title: "Invalid DataLoader Parameter Modifier",
+            messageFormat: SourceGenResources.DataLoader_ParameterModifierInvalid,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
     public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
         new(
             id: ErrorCodes.Analyzers.InterfaceTypeStaticKeywordMissing,

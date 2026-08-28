@@ -87,6 +87,15 @@ namespace HotChocolate.Types.Analyzers.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to DataLoader method parameters must not be ref/in/out/ref readonly.
+        /// </summary>
+        internal static string DataLoader_ParameterModifierInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_ParameterModifierInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to A method can have only one [DataLoader] attribute.
         /// </summary>
         internal static string DataLoader_MultipleAttributes {

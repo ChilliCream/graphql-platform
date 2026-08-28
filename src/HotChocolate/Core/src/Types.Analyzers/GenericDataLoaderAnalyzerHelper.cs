@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Threading;
 using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,7 +11,8 @@ internal static class GenericDataLoaderAnalyzerHelper
     public static ImmutableArray<DataLoaderAttributeInfo> GetDataLoaderAttributes(
         SemanticModel semanticModel,
         MethodDeclarationSyntax methodDeclaration,
-        Compilation compilation)
+        Compilation compilation,
+        CancellationToken cancellationToken)
     {
         var dataLoaderAttribute = compilation.GetTypeByMetadataName(
             WellKnownAttributes.DataLoaderAttribute);
@@ -28,7 +30,7 @@ internal static class GenericDataLoaderAnalyzerHelper
         {
             foreach (var attribute in attributeList.Attributes)
             {
-                if (semanticModel.GetSymbolInfo(attribute).Symbol is not IMethodSymbol attributeSymbol)
+                if (semanticModel.GetSymbolInfo(attribute, cancellationToken).Symbol is not IMethodSymbol attributeSymbol)
                 {
                     continue;
                 }
@@ -108,8 +110,7 @@ internal static class GenericDataLoaderAnalyzerHelper
         DataLoaderContract contract,
         Compilation compilation)
     {
-        if (methodSymbol.Parameters.Length == 0
-            || methodSymbol.Parameters[0].RefKind is not RefKind.None)
+        if (methodSymbol.Parameters.Length == 0)
         {
             return false;
         }
@@ -135,7 +136,9 @@ internal static class GenericDataLoaderAnalyzerHelper
         DataLoaderContract contract,
         Compilation compilation)
     {
-        if (!TryGetAsyncResultType(methodSymbol.ReturnType, compilation, out var resultType))
+        if (methodSymbol.ReturnsByRef
+            || methodSymbol.ReturnsByRefReadonly
+            || !TryGetAsyncResultType(methodSymbol.ReturnType, compilation, out var resultType))
         {
             return false;
         }
