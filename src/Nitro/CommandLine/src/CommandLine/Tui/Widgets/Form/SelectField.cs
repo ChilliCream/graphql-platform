@@ -3,11 +3,6 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 
 /// <summary>
-/// One selectable choice in a <see cref="SelectField"/>.
-/// </summary>
-internal sealed record SelectOption(string Id, string Label);
-
-/// <summary>
 /// A radio single-select field over a fixed set of choices, rendered inline on
 /// as few lines as fit the field's width, wrapping to further lines only when
 /// needed. Left and right move the selection; at the first or last option the

@@ -39,19 +39,3 @@ internal sealed record TaskIntegrityReport
     /// </summary>
     public required IReadOnlyList<TaskDependencyReference> TombstonedParentEdges { get; init; }
 }
-
-/// <summary>
-/// A dependency edge identified by its task pair, without the edge's type or
-/// timestamps.
-/// </summary>
-internal sealed record TaskDependencyReference(string TaskId, string DependsOnId);
-
-/// <summary>
-/// A label row identified by its task and label text.
-/// </summary>
-internal sealed record TaskOrphanLabel(string TaskId, string Label);
-
-/// <summary>
-/// A comment row identified by its task and comment ID.
-/// </summary>
-internal sealed record TaskOrphanComment(string TaskId, long CommentId);

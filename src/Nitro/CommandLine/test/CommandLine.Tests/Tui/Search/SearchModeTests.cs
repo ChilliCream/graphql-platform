@@ -267,6 +267,58 @@ public sealed class SearchModeTests
     }
 
     [Fact]
+    public async Task TickAsync_Should_RerunLastAppliedQuery_Without_DiscardingPendingEdit_When_RefreshArrivesFirst()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "Alpha"));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", "Beta"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(Now, CancellationToken.None);
+        Assert.Equal(1, store.QueryCount);
+
+        TypeText(mode, "Beta", Now);
+        Assert.Null(mode.ParseError);
+
+        // act: an external write refreshes before the debounce is due
+        mode.Handle(new TuiMessage.RefreshRequested());
+        var refreshedAt = Now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1);
+        var refreshRan = await mode.TickAsync(refreshedAt, CancellationToken.None);
+
+        // assert: the refresh re-ran the last applied (empty) query, the
+        // in-flight typed text and its debounce timer are untouched
+        Assert.True(refreshRan);
+        Assert.Equal(2, store.QueryCount);
+        Assert.Null(store.LastFilter!.Text);
+        Assert.Equal("Beta", mode.QueryText);
+    }
+
+    [Fact]
+    public async Task TickAsync_Should_StillApplyPendingEdit_When_ItsDueTimeArrives_AfterARefresh()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "Alpha"));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", "Beta"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(Now, CancellationToken.None);
+
+        TypeText(mode, "Beta", Now);
+        mode.Handle(new TuiMessage.RefreshRequested());
+        await mode.TickAsync(Now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1), CancellationToken.None);
+
+        // act: the original debounce timer, unaffected by the refresh, comes due
+        var ran = await mode.TickAsync(Now + SearchMode.DebounceWindow, CancellationToken.None);
+
+        // assert: the typed query is the one that ends up applied
+        Assert.True(ran);
+        Assert.Equal("Beta", store.LastFilter!.Text);
+        Assert.Equal(["t-2"], mode.Results.Select(t => t.Id));
+    }
+
+    [Fact]
     public void KeyMap_Should_MirrorEscapeToMoveLeft_And_TabToOpenSelected()
     {
         // arrange

@@ -221,7 +221,7 @@ public static class ErrorCodes
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
-        public const string DuplicateFieldNames = "HCXXXX";
+        public const string DuplicateFieldNames = "HC0121";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.
@@ -343,6 +343,21 @@ public static class ErrorCodes
         /// The field merge validation budget was exhausted.
         /// </summary>
         public const string BudgetExceeded = "HC0107";
+
+        /// <summary>
+        /// The selected field does not exist on the type it was selected on.
+        /// </summary>
+        public const string FieldDoesNotExist = "HC0118";
+
+        /// <summary>
+        /// The type condition of a fragment refers to a type that does not exist.
+        /// </summary>
+        public const string FragmentTypeConditionUnknown = "HC0119";
+
+        /// <summary>
+        /// A fragment spread refers to a fragment that is not defined in the document.
+        /// </summary>
+        public const string FragmentDoesNotExist = "HC0120";
     }
 
     /// <summary>

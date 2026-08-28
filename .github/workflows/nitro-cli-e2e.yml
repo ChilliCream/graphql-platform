@@ -2,6 +2,9 @@ name: nitro-cli-e2e
 
 on:
   push:
+    branches:
+      - main
+      - main-version-*
     paths:
       - 'src/Nitro/CommandLine/**'
       - 'src/Nitro/Common/**'
@@ -58,12 +61,23 @@ jobs:
 
           work_dir="$(mktemp -d)"
           cd "$work_dir"
-          export NITRO_TASK_ACTOR=ci
 
-          "$nitro_bin" agent tasks init
+          "$nitro_bin" agent init
+
+          # Actor names are allocated, never invented: `agent login` mints one
+          # the way a harness without a session-start hook does. Only the
+          # commands that record an actor take --actor; the read-only ones
+          # below have no such option.
+          actor="$("$nitro_bin" agent login --output json \
+            | tr -d '\n' | sed -n 's/.*"actor"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+          if [ -z "$actor" ]; then
+            echo "::error::Could not parse an actor out of the login output." >&2
+            exit 1
+          fi
+
           "$nitro_bin" agent tasks list
 
-          create_output="$("$nitro_bin" agent tasks create "AOT smoke test task")"
+          create_output="$("$nitro_bin" agent tasks create "AOT smoke test task" --actor "$actor")"
           echo "$create_output"
           task_id=$(printf '%s' "$create_output" | sed -n "s/.*'\([^']*\)'.*/\1/p")
           if [ -z "$task_id" ]; then

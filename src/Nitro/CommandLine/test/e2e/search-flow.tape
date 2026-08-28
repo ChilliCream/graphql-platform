@@ -1,5 +1,13 @@
-# End-to-end recording of the tasks TUI's search mode against the fixture
-# workspace.
+# End-to-end recording of the Tasks tab's search mode against the fixture
+# workspace, launched via the only interactive entry point, bare
+# `nitro agent`, so the tab strip is on screen throughout, same as
+# board-flow.tape/detail-flow.tape. Proves the bd-agent-unify-814.7 fix:
+# typing a query into the search box while the Mail tab is also hosted now
+# applies (previously a Mail-tab refresh loop raced out and always won
+# against SearchMode's own debounced query reset, because a plain WAL read
+# touches the database's -shm sibling's mtime the same way a write does;
+# SqliteDbWatcher now ignores -shm-only touches, so the Mail tab's own
+# RefreshRequested read no longer retriggers itself).
 #
 # Search mode is reached from the board TUI via the '/'
 # gesture (TuiMessage.FocusSearchRequested, KeyMap.CreateDefaultGlobal): it
@@ -23,8 +31,8 @@
 # is "Checkout crashes on Safari").
 #
 # Fixed geometry (Width/Height below) is the stability lever for this
-# full-screen layout, same as board-flow.tape: changing it requires
-# `--update` of every board-flow*/search-flow*/detail-flow* golden.
+# full-screen layout, same as board-flow.tape/detail-flow.tape: changing it
+# requires `--update` of every board-flow*/search-flow*/detail-flow* golden.
 # Produces search-flow.gif + search-flow.txt.
 
 Output search-flow.gif
@@ -43,14 +51,13 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_TASK_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks board` Enter
+Type `nitro agent` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape): focus starts on
 # "Blocked", selection on its first row, acme-a1b.
