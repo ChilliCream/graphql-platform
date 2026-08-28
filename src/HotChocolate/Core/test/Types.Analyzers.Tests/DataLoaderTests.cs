@@ -250,6 +250,37 @@ public class DataLoaderTests
     }
 
     [Fact]
+    public async Task Generate_Should_EmitPublicInterfaceAndInternalDataLoader_When_AccessModifierIsPublicInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader(AccessModifier = DataLoaderAccessModifier.PublicInterface)]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task Generate_Should_EmitGenericCacheDataLoader_When_ContractOverridesTheName()
     {
         // arrange

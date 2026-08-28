@@ -39,7 +39,7 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         FullName = $"{Namespace}.{Name}";
         InterfaceFullName = $"{Namespace}.{InterfaceName}";
         IsScoped = attributeData.IsScoped();
-        IsPublic = attributeData.IsPublic();
+        IsPublic = attributeData.IsPublicForGenericDataLoader();
         IsInterfacePublic = attributeData.IsInterfacePublic();
         MaxBatchSize = attributeData.GetMaxBatchSize();
         KeyParameter = methodSymbol.Parameters[0];
