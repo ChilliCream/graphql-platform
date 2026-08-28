@@ -1,0 +1,112 @@
+title: Defer_KeyOnlyField_Should_KeepTypename_When_TypenameInsideDefer
+request:
+  document: |
+    query GetUsers {
+      users {
+        ... @defer {
+          __typename
+          id
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "data": {
+      "users": [
+        {
+          "__typename": "User",
+          "id": "VXNlcjox"
+        },
+        {
+          "__typename": "User",
+          "id": "VXNlcjoy"
+        },
+        {
+          "__typename": "User",
+          "id": "VXNlcjoz"
+        }
+      ]
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUsers_a81cd442_1 {
+              users {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "__typename": "User",
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "__typename": "User",
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "__typename": "User",
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query GetUsers {
+          users {
+            __typename
+            id
+          }
+        }
+      name: GetUsers
+      hash: a81cd442902d58d3cbc050e226b3f5ac
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUsers_a81cd442_1 {
+          users {
+            __typename
+            id
+          }
+        }

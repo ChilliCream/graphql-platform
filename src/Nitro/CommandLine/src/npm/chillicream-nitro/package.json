@@ -28,7 +28,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=20.6.0"
+    "node": ">=22.0.0"
   },
   "bin": "./dist/cli.js",
   "files": [
@@ -43,7 +43,7 @@
     "detect-libc": "^2.0.4"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
-    "typescript": "^5.9.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^7.0.2"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
@@ -81,6 +82,7 @@ const getRequestContextFromUrl = () =>
 const getServerRequestContext = () => "";
 
 export function ContactForm() {
+  const router = useRouter();
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -156,7 +158,7 @@ export function ContactForm() {
       const showThankYou = () => {
         if (!redirected) {
           redirected = true;
-          window.location.assign(THANK_YOU_PATH);
+          router.push(THANK_YOU_PATH);
         }
       };
 
