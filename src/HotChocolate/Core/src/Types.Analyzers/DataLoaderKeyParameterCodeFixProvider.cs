@@ -76,21 +76,21 @@ public sealed class DataLoaderKeyParameterCodeFixProvider : CodeFixProvider
         CancellationToken cancellationToken,
         out DataLoaderContract contract)
     {
-        foreach (var attribute in GenericDataLoaderAnalyzerHelper.GetDataLoaderAttributes(
-                     semanticModel,
-                     methodDeclaration,
-                     semanticModel.Compilation,
-                     cancellationToken))
+        var attribute = GenericDataLoaderAnalyzerHelper.GetDataLoaderAttributes(
+                semanticModel,
+                methodDeclaration,
+                semanticModel.Compilation,
+                cancellationToken)
+            .LastOrDefault(t => t.IsGeneric);
+
+        if (attribute.IsGeneric
+            && attribute.Type.TypeArguments[0] is INamedTypeSymbol dataLoaderType
+            && GenericDataLoaderAnalyzerHelper.TryResolveContract(
+                dataLoaderType,
+                semanticModel.Compilation,
+                out contract))
         {
-            if (attribute.IsGeneric
-                && attribute.Type.TypeArguments[0] is INamedTypeSymbol dataLoaderType
-                && GenericDataLoaderAnalyzerHelper.TryResolveContract(
-                    dataLoaderType,
-                    semanticModel.Compilation,
-                    out contract))
-            {
-                return true;
-            }
+            return true;
         }
 
         contract = default;

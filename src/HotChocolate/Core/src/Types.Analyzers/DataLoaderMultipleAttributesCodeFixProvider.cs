@@ -68,11 +68,11 @@ public sealed class DataLoaderMultipleAttributesCodeFixProvider : CodeFixProvide
             return document;
         }
 
-        var retainedAttribute = attributes.Where(t => t.IsGeneric).LastOrDefault().Syntax
+        var retainedAttribute = attributes.LastOrDefault(t => t.IsGeneric).Syntax
             ?? attributes[attributes.Length - 1].Syntax;
         var removedAttributes = new HashSet<AttributeSyntax>(
             attributes.Where(t => t.Syntax != retainedAttribute).Select(t => t.Syntax));
-        SyntaxNode newRoot = root;
+        var removedNodes = new List<SyntaxNode>();
 
         foreach (var attributeList in methodDeclaration.AttributeLists)
         {
@@ -87,46 +87,19 @@ public sealed class DataLoaderMultipleAttributesCodeFixProvider : CodeFixProvide
 
             if (dataLoaderAttributes.Length == attributeList.Attributes.Count)
             {
-                newRoot = newRoot.RemoveNode(attributeList, SyntaxRemoveOptions.KeepExteriorTrivia) ?? newRoot;
+                removedNodes.Add(attributeList);
             }
             else
             {
-                var newAttributes = new List<AttributeSyntax>(attributeList.Attributes.Count);
-
-                for (var i = 0; i < attributeList.Attributes.Count; i++)
-                {
-                    var attribute = attributeList.Attributes[i];
-
-                    if (removedAttributes.Contains(attribute))
-                    {
-                        continue;
-                    }
-
-                    if (attribute == retainedAttribute)
-                    {
-                        if (attributeList.Attributes.Take(i).Any(removedAttributes.Contains))
-                        {
-                            attribute = attribute.WithLeadingTrivia(RemoveWhitespace(attribute.GetLeadingTrivia()));
-                        }
-
-                        if (attributeList.Attributes.Skip(i + 1).Any(removedAttributes.Contains))
-                        {
-                            attribute = attribute.WithTrailingTrivia(RemoveWhitespace(attribute.GetTrailingTrivia()));
-                        }
-                    }
-
-                    newAttributes.Add(attribute);
-                }
-
-                newRoot = newRoot.ReplaceNode(
-                    attributeList,
-                    attributeList.WithAttributes(SyntaxFactory.SeparatedList(newAttributes)));
+                removedNodes.AddRange(dataLoaderAttributes);
             }
         }
 
-        return document.WithSyntaxRoot(newRoot);
-    }
+        var newMethodDeclaration = methodDeclaration.RemoveNodes(
+            removedNodes,
+            SyntaxRemoveOptions.KeepExteriorTrivia)
+            ?? methodDeclaration;
 
-    private static SyntaxTriviaList RemoveWhitespace(SyntaxTriviaList trivia)
-        => SyntaxFactory.TriviaList(trivia.Where(t => !t.IsKind(SyntaxKind.WhitespaceTrivia)));
+        return document.WithSyntaxRoot(root.ReplaceNode(methodDeclaration, newMethodDeclaration));
+    }
 }
