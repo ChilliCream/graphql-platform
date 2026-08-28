@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
@@ -86,32 +85,3 @@ internal static class SourceMetadataParser
             dto.RepositoryUrl is null ? null : new Uri(dto.RepositoryUrl));
     }
 }
-
-internal sealed record GitHubSourceMetadataDto(
-    [property: JsonRequired] string Actor,
-    [property: JsonRequired] string CommitHash,
-    [property: JsonRequired] string WorkflowName,
-    [property: JsonRequired] string RunNumber,
-    [property: JsonRequired] string RunId,
-    string? JobId,
-    [property: JsonRequired] string RepositoryUrl);
-
-internal sealed record AzureDevOpsSourceMetadataDto(
-    [property: JsonRequired] AzureDevOpsActorDto Actor,
-    [property: JsonRequired] string PipelineName,
-    [property: JsonRequired] string RunNumber,
-    [property: JsonRequired] string RunId,
-    [property: JsonRequired] string ProjectUrl,
-    string? CommitHash,
-    string? JobId,
-    string? TaskId,
-    string? RepositoryUrl);
-
-internal sealed record AzureDevOpsActorDto(
-    [property: JsonRequired] string Name,
-    string? Email);
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(GitHubSourceMetadataDto))]
-[JsonSerializable(typeof(AzureDevOpsSourceMetadataDto))]
-internal partial class SourceMetadataJsonContext : JsonSerializerContext;

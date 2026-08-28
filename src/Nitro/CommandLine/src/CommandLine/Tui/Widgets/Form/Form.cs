@@ -8,43 +8,17 @@ file static class FormMeasurement
     /// An off-screen console used only to obtain a <see cref="RenderOptions"/> for
     /// measuring a renderable's line count; nothing is ever written through it.
     /// </summary>
-    private static readonly IAnsiConsole Console =
+    private static readonly IAnsiConsole s_console =
         AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(TextWriter.Null) });
 
-    private static readonly RenderOptions Options = RenderOptions.Create(Console, Console.Profile.Capabilities);
+    private static readonly RenderOptions s_options = RenderOptions.Create(s_console, s_console.Profile.Capabilities);
 
     /// <summary>
     /// Renders <paramref name="renderable"/> at <paramref name="width"/> and counts
     /// the visual lines it occupies.
     /// </summary>
     public static int MeasureHeight(IRenderable renderable, int width)
-        => Segment.SplitLines(renderable.Render(Options, Math.Max(1, width))).Count;
-}
-
-/// <summary>
-/// The outcome of a completed <see cref="Form"/> interaction.
-/// </summary>
-internal abstract record FormResult
-{
-    private FormResult()
-    {
-    }
-
-    /// <summary>
-    /// The primary button was activated while every field passed validation.
-    /// </summary>
-    public sealed record Submitted(IReadOnlyDictionary<string, FormValue> Values) : FormResult;
-
-    /// <summary>
-    /// The form was cancelled: Escape was pressed while no field consumed it.
-    /// </summary>
-    public sealed record Cancelled : FormResult;
-
-    /// <summary>
-    /// A non-primary button was activated. The <see cref="Form"/> does not
-    /// interpret the id; the host decides what it means.
-    /// </summary>
-    public sealed record ButtonActivated(string ButtonId) : FormResult;
+        => Segment.SplitLines(renderable.Render(s_options, Math.Max(1, width))).Count;
 }
 
 /// <summary>

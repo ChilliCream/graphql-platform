@@ -31,6 +31,13 @@ internal abstract record TuiMessage
     public sealed record RefreshRequested : TuiMessage;
 
     /// <summary>
+    /// An asynchronous effect completed. A mode that owns no effect queue
+    /// ignores this; one that does is expected to drain it the same way it
+    /// already does on every other message.
+    /// </summary>
+    public sealed record EffectCompleted : TuiMessage;
+
+    /// <summary>
     /// The selection cursor should move one step in <paramref name="Direction"/>.
     /// </summary>
     public sealed record MoveCursor(CursorDirection Direction) : TuiMessage;
@@ -143,35 +150,91 @@ internal abstract record TuiMessage
     /// <see cref="CreateTaskRequested"/>, preset to the epic type.
     /// </summary>
     public sealed record CreateEpicRequested : TuiMessage;
-}
 
-/// <summary>
-/// A direction the selection cursor can move in.
-/// </summary>
-internal enum CursorDirection
-{
-    Up,
-    Down,
-    Left,
-    Right
-}
+    /// <summary>
+    /// The active mode's currently selected item should toggle between read
+    /// and unread.
+    /// </summary>
+    public sealed record ToggleReadRequested : TuiMessage;
 
-/// <summary>
-/// An edge of a list the selection cursor can jump to.
-/// </summary>
-internal enum EdgeTarget
-{
-    Top,
-    Bottom
-}
+    /// <summary>
+    /// The archive confirmation should open for the active mode's currently
+    /// selected item.
+    /// </summary>
+    public sealed record ArchiveRequested : TuiMessage;
 
-/// <summary>
-/// The visual style of a toast message.
-/// </summary>
-internal enum ToastStyle
-{
-    Info,
-    Success,
-    Warn,
-    Error
+    /// <summary>
+    /// The compose form should open.
+    /// </summary>
+    public sealed record ComposeRequested : TuiMessage;
+
+    /// <summary>
+    /// The reply form should open for the active mode's currently selected
+    /// item.
+    /// </summary>
+    public sealed record ReplyRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's Inbox mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectInboxRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's Sent mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectSentRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's All mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectAllMailRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's Workspace mailbox should become the active mailbox.
+    /// </summary>
+    public sealed record SelectWorkspaceMailRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's agent filter quick picker should open, scoped to
+    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailMailbox.Workspace"/>.
+    /// </summary>
+    public sealed record AgentFilterPickerRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's list pane should toggle between
+    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailListMode.Threads"/>
+    /// and <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailListMode.Flat"/>
+    /// (Shift+V).
+    /// </summary>
+    public sealed record ToggleListModeRequested : TuiMessage;
+
+    /// <summary>
+    /// The mail board's list pane should enter its fold-prefix capture
+    /// state (the vim <c>z</c> prefix): the next raw key resolves one of
+    /// za/zo/zc/zR/zM, or is dropped when it matches none of them.
+    /// </summary>
+    public sealed record FoldPrefixRequested : TuiMessage;
+
+    /// <summary>
+    /// The active mode's own inline search input should gain focus.
+    /// </summary>
+    public sealed record SearchRequested : TuiMessage;
+
+    /// <summary>
+    /// The active mode's secondary scope filter should cycle to its next
+    /// value.
+    /// </summary>
+    public sealed record CycleScopeRequested : TuiMessage;
+
+    /// <summary>
+    /// The promote form should open for the active mode's currently selected
+    /// journal entry.
+    /// </summary>
+    public sealed record PromoteRequested : TuiMessage;
+
+    /// <summary>
+    /// The forget confirmation should open for the active mode's currently
+    /// selected curated memory.
+    /// </summary>
+    public sealed record ForgetRequested : TuiMessage;
 }

@@ -230,5 +230,29 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
             }
         }
+
+        internal static string DocumentRewriter_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnInlineFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnInlineFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FragmentDoesNotExist", resourceCulture);
+            }
+        }
     }
 }

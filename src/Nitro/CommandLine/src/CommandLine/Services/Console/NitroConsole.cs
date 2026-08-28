@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -7,7 +6,6 @@ namespace ChilliCream.Nitro.CommandLine;
 internal sealed class NitroConsole(
     IAnsiConsole outConsole,
     IAnsiConsole errorConsole,
-    IEnvironmentVariableProvider environmentVariables,
     IActivitySinkFactory activitySinkFactory)
     : INitroConsole
 {
@@ -15,9 +13,7 @@ internal sealed class NitroConsole(
     private bool _hasWrittenOutput;
 
     public bool IsInteractive =>
-        IsHumanReadable
-        && outConsole.Profile.Capabilities.Interactive
-        && !IsNonInteractiveEnvironment();
+        IsHumanReadable && outConsole.Profile.Capabilities.Interactive;
 
     public bool IsHumanReadable => _outputFormat is null;
 
@@ -93,10 +89,4 @@ internal sealed class NitroConsole(
                 + "Check the documentation of the command to see all options");
 
     public RenderPipeline Pipeline => outConsole.Pipeline;
-
-    private bool IsNonInteractiveEnvironment()
-    {
-        var value = environmentVariables.GetEnvironmentVariable("NITRO_NON_INTERACTIVE");
-        return value is "1" or "true";
-    }
 }

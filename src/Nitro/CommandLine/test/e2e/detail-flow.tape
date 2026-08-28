@@ -1,14 +1,17 @@
-# End-to-end recording of the tasks TUI's task detail view and dependency
-# tree explorer against the fixture workspace.
+# End-to-end recording of the Tasks tab's task detail view and dependency
+# tree explorer against the fixture workspace, launched via bare
+# `nitro agent` so the tab strip is on screen
+# throughout, same as board-flow.tape/search-flow.tape.
 #
-# There is no dedicated interactive "detail" entry command (BoardTaskCommand
-# is the sole TuiShell construction site, see search-flow.tape's header);
-# the detail view and the tree explorer are both reached through search
-# mode, same as search-flow.tape: '/' into search, Tab Tab from the query
-# input to the detail pane. From there this flow exercises what
-# search-flow.tape does not: the detail body's dependency section, entering
-# the dependency tree explorer ('t', TuiMessage.OpenTreeRequested), toggling
-# its direction ('d') to reveal the seeded acme-epic1 children, drilling
+# There is no dedicated interactive "detail" entry command
+# (AgentTuiLauncher is the TuiShell construction site, see
+# agent-root-flow.tape's header); the detail view and tree explorer are both
+# reached through search mode, same as search-flow.tape: '/' into search,
+# Tab Tab from the query input to the detail pane. From there this flow
+# exercises what search-flow.tape does not: the detail body's dependency
+# section, entering the dependency tree explorer ('t',
+# TuiMessage.OpenTreeRequested), toggling its direction ('d') to reveal the
+# seeded acme-epic1 children, drilling
 # into one of them (Enter, DependencyTreeView.Refocus, pushing a
 # breadcrumb), and navigating back up the breadcrumb stack ('u',
 # TuiMessage.NavigateTreeBack) -- the tree explorer's own back gesture, not
@@ -52,14 +55,13 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_TASK_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks board` Enter
+Type `nitro agent` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape).
 Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
