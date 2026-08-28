@@ -6,6 +6,7 @@ public class DataLoaderAttributeTests
     public void Attribute_ShouldExposeConfiguredProperties_WhenGenericDataLoaderIsSpecified()
     {
         // arrange
+        // act
         var lookups = new[] { "ById" };
         var attribute = new DataLoaderAttribute<BatchDataLoader<string, string>>("custom")
         {
@@ -14,8 +15,6 @@ public class DataLoaderAttributeTests
             AccessModifier = DataLoaderAccessModifier.Public,
             MaxBatchSize = 100
         };
-
-        // act
 
         // assert
         Assert.Equal("custom", attribute.Name);
@@ -29,9 +28,8 @@ public class DataLoaderAttributeTests
     public void Attribute_ShouldUseDefaultValues_WhenPropertiesAreNotConfigured()
     {
         // arrange
-        var attribute = new DataLoaderAttribute<BatchDataLoader<string, string>>();
-
         // act
+        var attribute = new DataLoaderAttribute<BatchDataLoader<string, string>>();
 
         // assert
         Assert.Null(attribute.Name);

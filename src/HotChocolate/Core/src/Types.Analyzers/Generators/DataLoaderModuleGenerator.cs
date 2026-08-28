@@ -31,7 +31,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 
         if (module is null || !syntaxInfos.Any(
                 t => t is DataLoaderInfo or RegisterDataLoaderInfo
-                    || dataLoaderDefaults.RegisterServices && t is GenericDataLoaderInfo))
+                    || (dataLoaderDefaults.RegisterServices && t is GenericDataLoaderInfo)))
         {
             return;
         }

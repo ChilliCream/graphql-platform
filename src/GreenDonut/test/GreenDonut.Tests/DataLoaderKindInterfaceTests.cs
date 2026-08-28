@@ -8,7 +8,6 @@ public class DataLoaderKindInterfaceTests
     public void Type_ShouldImplementBatchInterface_WhenItIsABatchDataLoader(Type type)
     {
         // arrange
-
         // act
         var interfaces = type.GetInterfaces();
 
@@ -22,7 +21,6 @@ public class DataLoaderKindInterfaceTests
     public void Type_ShouldImplementCacheInterface_WhenItIsACacheDataLoader(Type type)
     {
         // arrange
-
         // act
         var interfaces = type.GetInterfaces();
 
