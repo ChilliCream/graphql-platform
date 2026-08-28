@@ -12,4 +12,7 @@ internal readonly record struct ExecutionNodeResult(
     ImmutableArray<ExecutionNode> DependentsToExecute,
     ImmutableArray<IOperationPlanNode> SkippedDefinitions,
     ImmutableArray<VariableValues> VariableValueSets,
-    (Uri? Uri, string? ContentType) TransportDetails = default);
+    (Uri? Uri, string? ContentType) TransportDetails = default,
+    // true when a GraphQL error explaining Exception has already been added
+    // to the result store, so the completion must not surface it again.
+    bool ErrorReported = false);

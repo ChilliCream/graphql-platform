@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
@@ -327,7 +326,5 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
-    {
-        return context.DiagnosticEvents.ExecuteApolloOperationExecutionNode(context, this, _schemaName);
-    }
+        => context.DiagnosticEvents.ExecuteApolloOperationExecutionNode(context, this, _schemaName);
 }

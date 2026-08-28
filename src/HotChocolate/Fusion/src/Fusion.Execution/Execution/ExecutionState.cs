@@ -20,6 +20,7 @@ internal sealed class ExecutionState
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
     private readonly ConcurrentQueue<PendingMerge> _pendingMerges = new();
     private Dictionary<int, Exception?>? _mergeFailures;
+    private List<Exception>? _failedNodeExceptions;
     private ulong[] _failedOrSkippedBitset = [];
 
     private bool _collectTelemetry;
@@ -52,6 +53,13 @@ internal sealed class ExecutionState
     /// cancellation (timeout or abort).
     /// </summary>
     public bool ProcessingCompletedEarly => _processingCompletedEarly;
+
+    /// <summary>
+    /// The exceptions of nodes that completed as failed after their exception escaped the node's
+    /// own error handling. Lets the completion surface a GraphQL error for failures that would
+    /// otherwise leave the response without any.
+    /// </summary>
+    public IReadOnlyList<Exception>? FailedNodeExceptions => _failedNodeExceptions;
 
     public void Clean()
     {
@@ -158,6 +166,7 @@ internal sealed class ExecutionState
 
         ClearPendingMerges();
         _mergeFailures?.Clear();
+        _failedNodeExceptions?.Clear();
         _activeNodes = 0;
         _processingCompletedEarly = false;
 
@@ -230,10 +239,13 @@ internal sealed class ExecutionState
         if (_mergeFailures is not null
             && _mergeFailures.Remove(result.Id, out var exception))
         {
+            // ApplyMerge already added the errors for the failed merge to the
+            // result store, so the completion must not surface them again.
             return result with
             {
                 Status = ExecutionStatus.Failed,
-                Exception = exception
+                Exception = exception,
+                ErrorReported = true
             };
         }
 
@@ -346,6 +358,16 @@ internal sealed class ExecutionState
 
         if (result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
         {
+            // A failed node whose result carries an unreported exception did not get the
+            // chance to add an error explaining the missing data to the result store. We
+            // track those exceptions so the completion can surface them.
+            if (result.Exception is { } exception
+                && !result.ErrorReported
+                && !(exception is OperationCanceledException && _cts.IsCancellationRequested))
+            {
+                (_failedNodeExceptions ??= []).Add(exception);
+            }
+
             SkipNode(plan, node);
         }
     }

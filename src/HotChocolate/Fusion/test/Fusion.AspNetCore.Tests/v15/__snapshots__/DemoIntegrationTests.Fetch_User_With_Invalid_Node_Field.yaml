@@ -17,7 +17,12 @@ response:
     {
       "data": {
         "node": null
-      }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error"
+        }
+      ]
     }
 sourceSchemas:
   - name: A
