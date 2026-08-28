@@ -94,14 +94,16 @@ public class WideConditionMaskTests : FusionTestBase
 
         Assert.True(operation.RootSelectionSet.TryGetSelection("f0", out var conditional));
         Assert.True(operation.RootSelectionSet.TryGetSelection("plain", out var nonConditional));
+        dynamic conditionalSelection = conditional;
+        dynamic nonConditionalSelection = nonConditional;
 
         // act & assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => conditional.IsIncluded(ulong.MaxValue));
+            () => conditionalSelection.IsIncluded(ulong.MaxValue));
         Assert.Contains("wide include flags", exception.Message);
 
         // non-conditional selections never consult the mask and must not throw.
-        Assert.True(nonConditional.IsIncluded(0));
+        Assert.True(nonConditionalSelection.IsIncluded(0));
     }
 
     [Fact]
@@ -115,18 +117,20 @@ public class WideConditionMaskTests : FusionTestBase
 
         Assert.True(operation.RootSelectionSet.TryGetSelection("f0", out var deferrable));
         Assert.True(operation.RootSelectionSet.TryGetSelection("plain", out var nonDeferrable));
+        dynamic deferrableSelection = deferrable;
+        dynamic nonDeferrableSelection = nonDeferrable;
 
         // act & assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => deferrable.IsDeferred(ulong.MaxValue));
+            () => deferrableSelection.IsDeferred(ulong.MaxValue));
         Assert.Contains("wide defer flags", exception.Message);
         Assert.Throws<InvalidOperationException>(
-            () => deferrable.GetActiveDeliveryGroups(ulong.MaxValue));
+            () => deferrableSelection.GetActiveDeliveryGroups(ulong.MaxValue));
         Assert.Throws<InvalidOperationException>(
-            () => deferrable.HasActiveDeliveryGroup(ulong.MaxValue, new DeliveryGroup(null, null, 0)));
+            () => deferrableSelection.HasActiveDeliveryGroup(ulong.MaxValue, new DeliveryGroup(null, null, 0)));
 
         // selections without delivery groups never consult the mask and must not throw.
-        Assert.False(nonDeferrable.IsDeferred(ulong.MaxValue));
+        Assert.False(nonDeferrableSelection.IsDeferred(ulong.MaxValue));
     }
 
     [Theory]

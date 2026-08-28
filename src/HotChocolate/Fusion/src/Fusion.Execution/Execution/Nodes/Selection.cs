@@ -263,6 +263,7 @@ public sealed class Selection : ISelection
     }
 
     /// <inheritdoc />
+    [Obsolete("Use IsIncluded(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsIncluded(ulong includeFlags)
     {
         if (_includeFlags.Length == 0)
@@ -426,6 +427,7 @@ public sealed class Selection : ISelection
     }
 
     /// <inheritdoc />
+    [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsDeferred(ulong deferFlags)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
@@ -494,6 +496,7 @@ public sealed class Selection : ISelection
     /// whose parent is also active. Returns <c>null</c> when the selection
     /// belongs to the initial result.
     /// </summary>
+    [Obsolete("Use GetActiveDeliveryGroups(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
@@ -618,6 +621,7 @@ nextItem:
     /// <paramref name="deferFlags"/>. Returns <c>false</c> if any occurrence
     /// belongs to the initial result.
     /// </summary>
+    [Obsolete("Use HasActiveDeliveryGroup(ConditionFlags, DeliveryGroup) instead. This overload throws for operations with more than 64 conditions.")]
     public bool HasActiveDeliveryGroup(ulong deferFlags, DeliveryGroup target)
     {
         if ((_flags & Flags.RequiresWideDeferFlags) != 0)
