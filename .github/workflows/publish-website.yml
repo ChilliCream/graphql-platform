@@ -60,7 +60,7 @@ jobs:
         with:
           path: |
             website/public/_optimized
-          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/src/image-optimization/**', 'website/scripts/optimize-images.mjs') }}
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/src/image-optimization/**', 'website/scripts/optimize-images.mjs', 'website/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-optimized-images-
 
