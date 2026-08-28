@@ -71,12 +71,12 @@
           "type": "Operation",
           "schema": "b",
           "operation": {
-            "name": "Op_defer_2",
+            "name": "Op_defer_1",
             "kind": "Query",
-            "document": "query Op_defer_2($__fusion_1_id: ID!) {\n  userById(id: $__fusion_1_id) {\n    email\n  }\n}",
-            "hash": "65dbc31ddfe32ceb540eaace9ebb429fdc84b5f7758a861ec21db29c098ce8ee",
-            "shortHash": "65dbc31d",
-            "xxHash": 13061991274719688650
+            "document": "query Op_defer_1($__fusion_1_id: ID!) {\n  userById(id: $__fusion_1_id) {\n    email\n  }\n}",
+            "hash": "178bbadf7a5e1d370b4b8bbff14018d6c7d3da2ed7e53ae3d6899bf0c84a898a",
+            "shortHash": "178bbadf",
+            "xxHash": 2501090702217008907
           },
           "lookupTypeName": "User",
           "resultSelectionSet": "{ email }",
@@ -101,12 +101,12 @@
           "type": "Operation",
           "schema": "a",
           "operation": {
-            "name": "Op_defer_1",
+            "name": "Op_defer_2",
             "kind": "Query",
-            "document": "query Op_defer_1 {\n  user(id: \"1\") {\n    id\n  }\n}",
-            "hash": "93841f3bbdb1c1bf3a949d7089b6713b11e6d33666aae10bdc8a885607465ca5",
-            "shortHash": "93841f3b",
-            "xxHash": 9853753089573959001
+            "document": "query Op_defer_2 {\n  user(id: \"1\") {\n    id\n  }\n}",
+            "hash": "2a278c831857a91cc3b77017877ba5bd429dbc9987ddc13ea675ac21819c15c1",
+            "shortHash": "2a278c83",
+            "xxHash": 7338884020045621717
           },
           "resultSelectionSet": "{ user }"
         }
@@ -138,12 +138,12 @@
           "type": "Operation",
           "schema": "b",
           "operation": {
-            "name": "Op_defer_2",
+            "name": "Op_defer_1",
             "kind": "Query",
-            "document": "query Op_defer_2($__fusion_1_id: ID!) {\n  userById(id: $__fusion_1_id) {\n    address\n  }\n}",
-            "hash": "1abf4c1bb273be32d1f61887253fa9843c5a15491e86d6962b34ecd01ad1cb01",
-            "shortHash": "1abf4c1b",
-            "xxHash": 13276919124332618164
+            "document": "query Op_defer_1($__fusion_1_id: ID!) {\n  userById(id: $__fusion_1_id) {\n    address\n  }\n}",
+            "hash": "124c6f171050140eb8e06a40cefcf722601314a84d9e54a2f7dea7863cdf7200",
+            "shortHash": "124c6f17",
+            "xxHash": 3072488070071406033
           },
           "lookupTypeName": "User",
           "resultSelectionSet": "{ address }",

@@ -24,7 +24,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_defer_4($__fusion_4_id: ID!) {
+      query Op_defer_3($__fusion_4_id: ID!) {
         productById(id: $__fusion_4_id) {
           productSku
         }
@@ -43,9 +43,6 @@ incrementalPlans:
       - 0
     parentNodeId: 2
     requirements:
-      - name: __fusion_1_id
-        selectionMap: >-
-          id
       - name: __fusion_2_productSku
         selectionMap: >-
           productSku
@@ -53,11 +50,11 @@ incrementalPlans:
         selectionMap: >-
           id
     nodes:
-      - id: 2
+      - id: 1
         type: Operation
         schema: c
         operation: |
-          query Op_defer_3($__fusion_2_productSku: String!, $__fusion_3_id: ID!) {
+          query Op_defer_2($__fusion_2_productSku: String!, $__fusion_3_id: ID!) {
             productById(id: $__fusion_3_id) {
               reviews(productSku: $__fusion_2_productSku)
             }

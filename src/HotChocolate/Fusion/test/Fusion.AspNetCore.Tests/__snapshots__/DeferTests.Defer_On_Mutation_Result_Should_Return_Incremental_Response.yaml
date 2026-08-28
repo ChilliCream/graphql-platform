@@ -1,11 +1,11 @@
-title: Defer_With_Error_In_Deferred_Fragment_Should_Return_Error_In_Incremental_Payload
+title: Defer_On_Mutation_Result_Should_Return_Incremental_Response
 request:
   document: |
-    query GetUser {
-      user(id: "1") {
+    mutation {
+      createProduct(name: "Widget") {
         name
-        ... @defer(label: "email") {
-          email
+        ... @defer(label: "pricing") {
+          price
         }
       }
     }
@@ -15,8 +15,8 @@ stableResponseStream: |
     "payloadCount": 2,
     "initial": {
       "data": {
-        "user": {
-          "name": "User: VXNlcjox"
+        "createProduct": {
+          "name": "Product: UHJvZHVjdDox"
         }
       }
     },
@@ -24,29 +24,32 @@ stableResponseStream: |
       {
         "id": "0",
         "path": [
-          "user"
+          "createProduct"
         ],
-        "label": "email"
+        "label": "pricing"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "createProduct"
+        ],
+        "data": {
+          "price": 123.456
+        }
       }
     ],
     "completed": [
       {
-        "id": "0",
-        "errors": [
-          {
-            "message": "Unexpected Execution Error",
-            "path": [
-              "user",
-              "email"
-            ]
-          }
-        ]
+        "id": "0"
       }
     ],
     "final": {
       "data": {
-        "user": {
-          "name": "User: VXNlcjox"
+        "createProduct": {
+          "name": "Product: UHJvZHVjdDox",
+          "price": 123.456
         }
       }
     }
@@ -56,13 +59,18 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
+        mutation: Mutation
       }
 
       type Query {
-        user(id: ID!): User @lookup
+        product(id: ID!): Product @lookup
       }
 
-      type User @key(fields: "id") {
+      type Mutation {
+        createProduct(name: String!): Product!
+      }
+
+      type Product @key(fields: "id") {
         id: ID!
         name: String!
       }
@@ -70,8 +78,8 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_28690061_1 {
-              user(id: "1") {
+            mutation Op_654979ad_1 {
+              createProduct(name: "Widget") {
                 name
                 id
               }
@@ -81,9 +89,9 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "user": {
-                    "name": "User: VXNlcjox",
-                    "id": "VXNlcjox"
+                  "createProduct": {
+                    "name": "Product: UHJvZHVjdDox",
+                    "id": "UHJvZHVjdDox"
                   }
                 }
               }
@@ -94,54 +102,46 @@ sourceSchemas:
       }
 
       type Query {
-        userById(id: ID!): User @lookup
+        productById(id: ID!): Product @lookup
       }
 
-      type User @key(fields: "id") {
+      type Product @key(fields: "id") {
         id: ID!
-        email: String! @error
+        price: Float!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                email
+            query Op_defer_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price
               }
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "UHJvZHVjdDox"
             }
         response:
           results:
             - |
               {
-                "errors": [
-                  {
-                    "message": "Unexpected Execution Error",
-                    "path": [
-                      "userById",
-                      "email"
-                    ]
-                  }
-                ],
                 "data": {
-                  "userById": null
+                  "productById": {
+                    "price": 123.456
+                  }
                 }
               }
 operationPlan:
   operation:
     - document: |
-        query GetUser {
-          user(id: "1") {
+        mutation {
+          createProduct(name: "Widget") {
             name
             id @fusion__requirement
           }
         }
-      name: GetUser
-      hash: 286900619fe56222f78d6a6c45482586
+      hash: 654979adf678ba0b25661914ea45e4be
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -149,16 +149,16 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_28690061_1 {
-          user(id: "1") {
+        mutation Op_654979ad_1 {
+          createProduct(name: "Widget") {
             name
             id
           }
         }
   deliveryGroups:
     - id: 0
-      path: $.user
-      label: email
+      path: $.createProduct
+      label: pricing
   incrementalPlans:
     - deliveryGroupIds:
         - 0
@@ -172,13 +172,13 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                email
+            query Op_defer_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price
               }
             }
-          source: $.userById
-          target: $.user
+          source: $.productById
+          target: $.createProduct
           requirements:
             - name: __fusion_1_id
               selectionMap: >-

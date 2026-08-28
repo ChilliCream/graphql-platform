@@ -1,9 +1,11 @@
 operation:
   - document: |
-      {
-        user(id: "1") {
-          name
-          id @fusion__requirement
+      mutation {
+        createUser(name: "test") {
+          child {
+            name
+            id @fusion__requirement
+          }
         }
       }
     hash: 123456789101112
@@ -14,15 +16,17 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        user(id: "1") {
-          name
-          id
+      mutation Op_123456789101112_1 {
+        createUser(name: "test") {
+          child {
+            name
+            id
+          }
         }
       }
 deliveryGroups:
   - id: 0
-    path: $.user
+    path: $.createUser.child
 incrementalPlans:
   - deliveryGroupIds:
       - 0
@@ -36,13 +40,13 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
+          query Op_defer_2($__fusion_1_id: ID!) {
+            childById(id: $__fusion_1_id) {
               email
             }
           }
-        source: $.userById
-        target: $.user
+        source: $.childById
+        target: $.createUser.child
         requirements:
           - name: __fusion_1_id
             selectionMap: >-
