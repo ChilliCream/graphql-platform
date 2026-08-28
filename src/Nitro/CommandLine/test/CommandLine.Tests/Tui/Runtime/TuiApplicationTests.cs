@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using Spectre.Console;
@@ -210,6 +211,154 @@ public sealed class TuiApplicationTests
         Assert.Contains(received, e => e is TuiEvent.DataChangedEvent);
         Assert.Same(runTask, completed);
         await runTask;
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_KeepDeliveringTickEvents_While_SlowEffectRuns()
+    {
+        // A slow effect submitted from within the handler must not block the loop
+        // from continuing to deliver key/render events.
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole();
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var queue = new TuiEffectQueue<string>();
+        var release = new TaskCompletionSource();
+        var submitted = false;
+        var tickCountAfterSubmit = 0;
+        var manyTicksObserved = new TaskCompletionSource();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        bool Handler(TuiEvent tuiEvent)
+        {
+            if (!submitted)
+            {
+                submitted = true;
+                queue.TrySubmit(
+                    "slow-op",
+                    async (_, ct) =>
+                    {
+                        await release.Task.WaitAsync(TestTimeout, ct);
+                        return "done";
+                    },
+                    testToken,
+                    out _);
+            }
+            else if (tuiEvent is TuiEvent.TickEvent)
+            {
+                if (Interlocked.Increment(ref tickCountAfterSubmit) >= 5)
+                {
+                    manyTicksObserved.TrySetResult();
+                }
+            }
+
+            return false;
+        }
+
+        // act
+        var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token, [queue.RunAsync]);
+        var completed = await Task.WhenAny(manyTicksObserved.Task, Task.Delay(TestTimeout, testToken));
+
+        // assert
+        Assert.Same(manyTicksObserved.Task, completed);
+        Assert.Equal(1, queue.PendingCount);
+
+        release.SetResult();
+        cts.Cancel();
+        await runTask;
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_DeliverEffectCompletedEvent_When_MergedEffectQueueCompletes()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole();
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var queue = new TuiEffectQueue<string>();
+        var received = new ConcurrentQueue<TuiEvent>();
+        var sawEffectCompleted = new TaskCompletionSource();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        bool Handler(TuiEvent tuiEvent)
+        {
+            received.Enqueue(tuiEvent);
+            if (tuiEvent is TuiEvent.EffectCompletedEvent)
+            {
+                sawEffectCompleted.TrySetResult();
+            }
+
+            return false;
+        }
+
+        // act
+        var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token, [queue.RunAsync]);
+        queue.TrySubmit("op", (_, _) => Task.FromResult("stored"), testToken, out var operationId);
+        await Task.WhenAny(sawEffectCompleted.Task, Task.Delay(TestTimeout, testToken));
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.Contains(received, e => e is TuiEvent.EffectCompletedEvent);
+        var completed = Assert.IsType<TuiEffectCompletion<string>.Completed>(Assert.Single(queue.DrainCompletions()));
+        Assert.Equal(operationId, completed.OperationId);
+        Assert.Equal("stored", completed.Result);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_RestoreTerminal_WithinShutdownBound_When_EventSourceIsNoncooperative()
+    {
+        // A noncooperative event source (one that never observes cancellation) must
+        // not block terminal restoration past the fixed shutdown bound.
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole { EmitAnsiSequences = true };
+        var shutdownDrainBound = TimeSpan.FromMilliseconds(100);
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval, shutdownDrainBound);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        Task NoncooperativeSource(ChannelWriter<TuiEvent> writer, CancellationToken sourceToken)
+        {
+            // Deliberately ignores sourceToken so it never completes on its own.
+            return Task.Delay(Timeout.InfiniteTimeSpan, CancellationToken.None);
+        }
+
+        // act
+        var runTask = app.RunAsync(_ => false, () => new Text("frame"), cts.Token, [NoncooperativeSource]);
+        await Task.Delay(TickInterval * 3, testToken);
+        var stopwatch = Stopwatch.StartNew();
+        cts.Cancel();
+        var completed = await Task.WhenAny(runTask, Task.Delay(TestTimeout, testToken));
+
+        // assert
+        Assert.Same(runTask, completed);
+        await runTask;
+        Assert.True(
+            stopwatch.Elapsed < shutdownDrainBound + TestTimeout,
+            $"Shutdown took {stopwatch.Elapsed}, expected close to the {shutdownDrainBound} bound.");
+        Assert.Contains("[?1049h", console.Output);
+        Assert.Contains("[?1049l", console.Output);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_RestoreTerminal_When_RendererThrows()
+    {
+        // arrange
+        var testToken = TestContext.Current.CancellationToken;
+        var console = new TestConsole { EmitAnsiSequences = true };
+        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        IRenderable ThrowingRenderer() => throw new InvalidOperationException("render boom");
+
+        // act
+        var runTask = app.RunAsync(_ => true, ThrowingRenderer, cts.Token);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => runTask);
+
+        // assert
+        Assert.Equal("render boom", exception.Message);
+        Assert.Contains("[?1049h", console.Output);
+        Assert.Contains("[?1049l", console.Output);
     }
 
     [Fact]

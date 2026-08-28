@@ -3,56 +3,15 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 
 /// <summary>
-/// One value a form field can produce: a single string, or an ordered list of
-/// strings. Closed so consumers pattern-match on the shape instead of binding
-/// through reflection.
-/// </summary>
-internal abstract record FormValue
-{
-    private FormValue()
-    {
-    }
-
-    /// <summary>
-    /// A single string value, produced by text, text area, and select fields.
-    /// </summary>
-    public sealed record Text(string Value) : FormValue;
-
-    /// <summary>
-    /// An ordered list of string values, produced by the editable list field.
-    /// </summary>
-    public sealed record List(IReadOnlyList<string> Values) : FormValue
-    {
-        /// <summary>
-        /// Two lists are equal when they contain the same values in the same order.
-        /// </summary>
-        public bool Equals(List? other) => other is not null && Values.SequenceEqual(other.Values);
-
-        /// <inheritdoc cref="Equals(List)" />
-        public override int GetHashCode()
-        {
-            var hash = new HashCode();
-
-            foreach (var value in Values)
-            {
-                hash.Add(value);
-            }
-
-            return hash.ToHashCode();
-        }
-    }
-}
-
-/// <summary>
 /// One field in a <see cref="Form"/>: a labeled, bordered input that owns its own
 /// editing state and can validate its current value.
 /// </summary>
 internal abstract class FormField
 {
-    private static readonly Style DefaultBorderStyle = new(Color.Grey);
-    private static readonly Style FocusedBorderStyle = new(Color.Aqua);
-    private static readonly Style ErrorBorderStyle = new(Color.Red);
-    private static readonly Style ErrorTextStyle = new(Color.Red);
+    private static readonly Style s_defaultBorderStyle = new(Color.Grey);
+    private static readonly Style s_focusedBorderStyle = new(Color.Aqua);
+    private static readonly Style s_errorBorderStyle = new(Color.Red);
+    private static readonly Style s_errorTextStyle = new(Color.Red);
 
     private readonly Func<FormValue, string?>? _validator;
 
@@ -133,10 +92,10 @@ internal abstract class FormField
         var error = ShowErrors ? Validate() : null;
 
         var borderStyle = error is not null
-            ? ErrorBorderStyle
+            ? s_errorBorderStyle
             : focused
-                ? FocusedBorderStyle
-                : DefaultBorderStyle;
+                ? s_focusedBorderStyle
+                : s_defaultBorderStyle;
 
         var panel = new Panel(content)
         {
@@ -155,109 +114,8 @@ internal abstract class FormField
             return panel;
         }
 
-        var errorLine = new Markup($"[{ErrorTextStyle.ToMarkup()}]{Markup.Escape(error)}[/]");
+        var errorLine = new Markup($"[{s_errorTextStyle.ToMarkup()}]{Markup.Escape(error)}[/]");
 
         return new Rows(panel, errorLine);
     }
-}
-
-/// <summary>
-/// Single-line text edit state shared by <see cref="TextField"/> and
-/// <see cref="EditableListField"/>: the current text and cursor position, and the
-/// character-level operations a text input supports.
-/// </summary>
-internal sealed class LineEditor
-{
-    public LineEditor(string text = "")
-    {
-        Text = text;
-        Cursor = text.Length;
-    }
-
-    /// <summary>
-    /// The current text.
-    /// </summary>
-    public string Text { get; private set; }
-
-    /// <summary>
-    /// The cursor position, as an index into <see cref="Text"/> in the range
-    /// <c>[0, Text.Length]</c>.
-    /// </summary>
-    public int Cursor { get; private set; }
-
-    /// <summary>
-    /// Applies <paramref name="info"/> to the text and cursor, returning whether the
-    /// key was a recognized editing operation.
-    /// </summary>
-    public bool HandleKey(ConsoleKeyInfo info)
-    {
-        switch (info.Key)
-        {
-            case ConsoleKey.Backspace:
-                if (Cursor > 0)
-                {
-                    Text = Text.Remove(Cursor - 1, 1);
-                    Cursor--;
-                }
-
-                return true;
-
-            case ConsoleKey.Delete:
-                if (Cursor < Text.Length)
-                {
-                    Text = Text.Remove(Cursor, 1);
-                }
-
-                return true;
-
-            case ConsoleKey.LeftArrow:
-                if (Cursor > 0)
-                {
-                    Cursor--;
-                }
-
-                return true;
-
-            case ConsoleKey.RightArrow:
-                if (Cursor < Text.Length)
-                {
-                    Cursor++;
-                }
-
-                return true;
-
-            case ConsoleKey.Home:
-                Cursor = 0;
-                return true;
-
-            case ConsoleKey.End:
-                Cursor = Text.Length;
-                return true;
-
-            default:
-                if (IsInsertable(info.KeyChar))
-                {
-                    Text = Text.Insert(Cursor, info.KeyChar.ToString());
-                    Cursor++;
-                    return true;
-                }
-
-                return false;
-        }
-    }
-
-    /// <summary>
-    /// Replaces the text outright, moving the cursor to its end.
-    /// </summary>
-    public void SetText(string text)
-    {
-        Text = text;
-        Cursor = text.Length;
-    }
-
-    /// <summary>
-    /// Whether <paramref name="keyChar"/> is a printable character that a text
-    /// input should insert, excluding control characters such as delete.
-    /// </summary>
-    public static bool IsInsertable(char keyChar) => keyChar >= ' ' && keyChar != '\u007f';
 }

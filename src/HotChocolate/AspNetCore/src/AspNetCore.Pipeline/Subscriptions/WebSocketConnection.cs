@@ -56,15 +56,14 @@ internal sealed class WebSocketConnection : ISocketConnection
 
         var webSocketManager = HttpContext.WebSockets;
 
-        if (webSocketManager.WebSocketRequestedProtocols.Count > 0)
+        // The client lists its sub-protocols in preference order (RFC 6455 4.1), so the
+        // first requested protocol that has a registered handler is accepted.
+        foreach (var requestedProtocol in webSocketManager.WebSocketRequestedProtocols)
         {
-            foreach (var protocolHandler in _protocolHandlers)
+            if (TryGetProtocolHandler(requestedProtocol, out var protocolHandler))
             {
-                if (webSocketManager.WebSocketRequestedProtocols.Contains(protocolHandler.Name))
-                {
-                    _webSocket = await webSocketManager.AcceptWebSocketAsync(protocolHandler.Name);
-                    return protocolHandler;
-                }
+                _webSocket = await webSocketManager.AcceptWebSocketAsync(protocolHandler.Name);
+                return protocolHandler;
             }
         }
 
@@ -257,6 +256,24 @@ internal sealed class WebSocketConnection : ISocketConnection
             ConnectionCloseReason.ProtocolError => WebSocketCloseStatus.ProtocolError,
             _ => WebSocketCloseStatus.Empty
         };
+
+    private bool TryGetProtocolHandler(
+        string protocolName,
+        [NotNullWhen(true)] out IProtocolHandler? protocolHandler)
+    {
+        foreach (var handler in _protocolHandlers)
+        {
+            if (string.Equals(handler.Name, protocolName, StringComparison.Ordinal))
+            {
+                protocolHandler = handler;
+                return true;
+            }
+        }
+
+        protocolHandler = null;
+
+        return false;
+    }
 
     public void Dispose()
     {

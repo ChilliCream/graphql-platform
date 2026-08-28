@@ -51,14 +51,3 @@ internal sealed record TaskUpdate
     public int? EstimatedMinutes { get; init; }
     public bool EstimatedMinutesGiven { get; init; }
 }
-
-/// <summary>
-/// The outcome of <see cref="ITaskStore.UpdateTaskAsync"/>.
-/// </summary>
-internal sealed record TaskUpdateResult
-{
-    /// <summary>
-    /// The database column names that changed value.
-    /// </summary>
-    public IReadOnlyList<string> ChangedFields { get; init; } = [];
-}

@@ -1,10 +1,10 @@
-# End-to-end recording of `nitro agent tasks init` in a fresh directory.
+# End-to-end recording of `nitro agent init` in a fresh directory.
 #
-# Exercises the write path that creates the on-disk `.nitro/tasks/` schema and
-# derives the task ID prefix from the current directory name, ahead of the
-# fixture-backed flows below (which reuse a pre-seeded workspace instead of
-# running `init` live). Needs no auth: task commands do not call the Nitro
-# backend.
+# Exercises the write path that creates the on-disk unified `.nitro/agents/`
+# schema (agents.db, one file shared by tasks and mail) and derives the task
+# ID prefix from the current directory name, ahead of the fixture-backed
+# flows below (which reuse a pre-seeded workspace instead of running `init`
+# live). Needs no auth: agent commands do not call the Nitro backend.
 # Produces init-flow.gif + init-flow.txt.
 
 Output init-flow.gif
@@ -23,16 +23,15 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_TASK_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks init` Enter
+Type `nitro agent init` Enter
 
-Wait+Screen@30s /Initialized task workspace/
+Wait+Screen@30s /Initialized agent workspace at '\.nitro\/agents'\./
 Sleep 1500ms
 Screenshot init-flow-final.png
 Sleep 500ms
