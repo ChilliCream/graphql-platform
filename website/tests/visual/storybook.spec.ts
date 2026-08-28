@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 
@@ -33,6 +33,7 @@ declare global {
 }
 
 const indexPath = join(process.cwd(), "storybook-static", "index.json");
+const snapshotDir = join(process.cwd(), "tests", "visual", "__screenshots__");
 
 let index: StoryIndex;
 try {
@@ -47,6 +48,22 @@ try {
 const stories = Object.values(index.entries).filter(
   (entry) => entry.type === "story" && !entry.tags?.includes("no-snapshot"),
 );
+
+// A renamed or deleted story leaves its baseline behind, where it is never
+// compared again and never updated. Nothing else in the suite would notice.
+test("every baseline belongs to a story", () => {
+  const expected = new Set(stories.map((story) => `${story.id}.png`));
+  const orphans = readdirSync(snapshotDir)
+    .filter((file) => file.endsWith(".png"))
+    .filter((file) => !expected.has(file))
+    .sort();
+
+  expect(
+    orphans,
+    `${orphans.length} baseline(s) have no matching story. Delete them, or restore the ` +
+      `story they belonged to:\n  ${orphans.join("\n  ")}`,
+  ).toEqual([]);
+});
 
 for (const story of stories) {
   test(story.id, async ({ page }) => {
