@@ -78,6 +78,15 @@ namespace HotChocolate.Types.Analyzers.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The DataLoader type '{0}' is used by multiple [DataLoader&lt;T&gt;] methods in this assembly and cannot be injected by interface.
+        /// </summary>
+        internal static string DataLoader_DuplicateType {
+            get {
+                return ResourceManager.GetString("DataLoader_DuplicateType", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The first parameter of a [DataLoader&lt;T&gt;] method must be {0}.
         /// </summary>
         internal static string DataLoader_KeyParameterInvalid {
@@ -101,6 +110,24 @@ namespace HotChocolate.Types.Analyzers.Properties {
         internal static string DataLoader_MultipleAttributes {
             get {
                 return ResourceManager.GetString("DataLoader_MultipleAttributes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class.
+        /// </summary>
+        internal static string DataLoader_MissingInterfaceImplementation {
+            get {
+                return ResourceManager.GetString("DataLoader_MissingInterfaceImplementation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DataLoaderAccessModifier.PublicInterface is treated as Public on [DataLoader&lt;T&gt;] methods.
+        /// </summary>
+        internal static string DataLoader_PublicInterfaceAccessModifier {
+            get {
+                return ResourceManager.GetString("DataLoader_PublicInterfaceAccessModifier", resourceCulture);
             }
         }
 

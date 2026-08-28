@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Threading;
 using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,6 +54,90 @@ internal static class GenericDataLoaderAnalyzerHelper
         }
 
         return attributes.ToImmutable();
+    }
+
+    public static ImmutableArray<AttributeData> GetGenericDataLoaderAttributes(
+        IMethodSymbol methodSymbol,
+        Compilation compilation)
+    {
+        var genericDataLoaderAttribute = compilation.GetTypeByMetadataName(
+            WellKnownAttributes.GenericDataLoaderAttribute);
+
+        if (genericDataLoaderAttribute is null)
+        {
+            return [];
+        }
+
+        var attributes = ImmutableArray.CreateBuilder<AttributeData>();
+
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass is { } attributeClass
+                && SymbolEqualityComparer.Default.Equals(
+                    attributeClass.OriginalDefinition,
+                    genericDataLoaderAttribute))
+            {
+                attributes.Add(attribute);
+            }
+        }
+
+        return attributes.ToImmutable();
+    }
+
+    public static bool IsValidGenericDataLoaderMethod(
+        IMethodSymbol methodSymbol,
+        AttributeData attribute,
+        Compilation compilation)
+    {
+        if (attribute.AttributeClass?.TypeArguments[0] is not INamedTypeSymbol dataLoaderType
+            || !TryResolveContract(dataLoaderType, compilation, out var contract)
+            || methodSymbol.IsGenericMethod
+            || methodSymbol.ReturnsByRef
+            || methodSymbol.ReturnsByRefReadonly
+            || methodSymbol.Parameters.Any(t => t.RefKind is not RefKind.None)
+            || methodSymbol.DeclaredAccessibility is not (
+                Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedAndInternal))
+        {
+            return false;
+        }
+
+        return HasValidKeyParameter(methodSymbol, contract, compilation)
+            && HasValidReturnType(methodSymbol, contract, compilation);
+    }
+
+    public static bool HasExactlyOneDataLoaderAttribute(
+        IMethodSymbol methodSymbol,
+        Compilation compilation)
+    {
+        var dataLoaderAttribute = compilation.GetTypeByMetadataName(
+            WellKnownAttributes.DataLoaderAttribute);
+        var genericDataLoaderAttribute = compilation.GetTypeByMetadataName(
+            WellKnownAttributes.GenericDataLoaderAttribute);
+
+        var count = 0;
+
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass is not { } attributeClass
+                || (!SymbolEqualityComparer.Default.Equals(
+                        attributeClass.OriginalDefinition,
+                        dataLoaderAttribute)
+                    && !SymbolEqualityComparer.Default.Equals(
+                        attributeClass.OriginalDefinition,
+                        genericDataLoaderAttribute)))
+            {
+                continue;
+            }
+
+            count++;
+
+            if (count > 1)
+            {
+                return false;
+            }
+        }
+
+        return count == 1;
     }
 
     public static bool TryResolveContract(

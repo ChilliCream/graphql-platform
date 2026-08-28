@@ -306,7 +306,10 @@ internal static partial class TestHelper
                 new DataLoaderReturnTypeAnalyzer(),
                 new DataLoaderMultipleAttributesAnalyzer(),
                 new GenericDataLoaderMethodAnalyzer(),
-                new DataLoaderParameterModifierAnalyzer());
+                new DataLoaderParameterModifierAnalyzer(),
+                new DataLoaderDuplicateTypeAnalyzer(),
+                new DataLoaderMissingInterfaceImplementationAnalyzer(),
+                new DataLoaderPublicInterfaceAccessModifierAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

@@ -284,6 +284,34 @@ public static class Errors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor DataLoaderDuplicateType =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderDuplicateType,
+            title: "Duplicate DataLoader Type",
+            messageFormat: SourceGenResources.DataLoader_DuplicateType,
+            category: "DataLoader",
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            customTags: [WellKnownDiagnosticTags.CompilationEnd]);
+
+    public static readonly DiagnosticDescriptor DataLoaderMissingInterfaceImplementation =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderMissingInterfaceImplementation,
+            title: "Missing DataLoader Interface Implementation",
+            messageFormat: SourceGenResources.DataLoader_MissingInterfaceImplementation,
+            category: "DataLoader",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderPublicInterfaceAccessModifier =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderPublicInterfaceAccessModifier,
+            title: "Public Interface Access Modifier Ignored",
+            messageFormat: SourceGenResources.DataLoader_PublicInterfaceAccessModifier,
+            category: "DataLoader",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
     public static readonly DiagnosticDescriptor DataLoaderParameterModifierInvalid =
         new(
             id: ErrorCodes.Analyzers.DataLoaderParameterModifierInvalid,

@@ -264,4 +264,180 @@ public class GenericDataLoaderAnalyzerTests
         // assert
         await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
+
+    [Fact]
+    public async Task DuplicateGenericDataLoaderTypes_RaiseExpectedDiagnostics()
+    {
+        // arrange
+        const string source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string> { }
+
+            internal static class FirstLoaders
+            {
+                [DataLoader<IEntityLoader>]
+                internal static Task<IReadOnlyDictionary<int, string>> GetFirstAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+
+            internal static class SecondLoaders
+            {
+                [DataLoader<IEntityLoader>]
+                internal static Task<IReadOnlyDictionary<int, string>> GetSecondAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenericDataLoaderAdditionalMembersWithoutPartialClass_RaisesExpectedDiagnostic()
+    {
+        // arrange
+        const string source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+                string Description { get; }
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                internal static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenericDataLoaderAdditionalMembersImplementedByPartialClass_DoNotRaiseDiagnostic()
+    {
+        // arrange
+        const string source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+                string Description { get; }
+            }
+
+            public sealed partial class EntityByIdDataLoader
+            {
+                public string Description => "Entity loader";
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                internal static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenericDataLoaderAdditionalMembersImplementedByNamedPartialClass_DoNotRaiseDiagnostic()
+    {
+        // arrange
+        const string source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+                string Description { get; }
+            }
+
+            public sealed partial class CustomEntityDataLoader
+            {
+                public string Description => "Entity loader";
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>("CustomEntity")]
+                internal static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task PublicInterfaceAccessModifier_RaisesExpectedDiagnostic()
+    {
+        // arrange
+        const string source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>(
+                    AccessModifier = DataLoaderAccessModifier.PublicInterface)]
+                internal static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot([source], enableAnalyzers: true);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
 }
