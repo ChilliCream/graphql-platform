@@ -334,6 +334,25 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public void StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue()
+    {
+        // The subscription event path routes EventStream nodes through the step span,
+        // so every execution node type must resolve to a kind value instead of
+        // failing the node's execution with a missing dictionary entry.
+        foreach (var nodeType in Enum.GetValues<ExecutionNodeType>())
+        {
+            Assert.True(
+                ExecutePlanNodeSpan.KindValues.TryGetValue(nodeType, out var kind),
+                $"Missing step kind value for execution node type '{nodeType}'.");
+            Assert.False(string.IsNullOrEmpty(kind));
+        }
+
+        Assert.Equal(
+            "event_stream",
+            ExecutePlanNodeSpan.KindValues[ExecutionNodeType.EventStream]);
+    }
+
+    [Fact]
     public async Task PersistedOperation_LoadsFromStorage_DefaultScopes()
     {
         using (CaptureActivities(out var activities))

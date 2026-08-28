@@ -15,11 +15,12 @@ internal sealed class ExecutePlanNodeSpan(
     string? schemaName,
     FusionActivityEnricher enricher) : SpanBase(activity)
 {
-    private static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
+    internal static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
         new Dictionary<ExecutionNodeType, string>
         {
             [ExecutionNodeType.Operation] = GraphQL.Operation.Step.KindValues.Operation,
             [ExecutionNodeType.OperationBatch] = GraphQL.Operation.Step.KindValues.OperationBatch,
+            [ExecutionNodeType.EventStream] = GraphQL.Operation.Step.KindValues.EventStream,
             [ExecutionNodeType.Introspection] = GraphQL.Operation.Step.KindValues.Introspection,
             [ExecutionNodeType.Node] = GraphQL.Operation.Step.KindValues.Node
         }.ToFrozenDictionary();
@@ -50,7 +51,14 @@ internal sealed class ExecutePlanNodeSpan(
         activity.EnrichDocumentInfo(context.RequestContext.OperationDocumentInfo);
 
         activity.SetTag(GraphQL.Operation.Step.Id, node.Id.ToString(CultureInfo.InvariantCulture));
-        activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);
+
+        // An execution node type that has no mapped kind value produces an untagged
+        // span instead of failing the node's execution.
+        if (KindValues.TryGetValue(node.Type, out var kind))
+        {
+            activity.SetTag(GraphQL.Operation.Step.Kind, kind);
+        }
+
         activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
 
         SetSourceSchemaTags(activity, node, schemaName);
