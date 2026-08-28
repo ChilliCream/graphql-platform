@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:22-bookworm
+FROM mcr.microsoft.com/devcontainers/javascript-node:24-bookworm
 
 # Suppress Corepack's "about to download" prompt during yarn activation
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
