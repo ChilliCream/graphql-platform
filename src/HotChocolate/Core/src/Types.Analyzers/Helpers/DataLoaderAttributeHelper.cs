@@ -274,7 +274,7 @@ public static class DataLoaderAttributeHelper
                     return true;
 
                 case 2:
-                    return false;
+                    return true;
 
                 case 3:
                     return false;
