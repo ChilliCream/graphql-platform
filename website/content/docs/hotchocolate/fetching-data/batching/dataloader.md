@@ -132,7 +132,7 @@ public static partial class BrandNode
 
 When the DataLoader returns `null` for a key (the brand has no products), use the null-coalescing operator to return an empty array.
 
-## How the Generator Classifies Your Method
+## How the Generator Classifies `[DataLoader]` Methods
 
 The DataLoader kind is derived from the method signature:
 
@@ -167,6 +167,82 @@ A batch DataLoader returns `null` for keys that are absent from the returned dic
 
 If a missing key is a valid state, make the field nullable or handle the `null` in the resolver. If a missing key indicates broken data, use `LoadRequiredAsync` instead of `LoadAsync`: it throws a `KeyNotFoundException` naming the missing key, which surfaces as a clearer error than a generic non-null violation.
 
+## Explicit DataLoader Contracts
+
+Use `[DataLoader<T>]` when the DataLoader contract is part of your application API. `T` can be a custom interface deriving from one closed `IBatchDataLoader<TKey, TValue>` or `ICacheDataLoader<TKey, TValue>` contract.
+
+```csharp
+public interface IUserByIdDataLoader : IBatchDataLoader<int, User>;
+
+internal static class UserDataLoaders
+{
+    [DataLoader<IUserByIdDataLoader>]
+    public static async Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
+        IReadOnlyList<int> ids,
+        CatalogContext db,
+        CancellationToken ct)
+        => await db.Users
+            .Where(t => ids.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, ct);
+}
+```
+
+The type argument supplies the DataLoader kind, key type, and value type. The source generator creates a sealed partial `UserByIdDataLoader` class that implements `IUserByIdDataLoader`. You can also use a closed kind interface directly when no custom interface is needed:
+
+```csharp
+[DataLoader<IBatchDataLoader<int, User>>]
+public static async Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
+    IReadOnlyList<int> ids,
+    CatalogContext db,
+    CancellationToken ct)
+    => await db.Users
+        .Where(t => ids.Contains(t.Id))
+        .ToDictionaryAsync(t => t.Id, ct);
+```
+
+The method signature must match the selected contract:
+
+| Contract                         | First parameter       | Return type                                                                                                                                                             |
+| -------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IBatchDataLoader<TKey, TValue>` | `IReadOnlyList<TKey>` | `Task<IReadOnlyDictionary<TKey, TValue>>`, `ValueTask<IReadOnlyDictionary<TKey, TValue>>`, `Task<IDictionary<TKey, TValue>>`, or `ValueTask<IDictionary<TKey, TValue>>` |
+| `ICacheDataLoader<TKey, TValue>` | `TKey`                | `Task<TValue>` or `ValueTask<TValue>`                                                                                                                                   |
+
+Group loading uses the batch contract with an array value. For example, `IBatchDataLoader<int, Order[]>` requires a method returning `Task<IReadOnlyDictionary<int, Order[]>>`. `[DataLoader<T>]` batch methods do not accept `ILookup<TKey, TValue>` return types.
+
+When a closed `T` is used by one `[DataLoader<T>]` method in an assembly, it is registered for dependency injection and can be injected by interface. When multiple methods use the same closed `T`, each generated DataLoader is registered only by its concrete class. Inject the generated class in that case.
+
+Custom interfaces can declare members in addition to the DataLoader contract. Implement those members in a partial declaration of the generated class:
+
+```csharp
+public interface IUserByIdDataLoader : IBatchDataLoader<int, User>
+{
+    Task RefreshAsync(CancellationToken ct);
+}
+
+public sealed partial class UserByIdDataLoader
+{
+    public Task RefreshAsync(CancellationToken ct)
+        => Task.CompletedTask;
+}
+```
+
+The generated class name is derived from the method name or the `Name` override. `[DataLoader<IUserByIdDataLoader>("CatalogUsers")]` generates `CatalogUsersDataLoader`, so the partial declaration must use that name.
+
+## Generic DataLoader Diagnostics
+
+The `HotChocolate.Types.Analyzers` package validates `[DataLoader<T>]` methods.
+
+| Code     | Severity | Meaning                                                                                                              |
+| -------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| `HC0122` | Error    | `T` is neither a direct closed batch/cache interface nor a custom interface deriving from exactly one such contract. |
+| `HC0123` | Error    | The key parameter does not match the selected contract.                                                              |
+| `HC0124` | Error    | The return type does not match the selected contract.                                                                |
+| `HC0125` | Error    | The method has more than one `[DataLoader]` attribute.                                                               |
+| `HC0126` | Info     | A closed `T` is used by multiple methods and cannot be injected by interface.                                        |
+| `HC0127` | Warning  | Members declared by `T` are not implemented by the generated partial class.                                          |
+| `HC0128` | Warning  | `DataLoaderAccessModifier.PublicInterface` is treated as `Public`.                                                   |
+| `HC0129` | Error    | A method parameter uses `ref`, `in`, `out`, or `ref readonly`.                                                       |
+
 ## Registration
 
 Declare a DataLoader module for your assembly. The source generator then emits a registration extension method named after the module:
@@ -189,18 +265,20 @@ builder.Services
 
 ## DataLoader Options
 
-The `[DataLoader]` attribute accepts configuration options.
+`[DataLoader]` and `[DataLoader<T>]` accept the same configuration options. `[DataLoader<T>]` uses `T` as its interface and does not generate another interface.
 
-| Option           | Type                       | Default                      | Description                                                                                                                                                                                                                                                                       |
-| ---------------- | -------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Name`           | `string`                   | Derived from the method name | First constructor argument: `[DataLoader("...")]`. Overrides the generated DataLoader name. Used verbatim, with `DataLoader` appended, so `[DataLoader("BrandLookup")]` generates `BrandLookupDataLoader`.                                                                        |
-| `MaxBatchSize`   | `int`                      | `1024`                       | Maximum number of keys per fetch call. When more keys are pending, they are split into multiple batches. `0` disables splitting.                                                                                                                                                  |
-| `ServiceScope`   | `DataLoaderServiceScope`   | `Default`                    | Controls how injected services are resolved. `DataLoaderScope` creates a dedicated scope per fetch. `OriginalScope` resolves services from the request scope. `Default` defers to the assembly-level `[DataLoaderDefaults]` attribute; without one, a dedicated scope is created. |
-| `AccessModifier` | `DataLoaderAccessModifier` | `Default`                    | Controls generated code visibility. `Public` makes both class and interface public. `Internal` makes both internal. `PublicInterface` makes the interface public and the class internal. `Default` defers to `[DataLoaderDefaults]`; without one, both are public.                |
-| `Lookups`        | `string[]`                 | None                         | Names of methods on the same class that derive additional cache keys from loaded values, so an entity fetched by one key can be resolved from the cache by another.                                                                                                               |
+| Option           | Type                       | Default                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------- | -------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Name`           | `string`                   | Derived from the method name | First constructor argument: `[DataLoader("...")]`. Overrides the generated DataLoader name. Used verbatim, with `DataLoader` appended, so `[DataLoader("BrandLookup")]` generates `BrandLookupDataLoader`.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `MaxBatchSize`   | `int`                      | `1024`                       | Maximum number of keys per fetch call. When more keys are pending, they are split into multiple batches. `0` disables splitting.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `ServiceScope`   | `DataLoaderServiceScope`   | `Default`                    | Controls how injected services are resolved. `DataLoaderScope` creates a dedicated scope per fetch. `OriginalScope` resolves services from the request scope. `Default` defers to the assembly-level `[DataLoaderDefaults]` attribute; without one, a dedicated scope is created.                                                                                                                                                                                                                                                                                                                            |
+| `AccessModifier` | `DataLoaderAccessModifier` | `Default`                    | Controls generated code visibility. For `[DataLoader<T>]`, `Public` and `Internal` affect only the generated class and `T` keeps its declared accessibility. An explicit method-level `PublicInterface` acts as `Public` and produces `HC0128`; a `[DataLoaderDefaults]` `PublicInterface` default makes the generated class internal and produces no `HC0128`. For `[DataLoader]`, `Public` and `Internal` make both class and interface public or internal; `PublicInterface` makes the interface public and the class internal. `Default` defers to `[DataLoaderDefaults]`; without one, both are public. |
+| `Lookups`        | `string[]`                 | None                         | Names of methods on the same class that derive additional cache keys from loaded values, so an entity fetched by one key can be resolved from the cache by another.                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 > [!NOTE]
 > `Name` is a positional constructor argument, not a settable property. `[DataLoader(Name = "X")]` does not compile; use `[DataLoader("X")]`.
+
+For `[DataLoader<T>]`, assembly-level `DataLoaderDefaults` values for `ServiceScope`, `AccessModifier`, and registration generation still apply. `GenerateInterfaces` is ignored because the interface is supplied by `T`.
 
 ### MaxBatchSize
 

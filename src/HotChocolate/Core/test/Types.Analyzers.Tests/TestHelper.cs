@@ -134,6 +134,13 @@ internal static partial class TestHelper
         return MetadataReference.CreateFromImage(stream.ToArray());
     }
 
+    public static CSharpCompilation CreateCompilation([StringSyntax("csharp")] string sourceText)
+        => CSharpCompilation.Create(
+            assemblyName: "Tests",
+            syntaxTrees: [CSharpSyntaxTree.ParseText(sourceText)],
+            references: s_references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
         => GetGeneratedSourceSnapshot([sourceText]);
 
@@ -160,6 +167,14 @@ internal static partial class TestHelper
             enableAnalyzers,
             additionalReferences: null,
             inspectCompilation: null);
+
+    public static Snapshot GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(
+        [StringSyntax("csharp")] string sourceText)
+        => GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers([sourceText]);
+
+    public static Snapshot GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzers(
+        string[] sourceTexts)
+        => GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzersCore(sourceTexts);
 
     public static Snapshot GetGeneratedSourceSnapshot(
         [StringSyntax("csharp")] string sourceText,
@@ -236,7 +251,45 @@ internal static partial class TestHelper
         return snapshot;
     }
 
+    private static Snapshot GetGeneratedSourceSnapshotWithGeneratedCompilationAnalyzersCore(string[] sourceTexts)
+    {
+        var parseOptions = CSharpParseOptions.Default;
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "Tests",
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s, parseOptions)),
+            references: s_references);
+        var generator = new GraphQLServerGenerator();
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+        driver = driver.RunGenerators(compilation);
+
+        var updatedCompilation = compilation.AddSyntaxTrees(
+            driver.GetRunResult()
+                .Results
+                .SelectMany(r => r.GeneratedSources)
+                .OrderBy(gs => gs.HintName)
+                .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName)));
+        var snapshot = CreateSnapshot(updatedCompilation, driver, analyzerCompilation: updatedCompilation);
+
+        using var dllStream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(dllStream);
+        if (!emitResult.Success || emitResult.Diagnostics.Any())
+        {
+            AddDiagnosticsToSnapshot(snapshot, emitResult.Diagnostics, "Assembly Emit Diagnostics");
+        }
+
+        return snapshot;
+    }
+
     private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver, bool enableAnalyzers)
+        => CreateSnapshot(
+            compilation,
+            driver,
+            enableAnalyzers ? compilation : null);
+
+    private static Snapshot CreateSnapshot(
+        CSharpCompilation compilation,
+        GeneratorDriver driver,
+        CSharpCompilation? analyzerCompilation)
     {
         var snapshot = new Snapshot();
 
@@ -274,7 +327,7 @@ internal static partial class TestHelper
         }
 
         // Run diagnostic analyzers if enabled
-        if (enableAnalyzers)
+        if (analyzerCompilation is not null)
         {
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
                 new RootTypePartialAnalyzer(),
@@ -293,9 +346,18 @@ internal static partial class TestHelper
                 new IdAttributeOnRecordParameterAnalyzer(),
                 new WrongAuthorizationAttributeAnalyzer(),
                 new LookupReturnsNonNullableTypeAnalyzer(),
-                new LookupReturnsListTypeAnalyzer());
+                new LookupReturnsListTypeAnalyzer(),
+                new DataLoaderTypeAnalyzer(),
+                new DataLoaderKeyParameterAnalyzer(),
+                new DataLoaderReturnTypeAnalyzer(),
+                new DataLoaderMultipleAttributesAnalyzer(),
+                new GenericDataLoaderMethodAnalyzer(),
+                new DataLoaderParameterModifierAnalyzer(),
+                new DataLoaderDuplicateTypeAnalyzer(),
+                new DataLoaderMissingInterfaceImplementationAnalyzer(),
+                new DataLoaderPublicInterfaceAccessModifierAnalyzer());
 
-            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var compilationWithAnalyzers = analyzerCompilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
 
             if (analyzerDiagnostics.Any())
