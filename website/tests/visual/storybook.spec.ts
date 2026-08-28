@@ -55,7 +55,8 @@ test("every baseline belongs to a story", () => {
   const expected = new Set(stories.map((story) => `${story.id}.png`));
   const orphans = readdirSync(snapshotDir)
     .filter((file) => file.endsWith(".png"))
-    .filter((file) => !expected.has(file));
+    .filter((file) => !expected.has(file))
+    .sort();
 
   expect(
     orphans,
