@@ -479,7 +479,7 @@ const strawberryShakeBlazorTutorial: TutorialItem = {
     {
       key: "init",
       label: "generate a client",
-      code: "dotnet graphql init https://demo.chillicream.com/graphql/ --clientName CryptoClient",
+      code: "dotnet graphql init https://demo.chillicream.cloud/graphql/ --clientName CryptoClient",
     },
   ],
   body: [
@@ -492,7 +492,7 @@ const strawberryShakeBlazorTutorial: TutorialItem = {
     {
       heading: "What you build",
       paragraphs: [
-        "A Blazor WebAssembly page that queries ChilliCream's public demo GraphQL server (demo.chillicream.com/graphql) for a list of assets and renders their name and price. After a .graphql query document is added and the project is built, the source generator emits both the typed client and a UseGetAssets Razor component with built-in ChildContent, LoadingContent, and ErrorContent slots.",
+        "A Blazor WebAssembly page that queries ChilliCream's public demo GraphQL server (demo.chillicream.cloud/graphql) for a list of assets and renders their name and price. After a .graphql query document is added and the project is built, the source generator emits both the typed client and a UseGetAssets Razor component with built-in ChildContent, LoadingContent, and ErrorContent slots.",
       ],
       code: {
         language: "graphql",
