@@ -323,6 +323,51 @@ public class DataLoaderCodeFixTests
     }
 
     [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_RemoveOnlyKeyedAttributes_WhenKeyedAndKeylessServiceAttributesArePresent()
+    {
+        // arrange
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            class KeyedAttribute() : ServiceAttribute("key") { }
+            class KeylessAttribute : ServiceAttribute { }
+
+            internal static class TestClass
+            {
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeyedThenKeylessAsync([Keyed][Keyless] IReadOnlyList<int> keys) => default!;
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeylessThenKeyedAsync([Keyless][Keyed] IReadOnlyList<int> keys) => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyFixAllAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            class KeyedAttribute() : ServiceAttribute("key") { }
+            class KeylessAttribute : ServiceAttribute { }
+
+            internal static class TestClass
+            {
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeyedThenKeylessAsync([Keyless] IReadOnlyList<int> keys) => default!;
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeylessThenKeyedAsync([Keyless] IReadOnlyList<int> keys) => default!;
+            }
+            """);
+    }
+
+    [Fact]
     public async Task KeyedServiceAttributeIgnoredCodeFix_Should_PreserveCommentAndConditionalTrivia_When_AttributeListIsStandalone()
     {
         // arrange

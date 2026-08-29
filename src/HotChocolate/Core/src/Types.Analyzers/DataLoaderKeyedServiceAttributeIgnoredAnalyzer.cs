@@ -100,6 +100,12 @@ public sealed class DataLoaderKeyedServiceAttributeIgnoredAnalyzer : DiagnosticA
             return attributeConstructor.Parameters.Length == 1;
         }
 
-        return parameter.GetServiceAttributeInfo(compilation).SourceDerivedServiceKey is not null;
+        var attributeData = parameter.GetAttributes().FirstOrDefault(t =>
+            t.ApplicationSyntaxReference is { } syntaxReference
+            && syntaxReference.SyntaxTree == attribute.SyntaxTree
+            && syntaxReference.Span == attribute.Span);
+
+        return attributeData?.GetDerivedServiceKey(compilation, out _)
+            == SymbolExtensions.ServiceKeyExtractionResult.Key;
     }
 }

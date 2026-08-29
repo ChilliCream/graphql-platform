@@ -900,7 +900,7 @@ public static class SymbolExtensions
                 }
                 else
                 {
-                    var extraction = TryGetDerivedServiceKey(attributeData, compilation, out sourceDerivedServiceKey);
+                    var extraction = attributeData.GetDerivedServiceKey(compilation, out sourceDerivedServiceKey);
                     isServiceKeyUndeterminable = extraction == ServiceKeyExtractionResult.Undeterminable;
                 }
             }
@@ -926,8 +926,8 @@ public static class SymbolExtensions
             ? attributeData.ConstructorArguments[0]
             : null;
 
-    private static ServiceKeyExtractionResult TryGetDerivedServiceKey(
-        AttributeData attributeData,
+    internal static ServiceKeyExtractionResult GetDerivedServiceKey(
+        this AttributeData attributeData,
         Compilation compilation,
         out string? key)
     {
@@ -1274,7 +1274,7 @@ public static class SymbolExtensions
         return true;
     }
 
-    private enum ServiceKeyExtractionResult
+    internal enum ServiceKeyExtractionResult
     {
         NoKey,
         Key,
