@@ -123,6 +123,18 @@ function checkGithubUrl(githubTarget) {
     return { ok: false, detail: `repo ${owner}/${repo} not found (gh api repos/${owner}/${repo}): ${firstLine(err)}` };
   }
   if (contentsPath === null) {
+    if (ref === null) {
+      return { ok: true, detail: null };
+    }
+    const commitApiPath = `repos/${owner}/${repo}/commits/${encodeURIComponent(ref)}`;
+    try {
+      ghApi(commitApiPath);
+    } catch (err) {
+      return {
+        ok: false,
+        detail: `ref "${ref}" not found (gh api ${commitApiPath}): ${firstLine(err)}`,
+      };
+    }
     return { ok: true, detail: null };
   }
   const apiPath = `repos/${owner}/${repo}/contents/${contentsPath}?ref=${encodeURIComponent(ref)}`;
