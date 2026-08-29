@@ -187,6 +187,176 @@ public class ServiceAttributeInfoTests
         Assert.False(info.IsServiceKeyUndeterminable);
     }
 
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ResolvePositionalNamedAndDefaultAttributeArguments()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class DerivedAttribute(string key = "default", int ignored = 0) : ServiceAttribute(key)
+            {
+            }
+
+            class Query
+            {
+                public void Execute(
+                    [Derived("positional", 1)] object positional,
+                    [Derived(key: "named", ignored: 2)] object named,
+                    [Derived] object defaulted)
+                {
+                }
+            }
+            """);
+
+        // act
+        var infos = GetParameters(compilation)
+            .Select(t => t.GetServiceAttributeInfo(compilation))
+            .ToArray();
+
+        // assert
+        Assert.Collection(
+            infos,
+            t => Assert.Equal("positional", t.SourceDerivedServiceKey),
+            t => Assert.Equal("named", t.SourceDerivedServiceKey),
+            t => Assert.Equal("default", t.SourceDerivedServiceKey));
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ResolveThisConstructorChain()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class DerivedAttribute : ServiceAttribute
+            {
+                public DerivedAttribute() : this("this-chain")
+                {
+                }
+
+                public DerivedAttribute(string key) : base(key)
+                {
+                }
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.Equal("this-chain", info.SourceDerivedServiceKey);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ResolveNamedAndDefaultConstructorHopArguments()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class IntermediateAttribute(string key, int ignored = 0) : ServiceAttribute(key)
+            {
+            }
+
+            class DerivedAttribute(string key = "default-hop")
+                : IntermediateAttribute(key: key, ignored: 1)
+            {
+            }
+
+            class Query
+            {
+                public void Execute(
+                    [Derived(key: "named-hop")] object named,
+                    [Derived] object defaulted)
+                {
+                }
+            }
+            """);
+
+        // act
+        var infos = GetParameters(compilation)
+            .Select(t => t.GetServiceAttributeInfo(compilation))
+            .ToArray();
+
+        // assert
+        Assert.Collection(
+            infos,
+            t => Assert.Equal("named-hop", t.SourceDerivedServiceKey),
+            t => Assert.Equal("default-hop", t.SourceDerivedServiceKey));
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_BindEqualArityPrimaryConstructorBaseOverload()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class IntermediateAttribute(string key) : ServiceAttribute(key)
+            {
+                public IntermediateAttribute(object key) : base("wrong-overload")
+                {
+                }
+            }
+
+            class DerivedAttribute(string key) : IntermediateAttribute(key)
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived("bound-overload")] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.Equal("bound-overload", info.SourceDerivedServiceKey);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ReportUndeterminableForUnresolvedConstructorBinding()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class DerivedAttribute() : ServiceAttribute(MissingKey)
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.True(info.IsServiceKeyUndeterminable);
+    }
+
     private static IParameterSymbol GetParameter(CSharpCompilation compilation)
         => GetParameters(compilation).Single();
 
