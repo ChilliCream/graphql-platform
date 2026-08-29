@@ -1172,7 +1172,7 @@ date`), followed by the remaining posts as `LearnArticleCard`s in a
 `sm:grid-cols-2 lg:grid-cols-3` grid (16:9 image, kicker, `text-h6`
 headline, `author · date`). No rows remain inside a topic rail;
 `LearnListRow`'s `density="compact"` stays in use only by the editorial
-band (15.1). See learn-harmonization.md section 4.2 item 2.
+band (15.1). See learn-harmonization.md section 2.5 item 2.
 
 ### 15.3 Collection, explainers, videos
 
