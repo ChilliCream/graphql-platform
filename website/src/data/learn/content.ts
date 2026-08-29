@@ -1,19 +1,20 @@
 // Seed content for /learn.
 //
-// Templates (website-yw2.1): the 8 seed template entries below were removed.
-// Every one carried a githubUrl under github.com/ChilliCream/templates, and
-// that org/repo does not exist (`gh api repos/ChilliCream/templates` returns
-// 404 for the repo itself, not just a path within it). TEMPLATE_ITEMS is an
-// empty array until website-yw2.2 rebuilds the catalog from real
-// ChilliCream repos. The TemplateItem shape (index card front-matter,
-// sticky deploy sidebar metadata, body[] of section
-// { heading, paragraphs[], code? }) stays in place as the seam yw2.2 fills.
+// Templates (website-yw2.2): the 8 fabricated seed templates website-yw2.1
+// removed all carried a githubUrl under github.com/ChilliCream/templates, an
+// org/repo that does not exist. TEMPLATE_ITEMS is rebuilt here from the one
+// real dotnet-new template source in the ChilliCream org: the
+// HotChocolate.Templates NuGet package (MIT, 1.1M+ downloads per `dotnet
+// package search HotChocolate.Templates`), whose three project templates
+// live at github.com/ChilliCream/graphql-platform/tree/main/templates
+// (server, gateway, azure-function). No other public ChilliCream repo is a
+// genuine, currently-maintained template gallery entry; see the
+// website-yw2.2 task comments for the full repo-by-repo inventory decision.
 //
 // Video/tutorial/example/workshop content (website-5yo.6) links out to real,
 // verified material: existing ChilliCream YouTube videos, docs tutorials
 // already published under /docs, and public github.com/ChilliCream example
-// and workshop repos. No detail pages exist for these types yet (see the
-// parent ticket); externalUrl is the only place a reader lands.
+// and workshop repos.
 //
 // Tagging discipline: every template carries a value for all 6 filter axes
 // (Topology, Use case, Language, Client, Product mix, Agent-ready). Missing
@@ -35,17 +36,168 @@ import type { VideoItem } from "./types";
 // Templates
 // -----------------------------------------------------------------------------
 
-// The 8 seed templates (fusion-3-service-federation, agent-ready-api,
-// polyglot-federation, cqrs-with-mocha, realtime-subscriptions,
-// fusion-with-nitro-observability, multi-tenant-saas-starter,
-// blazor-strawberry-shake) were removed here: every githubUrl and demoUrl
-// pointed at github.com/ChilliCream/templates or demo.chillicream.com, and
-// the templates org/repo itself returns 404 (verified via
-// `gh api repos/ChilliCream/templates`, website-yw2.1). Their detail pages
-// at /learn/templates/<slug> and their sitemap entries disappear along with
-// them (generateStaticParams and the sitemap both read off this array).
-// website-yw2.2 repopulates it from real repos.
-export const TEMPLATE_ITEMS: readonly TemplateItem[] = [];
+// The three real dotnet-new templates shipped in the HotChocolate.Templates
+// NuGet package (github.com/ChilliCream/graphql-platform, MIT-licensed).
+// Facts below are read off each template's .template.config/template.json,
+// .csproj, and Program.cs under templates/<name> in that repo (verified
+// 2026-08-29 via the GitHub contents API); no separate template gallery
+// repo exists, and none of the three has its own README.
+const graphqlServerTemplate: TemplateItem = {
+  type: "template",
+  slug: "graphql-server",
+  title: "Hot Chocolate GraphQL Server",
+  tagline: "The dotnet new graphql starter: a minimal, source-generated Hot Chocolate server.",
+  topology: "solo",
+  useCases: ["starter"],
+  language: "dotnet",
+  clients: ["none"],
+  products: ["hot-chocolate"],
+  stack: [],
+  agentReady: false,
+  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/templates/server",
+  license: "MIT",
+  updatedRelative: "over a week ago",
+  cli: [
+    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
+    { key: "new", label: "scaffold project", code: "dotnet new graphql --name MyGraphQLServer" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "The graphql shortName in HotChocolate.Templates scaffolds an ASP.NET Core Web project wired with builder.AddGraphQL().AddTypes() and app.MapGraphQL(). AddTypes() and the [QueryType] attribute wiring come from a source generator (HotChocolate.Types.Analyzers), so there is no manual type registration to write.",
+      ],
+      code: {
+        language: "csharp",
+        code: `var builder = WebApplication.CreateBuilder(args);
+
+builder.AddGraphQL().AddTypes();
+
+var app = builder.Build();
+
+app.MapGraphQL();
+
+app.RunWithGraphQLCommands(args);`,
+      },
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "The scaffold ships an Author and a Book record and a Query class exposing a single book field, the same shape the Getting Started tutorial walks through. RunWithGraphQLCommands(args), from HotChocolate.AspNetCore.CommandLine, adds developer commands on top of the normal run, including exporting the schema as SDL.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Install the template pack once, then scaffold a project with dotnet new graphql. Its Framework parameter targets net10.0 by default and can be switched to net8.0, net9.0, or net11.0. dotnet run starts the server and serves the Nitro GraphQL IDE at /graphql.",
+      ],
+    },
+  ],
+};
+
+const graphqlGatewayTemplate: TemplateItem = {
+  type: "template",
+  slug: "graphql-gateway",
+  title: "Hot Chocolate Fusion Gateway",
+  tagline: "The dotnet new graphql-gateway starter: a Fusion gateway ready to load a composed schema.",
+  topology: "federation",
+  useCases: ["starter"],
+  language: "dotnet",
+  clients: ["none"],
+  products: ["hot-chocolate", "fusion"],
+  stack: [],
+  agentReady: false,
+  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/templates/gateway",
+  license: "MIT",
+  updatedRelative: "over a week ago",
+  cli: [
+    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
+    { key: "new", label: "scaffold project", code: "dotnet new graphql-gateway --name MyGateway" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "The graphql-gateway shortName scaffolds an ASP.NET Core Web project that depends only on HotChocolate.Fusion.AspNetCore. Program.cs registers an HTTP client named fusion, calls AddGraphQLGateway(), and loads its composed schema from a local file with AddFileSystemConfiguration.",
+      ],
+      code: {
+        language: "csharp",
+        code: `builder.Services.AddHttpClient("fusion");
+
+builder
+    .AddGraphQLGateway()
+    .AddFileSystemConfiguration("./gateway.far");`,
+      },
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A gateway project with nothing to compose out of the box: it expects a Fusion archive at ./gateway.far and will not serve traffic until one exists. Produce that archive by composing your subgraphs' exported schemas, the same step the Getting Started with GraphQL Federation tutorial covers.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Install the template pack, scaffold with dotnet new graphql-gateway, compose your subgraph schemas into a gateway.far next to the project, then dotnet run to serve the composed schema at /graphql.",
+      ],
+    },
+  ],
+};
+
+const graphqlAzureFunctionTemplate: TemplateItem = {
+  type: "template",
+  slug: "graphql-azure-function",
+  title: "Hot Chocolate GraphQL Azure Function",
+  tagline: "The dotnet new graphql-azf starter: a Hot Chocolate server on the isolated-worker Azure Functions model.",
+  topology: "solo",
+  useCases: ["starter"],
+  language: "dotnet",
+  clients: ["none"],
+  products: ["hot-chocolate"],
+  stack: [],
+  agentReady: false,
+  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/templates/azure-function",
+  license: "MIT",
+  updatedRelative: "over a week ago",
+  cli: [
+    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
+    { key: "new", label: "scaffold project", code: "dotnet new graphql-azf --name MyGraphQLFunction" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "The graphql-azf shortName scaffolds an Azure Functions v4 isolated-worker project. Program.cs configures the worker with AddGraphQLFunction(b => b.AddQueryType<Query>()); a GraphQLHttpFunction bound to an HTTP trigger at graphql/{**slug} forwards every request to Hot Chocolate's IGraphQLRequestExecutor.",
+      ],
+      code: {
+        language: "csharp",
+        code: `[Function("GraphQLHttpFunction")]
+public Task<HttpResponseData> Run(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "graphql/{**slug}")]
+    HttpRequestData request)
+    => _executor.ExecuteAsync(request);`,
+      },
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A single-function app exposing a GraphQL endpoint, scaffolded with a Query class returning one Person field as its starting point, plus a host.json and local.settings.json for the Functions runtime.",
+      ],
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Install the template pack, scaffold with dotnet new graphql-azf, then run it locally with the Azure Functions Core Tools (func start), the standard way to run any isolated-worker Functions app of this shape.",
+      ],
+    },
+  ],
+};
+
+export const TEMPLATE_ITEMS: readonly TemplateItem[] = [
+  graphqlServerTemplate,
+  graphqlGatewayTemplate,
+  graphqlAzureFunctionTemplate,
+];
 
 // -----------------------------------------------------------------------------
 // Videos
@@ -411,16 +563,183 @@ const fusionDemoExample: ExampleItem = {
   ],
 };
 
+const fusionApolloFederationDemoExample: ExampleItem = {
+  type: "example",
+  slug: "fusion-apollo-federation-demo",
+  title: "Fusion + Apollo Federation Demo",
+  tagline:
+    "A Hot Chocolate Fusion gateway composing Apollo Server subgraphs: polyglot federation across .NET and Node.",
+  products: ["hot-chocolate", "fusion"],
+  level: "advanced",
+  externalUrl: "https://github.com/ChilliCream/Fusion-Federation-Demo",
+  githubUrl: "https://github.com/ChilliCream/Fusion-Federation-Demo",
+  updatedRelative: "over a month ago",
+  cli: [
+    {
+      key: "git",
+      label: "git clone",
+      code: "git clone https://github.com/ChilliCream/Fusion-Federation-Demo && cd Fusion-Federation-Demo",
+    },
+    { key: "install", label: "install", code: "npm install" },
+    { key: "restore", label: "restore Aspire", code: "npm run aspire:restore" },
+    { key: "dev", label: "run", code: "npm run dev" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "One shop GraphQL API exposed through a Hot Chocolate Fusion gateway, while the underlying subgraphs are Apollo Server running Apollo Federation v2, not Hot Chocolate. Where fusion-demo shows Fusion composing an all-.NET graph, this demo shows the same gateway composing subgraphs written in a different language and a different federation implementation.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "A TypeScript Aspire AppHost starts one PostgreSQL server with separate accounts, products, and reviews databases, Apollo Server subgraphs for each domain (ports 4001-4003), a one-shot Nitro composition resource that produces gateway/gateway.far, and the Fusion gateway itself at :4000/graphql once composition and health checks pass. Apollo Server doesn't implement Fusion's variable- or request-batching transports, so both are explicitly disabled in each subgraph's schema-settings.json.",
+      ],
+      code: {
+        language: "graphql",
+        code: `query Shop {
+  topProducts(first: 4) {
+    id
+    name
+    price
+    inStock
+    reviews {
+      rating
+      body
+      author {
+        name
+        username
+      }
+    }
+  }
+}`,
+      },
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Requires Docker, Node.js 20.19+/22.13+/24+, the .NET 10 SDK, and the Aspire CLI. npm install, npm run aspire:restore, then npm run dev boots the whole stack; open the printed Aspire dashboard URL or query the gateway directly with the query above, which starts in the products subgraph and joins reviews and their authors through Apollo's entity-resolution protocol.",
+      ],
+    },
+  ],
+};
+
+const graphqlFederationSubgraphExample: ExampleItem = {
+  type: "example",
+  slug: "graphql-federation-subgraph",
+  title: "graphql-federation-subgraph",
+  tagline:
+    "A server-agnostic npm package implementing the GraphQL Federation Spec's directives for any Node.js server.",
+  products: ["fusion"],
+  level: "intermediate",
+  externalUrl: "https://github.com/ChilliCream/graphql-federation-subgraph",
+  githubUrl: "https://github.com/ChilliCream/graphql-federation-subgraph",
+  updatedRelative: "over a week ago",
+  cli: [{ key: "install", label: "npm install", code: "npm install graphql-federation-subgraph graphql" }],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "Plays the same role for the GraphQL Federation Spec (the spec Fusion implements) that @apollo/subgraph plays for Apollo Federation: it lets any TypeScript/JavaScript GraphQL server use the federation directives (@key, @lookup, @shareable, and more) without defining them, and export its schema for composition. Unlike @apollo/subgraph it isn't tied to one server: the result is a plain GraphQLSchema, and graphql is its only runtime dependency.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "The Federation Spec has no Query._entities/__resolveReference side-channel: entity resolution happens through ordinary fields annotated @lookup, called directly by the distributed executor, so a subgraph built with this package needs no reference-resolver machinery at all. buildSubgraphSchema() injects the directive and scalar definitions into your typeDefs; printSourceSchema() and createSourceSchemaHandler() then print or serve that schema, directives included, at a route like /graphql/schema.graphql for Fusion's composition tooling to read. Confirmed working with GraphQL Yoga, Apollo Server, Mercurius, graphql-http, and NestJS.",
+      ],
+      code: {
+        language: "ts",
+        code: `import { buildSubgraphSchema } from "graphql-federation-subgraph";
+
+const typeDefs = /* GraphQL */ \`
+  type Query {
+    productById(id: ID!): Product @lookup
+  }
+
+  type Product @key(fields: "id") {
+    id: ID!
+    name: String!
+  }
+\`;
+
+const schema = buildSubgraphSchema({ typeDefs, resolvers });`,
+      },
+    },
+    {
+      heading: "How to use it",
+      paragraphs: [
+        "npm install it alongside your GraphQL server of choice, add @key/@lookup directives to your schema, build the schema with buildSubgraphSchema, and mount createSourceSchemaHandler's handler at the schema-document route your composition step expects.",
+      ],
+    },
+  ],
+};
+
+const agentReadyGraphqlApiDemoExample: ExampleItem = {
+  type: "example",
+  slug: "agent-ready-graphql-api-demo",
+  title: "Agent-Ready GraphQL API Demo",
+  tagline:
+    "A Fusion gateway with semantic introspection and a REST bridge, case-studied against how cheaply an LLM agent can discover and query it.",
+  products: ["hot-chocolate", "fusion"],
+  // Subject is building an agent-ready API and comparing LLM discovery
+  // strategies against it, not GraphQL/Federation fundamentals; `products`
+  // alone would only place this in GraphQL & Federation (see
+  // src/data/learn/hubs.ts).
+  hubs: ["agents"],
+  level: "advanced",
+  externalUrl: "https://github.com/ChilliCream/singapore-demo",
+  githubUrl: "https://github.com/ChilliCream/singapore-demo",
+  updatedRelative: "3 months ago",
+  cli: [
+    {
+      key: "git",
+      label: "git clone",
+      code: "git clone https://github.com/ChilliCream/singapore-demo && cd singapore-demo/src/AppHost",
+    },
+    { key: "run", label: "run the AppHost", code: "dotnet run" },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "A demo and case study, built for an apidays Singapore talk, showing how an AI agent discovers and queries a federated GraphQL API backed by ten Singapore open-data domains (weather, air quality, traffic, parking, dengue clusters, food hygiene, healthcare, education, housing, demographics). The case study compares the token cost of different API-discovery strategies (REST with OpenAPI, GraphQL with the schema in the prompt, GraphQL with semantic introspection) when an LLM answers a natural-language question.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "An Aspire AppHost launches a Hot Chocolate Fusion gateway (composed from one subgraph per data domain, each serving cached JSON fixtures) plus a YARP reverse proxy that mirrors the same data as REST, so the same API can be queried either way. The gateway exposes semantic introspection (__search, __definitions) alongside the composed GraphQL schema and a merged OpenAPI document at /openapi/v1.json.",
+      ],
+      code: {
+        language: "graphql",
+        code: `{
+  __search(query: "outdoor safety air quality taxis", first: 5) {
+    coordinate
+    score
+  }
+}`,
+      },
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Requires the .NET 10 SDK; dotnet run from src/AppHost boots the gateway and all ten subgraphs, serving GraphQL at :5110/graphql and the merged OpenAPI document at :5110/openapi/v1.json. The case-study scripts under case-study/ additionally need the Claude Code CLI on PATH to run the discovery-strategy comparisons; the gateway itself does not.",
+      ],
+    },
+  ],
+};
+
 const bookshopCleanArchitectureExample: ExampleItem = {
   type: "example",
   slug: "bookshop-clean-architecture",
   title: "Bookshop Clean Architecture",
   tagline: "A runnable GraphQL bookshop demonstrating domain-driven design and clean architecture.",
   products: ["hot-chocolate", "mocha"],
-  // Subject is clean architecture for a GraphQL server; Mocha.Mediator is
-  // used in-process for commands/queries here, not Mocha's message bus, so
-  // `products` alone would misplace this in Messaging (see
-  // src/data/learn/hubs.ts).
+  // Pins the primary hub regardless of `products` ordering, since
+  // Mocha.Mediator is used in-process for commands/queries here, not
+  // Mocha's message bus (see src/data/learn/hubs.ts).
   hubs: ["graphql-federation"],
   level: "advanced",
   externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
@@ -450,7 +769,7 @@ const bookshopCleanArchitectureExample: ExampleItem = {
       heading: "What you build",
       paragraphs: [
         "Five projects with dependencies pointing inward: Bookshop.Domain (aggregates, domain services, events, exceptions, repository contracts), Bookshop.Application (commands, queries, authorization policies, read models), Bookshop.Infrastructure (EF Core, repositories, DataLoaders, transactions, event dispatch), Bookshop.GraphQL (Hot Chocolate query, mutation, and object type extensions), and Bookshop.Host (composition root, health checks, migrations, seed data).",
-        "Commands and queries live in the Application layer, with authorization enforced in their handlers so it applies independently of transport. Root collection queries are backed by source-generated DataLoaders; by-id and relationship fields in the GraphQL layer use DataLoaders and projection-aware QueryContext<T>. Command middleware opens an EF transaction, and UnitOfWork saves changes and dispatches the collected domain events, with ActivitySource diagnostics on the dispatch. Expected add-book failures are domain exceptions that flow directly through the GraphQL resolver as execution errors.",
+        "Commands and queries live in the Application layer, with authorization enforced in their handlers so it applies independently of transport. Root collection queries are backed by source-generated DataLoaders; by-id and relationship fields in the GraphQL layer use DataLoaders and projection-aware QueryContext<T>. Command middleware opens an EF transaction, and UnitOfWork saves changes and dispatches the collected domain events, with ActivitySource diagnostics on the dispatch. The example deliberately lets add-book domain exceptions propagate as ordinary GraphQL execution errors; a production API would translate expected exceptions into a stable public error contract instead.",
       ],
       code: {
         language: "graphql",
@@ -686,6 +1005,9 @@ const mochaExceptionPoliciesExample: ExampleItem = {
 
 export const EXAMPLE_ITEMS: readonly ExampleItem[] = [
   fusionDemoExample,
+  fusionApolloFederationDemoExample,
+  graphqlFederationSubgraphExample,
+  agentReadyGraphqlApiDemoExample,
   bookshopCleanArchitectureExample,
   mochaEcommerceDemoExample,
   mochaPostgresTransportExample,
