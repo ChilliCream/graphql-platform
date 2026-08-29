@@ -4,10 +4,8 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { productLabel } from "@/src/data/learn/facets";
 import { findHub, hubHref, hubsForLearnItem } from "@/src/data/learn/hubs";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
-import { SolidButton } from "@/src/design-system/Button";
 import { Link } from "@/src/design-system/Link";
 import { formatDate } from "@/src/helpers/formatDate";
-import { GitHubIcon } from "@/src/icons/GitHub";
 import { ArticleBreadcrumb } from "./ArticleLayout";
 import { Detail } from "./Detail";
 import { LearnCard } from "./LearnCard";
@@ -64,27 +62,18 @@ function TopicsDetail({ video }: { readonly video: VideoItem }) {
 }
 
 /**
- * The metadata rail to the right of the player: the example repository link as
- * the primary action at the top, then every other piece of video metadata
- * below it (learn-editorial.md section 20, amended per website-kbx.19 and
- * website-kbx.23). Follows `TemplateDetail`'s sticky sidebar-card treatment
- * (website-8s5.3) so the two detail types feel consistent.
+ * The metadata rail to the right of the player (learn-editorial.md section
+ * 20, amended per website-kbx.19, website-kbx.23, and website-yw2.1, which
+ * dropped the example-repository link: every video's exampleRepoUrl pointed
+ * at github.com/ChilliCream/examples, a repo that doesn't exist). Follows
+ * `TemplateDetail`'s sticky sidebar-card treatment (website-8s5.3) so the two
+ * detail types feel consistent.
  */
 function VideoRail({ video }: { readonly video: VideoItem }) {
   return (
     <div className="border-cc-card-border bg-cc-card-bg overflow-hidden rounded-2xl border backdrop-blur-sm">
       <div className="p-5">
-        {video.exampleRepoUrl && (
-          <>
-            <p className="text-cc-heading font-heading text-lg font-semibold">Example code</p>
-            <p className="text-cc-prose mt-2 text-sm leading-relaxed">The complete project built in this video.</p>
-            <SolidButton href={video.exampleRepoUrl} className="mt-4 w-full">
-              <GitHubIcon className="mr-2 size-4 fill-current" />
-              View source
-            </SolidButton>
-          </>
-        )}
-        <dl className={`space-y-4 text-sm ${video.exampleRepoUrl ? "border-cc-card-border mt-6 border-t pt-5" : ""}`}>
+        <dl className="space-y-4 text-sm">
           {video.publishedAt && <Detail label="Published" value={formatDate(video.publishedAt)} />}
           {video.duration && <Detail label="Duration" value={video.duration} />}
           {video.level && <Detail label="Level" value={video.level} className="capitalize" />}
