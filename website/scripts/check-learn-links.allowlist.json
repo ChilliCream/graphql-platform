@@ -1,0 +1,6 @@
+[
+  {
+    "url": "http://localhost:5095",
+    "reason": "Local dev server port mentioned in tutorial prose (the default port a scaffolded template listens on), not a routable host in CI."
+  }
+]

@@ -8,6 +8,7 @@
     "start": "next start -p 3001",
     "optimize-images": "node scripts/optimize-images.mjs",
     "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
+    "check:learn-links": "node scripts/check-learn-links.mjs",
     "ci-local": "bash start-optimized.sh",
     "lint": "eslint",
     "format": "prettier --write .",

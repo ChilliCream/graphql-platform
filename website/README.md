@@ -202,3 +202,26 @@ flowchart LR
   them rendering.
 - A range of MDX components is available (e.g. `Tabs`, `ExampleTabs`,
   `PackageInstallation`); see `mdx-components.tsx` for the full set.
+
+### Learn catalog links
+
+`src/data/learn/*.ts` is the seed data behind `/learn` (templates, tutorials,
+examples, workshops, videos). Every external URL in that directory, whether in
+a link field (`githubUrl`, `demoUrl`, `externalUrl`) or embedded in a `body`
+paragraph or `cli` code string, must point at something that actually exists.
+
+Run `yarn check:learn-links` before adding or editing a learn entry. It
+extracts every `http(s)` URL from `src/data/learn/*.ts`, checks `github.com`
+repo/tree/blob URLs via `gh api` (the repo, and the path at the ref named in
+the URL) and every other host with an HTTP request, and fails with a list of
+the broken URLs (and the file/line each one came from) if anything doesn't
+resolve. It requires the `gh` CLI to be installed and authenticated.
+
+A URL that legitimately can't be checked from CI (for example a `localhost`
+example in tutorial prose) can be added to
+`scripts/check-learn-links.allowlist.json`, a JSON array of
+`{ "url": "<exact URL as it appears in source>", "reason": "<why>" }`. Use it
+only for URLs that are genuinely unreachable from a CI runner, never to
+silence a dead link.
+
+This check is not currently wired into CI.
