@@ -135,8 +135,10 @@ export default function LearnPage() {
   const explainerSectionRenders = explainerArticles.length >= EXPLAINER_LIST_MIN_ITEMS;
 
   const featuredTemplate = findFeaturedTemplate();
-  const featuredTemplateSummary = TEMPLATE_SUMMARIES.find((t) => t.slug === featuredTemplate.slug);
-  const otherTemplates = TEMPLATE_SUMMARIES.filter((t) => t.slug !== featuredTemplate.slug).slice(0, 2);
+  const featuredTemplateSummary = featuredTemplate
+    ? TEMPLATE_SUMMARIES.find((t) => t.slug === featuredTemplate.slug)
+    : undefined;
+  const otherTemplates = TEMPLATE_SUMMARIES.filter((t) => t.slug !== featuredTemplate?.slug).slice(0, 2);
   const otherCatalogItems = LEARN_SUMMARIES.filter(
     (item): item is Extract<LearnItemSummary, { type: "tutorial" | "example" | "workshop" }> =>
       item.type === "tutorial" || item.type === "example" || item.type === "workshop",
@@ -153,8 +155,7 @@ export default function LearnPage() {
   const railVideos = selectRailVideos(VIDEO_ITEMS);
   const railVideoSlugs = new Set(railVideos.map((v) => v.slug));
 
-  // Rails that actually render, so the lead-side alternation (A-B-A, D7) is
-  // computed over rendered rails, not every entry in HUBS. Sourced from the
+  // Rails that actually render, not every entry in HUBS. Sourced from the
   // four canonical hubs (website-kbx.6), not the five legacy TOPICS: a hub
   // with no posts left in the pool (e.g. Messaging, which has none at all)
   // simply contributes no rail, matching every other "only render sections
@@ -185,14 +186,8 @@ export default function LearnPage() {
         latestVideos={railVideos}
         tags={tags}
       />
-      {topicRails.map(({ hub, posts }, index) => (
-        <LearnTopicRail
-          key={hub.key}
-          heading={hub.label}
-          moreHref={hubHref(hub.key)}
-          posts={posts}
-          leadSide={index % 2 === 0 ? "left" : "right"}
-        />
+      {topicRails.map(({ hub, posts }) => (
+        <LearnTopicRail key={hub.key} heading={hub.label} moreHref={hubHref(hub.key)} posts={posts} />
       ))}
       <LearnCollectionSection items={collectionItems} subLinks={[]} />
       {explainerSectionRenders ? <LearnExplainerList articles={explainerArticles} /> : null}
