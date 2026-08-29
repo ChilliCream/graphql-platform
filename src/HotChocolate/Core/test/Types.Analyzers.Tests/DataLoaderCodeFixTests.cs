@@ -276,6 +276,54 @@ public class DataLoaderCodeFixTests
     }
 
     [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_RemoveOnlyTheKeyedAttribute()
+    {
+        // arrange
+        const string source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Service("key")]
+                    [Obsolete]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Obsolete]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SignatureCodeFixes_Should_UseLastContract_When_GenericAttributesConflict()
     {
         // arrange

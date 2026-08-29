@@ -355,6 +355,7 @@ internal static partial class TestHelper
                 new DataLoaderParameterModifierAnalyzer(),
                 new DataLoaderDuplicateTypeAnalyzer(),
                 new DataLoaderKeyedServiceConflictAnalyzer(),
+                new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
                 new DataLoaderMissingInterfaceImplementationAnalyzer(),
                 new DataLoaderPublicInterfaceAccessModifierAnalyzer());
 
