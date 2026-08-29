@@ -180,6 +180,15 @@ export function hubsForPost(post: HubbablePost): readonly HubKey[] {
 }
 
 /**
+ * Fallback kicker/badge label for a post or content type with no more
+ * specific text: `hubKickerForPost`'s no-category-no-hub case, the "article"
+ * entry in `CONTENT_TYPE_META` (src/components/learn/contentTypeMeta.ts),
+ * and `LearnTopicRail`'s own no-category kicker all render this string, so
+ * it is defined once here and imported everywhere it is needed.
+ */
+export const ARTICLE_KICKER_FALLBACK = "Article";
+
+/**
  * Kicker text and link target for a post (learn-editorial.md section 14.1):
  * whenever the kicker links to a hub, its text is that hub's label, so the
  * text and the destination always name the same thing. A non-`AI` category
@@ -198,5 +207,5 @@ export function hubKickerForPost(post: HubbablePost): { readonly text: string; r
   if (found) {
     return { text: found.label, href: hubHref(found.key) };
   }
-  return { text: "Article", href: undefined };
+  return { text: ARTICLE_KICKER_FALLBACK, href: undefined };
 }

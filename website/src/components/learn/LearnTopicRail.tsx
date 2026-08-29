@@ -1,6 +1,6 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CardGrid } from "@/src/components/CardGrid";
-import { hubKickerForPost } from "@/src/data/learn/hubs";
+import { ARTICLE_KICKER_FALLBACK, hubKickerForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { LearnArticleCard } from "./LearnArticleCard";
 
@@ -9,17 +9,14 @@ import { LearnArticleCard } from "./LearnArticleCard";
  * generic "Article" content-type label, never the date (the card's meta
  * line already carries `author · date`, so a date-fallback kicker duplicated
  * it, website-vlm) and never the section's own topic name
- * (learn-harmonization.md D19). The hub-label fallback in `hubKickerForPost`
- * is reserved for the Latest rail, which has no section heading of its own.
+ * (learn-harmonization.md D19). A category resolves through
+ * `hubKickerForPost` so a linked kicker's text always names the same hub it
+ * links to (website-vxb); the tag-derived hub fallback for a category-less
+ * post is not used here, that fallback is reserved for the Latest rail,
+ * which has no section heading of its own.
  */
-const cardKicker = (post: BlogPostSummary): string => post.category ?? "Article";
-
-/**
- * Only link the kicker when it shows the post's category: the "Article"
- * fallback (no category) must never read as a link.
- */
-const cardKickerHref = (post: BlogPostSummary): string | undefined =>
-  post.category ? hubKickerForPost(post).href : undefined;
+const cardKicker = (post: BlogPostSummary): { readonly text: string; readonly href: string | undefined } =>
+  post.category ? hubKickerForPost(post) : { text: ARTICLE_KICKER_FALLBACK, href: undefined };
 
 interface LearnTopicRailProps {
   readonly heading: string;
@@ -47,6 +44,7 @@ export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps
     return null;
   }
   const [lead, ...rest] = posts;
+  const leadKicker = cardKicker(lead);
 
   return (
     <section className="py-8 sm:py-10">
@@ -57,22 +55,25 @@ export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps
       <LearnArticleCard
         post={lead}
         layout="split"
-        kicker={cardKicker(lead)}
-        kickerHref={cardKickerHref(lead)}
+        kicker={leadKicker.text}
+        kickerHref={leadKicker.href}
         sizes="(max-width: 1023px) 100vw, (max-width: 1279px) 45vw, min(40vw, 640px)"
       />
       {rest.length > 0 ? (
         <div className="mt-10">
           <CardGrid cols={3} step="progressive">
-            {rest.map((post) => (
-              <LearnArticleCard
-                key={post.stem}
-                post={post}
-                kicker={cardKicker(post)}
-                kickerHref={cardKickerHref(post)}
-                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, min(30vw, 520px)"
-              />
-            ))}
+            {rest.map((post) => {
+              const kicker = cardKicker(post);
+              return (
+                <LearnArticleCard
+                  key={post.stem}
+                  post={post}
+                  kicker={kicker.text}
+                  kickerHref={kicker.href}
+                  sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, min(30vw, 520px)"
+                />
+              );
+            })}
           </CardGrid>
         </div>
       ) : null}
