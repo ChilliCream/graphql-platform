@@ -466,6 +466,85 @@ public class DataLoaderCodeFixTests
     }
 
     [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_ReplaceDirectServiceAndPreserveTrivia()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+            using Microsoft.Extensions.DependencyInjection;
+
+            class Loader : IDataLoader
+            {
+                public Loader(
+            // The keyed service is required by this loader.
+            #if DEBUG
+            #endif
+                    [Service(/* key */ "key")]
+                    object service)
+                {
+                }
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider(),
+            "Use FromKeyedServices");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using GreenDonut;
+            using HotChocolate;
+            using Microsoft.Extensions.DependencyInjection;
+
+            class Loader : IDataLoader
+            {
+                public Loader(
+            // The keyed service is required by this loader.
+            #if DEBUG
+            #endif
+                    [FromKeyedServices(/* key */ "key")]
+                    object service)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_NotRegisterForDerivedAttribute()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+
+            class MemoizedInScopeAttribute() : ServiceAttribute("key")
+            {
+            }
+
+            class Loader : IDataLoader
+            {
+                public Loader([MemoizedInScope] object service)
+                {
+                }
+            }
+            """;
+
+        // act
+        var actions = await GetCodeFixesAsync(
+            source,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider());
+
+        // assert
+        Assert.Empty(actions);
+    }
+
+    [Fact]
     public async Task SignatureCodeFixes_Should_UseLastContract_When_GenericAttributesConflict()
     {
         // arrange
