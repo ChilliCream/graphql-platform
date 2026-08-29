@@ -26,8 +26,6 @@ interface LearnTopicRailProps {
   readonly moreHref: string;
   /** Up to 4 posts for the rail, newest first; the caller has already applied the cross-section dedupe. */
   readonly posts: readonly BlogPostSummary[];
-  /** Overrides the default "More {heading}" copy in the rail's ArrowLink. */
-  readonly moreLabel?: string;
 }
 
 /**
@@ -44,7 +42,7 @@ interface LearnTopicRailProps {
  * Catalog items do not appear inside topic sections; they are reachable
  * through the section's "More" link and the collection band.
  */
-export function LearnTopicRail({ heading, moreHref, posts, moreLabel }: LearnTopicRailProps) {
+export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps) {
   if (posts.length === 0) {
     return null;
   }
@@ -54,7 +52,7 @@ export function LearnTopicRail({ heading, moreHref, posts, moreLabel }: LearnTop
     <section className="py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{heading}</h2>
-        <ArrowLink href={moreHref}>{moreLabel ?? `More ${heading}`}</ArrowLink>
+        <ArrowLink href={moreHref}>{`More ${heading}`}</ArrowLink>
       </div>
       <LearnArticleCard
         post={lead}
@@ -72,7 +70,7 @@ export function LearnTopicRail({ heading, moreHref, posts, moreLabel }: LearnTop
                 post={post}
                 kicker={cardKicker(post)}
                 kickerHref={cardKickerHref(post)}
-                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, min(30vw, 460px)"
+                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, min(30vw, 520px)"
               />
             ))}
           </CardGrid>

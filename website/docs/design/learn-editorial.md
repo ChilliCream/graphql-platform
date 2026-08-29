@@ -1147,7 +1147,7 @@ no-empty-rails rule.
 
 **Amended by website-kbx.28 (2026-08-24), shape A:** the lead-feature grid
 (learn-harmonization.md D7/2.5.2) moves from `lg:grid-cols-2` to
-`lg:grid-cols-3`. The lead (`RailFeature`) occupies one column: its image is
+`lg:grid-cols-3`. The lead occupies one column: its image is
 a fixed `aspect-video` (16:9) box rather than a fixed-height crop, so it
 never grows wider than that one column and never crops artwork that is
 itself authored at 16:9 (the shipped `h-40` box let the image stretch to
@@ -1161,6 +1161,18 @@ rejected: it would discard the kbx.20 hierarchy work (section h2 > rail
 lead `text-h5` > row `text-h6`) for no stated benefit. Below `lg` the grid
 collapses to one column, lead first. Applies to every `LearnTopicRail`
 instance, including future topic hub page usage.
+
+**Amended by website-446 (2026-08-29), direction A:** the kbx.28 shape (the
+lead in one column of `lg:grid-cols-3`, up to 3 `LearnListRow`s
+`density="compact"` filling the other two as an `lg:col-span-2` stack) is
+replaced entirely. The rail now renders one `LearnArticleCard
+layout="split"` lead across the full content width (16:9 image at 45% of
+the row from `lg`, 40% from `xl`, `text-h5` headline, dek, `author ·
+date`), followed by the remaining posts as `LearnArticleCard`s in a
+`sm:grid-cols-2 lg:grid-cols-3` grid (16:9 image, kicker, `text-h6`
+headline, `author · date`). No rows remain inside a topic rail;
+`LearnListRow`'s `density="compact"` stays in use only by the editorial
+band (15.1). See learn-harmonization.md section 4.2 item 2.
 
 ### 15.3 Collection, explainers, videos
 

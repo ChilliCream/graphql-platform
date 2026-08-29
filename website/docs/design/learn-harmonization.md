@@ -698,6 +698,6 @@ six equal hairline-topped bands.
   139ch).
 - Every topic rail leads with one full-width split card over a row of
   equal cards (website-446 replaced the alternating lead slots this target
-  originally checked): no item in a rail spans more than one grid column at
-  1280, 1536, or 1920, and the rails stack to one column with no horizontal
-  scroll at 390.
+  originally checked): no secondary card spans more than one grid column at
+  1280, 1536, or 1920 (the lead is full width by design), and the rails
+  stack to one column with no horizontal scroll at 390.
