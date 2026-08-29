@@ -1,4 +1,5 @@
 using GreenDonut;
+using HotChocolate.Fetching;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -175,6 +176,32 @@ public class DependencyInjectionTests
     }
 
     [Fact]
+    public async Task Keyed_DataLoader_Service_Is_Resolved()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton<KeyedService>("keyed")
+                .AddGraphQL()
+                .AddQueryType<KeyedDataLoaderQuery>()
+                .AddDataLoader<KeyedDataLoader>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ value }", TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "value": "keyed"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Custom_DataLoader_Factory_Can_Create_Keyed_DataLoader()
     {
         // arrange
@@ -228,12 +255,16 @@ public class DependencyInjectionTests
 
         using var scope = services.CreateScope();
 
+        var serviceProvider = new NonKeyedServiceProvider(scope.ServiceProvider);
+        var serviceInspector = serviceProvider.GetRequiredService<IServiceProviderIsService>();
+        Assert.True(serviceInspector.IsService(typeof(IBatchDispatcher)));
+
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ value }")
-                .SetServices(new NonKeyedServiceProvider(scope.ServiceProvider))
+                .SetServices(serviceProvider)
                 .Build(),
             TestContext.Current.CancellationToken);
 
@@ -350,6 +381,9 @@ public class DependencyInjectionTests
     private sealed class NonKeyedServiceProvider(IServiceProvider innerServiceProvider)
         : IServiceProvider
     {
-        public object? GetService(Type serviceType) => innerServiceProvider.GetService(serviceType);
+        public object? GetService(Type serviceType)
+            => serviceType == typeof(IServiceProviderIsKeyedService)
+                ? null
+                : innerServiceProvider.GetService(serviceType);
     }
 }
