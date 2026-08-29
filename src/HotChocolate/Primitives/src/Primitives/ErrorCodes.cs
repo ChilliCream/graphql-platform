@@ -45,6 +45,10 @@ public static class ErrorCodes
         public const string DataLoaderMissingInterfaceImplementation = "HC0127";
         public const string DataLoaderPublicInterfaceAccessModifier = "HC0128";
         public const string DataLoaderParameterModifierInvalid = "HC0129";
+        public const string DataLoaderKeyedServiceAttributeConflict = "HC0130";
+        public const string DataLoaderKeyedServiceAttributeIgnored = "HC0131";
+        public const string DataLoaderKeyedServiceOnConstructorParameter = "HC0132";
+        public const string DataLoaderKeyedServiceKeyNotDeterminable = "HC0133";
     }
 
     public static class Authentication
