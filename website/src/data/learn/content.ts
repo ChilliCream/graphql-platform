@@ -641,7 +641,7 @@ const graphqlFederationSubgraphExample: ExampleItem = {
     {
       heading: "Overview",
       paragraphs: [
-        "Plays the same role for the GraphQL Federation Spec (the spec Fusion implements) that @apollo/subgraph plays for Apollo Federation: it lets any TypeScript/JavaScript GraphQL server use the federation directives (@key, @lookup, @shareable, and more) without defining them, and export its schema for composition. Unlike @apollo/subgraph it isn't tied to one server: the result is a plain GraphQLSchema, and graphql is its only runtime dependency.",
+        "Plays the same role for the GraphQL Federation Spec (the spec Fusion implements) that @apollo/subgraph plays for Apollo Federation: it lets any TypeScript/JavaScript GraphQL server use the federation directives (@key, @lookup, @shareable, and more) without defining them, and export its schema for composition. Unlike @apollo/subgraph it isn't tied to one server: the result is a plain GraphQLSchema; the package has zero runtime dependencies, and graphql is its only peer dependency.",
       ],
     },
     {
@@ -663,6 +663,15 @@ const typeDefs = /* GraphQL */ \`
     name: String!
   }
 \`;
+
+const products = [{ id: "1", name: "Chair" }];
+
+const resolvers = {
+  Query: {
+    productById: (_parent: unknown, args: { id: string }) =>
+      products.find((product) => product.id === args.id),
+  },
+};
 
 const schema = buildSubgraphSchema({ typeDefs, resolvers });`,
       },
@@ -704,7 +713,7 @@ const agentReadyGraphqlApiDemoExample: ExampleItem = {
     {
       heading: "Overview",
       paragraphs: [
-        "A demo and case study, built for an apidays Singapore talk, showing how an AI agent discovers and queries a federated GraphQL API backed by ten Singapore open-data domains (weather, air quality, traffic, parking, dengue clusters, food hygiene, healthcare, education, housing, demographics). The case study compares the token cost of different API-discovery strategies (REST with OpenAPI, GraphQL with the schema in the prompt, GraphQL with semantic introspection) when an LLM answers a natural-language question.",
+        "A demo and case study, built for apidays Singapore, showing how an AI agent discovers and queries a federated GraphQL API backed by ten Singapore open-data domains (weather, air quality, traffic, parking, dengue clusters, food hygiene, healthcare, education, housing, demographics). The case study compares the token cost of different API-discovery strategies (REST with OpenAPI, GraphQL with the schema in the prompt, GraphQL with semantic introspection) when an LLM answers a natural-language question.",
       ],
     },
     {
