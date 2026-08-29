@@ -223,10 +223,13 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   they label.
 - **Fix**: section 2.5 (landing prescriptions): row title moves to the card
   voice (`font-heading text-h6 font-semibold`, 18px), each topic rail gains
-  a lead-story slot alternating left/right (A-B-A instead of A-A-A, the
-  Think per-collection feature pattern), `LearnListRow` gains a compact
-  density variant for the 19rem rails, and the band rails participate in
-  2xl growth. Amends Part II sections 14.1, 15.1, and 15.2.
+  a lead-story slot (the Think per-collection feature pattern),
+  `LearnListRow` gains a compact density variant for the 19rem rails, and
+  the band rails participate in 2xl growth. Amends Part II sections 14.1,
+  15.1, and 15.2. The rail half of this fix was itself replaced by
+  website-446 (2.5.2): rows inside a topic rail became cards, and the
+  left/right alternation went with them, because the rows it produced ran
+  to 900px and more at wide viewports.
 
 ### D8 (high): browse catalog has no entry point and buries its content
 
@@ -580,14 +583,24 @@ six equal hairline-topped bands.
    columns narrower than 20rem, `default` elsewhere, ending the reuse of an
    80px-thumb row in a 176px text column; (d) the first Latest item may
    render with thumbnail and the rest without, giving the column a lead.
-2. **Topic rails** (`LearnTopicRail.tsx`): each rail gains a lead-story
-   slot: the first (or editorially flagged) post renders as a
-   feature (16:9 image capped at one column width, `text-h5` headline per
-   the kbx.20/kbx.28 amendments in learn-editorial.md 15.2) filling one
-   column of the `lg:grid-cols-3` grid; the remaining posts are compact
-   rows in a single `lg:col-span-2` stack. Rails alternate lead-left and
-   lead-right (A-B-A). This amends Part II section 15.2 ("rows only"): rows
-   remain the only secondary treatment, but each rail leads with a feature.
+2. **Topic rails** (`LearnTopicRail.tsx`, rebuilt on cards by website-446):
+   each rail is a header row, one lead post, and the remaining posts as
+   equal cards. The lead renders as `LearnArticleCard layout="split"` across
+   the full content width (16:9 image at 45% of the row from `lg`, 40% from
+   `xl`, `text-h5` headline, dek, `author · date`); the rest render as
+   `LearnArticleCard` in a `sm:grid-cols-2 lg:grid-cols-3` grid (16:9 image,
+   kicker, `text-h6` headline, `author · date`). Each card is one stretched
+   link with an independently clickable kicker, the `LearnListRow`
+   behaviour, and a post with neither artwork nor product art drops its
+   image box rather than reserving an empty tile. This supersedes the
+   earlier prescription here (a `text-h5` feature in one column of
+   `lg:grid-cols-3` plus compact rows in an `lg:col-span-2` stack,
+   alternating lead-left and lead-right A-B-A): at 1536px and wider those
+   rows stretched to 900px and more of near-empty line holding a 48px
+   thumbnail, and a lead spanning the full width has no side to alternate.
+   It amends Part II section 15.2 ("rows only") in a second way: inside a
+   topic rail, cards replace rows entirely. `LearnListRow`'s compact density
+   stays for the editorial band (2.5.1).
 3. **"Start building"** (`LearnCollectionSection.tsx`): becomes the tinted
    band (full-bleed `bg-cc-card-bg`, no `border-t`, section 2.1 padding).
    The first item (featured template) spans 2 columns as a horizontal
@@ -661,7 +674,7 @@ six equal hairline-topped bands.
 | 14.5 CTA rule                                                                                                           | **Amended, ruling kept**: CTA stays uniform `text-cc-accent`; additionally the per-type `ctaLabel` text is deleted for one uniform affordance (D11).                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | 14.6 token rules                                                                                                        | **Superseded in part**: single hairline token (2.2); `bg-[#f5f0ea]` literal no longer sanctioned (D21); solid `bg-cc-warning` pill retired (D10).                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | 15.1 band grid                                                                                                          | **Amended**: rails grow at `2xl`; Latest column may lead with one thumbed row (2.5.1).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| 15.2 topic rails "rows only"                                                                                            | **Amended**: rails lead with one feature slot, alternating sides; secondary items remain rows (2.5.2).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 15.2 topic rails "rows only"                                                                                            | **Amended**: rails lead with one full-width split card; secondary items are cards in a 3-column grid, not rows (2.5.2, website-446).                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | 15.5 section rhythm                                                                                                     | **Superseded**: `py-10 sm:py-12` scale, border-or-padding seam rule, tinted collection band (2.1, 2.2, 2.5.3).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | 16.1 browse                                                                                                             | **Amended**: masthead compresses; unfiltered catalog opens with a featured `col-span-2` row (2.6).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | 11 (rows 6 and 8), which keep Part I 6.1 "Kind chips for editorial types" and Part I 8 "Theme and token rules" standing | **Amended**: Part I 6.1's editorial accent table (the `cc-note`/`cc-tip` tints for article, comparison, explainer) is retired, and so is its sentence keeping the five catalog accents of learn-hub.md section 4.1 unchanged: section 2.3 deletes the per-type `text`/`bg`/`ring`/`hoverBorder`/`activePill` fields from `CONTENT_TYPE_META`, so all eight content types render the neutral recipe that 6.1 names as its fallback, now canonical as the `ContentTypeBadge` form with the section 2.3 tokens. Part I 8's StatusChip accent-tint extension to editorial chips is retired with it (2.3, D13). |
@@ -683,5 +696,8 @@ six equal hairline-topped bands.
   imagery (was ~16).
 - Article and template prose measures at 75 to 85ch at 1920 (was 123 to
   139ch).
-- The three topic rails are not pixel-identical: lead slots alternate
-  A-B-A.
+- Every topic rail leads with one full-width split card over a row of
+  equal cards (website-446 replaced the alternating lead slots this target
+  originally checked): no item in a rail spans more than one grid column at
+  1280, 1536, or 1920, and the rails stack to one column with no horizontal
+  scroll at 390.
