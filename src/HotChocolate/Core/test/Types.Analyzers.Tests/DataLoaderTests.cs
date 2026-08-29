@@ -1929,6 +1929,91 @@ public class DataLoaderTests
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task GenerateSource_DataLoaderKeyedServices_MatchesSnapshot()
+    {
+        // arrange
+        const string source =
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+            using Microsoft.Extensions.DependencyInjection;
+
+            namespace TestNamespace;
+
+            internal enum ServiceKey
+            {
+                First
+            }
+
+            internal sealed class ServiceDependency;
+
+            internal sealed class MemoizedInScopeAttribute : ServiceAttribute
+            {
+                public MemoizedInScopeAttribute()
+                    : base("MEMOIZED")
+                {
+                }
+            }
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [Service("service")] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByDerivedServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [MemoizedInScope] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByFromKeyedServicesAsync(
+                    IReadOnlyList<int> keys,
+                    [FromKeyedServices(ServiceKey.First)] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetOptionalByServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [Service("optional")] ServiceDependency? service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader(ServiceScope = DataLoaderServiceScope.OriginalScope)]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByOriginalScopeServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [Service("original-scope")] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredUnkeyedAsync(
+                    IReadOnlyList<int> keys,
+                    ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
     private static GenericDataLoaderInfo? TryCreateGenericDataLoaderInfo(
         string source,
         string? methodName = null)
