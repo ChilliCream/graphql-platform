@@ -250,6 +250,68 @@ public class ServiceAttributeInfoTests
     }
 
     [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnOptionalKeyForImplicitBaseConstructor()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class IntermediateAttribute(string key = "implicit-default") : ServiceAttribute(key)
+            {
+            }
+
+            class DerivedAttribute : IntermediateAttribute
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.Equal("implicit-default", info.SourceDerivedServiceKey);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnKeyForParamsOnlyImplicitBaseConstructor()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class IntermediateAttribute(params object[] ignored) : ServiceAttribute("params-key")
+            {
+            }
+
+            class DerivedAttribute : IntermediateAttribute
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.Equal("params-key", info.SourceDerivedServiceKey);
+    }
+
+    [Fact]
     public void GetServiceAttributeInfo_Should_ReturnKeylessInfoForDerivedNullBaseArgument()
     {
         // arrange

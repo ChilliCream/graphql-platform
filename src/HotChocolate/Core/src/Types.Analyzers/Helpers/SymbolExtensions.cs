@@ -962,22 +962,43 @@ public static class SymbolExtensions
 
         if (!TryGetConstructorInvocation(constructor, compilation, out var invocation))
         {
-            if (!TryGetImplicitSourceBaseConstructor(constructor, out var baseConstructor))
+            if (!TryGetImplicitSourceBaseConstructor(
+                constructor,
+                compilation,
+                out var baseConstructor,
+                out var implicitArguments))
             {
                 return ServiceKeyExtractionResult.Undeterminable;
             }
 
             if (baseConstructor.ContainingType.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
             {
-                return baseConstructor.Parameters.Length == 0
-                    ? ServiceKeyExtractionResult.NoKey
-                    : ServiceKeyExtractionResult.Undeterminable;
+                if (baseConstructor.Parameters.Length == 0)
+                {
+                    return ServiceKeyExtractionResult.NoKey;
+                }
+
+                if (baseConstructor.Parameters.Length == 1
+                    && implicitArguments.TryGetValue(baseConstructor.Parameters[0], out var value))
+                {
+                    if (value is string serviceKey)
+                    {
+                        key = serviceKey;
+                        return ServiceKeyExtractionResult.Key;
+                    }
+
+                    return value is null
+                        ? ServiceKeyExtractionResult.NoKey
+                        : ServiceKeyExtractionResult.Undeterminable;
+                }
+
+                return ServiceKeyExtractionResult.Undeterminable;
             }
 
             return TryGetDerivedServiceKey(
                 baseConstructor,
                 compilation,
-                ImmutableDictionary<IParameterSymbol, object?>.Empty.WithComparers(SymbolEqualityComparer.Default),
+                implicitArguments,
                 visited.Add(constructor),
                 out key);
         }
@@ -1093,9 +1114,12 @@ public static class SymbolExtensions
 
     private static bool TryGetImplicitSourceBaseConstructor(
         IMethodSymbol constructor,
-        [NotNullWhen(true)] out IMethodSymbol? baseConstructor)
+        Compilation compilation,
+        [NotNullWhen(true)] out IMethodSymbol? baseConstructor,
+        out ImmutableDictionary<IParameterSymbol, object?> arguments)
     {
         baseConstructor = null;
+        arguments = default!;
 
         if (constructor.ContainingType.DeclaringSyntaxReferences.Length == 0)
         {
@@ -1111,9 +1135,37 @@ public static class SymbolExtensions
             }
         }
 
-        baseConstructor = constructor.ContainingType.BaseType?.InstanceConstructors
-            .SingleOrDefault(t => t.Parameters.Length == 0);
-        return baseConstructor is not null;
+        var baseType = constructor.ContainingType.BaseType;
+
+        if (baseType is null)
+        {
+            return false;
+        }
+
+        var candidates = baseType.InstanceConstructors
+            .Where(t => compilation.IsSymbolAccessibleWithin(t, constructor.ContainingType))
+            .Where(t => t.Parameters.All(p => p.IsOptional || p.IsParams))
+            .ToImmutableArray();
+
+        if (candidates.Length == 0)
+        {
+            return false;
+        }
+
+        var normalFormCandidates = candidates
+            .Where(t => t.Parameters.All(p => p.IsOptional && !p.IsParams))
+            .ToImmutableArray();
+        var applicableCandidates = normalFormCandidates.Length > 0
+            ? normalFormCandidates
+            : candidates;
+
+        if (applicableCandidates.Length != 1)
+        {
+            return false;
+        }
+
+        baseConstructor = applicableCandidates[0];
+        return TryCreateOmittedParameterValues(baseConstructor, out arguments);
     }
 
     private static bool TryCreateParameterValues(
@@ -1142,6 +1194,10 @@ public static class SymbolExtensions
             {
                 values.Add(parameter, parameter.ExplicitDefaultValue);
             }
+            else if (parameter.IsParams)
+            {
+                values.Add(parameter, Array.Empty<object?>());
+            }
             else
             {
                 targetArguments = default!;
@@ -1150,6 +1206,33 @@ public static class SymbolExtensions
         }
 
         targetArguments = values.ToImmutable();
+        return true;
+    }
+
+    private static bool TryCreateOmittedParameterValues(
+        IMethodSymbol constructor,
+        out ImmutableDictionary<IParameterSymbol, object?> arguments)
+    {
+        var values = ImmutableDictionary.CreateBuilder<IParameterSymbol, object?>(SymbolEqualityComparer.Default);
+
+        foreach (var parameter in constructor.Parameters)
+        {
+            if (parameter.HasExplicitDefaultValue)
+            {
+                values.Add(parameter, parameter.ExplicitDefaultValue);
+            }
+            else if (parameter.IsParams)
+            {
+                values.Add(parameter, Array.Empty<object?>());
+            }
+            else
+            {
+                arguments = default!;
+                return false;
+            }
+        }
+
+        arguments = values.ToImmutable();
         return true;
     }
 
