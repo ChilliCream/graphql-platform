@@ -2,21 +2,21 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { CardGrid } from "@/src/components/CardGrid";
 import { hubKickerForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
-import { formatDate } from "@/src/helpers/formatDate";
 import { LearnArticleCard } from "./LearnArticleCard";
 
 /**
- * Card kicker inside a headed section: category, falling back to the date,
- * never the section's own topic name (learn-harmonization.md D19). The
- * hub-label fallback in `hubKickerForPost` is reserved for the Latest
- * rail, which has no section heading of its own.
+ * Card kicker inside a headed section: category, falling back to the
+ * generic "Article" content-type label, never the date (the card's meta
+ * line already carries `author · date`, so a date-fallback kicker duplicated
+ * it, website-vlm) and never the section's own topic name
+ * (learn-harmonization.md D19). The hub-label fallback in `hubKickerForPost`
+ * is reserved for the Latest rail, which has no section heading of its own.
  */
-const cardKicker = (post: BlogPostSummary): string =>
-  post.category ?? formatDate(post.date, { month: "short", day: "numeric", year: "numeric" });
+const cardKicker = (post: BlogPostSummary): string => post.category ?? "Article";
 
 /**
- * Only link the kicker when it shows the post's category: the date fallback
- * (no category) must never read as a link.
+ * Only link the kicker when it shows the post's category: the "Article"
+ * fallback (no category) must never read as a link.
  */
 const cardKickerHref = (post: BlogPostSummary): string | undefined =>
   post.category ? hubKickerForPost(post).href : undefined;

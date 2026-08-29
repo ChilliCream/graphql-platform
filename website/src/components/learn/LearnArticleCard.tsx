@@ -13,7 +13,12 @@ interface LearnArticleCardProps {
    * stacks below it, for a section's full-width lead post.
    */
   readonly layout?: "card" | "split";
-  /** Kicker text (post category, falling back to the date). */
+  /**
+   * Kicker text (post category, falling back to a non-date label such as
+   * "Article"). The card's meta line already carries `author · date`, so
+   * the kicker must never fall back to the date itself, which would render
+   * it twice (website-vlm).
+   */
   readonly kicker: string;
   /** Link target for the kicker (its hub page, `src/data/learn/hubs.ts`); omit to render the kicker as plain text. */
   readonly kickerHref?: string;
