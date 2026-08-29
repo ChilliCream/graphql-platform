@@ -175,7 +175,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task Keyed_DataLoader_Service_Is_Resolved()
+    public async Task Custom_DataLoader_Factory_Can_Create_Keyed_DataLoader()
     {
         // arrange
         var executor =
@@ -183,7 +183,18 @@ public class DependencyInjectionTests
                 .AddKeyedSingleton<KeyedService>("keyed")
                 .AddGraphQL()
                 .AddQueryType<KeyedDataLoaderQuery>()
-                .AddDataLoader<KeyedDataLoader>()
+                .AddDataLoader<KeyedDataLoader>(serviceProvider =>
+                {
+                    var serviceInspector = serviceProvider.GetRequiredService<IServiceProviderIsService>();
+                    var keyedServiceInspector =
+                        serviceProvider.GetRequiredService<IServiceProviderIsKeyedService>();
+
+                    Assert.Same(serviceInspector, keyedServiceInspector);
+                    Assert.IsAssignableFrom<IServiceProviderIsKeyedService>(serviceInspector);
+                    Assert.True(keyedServiceInspector.IsKeyedService(typeof(KeyedService), "keyed"));
+
+                    return ActivatorUtilities.CreateInstance<KeyedDataLoader>(serviceProvider);
+                })
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
