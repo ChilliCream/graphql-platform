@@ -955,9 +955,34 @@ public static class SymbolExtensions
     {
         key = null;
 
-        if (visited.Contains(constructor)
-            || !TryGetConstructorInvocation(constructor, compilation, out var invocation)
-            || !TryCreateParameterValues(invocation, arguments, out var nextArguments))
+        if (visited.Contains(constructor))
+        {
+            return ServiceKeyExtractionResult.Undeterminable;
+        }
+
+        if (!TryGetConstructorInvocation(constructor, compilation, out var invocation))
+        {
+            if (!TryGetImplicitSourceBaseConstructor(constructor, out var baseConstructor))
+            {
+                return ServiceKeyExtractionResult.Undeterminable;
+            }
+
+            if (baseConstructor.ContainingType.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
+            {
+                return baseConstructor.Parameters.Length == 0
+                    ? ServiceKeyExtractionResult.NoKey
+                    : ServiceKeyExtractionResult.Undeterminable;
+            }
+
+            return TryGetDerivedServiceKey(
+                baseConstructor,
+                compilation,
+                ImmutableDictionary<IParameterSymbol, object?>.Empty.WithComparers(SymbolEqualityComparer.Default),
+                visited.Add(constructor),
+                out key);
+        }
+
+        if (!TryCreateParameterValues(invocation, arguments, out var nextArguments))
         {
             return ServiceKeyExtractionResult.Undeterminable;
         }
@@ -970,14 +995,20 @@ public static class SymbolExtensions
             }
 
             if (invocation.TargetMethod.Parameters.Length != 1
-                || !nextArguments.TryGetValue(invocation.TargetMethod.Parameters[0], out var value)
-                || value is not string serviceKey)
+                || !nextArguments.TryGetValue(invocation.TargetMethod.Parameters[0], out var value))
             {
                 return ServiceKeyExtractionResult.Undeterminable;
             }
 
-            key = serviceKey;
-            return ServiceKeyExtractionResult.Key;
+            if (value is string serviceKey)
+            {
+                key = serviceKey;
+                return ServiceKeyExtractionResult.Key;
+            }
+
+            return value is null
+                ? ServiceKeyExtractionResult.NoKey
+                : ServiceKeyExtractionResult.Undeterminable;
         }
 
         return TryGetDerivedServiceKey(
@@ -1060,6 +1091,31 @@ public static class SymbolExtensions
         return false;
     }
 
+    private static bool TryGetImplicitSourceBaseConstructor(
+        IMethodSymbol constructor,
+        [NotNullWhen(true)] out IMethodSymbol? baseConstructor)
+    {
+        baseConstructor = null;
+
+        if (constructor.ContainingType.DeclaringSyntaxReferences.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var syntaxReference in constructor.ContainingType.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is TypeDeclarationSyntax { BaseList: { } baseList }
+                && baseList.Types.Any(t => t.ChildNodes().OfType<ArgumentListSyntax>().Any()))
+            {
+                return false;
+            }
+        }
+
+        baseConstructor = constructor.ContainingType.BaseType?.InstanceConstructors
+            .SingleOrDefault(t => t.Parameters.Length == 0);
+        return baseConstructor is not null;
+    }
+
     private static bool TryCreateParameterValues(
         IInvocationOperation invocation,
         ImmutableDictionary<IParameterSymbol, object?> sourceArguments,
@@ -1132,119 +1188,6 @@ public static class SymbolExtensions
         }
 
         value = constant.Value;
-        return true;
-    }
-
-    private static bool TryGetBaseConstructorCall(
-        IMethodSymbol constructor,
-        Compilation compilation,
-        [NotNullWhen(true)] out IMethodSymbol? baseConstructor,
-        out SeparatedSyntaxList<ArgumentSyntax> baseArguments)
-    {
-        foreach (var syntaxReference in constructor.DeclaringSyntaxReferences)
-        {
-            var syntax = syntaxReference.GetSyntax();
-
-            if (syntax is ConstructorDeclarationSyntax declaration)
-            {
-                if (declaration.Initializer is { RawKind: (int)SyntaxKind.BaseConstructorInitializer } initializer
-                    && compilation.GetSemanticModel(declaration.SyntaxTree).GetSymbolInfo(initializer).Symbol
-                        is IMethodSymbol initializerConstructor)
-                {
-                    baseConstructor = initializerConstructor;
-                    baseArguments = initializer.ArgumentList.Arguments;
-                    return true;
-                }
-
-                return TryGetImplicitBaseConstructor(constructor, out baseConstructor, out baseArguments);
-            }
-
-            if (syntax is TypeDeclarationSyntax typeDeclaration
-                && typeDeclaration.ParameterList is not null)
-            {
-                return TryGetPrimaryConstructorBaseCall(
-                    constructor,
-                    typeDeclaration,
-                    compilation,
-                    out baseConstructor,
-                    out baseArguments);
-            }
-        }
-
-        baseConstructor = null;
-        baseArguments = default;
-        return false;
-    }
-
-    private static bool TryGetPrimaryConstructorBaseCall(
-        IMethodSymbol constructor,
-        TypeDeclarationSyntax declaration,
-        Compilation compilation,
-        [NotNullWhen(true)] out IMethodSymbol? baseConstructor,
-        out SeparatedSyntaxList<ArgumentSyntax> baseArguments)
-    {
-        if (declaration.BaseList is not null)
-        {
-            var semanticModel = compilation.GetSemanticModel(declaration.SyntaxTree);
-
-            foreach (var baseType in declaration.BaseList.Types)
-            {
-                if (semanticModel.GetTypeInfo(baseType.Type).Type is not INamedTypeSymbol type
-                    || !SymbolEqualityComparer.Default.Equals(type, constructor.ContainingType.BaseType))
-                {
-                    continue;
-                }
-
-                var argumentList = baseType.ChildNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
-                var parameterCount = argumentList?.Arguments.Count ?? 0;
-                baseConstructor = type.InstanceConstructors.SingleOrDefault(t => t.Parameters.Length == parameterCount);
-
-                if (baseConstructor is not null)
-                {
-                    baseArguments = argumentList?.Arguments ?? default;
-                    return true;
-                }
-            }
-        }
-
-        return TryGetImplicitBaseConstructor(constructor, out baseConstructor, out baseArguments);
-    }
-
-    private static bool TryGetImplicitBaseConstructor(
-        IMethodSymbol constructor,
-        [NotNullWhen(true)] out IMethodSymbol? baseConstructor,
-        out SeparatedSyntaxList<ArgumentSyntax> baseArguments)
-    {
-        baseConstructor = constructor.ContainingType.BaseType?.InstanceConstructors
-            .SingleOrDefault(t => t.Parameters.Length == 0);
-        baseArguments = default;
-        return baseConstructor is not null;
-    }
-
-    private static bool TryGetSourceDerivedServiceKey(
-        ExpressionSyntax expression,
-        Compilation compilation,
-        ImmutableDictionary<IParameterSymbol, string?> arguments,
-        out string? key)
-    {
-        var semanticModel = compilation.GetSemanticModel(expression.SyntaxTree);
-
-        if (semanticModel.GetSymbolInfo(expression).Symbol is IParameterSymbol parameter
-            && arguments.TryGetValue(parameter, out key))
-        {
-            return true;
-        }
-
-        var constantValue = semanticModel.GetConstantValue(expression);
-        var type = semanticModel.GetTypeInfo(expression).Type;
-
-        if (!constantValue.HasValue || type?.SpecialType != SpecialType.System_String || constantValue.Value is not string value)
-        {
-            key = null;
-            return false;
-        }
-
-        key = value;
         return true;
     }
 

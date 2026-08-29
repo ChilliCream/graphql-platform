@@ -188,6 +188,122 @@ public class ServiceAttributeInfoTests
     }
 
     [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnKeylessInfoForImplicitDirectDerivation()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class DerivedAttribute : ServiceAttribute
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.True(info.HasServiceAttribute);
+        Assert.Null(info.SourceDerivedServiceKey);
+        Assert.False(info.IsServiceKeyUndeterminable);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnKeylessInfoForImplicitIntermediateDerivation()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class IntermediateAttribute : ServiceAttribute
+            {
+            }
+
+            class DerivedAttribute : IntermediateAttribute
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.True(info.HasServiceAttribute);
+        Assert.Null(info.SourceDerivedServiceKey);
+        Assert.False(info.IsServiceKeyUndeterminable);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnKeylessInfoForDerivedNullBaseArgument()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class DerivedAttribute() : ServiceAttribute(null)
+            {
+            }
+
+            class Query
+            {
+                public void Execute([Derived] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.True(info.HasServiceAttribute);
+        Assert.Null(info.SourceDerivedServiceKey);
+        Assert.False(info.IsServiceKeyUndeterminable);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnKeylessInfoForDirectNullArgument()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            class Query
+            {
+                public void Execute([Service(null)] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.True(info.HasServiceAttribute);
+        Assert.Null(info.ServiceKey?.Value);
+        Assert.False(info.IsServiceKeyUndeterminable);
+    }
+
+    [Fact]
     public void GetServiceAttributeInfo_Should_ResolvePositionalNamedAndDefaultAttributeArguments()
     {
         // arrange
