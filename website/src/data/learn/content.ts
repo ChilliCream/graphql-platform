@@ -411,6 +411,72 @@ const fusionDemoExample: ExampleItem = {
   ],
 };
 
+const bookshopCleanArchitectureExample: ExampleItem = {
+  type: "example",
+  slug: "bookshop-clean-architecture",
+  title: "Bookshop Clean Architecture",
+  tagline: "A runnable GraphQL bookshop demonstrating domain-driven design and clean architecture.",
+  products: ["hot-chocolate", "mocha"],
+  // Subject is clean architecture for a GraphQL server; Mocha.Mediator is
+  // used in-process for commands/queries here, not Mocha's message bus, so
+  // `products` alone would misplace this in Messaging (see
+  // src/data/learn/hubs.ts).
+  hubs: ["graphql-federation"],
+  level: "advanced",
+  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
+  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
+  updatedRelative: "this week",
+  cli: [
+    {
+      key: "clone",
+      label: "clone the examples repo",
+      code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Architecture/Bookshop",
+    },
+    { key: "postgres", label: "start PostgreSQL", code: "docker compose up -d" },
+    {
+      key: "run",
+      label: "run the host",
+      code: "ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/Bookshop.Host",
+    },
+  ],
+  body: [
+    {
+      heading: "Overview",
+      paragraphs: [
+        "A runnable GraphQL bookshop demonstrating domain-driven design and clean architecture with Hot Chocolate, source-generated GreenDonut DataLoaders, Mocha.Mediator, EF Core, and PostgreSQL.",
+      ],
+    },
+    {
+      heading: "What you build",
+      paragraphs: [
+        "Five projects with dependencies pointing inward: Bookshop.Domain (aggregates, domain services, events, exceptions, repository contracts), Bookshop.Application (commands, queries, authorization policies, read models), Bookshop.Infrastructure (EF Core, repositories, DataLoaders, transactions, event dispatch), Bookshop.GraphQL (Hot Chocolate query, mutation, and object type extensions), and Bookshop.Host (composition root, health checks, migrations, seed data).",
+        "Commands and queries live in the Application layer, with authorization enforced in their handlers so it applies independently of transport. Root collection queries are backed by source-generated DataLoaders; by-id and relationship fields in the GraphQL layer use DataLoaders and projection-aware QueryContext<T>. Command middleware opens an EF transaction, and UnitOfWork saves changes and dispatches the collected domain events, with ActivitySource diagnostics on the dispatch. Expected add-book failures are domain exceptions that flow directly through the GraphQL resolver as execution errors.",
+      ],
+      code: {
+        language: "graphql",
+        code: `query Books {
+  books(first: 10) {
+    nodes {
+      id
+      title
+      isbn
+      price
+      currency
+      stockQuantity
+    }
+  }
+}`,
+      },
+    },
+    {
+      heading: "How to run it",
+      paragraphs: [
+        "Start PostgreSQL, then run the host in Development so it uses the compose port and inserts sample data; the host applies pending migrations automatically. The GraphQL endpoint is /graphql, with health checks at /_health/live and /_health/ready.",
+      ],
+    },
+  ],
+};
+
 const mochaEcommerceDemoExample: ExampleItem = {
   type: "example",
   slug: "mocha-ecommerce-demo",
@@ -620,6 +686,7 @@ const mochaExceptionPoliciesExample: ExampleItem = {
 
 export const EXAMPLE_ITEMS: readonly ExampleItem[] = [
   fusionDemoExample,
+  bookshopCleanArchitectureExample,
   mochaEcommerceDemoExample,
   mochaPostgresTransportExample,
   mochaAotExample,
