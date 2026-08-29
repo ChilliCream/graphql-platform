@@ -5,7 +5,7 @@
 // in ../../data/learn/facets returns the PLURAL form used by facet options;
 // this record supplies the singular badge form.
 
-import { ARTICLE_KICKER_FALLBACK } from "@/src/data/learn/hubs";
+import { ARTICLE_LABEL } from "@/src/data/learn/hubs";
 import type { LearnContentType } from "@/src/data/learn/facets";
 
 export interface ContentTypeMeta {
@@ -22,5 +22,5 @@ export const CONTENT_TYPE_META: Record<LearnContentType, ContentTypeMeta> = {
   // Editorial reading types (learn-editorial.md section 6.1).
   comparison: { label: "Comparison" },
   explainer: { label: "Explainer" },
-  article: { label: ARTICLE_KICKER_FALLBACK },
+  article: { label: ARTICLE_LABEL },
 };

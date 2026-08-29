@@ -1,6 +1,6 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CardGrid } from "@/src/components/CardGrid";
-import { ARTICLE_KICKER_FALLBACK, hubKickerForPost } from "@/src/data/learn/hubs";
+import { ARTICLE_LABEL, hubKickerForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { LearnArticleCard } from "./LearnArticleCard";
 
@@ -12,11 +12,19 @@ import { LearnArticleCard } from "./LearnArticleCard";
  * (learn-harmonization.md D19). A category resolves through
  * `hubKickerForPost` so a linked kicker's text always names the same hub it
  * links to (website-vxb); the tag-derived hub fallback for a category-less
- * post is not used here, that fallback is reserved for the Latest rail,
+ * post is not used here. That fallback is reserved for the Latest rail,
  * which has no section heading of its own.
  */
-const cardKicker = (post: BlogPostSummary): { readonly text: string; readonly href: string | undefined } =>
-  post.category ? hubKickerForPost(post) : { text: ARTICLE_KICKER_FALLBACK, href: undefined };
+const cardKicker = (
+  post: BlogPostSummary,
+  moreHref: string,
+): { readonly text: string; readonly href: string | undefined } => {
+  if (!post.category) {
+    return { text: ARTICLE_LABEL, href: undefined };
+  }
+  const kicker = hubKickerForPost(post);
+  return kicker.href === moreHref ? { text: ARTICLE_LABEL, href: undefined } : kicker;
+};
 
 interface LearnTopicRailProps {
   readonly heading: string;
@@ -44,7 +52,7 @@ export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps
     return null;
   }
   const [lead, ...rest] = posts;
-  const leadKicker = cardKicker(lead);
+  const leadKicker = cardKicker(lead, moreHref);
 
   return (
     <section className="py-8 sm:py-10">
@@ -63,7 +71,7 @@ export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps
         <div className="mt-10">
           <CardGrid cols={3} step="progressive">
             {rest.map((post) => {
-              const kicker = cardKicker(post);
+              const kicker = cardKicker(post, moreHref);
               return (
                 <LearnArticleCard
                   key={post.stem}
