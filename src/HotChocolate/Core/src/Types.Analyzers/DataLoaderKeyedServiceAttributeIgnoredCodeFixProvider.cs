@@ -62,11 +62,11 @@ public sealed class DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider : Code
 
         if (attributeList.Attributes.Count == 1)
         {
-            newRoot = root.RemoveNode(attributeList, SyntaxRemoveOptions.KeepNoTrivia);
+            newRoot = root.RemoveNode(attributeList, SyntaxRemoveOptions.KeepExteriorTrivia);
         }
         else
         {
-            var newAttributeList = attributeList.RemoveNode(attribute, SyntaxRemoveOptions.KeepNoTrivia);
+            var newAttributeList = attributeList.RemoveNode(attribute, SyntaxRemoveOptions.KeepExteriorTrivia);
             newRoot = newAttributeList is null ? null : root.ReplaceNode(attributeList, newAttributeList);
         }
 

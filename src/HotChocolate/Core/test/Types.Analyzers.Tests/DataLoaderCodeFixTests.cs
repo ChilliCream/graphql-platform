@@ -290,8 +290,7 @@ public class DataLoaderCodeFixTests
             {
                 [DataLoader]
                 internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
-                    [Service("key")]
-                    [Obsolete]
+                    [Service("key")][Obsolete]
                     IReadOnlyList<int> keys)
                     => default!;
             }
@@ -317,6 +316,104 @@ public class DataLoaderCodeFixTests
                 [DataLoader]
                 internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
                     [Obsolete]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_PreserveCommentAndConditionalTrivia_When_AttributeListIsStandalone()
+    {
+        // arrange
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+            // The keyed service is ignored.
+            #if DEBUG
+            #endif
+            [Service("key")]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+            // The keyed service is ignored.
+            #if DEBUG
+            #endif
+
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_PreserveSurroundingComments_When_AttributeListContainsUnrelatedAttribute()
+    {
+        // arrange
+        const string source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Obsolete, /* before keyed service */ Service("key") /* after keyed service */]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Obsolete /* before keyed service */  /* after keyed service */]
                     IReadOnlyList<int> keys)
                     => default!;
             }
