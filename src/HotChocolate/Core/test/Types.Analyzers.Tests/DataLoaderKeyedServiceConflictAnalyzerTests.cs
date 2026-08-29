@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types;
 
@@ -39,10 +40,9 @@ public class DataLoaderKeyedServiceConflictAnalyzerTests
         // assert
         var diagnostic = Assert.Single(diagnostics);
         Assert.Equal("HC0130", diagnostic.Id);
-        Assert.Equal(11, diagnostic.Location.GetLineSpan().StartLinePosition.Line);
-        Assert.Equal(8, diagnostic.Location.GetLineSpan().StartLinePosition.Character);
-        Assert.Equal(12, diagnostic.Location.GetLineSpan().EndLinePosition.Line);
-        Assert.Equal(34, diagnostic.Location.GetLineSpan().EndLinePosition.Character);
+        Assert.Equal(
+            new LinePositionSpan(new LinePosition(11, 8), new LinePosition(12, 34)),
+            diagnostic.Location.GetLineSpan().Span);
     }
 
     [Fact]
