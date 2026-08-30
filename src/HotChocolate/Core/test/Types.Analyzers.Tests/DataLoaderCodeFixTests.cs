@@ -560,6 +560,54 @@ public class DataLoaderCodeFixTests
             }
             """);
     }
+
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_Compile_When_ServiceKeyIsEnum()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+
+            enum ServiceKey { First }
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader([Service(ServiceKey.First)] object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """;
+
+        // act
+        using var workspace = new AdhocWorkspace();
+        var document = CreateDocument(workspace, source);
+        var fixedDocument = await ApplyCodeFixDocumentAsync(
+            document,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider(),
+            "Use FromKeyedServices");
+        var fixedCompilation = await fixedDocument.Project.GetCompilationAsync(
+            TestContext.Current.CancellationToken);
+        var fixedSource = (await fixedDocument.GetTextAsync(TestContext.Current.CancellationToken)).ToString();
+
+        // assert
+        Assert.Empty(fixedCompilation!.GetDiagnostics(TestContext.Current.CancellationToken).Where(t => t.Severity == DiagnosticSeverity.Error));
+        fixedSource.MatchInlineSnapshot("""
+            using GreenDonut;
+            using HotChocolate;
+
+            enum ServiceKey { First }
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader([global::Microsoft.Extensions.DependencyInjection.FromKeyedServices(ServiceKey.First)] object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """);
+    }
+
     [Fact]
     public async Task KeyedServiceOnConstructorParameterCodeFix_Should_NotRegisterForDerivedAttribute()
     {

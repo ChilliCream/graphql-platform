@@ -1956,7 +1956,7 @@ public class DataLoaderTests
             internal sealed class MemoizedInScopeAttribute : ServiceAttribute
             {
                 public MemoizedInScopeAttribute()
-                    : base("MEMOIZED")
+                    : base(global::TestNamespace.ServiceKey.First)
                 {
                 }
             }

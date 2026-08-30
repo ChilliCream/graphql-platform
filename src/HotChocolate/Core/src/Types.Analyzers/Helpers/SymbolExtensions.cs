@@ -1290,13 +1290,6 @@ public static class SymbolExtensions
             return true;
         }
 
-        if (operation is IFieldReferenceOperation { Field: { HasConstantValue: true } field })
-        {
-            value = field.ConstantValue;
-            type ??= field.Type;
-            return true;
-        }
-
         if (operation.ConstantValue.HasValue)
         {
             value = operation.ConstantValue.Value;

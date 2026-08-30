@@ -36,8 +36,8 @@ public class KeyedDataLoaderIntegrationTests
         // arrange
         Action<IServiceCollection> configure =
             services => services.AddKeyedSingleton<KeyedDataLoaderService>(
-                "MEMOIZED",
-                static (_, _) => new("memoized"));
+                KeyedDataLoaderServiceKey.Derived,
+                static (_, _) => new("derived"));
         const string document = "{ derivedServiceKeyedValue }";
 
         // act
@@ -48,14 +48,14 @@ public class KeyedDataLoaderIntegrationTests
             """
             {
               "data": {
-                "derivedServiceKeyedValue": "memoized"
+                "derivedServiceKeyedValue": "derived"
               }
             }
             """);
     }
 
     [Fact]
-    public async Task GeneratedDataLoader_Should_Resolve_FromKeyedServices_Enum_Key()
+    public async Task GeneratedDataLoader_Should_Resolve_ServiceAttribute_Enum_Key()
     {
         // arrange
         Action<IServiceCollection> configure =
@@ -170,6 +170,7 @@ public class KeyedDataLoaderIntegrationTests
             }
             """);
     }
+
     [Fact]
     public async Task GeneratedResolver_Should_Resolve_EnumAndEscapedStringServiceKeys()
     {
@@ -201,7 +202,6 @@ public class KeyedDataLoaderIntegrationTests
     }
 
     private static async Task<IExecutionResult> ExecuteAsync(
-
         Action<IServiceCollection> configure,
         string document)
     {
@@ -249,6 +249,7 @@ public static partial class Query
         HandWrittenKeyedDataLoader loader,
         CancellationToken cancellationToken)
         => loader.LoadAsync(1, cancellationToken);
+
     public static string GetResolverEnumKeyedValue(
         [Service(KeyedDataLoaderServiceKey.Enum)] KeyedDataLoaderService service)
         => service.Value;
@@ -317,7 +318,8 @@ public sealed record KeyedDataLoaderService(string Value);
 
 public enum KeyedDataLoaderServiceKey
 {
-    Enum
+    Enum,
+    Derived
 }
 
-public sealed class MemoizedAttribute() : ServiceAttribute("MEMOIZED");
+public sealed class MemoizedAttribute() : ServiceAttribute(KeyedDataLoaderServiceKey.Derived);

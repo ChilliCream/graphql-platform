@@ -102,7 +102,7 @@ namespace TestNamespace
             global::System.Threading.CancellationToken ct)
         {
             await using var scope = _services.CreateAsyncScope();
-            var p1 = scope.ServiceProvider.GetRequiredKeyedService<global::TestNamespace.ServiceDependency>("MEMOIZED");
+            var p1 = scope.ServiceProvider.GetRequiredKeyedService<global::TestNamespace.ServiceDependency>(global::TestNamespace.ServiceKey.First);
             var temp = await global::TestNamespace.TestClass.GetRequiredByDerivedServiceKeyAsync(keys, p1, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
