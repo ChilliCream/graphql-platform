@@ -21,11 +21,27 @@ public class ServiceAttribute : Attribute
     /// </param>
     public ServiceAttribute(string key)
     {
-        Key = key;
+        ServiceKey = key;
+    }
+
+    /// <summary>
+    /// Marks a resolver parameter as a service that shall be injected by the execution engine.
+    /// </summary>
+    /// <param name="key">
+    /// A key that shall be used to resolve the service.
+    /// </param>
+    public ServiceAttribute(object key)
+    {
+        ServiceKey = key;
     }
 
     /// <summary>
     /// Gets the key that shall be used to resolve the service.
     /// </summary>
-    public string? Key { get; }
+    public string? Key => ServiceKey as string;
+
+    /// <summary>
+    /// Gets the key that shall be used to resolve the service.
+    /// </summary>
+    public object? ServiceKey { get; }
 }
