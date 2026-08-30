@@ -61,8 +61,7 @@ public sealed class DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider 
         }
 
         return arguments.Arguments.Count == 1
-            && (constructor.Parameters.Length == 1
-                || arguments.Arguments[0].NameEquals?.Name.Identifier.ValueText == "Key");
+            && constructor.Parameters.Length == 1;
     }
 
     private static async Task<Document> ReplaceAttributeAsync(
@@ -78,16 +77,8 @@ public sealed class DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider 
         }
 
         var replacement = attribute.WithName(
-            SyntaxFactory.IdentifierName("FromKeyedServices").WithTriviaFrom(attribute.Name));
-        if (replacement.ArgumentList is { Arguments.Count: 1 } argumentList
-
-            && argumentList.Arguments[0] is var argument
-            && argument.NameEquals?.Name.Identifier.ValueText == "Key")
-        {
-            replacement = replacement.WithArgumentList(
-                replacement.ArgumentList.WithArguments(
-                    SyntaxFactory.SingletonSeparatedList(argument.WithNameEquals(null))));
-        }
+            SyntaxFactory.ParseName("global::Microsoft.Extensions.DependencyInjection.FromKeyedServices")
+                .WithTriviaFrom(attribute.Name));
 
         return document.WithSyntaxRoot(root.ReplaceNode(attribute, replacement));
     }

@@ -506,7 +506,7 @@ public class DataLoaderCodeFixTests
             // The keyed service is required by this loader.
             #if DEBUG
             #endif
-                    [FromKeyedServices(/* key */ "key")]
+                    [global::Microsoft.Extensions.DependencyInjection.FromKeyedServices(/* key */ "key")]
                     object service)
                 {
                 }
@@ -514,6 +514,52 @@ public class DataLoaderCodeFixTests
             """);
     }
 
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_CompileWithoutImportAndPreserveNamedArgumentTrivia()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader(
+                    [Service(key: /* key */ "key")]
+                    object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """;
+
+        // act
+        using var workspace = new AdhocWorkspace();
+        var document = CreateDocument(workspace, source);
+        var fixedDocument = await ApplyCodeFixDocumentAsync(
+            document,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider(),
+            "Use FromKeyedServices");
+        var fixedCompilation = await fixedDocument.Project.GetCompilationAsync(
+            TestContext.Current.CancellationToken);
+        var fixedSource = (await fixedDocument.GetTextAsync(TestContext.Current.CancellationToken)).ToString();
+
+        // assert
+        Assert.Empty(fixedCompilation!.GetDiagnostics(TestContext.Current.CancellationToken).Where(t => t.Severity == DiagnosticSeverity.Error));
+        fixedSource.MatchInlineSnapshot("""
+            using GreenDonut;
+            using HotChocolate;
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader(
+                    [global::Microsoft.Extensions.DependencyInjection.FromKeyedServices(key: /* key */ "key")]
+                    object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """);
+    }
     [Fact]
     public async Task KeyedServiceOnConstructorParameterCodeFix_Should_NotRegisterForDerivedAttribute()
     {
