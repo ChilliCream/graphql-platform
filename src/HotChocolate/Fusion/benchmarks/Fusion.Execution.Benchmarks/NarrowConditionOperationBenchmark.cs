@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,17 +5,12 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
-using HotChocolate.Execution;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Options;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
@@ -28,13 +21,9 @@ public class NarrowConditionOperationBenchmark
     private const int ConditionCount = 48;
 
     private static readonly string s_documentText = CreateDocument();
-    private static readonly IReadOnlyDictionary<string, object> s_variables = CreateVariables();
 
-    private FusionSchemaDefinition _schema = null!;
     private OperationDefinitionNode _operationDefinition = null!;
     private OperationCompiler _compiler = null!;
-    private IRequestExecutor _executor = null!;
-    private IOperationRequest _request = null!;
 
     private sealed class BenchmarkConfig : ManualConfig
     {
@@ -51,19 +40,8 @@ public class NarrowConditionOperationBenchmark
     [GlobalSetup]
     public async Task SetupAsync()
     {
-        _schema = CreateSchema();
         _operationDefinition = Utf8GraphQLParser.Parse(s_documentText).Definitions.OfType<OperationDefinitionNode>().First();
-        _compiler = new OperationCompiler(
-            _schema,
-            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
-        _executor = await CreateExecutorAsync();
-        _request = OperationRequestBuilder.New()
-            .SetDocument(s_documentText)
-            .SetVariableValues(s_variables)
-            .Build();
-
-        await VerifyCachedExecutionAsync();
+        _compiler = await CreateCompilerAsync();
     }
 
     [Benchmark(Baseline = true)]
@@ -75,22 +53,8 @@ public class NarrowConditionOperationBenchmark
         => _compiler.Compile("benchmark", "benchmark", "benchmark", _operationDefinition);
 
 
-    private async Task VerifyCachedExecutionAsync()
-    {
-        if (await ExecuteAsync() is not ExecutionResultKind.SingleResult
-            || await ExecuteAsync() is not ExecutionResultKind.SingleResult)
-        {
-            throw new InvalidOperationException("The narrow request did not return an operation result.");
-        }
-    }
 
-    private async Task<ExecutionResultKind> ExecuteAsync()
-    {
-        await using var result = await _executor.ExecuteAsync(_request);
-        return result.Kind;
-    }
-
-    private static async Task<IRequestExecutor> CreateExecutorAsync()
+    private static async Task<OperationCompiler> CreateCompilerAsync()
     {
         var services = new ServiceCollection();
 
@@ -107,43 +71,11 @@ public class NarrowConditionOperationBenchmark
             .AddGraphQLGateway()
             .AddInMemorySchema("source");
 
-        return await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync();
+        return executor.Schema.Services.GetRequiredService<OperationCompiler>();
     }
 
-    private static FusionSchemaDefinition CreateSchema()
-    {
-        var result = new SchemaComposer(
-            [
-                new SourceSchemaText(
-                    "source",
-                    """
-                    type Query {
-                      value: String!
-                    }
-                    """)
-            ],
-            new SchemaComposerOptions(),
-            new CompositionLog()).Compose();
 
-        if (!result.IsSuccess)
-        {
-            throw new InvalidOperationException(result.Errors[0].Message);
-        }
-
-        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
-    }
-
-    private static IReadOnlyDictionary<string, object> CreateVariables()
-    {
-        var variables = new Dictionary<string, object>(ConditionCount);
-
-        for (var i = 0; i < ConditionCount; i++)
-        {
-            variables.Add($"v{i}", true);
-        }
-
-        return variables;
-    }
 
     private static string CreateDocument()
     {

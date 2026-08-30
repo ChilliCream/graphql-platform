@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
+using HotChocolate;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -19,10 +22,10 @@ public class NarrowConditionCachedExecutionBenchmark
     private const int ConditionCount = 48;
 
     private static readonly string s_documentText = CreateDocument();
+    private static readonly string s_expectedResult = CreateExpectedResult();
     private static readonly IReadOnlyDictionary<string, object?> s_variables = CreateVariables();
+    private readonly CacheDiagnosticListener _diagnosticListener = new();
 
-    private Schema _schema = null!;
-    private DocumentNode _document = null!;
     private IRequestExecutor _executor = null!;
     private IOperationRequest _request = null!;
 
@@ -41,10 +44,9 @@ public class NarrowConditionCachedExecutionBenchmark
     [GlobalSetup]
     public async Task SetupAsync()
     {
-        _schema = CreateSchema();
-        _document = Utf8GraphQLParser.Parse(s_documentText);
         _executor = await new ServiceCollection()
             .AddGraphQL()
+            .AddDiagnosticEventListener(_ => _diagnosticListener)
             .AddQueryType(
                 descriptor => descriptor
                     .Name("Query")
@@ -68,30 +70,45 @@ public class NarrowConditionCachedExecutionBenchmark
     public Task<ExecutionResultKind> Execute_Cached_Narrow_BaselineCopy()
         => ExecuteAsync();
 
+
     private async Task VerifyCachedExecutionAsync()
     {
-        if (await ExecuteAsync() is not ExecutionResultKind.SingleResult
-            || await ExecuteAsync() is not ExecutionResultKind.SingleResult)
+        _diagnosticListener.Reset();
+        await VerifyExpectedResultAsync();
+
+        if (_diagnosticListener.RetrievedOperationCount != 0)
         {
-            throw new InvalidOperationException("The narrow request did not return an operation result.");
+            throw new InvalidOperationException("The first narrow request unexpectedly retrieved a compiled operation.");
+        }
+
+        await VerifyExpectedResultAsync();
+
+        if (_diagnosticListener.RetrievedOperationCount != 1)
+        {
+            throw new InvalidOperationException("The second narrow request did not retrieve the compiled operation.");
         }
     }
 
+    private async Task VerifyExpectedResultAsync()
+    {
+        await using var result = await _executor.ExecuteAsync(_request);
+
+        if (result is not OperationResult operationResult
+            || operationResult.Errors.Count != 0
+            || !string.Equals(
+                result.ToJson(withIndentations: false),
+                s_expectedResult,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The narrow request did not return the expected 48-field payload.");
+        }
+    }
     private async Task<ExecutionResultKind> ExecuteAsync()
     {
         await using var result = await _executor.ExecuteAsync(_request);
         return result.Kind;
     }
 
-    private static Schema CreateSchema()
-        => SchemaBuilder.New()
-            .AddQueryType(
-                descriptor => descriptor
-                    .Name("Query")
-                    .Field("value")
-                    .Type<NonNullType<StringType>>()
-                    .Resolve("value"))
-            .Create();
 
     private static IReadOnlyDictionary<string, object?> CreateVariables()
     {
@@ -123,5 +140,35 @@ public class NarrowConditionCachedExecutionBenchmark
 
         builder.Append(" }");
         return builder.ToString();
+    }
+    private static string CreateExpectedResult()
+    {
+        var builder = new StringBuilder("{\"data\":{");
+
+        for (var i = 0; i < ConditionCount; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(',');
+            }
+
+            builder.Append($"\"f{i}\":\"value\"");
+        }
+
+        builder.Append("}}");
+        return builder.ToString();
+    }
+
+    private sealed class CacheDiagnosticListener : ExecutionDiagnosticEventListener
+    {
+        private int _retrievedOperationCount;
+
+        public int RetrievedOperationCount => Volatile.Read(ref _retrievedOperationCount);
+
+        public override void RetrievedOperationFromCache(RequestContext context)
+            => Interlocked.Increment(ref _retrievedOperationCount);
+
+        public void Reset()
+            => Interlocked.Exchange(ref _retrievedOperationCount, 0);
     }
 }

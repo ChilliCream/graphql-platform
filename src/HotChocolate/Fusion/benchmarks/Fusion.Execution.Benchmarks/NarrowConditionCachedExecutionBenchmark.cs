@@ -1,23 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Configuration;
-using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Options;
-using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
@@ -27,12 +23,11 @@ public class NarrowConditionCachedExecutionBenchmark
 {
     private const int ConditionCount = 48;
 
+    private static readonly string s_expectedResult = CreateExpectedResult();
     private static readonly string s_documentText = CreateDocument();
     private static readonly IReadOnlyDictionary<string, object> s_variables = CreateVariables();
 
-    private FusionSchemaDefinition _schema = null!;
-    private OperationDefinitionNode _operationDefinition = null!;
-    private OperationCompiler _compiler = null!;
+    private readonly CacheDiagnosticListener _diagnosticListener = new();
     private IRequestExecutor _executor = null!;
     private IOperationRequest _request = null!;
 
@@ -51,13 +46,7 @@ public class NarrowConditionCachedExecutionBenchmark
     [GlobalSetup]
     public async Task SetupAsync()
     {
-        _schema = CreateSchema();
-        _operationDefinition = Utf8GraphQLParser.Parse(s_documentText).Definitions.OfType<OperationDefinitionNode>().First();
-        _compiler = new OperationCompiler(
-            _schema,
-            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
-        _executor = await CreateExecutorAsync();
+        _executor = await CreateExecutorAsync(_diagnosticListener);
         _request = OperationRequestBuilder.New()
             .SetDocument(s_documentText)
             .SetVariableValues(s_variables)
@@ -75,22 +64,46 @@ public class NarrowConditionCachedExecutionBenchmark
     public Task<ExecutionResultKind> Execute_Cached_Narrow_BaselineCopy()
         => ExecuteAsync();
 
+
     private async Task VerifyCachedExecutionAsync()
     {
-        if (await ExecuteAsync() is not ExecutionResultKind.SingleResult
-            || await ExecuteAsync() is not ExecutionResultKind.SingleResult)
+        _diagnosticListener.Reset();
+        await VerifyExpectedResultAsync();
+
+        if (_diagnosticListener.RetrievedOperationPlanCount != 0)
         {
-            throw new InvalidOperationException("The narrow request did not return an operation result.");
+            throw new InvalidOperationException("The first narrow request unexpectedly retrieved an operation plan.");
+        }
+
+        await VerifyExpectedResultAsync();
+
+        if (_diagnosticListener.RetrievedOperationPlanCount != 1)
+        {
+            throw new InvalidOperationException("The second narrow request did not retrieve the operation plan.");
         }
     }
 
+    private async Task VerifyExpectedResultAsync()
+    {
+        await using var result = await _executor.ExecuteAsync(_request);
+
+        if (result is not OperationResult operationResult
+            || operationResult.Errors.Count != 0
+            || !string.Equals(
+                result.ToJson(withIndentations: false),
+                s_expectedResult,
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The narrow request did not return the expected 48-field payload.");
+        }
+    }
     private async Task<ExecutionResultKind> ExecuteAsync()
     {
         await using var result = await _executor.ExecuteAsync(_request);
         return result.Kind;
     }
 
-    private static async Task<IRequestExecutor> CreateExecutorAsync()
+    private static async Task<IRequestExecutor> CreateExecutorAsync(CacheDiagnosticListener diagnosticListener)
     {
         var services = new ServiceCollection();
 
@@ -105,33 +118,12 @@ public class NarrowConditionCachedExecutionBenchmark
             .AddSourceSchemaDefaults();
         services
             .AddGraphQLGateway()
+            .AddDiagnosticEventListener(_ => diagnosticListener)
             .AddInMemorySchema("source");
 
         return await services.BuildGatewayAsync();
     }
 
-    private static FusionSchemaDefinition CreateSchema()
-    {
-        var result = new SchemaComposer(
-            [
-                new SourceSchemaText(
-                    "source",
-                    """
-                    type Query {
-                      value: String!
-                    }
-                    """)
-            ],
-            new SchemaComposerOptions(),
-            new CompositionLog()).Compose();
-
-        if (!result.IsSuccess)
-        {
-            throw new InvalidOperationException(result.Errors[0].Message);
-        }
-
-        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
-    }
 
     private static IReadOnlyDictionary<string, object> CreateVariables()
     {
@@ -163,5 +155,35 @@ public class NarrowConditionCachedExecutionBenchmark
 
         builder.Append(" }");
         return builder.ToString();
+    }
+    private static string CreateExpectedResult()
+    {
+        var builder = new StringBuilder("{\"data\":{");
+
+        for (var i = 0; i < ConditionCount; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(',');
+            }
+
+            builder.Append($"\"f{i}\":\"value\"");
+        }
+
+        builder.Append("}}");
+        return builder.ToString();
+    }
+
+    private sealed class CacheDiagnosticListener : FusionExecutionDiagnosticEventListener
+    {
+        private int _retrievedOperationPlanCount;
+
+        public int RetrievedOperationPlanCount => Volatile.Read(ref _retrievedOperationPlanCount);
+
+        public override void RetrievedOperationPlanFromCache(RequestContext context, string operationPlanId)
+            => Interlocked.Increment(ref _retrievedOperationPlanCount);
+
+        public void Reset()
+            => Interlocked.Exchange(ref _retrievedOperationPlanCount, 0);
     }
 }
