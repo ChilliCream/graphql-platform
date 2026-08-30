@@ -70,6 +70,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
         }
 
+        var policySlots = ImmutableArray<PolicyConditionSlot>.Empty;
+
+        if (rootElement.TryGetProperty("policySlots", out var policySlotsElement))
+        {
+            policySlots = ParsePolicySlots(policySlotsElement);
+        }
+
         // Root nodes are the entry points of the execution plan. A node is a
         // root when it has no dependencies at all, meaning the executor can
         // start it immediately without waiting for other nodes to finish.
@@ -80,8 +87,32 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             nodes,
             deliveryGroups,
             incrementalPlans,
+            policySlots,
             searchSpace,
             expandedNodes);
+    }
+
+    private static ImmutableArray<PolicyConditionSlot> ParsePolicySlots(JsonElement policySlotsElement)
+    {
+        var builder = ImmutableArray.CreateBuilder<PolicyConditionSlot>();
+
+        foreach (var slotElement in policySlotsElement.EnumerateArray())
+        {
+            var ordinal = slotElement.GetProperty("ordinal").GetInt32();
+            var groups = ParsePolicyNameGroups(slotElement.GetProperty("names"));
+            var rmax = Enum.Parse<PolicyDenialBehavior>(
+                slotElement.GetProperty("rmax").GetString()!,
+                ignoreCase: true);
+
+            builder.Add(new PolicyConditionSlot
+            {
+                Ordinal = ordinal,
+                Groups = groups,
+                Rmax = rmax
+            });
+        }
+
+        return builder.ToImmutable();
     }
 
     private static ImmutableArray<DeliveryGroup> ParseDeliveryGroups(
@@ -979,6 +1010,59 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         };
     }
 
+    private static ImmutableArray<ImmutableArray<string>> ParsePolicyNameGroups(JsonElement namesElement)
+    {
+        if (namesElement.ValueKind is not JsonValueKind.Array)
+        {
+            throw new InvalidOperationException(
+                "The `names` property of a policy in the operation plan "
+                + "must be a list of policy name groups.");
+        }
+
+        var groups = ImmutableArray.CreateBuilder<ImmutableArray<string>>();
+
+        foreach (var groupElement in namesElement.EnumerateArray())
+        {
+            if (groupElement.ValueKind is not JsonValueKind.Array)
+            {
+                throw new InvalidOperationException(
+                    "A policy name group in the operation plan must be "
+                    + "a list of policy names.");
+            }
+
+            var names = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var nameElement in groupElement.EnumerateArray())
+            {
+                if (nameElement.ValueKind is not JsonValueKind.String)
+                {
+                    throw new InvalidOperationException(
+                        "A policy name in the operation plan must be a string.");
+                }
+
+                names.Add(nameElement.GetString()!);
+            }
+
+            if (names.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "A policy name group in the operation plan must contain "
+                    + "at least one policy name.");
+            }
+
+            groups.Add(names.ToImmutable());
+        }
+
+        if (groups.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "A policy in the operation plan must contain at least "
+                + "one policy name group.");
+        }
+
+        return groups.ToImmutable();
+    }
+
     private static ParsedNodeInfo ParsePolicyNodeInfo(JsonElement nodeElement, int id)
     {
         var targetsElement = nodeElement.GetProperty("targets");
@@ -988,63 +1072,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             var policiesElement = targetElement.GetProperty("policies");
             var policies = new List<PolicyApplication>();
-            var requirements = new List<AuthorizationPolicyRequirement>();
+            var requirements = new List<PolicyRequirement>();
 
             foreach (var policyElement in policiesElement.EnumerateArray())
             {
-                var namesElement = policyElement.GetProperty("names");
-
-                if (namesElement.ValueKind is not JsonValueKind.Array)
-                {
-                    throw new InvalidOperationException(
-                        "The `names` property of a policy in the operation plan "
-                        + "must be a list of policy name groups.");
-                }
-
-                var groups = ImmutableArray.CreateBuilder<ImmutableArray<string>>();
-
-                foreach (var groupElement in namesElement.EnumerateArray())
-                {
-                    if (groupElement.ValueKind is not JsonValueKind.Array)
-                    {
-                        throw new InvalidOperationException(
-                            "A policy name group in the operation plan must be "
-                            + "a list of policy names.");
-                    }
-
-                    var names = ImmutableArray.CreateBuilder<string>();
-
-                    foreach (var nameElement in groupElement.EnumerateArray())
-                    {
-                        if (nameElement.ValueKind is not JsonValueKind.String)
-                        {
-                            throw new InvalidOperationException(
-                                "A policy name in the operation plan must be a string.");
-                        }
-
-                        names.Add(nameElement.GetString()!);
-                    }
-
-                    if (names.Count == 0)
-                    {
-                        throw new InvalidOperationException(
-                            "A policy name group in the operation plan must contain "
-                            + "at least one policy name.");
-                    }
-
-                    groups.Add(names.ToImmutable());
-                }
-
-                if (groups.Count == 0)
-                {
-                    throw new InvalidOperationException(
-                        "A policy in the operation plan must contain at least "
-                        + "one policy name group.");
-                }
-
                 policies.Add(new PolicyApplication
                 {
-                    Groups = groups.ToImmutable(),
+                    Groups = ParsePolicyNameGroups(policyElement.GetProperty("names")),
                     OnDenied = Enum.Parse<PolicyDenialBehavior>(
                         policyElement.GetProperty("onDenied").GetString()!)
                 });
@@ -1054,7 +1088,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             {
                 foreach (var requirementElement in requirementsElement.EnumerateArray())
                 {
-                    requirements.Add(new AuthorizationPolicyRequirement
+                    requirements.Add(new PolicyRequirement
                     {
                         PolicyName = requirementElement.GetProperty("name").GetString()!,
                         SelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
@@ -1063,16 +1097,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 }
             }
 
-            var fieldName = targetElement.TryGetProperty("fieldName", out var fieldNameElement)
-                ? fieldNameElement.GetString()
-                : null;
-
             targets.Add(new PolicyExecutionTarget
             {
                 Kind = Enum.Parse<PolicyTargetKind>(targetElement.GetProperty("kind").GetString()!),
                 Path = SelectionPath.Parse(targetElement.GetProperty("path").GetString()!),
                 TypeName = targetElement.GetProperty("typeName").GetString()!,
-                FieldName = fieldName,
                 Policies = policies.ToArray(),
                 Requirements = requirements.ToArray(),
                 Conditions = TryParseConditions(targetElement)

@@ -210,6 +210,9 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     /// <inheritdoc />
     public virtual void PolicyUpdateError(Exception error) { }
 
+    /// <inheritdoc />
+    public virtual void ConfigurationReadError(Exception error) { }
+
     private sealed class EmptyActivityScope : IDisposable
     {
         public void Dispose() { }

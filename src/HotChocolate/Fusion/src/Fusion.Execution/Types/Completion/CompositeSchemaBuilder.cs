@@ -630,46 +630,72 @@ internal static class CompositeSchemaBuilder
         context.RegisterForCompletion(nodeFallbackLookup);
         features.Set(nodeFallbackLookup);
 
-        var policies = CreateAuthorizationPolicies(context.Services);
-        var schema = new FusionSchemaDefinition(
-            context.Name,
-            context.Description,
-            context.Services,
-            context.GetType<FusionObjectTypeDefinition>(context.QueryType),
-            context.MutationType is not null
-                ? context.GetType<FusionObjectTypeDefinition>(context.MutationType)
-                : null,
-            context.SubscriptionType is not null
-                ? context.GetType<FusionObjectTypeDefinition>(context.SubscriptionType)
-                : null,
-            directives,
-            new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
-            policies,
-            new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
-            nodeResolution,
-            shareableFieldRuntimeTypeRouting,
-            features,
-            context.SourceSchemaLookup);
+        var policies = CreatePolicies(context.Services);
 
-        context.Interceptor.OnAfterCompleteSchema(context, schema);
-        schema.Seal();
-        context.Complete(schema);
-        schema.EnsurePlannerTopologyCacheInitialized();
+        FusionSchemaDefinition schema;
+
+        try
+        {
+            schema = new FusionSchemaDefinition(
+                context.Name,
+                context.Description,
+                context.Services,
+                context.GetType<FusionObjectTypeDefinition>(context.QueryType),
+                context.MutationType is not null
+                    ? context.GetType<FusionObjectTypeDefinition>(context.MutationType)
+                    : null,
+                context.SubscriptionType is not null
+                    ? context.GetType<FusionObjectTypeDefinition>(context.SubscriptionType)
+                    : null,
+                directives,
+                new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
+                policies,
+                new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
+                nodeResolution,
+                shareableFieldRuntimeTypeRouting,
+                features,
+                context.SourceSchemaLookup);
+
+            context.Interceptor.OnAfterCompleteSchema(context, schema);
+
+            // Seal validates that every referenced policy exists and can throw. On failure the
+            // registry is disposed so the provider subscriptions do not leak.
+            schema.Seal();
+            context.Complete(schema);
+            schema.EnsurePlannerTopologyCacheInitialized();
+        }
+        catch
+        {
+            policies.Dispose();
+            throw;
+        }
 
         return schema;
     }
 
-    private static AuthorizationPolicyCollection CreateAuthorizationPolicies(
+    private static PolicyCollection CreatePolicies(
         IServiceProvider services)
     {
-        var providers = services.GetService<IEnumerable<IAuthorizationPolicyProvider>>();
+        var provider = services.GetService<IPolicyProvider>();
 
-        if (providers?.Any() == true)
+        if (provider is null)
         {
-            return new AuthorizationPolicyCollection(providers.SelectMany(p => p.CreatePolicies()));
+            return PolicyCollection.Empty;
         }
 
-        return AuthorizationPolicyCollection.Empty;
+        var policies = new PolicyCollection(provider);
+
+        try
+        {
+            policies.Connect();
+        }
+        catch
+        {
+            policies.Dispose();
+            throw;
+        }
+
+        return policies;
     }
 
     private static ExecutionSettings ParseExecutionSettings(DocumentNode document)
@@ -839,6 +865,8 @@ internal static class CompositeSchemaBuilder
     {
         var operationType = GetOperationType(typeDef.Name.Value, context);
 
+        EnsureNoInterfacePolicyDirective(typeDef.Directives, type.Name, "type");
+
         foreach (var fieldDef in typeDef.Fields)
         {
             CompleteOutputField(
@@ -891,7 +919,21 @@ internal static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, context);
         var type = context.GetType(fieldDef.Type).ExpectOutputType();
         var sources = BuildSourceOutputFieldCollection(declaringType.Name, fieldDefinition, fieldDef, context);
-        var policyApplications = ParseFusionPolicyDirectives(fieldDef.Directives);
+        ImmutableArray<PolicyApplication> policyApplications;
+
+        if (declaringType is FusionInterfaceTypeDefinition)
+        {
+            EnsureNoInterfacePolicyDirective(
+                fieldDef.Directives,
+                $"{declaringType.Name}.{fieldDef.Name.Value}",
+                "field");
+            policyApplications = default;
+        }
+        else
+        {
+            policyApplications = ParseFusionPolicyDirectives(fieldDef.Directives);
+        }
+
         var features = FeatureCollection.Empty;
 
         context.Interceptor.OnCompleteOutputField(
@@ -909,6 +951,23 @@ internal static class CompositeSchemaBuilder
                 sources,
                 policyApplications,
                 features));
+    }
+
+    private static void EnsureNoInterfacePolicyDirective(
+        IReadOnlyList<DirectiveNode> directives,
+        string coordinate,
+        string kind)
+    {
+        foreach (var directive in directives)
+        {
+            if (directive.Name.Value.Equals(FusionBuiltIns.Policy, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"The @fusion__policy directive cannot be applied to interface {kind} "
+                    + $"`{coordinate}`. Policies are only supported on object types and "
+                    + "their fields.");
+            }
+        }
     }
 
     private static ImmutableArray<PolicyApplication> ParseFusionPolicyDirectives(

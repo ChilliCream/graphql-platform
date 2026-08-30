@@ -1,8 +1,5 @@
 using System.Security.Claims;
-using HotChocolate.Execution;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Types;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -18,36 +15,28 @@ namespace HotChocolate.Fusion.Execution;
 public interface IPolicyContext : IFeatureProvider
 {
     /// <summary>
-    /// Gets the type definition the policy application targets.
-    /// </summary>
-    ITypeDefinition Type { get; }
-
-    /// <summary>
-    /// Gets the selection the policy application guards, or <c>null</c> when the policy
-    /// guards a type definition rather than a selection.
-    /// </summary>
-    ISelection? Selection { get; }
-
-    /// <summary>
-    /// Gets the consequence that applies to the values this evaluation denies.
-    /// </summary>
-    /// <remarks>
-    /// The executor applies the consequence after the evaluation completes. A policy
-    /// only reports denials through <see cref="Deny"/> and does not act on this value.
-    /// </remarks>
-    PolicyDenialBehavior OnDenied { get; }
-
-    /// <summary>
     /// Gets the user of the request that triggered the evaluation.
     /// </summary>
     ClaimsPrincipal User { get; }
 
     /// <summary>
+    /// Gets the guarded resource the policy evaluates, or <c>null</c> when the evaluation is
+    /// request-constant.
+    /// </summary>
+    /// <remarks>
+    /// When <c>null</c>, this evaluation produces a single, request-constant decision: deny it,
+    /// if at all, through <c>Deny(0, …)</c>. When non-<c>null</c>, evaluate every entity in
+    /// <see cref="PolicySelection.Entities"/> and deny entities individually by their position in
+    /// that batch.
+    /// </remarks>
+    PolicySelection? Selection { get; }
+
+    /// <summary>
     /// Denies access to a single entity.
     /// </summary>
     /// <param name="index">
-    /// The position of the denied entity within the entities passed to
-    /// <see cref="IPolicy.EvaluateAsync"/>.
+    /// The position of the denied entity within <see cref="PolicySelection.Entities"/>, or
+    /// <c>0</c> when <see cref="Selection"/> is <c>null</c>.
     /// </param>
     /// <param name="reason">
     /// An optional human readable explanation that is surfaced with the resulting

@@ -8,5 +8,6 @@ internal enum FileKind
     Metadata,
     Signature,
     LegacyArchive,
-    Policy
+    Policy,
+    PolicyData
 }

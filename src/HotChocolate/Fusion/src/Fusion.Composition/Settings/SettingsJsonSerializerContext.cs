@@ -9,6 +9,9 @@ namespace HotChocolate.Fusion;
 [JsonSerializable(
     typeof(CompositionSettings.ApolloFederationCompatibilitySettings),
     TypeInfoPropertyName = "CompositionApolloFederationCompatibilitySettings")]
+[JsonSerializable(
+    typeof(CompositionSettings.AuthorizationSettings),
+    TypeInfoPropertyName = "CompositionAuthorizationSettings")]
 [JsonSerializable(typeof(SourceSchemaSettings))]
 [JsonSerializable(typeof(SourceSchemaSettings.PreprocessorSettings), TypeInfoPropertyName = "SourceSchemaPreprocessorSettings")]
 [JsonSerializable(typeof(SourceSchemaSettings.SatisfiabilitySettings), TypeInfoPropertyName = "SourceSchemaSatisfiabilitySettings")]
@@ -17,6 +20,7 @@ namespace HotChocolate.Fusion;
     [
         typeof(JsonStringEnumConverter<DirectiveMergeBehavior>),
         typeof(JsonStringEnumConverter<NodeResolution>),
+        typeof(JsonStringEnumConverter<PolicyDenialBehavior>),
         typeof(JsonStringEnumConverter<ShareableFieldRuntimeTypeRouting>)
     ],
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]

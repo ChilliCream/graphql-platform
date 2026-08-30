@@ -27,6 +27,7 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> planSteps,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<PolicyConditionSlot> policySlots,
         int searchSpace,
         int expandedNodes,
         CancellationToken cancellationToken)
@@ -41,7 +42,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, [], [], searchSpace, expandedNodes);
+            return OperationPlan.Create(operation, nodes, nodes, [], [], [], searchSpace, expandedNodes);
         }
 
         var ctx = new ExecutionPlanBuildContext();
@@ -87,6 +88,7 @@ public sealed partial class OperationPlanner
             allNodes,
             deliveryGroups,
             incrementalPlans,
+            policySlots,
             searchSpace,
             expandedNodes);
 

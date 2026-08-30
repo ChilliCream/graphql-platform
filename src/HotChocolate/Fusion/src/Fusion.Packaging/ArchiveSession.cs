@@ -85,6 +85,26 @@ internal sealed class ArchiveSession : IDisposable
         return _mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is not null;
     }
 
+    public long GetContentLength(string path)
+    {
+        if (_files.TryGetValue(path, out var file))
+        {
+            if (file.State is FileState.Deleted)
+            {
+                throw new FileNotFoundException(path);
+            }
+
+            return new FileInfo(file.TempPath).Length;
+        }
+
+        if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is { } entry)
+        {
+            return entry.Length;
+        }
+
+        throw new FileNotFoundException(path);
+    }
+
     public async Task<Stream> OpenReadAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
         if (_files.TryGetValue(path, out var file))
@@ -275,6 +295,7 @@ internal sealed class ArchiveSession : IDisposable
         {
             FileKind.LegacyArchive => _readOptions.MaxAllowedLegacyArchiveSize,
             FileKind.Policy => _readOptions.MaxAllowedPolicySize,
+            FileKind.PolicyData => _readOptions.MaxAllowedPolicyDataSize,
             FileKind.Schema => _readOptions.MaxAllowedSchemaSize,
             FileKind.Manifest or FileKind.Settings or FileKind.Metadata or FileKind.Signature
                 => _readOptions.MaxAllowedSettingsSize,

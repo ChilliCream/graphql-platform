@@ -941,9 +941,11 @@ AddErrors_Next:
     {
         lock (_lock)
         {
+            // PolicyName and reason are not exposed on the client error; ErrorHelper keeps
+            // them only for the correlated operator diagnostics (repo-w1a).
             var error = behavior is PolicyDenialBehavior.Null
                 ? null
-                : ErrorHelper.AuthorizationPolicyDenied(element.Path, policyName, reason);
+                : ErrorHelper.PolicyDenied(element.Path, behavior, policyName, reason).Error;
 
             if (behavior is PolicyDenialBehavior.Abort)
             {
@@ -965,7 +967,7 @@ AddErrors_Next:
             // the error handler. Even a secondary failure must not expose the response.
             _result.Data.SetNullValue();
 
-            var error = ErrorHelper.AuthorizationPolicyExecutionFailed();
+            var error = ErrorHelper.PolicyExecutionFailed();
 
             _errors ??= [];
             _errors.Add(_errorHandler.Handle(error));

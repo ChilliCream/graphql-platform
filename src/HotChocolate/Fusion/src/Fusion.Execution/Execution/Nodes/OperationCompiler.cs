@@ -330,6 +330,8 @@ public sealed class OperationCompiler
                 ? _typeNameField
                 : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
+            var hasPolicy = HasPolicy(field);
+
             var selection = new Selection(
                 ++lastId,
                 responseName,
@@ -337,6 +339,7 @@ public sealed class OperationCompiler
                 nodes.ToArray(),
                 includeFlags.ToArray(),
                 isInternal,
+                hasPolicy,
                 deferMask,
                 selectionDeliveryGroups);
 
@@ -357,6 +360,44 @@ public sealed class OperationCompiler
             isConditional,
             hasIncrementalParts,
             declaringSelection);
+    }
+
+    // Determines, at compile time, whether a selection can ever be subject to an
+    // authorization policy. A selection has a policy when the field itself carries
+    // one, when its concrete named return type carries one, or, for an abstract
+    // named return type (interface or union), when any possible type carries one.
+    // Selections for which this is false take a zero-cost path through value
+    // completion since policy evaluation never applies to them.
+    private bool HasPolicy(IOutputFieldDefinition field)
+    {
+        if (field is FusionOutputFieldDefinition { PolicyApplications.IsDefaultOrEmpty: false })
+        {
+            return true;
+        }
+
+        var namedType = field.Type.NamedType();
+
+        if (namedType is FusionObjectTypeDefinition objectType)
+        {
+            return !objectType.PolicyApplications.IsDefaultOrEmpty;
+        }
+
+        if (namedType is FusionInterfaceTypeDefinition or FusionUnionTypeDefinition)
+        {
+            // Inaccessible object types can still be materialized as the runtime type of
+            // an abstract field: value completion resolves the concrete type from
+            // __typename with allowInaccessibleFields set to true, so the policy check
+            // here must include inaccessible possible types as well.
+            foreach (var possibleType in _schema.GetPossibleTypes(namedType, includeInaccessible: true))
+            {
+                if (!possibleType.PolicyApplications.IsDefaultOrEmpty)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)

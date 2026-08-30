@@ -17,25 +17,31 @@ public enum SignatureVerificationResult
     NotSigned,
 
     /// <summary>
-    /// One or more files referenced in the signature manifest are missing from the archive.
+    /// The root content manifest is missing, so the archive contents cannot be verified.
     /// </summary>
-    FilesMissing,
+    ManifestMissing,
 
     /// <summary>
-    /// One or more files have been modified or added since the archive was signed.
-    /// The archive contents do not match the signature manifest.
+    /// A file is present in the archive but not listed in the content manifest.
+    /// The manifest never lists the manifest itself or the contents of the signature directory.
+    /// </summary>
+    UnlistedFile,
+
+    /// <summary>
+    /// A file that is present in the archive and listed in the content manifest does not match
+    /// the digest recorded for it.
     /// </summary>
     FilesModified,
 
     /// <summary>
-    /// The signature manifest itself is corrupted or has been tampered with.
-    /// The manifest hash does not match the computed hash.
+    /// The content manifest declares a digest algorithm other than <c>sha256</c>, which is the only
+    /// supported value.
     /// </summary>
-    ManifestCorrupted,
+    UnsupportedAlgorithm,
 
     /// <summary>
-    /// The cryptographic signature is invalid or was not created by the expected certificate.
-    /// This indicates either signature corruption or use of an incorrect verification key.
+    /// The cryptographic signature is invalid, was not created by the expected certificate, or
+    /// does not match the current content manifest.
     /// </summary>
     InvalidSignature,
 

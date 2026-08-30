@@ -7,7 +7,8 @@ internal readonly record struct FusionArchiveReadOptions(
     int MaxAllowedSchemaSize,
     int MaxAllowedSettingsSize,
     int MaxAllowedLegacyArchiveSize,
-    int MaxAllowedPolicySize)
+    int MaxAllowedPolicySize,
+    int MaxAllowedPolicyDataSize)
 {
     /// <summary>
     /// Gets the default read options.
@@ -16,5 +17,6 @@ internal readonly record struct FusionArchiveReadOptions(
         50_000_000,
         512_000,
         100_000_000,
-        50_000_000);
+        50_000_000,
+        10_000_000);
 }

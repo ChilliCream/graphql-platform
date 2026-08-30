@@ -7,6 +7,8 @@ using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Packaging.Serializers;
 
 namespace HotChocolate.Fusion.Packaging;
@@ -20,6 +22,7 @@ public sealed class FusionArchive : IDisposable
     private readonly Stream _stream;
     private readonly bool _leaveOpen;
     private readonly ArchiveSession _session;
+    private readonly FusionArchiveReadOptions _readOptions;
     private ZipArchive _archive;
     private FusionArchiveMode _mode;
     private ArrayBufferWriter<byte>? _buffer;
@@ -37,6 +40,7 @@ public sealed class FusionArchive : IDisposable
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
         _session = new ArchiveSession(_archive, mode, options);
+        _readOptions = options;
     }
 
     /// <summary>
@@ -107,7 +111,8 @@ public sealed class FusionArchive : IDisposable
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
             options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
             options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize,
-            options.MaxAllowedPolicySize ?? FusionArchiveReadOptions.Default.MaxAllowedPolicySize);
+            options.MaxAllowedPolicySize ?? FusionArchiveReadOptions.Default.MaxAllowedPolicySize,
+            options.MaxAllowedPolicyDataSize ?? FusionArchiveReadOptions.Default.MaxAllowedPolicyDataSize);
         return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -477,6 +482,14 @@ public sealed class FusionArchive : IDisposable
                 + $"'{conflictingPolicy.Name}' because policy names must be unique ignoring case.");
         }
 
+        // A policy declares a package whose rules form a virtual document rooted at that package path.
+        // That virtual document must not overlap a data mount, which is a base document at the same
+        // path. Reject the policy when its package collides with an existing data mount.
+        if (TryScanRegoPackageSegments(policy.Span, out var packageSegments))
+        {
+            await EnsureNoRegoBaseVirtualConflictForPolicyAsync(version, packageSegments, cancellationToken);
+        }
+
         await using (var stream = _session.OpenWrite(FileNames.GetRegoPolicyPath(version, policyName)))
         {
             await stream.WriteAsync(policy, cancellationToken);
@@ -584,6 +597,286 @@ public sealed class FusionArchive : IDisposable
         }
 
         return await CreateRegoPolicyConfigurationAsync(fileSet, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets a Rego data document mounted at the specified path within the data tree of a policy format version.
+    /// </summary>
+    /// <param name="mountPath">
+    /// The slash-separated directory path relative to the data root at which the document is mounted.
+    /// An empty string mounts the document at the data root.
+    /// </param>
+    /// <param name="data">
+    /// The data document as UTF-8 encoded JSON bytes. The root of the document must be a JSON object.
+    /// </param>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the mount path is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the mount path, version, or data is invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the data is empty or exceeds the maximum allowed size for a Rego data mount.
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only or the mount conflicts with an existing mount.
+    /// </exception>
+    public async Task SetRegoDataAsync(
+        string mountPath,
+        ReadOnlyMemory<byte> data,
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mountPath);
+        ValidateRegoPolicyVersion(formatVersion);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(data.Length, 0);
+
+        if (data.Length > _readOptions.MaxAllowedPolicyDataSize)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(data),
+                data.Length,
+                "The Rego data document exceeds the maximum allowed size of "
+                + $"{_readOptions.MaxAllowedPolicyDataSize} bytes for a data mount.");
+        }
+
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var segments = ValidateRegoDataMountPath(mountPath);
+        EnsureMutable();
+
+        using var document = ParseRegoDataObject(data);
+        await EnsureNoRegoDataConflictAsync(
+            formatVersion,
+            mountPath,
+            segments,
+            document.RootElement,
+            cancellationToken);
+
+        // A data mount is a base document; it must not overlap the virtual document rooted at a policy
+        // package path. Reject the mount when it collides with an existing policy's package.
+        await EnsureNoRegoBaseVirtualConflictForDataAsync(
+            formatVersion,
+            mountPath,
+            segments,
+            document.RootElement,
+            cancellationToken);
+
+        await using var stream = _session.OpenWrite(FileNames.GetRegoDataPath(formatVersion, mountPath));
+        await stream.WriteAsync(data, cancellationToken);
+    }
+
+    /// <summary>
+    /// Attempts to get the Rego data document mounted at the specified path for a policy format version.
+    /// </summary>
+    /// <param name="mountPath">
+    /// The slash-separated directory path relative to the data root. An empty string is the data root.
+    /// </param>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The data document as UTF-8 encoded JSON bytes, or <c>null</c> when it is not present.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the mount path is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the mount path or version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<ReadOnlyMemory<byte>?> TryGetRegoDataAsync(
+        string mountPath,
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mountPath);
+        ValidateRegoPolicyVersion(formatVersion);
+        ValidateRegoDataMountPath(mountPath);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var path = FileNames.GetRegoDataPath(formatVersion, mountPath);
+
+        if (!await _session.ExistsAsync(path, FileKind.PolicyData, cancellationToken))
+        {
+            return null;
+        }
+
+        await using var stream = await _session.OpenReadAsync(path, FileKind.PolicyData, cancellationToken);
+        await using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory, cancellationToken);
+        return memory.ToArray();
+    }
+
+    /// <summary>
+    /// Gets the mount paths of all Rego data documents for a policy format version, ordered by path.
+    /// The data root is represented by an empty string.
+    /// </summary>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <returns>The Rego data mount paths.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego data layout is invalid.</exception>
+    public IEnumerable<string> GetRegoDataMountPaths(Version formatVersion)
+    {
+        ValidateRegoPolicyVersion(formatVersion);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoDataMounts(formatVersion)
+            .Select(m => m.MountPath)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Removes the Rego data document mounted at the specified path for a policy format version.
+    /// </summary>
+    /// <param name="mountPath">
+    /// The slash-separated directory path relative to the data root. An empty string is the data root.
+    /// </param>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns><c>true</c> if the data document was present and removed; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the mount path is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the mount path or version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task<bool> RemoveRegoDataAsync(
+        string mountPath,
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mountPath);
+        ValidateRegoPolicyVersion(formatVersion);
+        ValidateRegoDataMountPath(mountPath);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        var path = FileNames.GetRegoDataPath(formatVersion, mountPath);
+
+        if (!await _session.ExistsAsync(path, FileKind.PolicyData, cancellationToken))
+        {
+            return false;
+        }
+
+        _session.Delete(path);
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to assemble the merged Rego data document for a policy format version by combining every
+    /// mounted data document into a single hierarchical JSON document. Returns <c>null</c> when the version
+    /// has no data subtree. The merge produces the tree by mount path; the order of keys in the result is
+    /// not specified.
+    /// </summary>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>
+    /// An owner of the merged data document that the caller disposes, or <c>null</c> when no data subtree exists.
+    /// </returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego data layout defines conflicting mounts.</exception>
+    public async Task<JsonDocumentOwner?> TryGetRegoDataDocumentAsync(
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyVersion(formatVersion);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var mounts = ReadRegoDataMounts(formatVersion);
+
+        if (mounts.Count == 0)
+        {
+            return null;
+        }
+
+        // Parse every mount document up front, ordered so that ancestor mounts precede their descendants.
+        var ordered = mounts.OrderBy(m => m.MountPath, StringComparer.Ordinal).ToArray();
+        var documents = new (string MountPath, string[] Segments, JsonObject Document)[ordered.Length];
+
+        for (var i = 0; i < ordered.Length; i++)
+        {
+            JsonNode? node;
+            await using (var stream = await _session.OpenReadAsync(
+                ordered[i].Path,
+                FileKind.PolicyData,
+                cancellationToken))
+            {
+                node = JsonNode.Parse(stream);
+            }
+
+            if (node is not JsonObject document)
+            {
+                throw new InvalidDataException(
+                    $"The Rego data document '{ordered[i].Path}' must be a JSON object.");
+            }
+
+            var segments = ordered[i].MountPath.Length == 0 ? [] : ordered[i].MountPath.Split('/');
+            documents[i] = (ordered[i].MountPath, segments, document);
+        }
+
+        // Reject conflicting mounts on read using the same rule the write path enforces, so an archive
+        // produced elsewhere is not silently deep-merged where the write API would reject it.
+        for (var i = 0; i < documents.Length; i++)
+        {
+            for (var j = 0; j < documents.Length; j++)
+            {
+                if (i == j || !IsRegoDataMountPrefix(documents[i].Segments, documents[j].Segments))
+                {
+                    continue;
+                }
+
+                if (RegoDataDocumentDefinesMountPath(
+                    documents[i].Document,
+                    documents[j].Segments.AsSpan(documents[i].Segments.Length)))
+                {
+                    throw CreateRegoDataConflictDataException(documents[i].MountPath, documents[j].MountPath);
+                }
+            }
+        }
+
+        // Reject data mounts that overlap a policy package's virtual document, the base versus virtual
+        // document conflict, using the same rule the write paths enforce so an archive produced
+        // elsewhere is not silently merged where the write API would reject it.
+        var virtualRoots = await ReadRegoPolicyPackageRootsAsync(formatVersion, cancellationToken);
+
+        foreach (var (mountPath, segments, document) in documents)
+        {
+            foreach (var policySegments in virtualRoots)
+            {
+                if (RegoSegmentsEqual(segments, policySegments)
+                    || IsRegoDataMountPrefix(policySegments, segments))
+                {
+                    throw CreateRegoBaseVirtualConflictDataException(mountPath, policySegments);
+                }
+
+                if (IsRegoDataMountPrefix(segments, policySegments)
+                    && RegoDataDocumentDefinesMountPath(document, policySegments.AsSpan(segments.Length)))
+                {
+                    throw CreateRegoBaseVirtualConflictDataException(mountPath, policySegments);
+                }
+            }
+        }
+
+        var root = new JsonObject();
+
+        foreach (var (mountPath, segments, document) in documents)
+        {
+            var target = segments.Length == 0
+                ? root
+                : NavigateOrCreateRegoDataObject(root, segments, mountPath);
+            MergeRegoDataObject(target, document, mountPath);
+        }
+
+        var buffer = new PooledArrayWriter();
+
+        try
+        {
+            await using (var writer = new Utf8JsonWriter(buffer))
+            {
+                root.WriteTo(writer);
+            }
+
+            return new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -791,19 +1084,22 @@ public sealed class FusionArchive : IDisposable
 
     /// <summary>
     /// Digitally signs the archive using the provided certificate with private key.
-    /// Creates a manifest of all files and their SHA-256 hashes, then signs the manifest.
+    /// Brings the root content manifest up to date, then creates a PKCS#7/CMS detached signature over
+    /// the raw bytes of that manifest.
     /// </summary>
     /// <param name="privateKey">The certificate containing the private key for signing.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentNullException">Thrown when privateKey is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="ArgumentException">Thrown when the certificate does not contain a private key.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
     public async Task SignArchiveAsync(
         X509Certificate2 privateKey,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
         ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
 
         if (!privateKey.HasPrivateKey)
         {
@@ -812,135 +1108,147 @@ public sealed class FusionArchive : IDisposable
                 nameof(privateKey));
         }
 
-        // 1. Generate manifest of all non-signature files
-        var manifest = await GenerateManifestAsync(cancellationToken);
+        // Bring the root manifest up to date so the signature covers the current archive contents.
+        var manifestBytes = await WriteManifestAsync(cancellationToken);
 
-        // 2. Create detached signature
-        var buffer = TryRentBuffer();
+        // Create the detached CMS signature over the raw manifest bytes with a signing-time attribute.
+        var contentInfo = new ContentInfo(manifestBytes);
+        var signedCms = new SignedCms(contentInfo, detached: true);
+        var signer = new CmsSigner(privateKey);
+        signer.SignedAttributes.Add(new Pkcs9SigningTime());
+        signedCms.ComputeSignature(signer);
+        var signatureBytes = signedCms.Encode();
 
-        try
-        {
-            SignatureManifestSerializer.Format(manifest, buffer, writeManifestHash: true);
-            var contentInfo = new ContentInfo(buffer.WrittenSpan.ToArray());
-            var signedCms = new SignedCms(contentInfo, detached: true);
-            var signer = new CmsSigner(privateKey);
-            signedCms.ComputeSignature(signer);
-            var signatureBytes = signedCms.Encode();
-
-            await using (var stream = _session.OpenWrite(FileNames.SignatureManifest))
-            {
-                await stream.WriteAsync(buffer.WrittenMemory, cancellationToken);
-                await stream.FlushAsync(cancellationToken);
-            }
-
-            await using (var stream = _session.OpenWrite(FileNames.Signature))
-            {
-                await stream.WriteAsync(signatureBytes, cancellationToken);
-                await stream.FlushAsync(cancellationToken);
-            }
-        }
-        finally
-        {
-            TryReturnBuffer(buffer);
-        }
+        await using var stream = _session.OpenWrite(FileNames.Signature);
+        await stream.WriteAsync(signatureBytes, cancellationToken);
+        await stream.FlushAsync(cancellationToken);
     }
 
     /// <summary>
-    /// Verifies the digital signature of the archive using the provided public key certificate.
-    /// Checks file integrity, manifest hash, and cryptographic signature validity.
+    /// Verifies the archive against its content manifest, and against the detached signature when the
+    /// archive is signed, using the provided public key certificate. The manifest integrity checks apply
+    /// to every archive: the root manifest must be present; every file present in the archive, other than
+    /// the manifest and the contents of the signature directory, must be listed in the manifest; listed
+    /// files that are absent are permitted (a stripped archive); and every listed file that is present
+    /// must match its recorded digest. When the archive carries a signature, the detached signature must
+    /// additionally verify over the manifest bytes. An archive whose manifest integrity holds but that
+    /// carries no signature reports <see cref="SignatureVerificationResult.NotSigned"/>.
     /// </summary>
     /// <param name="publicKey">The certificate containing the public key for verification.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The result of the signature verification process.</returns>
+    /// <returns>The result of the verification process.</returns>
     public async Task<SignatureVerificationResult> VerifySignatureAsync(
         X509Certificate2 publicKey,
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(
-            FileNames.SignatureManifest,
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var manifestPresent = await _session.ExistsAsync(
+            FileNames.Manifest,
             FileKind.Manifest,
             cancellationToken);
-        var signatureExists = await _session.ExistsAsync(
+        var signaturePresent = await _session.ExistsAsync(
             FileNames.Signature,
             FileKind.Signature,
             cancellationToken);
 
-        if (!manifestExists || !signatureExists)
+        // The content manifest establishes integrity and is required for every archive. Without it
+        // neither the file digests nor a signature covering the manifest can be verified.
+        if (!manifestPresent)
         {
-            return SignatureVerificationResult.NotSigned;
+            return signaturePresent
+                ? SignatureVerificationResult.ManifestMissing
+                : SignatureVerificationResult.NotSigned;
         }
 
         var buffer = TryRentBuffer();
 
         try
         {
-            // 1. Load manifest and signature
-            await using var manifestStream = await _session.OpenReadAsync(
-                FileNames.SignatureManifest,
+            // 1. Load the manifest bytes and parse the manifest.
+            await using (var manifestStream = await _session.OpenReadAsync(
+                FileNames.Manifest,
                 FileKind.Manifest,
-                cancellationToken);
-            await using var signatureStream = await _session.OpenReadAsync(
-                FileNames.Signature,
-                FileKind.Signature,
-                cancellationToken);
-            await manifestStream.CopyToAsync(buffer, cancellationToken);
-            var manifest = SignatureManifestSerializer.Parse(buffer.WrittenMemory);
-            var contentInfo = new ContentInfo(buffer.WrittenSpan.ToArray());
-
-            buffer.Clear();
-            await signatureStream.CopyToAsync(buffer, cancellationToken);
-            var signatureBytes = buffer.WrittenSpan.ToArray();
-
-            // 2. Verify file integrity
-            var actualFiles = _session.GetFiles()
-                .Where(IsSignedArchiveFile)
-                .ToHashSet(StringComparer.Ordinal);
-            var manifestFiles = manifest.Files.Keys.ToHashSet(StringComparer.Ordinal);
-
-            if (!manifestFiles.IsSubsetOf(actualFiles))
+                cancellationToken))
             {
-                return SignatureVerificationResult.FilesMissing;
+                await manifestStream.CopyToAsync(buffer, cancellationToken);
             }
 
-            if (!actualFiles.SetEquals(manifestFiles))
+            var manifestBytes = buffer.WrittenSpan.ToArray();
+            var manifest = ArchiveManifestSerializer.Parse(buffer.WrittenMemory);
+
+            // sha256 is the only supported digest algorithm.
+            if (!manifest.Algorithm.Equals("sha256", StringComparison.Ordinal))
             {
-                return SignatureVerificationResult.FilesModified;
+                return SignatureVerificationResult.UnsupportedAlgorithm;
             }
 
-            foreach (var file in manifest.Files.OrderBy(t => t.Key))
+            // 2. Every present file, other than the manifest and the signature directory, must be listed.
+            foreach (var path in _session.GetFiles())
+            {
+                if (path.Equals(FileNames.Manifest, StringComparison.Ordinal)
+                    || path.StartsWith(FileNames.SignatureDirectory, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (path.EndsWith("/", StringComparison.Ordinal) && _session.GetContentLength(path) == 0)
+                {
+                    // An empty directory placeholder carries no content and is not a listed file.
+                    continue;
+                }
+
+                if (!manifest.Files.ContainsKey(path))
+                {
+                    return SignatureVerificationResult.UnlistedFile;
+                }
+            }
+
+            // 3. Re-hash every listed file that is present; listed files that are absent are permitted.
+            foreach (var file in manifest.Files)
             {
                 var kind = FileNames.GetFileKind(file.Key);
 
                 if (!await _session.ExistsAsync(file.Key, kind, cancellationToken))
                 {
-                    return SignatureVerificationResult.FilesMissing;
+                    continue;
                 }
 
                 var actualHash = await ComputeFileHashAsync(file.Key, kind, cancellationToken);
-                if (!actualHash.Equals(file.Value, StringComparison.OrdinalIgnoreCase))
+                if (!actualHash.Equals(file.Value, StringComparison.Ordinal))
                 {
                     return SignatureVerificationResult.FilesModified;
                 }
             }
 
-            // 3. Verify manifest hash
-            buffer.Clear();
-            SignatureManifestSerializer.Format(manifest, buffer, writeManifestHash: false);
-            var manifestHash = ComputeManifestHash(buffer.WrittenSpan);
-
-            if (manifest.ManifestHash?.Equals(manifestHash, StringComparison.OrdinalIgnoreCase) != true)
+            // 4. The detached signature is verified only when the archive is signed.
+            if (!signaturePresent)
             {
-                return SignatureVerificationResult.ManifestCorrupted;
+                return SignatureVerificationResult.NotSigned;
             }
 
-            // 4. Verify cryptographic signature
+            // 5. Verify the detached signature over the raw manifest bytes.
+            buffer.Clear();
+            await using (var signatureStream = await _session.OpenReadAsync(
+                FileNames.Signature,
+                FileKind.Signature,
+                cancellationToken))
+            {
+                await signatureStream.CopyToAsync(buffer, cancellationToken);
+            }
+
+            var contentInfo = new ContentInfo(manifestBytes);
             var signedCms = new SignedCms(contentInfo, detached: true);
-            signedCms.Decode(signatureBytes);
+            signedCms.Decode(buffer.WrittenSpan.ToArray());
             signedCms.CheckSignature(
                 new X509Certificate2Collection(publicKey),
                 verifySignatureOnly: true);
 
             return SignatureVerificationResult.Valid;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (CryptographicException)
         {
@@ -965,16 +1273,9 @@ public sealed class FusionArchive : IDisposable
     public async Task<SignatureInfo?> GetSignatureInfoAsync(
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(
-            FileNames.SignatureManifest,
-            FileKind.Manifest,
-            cancellationToken);
-        var signatureExists = await _session.ExistsAsync(
-            FileNames.Signature,
-            FileKind.Signature,
-            cancellationToken);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!manifestExists || !signatureExists)
+        if (!await _session.ExistsAsync(FileNames.Signature, FileKind.Signature, cancellationToken))
         {
             return null;
         }
@@ -983,20 +1284,13 @@ public sealed class FusionArchive : IDisposable
 
         try
         {
-            await using var manifestStream = await _session.OpenReadAsync(
-                FileNames.SignatureManifest,
-                FileKind.Manifest,
-                cancellationToken);
-            await using var signatureStream = await _session.OpenReadAsync(
+            await using (var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
                 FileKind.Signature,
-                cancellationToken);
-
-            await manifestStream.CopyToAsync(buffer, 1024, cancellationToken);
-            var manifest = SignatureManifestSerializer.Parse(buffer.WrittenMemory);
-            buffer.Clear();
-
-            await signatureStream.CopyToAsync(buffer, 1024, cancellationToken);
+                cancellationToken))
+            {
+                await signatureStream.CopyToAsync(buffer, 1024, cancellationToken);
+            }
 
             var signedCms = new SignedCms();
             signedCms.Decode(buffer.WrittenSpan.ToArray());
@@ -1010,8 +1304,10 @@ public sealed class FusionArchive : IDisposable
 
             return new SignatureInfo
             {
-                Timestamp = manifest.Timestamp,
-                Algorithm = manifest.Algorithm,
+                Timestamp = TryGetSigningTime(signerInfo),
+                Algorithm = (signerInfo.DigestAlgorithm.FriendlyName
+                    ?? signerInfo.DigestAlgorithm.Value
+                    ?? "sha256").ToLowerInvariant(),
                 SignerCertificate = certificate,
                 IsValid = verificationResult is SignatureVerificationResult.Valid
             };
@@ -1029,7 +1325,110 @@ public sealed class FusionArchive : IDisposable
     /// <summary>
     /// Gets a value indicating whether the archive contains a digital signature.
     /// </summary>
-    public bool IsSigned => _session.Exists(FileNames.SignatureManifest);
+    public bool IsSigned => _session.Exists(FileNames.Signature);
+
+    private static DateTimeOffset? TryGetSigningTime(SignerInfo signerInfo)
+    {
+        foreach (var attribute in signerInfo.SignedAttributes)
+        {
+            if (attribute.Oid?.Value != "1.2.840.113549.1.9.5")
+            {
+                continue;
+            }
+
+            foreach (var value in attribute.Values)
+            {
+                if (value is Pkcs9SigningTime signingTime)
+                {
+                    return new DateTimeOffset(signingTime.SigningTime.ToUniversalTime());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the root content manifest that records a digest for every file and artifact in the archive.
+    /// Returns <c>null</c> when the archive contains no content manifest, which indicates a legacy or
+    /// otherwise invalid archive.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The content manifest or <c>null</c> if not present.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<ArchiveManifest?> GetManifestAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!await _session.ExistsAsync(FileNames.Manifest, FileKind.Manifest, cancellationToken))
+        {
+            return null;
+        }
+
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            await using var stream = await _session.OpenReadAsync(
+                FileNames.Manifest,
+                FileKind.Manifest,
+                cancellationToken);
+            await stream.CopyToAsync(buffer, cancellationToken);
+            return ArchiveManifestSerializer.Parse(buffer.WrittenMemory);
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    /// <summary>
+    /// Removes the specified components from the archive without regenerating the content manifest.
+    /// The root <c>manifest.json</c> and the signature directory are preserved byte-identically, so the
+    /// manifest intentionally continues to list the now-absent files and any existing signature remains valid.
+    /// </summary>
+    /// <param name="components">The components to remove.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only or has pending uncommitted changes.
+    /// </exception>
+    public async Task StripAsync(
+        FusionArchiveComponents components,
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        if (_session.HasUncommittedChanges)
+        {
+            throw new InvalidOperationException(
+                "Cannot strip an archive that has pending uncommitted changes. Commit the changes first.");
+        }
+
+        if ((components & FusionArchiveComponents.SourceSchemas) == FusionArchiveComponents.SourceSchemas)
+        {
+            foreach (var path in _session.GetFiles().ToArray())
+            {
+                if (path.StartsWith(FileNames.SourceSchemas, StringComparison.Ordinal))
+                {
+                    _session.Delete(path);
+                }
+            }
+        }
+
+        if ((components & FusionArchiveComponents.CompositionSettings) == FusionArchiveComponents.CompositionSettings)
+        {
+            _session.Delete(FileNames.CompositionSettings);
+        }
+
+        if (_session.HasUncommittedChanges)
+        {
+            // Commit the deletions directly. The content manifest is deliberately not regenerated so that
+            // it keeps listing the stripped files and any existing signature stays valid.
+            await CommitCoreAsync(cancellationToken);
+        }
+    }
 
     private RegoPolicyFileSet[] ReadRegoPolicyFileSets()
     {
@@ -1050,9 +1449,7 @@ public sealed class FusionArchive : IDisposable
             var relativePath = path.AsSpan(FileNames.RegoPolicies.Length);
             var separator = relativePath.IndexOf('/');
 
-            if (separator <= 0
-                || separator == relativePath.Length - 1
-                || relativePath[(separator + 1)..].Contains('/'))
+            if (separator <= 0 || separator == relativePath.Length - 1)
             {
                 throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
             }
@@ -1064,10 +1461,39 @@ public sealed class FusionArchive : IDisposable
                     $"The Rego policy path '{path}' does not contain a canonical three-part version.");
             }
 
-            var fileName = relativePath[(separator + 1)..].ToString();
+            var remainder = relativePath[(separator + 1)..];
+            var remainderSeparator = remainder.IndexOf('/');
+
+            if (remainderSeparator >= 0)
+            {
+                // Nested paths are only valid inside the 'data/' subtree, where every file must be data.json.
+                if (!remainder[..remainderSeparator].SequenceEqual("data"))
+                {
+                    throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+                }
+
+                if (!remainder[(remainder.LastIndexOf('/') + 1)..].SequenceEqual(FileNames.DataFile))
+                {
+                    throw new InvalidDataException(
+                        $"The Rego policy path '{path}' is invalid because only '{FileNames.DataFile}' "
+                        + "files are permitted within the 'data/' subtree.");
+                }
+
+                // Data files are validated and read through the data tree APIs, not as policy pairs.
+                continue;
+            }
+
+            var fileName = remainder.ToString();
             if (fileName.Contains('\\'))
             {
                 throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+            }
+
+            if (fileName.Equals(FileNames.DataFile, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"The Rego policy path '{path}' is invalid because '{FileNames.DataFile}' files must be "
+                    + "located within the 'data/' subtree.");
             }
 
             string policyName;
@@ -1093,6 +1519,13 @@ public sealed class FusionArchive : IDisposable
                 }
 
                 continue;
+            }
+
+            if (IsReservedRegoPolicyName(policyName))
+            {
+                throw new InvalidDataException(
+                    $"The Rego policy path '{path}' uses the reserved policy name 'data', which "
+                    + "identifies the policy data subtree.");
             }
 
             if (!IsValidRegoPolicyName(policyName))
@@ -1175,11 +1608,23 @@ public sealed class FusionArchive : IDisposable
     {
         ArgumentException.ThrowIfNullOrEmpty(policyName);
 
+        if (IsReservedRegoPolicyName(policyName))
+        {
+            throw new ArgumentException(
+                "The Rego policy name 'data' is reserved for the policy data subtree.",
+                nameof(policyName));
+        }
+
         if (!IsValidRegoPolicyName(policyName))
         {
             throw new ArgumentException("Invalid Rego policy name.", nameof(policyName));
         }
     }
+
+    // 'data' names the shared policy data subtree, so it cannot also identify a policy pair without
+    // colliding with the 'policies/<language>/<version>/data' artifact key.
+    private static bool IsReservedRegoPolicyName(string policyName)
+        => policyName.Equals("data", StringComparison.Ordinal);
 
     private static bool IsValidRegoPolicyName(string policyName)
     {
@@ -1226,6 +1671,507 @@ public sealed class FusionArchive : IDisposable
         return false;
     }
 
+    private List<RegoDataMount> ReadRegoDataMounts(Version version)
+    {
+        var directory = FileNames.GetRegoDataDirectory(version);
+        var mounts = new List<RegoDataMount>();
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (path.EndsWith("/", StringComparison.Ordinal)
+                || !path.StartsWith(directory, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relative = path[directory.Length..];
+            var lastSeparator = relative.LastIndexOf('/');
+            var fileName = lastSeparator < 0 ? relative : relative[(lastSeparator + 1)..];
+
+            if (!fileName.Equals(FileNames.DataFile, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"The Rego data path '{path}' is invalid because only '{FileNames.DataFile}' "
+                    + "files are permitted within the 'data/' subtree.");
+            }
+
+            var mountPath = lastSeparator < 0 ? string.Empty : relative[..lastSeparator];
+            mounts.Add(new RegoDataMount(mountPath, path));
+        }
+
+        return mounts;
+    }
+
+    private static string[] ValidateRegoDataMountPath(string mountPath)
+    {
+        if (mountPath.Length == 0)
+        {
+            return [];
+        }
+
+        var segments = mountPath.Split('/');
+
+        foreach (var segment in segments)
+        {
+            if (!IsValidRegoPolicyName(segment))
+            {
+                throw new ArgumentException(
+                    $"The data mount path '{mountPath}' contains an invalid path segment.",
+                    nameof(mountPath));
+            }
+        }
+
+        return segments;
+    }
+
+    private static JsonDocument ParseRegoDataObject(ReadOnlyMemory<byte> data)
+    {
+        JsonDocument document;
+
+        try
+        {
+            document = JsonDocument.Parse(data);
+        }
+        catch (JsonException exception)
+        {
+            throw new ArgumentException("The Rego data document must be valid JSON.", nameof(data), exception);
+        }
+
+        if (document.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            document.Dispose();
+            throw new ArgumentException("The Rego data document must be a JSON object.", nameof(data));
+        }
+
+        return document;
+    }
+
+    private async Task EnsureNoRegoDataConflictAsync(
+        Version version,
+        string mountPath,
+        string[] segments,
+        JsonElement document,
+        CancellationToken cancellationToken)
+    {
+        foreach (var existing in ReadRegoDataMounts(version))
+        {
+            if (existing.MountPath.Equals(mountPath, StringComparison.Ordinal))
+            {
+                // Writing the same mount replaces its previous document.
+                continue;
+            }
+
+            var existingSegments = existing.MountPath.Length == 0
+                ? []
+                : existing.MountPath.Split('/');
+
+            if (IsRegoDataMountPrefix(existingSegments, segments))
+            {
+                // The existing mount is an ancestor; its document must not already define the path the
+                // new mount occupies.
+                await using var stream = await _session.OpenReadAsync(
+                    existing.Path,
+                    FileKind.PolicyData,
+                    cancellationToken);
+                using var existingDocument = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+
+                if (RegoDataDocumentDefinesMountPath(
+                    existingDocument.RootElement,
+                    segments.AsSpan(existingSegments.Length)))
+                {
+                    throw CreateRegoDataConflictException(mountPath, existing.MountPath);
+                }
+            }
+            else if (IsRegoDataMountPrefix(segments, existingSegments))
+            {
+                // The new mount is an ancestor; its document must not define the path the existing mount occupies.
+                if (RegoDataDocumentDefinesMountPath(document, existingSegments.AsSpan(segments.Length)))
+                {
+                    throw CreateRegoDataConflictException(mountPath, existing.MountPath);
+                }
+            }
+        }
+    }
+
+    private static bool IsRegoDataMountPrefix(string[] prefix, string[] path)
+    {
+        if (prefix.Length >= path.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < prefix.Length; i++)
+        {
+            if (!prefix[i].Equals(path[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Determines whether the document at an ancestor mount already defines the mount point that a
+    // descendant mount occupies. The descendant conflicts when the ancestor defines a value exactly at
+    // the mount point, or a non-object value at any segment along the way (which would block descending
+    // into a container). Disjoint sibling keys along the path are not a conflict.
+    private static bool RegoDataDocumentDefinesMountPath(JsonElement document, ReadOnlySpan<string> relativeSegments)
+    {
+        var current = document;
+
+        foreach (var segment in relativeSegments)
+        {
+            if (current.ValueKind is not JsonValueKind.Object)
+            {
+                return true;
+            }
+
+            if (!current.TryGetProperty(segment, out var next))
+            {
+                return false;
+            }
+
+            current = next;
+        }
+
+        return true;
+    }
+
+    private static bool RegoDataDocumentDefinesMountPath(JsonObject document, ReadOnlySpan<string> relativeSegments)
+    {
+        JsonNode? current = document;
+
+        foreach (var segment in relativeSegments)
+        {
+            if (current is not JsonObject next)
+            {
+                return true;
+            }
+
+            if (!next.TryGetPropertyValue(segment, out current))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static JsonObject NavigateOrCreateRegoDataObject(JsonObject root, string[] segments, string mountPath)
+    {
+        var current = root;
+
+        foreach (var segment in segments)
+        {
+            if (current[segment] is JsonObject child)
+            {
+                current = child;
+            }
+            else if (current.ContainsKey(segment))
+            {
+                throw new InvalidDataException(
+                    $"The Rego data mount '{mountPath}' conflicts with another mount on the key '{segment}'.");
+            }
+            else
+            {
+                child = new JsonObject();
+                current[segment] = child;
+                current = child;
+            }
+        }
+
+        return current;
+    }
+
+    private static void MergeRegoDataObject(JsonObject destination, JsonObject source, string mountPath)
+    {
+        foreach (var key in source.Select(property => property.Key).ToArray())
+        {
+            var value = source[key];
+            source.Remove(key);
+
+            if (!destination.TryAdd(key, value))
+            {
+                throw new InvalidDataException(
+                    $"The Rego data mount '{mountPath}' conflicts with another mount on the key '{key}'.");
+            }
+        }
+    }
+
+    private static InvalidOperationException CreateRegoDataConflictException(
+        string mountPath,
+        string existingMountPath)
+    {
+        var newLabel = mountPath.Length == 0 ? "the data root" : $"'{mountPath}'";
+        var existingLabel = existingMountPath.Length == 0 ? "the data root" : $"'{existingMountPath}'";
+
+        return new InvalidOperationException(
+            $"The Rego data mount at {newLabel} conflicts with the existing mount at {existingLabel} "
+            + "because their documents define overlapping paths.");
+    }
+
+    private static InvalidDataException CreateRegoDataConflictDataException(
+        string ancestorMountPath,
+        string descendantMountPath)
+    {
+        var ancestorLabel = ancestorMountPath.Length == 0 ? "the data root" : $"'{ancestorMountPath}'";
+        var descendantLabel = descendantMountPath.Length == 0 ? "the data root" : $"'{descendantMountPath}'";
+
+        return new InvalidDataException(
+            $"The Rego data mount at {descendantLabel} conflicts with the mount at {ancestorLabel} "
+            + "because their documents define overlapping paths.");
+    }
+
+    private async Task EnsureNoRegoBaseVirtualConflictForDataAsync(
+        Version version,
+        string mountPath,
+        string[] dataSegments,
+        JsonElement dataDocument,
+        CancellationToken cancellationToken)
+    {
+        foreach (var policySegments in await ReadRegoPolicyPackageRootsAsync(version, cancellationToken))
+        {
+            if (RegoSegmentsEqual(dataSegments, policySegments)
+                || IsRegoDataMountPrefix(policySegments, dataSegments))
+            {
+                // The data mount sits at or inside the policy's virtual document subtree.
+                throw CreateRegoBaseVirtualConflictException(mountPath, policySegments);
+            }
+
+            if (IsRegoDataMountPrefix(dataSegments, policySegments)
+                && RegoDataDocumentDefinesMountPath(dataDocument, policySegments.AsSpan(dataSegments.Length)))
+            {
+                // The data mount is an ancestor whose document defines the policy's virtual root.
+                throw CreateRegoBaseVirtualConflictException(mountPath, policySegments);
+            }
+        }
+    }
+
+    private async Task EnsureNoRegoBaseVirtualConflictForPolicyAsync(
+        Version version,
+        string[] policySegments,
+        CancellationToken cancellationToken)
+    {
+        foreach (var mount in ReadRegoDataMounts(version))
+        {
+            var dataSegments = mount.MountPath.Length == 0 ? [] : mount.MountPath.Split('/');
+
+            if (RegoSegmentsEqual(dataSegments, policySegments)
+                || IsRegoDataMountPrefix(policySegments, dataSegments))
+            {
+                throw CreateRegoBaseVirtualConflictException(mount.MountPath, policySegments);
+            }
+
+            if (!IsRegoDataMountPrefix(dataSegments, policySegments))
+            {
+                continue;
+            }
+
+            bool defines;
+            await using (var stream = await _session.OpenReadAsync(
+                mount.Path,
+                FileKind.PolicyData,
+                cancellationToken))
+            {
+                using var document = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+                defines = RegoDataDocumentDefinesMountPath(
+                    document.RootElement,
+                    policySegments.AsSpan(dataSegments.Length));
+            }
+
+            if (defines)
+            {
+                throw CreateRegoBaseVirtualConflictException(mount.MountPath, policySegments);
+            }
+        }
+    }
+
+    private async Task<List<string[]>> ReadRegoPolicyPackageRootsAsync(
+        Version version,
+        CancellationToken cancellationToken)
+    {
+        List<string[]>? roots = null;
+
+        foreach (var fileSet in ReadRegoPolicyFileSets())
+        {
+            if (fileSet.Version != version)
+            {
+                continue;
+            }
+
+            var buffer = new ArrayBufferWriter<byte>();
+            await using (var stream = await _session.OpenReadAsync(
+                FileNames.GetRegoPolicyPath(version, fileSet.Name),
+                FileKind.Policy,
+                cancellationToken))
+            {
+                await stream.CopyToAsync(buffer, cancellationToken);
+            }
+
+            if (TryScanRegoPackageSegments(buffer.WrittenSpan, out var segments))
+            {
+                (roots ??= []).Add(segments);
+            }
+        }
+
+        return roots ?? [];
+    }
+
+    private static bool RegoSegmentsEqual(string[] left, string[] right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            if (!left[i].Equals(right[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Reads the package path a Rego policy declares (for example 'package a.b.c' yields ["a", "b", "c"]).
+    // Package references that use bracket or string notation cannot be mapped to a simple path and are
+    // reported as not scanned, so the conflict check is skipped rather than risk a false rejection.
+    private static bool TryScanRegoPackageSegments(ReadOnlySpan<byte> source, out string[] segments)
+    {
+        // Skip a leading UTF-8 byte order mark so a policy authored with one is scanned correctly.
+        if (source.Length >= 3 && source[0] == 0xEF && source[1] == 0xBB && source[2] == 0xBF)
+        {
+            source = source[3..];
+        }
+
+        var token = ScanRegoPackageToken(Encoding.UTF8.GetString(source));
+
+        if (string.IsNullOrEmpty(token))
+        {
+            segments = [];
+            return false;
+        }
+
+        var parts = token.Split('.');
+
+        foreach (var part in parts)
+        {
+            if (!IsRegoPackageSegment(part))
+            {
+                segments = [];
+                return false;
+            }
+        }
+
+        segments = parts;
+        return true;
+    }
+
+    private static string? ScanRegoPackageToken(string source)
+    {
+        var span = source.AsSpan();
+        var i = 0;
+
+        while (i < span.Length)
+        {
+            while (i < span.Length && char.IsWhiteSpace(span[i]))
+            {
+                i++;
+            }
+
+            if (i >= span.Length)
+            {
+                break;
+            }
+
+            if (span[i] == '#')
+            {
+                while (i < span.Length && span[i] != '\n')
+                {
+                    i++;
+                }
+
+                continue;
+            }
+
+            const string keyword = "package";
+
+            if (span[i..].StartsWith(keyword)
+                && i + keyword.Length < span.Length
+                && char.IsWhiteSpace(span[i + keyword.Length]))
+            {
+                i += keyword.Length;
+
+                while (i < span.Length && char.IsWhiteSpace(span[i]))
+                {
+                    i++;
+                }
+
+                var start = i;
+
+                while (i < span.Length && !char.IsWhiteSpace(span[i]) && span[i] != '#')
+                {
+                    i++;
+                }
+
+                return span[start..i].ToString();
+            }
+
+            while (i < span.Length && span[i] != '\n')
+            {
+                i++;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsRegoPackageSegment(string segment)
+    {
+        if (segment.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var character in segment)
+        {
+            if (!char.IsAsciiLetterOrDigit(character) && character != '_')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static InvalidOperationException CreateRegoBaseVirtualConflictException(
+        string mountPath,
+        string[] policySegments)
+    {
+        var mountLabel = mountPath.Length == 0 ? "the data root" : $"'{mountPath}'";
+        var virtualPath = "data." + string.Join('.', policySegments);
+
+        return new InvalidOperationException(
+            $"The Rego data mount at {mountLabel} conflicts with the virtual document '{virtualPath}' "
+            + "defined by a policy package because a data document and a policy package must not define "
+            + "overlapping paths.");
+    }
+
+    private static InvalidDataException CreateRegoBaseVirtualConflictDataException(
+        string mountPath,
+        string[] policySegments)
+    {
+        var mountLabel = mountPath.Length == 0 ? "the data root" : $"'{mountPath}'";
+        var virtualPath = "data." + string.Join('.', policySegments);
+
+        return new InvalidDataException(
+            $"The Rego data mount at {mountLabel} conflicts with the virtual document '{virtualPath}' "
+            + "defined by a policy package because a data document and a policy package must not define "
+            + "overlapping paths.");
+    }
+
     /// <summary>
     /// We will try to work with a single buffer for all file interactions.
     /// </summary>
@@ -1244,6 +2190,8 @@ public sealed class FusionArchive : IDisposable
 
         public bool HasRequirements { get; set; }
     }
+
+    private readonly record struct RegoDataMount(string MountPath, string Path);
 
     /// <summary>
     /// Tries to preserve a used buffer.
@@ -1264,13 +2212,35 @@ public sealed class FusionArchive : IDisposable
         }
     }
 
-    private async Task<SignatureManifest> GenerateManifestAsync(CancellationToken cancellationToken)
+    private async Task<byte[]> WriteManifestAsync(CancellationToken cancellationToken)
     {
-        var files = ImmutableDictionary.CreateBuilder<string, string>();
+        var manifest = await GenerateManifestAsync(cancellationToken);
+        var buffer = TryRentBuffer();
 
-        foreach (var path in _session.GetFiles().Order())
+        try
         {
-            if (!IsSignedArchiveFile(path))
+            ArchiveManifestSerializer.Format(manifest, buffer);
+            var bytes = buffer.WrittenSpan.ToArray();
+
+            await using var stream = _session.OpenWrite(FileNames.Manifest);
+            await stream.WriteAsync(bytes, cancellationToken);
+            await stream.FlushAsync(cancellationToken);
+
+            return bytes;
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    private async Task<ArchiveManifest> GenerateManifestAsync(CancellationToken cancellationToken)
+    {
+        var files = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (!IsManifestListedFile(path))
             {
                 continue;
             }
@@ -1279,53 +2249,121 @@ public sealed class FusionArchive : IDisposable
             files[path] = await ComputeFileHashAsync(path, kind, cancellationToken);
         }
 
-        var manifest = new SignatureManifest
+        var fileDigests = files.ToImmutable();
+
+        return new ArchiveManifest
         {
             Version = "1.0.0",
-            Algorithm = "SHA256",
-            Timestamp = DateTime.UtcNow,
-            Files = files.ToImmutable()
+            Algorithm = "sha256",
+            Files = fileDigests,
+            Artifacts = ComputeArtifactDigests(fileDigests)
         };
+    }
 
-        var buffer = TryRentBuffer();
-        try
+    private static bool IsManifestListedFile(string path)
+        => !path.EndsWith("/", StringComparison.Ordinal)
+            && !path.Equals(FileNames.Manifest, StringComparison.Ordinal)
+            && !path.StartsWith(FileNames.SignatureDirectory, StringComparison.Ordinal);
+
+    private static ImmutableSortedDictionary<string, string> ComputeArtifactDigests(
+        ImmutableSortedDictionary<string, string> files)
+    {
+        var members = new Dictionary<string, List<KeyValuePair<string, string>>>(StringComparer.Ordinal);
+
+        foreach (var file in files)
         {
-            SignatureManifestSerializer.Format(manifest, buffer);
-            return manifest with { ManifestHash = ComputeManifestHash(buffer.WrittenSpan) };
+            var key = TryGetArtifactKey(file.Key);
+
+            if (key is null)
+            {
+                continue;
+            }
+
+            if (!members.TryGetValue(key, out var list))
+            {
+                list = [];
+                members.Add(key, list);
+            }
+
+            list.Add(file);
         }
-        finally
+
+        var artifacts = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+
+        foreach (var (key, list) in members)
         {
-            TryReturnBuffer(buffer);
+            artifacts.Add(key, ComputeArtifactDigest(list));
+        }
+
+        return artifacts.ToImmutable();
+    }
+
+    private static string? TryGetArtifactKey(string path)
+    {
+        var segments = path.Split('/');
+
+        switch (segments[0])
+        {
+            case "gateway" when segments.Length >= 3:
+                return $"gateway/{segments[1]}";
+
+            case "source-schemas" when segments.Length >= 3:
+                return $"source-schemas/{segments[1]}";
+
+            case "policies" when segments.Length >= 5 && segments[3] == "data":
+                return $"policies/{segments[1]}/{segments[2]}/data";
+
+            case "policies" when segments.Length == 4 && segments[3].EndsWith(".rego", StringComparison.Ordinal):
+                return $"policies/{segments[1]}/{segments[2]}/{segments[3][..^5]}";
+
+            case "policies" when segments.Length == 4 && segments[3].EndsWith(".graphql", StringComparison.Ordinal):
+                return $"policies/{segments[1]}/{segments[2]}/{segments[3][..^8]}";
+
+            default:
+                return null;
         }
     }
 
-    private static bool IsSignedArchiveFile(string path)
-        => !path.EndsWith("/", StringComparison.Ordinal)
-            && !path.Equals(FileNames.SignatureManifest, StringComparison.Ordinal)
-            && !path.Equals(FileNames.Signature, StringComparison.Ordinal);
+    private static string ComputeArtifactDigest(List<KeyValuePair<string, string>> members)
+    {
+        // Build the "<path>:<digest>" line for each member and sort the lines by ordinal (byte) order
+        // over their UTF-8 encoding, as the specification requires. Sorting the composed lines rather
+        // than the paths keeps the order well defined for supplementary-plane characters, whose UTF-8
+        // byte order differs from UTF-16 code-unit order, and for degenerate prefix and colon cases.
+        var lines = new byte[members.Count][];
+
+        for (var i = 0; i < members.Count; i++)
+        {
+            lines[i] = Encoding.UTF8.GetBytes(members[i].Key + ":" + members[i].Value);
+        }
+
+        Array.Sort(lines, static (left, right) => left.AsSpan().SequenceCompareTo(right.AsSpan()));
+
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+        foreach (var line in lines)
+        {
+            hash.AppendData(line);
+            hash.AppendData("\n"u8);
+        }
+
+        return "sha256:" + ToHexLower(hash.GetHashAndReset());
+    }
 
     private async Task<string> ComputeFileHashAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
         await using var stream = await _session.OpenReadAsync(path, kind, cancellationToken);
         using var sha256 = SHA256.Create();
         var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
-#if NET9_0_OR_GREATER
-        return "sha256:" + Convert.ToHexStringLower(hashBytes);
-#else
-        return "sha256:" + Convert.ToHexString(hashBytes).ToLowerInvariant();
-#endif
+        return "sha256:" + ToHexLower(hashBytes);
     }
 
-    private static string ComputeManifestHash(ReadOnlySpan<byte> data)
-    {
-        Span<byte> hash = stackalloc byte[32];
-        SHA256.TryHashData(data, hash, out _);
+    private static string ToHexLower(ReadOnlySpan<byte> bytes)
 #if NET9_0_OR_GREATER
-        return "sha256:" + Convert.ToHexStringLower(hash);
+        => Convert.ToHexStringLower(bytes);
 #else
-        return "sha256:" + Convert.ToHexString(hash).ToLowerInvariant();
+        => Convert.ToHexString(bytes).ToLowerInvariant();
 #endif
-    }
 
     private void EnsureMutable()
     {
@@ -1353,24 +2391,32 @@ public sealed class FusionArchive : IDisposable
 
         if (_session.HasUncommittedChanges)
         {
-            await _session.CommitAsync(cancellationToken);
+            // Regenerate the content manifest so it always reflects the committed archive contents.
+            // Determinism guarantees that unchanged content yields a byte-identical manifest.
+            await WriteManifestAsync(cancellationToken);
+            await CommitCoreAsync(cancellationToken);
+        }
+    }
+
+    private async Task CommitCoreAsync(CancellationToken cancellationToken)
+    {
+        await _session.CommitAsync(cancellationToken);
 #if NET10_0_OR_GREATER
-            await _archive.DisposeAsync();
+        await _archive.DisposeAsync();
 #else
-            _archive.Dispose();
+        _archive.Dispose();
 #endif
 
-            if (_stream is { CanSeek: true, CanRead: true, CanWrite: true })
-            {
-                _stream.Seek(0, SeekOrigin.Begin);
-                _archive = new ZipArchive(_stream, ZipArchiveMode.Update, _leaveOpen);
-                _mode = FusionArchiveMode.Update;
-                _session.SetMode(_mode);
-            }
-            else
-            {
-                _mode = FusionArchiveMode.Read;
-            }
+        if (_stream is { CanSeek: true, CanRead: true, CanWrite: true })
+        {
+            _stream.Seek(0, SeekOrigin.Begin);
+            _archive = new ZipArchive(_stream, ZipArchiveMode.Update, _leaveOpen);
+            _mode = FusionArchiveMode.Update;
+            _session.SetMode(_mode);
+        }
+        else
+        {
+            _mode = FusionArchiveMode.Read;
         }
     }
 

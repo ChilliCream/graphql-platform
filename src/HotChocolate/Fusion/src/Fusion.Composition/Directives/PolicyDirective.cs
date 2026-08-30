@@ -13,7 +13,7 @@ internal sealed class PolicyDirective
 {
     private PolicyDirective(
         ImmutableArray<ImmutableArray<string>> groups,
-        string onDenied,
+        string? onDenied,
         string canonicalKey)
     {
         Groups = groups;
@@ -27,9 +27,11 @@ internal sealed class PolicyDirective
     public ImmutableArray<ImmutableArray<string>> Groups { get; }
 
     /// <summary>
-    /// Gets the behavior used when this policy expression denies an entity.
+    /// Gets the behavior used when this policy expression denies an entity, or <c>null</c>
+    /// when no source schema contributed an explicit value and the behavior instead inherits
+    /// a schema-wide default.
     /// </summary>
-    public string OnDenied { get; }
+    public string? OnDenied { get; }
 
     /// <summary>
     /// Gets a canonical string key that identifies the policy expression
@@ -39,7 +41,7 @@ internal sealed class PolicyDirective
 
     public static PolicyDirective Create(
         ImmutableArray<ImmutableArray<string>> groups,
-        string onDenied)
+        string? onDenied)
     {
         var canonicalGroups = PolicyNameGroups.Canonicalize(groups);
         return new PolicyDirective(
@@ -57,13 +59,14 @@ internal sealed class PolicyDirective
         }
 
         var groups = PolicyNameGroups.ParseNames(namesArg, "@policy");
-        var onDenied = "NULL";
+        string? onDenied = null;
 
         if (directive.Arguments.TryGetValue(ArgumentNames.OnDenied, out var onDeniedArg))
         {
             onDenied = onDeniedArg switch
             {
                 EnumValueNode enumValueNode => GetOnDenied(enumValueNode.Value),
+                NullValueNode => null,
                 _ => throw new InvalidOperationException(
                     "The `onDenied` argument on @policy must be an enum value.")
             };

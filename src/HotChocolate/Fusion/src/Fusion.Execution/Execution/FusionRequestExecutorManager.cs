@@ -17,6 +17,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Validation;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
@@ -154,7 +155,8 @@ internal sealed class FusionRequestExecutorManager
                 cancellationToken)
                 .ConfigureAwait(false);
 
-        var executor = CreateRequestExecutor(schemaName, configuration);
+        var executor = await CreateRequestExecutorAsync(schemaName, configuration)
+            .ConfigureAwait(false);
 
         await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
 
@@ -166,7 +168,7 @@ internal sealed class FusionRequestExecutorManager
             configuration);
     }
 
-    private FusionRequestExecutor CreateRequestExecutor(
+    private async ValueTask<FusionRequestExecutor> CreateRequestExecutorAsync(
         string schemaName,
         FusionConfiguration configuration)
     {
@@ -188,17 +190,46 @@ internal sealed class FusionRequestExecutorManager
             options,
             requestOptions,
             parserOptions);
-        var schemaServices = CreateSchemaServices(configuration, setup, options, requestOptions, plannerOptions);
+        var schemaServices = CreateSchemaServices(
+            configuration,
+            setup,
+            options,
+            requestOptions,
+            plannerOptions);
 
-        var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
-        var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
+        FusionSchemaDefinition? schema = null;
 
-        var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
-        var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
-        var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
-        requestExecutorAccessor.RequestExecutor = executor;
+        try
+        {
+            schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
+            var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
-        return executor;
+            var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
+            var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
+            var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
+            requestExecutorAccessor.RequestExecutor = executor;
+
+            return executor;
+        }
+        catch
+        {
+            // Schema completion or pipeline construction can throw (for example a policy referenced by
+            // the schema is missing or fails to compile). Dispose the fresh schema, which retires the
+            // live policy registry and disposes the schema services, so the policy providers unsubscribe
+            // from the long-lived configuration provider instead of leaking. When the schema was not
+            // created, its policy registry was already retired during completion, so only the services
+            // remain to dispose.
+            if (schema is not null)
+            {
+                await schema.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                await schemaServices.DisposeAsync().ConfigureAwait(false);
+            }
+
+            throw;
+        }
     }
 
     private static async Task WarmupExecutorAsync(
@@ -364,6 +395,17 @@ internal sealed class FusionRequestExecutorManager
     {
         var schemaServices = new ServiceCollection();
 
+        // The single delivery channel for policy content within one schema generation. A policy
+        // provider registered in the schema services subscribes to it to receive the initial content
+        // and, without an executor rebuild, every later policy-only change: the manager is the only
+        // publisher, invoked on adopt (see WaitForUpdatesAsync), so a provider never observes content
+        // from a configuration newer than the one the manager decided to pair it with.
+        // Registered through a factory, not as a pre-built instance, so the container disposes it
+        // when the schema services are disposed (a pre-built instance would not be).
+        schemaServices.AddSingleton(_ => new MutableFusionConfigurationProvider(configuration));
+        schemaServices.AddSingleton<IFusionConfigurationProvider>(
+            static sp => sp.GetRequiredService<MutableFusionConfigurationProvider>());
+
         AddCoreServices(
             configuration.Settings.Document.RootElement.Clone(),
             setup,
@@ -450,10 +492,18 @@ internal sealed class FusionRequestExecutorManager
             static sp =>
             {
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
-                return new Cache<OperationPlan>(
+                return new OperationPlanCache(
                     options.OperationExecutionPlanCacheSize,
                     options.OperationExecutionPlanCacheDiagnostics);
             });
+
+        // Exposed alongside OperationPlanCache for inspection (for example capacity assertions in
+        // tests). The request pipeline reads OperationPlanCache.Current instead: a targeted policy
+        // eviction mutates this same cache instance in place, so both observe it, but a full
+        // OperationPlanCache.Reset() replaces the instance, which only OperationPlanCache.Current
+        // observes; this snapshot does not.
+        services.AddSingleton(
+            static sp => sp.GetRequiredService<OperationPlanCache>().Current);
 
         services.AddSingleton(
             static sp => new OperationCompiler(
@@ -483,7 +533,8 @@ internal sealed class FusionRequestExecutorManager
         var builder =
             DocumentValidatorBuilder.New()
                 .SetServices(_applicationServices)
-                .AddDefaultRules();
+                .AddDefaultRules()
+                .AddRule<ReservedVariablePrefixRule>();
 
         foreach (var modifier in setup.DocumentValidatorBuilderModifiers)
         {
@@ -522,6 +573,12 @@ internal sealed class FusionRequestExecutorManager
         var schema = FusionSchemaDefinition.Create(schemaName, schemaDocument, schemaServices, features);
         var schemaDefinitionAccessor = schemaServices.GetRequiredService<SchemaDefinitionAccessor>();
         schemaDefinitionAccessor.Schema = schema;
+
+        // Attached only after the schema is assigned to the accessor, because the operation plan
+        // cache's own registration resolves ISchemaDefinition (for its capacity and diagnostics
+        // options), which would otherwise resolve before the accessor has a schema to hand back.
+        schema.Policies.AttachPlanCache(schemaServices.GetRequiredService<OperationPlanCache>());
+
         return schema;
     }
 
@@ -599,17 +656,24 @@ internal sealed class FusionRequestExecutorManager
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _cancellationToken;
-        private readonly Channel<FusionConfiguration> _channel = Channel.CreateBounded<FusionConfiguration>(
-            new BoundedChannelOptions(1)
-            {
-                FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = true,
-                SingleWriter = false
-            });
+
+        // The channel is unbounded so that a rebuild in progress can never cause a newly emitted
+        // configuration to be dropped by a full channel. A drop would both lose the update and leak the
+        // dropped configuration, which no component would ever dispose. Distinct configurations are
+        // deduplicated by hash in the drain loop, so the backlog is bounded by the rare cadence of
+        // configuration changes.
+        private readonly Channel<FusionConfiguration> _channel =
+            Channel.CreateUnbounded<FusionConfiguration>(
+                new UnboundedChannelOptions
+                {
+                    SingleReader = true,
+                    SingleWriter = false
+                });
         private readonly FusionRequestExecutorManager _manager;
         private readonly IDisposable _documentProviderSubscription;
 
         private FusionConfiguration _currentConfiguration;
+        private FusionConfiguration? _pendingFailedConfiguration;
         private ulong _documentHash;
         private ulong _settingsHash;
         private bool _disposed;
@@ -654,22 +718,67 @@ internal sealed class FusionRequestExecutorManager
                     break;
                 }
 
+                // A configuration whose rebuild previously failed was retained only so it stayed alive
+                // as the provider's replay value. The arrival of this configuration supersedes it as the
+                // replay value, so it can now be disposed and its pooled buffers returned.
+                if (_pendingFailedConfiguration is not null)
+                {
+                    _pendingFailedConfiguration.Dispose();
+                    _pendingFailedConfiguration = null;
+                }
+
                 var documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.Schema.ToString()));
                 var settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
                 if (documentHash == _documentHash && settingsHash == _settingsHash)
                 {
+                    // The schema and settings are unchanged, so the executor is not rebuilt: this is a
+                    // policy-only update (or a manifest/signature-only no-op). The new content is handed
+                    // to the current generation's policy provider through its schema-scoped delivery
+                    // channel; a provider with no resource requirement change applies it in place, and
+                    // one whose requirements did change already evicted the affected cached plans before
+                    // publishing (PolicyCollection). The newly emitted configuration is now the
+                    // provider's replay value and is read by providers that subscribe later, so it must
+                    // stay alive: adopt it as the current configuration and dispose the one it replaced.
+                    if (!ReferenceEquals(configuration, _currentConfiguration))
+                    {
+                        var replaced = _currentConfiguration;
+                        _currentConfiguration = configuration;
+                        Executor.Schema.Services
+                            .GetRequiredService<MutableFusionConfigurationProvider>()
+                            .Publish(configuration);
+                        replaced.Dispose();
+                    }
+
+                    continue;
+                }
+
+                var previousExecutor = Executor;
+                var previousConfiguration = _currentConfiguration;
+                FusionRequestExecutor nextExecutor;
+
+                try
+                {
+                    nextExecutor = await _manager.CreateRequestExecutorAsync(
+                        Executor.Schema.Name,
+                        configuration)
+                        .ConfigureAwait(false);
+
+                    await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception) when (!_cancellationToken.IsCancellationRequested)
+                {
+                    // A failed rebuild (for example a policy that no longer compiles) must not terminate
+                    // the hot-reload loop. Keep serving the previous executor and leave the dedup hashes
+                    // unchanged so the next emission retries. The failed configuration is still the
+                    // provider's replay value, so it is retained here rather than disposed, and released
+                    // once the next configuration supersedes it (or on disposal).
+                    _pendingFailedConfiguration = configuration;
                     continue;
                 }
 
                 _documentHash = documentHash;
                 _settingsHash = settingsHash;
-
-                var previousExecutor = Executor;
-                var previousConfiguration = _currentConfiguration;
-                var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
-
-                await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
 
                 Executor = nextExecutor;
                 _currentConfiguration = configuration;
@@ -707,6 +816,11 @@ internal sealed class FusionRequestExecutorManager
             {
                 configuration.Dispose();
             }
+
+            // Release a configuration whose rebuild failed and that has not yet been superseded, so its
+            // pooled buffers are returned instead of leaking.
+            _pendingFailedConfiguration?.Dispose();
+            _pendingFailedConfiguration = null;
 
             _currentConfiguration.Dispose();
 

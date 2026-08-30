@@ -10,13 +10,13 @@ public sealed partial class OperationPlanner
     private const string RequirementDirectiveName = "fusion__requirement";
 
     private static Dictionary<string, SelectionSetNode> CreatePolicyRequirementMap(
-        IEnumerable<IAuthorizationPolicy> policies)
+        IEnumerable<IPolicy> policies)
     {
         var requirements = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
 
         foreach (var policy in policies)
         {
-            if (policy.Requirements is not { } selectionSet)
+            if (policy.Requirements.Resource is not { } selectionSet)
             {
                 continue;
             }
@@ -27,13 +27,111 @@ public sealed partial class OperationPlanner
         return requirements;
     }
 
+    /// <summary>
+    /// Builds a lookup from policy name to <see cref="PolicyRequirements.IsRequestCacheable"/>,
+    /// used to classify a policy application's names into the plan-time condition slot path
+    /// (all names request-cacheable) or the policy execution node path (any name reads
+    /// resource or action data).
+    /// </summary>
+    private static Dictionary<string, bool> CreatePolicyRequestCacheabilityMap(
+        IEnumerable<IPolicy> policies)
+    {
+        var cacheability = new Dictionary<string, bool>(StringComparer.Ordinal);
+
+        foreach (var policy in policies)
+        {
+            cacheability[policy.Name] = policy.Requirements.IsRequestCacheable;
+        }
+
+        return cacheability;
+    }
+
+    /// <summary>
+    /// Gets whether the named policy is known and produces a request-constant decision. An
+    /// unknown policy name is treated as not request-cacheable, so classification conservatively
+    /// falls back to the policy execution node path instead of gating on an unresolved policy.
+    /// </summary>
+    private static bool IsPolicyRequestCacheable(string policyName, PolicyPlanningState policyState)
+        => policyState.RequestCacheability.TryGetValue(policyName, out var cacheable) && cacheable;
+
+    /// <summary>
+    /// Gets whether every policy name reached by <paramref name="application"/>, across every
+    /// OR group, is request-cacheable. Such an application produces a request-constant decision
+    /// and can be represented entirely as a plan-time condition slot.
+    /// </summary>
+    private static bool IsApplicationRequestCacheable(
+        PolicyApplication application,
+        PolicyPlanningState policyState)
+    {
+        foreach (var group in application.Groups)
+        {
+            foreach (var name in group)
+            {
+                if (!IsPolicyRequestCacheable(name, policyState))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Classifies a policy application at a coordinate for plan-time condition slot gating
+    /// (repo-xx5): S when every name is request-cacheable, M when the application mixes
+    /// request-cacheable and data-bearing names, and Npure when no name is request-cacheable.
+    /// </summary>
+    private static PolicyApplicationClass ClassifyApplication(
+        PolicyApplication application,
+        PolicyPlanningState policyState)
+    {
+        if (IsApplicationRequestCacheable(application, policyState))
+        {
+            return PolicyApplicationClass.S;
+        }
+
+        foreach (var group in application.Groups)
+        {
+            foreach (var name in group)
+            {
+                if (IsPolicyRequestCacheable(name, policyState))
+                {
+                    return PolicyApplicationClass.M;
+                }
+            }
+        }
+
+        return PolicyApplicationClass.Npure;
+    }
+
+    /// <summary>
+    /// The classification of a policy application at one coordinate, used to split the
+    /// coordinate into its plan-time slot-eligible applications (S union M) and its residual
+    /// applications (M union Npure, the set the static residual denial threshold is computed
+    /// over) per repo-xx5.
+    /// </summary>
+    private enum PolicyApplicationClass
+    {
+        /// <summary>Every policy name in the application is request-cacheable.</summary>
+        S,
+
+        /// <summary>The application mixes request-cacheable and data-bearing names.</summary>
+        M,
+
+        /// <summary>No policy name in the application is request-cacheable.</summary>
+        Npure
+    }
+
     private OperationDefinitionNode InjectPolicyRequirements(
-        OperationDefinitionNode operation)
+        OperationDefinitionNode operation,
+        PolicyPlanningState policyState)
     {
         var rootType = _schema.GetOperationType(operation.Operation);
         var selectionSet = RewriteSelectionSetWithPolicyRequirements(
             operation.SelectionSet,
-            rootType);
+            rootType,
+            policyState);
 
         return ReferenceEquals(selectionSet, operation.SelectionSet)
             ? operation
@@ -42,7 +140,8 @@ public sealed partial class OperationPlanner
 
     private SelectionSetNode RewriteSelectionSetWithPolicyRequirements(
         SelectionSetNode selectionSet,
-        ITypeDefinition type)
+        ITypeDefinition type,
+        PolicyPlanningState policyState)
     {
         if (type is not FusionComplexTypeDefinition complexType)
         {
@@ -54,7 +153,10 @@ public sealed partial class OperationPlanner
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
             var selection = selectionSet.Selections[i];
-            var updatedSelection = RewriteSelectionWithPolicyRequirements(selection, complexType);
+            var updatedSelection = RewriteSelectionWithPolicyRequirements(
+                selection,
+                complexType,
+                policyState);
 
             if (!ReferenceEquals(selection, updatedSelection))
             {
@@ -83,7 +185,8 @@ public sealed partial class OperationPlanner
                             MergePolicyRequirements(
                                 name,
                                 updatedSelectionSet,
-                                complexType);
+                                complexType,
+                                policyState);
                     }
                 }
             }
@@ -111,7 +214,8 @@ public sealed partial class OperationPlanner
                             MergePolicyRequirements(
                                 name,
                                 updatedSelectionSet,
-                                complexType);
+                                complexType,
+                                policyState);
                     }
                 }
             }
@@ -122,7 +226,8 @@ public sealed partial class OperationPlanner
 
     private ISelectionNode RewriteSelectionWithPolicyRequirements(
         ISelectionNode selection,
-        FusionComplexTypeDefinition type)
+        FusionComplexTypeDefinition type,
+        PolicyPlanningState policyState)
     {
         switch (selection)
         {
@@ -133,7 +238,8 @@ public sealed partial class OperationPlanner
                     allowInaccessibleFields: true);
                 var rewritten = RewriteSelectionSetWithPolicyRequirements(
                     childSelectionSet,
-                    field.Type.NamedType());
+                    field.Type.NamedType(),
+                    policyState);
 
                 return ReferenceEquals(rewritten, childSelectionSet)
                     ? fieldNode
@@ -149,7 +255,8 @@ public sealed partial class OperationPlanner
                         allowInaccessibleFields: true);
                 var rewritten = RewriteSelectionSetWithPolicyRequirements(
                     inlineFragment.SelectionSet,
-                    fragmentType);
+                    fragmentType,
+                    policyState);
 
                 return ReferenceEquals(rewritten, inlineFragment.SelectionSet)
                     ? inlineFragment
@@ -164,9 +271,10 @@ public sealed partial class OperationPlanner
     private SelectionSetNode MergePolicyRequirements(
         string policyName,
         SelectionSetNode selectionSet,
-        FusionComplexTypeDefinition type)
+        FusionComplexTypeDefinition type,
+        PolicyPlanningState policyState)
     {
-        if (!_policyRequirements.TryGetValue(policyName, out var requirements))
+        if (!policyState.Requirements.TryGetValue(policyName, out var requirements))
         {
             return selectionSet;
         }

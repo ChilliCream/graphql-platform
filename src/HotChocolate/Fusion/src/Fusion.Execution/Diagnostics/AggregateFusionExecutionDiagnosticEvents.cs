@@ -428,6 +428,14 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public void ConfigurationReadError(Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].ConfigurationReadError(error);
+        }
+    }
+
     private sealed class AggregateActivityScope(IDisposable[] scopes) : IDisposable
     {
         private bool _disposed;

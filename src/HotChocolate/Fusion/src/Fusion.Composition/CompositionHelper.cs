@@ -87,6 +87,7 @@ internal static class CompositionHelper
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
+        mergedCompositionSettings.Authorization.MergeInto(mergerOptions);
         var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
         var apolloFederationCompatibilityOptions =
             mergedCompositionSettings.ApolloFederationCompatibility.ToOptions();

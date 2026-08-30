@@ -58,7 +58,33 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        if (!plan.PolicySlots.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("policySlots:");
+            writer.Indent();
+
+            foreach (var slot in plan.PolicySlots)
+            {
+                WritePolicySlot(slot, writer);
+            }
+
+            writer.Unindent();
+        }
+
         return sb.ToString();
+    }
+
+    private static void WritePolicySlot(PolicyConditionSlot slot, CodeWriter writer)
+    {
+        writer.WriteLine("- ordinal: {0}", slot.Ordinal);
+        writer.Indent();
+
+        writer.WriteLine("variable: ${0}", slot.VariableName);
+        writer.WriteLine("names: {0}", FormatPolicyNameGroups(slot.Groups));
+        writer.WriteLine("rmax: {0}", slot.Rmax.ToString());
+        writer.WriteLine("expression: {0}", slot.Format());
+
+        writer.Unindent();
     }
 
     private static void WriteNode(ExecutionNode node, ExecutionNodeTrace? nodeTrace, CodeWriter writer)
@@ -800,11 +826,6 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
             writer.WriteLine("path: {0}", target.Path.ToString());
             writer.WriteLine("typeName: {0}", target.TypeName);
-
-            if (target.FieldName is not null)
-            {
-                writer.WriteLine("fieldName: {0}", target.FieldName);
-            }
 
             writer.WriteLine("policies:");
             writer.Indent();

@@ -40,7 +40,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionObjectTypeDefinition? subscriptionType,
         FusionDirectiveCollection directives,
         FusionTypeDefinitionCollection types,
-        AuthorizationPolicyCollection policies,
+        PolicyCollection policies,
         FusionDirectiveDefinitionCollection directiveDefinitions,
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
@@ -140,7 +140,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// <summary>
     /// Gets all authorization policies owned by this schema.
     /// </summary>
-    public AuthorizationPolicyCollection Policies { get; }
+    public PolicyCollection Policies { get; }
 
     /// <summary>
     /// Gets all the directive definitions that are supported by this schema.
@@ -768,6 +768,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         }
 
         _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
+
+        // Object types are the only types that carry policy applications. Composite schema
+        // building rejects @fusion__policy on interface types and interface fields, so this
+        // scan is exhaustive without needing to consider interfaces.
         HasPolicies = Types.AsEnumerable()
             .OfType<FusionObjectTypeDefinition>()
             .Any(t => !t.PolicyApplications.IsDefaultOrEmpty
@@ -775,33 +779,33 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
         if (HasPolicies)
         {
-            EnsureAuthorizationPoliciesExist();
+            EnsurePoliciesExist();
         }
 
         _sealed = true;
         _features = _features.ToReadOnly();
     }
 
-    private void EnsureAuthorizationPoliciesExist()
+    private void EnsurePoliciesExist()
     {
         foreach (var type in Types.AsEnumerable().OfType<FusionObjectTypeDefinition>())
         {
             if (!type.PolicyApplications.IsDefaultOrEmpty)
             {
-                EnsureAuthorizationPoliciesExist(type.PolicyApplications);
+                EnsurePoliciesExist(type.PolicyApplications);
             }
 
             foreach (var field in type.Fields.AsEnumerable())
             {
                 if (!field.PolicyApplications.IsDefaultOrEmpty)
                 {
-                    EnsureAuthorizationPoliciesExist(field.PolicyApplications);
+                    EnsurePoliciesExist(field.PolicyApplications);
                 }
             }
         }
     }
 
-    private void EnsureAuthorizationPoliciesExist(
+    private void EnsurePoliciesExist(
         ImmutableArray<PolicyApplication> applications)
     {
         foreach (var application in applications)
@@ -842,6 +846,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     {
         if (!_disposed)
         {
+            // Retire the live policy registry before the schema services are disposed so that
+            // retirement releases the policy lifetime references while the providers are still alive.
+            Policies.Dispose();
+
             if (Features.TryGet(out SchemaCancellationFeature? cancellation))
             {
                 await cancellation.DisposeAsync().ConfigureAwait(false);

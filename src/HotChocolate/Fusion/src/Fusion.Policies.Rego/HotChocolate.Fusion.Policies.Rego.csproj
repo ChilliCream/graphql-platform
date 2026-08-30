@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ChilliCream.Regorus" />
   </ItemGroup>
 

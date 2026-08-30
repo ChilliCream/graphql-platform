@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Converters;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -28,7 +30,7 @@ public sealed partial class OperationPlanner
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
     private readonly SourceSchemaNodeCandidateResolver _sourceSchemaNodeCandidateResolver;
     private readonly OperationPlannerOptions _options;
-    private readonly IReadOnlyDictionary<string, SelectionSetNode> _policyRequirements;
+    private PolicyPlanningState _policyState;
     private bool? _schemaHasDivergentInterfaceFields;
 
     public OperationPlanner(
@@ -55,10 +57,50 @@ public sealed partial class OperationPlanner
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
         _sourceSchemaNodeCandidateResolver = new SourceSchemaNodeCandidateResolver(schema);
         _options = options;
-        _policyRequirements = CreatePolicyRequirementMap(schema.Policies);
+        var policySnapshot = schema.Policies.GetSnapshot();
+        _policyState = new PolicyPlanningState(
+            policySnapshot,
+            CreatePolicyRequirementMap(policySnapshot),
+            CreatePolicyRequestCacheabilityMap(policySnapshot));
     }
 
     internal OperationPlannerOptions Options => _options;
+
+    /// <summary>
+    /// Gets the policy planning state for the policy snapshot currently published by the schema.
+    /// A plan is built entirely from one such state, read once at the start of <see cref="CreatePlan"/>,
+    /// so that every fetch and condition it produces is consistent with a single published policy set.
+    /// </summary>
+    private PolicyPlanningState GetPolicyState()
+    {
+        var snapshot = _schema.Policies.GetSnapshot();
+        var state = Volatile.Read(ref _policyState);
+
+        // ImmutableArray<T> equality is reference equality on the backing array, so this is an
+        // O(1) identity check with zero allocations on the common case where the policy set has
+        // not changed since the last plan.
+        if (state.Source == snapshot)
+        {
+            return state;
+        }
+
+        state = new PolicyPlanningState(
+            snapshot,
+            CreatePolicyRequirementMap(snapshot),
+            CreatePolicyRequestCacheabilityMap(snapshot));
+        Volatile.Write(ref _policyState, state);
+        return state;
+    }
+
+    /// <summary>
+    /// Captures everything the planner derives from one published policy snapshot: the
+    /// requirement selection set per policy name and the request-cacheability classification per
+    /// policy name. A plan reads one instance of this state throughout its planning pass.
+    /// </summary>
+    private sealed record PolicyPlanningState(
+        ImmutableArray<IPolicy> Source,
+        Dictionary<string, SelectionSetNode> Requirements,
+        Dictionary<string, bool> RequestCacheability);
 
     /// <summary>
     /// Creates an operation plan for the given operation definition.
@@ -101,9 +143,14 @@ public sealed partial class OperationPlanner
 
         try
         {
-            if (_policyRequirements.Count > 0)
+            // Read the policy snapshot once for the whole planning pass, so that every fetch
+            // and condition this plan produces is built against a single published policy set,
+            // even if the schema's policy collection publishes a new set concurrently.
+            var policyState = GetPolicyState();
+
+            if (policyState.Requirements.Count > 0)
             {
-                operationDefinition = InjectPolicyRequirements(operationDefinition);
+                operationDefinition = InjectPolicyRequirements(operationDefinition, policyState);
             }
 
             // Interface fields whose ownership diverges across concrete types (for example after an
@@ -165,6 +212,7 @@ public sealed partial class OperationPlanner
 
             var internalOperationDefinition = mainOperationDefinition;
             ImmutableList<PlanStep> planSteps = [];
+            var policySlots = ImmutableArray<PolicyConditionSlot>.Empty;
 
             // The backlog is only empty for pure introspection queries, which the
             // gateway serves directly without planning against any source schema.
@@ -179,6 +227,7 @@ public sealed partial class OperationPlanner
                         id,
                         node,
                         subscriptionField,
+                        policyState,
                         eventSourceEnabled,
                         cancellationToken);
 
@@ -187,6 +236,7 @@ public sealed partial class OperationPlanner
                     searchSpace = eventStreamPlan.SearchSpace;
                     expandedNodes = eventStreamPlan.ExpandedNodes;
                     stepCount = eventStreamPlan.StepCount;
+                    policySlots = eventStreamPlan.PolicySlots;
                 }
                 else
                 {
@@ -213,7 +263,7 @@ public sealed partial class OperationPlanner
                     }
 
                     // Now that we have seeded the possible plans we can start planning.
-                    var plan = Plan(id, possiblePlans, eventSourceEnabled, cancellationToken);
+                    var plan = Plan(id, possiblePlans, policyState, eventSourceEnabled, cancellationToken);
 
                     if (!plan.HasValue)
                     {
@@ -225,6 +275,7 @@ public sealed partial class OperationPlanner
                     searchSpace = plan.Value.SearchSpace;
                     expandedNodes = plan.Value.ExpandedNodes;
                     stepCount = plan.Value.StepCount;
+                    policySlots = plan.Value.PolicySlots;
                 }
 
                 internalOperationDefinition =
@@ -251,6 +302,7 @@ public sealed partial class OperationPlanner
                     id,
                     deferSplit.Value,
                     deferContextGraph,
+                    policyState,
                     eventSourceEnabled,
                     cancellationToken);
 
@@ -281,6 +333,7 @@ public sealed partial class OperationPlanner
                 planSteps,
                 deliveryGroups,
                 incrementalPlans,
+                policySlots,
                 searchSpace,
                 expandedNodes,
                 cancellationToken);
@@ -396,6 +449,7 @@ public sealed partial class OperationPlanner
     private PlanResult? Plan(
         string operationId,
         PlanQueue possiblePlans,
+        PolicyPlanningState policyState,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -414,7 +468,7 @@ public sealed partial class OperationPlanner
         // It gives the planner an initial best known complete cost, so the main search can skip branches
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
-        var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, cancellationToken);
+        var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, policyState, cancellationToken);
 
         // A plan whose step-dependency graph is cyclic cannot be scheduled, so it must never win.
         // We discard a cyclic greedy plan here and reject cyclic candidates during the search below.
@@ -494,11 +548,11 @@ public sealed partial class OperationPlanner
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, possiblePlans);
+                    PlanRootSelections(wi, current, backlog, possiblePlans, policyState);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans);
+                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans, policyState);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -523,7 +577,7 @@ public sealed partial class OperationPlanner
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog);
+                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog, policyState);
                     break;
 
                 default:
@@ -549,7 +603,8 @@ public sealed partial class OperationPlanner
             bestCompletePlan.Steps,
             searchSpace,
             expandedNodes,
-            bestCompletePlan.OperationStepCount);
+            bestCompletePlan.OperationStepCount,
+            bestCompletePlan.PolicySlots.Entries);
 
         static string FormatWorkItemName(WorkItem workItem)
             => workItem switch
@@ -655,7 +710,10 @@ public sealed partial class OperationPlanner
             => checked((long)Math.Ceiling(value.TotalMilliseconds));
     }
 
-    private PlanNode? TryBuildGreedyCompletePlan(PlanQueue possiblePlans, CancellationToken cancellationToken)
+    private PlanNode? TryBuildGreedyCompletePlan(
+        PlanQueue possiblePlans,
+        PolicyPlanningState policyState,
+        CancellationToken cancellationToken)
     {
         if (!possiblePlans.TryPeek(out var current, out _))
         {
@@ -680,11 +738,11 @@ public sealed partial class OperationPlanner
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, candidates);
+                    PlanRootSelections(wi, current, backlog, candidates, policyState);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, candidates);
+                    PlanLookupSelections(wi, lookup, current, backlog, candidates, policyState);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -709,7 +767,7 @@ public sealed partial class OperationPlanner
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, candidates, backlog);
+                    PlanNodeLookup(wi, lookup, current, candidates, backlog, policyState);
                     break;
 
                 default:
@@ -877,6 +935,7 @@ public sealed partial class OperationPlanner
         string operationId,
         PlanNode seed,
         SubscriptionField subscriptionField,
+        PolicyPlanningState policyState,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -889,7 +948,7 @@ public sealed partial class OperationPlanner
                 ResolutionCost = 0
             });
 
-        var plan = Plan(operationId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(operationId, possiblePlans, policyState, emitPlannerEvents, cancellationToken);
 
         if (!plan.HasValue)
         {
@@ -920,7 +979,8 @@ public sealed partial class OperationPlanner
             steps,
             plan.Value.SearchSpace,
             plan.Value.ExpandedNodes,
-            plan.Value.StepCount);
+            plan.Value.StepCount,
+            plan.Value.PolicySlots);
     }
 
     private OperationDefinitionNode CreateEventStreamMessageOperationDefinition(
@@ -1027,21 +1087,24 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> Steps,
         int SearchSpace,
         int ExpandedNodes,
-        int StepCount);
+        int StepCount,
+        ImmutableArray<PolicyConditionSlot> PolicySlots);
 
     private void PlanRootSelections(
         OperationWorkItem workItem,
         PlanNode current,
         Backlog backlog,
-        PlanQueue possiblePlans)
-        => PlanSelections(workItem, current, null, backlog, possiblePlans);
+        PlanQueue possiblePlans,
+        PolicyPlanningState policyState)
+        => PlanSelections(workItem, current, null, backlog, possiblePlans, policyState);
 
     private void PlanLookupSelections(
         OperationWorkItem workItem,
         Lookup lookup,
         PlanNode current,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        PolicyPlanningState policyState)
     {
         current = InlineLookupRequirements(
             workItem.SelectionSet,
@@ -1057,7 +1120,8 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             current.Backlog,
-            possiblePlans);
+            possiblePlans,
+            policyState);
     }
 
     private void PlanSelections(
@@ -1065,7 +1129,8 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup? lookup,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        PolicyPlanningState policyState)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -1181,8 +1246,12 @@ public sealed partial class OperationPlanner
             source = SelectionPath.Root.AppendField(field.Name.Value);
         }
 
-        var targets = BuildPolicyTargets(policyTargets, workItem.SelectionSet, workItem.Conditions);
+        var (targets, slotConditions, policySlots) = BuildPolicyTargets(
+            policyTargets, workItem.SelectionSet, workItem.Conditions, current.PolicySlots, policyState);
         var policyStepId = targets.IsDefaultOrEmpty ? 0 : stepId + 1;
+        var stepConditions = slotConditions.Length == 0
+            ? workItem.Conditions
+            : [.. workItem.Conditions, .. slotConditions];
 
         var step = new OperationPlanStep
         {
@@ -1196,7 +1265,7 @@ public sealed partial class OperationPlanner
                 ? workItem.Dependents
                 : workItem.Dependents.Add(policyStepId),
             Requirements = requirements,
-            Conditions = workItem.Conditions,
+            Conditions = stepConditions,
             Target = workItem.SelectionSet.Path,
             Source = source,
             Lookup = lookup
@@ -1233,6 +1302,7 @@ public sealed partial class OperationPlanner
             Steps = steps,
             LastRequirementId = lastRequirementId,
             RequirementAliases = current.RequirementAliases,
+            PolicySlots = policySlots,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -1244,26 +1314,100 @@ public sealed partial class OperationPlanner
         possiblePlans.EnqueueBranches(next);
     }
 
-    private ImmutableArray<PolicyExecutionTarget> BuildPolicyTargets(
+    /// <summary>
+    /// Builds the policy execution targets for one operation plan step. At the root object
+    /// policy coordinate (if present), each application is classified per repo-xx5 into the
+    /// slot-eligible set (S union M, every application with at least one request-cacheable
+    /// name) and the residual set (M union Npure, every application whose decision can depend on
+    /// resource or action data). The slot-eligible applications are recorded as plan-time
+    /// condition slots for reuse by repo-6ev, but no request-time overlay populates those slot
+    /// variables yet, so the owning step is never gated on them here and the root policy
+    /// execution target is always kept, carrying every application's own <c>OnDenied</c> and
+    /// requirement source.
+    /// </summary>
+    /// <returns>
+    /// The policy execution targets for this step, the plan-time conditions that gate the owning
+    /// step, and the updated slot registry.
+    /// </returns>
+    private (
+        ImmutableArray<PolicyExecutionTarget> Targets,
+        ExecutionNodeCondition[] SlotConditions,
+        PolicySlotRegistry Slots) BuildPolicyTargets(
         ImmutableStack<ConditionalPolicyExecutionTarget> policyTargets,
         SelectionSet selectionSet,
-        ExecutionNodeCondition[] conditions)
+        ExecutionNodeCondition[] conditions,
+        PolicySlotRegistry slots,
+        PolicyPlanningState policyState)
     {
         ImmutableArray<PolicyExecutionTarget>.Builder? builder = null;
+        List<ExecutionNodeCondition>? slotConditions = null;
 
         if (selectionSet.Path.IsRoot
             && selectionSet.Type is FusionObjectTypeDefinition objectType
             && !objectType.PolicyApplications.IsDefaultOrEmpty)
         {
-            builder ??= ImmutableArray.CreateBuilder<PolicyExecutionTarget>();
-            builder.Add(AddPolicyRequirements(new PolicyExecutionTarget
+            List<PolicyApplication>? slotEligible = null;
+            List<PolicyApplication>? residual = null;
+
+            foreach (var application in objectType.PolicyApplications)
             {
-                Kind = PolicyTargetKind.Object,
-                Path = SelectionPath.Root,
-                TypeName = objectType.Name,
-                Policies = objectType.PolicyApplications.ToArray(),
-                Conditions = conditions
-            }));
+                switch (ClassifyApplication(application, policyState))
+                {
+                    case PolicyApplicationClass.S:
+                        (slotEligible ??= []).Add(application);
+                        break;
+
+                    case PolicyApplicationClass.M:
+                        (slotEligible ??= []).Add(application);
+                        (residual ??= []).Add(application);
+                        break;
+
+                    case PolicyApplicationClass.Npure:
+                        (residual ??= []).Add(application);
+                        break;
+                }
+            }
+
+            // The static residual threshold Rmax(c) is the max onDenied over the residual set
+            // N(c) = M(c) union Npure(c), or Null when N(c) is empty (repo-xx5).
+            var rmax = residual is null
+                ? PolicyDenialBehavior.Null
+                : residual.Max(application => application.OnDenied);
+
+            if (slotEligible is not null)
+            {
+                foreach (var application in slotEligible)
+                {
+                    // The slot table is the plan-time deliverable repo-6ev consumes: it records
+                    // the request-cacheable coordinates and their Rmax so a later overlay can
+                    // populate $__fusion_policy_N per request. Nothing populates that variable
+                    // yet, so no ExecutionNodeCondition is emitted here (see PolicyConditionSlot).
+                    if (slots.TryGetOrAdd(application.Groups, rmax, out _, out var updatedSlots))
+                    {
+                        slots = updatedSlots;
+                    }
+                    else
+                    {
+                        // The registry is at PolicySlotRegistry.MaxPolicySlots: this application
+                        // is not slot-classified and is covered only by the policy execution
+                        // target below. A plan diagnostic should be raised here once the planner
+                        // has a diagnostic channel; that gap is tracked for repo-6ev/repo-w1a.
+                        (residual ??= []).Add(application);
+                    }
+                }
+            }
+
+            builder ??= ImmutableArray.CreateBuilder<PolicyExecutionTarget>();
+            builder.Add(AddPolicyRequirements(
+                new PolicyExecutionTarget
+                {
+                    Kind = PolicyTargetKind.Object,
+                    Path = SelectionPath.Root,
+                    TypeName = objectType.Name,
+                    Policies = objectType.PolicyApplications.ToArray(),
+                    Conditions = conditions
+                },
+                policyState));
         }
 
         if (!policyTargets.IsEmpty)
@@ -1272,16 +1416,23 @@ public sealed partial class OperationPlanner
 
             foreach (var policyTarget in policyTargets.Reverse())
             {
-                builder.Add(AddPolicyRequirements(policyTarget.Target));
+                builder.Add(AddPolicyRequirements(policyTarget.Target, policyState));
             }
         }
 
-        return builder is null ? [] : builder.ToImmutable();
+        var targets = builder is null ? ImmutableArray<PolicyExecutionTarget>.Empty : builder.ToImmutable();
+        var resultSlotConditions = slotConditions is null
+            ? Array.Empty<ExecutionNodeCondition>()
+            : slotConditions.ToArray();
+
+        return (targets, resultSlotConditions, slots);
     }
 
-    private PolicyExecutionTarget AddPolicyRequirements(PolicyExecutionTarget target)
+    private static PolicyExecutionTarget AddPolicyRequirements(
+        PolicyExecutionTarget target,
+        PolicyPlanningState policyState)
     {
-        List<AuthorizationPolicyRequirement>? requirements = null;
+        List<PolicyRequirement>? requirements = null;
         HashSet<string>? seenNames = null;
 
         foreach (var application in target.Policies)
@@ -1293,13 +1444,13 @@ public sealed partial class OperationPlanner
                     seenNames ??= new HashSet<string>(StringComparer.Ordinal);
 
                     if (!seenNames.Add(name)
-                        || !_policyRequirements.TryGetValue(name, out var selectionSet))
+                        || !policyState.Requirements.TryGetValue(name, out var selectionSet))
                     {
                         continue;
                     }
 
                     requirements ??= [];
-                    requirements.Add(new AuthorizationPolicyRequirement
+                    requirements.Add(new PolicyRequirement
                     {
                         PolicyName = name,
                         SelectionSet = selectionSet
@@ -1659,6 +1810,7 @@ public sealed partial class OperationPlanner
             Steps = steps,
             LastRequirementId = requirementId,
             RequirementAliases = requirementAliases.Registry,
+            PolicySlots = current.PolicySlots,
             OperationStepCount = current.OperationStepCount,
             MaxDepth = current.MaxDepth,
             ExcessFanout = current.ExcessFanout,
@@ -1864,6 +2016,7 @@ public sealed partial class OperationPlanner
                 Steps = steps,
                 LastRequirementId = lastRequirementId,
                 RequirementAliases = requirementAliases.Registry,
+                PolicySlots = current.PolicySlots,
                 OperationStepCount = current.OperationStepCount,
                 MaxDepth = current.MaxDepth,
                 ExcessFanout = current.ExcessFanout,
@@ -1946,6 +2099,7 @@ public sealed partial class OperationPlanner
             Steps = steps.Add(step),
             LastRequirementId = lastRequirementId,
             RequirementAliases = requirementAliases.Registry,
+            PolicySlots = current.PolicySlots,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -2014,7 +2168,8 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        PolicyPlanningState policyState)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -2104,7 +2259,8 @@ public sealed partial class OperationPlanner
 
         (var definition, index, _) = operationBuilder.Build(indexBuilder);
 
-        var targets = BuildPolicyTargets(policyTargets, workItem.SelectionSet, conditions: []);
+        var (targets, slotConditions, policySlots) = BuildPolicyTargets(
+            policyTargets, workItem.SelectionSet, conditions: [], current.PolicySlots, policyState);
         var policyStepId = targets.IsDefaultOrEmpty ? 0 : stepId + 1;
 
         var operationPlanStep = new OperationPlanStep
@@ -2123,6 +2279,7 @@ public sealed partial class OperationPlanner
 #else
             Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
 #endif
+            Conditions = slotConditions,
             Target = SelectionPath.Root,
             Source = SelectionPath.Root,
             Lookup = lookup
@@ -2173,6 +2330,7 @@ public sealed partial class OperationPlanner
             Steps = steps,
             LastRequirementId = current.LastRequirementId,
             RequirementAliases = current.RequirementAliases,
+            PolicySlots = policySlots,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -2415,6 +2573,7 @@ public sealed partial class OperationPlanner
                 .Add(fallbackQueryStep),
             LastRequirementId = current.LastRequirementId,
             RequirementAliases = current.RequirementAliases,
+            PolicySlots = current.PolicySlots,
             OperationStepCount = current.OperationStepCount + 1,
             MaxDepth = costState.MaxDepth,
             ExcessFanout = costState.ExcessFanout,
@@ -3300,6 +3459,79 @@ public sealed partial class OperationPlanner
         }
     }
 
+    /// <summary>
+    /// An operation-level registry that assigns a stable ordinal to each distinct policy
+    /// condition slot. Two applications share one slot exactly when their canonicalized policy
+    /// name groups and residual denial threshold both match; the registry is threaded through
+    /// the plan node like other operation-level plan state and is immutable so planner branches
+    /// stay isolated.
+    /// </summary>
+    internal readonly struct PolicySlotRegistry
+    {
+        /// <summary>
+        /// The maximum number of distinct policy condition slots a single plan can carry.
+        /// Applications that would exceed this cap are not slot-classified and stay on their
+        /// coordinate's policy execution target.
+        /// </summary>
+        public const int MaxPolicySlots = 64;
+
+        private readonly ImmutableArray<PolicyConditionSlot> _entries;
+
+        private PolicySlotRegistry(ImmutableArray<PolicyConditionSlot> entries)
+            => _entries = entries;
+
+        public static PolicySlotRegistry Empty { get; } = new([]);
+
+        public ImmutableArray<PolicyConditionSlot> Entries => _entries;
+
+        /// <summary>
+        /// Looks up or creates the slot for the given expression and residual threshold. Returns
+        /// <see langword="false"/> without adding an entry when the registry is already at
+        /// <see cref="MaxPolicySlots"/> and no existing entry matches; the caller must then treat
+        /// the application as residual instead of slot-eligible.
+        /// </summary>
+        public bool TryGetOrAdd(
+            ImmutableArray<ImmutableArray<string>> groups,
+            PolicyDenialBehavior rmax,
+            out PolicyConditionSlot slot,
+            out PolicySlotRegistry registry)
+        {
+            var canonicalGroups = PolicyNameGroups.Canonicalize(groups);
+            var key = PolicyNameGroups.CreateCanonicalKey(canonicalGroups);
+
+            for (var i = 0; i < _entries.Length; i++)
+            {
+                var entry = _entries[i];
+
+                if (PolicyNameGroups.CreateCanonicalKey(entry.Groups) != key || entry.Rmax != rmax)
+                {
+                    continue;
+                }
+
+                slot = entry;
+                registry = this;
+                return true;
+            }
+
+            if (_entries.Length == MaxPolicySlots)
+            {
+                slot = null!;
+                registry = this;
+                return false;
+            }
+
+            slot = new PolicyConditionSlot
+            {
+                Ordinal = _entries.Length,
+                Groups = canonicalGroups,
+                Rmax = rmax
+            };
+
+            registry = new PolicySlotRegistry(_entries.Add(slot));
+            return true;
+        }
+    }
+
     private static bool HasArgumentConflict(
         FieldNode requirementField,
         IReadOnlyList<ISelectionNode> existingSelections)
@@ -4105,7 +4337,8 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> Steps,
         int SearchSpace,
         int ExpandedNodes,
-        int StepCount);
+        int StepCount,
+        ImmutableArray<PolicyConditionSlot> PolicySlots);
 
     private readonly struct OperationStepCostState(
         int maxDepth,

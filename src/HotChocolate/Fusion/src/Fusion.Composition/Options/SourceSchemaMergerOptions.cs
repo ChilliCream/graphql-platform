@@ -26,6 +26,12 @@ public sealed class SourceSchemaMergerOptions
     public NodeResolution NodeResolution { get; set; } = NodeResolution.Gateway;
 
     /// <summary>
+    /// Defines the consequence applied to a <c>@policy</c> application when its expression
+    /// denies access and no source schema contributed an explicit <c>onDenied</c> value for it.
+    /// </summary>
+    public PolicyDenialBehavior PolicyOnDeniedDefault { get; set; } = PolicyDenialBehavior.Null;
+
+    /// <summary>
     /// Removes types and directives that are not referenced in the final merged schema.
     /// </summary>
     public bool RemoveUnreferencedDefinitions { get; set; } = true;

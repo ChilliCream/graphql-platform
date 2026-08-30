@@ -1419,7 +1419,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             Kind = kind,
             Path = path,
             TypeName = typeName,
-            FieldName = fieldName,
             Policies = policies,
             Conditions = conditions
         };

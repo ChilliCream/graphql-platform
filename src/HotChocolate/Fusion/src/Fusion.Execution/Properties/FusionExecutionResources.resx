@@ -114,6 +114,15 @@
   <data name="ErrorHelper_PolicyExecutionFailed" xml:space="preserve">
     <value>Authorization policy execution failed.</value>
   </data>
+  <data name="ErrorHelper_ReservedVariablePrefix" xml:space="preserve">
+    <value>The operation defines the variable '{0}', which uses the reserved '__fusion' prefix.</value>
+  </data>
+  <data name="ErrorHelper_ReservedVariablePrefixInFragment" xml:space="preserve">
+    <value>The fragment defines the variable '{0}', which uses the reserved '__fusion' prefix.</value>
+  </data>
+  <data name="ErrorHelper_ReservedVariablePrefixUsage" xml:space="preserve">
+    <value>The document uses the variable '{0}', which is reserved by the '__fusion' prefix.</value>
+  </data>
   <data name="PolicyCollection_PolicyNameEmpty" xml:space="preserve">
     <value>An authorization policy must have a name.</value>
   </data>

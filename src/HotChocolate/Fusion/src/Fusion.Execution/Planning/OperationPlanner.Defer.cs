@@ -19,6 +19,7 @@ public sealed partial class OperationPlanner
         string id,
         DeferSplitResult splitResult,
         PlanContextGraph contextGraph,
+        PolicyPlanningState policyState,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -41,6 +42,7 @@ public sealed partial class OperationPlanner
                 id,
                 descriptor,
                 i,
+                policyState,
                 emitPlannerEvents,
                 cancellationToken);
 
@@ -134,6 +136,7 @@ public sealed partial class OperationPlanner
         string operationId,
         IncrementalPlanDescriptor descriptor,
         int incrementalPlanId,
+        PolicyPlanningState policyState,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -165,7 +168,12 @@ public sealed partial class OperationPlanner
             possiblePlans.Enqueue(node);
         }
 
-        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(
+            operationId + "#defer_" + incrementalPlanId,
+            possiblePlans,
+            policyState,
+            emitPlannerEvents,
+            cancellationToken);
 
         if (!plan.HasValue)
         {

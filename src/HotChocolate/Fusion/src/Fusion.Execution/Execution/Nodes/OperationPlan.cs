@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using System.IO.Hashing;
 using System.Security.Cryptography;
+using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Language;
@@ -22,6 +24,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<PolicyConditionSlot> policySlots,
         int searchSpace,
         int expandedNodes)
     {
@@ -33,6 +36,8 @@ public sealed record OperationPlan : IOperationPlan
         ExpandedNodes = expandedNodes;
         DeliveryGroups = deliveryGroups;
         IncrementalPlans = incrementalPlans;
+        PolicySlots = policySlots;
+        Policies = CreatePolicyPlanEntries(policySlots, allNodes);
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -94,6 +99,20 @@ public sealed record OperationPlan : IOperationPlan
     /// Empty if the operation has no <c>@defer</c> directives.
     /// </summary>
     public ImmutableArray<IncrementalPlan> IncrementalPlans { get; }
+
+    /// <summary>
+    /// Gets the plan-time policy condition slots used by this plan. A slot represents one
+    /// distinct, canonicalized policy expression built entirely from request-cacheable policy
+    /// names. Empty when the operation has no such policy coordinate.
+    /// </summary>
+    public ImmutableArray<PolicyConditionSlot> PolicySlots { get; }
+
+    /// <summary>
+    /// Gets every authorization policy this plan references, one entry per distinct policy name,
+    /// whether reached through a request-constant <see cref="PolicySlots"/> condition or through a
+    /// policy execution node target. Empty when the plan references no policy.
+    /// </summary>
+    public ImmutableArray<PolicyPlanEntry> Policies { get; }
 
     /// <summary>
     /// Gets the highest plan node identifier that can be resolved by this plan.
@@ -159,6 +178,9 @@ public sealed record OperationPlan : IOperationPlan
     /// Each plan carries its delivery group set on
     /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
+    /// <param name="policySlots">
+    /// The plan-time policy condition slots used by this plan.
+    /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
@@ -172,6 +194,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<PolicyConditionSlot> policySlots,
         int searchSpace,
         int expandedNodes)
     {
@@ -181,7 +204,15 @@ public sealed record OperationPlan : IOperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
         return new OperationPlan(
-            id, operation, rootNodes, allNodes, deliveryGroups, incrementalPlans, searchSpace, expandedNodes);
+            id,
+            operation,
+            rootNodes,
+            allNodes,
+            deliveryGroups,
+            incrementalPlans,
+            policySlots,
+            searchSpace,
+            expandedNodes);
     }
 
     /// <summary>
@@ -200,6 +231,9 @@ public sealed record OperationPlan : IOperationPlan
     /// Each plan carries its delivery group set on
     /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
+    /// <param name="policySlots">
+    /// The plan-time policy condition slots used by this plan.
+    /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
@@ -211,6 +245,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<PolicyConditionSlot> policySlots,
         int searchSpace,
         int expandedNodes)
     {
@@ -219,7 +254,7 @@ public sealed record OperationPlan : IOperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
         using var buffer = new PooledArrayWriter(initialBufferSize: 4096);
-        s_formatter.Format(buffer, operation, allNodes);
+        s_formatter.Format(buffer, operation, allNodes, policySlots);
 
         // Generate a unique identifier for the operation plan by hashing its serialized form.
         // The hash is appended to the same buffer to reuse the already-allocated memory.
@@ -241,9 +276,81 @@ public sealed record OperationPlan : IOperationPlan
             allNodes,
             deliveryGroups,
             incrementalPlans,
+            policySlots,
             searchSpace,
             expandedNodes);
     }
+
+    /// <summary>
+    /// Flattens the plan's policy condition slots and policy execution node targets into the
+    /// plan-level policy collection, one entry per distinct (name, slot) pair for a slot-gated
+    /// policy and one entry per distinct name for a policy referenced only through a node target.
+    /// Built on top of the slot table and the node targets without altering how either is produced.
+    /// </summary>
+    private static ImmutableArray<PolicyPlanEntry> CreatePolicyPlanEntries(
+        ImmutableArray<PolicyConditionSlot> policySlots,
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        var seenSlotEntries = new HashSet<(string Name, int Slot)>();
+        var seenTargetNames = new HashSet<string>(StringComparer.Ordinal);
+        var builder = ImmutableArray.CreateBuilder<PolicyPlanEntry>();
+
+        if (!policySlots.IsDefaultOrEmpty)
+        {
+            foreach (var slot in policySlots)
+            {
+                var expression = slot.Format();
+
+                foreach (var group in slot.Groups)
+                {
+                    foreach (var name in group)
+                    {
+                        if (seenSlotEntries.Add((name, slot.Ordinal)))
+                        {
+                            builder.Add(new PolicyPlanEntry
+                            {
+                                PolicyName = name,
+                                Slot = slot.Ordinal,
+                                Expression = expression,
+                                RequirementHash = 0
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!allNodes.IsDefaultOrEmpty)
+        {
+            foreach (var node in allNodes)
+            {
+                if (node is not PolicyExecutionNode policyNode)
+                {
+                    continue;
+                }
+
+                foreach (var target in policyNode.Targets)
+                {
+                    foreach (var requirement in target.Requirements)
+                    {
+                        if (seenTargetNames.Add(requirement.PolicyName))
+                        {
+                            builder.Add(new PolicyPlanEntry
+                            {
+                                PolicyName = requirement.PolicyName,
+                                RequirementHash = ComputeRequirementHash(requirement.SelectionSet)
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
+    private static ulong ComputeRequirementHash(SelectionSetNode selectionSet)
+        => XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(selectionSet.ToString(indented: false)));
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
     {

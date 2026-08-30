@@ -46,9 +46,6 @@ internal sealed partial class SourceSchemaMerger
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
     private readonly FrozenDictionary<string, IDirectiveMerger> _directiveMergers;
     private readonly List<Action> _applyDirectiveActions = [];
-    // Key: interface type or field coordinate that declares @policy.
-    // Value: the deduped PolicyDirective applications for that coordinate.
-    private readonly Dictionary<SchemaCoordinate, List<PolicyDirective>> _interfacePolicies = [];
 
     public SourceSchemaMerger(
         ImmutableSortedSet<MutableSchemaDefinition> schemas,
@@ -132,7 +129,6 @@ internal sealed partial class SourceSchemaMerger
         ApplyDirectives();
         ApplyImplementsClosure(mergedSchema);
         ProjectInterfaceObjectFields(mergedSchema);
-        ApplyInterfacePolicies(mergedSchema);
         StampFusionPolicyDirectives(mergedSchema);
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
@@ -779,7 +775,6 @@ internal sealed partial class SourceSchemaMerger
                 AddFusionTypeDirectives(interfaceType, typeGroup);
                 AddFusionInterfaceObjectDirectives(interfaceType, typeGroup);
                 AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
-                StoreInterfacePolicyDirectives(interfaceType.Name, fieldName: null, memberDefinitions);
 
                 if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
                 {
@@ -1014,15 +1009,8 @@ internal sealed partial class SourceSchemaMerger
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.McpToolAnnotations]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
-                if (complexType is MutableInterfaceTypeDefinition interfaceType)
-                {
-                    StoreInterfacePolicyDirectives(interfaceType.Name, outputField.Name, memberDefinitions);
-                }
-                else
-                {
-                    _directiveMergers[DirectiveNames.Policy]
-                        .MergeDirectives(outputField, memberDefinitions, mergedSchema);
-                }
+                _directiveMergers[DirectiveNames.Policy]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.RequiresOptIn]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag]
@@ -1498,125 +1486,56 @@ internal sealed partial class SourceSchemaMerger
                 arguments));
     }
 
-    private void StoreInterfacePolicyDirectives(
-        string typeName,
-        string? fieldName,
-        ImmutableArray<DirectivesProviderInfo> memberDefinitions)
-    {
-        var policies = PolicyDirectiveMerger.MergePolicyDirectives(memberDefinitions);
-
-        if (policies.Count > 0)
-        {
-            var coordinate = fieldName is null
-                ? new SchemaCoordinate(typeName)
-                : new SchemaCoordinate(typeName, fieldName);
-
-            _interfacePolicies[coordinate] = policies;
-        }
-    }
-
-    private void ApplyInterfacePolicies(MutableSchemaDefinition mergedSchema)
-    {
-        if (_interfacePolicies.Count == 0
-            || !mergedSchema.DirectiveDefinitions.TryGetDirective(
-                DirectiveNames.Policy,
-                out var directiveDefinition))
-        {
-            return;
-        }
-
-        foreach (var objectType in mergedSchema.Types.OfType<MutableObjectTypeDefinition>())
-        {
-            foreach (var interfaceType in objectType.Implements.AsEnumerable())
-            {
-                if (_interfacePolicies.TryGetValue(
-                    new SchemaCoordinate(interfaceType.Name),
-                    out var typePolicies))
-                {
-                    MergePolicyDirectivesIntoMember(
-                        objectType.Directives,
-                        objectType,
-                        typePolicies,
-                        directiveDefinition);
-                }
-
-                foreach (var field in objectType.Fields.AsEnumerable())
-                {
-                    if (_interfacePolicies.TryGetValue(
-                        new SchemaCoordinate(interfaceType.Name, field.Name),
-                        out var fieldPolicies))
-                    {
-                        MergePolicyDirectivesIntoMember(
-                            field.Directives,
-                            field,
-                            fieldPolicies,
-                            directiveDefinition);
-                    }
-                }
-            }
-        }
-    }
-
     private void StampFusionPolicyDirectives(MutableSchemaDefinition mergedSchema)
     {
         var fusionPolicyDefinition = _fusionDirectiveDefinitions[DirectiveNames.FusionPolicy];
 
-        foreach (var complexType in mergedSchema.Types.OfType<MutableComplexTypeDefinition>())
+        foreach (var objectType in mergedSchema.Types.OfType<MutableObjectTypeDefinition>())
         {
-            if (complexType is MutableObjectTypeDefinition objectType)
-            {
-                var policies = GetPolicyDirectives(objectType.Directives);
-                RemovePolicyDirectives(objectType.Directives);
-                AddFusionPolicyDirectives(objectType, policies, fusionPolicyDefinition);
-            }
-            else
-            {
-                RemovePolicyDirectives(complexType.Directives);
-            }
+            var typePolicies = GetPolicyDirectives(objectType.Directives);
+            RemovePolicyDirectives(objectType.Directives);
+            AddFusionPolicyDirectives(objectType, typePolicies, fusionPolicyDefinition);
 
-            foreach (var field in complexType.Fields.AsEnumerable())
+            foreach (var field in objectType.Fields.AsEnumerable())
             {
-                if (complexType is MutableObjectTypeDefinition)
-                {
-                    var policies = GetPolicyDirectives(field.Directives);
-                    RemovePolicyDirectives(field.Directives);
-                    AddFusionPolicyDirectives(field, policies, fusionPolicyDefinition);
-                }
-                else
-                {
-                    RemovePolicyDirectives(field.Directives);
-                }
+                var fieldPolicies = GetPolicyDirectives(field.Directives);
+                RemovePolicyDirectives(field.Directives);
+                AddFusionPolicyDirectives(field, fieldPolicies, fusionPolicyDefinition);
             }
         }
     }
 
-    private static void MergePolicyDirectivesIntoMember(
-        DirectiveCollection directives,
-        IDirectivesProvider member,
-        IReadOnlyList<PolicyDirective> policies,
-        MutableDirectiveDefinition directiveDefinition)
+    private List<PolicyDirective> GetPolicyDirectives(DirectiveCollection directives)
     {
-        if (policies.Count == 0)
-        {
-            return;
-        }
-
-        var mergedPolicies = PolicyDirectiveMerger.MergePolicyDirectives(
-            GetPolicyDirectives(directives).Concat(policies));
-
-        RemovePolicyDirectives(directives);
-        PolicyDirectiveMerger.AddPolicyDirectives(member, mergedPolicies, directiveDefinition);
-    }
-
-    private static List<PolicyDirective> GetPolicyDirectives(DirectiveCollection directives)
-    {
-        return
-        [
-            .. directives
+        var policies =
+            directives
                 .AsEnumerable()
                 .Where(d => d.Name == DirectiveNames.Policy)
                 .Select(PolicyDirective.From)
-        ];
+                .ToList();
+
+        // A policy whose onDenied stayed absent through the merge (no source schema
+        // contributed an explicit value) inherits the schema-wide composition default here,
+        // so the stamped @fusion__policy directive always carries an explicit onDenied value.
+        for (var i = 0; i < policies.Count; i++)
+        {
+            if (policies[i].OnDenied is null)
+            {
+                policies[i] = PolicyDirective.Create(policies[i].Groups, GetPolicyOnDeniedDefault());
+            }
+        }
+
+        return policies;
+    }
+
+    private string GetPolicyOnDeniedDefault()
+    {
+        return _options.PolicyOnDeniedDefault switch
+        {
+            PolicyDenialBehavior.Null => "NULL",
+            PolicyDenialBehavior.Abort => "ABORT",
+            _ => "ERROR"
+        };
     }
 
     private static void RemovePolicyDirectives(DirectiveCollection directives)

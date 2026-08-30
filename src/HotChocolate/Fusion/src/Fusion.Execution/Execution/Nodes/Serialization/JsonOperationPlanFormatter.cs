@@ -86,11 +86,16 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         WriteDeliveryGroups(jsonWriter, plan.DeliveryGroups);
         WriteIncrementalPlans(jsonWriter, plan.IncrementalPlans);
+        WritePolicySlots(jsonWriter, plan.PolicySlots);
 
         jsonWriter.WriteEndObject();
     }
 
-    internal void Format(IBufferWriter<byte> writer, Operation operation, ImmutableArray<ExecutionNode> allNodes)
+    internal void Format(
+        IBufferWriter<byte> writer,
+        Operation operation,
+        ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<PolicyConditionSlot> policySlots = default)
     {
         var jsonWriter = new JsonWriter(writer, _writerOptions);
         jsonWriter.WriteStartObject();
@@ -100,6 +105,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, operation, allNodes, null);
+
+        WritePolicySlots(jsonWriter, policySlots);
 
         jsonWriter.WriteEndObject();
     }
@@ -237,6 +244,57 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WritePolicySlots(
+        JsonWriter jsonWriter,
+        ImmutableArray<PolicyConditionSlot> policySlots)
+    {
+        if (policySlots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("policySlots");
+        jsonWriter.WriteStartArray();
+
+        foreach (var slot in policySlots)
+        {
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WritePropertyName("ordinal");
+            jsonWriter.WriteNumberValue(slot.Ordinal);
+
+            jsonWriter.WritePropertyName("variable");
+            jsonWriter.WriteStringValue("$" + slot.VariableName);
+
+            jsonWriter.WritePropertyName("names");
+            jsonWriter.WriteStartArray();
+
+            foreach (var group in slot.Groups)
+            {
+                jsonWriter.WriteStartArray();
+
+                foreach (var name in group)
+                {
+                    jsonWriter.WriteStringValue(name);
+                }
+
+                jsonWriter.WriteEndArray();
+            }
+
+            jsonWriter.WriteEndArray();
+
+            jsonWriter.WritePropertyName("rmax");
+            jsonWriter.WriteStringValue(slot.Rmax.ToString());
+
+            jsonWriter.WritePropertyName("expression");
+            jsonWriter.WriteStringValue(slot.Format());
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
     }
 
     private static void WriteIncrementalPlans(
@@ -1153,12 +1211,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
             jsonWriter.WritePropertyName("typeName");
             jsonWriter.WriteStringValue(target.TypeName);
-
-            if (target.FieldName is not null)
-            {
-                jsonWriter.WritePropertyName("fieldName");
-                jsonWriter.WriteStringValue(target.FieldName);
-            }
 
             jsonWriter.WritePropertyName("policies");
             jsonWriter.WriteStartArray();

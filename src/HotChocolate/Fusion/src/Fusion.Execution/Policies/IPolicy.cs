@@ -1,6 +1,3 @@
-using HotChocolate.Fusion.Text.Json;
-using HotChocolate.Language;
-
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
@@ -15,18 +12,27 @@ public interface IPolicy
     string Name { get; }
 
     /// <summary>
-    /// Gets the graph data required to evaluate this policy.
+    /// Gets the parts of the evaluation input this policy reads.
     /// </summary>
     /// <remarks>
-    /// When this property is <c>null</c>, the policy produces a target-independent decision.
-    /// The policy is evaluated lazily at most once per request, and its decision is reused for
-    /// every application of the policy that is reached during that request.
-    /// Such a policy must not derive its decision from target-specific context or entity data.
+    /// When <see cref="PolicyRequirements.IsRequestCacheable"/> is <c>true</c>, the policy produces a
+    /// request-constant decision that is evaluated at most once per request and reused for every
+    /// application reached during that request. Such a policy must not derive its decision from
+    /// target-specific context or entity data.
     /// </remarks>
-    SelectionSetNode? Requirements { get; }
+    PolicyRequirements Requirements { get; }
 
+    /// <summary>
+    /// Evaluates this policy against the given context.
+    /// </summary>
+    /// <remarks>
+    /// When <paramref name="context"/>'s <see cref="IPolicyContext.Selection"/> is <c>null</c>, this
+    /// call produces a single request-constant decision and denies it, if at all, through
+    /// <c>context.Deny(0, …)</c>. Otherwise, the policy evaluates every entity in
+    /// <see cref="PolicySelection.Entities"/> and denies entities individually by their position in
+    /// that batch.
+    /// </remarks>
     ValueTask EvaluateAsync(
         IPolicyContext context,
-        ReadOnlyMemory<CompositeResultElement> entities,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }

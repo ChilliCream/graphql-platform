@@ -1,22 +1,24 @@
 using System.Collections.Concurrent;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Planning;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationPlanCacheMiddleware
 {
-    private readonly Cache<OperationPlan> _cache;
+    private readonly OperationPlanCache _planCache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans =
         new(StringComparer.Ordinal);
 
-    private OperationPlanCacheMiddleware(Cache<OperationPlan> cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
+    private OperationPlanCacheMiddleware(
+        OperationPlanCache planCache,
+        IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
-        _cache = cache;
+        _planCache = planCache;
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -35,10 +37,18 @@ internal sealed class OperationPlanCacheMiddleware
             : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
         context.SetOperationId(operationId);
 
+        // Captured once so lookup and insertion use the same cache generation and version.
+        // Re-reading _planCache.Current at insertion time would let a plan built before a
+        // policy-triggered Reset() land in the discarded generation, defeating the reset; and
+        // for a targeted eviction that mutates the SAME generation in place, it is the version
+        // check in Add (not instance identity alone) that keeps a plan built against the old
+        // requirements from landing in the live cache after the eviction ran.
+        var session = _planCache.Capture();
+
         var isSingleFlightLeader = false;
         Lazy<TaskCompletionSource<OperationPlan>>? inFlightPlan = null;
 
-        if (_cache.TryGet(operationId, out var plan))
+        if (session.Cache.TryGet(operationId, out var plan))
         {
             context.SetOperationPlan(plan);
             _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
@@ -106,8 +116,10 @@ internal sealed class OperationPlanCacheMiddleware
                     if (context.GetOperationPlan() is { } operationPlan)
                     {
                         // Cache the plan before removing the in-flight entry so that
-                        // there is no window where the plan is in neither structure.
-                        _cache.TryAdd(operationId, operationPlan);
+                        // there is no window where the plan is in neither structure. Routed
+                        // through the plan cache (not a direct cache.TryAdd) so the policy-name
+                        // index used for targeted eviction stays in sync.
+                        _planCache.Add(session, operationId, operationPlan);
                         _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
                         inFlightPlan?.Value.TrySetResult(operationPlan);
                     }
@@ -132,9 +144,9 @@ internal sealed class OperationPlanCacheMiddleware
         => new RequestMiddlewareConfiguration(
             static (fc, next) =>
             {
-                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationPlan>>();
+                var planCache = fc.SchemaServices.GetRequiredService<OperationPlanCache>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
-                var middleware = new OperationPlanCacheMiddleware(cache, diagnosticEvents);
+                var middleware = new OperationPlanCacheMiddleware(planCache, diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             WellKnownRequestMiddleware.OperationPlanCacheMiddleware);

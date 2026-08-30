@@ -30,6 +30,7 @@ public sealed class Selection : ISelection
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isInternal,
+        bool hasPolicy,
         ulong deferMask = 0,
         DeliveryGroup[]? deliveryGroups = null)
     {
@@ -50,6 +51,11 @@ public sealed class Selection : ISelection
         _deferMask = deferMask;
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
+
+        if (hasPolicy)
+        {
+            _flags |= Flags.HasPolicy;
+        }
 
         var namedType = field.Type.NamedType();
         _namedType = namedType;
@@ -86,6 +92,13 @@ public sealed class Selection : ISelection
 
     /// <inheritdoc />
     public bool IsEnumValue => (_flags & Flags.EnumValue) == Flags.EnumValue;
+
+    /// <summary>
+    /// Gets a value indicating whether this selection, or any type reachable through its
+    /// named return type, carries an authorization policy that must be evaluated during
+    /// value completion.
+    /// </summary>
+    public bool HasPolicy => (_flags & Flags.HasPolicy) == Flags.HasPolicy;
 
     /// <summary>
     /// Gets the named type of the selection's field type, with all list and
@@ -393,6 +406,7 @@ nextItem:
         Internal = 1,
         Leaf = 2,
         EnumValue = 4,
-        Sealed = 8
+        Sealed = 8,
+        HasPolicy = 16
     }
 }

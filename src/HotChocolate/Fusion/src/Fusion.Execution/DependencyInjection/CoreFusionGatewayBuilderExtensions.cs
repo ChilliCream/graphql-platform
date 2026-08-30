@@ -1,6 +1,7 @@
 using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
@@ -54,14 +55,16 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return FusionSetupUtilities.Configure(
             builder,
             setup => setup.DocumentProvider =
-                _ => new FileSystemFusionConfigurationProvider(
-                    fileName));
+                sp => new FileSystemFusionConfigurationProvider(
+                    fileName,
+                    sp.GetService<IFusionExecutionDiagnosticEvents>()));
     }
 
     public static IFusionGatewayBuilder AddInMemoryConfiguration(
         this IFusionGatewayBuilder builder,
         DocumentNode schemaDocument,
-        JsonDocumentOwner? schemaSettings = null)
+        JsonDocumentOwner? schemaSettings = null,
+        PolicyContentSnapshot? policies = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(schemaDocument);
@@ -71,7 +74,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
             setup => setup.DocumentProvider =
                 _ => new InMemoryFusionConfigurationProvider(
                     schemaDocument,
-                    schemaSettings));
+                    schemaSettings,
+                    policies));
     }
 
     public static IFusionGatewayBuilder AddOperationPlannerInterceptor(

@@ -410,4 +410,14 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// </param>
     void PolicyUpdateError(
         Exception error);
+
+    /// <summary>
+    /// Called when a fusion configuration could not be read from its source,
+    /// for example because a package archive is malformed or a schema document failed to parse.
+    /// </summary>
+    /// <param name="error">
+    /// The exception that occurred while reading the configuration.
+    /// </param>
+    void ConfigurationReadError(
+        Exception error);
 }

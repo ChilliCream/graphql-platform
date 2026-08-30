@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections;
 using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -82,6 +83,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
     {
         var schema = context.Schema;
         var user = context.Features.Get<UserState>()?.User ?? new ClaimsPrincipal();
+        var policyContext = new PolicyContext(context);
         List<SelectionPath>? fullyDeniedPaths = null;
         var aborted = false;
 
@@ -146,10 +148,12 @@ public sealed class PolicyExecutionNode : ExecutionNode
                 continue;
             }
 
-            var selection = FindSelection(effects[0]) ?? FindSelection(entities[0]);
+            var selection = target.Kind is PolicyTargetKind.Field
+                ? FindSelection(effects[0]) ?? FindSelection(entities[0])
+                : null;
             var type = schema.Types.GetType<ITypeDefinition>(target.TypeName);
 
-            var denied = new bool[effectCount];
+            var denied = new BitArray(effectCount);
             var denialBehaviors = new PolicyDenialBehavior[effectCount];
             var denialReasons = new string?[effectCount];
             var denialPolicies = new string?[effectCount];
@@ -159,7 +163,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
             // groups of an application are evaluated in order, and the remaining
             // groups are skipped once every entity is allowed, so a group whose
             // outcome can no longer change the result is not evaluated.
-            var decisions = new Dictionary<string, PolicyDecision>(StringComparer.Ordinal);
+            var decisions = new Dictionary<string, TargetDecision>(StringComparer.Ordinal);
 
             foreach (var application in target.Policies)
             {
@@ -180,7 +184,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
                         {
                             decision = await EvaluatePolicyForTargetAsync(
                                 context,
-                                target,
+                                policyContext,
                                 name,
                                 selection,
                                 type,
@@ -230,6 +234,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
             }
 
             var allDenied = true;
+            var abortIndex = -1;
 
             for (var i = 0; i < effectCount; i++)
             {
@@ -239,24 +244,43 @@ public sealed class PolicyExecutionNode : ExecutionNode
                     continue;
                 }
 
+                if (denialBehaviors[i] is PolicyDenialBehavior.Abort)
+                {
+                    abortIndex = i;
+                    break;
+                }
+            }
+
+            if (abortIndex >= 0)
+            {
+                context.ApplyPolicyDenial(
+                    effects[abortIndex],
+                    PolicyDenialBehavior.Abort,
+                    denialPolicies[abortIndex]!,
+                    denialReasons[abortIndex]);
+                aborted = true;
+                break;
+            }
+
+            for (var i = 0; i < effectCount; i++)
+            {
+                if (!denied[i])
+                {
+                    continue;
+                }
+
                 var behavior = denialBehaviors[i];
                 context.ApplyPolicyDenial(
                     effects[i],
                     behavior,
                     denialPolicies[i]!,
                     denialReasons[i]);
-                aborted |= behavior is PolicyDenialBehavior.Abort;
             }
 
             if (allDenied)
             {
                 fullyDeniedPaths ??= [];
                 fullyDeniedPaths.Add(target.Path);
-            }
-
-            if (aborted)
-            {
-                break;
             }
         }
 
@@ -265,12 +289,16 @@ public sealed class PolicyExecutionNode : ExecutionNode
             SelectUsefulDependents(context, fullyDeniedPaths);
         }
 
+        // Drops every reference the reused context holds onto (entities, type, user) now that
+        // this round's evaluations are complete.
+        policyContext.Clear();
+
         return aborted ? ExecutionStatus.Failed : ExecutionStatus.Success;
     }
 
-    private static async ValueTask<PolicyDecision> EvaluatePolicyForTargetAsync(
+    private static async ValueTask<TargetDecision> EvaluatePolicyForTargetAsync(
         OperationPlanContext context,
-        PolicyExecutionTarget target,
+        PolicyContext policyContext,
         string name,
         Selection? selection,
         ITypeDefinition type,
@@ -279,32 +307,24 @@ public sealed class PolicyExecutionNode : ExecutionNode
         int effectCount,
         CancellationToken cancellationToken)
     {
-        var policy = context.Schema.Policies.Get(name);
-        var requirements = policy.Requirements;
-        var plannedRequirements = GetPlannedRequirements(target.Requirements, name);
+        // The policy instance is resolved once per operation (ResolvePolicy). The plan itself was
+        // built against the policy snapshot published at planning time (OperationPlanner reads it
+        // once per plan), and PolicyCollection evicts a cached plan built for a different
+        // requirement before it publishes a new set, so the resource requirement read here always
+        // matches the plan the current published set corresponds to.
+        var policy = context.ResolvePolicy(name);
+        var resource = policy.Requirements.Resource;
 
-        if ((requirements is null) != (plannedRequirements is null)
-            || (requirements is not null
-                && !SyntaxComparer.BySyntax.Equals(requirements, plannedRequirements)))
-        {
-            throw new InvalidOperationException(
-                $"Authorization policy '{name}' requirements do not match "
-                + "the requirements used to build the operation plan.");
-        }
-
-        var onDenied = GetEffectiveOnDenied(target, name);
-        var policyDenied = new bool[effectCount];
+        var policyDenied = new BitArray(effectCount);
         var policyReasons = new string?[effectCount];
 
-        if (requirements is null)
+        if (resource is null)
         {
+            // A request-cacheable policy is evaluated at most once per request and its decision is
+            // reused across every application.
             var decision = await context.EvaluatePolicyOnceAsync(
                 policy,
-                selection,
-                type,
                 user,
-                onDenied,
-                entities[0],
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -317,67 +337,27 @@ public sealed class PolicyExecutionNode : ExecutionNode
                 }
             }
 
-            return new PolicyDecision(policyDenied, policyReasons);
+            return new TargetDecision(policyDenied, policyReasons);
         }
 
-        EnsureRequirementsAreAvailable(name, requirements, entities.AsSpan(0, effectCount));
+        EnsureRequirementsAreAvailable(name, resource, entities.AsSpan(0, effectCount));
 
-        var authorizationContext =
-            new AuthorizationContext(
-                context,
-                selection,
-                type,
-                user,
-                onDenied,
-                policyDenied,
-                policyReasons,
-                effectCount);
+        policyContext.ResetForResource(
+            user,
+            type,
+            selection,
+            context.Variables,
+            new ReadOnlyMemory<CompositeResultElement>(entities, 0, effectCount));
 
-        var entityData = new EntityData(entities, effectCount);
+        await policy.EvaluateAsync(policyContext, cancellationToken).ConfigureAwait(false);
 
-        try
+        for (var i = 0; i < effectCount; i++)
         {
-            await policy.EvaluateAsync(
-                authorizationContext,
-                entityData,
-                cancellationToken)
-                .ConfigureAwait(false);
-        }
-        finally
-        {
-            authorizationContext.Deactivate();
+            policyDenied[i] = policyContext.IsDenied(i);
+            policyReasons[i] = policyContext.GetReason(i);
         }
 
-        return new PolicyDecision(policyDenied, policyReasons);
-    }
-
-    private static PolicyDenialBehavior GetEffectiveOnDenied(
-        PolicyExecutionTarget target,
-        string name)
-    {
-        var onDenied = PolicyDenialBehavior.Null;
-
-        foreach (var application in target.Policies)
-        {
-            if (application.OnDenied <= onDenied)
-            {
-                continue;
-            }
-
-            foreach (var group in application.Groups)
-            {
-                foreach (var candidate in group)
-                {
-                    if (candidate.Equals(name, StringComparison.Ordinal))
-                    {
-                        onDenied = application.OnDenied;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return onDenied;
+        return new TargetDecision(policyDenied, policyReasons);
     }
 
     private static bool HasUndecidedEntity(bool[] allowed, int effectCount)
@@ -395,7 +375,7 @@ public sealed class PolicyExecutionNode : ExecutionNode
 
     private static string? GetDenialReason(
         PolicyApplication application,
-        Dictionary<string, PolicyDecision> decisions,
+        Dictionary<string, TargetDecision> decisions,
         int index)
     {
         foreach (var group in application.Groups)
@@ -414,9 +394,9 @@ public sealed class PolicyExecutionNode : ExecutionNode
         return null;
     }
 
-    private readonly struct PolicyDecision(bool[] denied, string?[] reasons)
+    private readonly struct TargetDecision(BitArray denied, string?[] reasons)
     {
-        public bool[] Denied { get; } = denied;
+        public BitArray Denied { get; } = denied;
 
         public string?[] Reasons { get; } = reasons;
     }
@@ -459,36 +439,6 @@ public sealed class PolicyExecutionNode : ExecutionNode
         }
 
         return true;
-    }
-
-    private static SelectionSetNode? GetPlannedRequirements(
-        ReadOnlySpan<AuthorizationPolicyRequirement> requirements,
-        string name)
-    {
-        SelectionSetNode? selectionSet = null;
-
-        foreach (var requirement in requirements)
-        {
-            if (!requirement.PolicyName.Equals(name, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            if (selectionSet is not null)
-            {
-                throw new InvalidOperationException(
-                    $"Authorization policy '{name}' has duplicate requirements in the operation plan.");
-            }
-
-            selectionSet = requirement.SelectionSet;
-        }
-
-        if (selectionSet is not null)
-        {
-            return selectionSet;
-        }
-
-        return null;
     }
 
     private static void EnsureRequirementsAreAvailable(
