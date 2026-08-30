@@ -111,7 +111,17 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
             <p className="text-cc-prose mt-5 text-lg leading-relaxed">{item.tagline}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               {cta && (
-                <SolidButton href={cta.href}>
+                <SolidButton
+                  href={cta.href}
+                  track={
+                    cta.isGithub
+                      ? {
+                          name: "repo_click",
+                          params: { repo_url: cta.href, item_type: item.type, item_slug: item.slug },
+                        }
+                      : undefined
+                  }
+                >
                   {cta.isGithub && <GitHubIcon className="mr-2 size-4 fill-current" />}
                   {cta.label}
                 </SolidButton>
@@ -166,7 +176,12 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
                         <p className="text-cc-ink-dim mb-1.5 font-mono text-[0.6875rem] tracking-wider uppercase">
                           {command.label}
                         </p>
-                        <CopyCommand command={command.code} size="sm" className="bg-cc-code-bg" />
+                        <CopyCommand
+                          command={command.code}
+                          size="sm"
+                          className="bg-cc-code-bg"
+                          track={{ commandKey: command.key, itemSlug: item.slug }}
+                        />
                       </div>
                     ))}
                   </div>

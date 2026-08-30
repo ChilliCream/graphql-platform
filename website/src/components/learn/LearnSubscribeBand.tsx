@@ -32,10 +32,19 @@ export function LearnSubscribeBand() {
           description="Subscribe via RSS or YouTube, or keep exploring the catalog and the docs."
         />
         <ButtonRow align="center" className="mt-8">
-          <SolidButton href="/blog/rss.xml">Subscribe via RSS</SolidButton>
-          <OutlineButton href="https://www.youtube.com/c/ChilliCream">YouTube</OutlineButton>
+          <SolidButton href="/blog/rss.xml" track={{ name: "subscribe_click", params: { channel: "rss" } }}>
+            Subscribe via RSS
+          </SolidButton>
+          <OutlineButton
+            href="https://www.youtube.com/c/ChilliCream"
+            track={{ name: "subscribe_click", params: { channel: "youtube" } }}
+          >
+            YouTube
+          </OutlineButton>
           <OutlineButton href="/learn/browse">Browse the catalog</OutlineButton>
-          <OutlineButton href="/docs">Read the docs</OutlineButton>
+          <OutlineButton href="/docs" track={{ name: "docs_cta_click", params: { location: "learn_subscribe_band" } }}>
+            Read the docs
+          </OutlineButton>
         </ButtonRow>
       </Band>
     </div>
