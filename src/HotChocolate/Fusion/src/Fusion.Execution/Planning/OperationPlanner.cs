@@ -1125,7 +1125,10 @@ public sealed partial class OperationPlanner
                     workItem.SelectionSet.Node,
                     current.EventStreamDirective!)
                 : null,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            // At a lookup entry root a sourceExternal field can only echo the key the lookup
+            // was entered with; root work items keep today's permissive behavior.
+            EntryKeyCoverage = lookup?.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -1356,7 +1359,11 @@ public sealed partial class OperationPlanner
                 SchemaName = schemaName,
                 SelectionSet = workItemSelectionSet with { Node = selectionSet },
                 SelectionSetIndex = index,
-                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
+                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null,
+                EntryKeyCoverage =
+                    step.Lookup is not null && workItemSelectionSet.Id == step.RootSelectionSetId
+                        ? step.Lookup.Requirements
+                        : null
             };
 
             var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
@@ -2110,7 +2117,8 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            EntryKeyCoverage = lookup.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -2977,7 +2985,13 @@ public sealed partial class OperationPlanner
                 selectionSetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                step.Lookup is not null && targetSelectionSetId == step.RootSelectionSetId
+                    ? step.Lookup.Requirements
+                    : null
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
@@ -4175,7 +4189,14 @@ public sealed partial class OperationPlanner
                 match.TargetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                match.Step.Lookup is not null
+                    && match.TargetSelectionSetId == match.Step.RootSelectionSetId
+                    ? match.Step.Lookup.Requirements
+                    : null
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);

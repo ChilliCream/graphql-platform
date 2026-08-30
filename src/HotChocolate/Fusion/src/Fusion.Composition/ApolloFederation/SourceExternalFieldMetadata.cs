@@ -5,7 +5,12 @@ namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
 /// Preserves which Apollo Federation key fields were originally marked <c>@external</c>
-/// before preprocessing promotes them to full field contributions.
+/// before preprocessing promotes them to full field contributions. Only fields declared
+/// on plain types are recorded: there the subgraph merely echoes caller-supplied key
+/// values, so the field is entry/echo-only and marked <c>sourceExternal</c> for the
+/// planner. On an extension type (the <c>@extends</c> directive or <c>extend type</c>
+/// syntax — the Fed-1 entity extension idiom) a key-referenced external field is a full
+/// contribution backed by the subgraph's own storage and carries no marker.
 /// </summary>
 internal sealed class SourceExternalFieldMetadata
 {
@@ -27,6 +32,7 @@ internal sealed class SourceExternalFieldMetadata
             if (schema.Types.TryGetType<MutableComplexTypeDefinition>(
                     coordinate.TypeName,
                     out var type)
+                && !IsExtensionType(type)
                 && type.Fields.TryGetField(coordinate.FieldName, out var field)
                 && field.Directives.ContainsName(FederationDirectiveNames.External))
             {
@@ -36,6 +42,17 @@ internal sealed class SourceExternalFieldMetadata
 
         schema.Features.Set(new SourceExternalFieldMetadata(fields));
     }
+
+    /// <summary>
+    /// Determines whether the type is an entity extension. Capture runs before
+    /// <see cref="RemoveFederationInfrastructure"/> strips <c>@extends</c>, so the directive
+    /// spelling is still visible; the <c>extend type</c> SDL spelling survives as the
+    /// <see cref="HotChocolate.Features.TypeExtensionMarker"/> feature the schema parser sets
+    /// when no base type definition exists in the source text.
+    /// </summary>
+    private static bool IsExtensionType(MutableComplexTypeDefinition type)
+        => type.Directives.ContainsName(FederationDirectiveNames.Extends)
+            || type.IsTypeExtension();
 
     public static bool Contains(
         MutableSchemaDefinition schema,
