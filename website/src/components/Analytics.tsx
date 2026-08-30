@@ -3,49 +3,18 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
-
-function getContentGroup(pathname: string): string {
-  if (pathname.startsWith("/docs")) {
-    return "Documentation";
-  }
-  if (pathname.startsWith("/blog")) {
-    return "Blog";
-  }
-  if (pathname.startsWith("/products")) {
-    return "Products";
-  }
-  if (pathname.startsWith("/platform")) {
-    return "Platform";
-  }
-  if (pathname.startsWith("/services")) {
-    return "Services";
-  }
-  if (pathname.startsWith("/pricing")) {
-    return "Pricing";
-  }
-  if (pathname.startsWith("/resources")) {
-    return "Resources";
-  }
-  if (pathname.startsWith("/help")) {
-    return "Help";
-  }
-  if (pathname.startsWith("/legal") || pathname.startsWith("/licensing")) {
-    return "Legal";
-  }
-  if (pathname === "/") {
-    return "Home";
-  }
-  return "Other";
-}
+import { getTrackParams, isAnalyticsEventName } from "@/src/helpers/analyticsEvents";
+import { getContentGroup } from "@/src/helpers/contentGroup";
 
 /**
- * Reports a GA4 content group for the current route and tracks clicks on any
- * element carrying a `data-track` attribute. Renders nothing.
+ * Reports a GA4 content group for the current route and turns a click on any
+ * element carrying a `data-track` attribute into the key event named by that
+ * attribute. Renders nothing.
+ *
+ * Every `data-track-*` attribute on the element becomes an event parameter
+ * (`data-track-item-slug` becomes `item_slug`), plus `link_url` for links and
+ * the current `page_path`. Unknown event names are ignored, so only the events
+ * declared in `analyticsEvents` can reach GA4.
  *
  * Both effects no-op until `window.gtag` exists, so they are inert until the
  * user grants consent and Google Tag Manager loads.
@@ -68,8 +37,13 @@ export function Analytics() {
         return;
       }
 
-      window.gtag("event", el.dataset.track, {
-        event_label: el.dataset.trackLabel || el.textContent?.trim(),
+      const name = el.dataset.track;
+      if (!isAnalyticsEventName(name)) {
+        return;
+      }
+
+      window.gtag("event", name, {
+        ...getTrackParams(Array.from(el.attributes)),
         link_url: el.getAttribute("href") || undefined,
         page_path: pathname,
       });
