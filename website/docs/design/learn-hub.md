@@ -216,8 +216,9 @@ the site language (token colors, `text-h*` scale, `Tag`, `CopyCommand`,
 `CodeBlock`, buttons). It moves to `src/components/learn/TemplateDetail.tsx`
 and is restyled only where it referenced the old world:
 
-1. **Breadcrumb**: `Learn / Templates / {title}`. "Learn" links to `/learn`,
-   "Templates" links to `/learn?type=template`.
+1. **Breadcrumb**: superseded by website-xwu (2026-08-30): all /learn
+   breadcrumbs, including this one, were removed per user ruling. The
+   header now opens directly with item 2 (tags row).
 2. **Header**: unchanged two-column grid (`lg:grid-cols-[1fr_0.9fr]`): tags
    row (`Tag` for topology, the warning-tinted Agent-ready tag), `text-h3
 sm:text-h2` title, `text-cc-prose` tagline, `SolidButton` "View source"

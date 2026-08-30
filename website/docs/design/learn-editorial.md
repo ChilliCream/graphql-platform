@@ -83,11 +83,12 @@ over verbatim:
 | `/blog/*`                 | Blog index and posts, owned by the strategy section 5 ruling  | Section 4.4            |
 
 One catalog-facing adjustment falls out of the relocation: everywhere
-learn-hub.md links to `/learn?type=...` (facet-bar resets, breadcrumbs like
-"Templates" on the detail page, the `LearnEmptyState` reset), the target
-becomes the equivalent `/learn/browse?...` URL. The template detail
-breadcrumb becomes `Learn / Templates / {title}` with "Learn" linking to the
-editorial landing and "Templates" to `/learn/browse?type=template`. No other
+learn-hub.md links to `/learn?type=...` (facet-bar resets, the
+`LearnEmptyState` reset), the target becomes the equivalent
+`/learn/browse?...` URL. The template detail breadcrumb learn-hub.md
+section 5 once specified is superseded by website-xwu (2026-08-30), which
+removes it and every other /learn breadcrumb; the detail page header now
+opens directly with the tags row (learn-hub.md section 5 item 2). No other
 catalog change.
 
 ---
@@ -453,9 +454,11 @@ the kbx.15 reading measure above.** User ruling: article detail pages must
 use the same width every other learn page gives its content, not a boxed
 reading column. kbx.15's `max-w-2xl` (672px) column centered inside the
 `max-w-5xl` shell is removed entirely, and so is the `max-w-5xl` shell
-itself: items 1 through 9 (breadcrumb through `Related`) all render at the
-shared `[1fr_20rem]` grid's `1fr` main column width, no `mx-auto`/`max-w-*`
-wrapper anywhere in `ArticleLayout`. This matches the width `/learn`,
+itself: items 2 through 9 (kind chip through `Related`; item 1's
+breadcrumb was dropped by website-xwu, 2026-08-30, per item 1's note
+above) all render at the shared `[1fr_20rem]` grid's `1fr` main column
+width, no `mx-auto`/`max-w-*` wrapper anywhere in `ArticleLayout`. This
+matches the width `/learn`,
 `/learn/browse`, and the other learn detail pages already give their
 content; the two-tier shell/measure split kbx.7, D5, and kbx.15 each
 iterated on is gone, not narrowed further.
@@ -536,8 +539,11 @@ cropping proves unacceptable in practice.
   pages do not render it; they use the plain `(content)`-style full-width
   column plus TOC. Whether blog posts keep it is owned by the section 5
   ruling (Option A: yes, untouched; Option B: the restyle decides, and this
-  spec recommends replacing it with the breadcrumb + TOC-only chrome for
-  one consistent reading surface).
+  spec recommends replacing it with the same TOC-only chrome
+  `/learn/articles` pages already use, for one consistent reading surface;
+  the breadcrumb this recommendation once paired with that chrome is
+  dropped by website-xwu, 2026-08-30, which removes breadcrumbs from every
+  /learn surface).
 - **Structured data**: `/learn/articles` pages emit `Article` JSON-LD and a
   `BreadcrumbList`, mirroring the `BlogPosting` blocks the blog page
   already builds (implementation detail for website-5yo.12).
@@ -549,11 +555,12 @@ All from the `@theme` scale in `app/globals.css`; no ad-hoc sizes:
 - Title: `Typography variant="h1"`; section headings inside the body map
   from MDX `h2`/`h3` through the existing components (`text-h4`/`text-h5`
   equivalents with permalink anchors).
-- Standfirst: `text-lg`; body: `text-body` via the prose defaults; captions,
-  breadcrumbs, and kind chips: mono caption voice
+- Standfirst: `text-lg`; body: `text-body` via the prose defaults;
+  captions and kind chips: mono caption voice
   (`font-mono text-xs uppercase tracking-wider`).
-- Measure: no width cap; breadcrumb through `Related` render at the full
-  `1fr` main column width (below `2xl` the main column equals the
+- Measure: no width cap; every element from the kind chip through
+  `Related` (breadcrumb dropped by website-xwu, 2026-08-30) renders at the
+  full `1fr` main column width (below `2xl` the main column equals the
   container, viewport minus 96px shell padding, up to 1439px just under
   1536px; at `2xl` and above it is the container minus the 320px rail,
   1120px at a 1536px viewport rising to 1280px once the 1600px `max-w-8xl`
@@ -581,8 +588,10 @@ All from the `@theme` scale in `app/globals.css`; no ad-hoc sizes:
   Because the shell's props are a subset of what the blog page already
   computes (`BlogPostSummary` plus `compileDoc` output), adoption is a
   refactor of one page file, not a redesign. `/blog` index pages restyle by
-  keeping `BlogIndexShell` and adding the hub breadcrumb and topic links
-  (owned by website-5yo.11 after the ruling).
+  keeping `BlogIndexShell` and adding topic links (owned by website-5yo.11
+  after the ruling); the hub breadcrumb this once paired with them is
+  dropped by website-xwu (2026-08-30), which removes breadcrumbs from
+  every /learn surface this restyle would join.
 - **Option C** is out of scope by ruling status; nothing here depends on
   URLs, so the design would survive it regardless.
 
@@ -607,9 +616,10 @@ check:
    "Browse the catalog" as the primary button, catching readers who
    scrolled through.
 
-The reverse edge exists too: the catalog's breadcrumb/heading area on
-`/learn/browse` links back to `/learn` ("Learn" breadcrumb), so the two
-surfaces form an obvious pair.
+The reverse edge exists too: the persistent subnav's "Learn" wordmark
+(section 13) on `/learn/browse` links back to `/learn`, so the two
+surfaces form an obvious pair; the heading-area breadcrumb this sentence
+once cited is dropped by website-xwu (2026-08-30).
 
 ---
 
@@ -643,9 +653,10 @@ editorial types; the accent table above is the preferred form.
 
 ### 6.2 Page structure
 
-Top matter comes from `ArticleLayout`: breadcrumb `Learn / Articles`,
-"COMPARISON" chip, "Updated {date}" line, title in the "X vs. Y" form,
-standfirst carrying the one-paragraph verdict. Then, in the body:
+Top matter comes from `ArticleLayout` (section 4.1 item 1's breadcrumb was
+dropped by website-xwu, 2026-08-30): "COMPARISON" chip, "Updated {date}"
+line, title in the "X vs. Y" form, standfirst carrying the one-paragraph
+verdict. Then, in the body:
 
 1. **Verdict cards**, `ComparisonVerdict` **(proposed)**, an MDX-usable
    component: one card per compared option in a `CardGrid`
@@ -1568,8 +1579,10 @@ product (templates first); the current video always excluded.
   `thumbnailUrl` (the resolved poster), `uploadDate` (`publishedAt`),
   `duration` converted to ISO 8601 (`PT51M49S` from `"51:49"`),
   `embedUrl` (`https://www.youtube-nocookie.com/embed/{youtubeId}`), and
-  `url` (the canonical page URL). Plus a `BreadcrumbList` mirroring the
-  breadcrumb, as the article pages do.
+  `url` (the canonical page URL). Plus a `BreadcrumbList` JSON-LD node, as
+  the article pages emit (section 4.2's structured-data bullet); this is
+  metadata only, no visible breadcrumb renders on either page type
+  (website-xwu, 2026-08-30).
 - Page metadata: title and description from `title`/`tagline`; the OG
   image is the poster.
 

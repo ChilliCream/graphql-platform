@@ -161,8 +161,9 @@ D1 to D10 are high severity, D11 to D18 medium, D19 to D23 low.
   superseding the kbx.15 paragraph above:** user ruling rejected the
   reading-measure direction outright, articles must use the same width
   every other learn page gives its content. `ArticleLayout` no longer caps
-  running prose at any `max-w-*` value; breadcrumb through `Related`
-  (title and body included) render at the full `1fr` main column of the
+  running prose at any `max-w-*` value; the header through `Related`
+  (title and body included; breadcrumb dropped by website-xwu, 2026-08-30)
+  render at the full `1fr` main column of the
   shared `[1fr_20rem]` grid (1120px-1280px at `2xl` and above depending on
   viewport, 1280px binding once the `max-w-8xl` clamp is reached at 1696px
   and wider; see learn-editorial.md section 4.3 for the full range). D5's
@@ -642,11 +643,12 @@ six equal hairline-topped bands.
 ### 2.7 Per-section layout prescriptions: reading pages
 
 1. **`/learn/articles/[slug]`** (`ArticleLayout.tsx`): no article shell or
-   reading-column cap; breadcrumb through `Related` (hero excepted) render
+   reading-column cap; the header through `Related` (hero excepted) render
    at the full `1fr` main column of the shared `[1fr_20rem]` grid
    (website-kbx.18, superseding kbx.15's `max-w-2xl` reading column, this
-   D5 line's `max-w-[46rem]` figure, and both their breakout claims; the
-   kbx.7 cross-reference below still governs the hero, which keeps its
+   D5 line's `max-w-[46rem]` figure, and both their breakout claims;
+   breadcrumb dropped by website-xwu, 2026-08-30; the kbx.7
+   cross-reference below still governs the hero, which keeps its
    original `max-w-3xl` width cap rather than joining the full-width
    ruling, pending a design call on a `max-h-[26rem]` + `object-cover`
    full-width treatment that was found to crop article art); the title

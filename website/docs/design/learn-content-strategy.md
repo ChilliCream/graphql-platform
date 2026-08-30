@@ -248,8 +248,11 @@ No blog code changes at all.
 
 Keep every URL (`/blog`, `/blog/YYYY-MM-DD-slug`, `/blog/tags/[tag]`,
 `/blog/rss.xml`) and all frontmatter. Restyle the blog index and post pages
-into the hub's visual language, add hub navigation (breadcrumb into /learn,
-topic links per section 3), and demote `/blog` from front door to archive:
+into the hub's visual language, add hub navigation (topic links per
+section 3; the breadcrumb into /learn this once paired with them is
+dropped by website-xwu, 2026-08-30, which removes breadcrumbs from every
+/learn surface this restyle would join), and demote `/blog` from front
+door to archive:
 the hub landing is the reading entry point, `/blog` is the complete
 chronological index it links to ("All articles").
 
