@@ -148,7 +148,7 @@ Beyond the key parameter, a DataLoader method can declare additional parameters:
 
 ## Keyed Services
 
-Generated DataLoader methods can resolve keyed services with `[Service("key")]` or `[FromKeyedServices(key)]`. A non-nullable parameter is required. A nullable parameter is optional and can resolve to `null`.
+Generated DataLoader methods can resolve keyed services with `[Service("key")]` or `[FromKeyedServices(key)]`. `[Service]` has parity with `[FromKeyedServices]` and supports any attribute constant, including strings, enum values, and integers. String keys remain supported unchanged. A non-nullable parameter is required. A nullable parameter is optional and can resolve to `null`.
 
 ```csharp
 internal enum CatalogServiceKey
@@ -171,7 +171,7 @@ internal static class BrandDataLoaders
     public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
         IReadOnlyList<int> ids,
         [Service("primary")] CatalogContext primaryContext,
-        [FromKeyedServices(CatalogServiceKey.ReadOnly)] CatalogContext? readOnlyContext,
+        [Service(CatalogServiceKey.ReadOnly)] CatalogContext? readOnlyContext,
         [ReadOnlyCatalog] CatalogCache cache,
         CancellationToken ct)
         => await primaryContext.Brands
