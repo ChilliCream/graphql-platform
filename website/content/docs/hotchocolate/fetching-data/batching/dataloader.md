@@ -180,7 +180,7 @@ internal static class BrandDataLoaders
 }
 ```
 
-Attributes derived from `ServiceAttribute` must be defined in source so the generator can determine their key. Keys can be any constant, including strings, enum values, and integers. `KeyedService.AnyKey` is not supported.
+For attributes derived from `ServiceAttribute`, the constructor chain must be available in source and the string passed to the `ServiceAttribute` base constructor must be statically determinable. If `HC0133` remains, apply the key directly with `[Service("key")]` or `[FromKeyedServices(key)]`. Keys can be any constant, including strings, enum values, and integers. `KeyedService.AnyKey` is not supported.
 
 Hand-written DataLoader constructors use `[FromKeyedServices]`:
 
@@ -202,7 +202,7 @@ public BrandByIdDataLoader(
 | `HC0130` | A generated DataLoader service parameter uses both `[Service(key)]` and `[FromKeyedServices]`.         |
 | `HC0131` | A keyed-service attribute is applied to a parameter that is not a generated DataLoader service.        |
 | `HC0132` | A keyed `[Service]` attribute is applied to a hand-written DataLoader constructor parameter.           |
-| `HC0133` | A derived `ServiceAttribute` key cannot be determined at compile time. Define the attribute in source. |
+| `HC0133` | A derived `ServiceAttribute` constructor chain is unavailable in source or the string passed to its base constructor is not statically determinable. Apply the key directly with `[Service("key")]` or `[FromKeyedServices(key)]`. |
 
 ## Handling Missing Keys
 
