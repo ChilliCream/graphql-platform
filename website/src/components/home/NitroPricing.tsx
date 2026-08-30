@@ -46,7 +46,11 @@ export function NitroPricing() {
             priceNote={tier.priceNote}
             perks={tier.features}
             popular={tier.popular}
-            callToAction={{ title: tier.cta, link: tier.ctaHref }}
+            callToAction={{
+              title: tier.cta,
+              link: tier.ctaHref,
+              track: { name: "pricing_cta_click", params: { plan: tier.id, location: "home_pricing" } },
+            }}
           />
         ))}
       </OfferingGrid>
@@ -60,7 +64,11 @@ export function NitroPricing() {
               and priority support.
             </p>
           </div>
-          <OutlineButton href={SELF_HOSTED.ctaHref} className="shrink-0 sm:w-auto">
+          <OutlineButton
+            href={SELF_HOSTED.ctaHref}
+            track={{ name: "pricing_cta_click", params: { plan: SELF_HOSTED.id, location: "home_self_hosted" } }}
+            className="shrink-0 sm:w-auto"
+          >
             {SELF_HOSTED.cta}
           </OutlineButton>
         </Card>

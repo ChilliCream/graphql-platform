@@ -17,8 +17,15 @@ export function ClosingCta() {
         description="1M operations, 2 GB of ingest, schemas and environments, and the full Nitro control plane, free on the shared cloud. Upgrade only when you outgrow it."
       />
       <ButtonRow align="center" className="mt-8">
-        <SolidButton href="https://nitro.chillicream.com">Start for free</SolidButton>
-        <OutlineButton href="/docs">Read the docs</OutlineButton>
+        <SolidButton
+          href="https://nitro.chillicream.com"
+          track={{ name: "nitro_signup_click", params: { location: "pricing_closing" } }}
+        >
+          Start for free
+        </SolidButton>
+        <OutlineButton href="/docs" track={{ name: "docs_cta_click", params: { location: "pricing_closing" } }}>
+          Read the docs
+        </OutlineButton>
       </ButtonRow>
       <p className="text-cc-ink-dim mt-6 font-mono text-xs">No credit card. Free on the shared cloud.</p>
     </Band>

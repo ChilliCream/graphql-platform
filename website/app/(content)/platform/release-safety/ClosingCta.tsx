@@ -13,8 +13,10 @@ export function ClosingCta() {
         text="Publish the operations each client uses, validate proposed schemas against the environment you plan to update, and merge with the answer in hand."
         primaryLink="https://nitro.chillicream.com"
         primaryLinkText="Start for free"
+        primaryTrack={{ name: "nitro_signup_click", params: { location: "platform_release_safety_closing" } }}
         secondaryLink="/docs/nitro/apis/client-registry"
         secondaryLinkText="Read client registry docs"
+        secondaryTrack={{ name: "docs_cta_click", params: { location: "platform_release_safety_closing" } }}
       />
     </DotGridSurface>
   );

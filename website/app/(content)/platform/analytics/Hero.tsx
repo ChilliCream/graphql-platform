@@ -227,8 +227,18 @@ export function Hero() {
             open the related traces and inspect which calls took the time.
           </p>
           <ButtonRow align="start" className="mt-9">
-            <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
-            <OutlineButton href="/docs/nitro/open-telemetry/operation-monitoring">Read the Docs</OutlineButton>
+            <SolidButton
+              href="https://nitro.chillicream.com"
+              track={{ name: "nitro_signup_click", params: { location: "platform_analytics_hero" } }}
+            >
+              Start for Free
+            </SolidButton>
+            <OutlineButton
+              href="/docs/nitro/open-telemetry/operation-monitoring"
+              track={{ name: "docs_cta_click", params: { location: "platform_analytics_hero" } }}
+            >
+              Read the Docs
+            </OutlineButton>
           </ButtonRow>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">

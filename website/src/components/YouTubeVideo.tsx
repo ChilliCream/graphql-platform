@@ -22,7 +22,7 @@ export function YouTubeVideo({ videoId, playlabel }: YouTubeVideoProps) {
 
   return (
     <div className="ring-cc-card-border my-6 overflow-hidden rounded-md ring-1">
-      <VideoFacade videoId={videoId} playlabel={playlabel}>
+      <VideoFacade videoId={videoId} playlabel={playlabel} location="article">
         <YouTubePoster videoId={videoId} />
       </VideoFacade>
     </div>

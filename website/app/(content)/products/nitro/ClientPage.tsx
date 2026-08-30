@@ -1271,7 +1271,12 @@ function Hero({ reduced }: HeroProps) {
             >
               <NitroDownload />
             </span>
-            <OutlineButton href="https://nitro.chillicream.com">Launch Nitro</OutlineButton>
+            <OutlineButton
+              href="https://nitro.chillicream.com"
+              track={{ name: "nitro_signup_click", params: { location: "nitro_product_hero" } }}
+            >
+              Launch Nitro
+            </OutlineButton>
           </div>
         </RevealOnScroll>
 
@@ -1484,8 +1489,18 @@ export function ClientPage() {
             your team grows.
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-            <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
-            <OutlineButton href="https://nitro.chillicream.com">Launch Nitro</OutlineButton>
+            <SolidButton
+              href="https://nitro.chillicream.com"
+              track={{ name: "nitro_signup_click", params: { location: "nitro_product_closing" } }}
+            >
+              Start for Free
+            </SolidButton>
+            <OutlineButton
+              href="https://nitro.chillicream.com"
+              track={{ name: "nitro_signup_click", params: { location: "nitro_product_closing" } }}
+            >
+              Launch Nitro
+            </OutlineButton>
           </div>
         </RevealOnScroll>
       </section>

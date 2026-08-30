@@ -12,8 +12,18 @@ export function ClosingCta() {
         description="Follow an incident from the latency chart to the failing operation to the exact span that caused it, without leaving Nitro."
       />
       <ButtonRow align="center" className="mt-9">
-        <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
-        <OutlineButton href="/docs/nitro/open-telemetry/operation-monitoring">Read the Docs</OutlineButton>
+        <SolidButton
+          href="https://nitro.chillicream.com"
+          track={{ name: "nitro_signup_click", params: { location: "platform_analytics_closing" } }}
+        >
+          Start for Free
+        </SolidButton>
+        <OutlineButton
+          href="/docs/nitro/open-telemetry/operation-monitoring"
+          track={{ name: "docs_cta_click", params: { location: "platform_analytics_closing" } }}
+        >
+          Read the Docs
+        </OutlineButton>
       </ButtonRow>
     </Band>
   );

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { PRODUCTS } from "@/src/data/products";
+import { trackEvent } from "@/src/helpers/analyticsEvents";
 import { SearchIcon } from "@/src/icons/Search";
 
 // The DocSearch modal (and its ~120 KB of JS plus CSS) is code-split into its
@@ -118,6 +119,12 @@ function addProductContext(items: DocSearchHit[]): DocSearchHit[] {
   });
 }
 
+// The search term lives in DocSearch's own input, which the modal owns; it is
+// read at click time so the result event carries the query that produced it.
+function getSearchQuery(): string {
+  return document.querySelector<HTMLInputElement>(".DocSearch-Input")?.value ?? "";
+}
+
 type HitProps = {
   hit: InternalDocSearchHit | StoredDocSearchHit;
   children: ReactNode;
@@ -148,6 +155,8 @@ export function Search({ className, ariaLabel = "Search" }: { className?: string
   }, [ModalComponent]);
 
   const onOpen = useCallback(() => {
+    trackEvent("search_open", {});
+
     if (typeof window !== "undefined") {
       setInitialScrollY(window.scrollY);
     }
@@ -204,6 +213,7 @@ export function Search({ className, ariaLabel = "Search" }: { className?: string
               onAskAiToggle={() => {}}
               navigator={{
                 navigate({ itemUrl }) {
+                  trackEvent("search_result_click", { query: getSearchQuery(), result_url: itemUrl });
                   router.push(itemUrl);
                 },
               }}

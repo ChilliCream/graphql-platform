@@ -86,13 +86,10 @@ export function trackEvent<TName extends AnalyticsEventName>(name: TName, params
  * handler. Parameter names are hyphenated in the attribute (`video_id` becomes
  * `data-track-video-id`) and read back as snake_case by `getTrackParams`.
  */
-export function trackAttributes<TName extends AnalyticsEventName>(
-  name: TName,
-  params: AnalyticsEventParams<TName>,
-): Record<string, string> {
-  const attributes: Record<string, string> = { "data-track": name };
+export function trackAttributes(event: AnalyticsEvent): Record<string, string> {
+  const attributes: Record<string, string> = { "data-track": event.name };
 
-  for (const [key, value] of Object.entries(params as Record<string, string>)) {
+  for (const [key, value] of Object.entries(event.params as Record<string, string>)) {
     attributes[TRACK_PARAM_PREFIX + key.replace(/_/g, "-")] = value;
   }
 

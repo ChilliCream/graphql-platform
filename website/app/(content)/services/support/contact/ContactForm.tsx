@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { trackEvent } from "@/src/helpers/analyticsEvents";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
@@ -103,10 +104,7 @@ export function ContactForm() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      window.gtag?.("event", "contact_form_submit", {
-        event_label: subject,
-        page_path: window.location.pathname,
-      });
+      trackEvent("contact_form_submit", { topic: subject });
 
       window.location.href = THANK_YOU_PATH;
     } catch {

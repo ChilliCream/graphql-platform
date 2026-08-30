@@ -241,8 +241,18 @@ export function HeroSection() {
             Breaking change detection shows what would break, so you can fix it before it reaches users.
           </p>
           <ButtonRow align="start" className="mt-9">
-            <SolidButton href="https://nitro.chillicream.com">Start for free</SolidButton>
-            <OutlineButton href="/docs/nitro/apis/client-registry">Read client registry docs</OutlineButton>
+            <SolidButton
+              href="https://nitro.chillicream.com"
+              track={{ name: "nitro_signup_click", params: { location: "platform_release_safety_hero" } }}
+            >
+              Start for free
+            </SolidButton>
+            <OutlineButton
+              href="/docs/nitro/apis/client-registry"
+              track={{ name: "docs_cta_click", params: { location: "platform_release_safety_hero" } }}
+            >
+              Read client registry docs
+            </OutlineButton>
           </ButtonRow>
         </div>
         <div className="relative min-w-0">

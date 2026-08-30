@@ -2,12 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { trackEvent } from "@/src/helpers/analyticsEvents";
+
 interface CopyCommandProps {
   /** The full shell command, without the leading "$". */
   readonly command: string;
   /** Extra container classes; call sites supply the background tint. */
   readonly className?: string;
   readonly size?: "sm" | "md";
+  /**
+   * Reports a `template_cli_copy` key event when the command is copied.
+   * Omitted means the copy button is not tracked.
+   */
+  readonly track?: {
+    /** Which command on the page was copied, e.g. "install" or "run". */
+    readonly commandKey: string;
+    /** Slug of the template or example the command belongs to. */
+    readonly itemSlug: string;
+  };
 }
 
 /** A plain two-rectangle copy affordance; decorative, inherits currentColor. */
@@ -53,7 +65,7 @@ function CopiedGlyph({ className }: { readonly className?: string }) {
  * accent color, the rest in ink, matching the static command pills it
  * replaces.
  */
-export function CopyCommand({ command, className, size = "md" }: CopyCommandProps) {
+export function CopyCommand({ command, className, size = "md", track }: CopyCommandProps) {
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | undefined>(undefined);
 
@@ -62,6 +74,11 @@ export function CopyCommand({ command, className, size = "md" }: CopyCommandProp
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(command);
+
+      if (track) {
+        trackEvent("template_cli_copy", { command_key: track.commandKey, item_slug: track.itemSlug });
+      }
+
       setCopied(true);
       window.clearTimeout(resetTimer.current);
       resetTimer.current = window.setTimeout(() => setCopied(false), 1600);

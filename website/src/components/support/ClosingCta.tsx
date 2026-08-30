@@ -17,8 +17,18 @@ export function ClosingCta() {
         description="Join the community Slack to talk to other ChilliCream users, or get in touch to size a paid plan for your team."
       />
       <ButtonRow align="center" className="mt-8">
-        <SolidButton href="/services/support/contact">Contact sales</SolidButton>
-        <OutlineButton href="https://slack.chillicream.com/">Join community Slack</OutlineButton>
+        <SolidButton
+          href="/services/support/contact"
+          track={{ name: "contact_sales_click", params: { location: "support_closing" } }}
+        >
+          Contact sales
+        </SolidButton>
+        <OutlineButton
+          href="https://slack.chillicream.com/"
+          track={{ name: "subscribe_click", params: { channel: "slack" } }}
+        >
+          Join community Slack
+        </OutlineButton>
       </ButtonRow>
     </Band>
   );

@@ -29,7 +29,11 @@ export function PlanSelector() {
             priceNote={tier.priceNote}
             perks={tier.features}
             popular={tier.popular}
-            callToAction={{ title: tier.cta, link: tier.ctaHref }}
+            callToAction={{
+              title: tier.cta,
+              link: tier.ctaHref,
+              track: { name: "pricing_cta_click", params: { plan: tier.id, location: "pricing_plans" } },
+            }}
           />
         ))}
       </OfferingGrid>
@@ -48,7 +52,11 @@ function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
           engineering support.
         </p>
       </div>
-      <OutlineButton href={tier.ctaHref} className="shrink-0 sm:w-auto">
+      <OutlineButton
+        href={tier.ctaHref}
+        track={{ name: "pricing_cta_click", params: { plan: tier.id, location: "pricing_self_hosted" } }}
+        className="shrink-0 sm:w-auto"
+      >
         {tier.cta}
       </OutlineButton>
     </Card>

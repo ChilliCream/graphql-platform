@@ -7,6 +7,7 @@ import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
+import { type AnalyticsEvent, trackAttributes } from "@/src/helpers/analyticsEvents";
 
 const tools = {
   blog: "/blog",
@@ -75,7 +76,9 @@ export default function Footer() {
             </LinkColumn>
             <LinkColumn title="Company">
               <NavLink href="/services/support/contact">Contact</NavLink>
-              <NavLink href={tools.shop}>Shop</NavLink>
+              <NavLink href={tools.shop} track={{ name: "store_click", params: { location: "footer" } }}>
+                Shop
+              </NavLink>
               {basicPages.map((page) => (
                 <NavLink key={page.path} href={`/${page.path}`}>
                   {page.title}
@@ -86,22 +89,22 @@ export default function Footer() {
         </Section>
         <Section>
           <nav className="text-cc-ink-dim flex flex-row gap-4">
-            <SocialLink href={tools.blog} label="ChilliCream Blog">
+            <SocialLink href={tools.blog} label="ChilliCream Blog" channel="blog">
               <BlogIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.github} label="ChilliCream on GitHub">
+            <SocialLink href={tools.github} label="ChilliCream on GitHub" channel="github">
               <GitHubIcon className="h-7 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.slack} label="ChilliCream Slack Community">
+            <SocialLink href={tools.slack} label="ChilliCream Slack Community" channel="slack">
               <SlackIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.youtube} label="ChilliCream YouTube Channel">
+            <SocialLink href={tools.youtube} label="ChilliCream YouTube Channel" channel="youtube">
               <YouTubeIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.x} label="ChilliCream on X">
+            <SocialLink href={tools.x} label="ChilliCream on X" channel="x">
               <XIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.linkedIn} label="ChilliCream on LinkedIn">
+            <SocialLink href={tools.linkedIn} label="ChilliCream on LinkedIn" channel="linkedin">
               <LinkedInIcon className="h-6 w-auto fill-current" />
             </SocialLink>
           </nav>
@@ -127,12 +130,13 @@ function LinkColumn({ title, children }: { title: string; children: ReactNode })
   );
 }
 
-function NavLink({ href, children }: { href: string; children: ReactNode }) {
+function NavLink({ href, children, track }: { href: string; children: ReactNode; track?: AnalyticsEvent }) {
   const className = "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
+  const trackProps = track ? trackAttributes(track) : undefined;
 
   if (href.startsWith("/")) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} className={className} {...trackProps}>
         {children}
       </Link>
     );
@@ -140,25 +144,40 @@ function NavLink({ href, children }: { href: string; children: ReactNode }) {
 
   if (href.startsWith("mailto:") || href.startsWith("#")) {
     return (
-      <a href={href} className={className}>
+      <a href={href} className={className} {...trackProps}>
         {children}
       </a>
     );
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className} {...trackProps}>
       {children}
     </a>
   );
 }
 
-function SocialLink({ href, label, children }: { href: string; label: string; children: ReactNode }) {
+/**
+ * One entry in the footer's follow row. `channel` names the destination in the
+ * `subscribe_click` key event.
+ */
+function SocialLink({
+  href,
+  label,
+  channel,
+  children,
+}: {
+  href: string;
+  label: string;
+  channel: string;
+  children: ReactNode;
+}) {
   const className = "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
+  const trackProps = trackAttributes({ name: "subscribe_click", params: { channel } });
 
   if (href.startsWith("/")) {
     return (
-      <Link href={href} aria-label={label} className={className}>
+      <Link href={href} aria-label={label} className={className} {...trackProps}>
         {children}
         <span className="sr-only">{label}</span>
       </Link>
@@ -166,7 +185,7 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={className}>
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={className} {...trackProps}>
       {children}
       <span className="sr-only">{label}</span>
     </a>

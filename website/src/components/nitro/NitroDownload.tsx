@@ -4,6 +4,7 @@ import { load } from "js-yaml";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
 import { SolidButton } from "@/src/design-system/Button";
+import { trackAttributes } from "@/src/helpers/analyticsEvents";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { CircleArrowDownIcon } from "@/src/icons/CircleArrowDown";
 
@@ -309,17 +310,15 @@ const SPLIT_BUTTON_LABELS: Record<OS, string> = {
   windows: "Download Windows Universal",
 };
 
-function getActiveDownload(active: ActiveAppInfo): {
-  url: string;
-  text: string;
-  filename: string;
-} {
+function getActiveDownload(active: ActiveAppInfo): Required<ActiveDownload> {
   switch (active.os) {
     case "linux":
       return {
         url: DOWNLOAD_BASE_URL + active.appImage.filename,
         text: "Download " + active.appImage.text,
         filename: active.appImage.filename,
+        platform: "linux",
+        arch: "appimage",
       };
     case "mac":
     case "windows":
@@ -327,6 +326,8 @@ function getActiveDownload(active: ActiveAppInfo): {
         url: DOWNLOAD_BASE_URL + active.universal.filename,
         text: "Download " + active.universal.text,
         filename: active.universal.filename,
+        platform: active.os,
+        arch: "universal",
       };
   }
 }
@@ -335,6 +336,10 @@ interface ActiveDownload {
   readonly url?: string;
   readonly text: string;
   readonly filename?: string;
+  /** Reported as the `nitro_download` platform; absent while the manifest loads. */
+  readonly platform?: OS;
+  /** Reported as the `nitro_download` architecture; absent while the manifest loads. */
+  readonly arch?: string;
 }
 
 // Maps the fetch status to what the split button shows: the resolved download
@@ -350,10 +355,13 @@ function resolveActiveDownload(status: ActiveAppInfoStatus): ActiveDownload | nu
 
 interface DownloadAppLinkProps {
   readonly filename: string;
+  readonly platform: OS;
+  readonly arch: string;
+  readonly channel: "stable" | "insider";
   readonly onClick?: () => void;
 }
 
-function DownloadAppLink({ filename, onClick }: DownloadAppLinkProps) {
+function DownloadAppLink({ filename, platform, arch, channel, onClick }: DownloadAppLinkProps) {
   return (
     <a
       href={DOWNLOAD_BASE_URL + filename}
@@ -362,6 +370,7 @@ function DownloadAppLink({ filename, onClick }: DownloadAppLinkProps) {
       onClick={onClick}
       className="text-cc-ink hover:text-cc-white flex items-center justify-center py-1"
       aria-label={"Download " + filename}
+      {...trackAttributes({ name: "nitro_download", params: { platform, arch, channel } })}
     >
       <CircleArrowDownIcon className="h-4 w-4 fill-current" aria-hidden="true" />
     </a>
@@ -372,27 +381,37 @@ const MATRIX_ROWS: {
   readonly os: string;
   readonly type: string;
   readonly pick: (variant: AppInfoVariant) => string;
+  /** Reported as the `nitro_download` platform. */
+  readonly platform: OS;
+  /** Reported as the `nitro_download` architecture. */
+  readonly arch: string;
   readonly groupStart?: boolean;
 }[] = [
   {
     os: "macOS 64",
     type: "Universal",
     pick: (v) => v.macOS.universal.filename,
+    platform: "mac",
+    arch: "universal",
   },
-  { os: "", type: "Silicon", pick: (v) => v.macOS.silicon.filename },
-  { os: "", type: "Intel", pick: (v) => v.macOS.intel.filename },
+  { os: "", type: "Silicon", pick: (v) => v.macOS.silicon.filename, platform: "mac", arch: "silicon" },
+  { os: "", type: "Intel", pick: (v) => v.macOS.intel.filename, platform: "mac", arch: "intel" },
   {
     os: "Windows 64",
     type: "Universal",
     pick: (v) => v.windows.universal.filename,
+    platform: "windows",
+    arch: "universal",
     groupStart: true,
   },
-  { os: "", type: "arm64", pick: (v) => v.windows.arm64.filename },
-  { os: "", type: "x64", pick: (v) => v.windows.x64.filename },
+  { os: "", type: "arm64", pick: (v) => v.windows.arm64.filename, platform: "windows", arch: "arm64" },
+  { os: "", type: "x64", pick: (v) => v.windows.x64.filename, platform: "windows", arch: "x64" },
   {
     os: "Linux x64",
     type: "AppImage",
     pick: (v) => v.linux.appImage.filename,
+    platform: "linux",
+    arch: "appimage",
     groupStart: true,
   },
 ];
@@ -438,7 +457,14 @@ export function NitroDownload() {
   const active = resolveActiveDownload(activeStatus);
 
   if (active === null) {
-    return <SolidButton href={WEB_STABLE_URL}>Open Web Version</SolidButton>;
+    return (
+      <SolidButton
+        href={WEB_STABLE_URL}
+        track={{ name: "nitro_signup_click", params: { location: "nitro_download_fallback" } }}
+      >
+        Open Web Version
+      </SolidButton>
+    );
   }
 
   return (
@@ -448,6 +474,12 @@ export function NitroDownload() {
         download={active.filename}
         rel="noopener noreferrer nofollow"
         className="bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex cursor-pointer flex-col items-center justify-center rounded-l-full py-1.5 pr-4 pl-7 text-sm leading-tight font-medium no-underline transition-colors"
+        {...(active.platform && active.arch
+          ? trackAttributes({
+              name: "nitro_download",
+              params: { platform: active.platform, arch: active.arch, channel: "stable" },
+            })
+          : undefined)}
       >
         {active.text}
         <span className="text-xs opacity-80">Stable Build</span>
@@ -487,10 +519,22 @@ export function NitroDownload() {
                     <td className="px-3 py-1.5 font-semibold whitespace-nowrap">{row.os}</td>
                     <td className="text-cc-ink-dim px-3 py-1.5 whitespace-nowrap">{row.type}</td>
                     <td className="px-3 py-1.5 text-center">
-                      <DownloadAppLink filename={row.pick(matrix.stable)} onClick={() => setOpen(false)} />
+                      <DownloadAppLink
+                        filename={row.pick(matrix.stable)}
+                        platform={row.platform}
+                        arch={row.arch}
+                        channel="stable"
+                        onClick={() => setOpen(false)}
+                      />
                     </td>
                     <td className="px-3 py-1.5 text-center">
-                      <DownloadAppLink filename={row.pick(matrix.insider)} onClick={() => setOpen(false)} />
+                      <DownloadAppLink
+                        filename={row.pick(matrix.insider)}
+                        platform={row.platform}
+                        arch={row.arch}
+                        channel="insider"
+                        onClick={() => setOpen(false)}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -513,6 +557,10 @@ export function NitroDownload() {
                     rel="noopener noreferrer"
                     onClick={() => setOpen(false)}
                     className="text-cc-ink hover:text-cc-white"
+                    {...trackAttributes({
+                      name: "nitro_signup_click",
+                      params: { location: "nitro_download_panel" },
+                    })}
                   >
                     Open Web Version
                   </a>
@@ -523,6 +571,10 @@ export function NitroDownload() {
                     rel="noopener noreferrer"
                     onClick={() => setOpen(false)}
                     className="text-cc-ink hover:text-cc-white"
+                    {...trackAttributes({
+                      name: "nitro_signup_click",
+                      params: { location: "nitro_download_panel_insider" },
+                    })}
                   >
                     Open Insider Version
                   </a>

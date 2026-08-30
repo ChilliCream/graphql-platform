@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { CheckListItem } from "@/src/components/CheckListItem";
 import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import type { AnalyticsEvent } from "@/src/helpers/analyticsEvents";
 
 interface OfferingProps {
   readonly title: string;
@@ -15,7 +16,12 @@ interface OfferingProps {
   /** Note shown next to the price, e.g. "per month". */
   readonly priceNote?: string;
   readonly perks: readonly string[];
-  readonly callToAction?: { readonly title: string; readonly link: string };
+  readonly callToAction?: {
+    readonly title: string;
+    readonly link: string;
+    /** Key event reported when the card's call to action is clicked. */
+    readonly track?: AnalyticsEvent;
+  };
   /** Highlights the card with the accent ring and "Most Popular" badge. */
   readonly popular?: boolean;
   /** Overrides the popular badge label (defaults to "Most Popular"). */
@@ -79,7 +85,7 @@ export function Offering({
         </ul>
 
         {callToAction && (
-          <CallToActionButton href={callToAction.link} className="mt-7 w-full">
+          <CallToActionButton href={callToAction.link} track={callToAction.track} className="mt-7 w-full">
             {callToAction.title}
           </CallToActionButton>
         )}

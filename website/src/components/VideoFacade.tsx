@@ -2,11 +2,15 @@
 
 import { useState, type ReactNode } from "react";
 
+import { trackEvent } from "@/src/helpers/analyticsEvents";
+
 type VideoFacadeProps = {
   /** 11-character YouTube video id. */
   videoId: string;
   /** Visually hidden label for the play button. */
   playlabel?: string;
+  /** Where the player sits, reported as the `video_play` location. */
+  location?: string;
   /** The (server-rendered) poster shown until the user clicks to play. */
   children: ReactNode;
 };
@@ -16,8 +20,13 @@ type VideoFacadeProps = {
  * play button and only mounts the embed iframe once clicked, so no YouTube
  * player code loads during the initial render. Used by <YouTubeVideo> and <LearnVideoPlayer>.
  */
-export function VideoFacade({ videoId, playlabel = "Play video", children }: VideoFacadeProps) {
+export function VideoFacade({ videoId, playlabel = "Play video", location = "embed", children }: VideoFacadeProps) {
   const [active, setActive] = useState(false);
+
+  function handlePlay() {
+    trackEvent("video_play", { video_id: videoId, location });
+    setActive(true);
+  }
 
   if (active) {
     const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
@@ -38,7 +47,7 @@ export function VideoFacade({ videoId, playlabel = "Play video", children }: Vid
   return (
     <button
       type="button"
-      onClick={() => setActive(true)}
+      onClick={handlePlay}
       aria-label={playlabel}
       className="group bg-cc-black relative block aspect-video w-full cursor-pointer overflow-hidden border-0 p-0"
     >

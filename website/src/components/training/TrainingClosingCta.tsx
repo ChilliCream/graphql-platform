@@ -11,6 +11,7 @@ export function TrainingClosingCta() {
       text="Send a short note with the rough team size, current GraphQL level, and a couple of dates that work. We will reply with a concrete proposal, not a form to fill in."
       primaryLink="mailto:contact@chillicream.com?subject=Training"
       primaryLinkText="Email a trainer"
+      primaryTrack={{ name: "contact_sales_click", params: { location: "training_closing" } }}
       secondaryLink="#offers"
       secondaryLinkText="See the two offers again"
     />

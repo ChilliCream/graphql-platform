@@ -46,8 +46,18 @@ function Hero() {
       lead="Start free on the shared cloud. Pay as you go as traffic grows, run a dedicated single-tenant instance when you need your own region and isolation, or self-host on your own infrastructure."
       actions={
         <ButtonRow align="center">
-          <SolidButton href="https://nitro.chillicream.com">Start for Free</SolidButton>
-          <OutlineButton href="/services/support/contact?subject=Sales">Talk to Sales</OutlineButton>
+          <SolidButton
+            href="https://nitro.chillicream.com"
+            track={{ name: "nitro_signup_click", params: { location: "pricing_hero" } }}
+          >
+            Start for Free
+          </SolidButton>
+          <OutlineButton
+            href="/services/support/contact?subject=Sales"
+            track={{ name: "contact_sales_click", params: { location: "pricing_hero" } }}
+          >
+            Talk to Sales
+          </OutlineButton>
         </ButtonRow>
       }
     />
