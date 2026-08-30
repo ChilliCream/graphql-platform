@@ -69,6 +69,42 @@ namespace HotChocolate.Types.Analyzers.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A DataLoader service parameter cannot use both [Service(key)] and [FromKeyedServices]. Use one keyed-service attribute..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceAttributeConflict {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceAttributeConflict", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This keyed-service attribute has no effect here. Remove it or apply it to a DataLoader service parameter..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceAttributeIgnored {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceAttributeIgnored", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The key of this derived [Service] attribute cannot be determined at compile time. Define the attribute in source or apply the key directly..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceKeyNotDeterminable {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceKeyNotDeterminable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A keyed [Service] attribute on a hand-written DataLoader constructor parameter is resolved as an unkeyed service. Use [FromKeyedServices] instead..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceOnConstructorParameter {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceOnConstructorParameter", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to A DataLoader must at least provides a key or keys parameter.
         /// </summary>
         internal static string DataLoader_KeyParameterMissing {

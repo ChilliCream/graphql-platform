@@ -44,6 +44,14 @@ type Query {
   formatAnimalKinds(kinds: AnimalKind!): String!
   formatNullableAnimalKinds(kinds: AnimalKind): String!
   formatAnimalKindList(kinds: [AnimalKind]!): String!
+  serviceKeyedValue: String
+  derivedServiceKeyedValue: String
+  enumKeyedValue: String
+  optionalKeyedValue: String
+  originalScopeKeyedValue: String
+  handWrittenKeyedValue: String
+  resolverEnumKeyedValue: String!
+  escapedResolverKeyedValue: String!
   isSelectedTest: IsSelectedNode!
   isSelectedPatternTest: IsSelectedNode!
   """
