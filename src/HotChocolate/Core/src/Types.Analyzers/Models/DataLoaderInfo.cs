@@ -251,7 +251,9 @@ public sealed class DataLoaderInfo : SyntaxInfo
                 ? serviceAttributeInfo.ServiceKey is { } serviceKey
                     ? CSharpLiteralFormatter.FormatTypedConstant(serviceKey)
                     : serviceAttributeInfo.SourceDerivedServiceKey is { } sourceDerivedServiceKey
-                        ? CSharpLiteralFormatter.FormatPrimitive(sourceDerivedServiceKey)
+                        ? CSharpLiteralFormatter.FormatPrimitive(
+                            sourceDerivedServiceKey,
+                            serviceAttributeInfo.SourceDerivedServiceKeyType)
                         : null
                 : serviceAttributeInfo.HasFromKeyedServicesAttribute
                     && serviceAttributeInfo.FromKeyedServicesKey is { } fromKeyedServicesKey

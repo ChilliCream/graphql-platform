@@ -170,8 +170,38 @@ public class KeyedDataLoaderIntegrationTests
             }
             """);
     }
+    [Fact]
+    public async Task GeneratedResolver_Should_Resolve_EnumAndEscapedStringServiceKeys()
+    {
+        // arrange
+        Action<IServiceCollection> configure = services =>
+        {
+            services.AddKeyedSingleton<KeyedDataLoaderService>(
+                KeyedDataLoaderServiceKey.Enum,
+                static (_, _) => new("enum"));
+            services.AddKeyedSingleton<KeyedDataLoaderService>(
+                """quoted"key""",
+                static (_, _) => new("escaped"));
+        };
+        const string document = "{ resolverEnumKeyedValue escapedResolverKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "resolverEnumKeyedValue": "enum",
+                "escapedResolverKeyedValue": "escaped"
+              }
+            }
+            """);
+    }
 
     private static async Task<IExecutionResult> ExecuteAsync(
+
         Action<IServiceCollection> configure,
         string document)
     {
@@ -219,6 +249,13 @@ public static partial class Query
         HandWrittenKeyedDataLoader loader,
         CancellationToken cancellationToken)
         => loader.LoadAsync(1, cancellationToken);
+    public static string GetResolverEnumKeyedValue(
+        [Service(KeyedDataLoaderServiceKey.Enum)] KeyedDataLoaderService service)
+        => service.Value;
+
+    public static string GetEscapedResolverKeyedValue(
+        [Service("quoted\"key")] KeyedDataLoaderService service)
+        => service.Value;
 }
 
 public static class KeyedDataLoaders
@@ -240,7 +277,7 @@ public static class KeyedDataLoaders
     [DataLoader]
     public static Task<IReadOnlyDictionary<int, string>> GetEnumKeyedValueAsync(
         IReadOnlyList<int> keys,
-        [FromKeyedServices(KeyedDataLoaderServiceKey.Enum)] KeyedDataLoaderService service,
+        [Service(KeyedDataLoaderServiceKey.Enum)] KeyedDataLoaderService service,
         CancellationToken cancellationToken)
         => Task.FromResult(CreateValues(keys, service.Value));
 

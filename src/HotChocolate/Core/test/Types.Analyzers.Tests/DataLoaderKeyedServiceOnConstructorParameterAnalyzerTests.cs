@@ -38,6 +38,38 @@ public class DataLoaderKeyedServiceOnConstructorParameterAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_Should_ReportDirectEnumKeyedService_WhenOnDataLoaderConstructorParameter()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using GreenDonut;
+            using HotChocolate;
+
+            enum ServiceKey
+            {
+                First
+            }
+
+            class Loader : IDataLoader
+            {
+                public Loader([Service(ServiceKey.First)] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var diagnostics = await compilation
+            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
+                new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()))
+            .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(["HC0132"], diagnostics.Select(t => t.Id));
+    }
+
+    [Fact]
     public async Task Analyze_Should_NotReportKeylessAndDependencyInjectionAttributes_WhenOnConstructorParameters()
     {
         // arrange

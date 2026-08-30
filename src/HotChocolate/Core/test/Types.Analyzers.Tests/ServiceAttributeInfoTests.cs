@@ -35,14 +35,50 @@ public class ServiceAttributeInfoTests
     }
 
     [Fact]
-    public void GetServiceAttributeInfo_Should_ReturnKeyFromSourceDerivedServiceAttribute()
+    public void GetServiceAttributeInfo_Should_ReturnAnyDirectServiceConstant()
     {
         // arrange
         var compilation = TestHelper.CreateCompilation(
             """
             using HotChocolate;
 
-            class MemoizedInScopeAttribute() : ServiceAttribute("MEMOIZED")
+            enum ServiceKey
+            {
+                First
+            }
+
+            class Query
+            {
+                public void Execute([Service(ServiceKey.First)] object service)
+                {
+                }
+            }
+            """);
+
+        // act
+        var info = GetParameter(compilation).GetServiceAttributeInfo(compilation);
+
+        // assert
+        Assert.True(info.HasServiceAttribute);
+        Assert.Equal(TypedConstantKind.Enum, info.ServiceKey?.Kind);
+        Assert.Equal(0, info.ServiceKey?.Value);
+        Assert.False(info.IsServiceKeyUndeterminable);
+    }
+
+    [Fact]
+    public void GetServiceAttributeInfo_Should_ReturnEnumKeyFromSourceDerivedServiceAttribute()
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(
+            """
+            using HotChocolate;
+
+            enum ServiceKey
+            {
+                First
+            }
+
+            class MemoizedInScopeAttribute() : ServiceAttribute(global::ServiceKey.First)
             {
             }
 
@@ -59,7 +95,8 @@ public class ServiceAttributeInfoTests
 
         // assert
         Assert.True(info.HasServiceAttribute);
-        Assert.Equal("MEMOIZED", info.SourceDerivedServiceKey);
+        Assert.Equal(0, info.SourceDerivedServiceKey);
+        Assert.Equal("ServiceKey", info.SourceDerivedServiceKeyType?.Name);
         Assert.False(info.IsServiceKeyUndeterminable);
     }
 

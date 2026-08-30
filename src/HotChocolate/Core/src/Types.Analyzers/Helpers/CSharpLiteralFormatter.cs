@@ -42,6 +42,16 @@ internal static class CSharpLiteralFormatter
         };
     }
 
+    public static string FormatPrimitive(object? value, ITypeSymbol? type)
+    {
+        if (type is INamedTypeSymbol { TypeKind: TypeKind.Enum } enumSymbol)
+        {
+            return FormatEnumConstant(enumSymbol, value);
+        }
+
+        return FormatPrimitive(value);
+    }
+
     private static string FormatArray(TypedConstant constant)
     {
         var elements = constant.Values;
@@ -63,21 +73,26 @@ internal static class CSharpLiteralFormatter
             return FormatPrimitive(constant.Value);
         }
 
+        return FormatEnumConstant(enumSymbol, constant.Value);
+    }
+
+    private static string FormatEnumConstant(INamedTypeSymbol enumSymbol, object? value)
+    {
         var enumType = enumSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-        if (constant.Value is not null)
+        if (value is not null)
         {
             foreach (var member in enumSymbol.GetMembers())
             {
                 if (member is IFieldSymbol { HasConstantValue: true } field
-                    && Equals(field.ConstantValue, constant.Value))
+                    && Equals(field.ConstantValue, value))
                 {
                     return $"{enumType}.{field.Name}";
                 }
             }
         }
 
-        return $"({enumType}){constant.Value}";
+        return $"({enumType}){value}";
     }
 
     private static string EscapeString(string s)

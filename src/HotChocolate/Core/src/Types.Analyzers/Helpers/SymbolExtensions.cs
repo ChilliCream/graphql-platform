@@ -852,11 +852,12 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1)
                 {
-                    key = keyValue;
+                    var serviceKey = attributeData.ConstructorArguments[0];
+                    key = serviceKey.IsNull
+                        ? null
+                        : CSharpLiteralFormatter.FormatTypedConstant(serviceKey);
                     return true;
                 }
 
@@ -883,7 +884,7 @@ public static class SymbolExtensions
     {
         var hasServiceAttribute = false;
         TypedConstant? serviceKey = null;
-        string? sourceDerivedServiceKey = null;
+        SourceDerivedServiceKey? sourceDerivedServiceKey = null;
         var isServiceKeyUndeterminable = false;
         var hasFromKeyedServicesAttribute = false;
         TypedConstant? fromKeyedServicesKey = null;
@@ -915,7 +916,8 @@ public static class SymbolExtensions
         return new ServiceAttributeInfo(
             hasServiceAttribute,
             serviceKey,
-            sourceDerivedServiceKey,
+            sourceDerivedServiceKey?.Value,
+            sourceDerivedServiceKey?.Type,
             isServiceKeyUndeterminable,
             hasFromKeyedServicesAttribute,
             fromKeyedServicesKey);
@@ -929,7 +931,7 @@ public static class SymbolExtensions
     internal static ServiceKeyExtractionResult GetDerivedServiceKey(
         this AttributeData attributeData,
         Compilation compilation,
-        out string? key)
+        out SourceDerivedServiceKey? key)
     {
         key = null;
 
@@ -951,7 +953,7 @@ public static class SymbolExtensions
         Compilation compilation,
         ImmutableDictionary<IParameterSymbol, object?> arguments,
         ImmutableHashSet<IMethodSymbol> visited,
-        out string? key)
+        out SourceDerivedServiceKey? key)
     {
         key = null;
 
@@ -981,15 +983,12 @@ public static class SymbolExtensions
                 if (baseConstructor.Parameters.Length == 1
                     && implicitArguments.TryGetValue(baseConstructor.Parameters[0], out var value))
                 {
-                    if (value is string serviceKey)
-                    {
-                        key = serviceKey;
-                        return ServiceKeyExtractionResult.Key;
-                    }
-
+                    key = value is null
+                        ? null
+                        : new SourceDerivedServiceKey(value, baseConstructor.Parameters[0].Type);
                     return value is null
                         ? ServiceKeyExtractionResult.NoKey
-                        : ServiceKeyExtractionResult.Undeterminable;
+                        : ServiceKeyExtractionResult.Key;
                 }
 
                 return ServiceKeyExtractionResult.Undeterminable;
@@ -1003,7 +1002,7 @@ public static class SymbolExtensions
                 out key);
         }
 
-        if (!TryCreateParameterValues(invocation, arguments, out var nextArguments))
+        if (!TryCreateParameterValues(invocation, compilation, arguments, out var nextArguments))
         {
             return ServiceKeyExtractionResult.Undeterminable;
         }
@@ -1015,21 +1014,42 @@ public static class SymbolExtensions
                 return ServiceKeyExtractionResult.NoKey;
             }
 
+            if (invocation.TargetMethod.Parameters.Length == 1
+                && invocation.Arguments.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(
+                    t.Parameter,
+                    invocation.TargetMethod.Parameters[0])) is { } sourceArgument)
+            {
+                var semanticModel = compilation.GetSemanticModel(sourceArgument.Value.Syntax.SyntaxTree);
+                if (semanticModel.GetConstantValue(sourceArgument.Value.Syntax) is { HasValue: true } constantValue)
+                {
+                    key = constantValue.Value is null
+                        ? null
+                        : new SourceDerivedServiceKey(
+                            constantValue.Value,
+                            semanticModel.GetTypeInfo(sourceArgument.Value.Syntax).Type);
+                    return key is null
+                        ? ServiceKeyExtractionResult.NoKey
+                        : ServiceKeyExtractionResult.Key;
+                }
+            }
             if (invocation.TargetMethod.Parameters.Length != 1
-                || !nextArguments.TryGetValue(invocation.TargetMethod.Parameters[0], out var value))
+                || invocation.Arguments.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(
+                    t.Parameter,
+                    invocation.TargetMethod.Parameters[0])) is not { } argument
+                || !TryGetKnownValue(
+                    argument.Value,
+                    arguments,
+                    compilation,
+                    out var value,
+                    out var type))
             {
                 return ServiceKeyExtractionResult.Undeterminable;
             }
 
-            if (value is string serviceKey)
-            {
-                key = serviceKey;
-                return ServiceKeyExtractionResult.Key;
-            }
-
+            key = value is null ? null : new SourceDerivedServiceKey(value, type);
             return value is null
                 ? ServiceKeyExtractionResult.NoKey
-                : ServiceKeyExtractionResult.Undeterminable;
+                : ServiceKeyExtractionResult.Key;
         }
 
         return TryGetDerivedServiceKey(
@@ -1170,6 +1190,7 @@ public static class SymbolExtensions
 
     private static bool TryCreateParameterValues(
         IInvocationOperation invocation,
+        Compilation compilation,
         ImmutableDictionary<IParameterSymbol, object?> sourceArguments,
         out ImmutableDictionary<IParameterSymbol, object?> targetArguments)
     {
@@ -1182,7 +1203,7 @@ public static class SymbolExtensions
 
             if (argument is not null)
             {
-                if (!TryGetKnownValue(argument.Value, sourceArguments, out var value))
+                if (!TryGetKnownValue(argument.Value, sourceArguments, compilation, out var value, out _))
                 {
                     targetArguments = default!;
                     return false;
@@ -1239,26 +1260,60 @@ public static class SymbolExtensions
     private static bool TryGetKnownValue(
         IOperation operation,
         ImmutableDictionary<IParameterSymbol, object?> arguments,
-        out object? value)
+        Compilation compilation,
+        out object? value,
+        out ITypeSymbol? type)
     {
+        type = null;
+
         while (operation is IConversionOperation conversion)
         {
+            if (conversion.ConstantValue.HasValue)
+            {
+                value = conversion.ConstantValue.Value;
+                type = conversion.IsImplicit ? conversion.Operand.Type : conversion.Type;
+                return true;
+            }
+
+            if (!conversion.IsImplicit)
+            {
+                type = conversion.Type;
+            }
+
             operation = conversion.Operand;
         }
 
         if (operation is IParameterReferenceOperation parameterReference
             && arguments.TryGetValue(parameterReference.Parameter, out value))
         {
+            type ??= parameterReference.Type;
+            return true;
+        }
+
+        if (operation is IFieldReferenceOperation { Field: { HasConstantValue: true } field })
+        {
+            value = field.ConstantValue;
+            type ??= field.Type;
             return true;
         }
 
         if (operation.ConstantValue.HasValue)
         {
             value = operation.ConstantValue.Value;
+            type ??= operation.Type;
             return true;
         }
 
         value = null;
+        var constantValue = compilation.GetSemanticModel(operation.Syntax.SyntaxTree)
+            .GetConstantValue(operation.Syntax);
+        if (constantValue.HasValue)
+        {
+            value = constantValue.Value;
+            type ??= compilation.GetSemanticModel(operation.Syntax.SyntaxTree)
+                .GetTypeInfo(operation.Syntax).Type;
+            return true;
+        }
         return false;
     }
 

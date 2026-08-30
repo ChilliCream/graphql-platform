@@ -70,6 +70,8 @@ type Query {
   optionalKeyedValue: String @cost(weight: "10")
   originalScopeKeyedValue: String @cost(weight: "10")
   handWrittenKeyedValue: String @cost(weight: "10")
+  resolverEnumKeyedValue: String!
+  escapedResolverKeyedValue: String!
   isSelectedTest: IsSelectedNode!
   isSelectedPatternTest: IsSelectedNode!
   """
