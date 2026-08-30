@@ -6,7 +6,6 @@ import { findHub, hubHref, hubsForLearnItem } from "@/src/data/learn/hubs";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { Link } from "@/src/design-system/Link";
 import { formatDate } from "@/src/helpers/formatDate";
-import { ArticleBreadcrumb } from "./ArticleLayout";
 import { Detail } from "./Detail";
 import { LearnCard } from "./LearnCard";
 import { LearnVideoPlayer } from "./LearnVideoPlayer";
@@ -93,7 +92,7 @@ function VideoRail({ video }: { readonly video: VideoItem }) {
 /**
  * Video detail page composition (learn-editorial.md section 20, amended by
  * learn-harmonization.md D2/D9, website-kbx.19, website-kbx.23, and
- * website-kbx.24): breadcrumb-only header, click-to-load embed, description,
+ * website-kbx.24): title-only header, click-to-load embed, description,
  * and a metadata rail (example repository link, publish date, duration,
  * level, topics, products) to the right of the player. The page loads data
  * and picks related items; this component only renders the props it's given.
@@ -120,15 +119,6 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
   return (
     <>
       <header className="pb-8 sm:pb-10">
-        <div className="mb-8">
-          <ArticleBreadcrumb
-            items={[
-              { label: "Learn", href: "/learn" },
-              { label: "Videos", href: "/learn/browse?type=video" },
-              { label: video.title },
-            ]}
-          />
-        </div>
         <h1 className="font-heading text-cc-heading text-h3 font-semibold tracking-[-0.02em] text-balance">
           {video.title}
         </h1>

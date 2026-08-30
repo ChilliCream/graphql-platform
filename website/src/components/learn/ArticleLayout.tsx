@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogTags } from "@/src/components/BlogTags";
@@ -7,11 +6,6 @@ import { TableOfContents, type HeadingItem } from "@/src/components/TableOfConte
 import type { LearnContentType } from "@/src/data/learn/facets";
 import { Picture } from "@/src/design-system/Picture";
 import { ContentTypeBadge } from "./ContentTypeBadge";
-
-export interface ArticleBreadcrumbItem {
-  readonly label: string;
-  readonly href?: string;
-}
 
 interface ArticleMeta {
   readonly author?: string;
@@ -25,7 +19,6 @@ interface ArticleMeta {
 }
 
 interface ArticleLayoutProps {
-  readonly breadcrumb: readonly ArticleBreadcrumbItem[];
   /** Kind chip shown for comparisons/explainers; omitted for blog posts (section 4.1 item 2). */
   readonly kind?: Extract<LearnContentType, "comparison" | "explainer">;
   readonly title: string;
@@ -61,7 +54,6 @@ interface ArticleLayoutProps {
  * its accepted crop consequence.
  */
 export function ArticleLayout({
-  breadcrumb,
   kind,
   title,
   standfirst,
@@ -77,9 +69,8 @@ export function ArticleLayout({
     <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0">
         <article>
-          <ArticleBreadcrumb items={breadcrumb} />
           {kind ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <ContentTypeBadge type={kind} />
               {meta.updatedDate && meta.updatedDate !== meta.publishedDate ? (
                 <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
@@ -94,7 +85,7 @@ export function ArticleLayout({
               alt=""
               priority
               sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1535px) min(calc(100vw - 6rem), 100rem), min(calc(100vw - 26rem), 80rem)"
-              className="mt-6 mb-6 aspect-video max-h-[27rem] w-full rounded-lg object-cover"
+              className={`mb-6 aspect-video max-h-[27rem] w-full rounded-lg object-cover ${kind ? "mt-6" : ""}`}
             />
           ) : null}
           <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
@@ -120,29 +111,5 @@ export function ArticleLayout({
       </main>
       <TableOfContents items={[...toc]} />
     </div>
-  );
-}
-
-export function ArticleBreadcrumb({ items }: { readonly items: readonly ArticleBreadcrumbItem[] }) {
-  if (items.length === 0) {
-    return null;
-  }
-  return (
-    <nav aria-label="Breadcrumb" className="font-mono text-xs tracking-wider uppercase">
-      <ol className="text-cc-ink-dim m-0 flex list-none flex-wrap items-center gap-x-2 p-0">
-        {items.map((item, index) => (
-          <li key={`${item.label}-${index}`} className="flex items-center gap-x-2">
-            {index > 0 ? <span aria-hidden="true">/</span> : null}
-            {item.href ? (
-              <Link href={item.href} className="hover:text-cc-accent transition-colors">
-                {item.label}
-              </Link>
-            ) : (
-              <span>{item.label}</span>
-            )}
-          </li>
-        ))}
-      </ol>
-    </nav>
   );
 }

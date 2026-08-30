@@ -123,7 +123,6 @@ export default async function ArticlePage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <ArticleLayout
-        breadcrumb={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]}
         kind={article.kind === "comparison" || article.kind === "explainer" ? article.kind : undefined}
         title={article.title}
         // Blog posts skip the standfirst: their description is meta-only

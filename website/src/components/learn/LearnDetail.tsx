@@ -1,18 +1,10 @@
 import { CopyCommand } from "@/src/components/CopyCommand";
-import {
-  clientLabel,
-  contentTypeLabel,
-  languageLabel,
-  productLabel,
-  topologyLabel,
-  useCaseLabel,
-} from "@/src/data/learn/facets";
+import { clientLabel, languageLabel, productLabel, topologyLabel, useCaseLabel } from "@/src/data/learn/facets";
 import type { DetailItem, LearnItemSummary } from "@/src/data/learn/types";
 import { CodeBlock } from "@/src/design-system/CodeBlock";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Tag } from "@/src/design-system/Tag";
 import { GitHubIcon } from "@/src/icons/GitHub";
-import { ArticleBreadcrumb } from "./ArticleLayout";
 import { ContentTypeBadge } from "./ContentTypeBadge";
 import { Detail } from "./Detail";
 import { LearnCard } from "./LearnCard";
@@ -103,15 +95,6 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
   return (
     <>
       <header className="py-8 sm:py-10">
-        <div className="mb-8">
-          <ArticleBreadcrumb
-            items={[
-              { label: "Learn", href: "/learn" },
-              { label: contentTypeLabel(item.type), href: `/learn/browse?type=${item.type}` },
-              { label: item.title },
-            ]}
-          />
-        </div>
         <div className="grid items-center gap-10 lg:grid-cols-[1fr_minmax(0,28rem)]">
           <div>
             <div className="flex flex-wrap items-center gap-2">

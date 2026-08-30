@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
 import { popularTags } from "@/src/components/learn/editorial";
 import { LearnCollectionSection } from "@/src/components/learn/LearnCollectionSection";
 import { LearnEditorialBand } from "@/src/components/learn/LearnEditorialBand";
@@ -149,8 +148,7 @@ export default async function LearnHubPage({ params }: PageProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: hub.label }]} />
-      <LearnMasthead title={hub.label} showEyebrow={false} />
+      <LearnMasthead title={hub.label} />
       <LearnEditorialBand
         latestPosts={latestPosts}
         featuredPost={featuredPost}

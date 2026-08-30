@@ -1,5 +1,4 @@
 import { LearnArticleRows } from "@/src/components/learn/LearnArticleRows";
-import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
 import { LearnFeaturedStory } from "@/src/components/learn/LearnFeaturedStory";
 import { Pagination } from "@/src/design-system/Pagination";
 import { Typography } from "@/src/design-system/Typography";
@@ -28,7 +27,6 @@ export default function ArticlesIndex() {
   return (
     <div className="cc-content-dark">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
-      <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]} />
       <Typography variant="h1">Articles</Typography>
       {featured ? (
         <LearnFeaturedStory

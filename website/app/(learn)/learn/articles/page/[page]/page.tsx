@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { LearnArticleRows } from "@/src/components/learn/LearnArticleRows";
-import { ArticleBreadcrumb } from "@/src/components/learn/ArticleLayout";
 import { Pagination } from "@/src/design-system/Pagination";
 import { Typography } from "@/src/design-system/Typography";
 import { paginate } from "@/src/helpers/blogPaging";
@@ -45,7 +44,6 @@ export default async function ArticlesPageN({ params }: PageProps) {
   return (
     <div className="cc-content-dark">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
-      <ArticleBreadcrumb items={[{ label: "Learn", href: "/learn" }, { label: "Articles" }]} />
       <Typography variant="h1">Articles</Typography>
       <div className="mt-8 sm:mt-10">
         <LearnArticleRows posts={slice.posts} />

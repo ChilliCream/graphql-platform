@@ -1,11 +1,7 @@
-import { Eyebrow } from "@/src/design-system/Eyebrow";
-
 interface LearnMastheadProps {
   readonly title: string;
   /** Teaser paragraph below the title. Omit to render just the title. */
   readonly teaser?: string;
-  /** Renders the "Learn" eyebrow above the title. Defaults to `true`. */
-  readonly showEyebrow?: boolean;
 }
 
 /**
@@ -15,13 +11,10 @@ interface LearnMastheadProps {
  * title, so this carries roughly half `PageHero`'s vertical weight and stays
  * left-aligned.
  */
-export function LearnMasthead({ title, teaser, showEyebrow = true }: LearnMastheadProps) {
+export function LearnMasthead({ title, teaser }: LearnMastheadProps) {
   return (
     <header className="py-6 sm:py-8">
-      {showEyebrow ? <Eyebrow color="ink-dim">Learn</Eyebrow> : null}
-      <h1 className={`font-heading text-cc-heading text-h3 font-semibold text-balance ${showEyebrow ? "mt-3" : ""}`}>
-        {title}
-      </h1>
+      <h1 className="font-heading text-cc-heading text-h3 font-semibold text-balance">{title}</h1>
       {teaser ? <p className="text-cc-ink-dim mt-4 max-w-2xl text-lg">{teaser}</p> : null}
     </header>
   );
