@@ -11,9 +11,9 @@ carries, and the GTM/GA4 configuration a human still has to do.
 as `NEXT_PUBLIC_COOKIEBOT_CBID` is set, before any consent decision. Events
 fired before Google Tag Manager loads queue in `dataLayer`; GTM itself is
 injected only after the visitor grants statistics or marketing consent, and
-once loaded it processes the queued entries. Each GTM tag carries its own
-consent check, which is what actually gates an event from reaching GA4. This
-consent behavior is intentional and out of scope for changes here.
+once loaded it processes the queued entries. Each GTM tag must carry its own consent check (step 3 below); that check is
+what gates an event from reaching GA4. This consent behavior is intentional
+and out of scope for changes here.
 
 `src/helpers/analyticsEvents.ts` is the single source of truth for event names
 and parameters:
