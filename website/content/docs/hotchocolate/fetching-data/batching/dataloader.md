@@ -180,7 +180,7 @@ internal static class BrandDataLoaders
 }
 ```
 
-For attributes derived from `ServiceAttribute`, the constructor chain must be available in source and the string passed to the `ServiceAttribute` base constructor must be statically determinable. If `HC0133` remains, apply the key directly with `[Service("key")]` or `[FromKeyedServices(key)]`. Keys can be any constant, including strings, enum values, and integers. `KeyedService.AnyKey` is not supported.
+For attributes derived from `ServiceAttribute`, the constructor chain must be available in source and the key passed to the `ServiceAttribute` base constructor must be statically determinable. If `HC0133` remains, apply the key directly with `[Service("key")]` or `[FromKeyedServices(key)]`. Keys can be any constant, including strings, enum values, and integers. `KeyedService.AnyKey` is not supported.
 
 Hand-written DataLoader constructors use `[FromKeyedServices]`:
 
