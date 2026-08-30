@@ -199,10 +199,10 @@ public BrandByIdDataLoader(
 
 | Code     | Meaning                                                                                                 |
 | -------- | ------------------------------------------------------------------------------------------------------- |
-| `HC0130` | A generated DataLoader service parameter uses both `[Service(key)]` and `[FromKeyedServices]`.         |
-| `HC0131` | A keyed-service attribute is applied to a parameter that is not a generated DataLoader service.        |
-| `HC0132` | A keyed `[Service]` attribute is applied to a hand-written DataLoader constructor parameter.           |
-| `HC0133` | A derived `ServiceAttribute` constructor chain is unavailable in source or the string passed to its base constructor is not statically determinable. Apply the key directly with `[Service("key")]` or `[FromKeyedServices(key)]`. |
+| `HC0130` | A generated DataLoader service parameter uses both `[Service(key)]` and `[FromKeyedServices]`.          |
+| `HC0131` | A keyed-service attribute is applied to a parameter that is not a generated DataLoader service.         |
+| `HC0132` | A keyed `[Service]` attribute is applied to a hand-written DataLoader constructor parameter.            |
+| `HC0133` | A `ServiceAttribute` constructor chain or base-constructor key cannot be determined.                    |
 
 ## Handling Missing Keys
 
