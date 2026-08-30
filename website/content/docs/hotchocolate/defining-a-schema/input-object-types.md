@@ -1,5 +1,6 @@
 ---
 title: "Input Object Types"
+metaTitle: "GraphQL Input Object Types in Hot Chocolate"
 description: "Define GraphQL input object types in Hot Chocolate to pass structured arguments, with records, default values, optional properties, and @oneOf inputs."
 ---
 

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -5,6 +7,36 @@ namespace Mocha;
 /// </summary>
 internal static class MessageHeaders
 {
+    /// <summary>
+    /// Defines the transport-level header names shared by broker integrations.
+    /// </summary>
+    public static class Transport
+    {
+        public static readonly ContextDataKey<string> ConversationId = new("x-conversation-id");
+
+        public static readonly ContextDataKey<string> CausationId = new("x-causation-id");
+
+        public static readonly ContextDataKey<string> SourceAddress = new("x-source-address");
+
+        public static readonly ContextDataKey<string> DestinationAddress = new("x-destination-address");
+
+        public static readonly ContextDataKey<string> FaultAddress = new("x-fault-address");
+
+        public static readonly ContextDataKey<string> MessageType = new("x-message-type");
+
+        public static readonly ContextDataKey<ImmutableArray<string>> EnclosedMessageTypes = new(
+            "x-enclosed-message-types");
+
+        public static bool IsDefined(string key)
+            => key == ConversationId.Key
+                || key == CausationId.Key
+                || key == SourceAddress.Key
+                || key == DestinationAddress.Key
+                || key == FaultAddress.Key
+                || key == MessageType.Key
+                || key == EnclosedMessageTypes.Key;
+    }
+
     /// <summary>
     /// The W3C Trace Context <c>traceparent</c> header (version-traceId-spanId-traceFlags).
     /// </summary>

@@ -1,6 +1,8 @@
 import path from "node:path";
+import { findAuthorProfile } from "@/src/data/authors";
 import { BLOG_ROOT, blogUrlForStem, listBlogPosts } from "./blogPaths";
 import { readFrontmatter } from "./readFrontmatter";
+import type { AuthorProfile } from "@/src/data/authors";
 
 export type BlogPostSummary = {
   stem: string;
@@ -14,6 +16,7 @@ export type BlogPostSummary = {
   author: string | null;
   authorUrl: string | null;
   authorImageUrl: string | null;
+  authorProfile: AuthorProfile | null;
 };
 
 /**
@@ -62,6 +65,10 @@ export function listBlogPostSummaries(): BlogPostSummary[] {
         authorUrl: typeof fm.authorUrl === "string" ? fm.authorUrl : null,
         authorImageUrl:
           typeof fm.authorImageUrl === "string" ? fm.authorImageUrl : null,
+        authorProfile: findAuthorProfile(
+          typeof fm.author === "string" ? fm.author : null,
+          typeof fm.authorUrl === "string" ? fm.authorUrl : null,
+        ),
       };
     });
 

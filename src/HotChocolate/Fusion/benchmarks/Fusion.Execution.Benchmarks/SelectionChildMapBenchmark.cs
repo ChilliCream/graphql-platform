@@ -202,7 +202,7 @@ public class SelectionChildMapBenchmark : FusionBenchmarkBase
         var compiler = new OperationCompiler(
             schema,
             new NoOpObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var operation = compiler.Compile(OperationId, OperationId, operationDefinition);
+        var operation = compiler.Compile(OperationId, OperationId, OperationId, operationDefinition);
 
         var root = operation.RootSelectionSet;
         var smallSet = GetChildSet(root, "productById");

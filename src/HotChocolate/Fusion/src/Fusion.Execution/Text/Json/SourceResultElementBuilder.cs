@@ -166,12 +166,24 @@ internal readonly partial struct SourceResultElementBuilder
         Debug.Assert(startIndex + _builder._metaDb.GetNumberOfRows(startIndex) - 1 > propertyIndex);
         Debug.Assert(_builder._metaDb.GetElementTokenType(propertyIndex) is ElementTokenType.PropertyName);
 
-        _builder._metaDb.SetLocation(propertyIndex, selection.Id);
+        // CreateObjectValue already stamped the selection into this slot. A mismatch
+        // means the caller's index does not line up with the object's layout, which
+        // would otherwise surface as a wrong or corrupt property name.
+        Debug.Assert(_builder._metaDb.GetLocation(propertyIndex) == selection.Id);
+
         return new SourceResultElementBuilder(_builder, propertyIndex + 1);
     }
 
     public IEnumerable<SourceResultElementBuilder> EnumerateArray()
         => new ArrayEnumerator(this);
+
+    /// <summary>
+    /// Enumerates this object's property slots together with the selection each slot
+    /// was created for. The builder owns the layout, so callers never derive slot
+    /// indices themselves and cannot disagree with it.
+    /// </summary>
+    public PropertyEnumerator EnumerateProperties()
+        => new(this);
 
     private void AssertValidInstance()
     {

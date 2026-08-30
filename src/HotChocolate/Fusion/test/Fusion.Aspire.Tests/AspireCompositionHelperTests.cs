@@ -75,11 +75,11 @@ public sealed class AspireCompositionHelperTests
             AllowNonResolvableInterfaceObjects = true,
             CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
             EnableGlobalObjectIdentification = true,
+            EnumValuesMergeBehavior = EnumValuesMergeBehavior.Union,
             ExcludeByTag = new HashSet<string> { "internal" },
             IncludeSatisfiabilityPaths = false,
             NodeResolution = NodeResolution.SourceSchema,
-            ShareableFieldRuntimeTypeRouting =
-                ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            ShareableFieldRuntimeTypeRouting = ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
             TagMergeBehavior = DirectiveMergeBehavior.Include
         };
         var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
@@ -102,6 +102,7 @@ public sealed class AspireCompositionHelperTests
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "IncludePrivate",
                 "enableGlobalObjectIdentification": true,
+                "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "SourceSchema",
                 "removeUnreferencedDefinitions": null,
                 "tagMergeBehavior": "Include"

@@ -154,7 +154,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
         }
     }
 
-    private static ImmutableArray<DataLoaderParameterInfo> CreateParameters(IMethodSymbol method)
+    internal static ImmutableArray<DataLoaderParameterInfo> CreateParameters(IMethodSymbol method)
     {
         var builder = ImmutableArray.CreateBuilder<DataLoaderParameterInfo>();
         builder.Add(new DataLoaderParameterInfo("keys", method.Parameters[0], DataLoaderParameterKind.Key));
@@ -341,7 +341,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public override int GetHashCode()
         => HashCode.Combine(OrderByKey, AttributeSyntax, MethodSyntax);
 
-    private static string GetDataLoaderName(string name, AttributeData attribute)
+    internal static string GetDataLoaderName(string name, AttributeData attribute)
     {
         if (attribute.TryGetName(out var s))
         {

@@ -5,6 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { codeToHtml, type BundledTheme } from "shiki";
+import { ClipboardButton } from "@/src/components/ClipboardButton";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
@@ -130,9 +131,18 @@ export async function CodeBlock({
   }
 
   return (
-    <figure className="ring-cc-card-border bg-cc-code-bg my-6 overflow-hidden rounded-lg shadow-md ring-1">
+    <figure className="ring-cc-card-border bg-cc-code-bg relative my-6 overflow-hidden rounded-lg shadow-md ring-1">
+      <ClipboardButton
+        value={code}
+        label="Copy code"
+        copiedLabel="Code copied"
+        errorLabel="Could not copy code"
+        analyticsEventName="copy_code_example"
+        analyticsParameters={{ code_language: language }}
+        className="border-cc-card-border bg-cc-code-header text-cc-ink-dim hover:text-cc-ink absolute top-2 right-2 z-10 size-7 border"
+      />
       {(descriptor || parsed.filename) && (
-        <figcaption className="border-cc-card-border bg-cc-code-header flex items-center gap-3 border-b px-4 py-2 text-xs">
+        <figcaption className="border-cc-card-border bg-cc-code-header flex min-h-11 items-center gap-3 border-b px-4 py-2 pr-12 text-xs">
           {descriptor ? (
             <span
               className="rounded px-2 py-0.5 font-semibold tracking-wider uppercase"

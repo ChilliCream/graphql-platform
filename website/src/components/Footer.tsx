@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { COMPANY_SOCIAL_LINKS } from "@/src/helpers/companyLinks";
+import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
 import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { GitHubIcon } from "@/src/icons/GitHub";
@@ -12,12 +14,12 @@ import { GitHubStarButton } from "./GitHubStarButton";
 
 const tools = {
   blog: "/blog",
-  github: "https://github.com/ChilliCream/graphql-platform",
-  linkedIn: "https://www.linkedin.com/company/chillicream",
+  github: GITHUB_REPO_URL,
+  linkedIn: COMPANY_SOCIAL_LINKS.linkedIn,
   shop: "https://store.chillicream.com",
   slack: "https://slack.chillicream.com/",
-  youtube: "https://www.youtube.com/c/ChilliCream",
-  x: "https://x.com/Chilli_Cream",
+  youtube: COMPANY_SOCIAL_LINKS.youtube,
+  x: COMPANY_SOCIAL_LINKS.x,
 };
 
 const products: { path: string; title: string }[] = [
@@ -26,7 +28,7 @@ const products: { path: string; title: string }[] = [
   { path: "hotchocolate", title: "Hot Chocolate" },
   { path: "strawberryshake", title: "Strawberry Shake" },
   { path: "mocha", title: "Mocha" },
-  { path: "skillz", title: "Skills" },
+  { path: "skills", title: "Skills" },
 ];
 
 const basicPages: { path: string; title: string }[] = [

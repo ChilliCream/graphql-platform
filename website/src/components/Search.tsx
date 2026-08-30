@@ -17,6 +17,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { PRODUCTS } from "@/src/data/products";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 import { SearchIcon } from "@/src/icons/Search";
 
 // The DocSearch modal (and its ~120 KB of JS plus CSS) is code-split into its
@@ -55,7 +56,9 @@ const PRODUCT_TITLES_BY_SLUG = new Map(
 const PRODUCT_TITLES = new Set(PRODUCT_TITLES_BY_SLUG.values());
 const DOCS_PATH_PATTERN = /^\/docs\/([^/]+)/;
 
-function getProduct(hit: DocSearchHit): string {
+type ProductSearchHit = Pick<DocSearchHit, "url" | "hierarchy">;
+
+function getProduct(hit: ProductSearchHit): string {
   try {
     const pathname = new URL(hit.url, "https://chillicream.com").pathname;
     const productSlug = DOCS_PATH_PATTERN.exec(pathname)?.[1]?.toLowerCase();
@@ -248,5 +251,18 @@ function Hit({ hit, children }: HitProps) {
   } catch {
     to = hit.url;
   }
-  return <Link href={to}>{children}</Link>;
+  return (
+    <Link
+      href={to}
+      onClick={() => {
+        sendAnalyticsEvent("search_result_select", {
+          result_path: to,
+          result_product: getProduct(hit) || undefined,
+          page_path: window.location.pathname,
+        });
+      }}
+    >
+      {children}
+    </Link>
+  );
 }

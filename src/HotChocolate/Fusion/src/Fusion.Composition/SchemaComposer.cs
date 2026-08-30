@@ -36,6 +36,12 @@ internal sealed class SchemaComposer
 
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
+        if (!Enum.IsDefined(_schemaComposerOptions.Merger.EnumValuesMergeBehavior))
+        {
+            return InvalidEnumValuesMergeBehavior(
+                $"The enum values merge behavior '{_schemaComposerOptions.Merger.EnumValuesMergeBehavior}' is invalid.");
+        }
+
         if (!Enum.IsDefined(_schemaComposerOptions.Merger.NodeResolution))
         {
             return InvalidNodeResolution(
@@ -159,7 +165,8 @@ internal sealed class SchemaComposer
 
         // Pre Merge Validation
         var preMergeValidationResult =
-            new PreMergeValidator(schemas, PreMergeRules, _log).Validate();
+            new PreMergeValidator(schemas, CreatePreMergeRules(_schemaComposerOptions), _log)
+                .Validate();
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -205,6 +212,18 @@ internal sealed class SchemaComposer
         }
 
         return mergedSchema;
+    }
+
+    private CompositionError InvalidEnumValuesMergeBehavior(string message)
+    {
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(message)
+                .SetCode(LogEntryCodes.InvalidEnumValuesMergeBehavior)
+                .SetSeverity(LogSeverity.Error)
+                .Build());
+
+        return new CompositionError(message);
     }
 
     private CompositionError InvalidNodeResolution(string message)
@@ -276,12 +295,12 @@ internal sealed class SchemaComposer
     ];
 
     /// <summary>
-    /// Gets the rules that run across the source schemas before the merge, in the order they are
-    /// applied.
+    /// Creates the rules that run across the source schemas before the merge, in the order they
+    /// are applied, configured from the given options.
     /// </summary>
-    internal static ImmutableArray<object> PreMergeRules { get; } =
+    internal static ImmutableArray<object> CreatePreMergeRules(SchemaComposerOptions options) =>
     [
-        new EnumValuesMismatchRule(),
+        new EnumValuesMismatchRule(options.Merger.EnumValuesMergeBehavior),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalArgumentMissingRule(),
         new ExternalArgumentTypeMismatchRule(),

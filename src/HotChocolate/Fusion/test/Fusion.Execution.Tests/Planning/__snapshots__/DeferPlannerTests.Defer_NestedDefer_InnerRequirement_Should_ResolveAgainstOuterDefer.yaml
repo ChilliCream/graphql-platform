@@ -41,7 +41,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_2($__fusion_1_id: ID!) {
+          query Op_defer_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               email
             }
@@ -58,7 +58,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_1 {
+          query Op_defer_2 {
             user(id: "1") {
               id
             }
@@ -75,7 +75,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_2($__fusion_1_id: ID!) {
+          query Op_defer_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               address
             }

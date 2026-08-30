@@ -807,6 +807,243 @@ public sealed class SchemaComposerTests
     }
 
     [Fact]
+    public void Compose_Should_UnionEnumValues_When_OutputOnlyEnumDiffersAcrossApolloSubgraphs()
+    {
+        // arrange
+        // Both Apollo subgraphs define "OrderPriority" with differing values, but the enum is
+        // only used in output positions, so the values are merged by union.
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var enumType = result.Value.ToSyntaxNode().Definitions
+            .OfType<EnumTypeDefinitionNode>()
+            .Single(definition => definition.Name.Value == "OrderPriority");
+
+        enumType.ToString().MatchInlineSnapshot(
+            """
+            enum OrderPriority
+              @fusion__type(schema: CATALOG)
+              @fusion__type(schema: WAREHOUSE) {
+              LOW @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              HIGH @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              RUSH @fusion__enumValue(schema: CATALOG)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_UnionEnumValues_When_OutputOnlyEnumValuesDifferSymmetricallyAcrossApolloSubgraphs()
+    {
+        // arrange
+        // Each Apollo subgraph declares a value for "OrderPriority" that the other lacks, but
+        // the enum is only used in output positions, so the values are merged by union.
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        EXPRESS
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var enumType = result.Value.ToSyntaxNode().Definitions
+            .OfType<EnumTypeDefinitionNode>()
+            .Single(definition => definition.Name.Value == "OrderPriority");
+
+        enumType.ToString().MatchInlineSnapshot(
+            """
+            enum OrderPriority
+              @fusion__type(schema: CATALOG)
+              @fusion__type(schema: WAREHOUSE) {
+              LOW @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              RUSH @fusion__enumValue(schema: CATALOG)
+              EXPRESS @fusion__enumValue(schema: WAREHOUSE)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportEnumValuesMismatch_When_StrictMergeBehaviorConfigured()
+    {
+        // arrange
+        // The strict merge behavior overrules the Apollo subgraph detection, so the differing
+        // output-only enum values are reported.
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions
+            {
+                Merger = { EnumValuesMergeBehavior = EnumValuesMergeBehavior.Strict }
+            },
+            log);
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The enum type 'OrderPriority' in schema 'warehouse' must define the value 'RUSH'.",
+                "code": "ENUM_VALUES_MISMATCH",
+                "severity": "Error",
+                "coordinate": "OrderPriority",
+                "member": "OrderPriority",
+                "schema": "warehouse",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public void SourceSchemaRules_Should_ContainTheRegisteredRuleSet()
     {
         // act
@@ -860,7 +1097,9 @@ public sealed class SchemaComposerTests
     public void PreMergeRules_Should_ContainTheRegisteredRuleSet()
     {
         // act
-        var rules = SchemaComposer.PreMergeRules.Select(r => r.GetType().Name);
+        var rules = SchemaComposer
+            .CreatePreMergeRules(new SchemaComposerOptions())
+            .Select(r => r.GetType().Name);
 
         // assert
         Assert.Equal(
@@ -920,5 +1159,45 @@ public sealed class SchemaComposerTests
                 "RequireInvalidFieldsRule"
             ],
             rules);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportOnlyInvalidSchema_When_ValidSchemaFollowsIt()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    // lang=graphql
+                    """
+                    schema {
+                        query: Query
+                    }
+
+                    type Receipt {
+                        id: ID!
+                        total: Int
+                    }
+                    """),
+                new SourceSchemaText("B", "type Query { ping: String }")
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Source schema parsing failed.", error.Message);
+        var entry = Assert.Single(log);
+        Assert.Equal("A", entry.Schema?.Name);
+        Assert.Equal(
+            "Invalid GraphQL in source schema. Exception message: "
+            + "The query root type 'Query' is not defined..",
+            entry.Message);
     }
 }

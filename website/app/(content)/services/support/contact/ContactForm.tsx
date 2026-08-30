@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
 import { TextArea } from "@/src/design-system/TextArea";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 const SUBJECTS = [
   "Schedule a Demo",
@@ -80,6 +82,7 @@ const getRequestContextFromUrl = () =>
 const getServerRequestContext = () => "";
 
 export function ContactForm() {
+  const router = useRouter();
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -151,15 +154,30 @@ export function ContactForm() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      window.gtag?.("event", "contact_form_submit", {
-        event_label: requestContext ? `${subject}: ${requestContext}` : subject,
+      let redirected = false;
+      const showThankYou = () => {
+        if (!redirected) {
+          redirected = true;
+          router.push(THANK_YOU_PATH);
+        }
+      };
+
+      const queued = sendAnalyticsEvent("generate_lead", {
+        lead_source: "support_contact_form",
+        lead_subject: subject,
+        ...(requestContext ? { lead_context: requestContext } : {}),
         page_path: window.location.pathname,
+        event_callback: showThankYou,
+        event_timeout: 1000,
       });
 
-      window.location.href = THANK_YOU_PATH;
+      if (queued) {
+        window.setTimeout(showThankYou, 1100);
+      } else {
+        showThankYou();
+      }
     } catch {
       alert("There was an error submitting your request. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   }

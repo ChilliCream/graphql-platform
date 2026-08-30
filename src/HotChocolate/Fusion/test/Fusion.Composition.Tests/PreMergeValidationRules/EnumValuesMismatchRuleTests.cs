@@ -1,8 +1,11 @@
+using HotChocolate.Fusion.Options;
+
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
 public sealed class EnumValuesMismatchRuleTests : RuleTestBase
 {
-    protected override object Rule { get; } = new EnumValuesMismatchRule();
+    protected override object Rule { get; } =
+        new EnumValuesMismatchRule(EnumValuesMergeBehavior.Auto);
 
     // In this example, both source schemas define "Genre" with the same value "FANTASY", satisfying
     // the rule.

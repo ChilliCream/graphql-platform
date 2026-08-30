@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using BenchmarkDotNet.Attributes;
+using DbRow = HotChocolate.Fusion.Text.Json.CompositeResultDocument.DbRow;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
@@ -83,7 +84,7 @@ internal static class DbRowBenchData
         Unsafe.WriteUnaligned(ref row, 3 /*PropertyName*/ | (parent << 4));
         Unsafe.WriteUnaligned(
             ref Unsafe.Add(ref row, 4),
-            selectionId | (2 << 15) | (flags << 17));
+            selectionId | (2 << DbRow.OperationReferenceTypeShift) | (flags << DbRow.FlagsShift));
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), 0);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 12), 0);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), 0);
@@ -95,7 +96,7 @@ internal static class DbRowBenchData
         Unsafe.WriteUnaligned(ref row, 3 | (parent << 4));
         Unsafe.WriteUnaligned(
             ref Unsafe.Add(ref row, 4),
-            selectionId | (2 << 15) | (flags << 17));
+            selectionId | (2 << DbRow.OperationReferenceTypeShift) | (flags << DbRow.FlagsShift));
         Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 8), 0, 12);
     }
 
@@ -103,7 +104,7 @@ internal static class DbRowBenchData
     public static void WriteEmptyProp_Vec128PlusScalar(ref byte row, int parent, int selectionId, int flags)
     {
         var int0 = 3 | (parent << 4);
-        var int1 = selectionId | (2 << 15) | (flags << 17);
+        var int1 = selectionId | (2 << DbRow.OperationReferenceTypeShift) | (flags << DbRow.FlagsShift);
 
         var v = Vector128.Create(int0, int1, 0, 0).AsByte();
         v.StoreUnsafe(ref row);
@@ -116,7 +117,7 @@ internal static class DbRowBenchData
         Unsafe.WriteUnaligned(ref row, 3 | (parent << 4));
         Unsafe.WriteUnaligned(
             ref Unsafe.Add(ref row, 4),
-            selectionId | (2 << 15) | (flags << 17));
+            selectionId | (2 << DbRow.OperationReferenceTypeShift) | (flags << DbRow.FlagsShift));
         // Covers ints 2..4 using a 16-byte zero store (overwrites 4 bytes past end, but row is 20B
         // and buffer is row-aligned multiples of 20B — works only when room exists after).
         // To be safe here we do two stores: Vec128.Zero at offset 8 would write 16 bytes,
@@ -134,7 +135,7 @@ internal static class DbRowBenchData
         Unsafe.WriteUnaligned(ref row, 1 | (parent << 4));
         Unsafe.WriteUnaligned(
             ref Unsafe.Add(ref row, 4),
-            selectionId | (1 << 15) | (flags << 17));
+            selectionId | (1 << DbRow.OperationReferenceTypeShift) | (flags << DbRow.FlagsShift));
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), propertyCount);
         Unsafe.WriteUnaligned(
             ref Unsafe.Add(ref row, 12),
@@ -160,7 +161,7 @@ internal static class DbRowBenchData
     public static void WriteStartObj_Vec128PlusScalar(ref byte row, int parent, int selectionId, int propertyCount, int flags)
     {
         var int0 = 1 | (parent << 4);
-        var int1 = selectionId | (1 << 15) | (flags << 17);
+        var int1 = selectionId | (1 << DbRow.OperationReferenceTypeShift) | (flags << DbRow.FlagsShift);
         var int2 = propertyCount;
         var int3 = ((propertyCount * 2) + 1) & 0x07FFFFFF;
 
@@ -192,8 +193,8 @@ internal static class DbRowBenchData
             var locationOrRows = location != 0 ? location : numberOfRows;
             _typeAndParent = (tokenType & 0x0F) | (parentRow << 4);
             _selectionAndFlags = operationReferenceId
-                | (operationReferenceType << 15)
-                | (flags << 17);
+                | (operationReferenceType << DbRow.OperationReferenceTypeShift)
+                | (flags << DbRow.FlagsShift);
             _sizeOrLengthUnion = sizeOrLength;
             _locationOrRows = locationOrRows & 0x07FFFFFF;
             _source = sourceDocumentId & 0x7FFF;

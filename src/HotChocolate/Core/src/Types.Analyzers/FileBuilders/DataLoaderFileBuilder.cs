@@ -90,13 +90,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public void WriteBeginDataLoaderClass(
         string name,
-        string interfaceName,
+        string? interfaceName,
         IMethodSymbol method,
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
-        ITypeSymbol value,
-        bool withInterface)
+        ITypeSymbol value)
     {
         WriteDataLoaderDocumentation(method);
         _writer.WriteIndentedLine(
@@ -112,7 +111,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualifiedWithNullRefQualifier(),
             value.ToFullyQualifiedWithNullRefQualifier());
-        if (withInterface)
+        if (interfaceName is not null)
         {
             _writer.WriteIndentedLine(", {0}", interfaceName);
         }

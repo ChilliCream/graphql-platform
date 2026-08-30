@@ -1,5 +1,6 @@
 ---
 title: "Pagination"
+metaTitle: "GraphQL Cursor Pagination in Hot Chocolate"
 description: "Implement cursor-based connection pagination in Hot Chocolate with [UseConnection] and PagingArguments, following the GraphQL Cursor Connections spec."
 ---
 

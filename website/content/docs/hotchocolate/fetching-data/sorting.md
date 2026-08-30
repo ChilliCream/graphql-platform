@@ -1,5 +1,6 @@
 ---
 title: Sorting
+metaTitle: "GraphQL Sorting in Hot Chocolate"
 description: "Generate sort input types from .NET models with the [UseSorting] attribute in Hot Chocolate, translating client sort arguments into native database ordering."
 ---
 

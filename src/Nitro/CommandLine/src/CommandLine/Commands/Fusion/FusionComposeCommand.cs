@@ -21,6 +21,7 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<CacheControlMergeBehaviorOption>.Instance);
         Options.Add(Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        Options.Add(Opt<EnumValuesMergeBehaviorOption>.Instance);
         Options.Add(Opt<NodeResolutionOption>.Instance);
         Options.Add(Opt<TagMergeBehaviorOption>.Instance);
         Options.Add(Opt<ShareableFieldRuntimeTypeRoutingOption>.Instance);
@@ -90,6 +91,11 @@ internal sealed class FusionComposeCommand : Command
             : null;
         var enableGlobalObjectIdentification = parseResult.GetValue(
             Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        var enumValuesMergeBehaviorOption = Opt<EnumValuesMergeBehaviorOption>.Instance;
+        var enumValuesMergeBehavior = parseResult.Tokens.Any(
+            static token => token.Value == EnumValuesMergeBehaviorOption.OptionName)
+            ? parseResult.GetValue(enumValuesMergeBehaviorOption)
+            : null;
         var nodeResolutionOption = Opt<NodeResolutionOption>.Instance;
         var nodeResolution = parseResult.Tokens.Any(
             static token => token.Value == NodeResolutionOption.OptionName)
@@ -149,6 +155,7 @@ internal sealed class FusionComposeCommand : Command
             {
                 CacheControlMergeBehavior = cacheControlMergeBehavior,
                 EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                EnumValuesMergeBehavior = enumValuesMergeBehavior,
                 NodeResolution = nodeResolution,
                 TagMergeBehavior = tagMergeBehavior
             },
@@ -598,8 +605,8 @@ internal sealed class FusionComposeCommand : Command
 
             if (removeSourceSchemas.Count > 0)
             {
-                var existing = (await archive.GetSourceSchemaNamesAsync(cancellationToken))
-                    .ToHashSet(StringComparer.Ordinal);
+                var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync(cancellationToken);
+                var existing = sourceSchemaNames.ToHashSet(StringComparer.Ordinal);
 
                 var missingSourceSchema =
                     removeSourceSchemas.FirstOrDefault(name => !existing.Contains(name));

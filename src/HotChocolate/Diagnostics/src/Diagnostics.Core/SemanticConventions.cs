@@ -60,6 +60,7 @@ internal static class SemanticConventions
                 {
                     public const string Operation = "operation";
                     public const string OperationBatch = "operation_batch";
+                    public const string EventStream = "event_stream";
                     public const string Introspection = "introspection";
                     public const string Node = "node";
                 }

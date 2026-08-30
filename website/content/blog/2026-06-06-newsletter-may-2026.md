@@ -69,6 +69,8 @@ dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 
 Read the announcement: [Introducing skillz](./2026-06-05-introducing-skillz.md).
 
+The CLI is now named `skills`; use the current [Skills documentation](../docs/skills/index.md) for installation and commands.
+
 # Semantic Introspection
 
 Classic GraphQL introspection tells a client everything about a schema. That works well for developer tools, but it is too much context for agents working against large APIs. Semantic Introspection adds a search layer to introspection, so an agent can find the schema members relevant to a task and then fetch the exact definitions it needs.

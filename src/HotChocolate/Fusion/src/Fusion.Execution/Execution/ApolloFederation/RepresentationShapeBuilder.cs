@@ -48,7 +48,7 @@ internal static class RepresentationShapeBuilder
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(resultSelectionSet);
 
-        var document = Utf8GraphQLParser.Parse(operation.Value.Span);
+        var document = Utf8GraphQLParser.Parse(operation.Value.Span, ParserOptions.Trusted);
         var entitySelectionSet = GetEntitySelectionSet(document, entityTypeName);
         var bindings = ImmutableArray.CreateBuilder<RepresentationBinding>(requiredData.Length);
 

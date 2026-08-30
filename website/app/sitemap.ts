@@ -5,9 +5,12 @@ import {
   blogUrlForStem,
   listBlogPosts,
 } from "@/src/helpers/blogPaths";
+import { POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
+import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import { AUTHOR_PROFILES, authorPageUrl } from "@/src/data/authors";
 
 export const dynamic = "force-static";
 
@@ -25,57 +28,51 @@ const EXCLUDED_PATHS = new Set([
 ]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return [
-    ...(await rootPages()),
-    ...(await staticPages()),
+  const entries = [
+    ...rootPages(),
+    ...staticPages(),
     ...(await docsPages()),
+    ...blogArchivePages(),
     ...(await blogPosts()),
+    ...authorPages(),
+  ];
+
+  const urls = entries.map((entry) => entry.url);
+  if (new Set(urls).size !== urls.length) {
+    throw new Error("The sitemap contains duplicate canonical URLs.");
+  }
+
+  return entries.sort((left, right) => left.url.localeCompare(right.url));
+}
+
+function authorPages(): MetadataRoute.Sitemap {
+  return [
+    sitemapEntry("/authors"),
+    ...AUTHOR_PROFILES.map((author) => sitemapEntry(authorPageUrl(author))),
   ];
 }
 
 // Pages that live outside the `(content)` route group: the homepage and the
-// docs/blog hub pages. These are the highest-value URLs on the site and must
-// be listed explicitly since `staticPages()` only walks `(content)`.
-async function rootPages(): Promise<MetadataRoute.Sitemap> {
-  const pages = [
-    { file: path.join(process.cwd(), "app", "page.tsx"), urlPath: "/" },
-    {
-      file: path.join(process.cwd(), "app", "docs", "page.tsx"),
-      urlPath: "/docs",
-    },
-    {
-      file: path.join(process.cwd(), "app", "blog", "page.tsx"),
-      urlPath: "/blog",
-    },
-  ];
-  return Promise.all(
-    pages.map(async ({ file, urlPath }) => ({
-      url: urlPath === "/" ? `${SITE_URL}/` : `${SITE_URL}${urlPath}`,
-      lastModified:
-        (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
-      changeFrequency: "weekly" as const,
-      priority: urlPath === "/" ? 1 : 0.8,
-    })),
-  );
+// docs hub page. Blog indexes are generated with the other blog archives.
+// These files are not part of the generated git manifest, so emitting their
+// checkout mtime would falsely claim they changed on every deployment. An
+// omitted `<lastmod>` is more useful than an unverifiable timestamp.
+function rootPages(): MetadataRoute.Sitemap {
+  return [sitemapEntry("/"), sitemapEntry("/docs")];
 }
 
-async function staticPages(): Promise<MetadataRoute.Sitemap> {
-  return Promise.all(
+function staticPages(): MetadataRoute.Sitemap {
+  return (
     walk(CONTENT_PAGES_ROOT)
       .filter((file) => path.basename(file) === "page.tsx")
       .map((file) => {
         const rel = path.relative(CONTENT_PAGES_ROOT, path.dirname(file));
-        const urlPath = rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
-        return { file, urlPath };
+        return rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
       })
-      .filter(({ urlPath }) => !EXCLUDED_PATHS.has(urlPath))
-      .map(async ({ file, urlPath }) => ({
-        url: `${SITE_URL}${urlPath}`,
-        lastModified:
-          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
-        changeFrequency: "monthly" as const,
-        priority: urlPath === "/" ? 1 : 0.7,
-      })),
+      .filter((urlPath) => !EXCLUDED_PATHS.has(urlPath))
+      // Visible content commonly lives in imported components, so page.tsx's
+      // commit date alone is not an accurate modification date for these routes.
+      .map((urlPath) => sitemapEntry(urlPath))
   );
 }
 
@@ -93,14 +90,26 @@ async function docsPages(): Promise<MetadataRoute.Sitemap> {
         return { file, slug };
       })
       .filter(({ slug }) => slug.length > 0)
-      .map(async ({ file, slug }) => ({
-        url: `${SITE_URL}/docs/${slug.join("/")}`,
-        lastModified:
-          (await getLastModifiedFromGit(file)) ?? fs.statSync(file).mtime,
-        changeFrequency: "weekly" as const,
-        priority: 0.5,
-      })),
+      .map(async ({ file, slug }) =>
+        sitemapEntry(
+          `/docs/${slug.join("/")}`,
+          await getLastModifiedFromGit(file),
+        ),
+      ),
   );
+}
+
+/** Every indexable, self-canonical blog listing page. */
+function blogArchivePages(): MetadataRoute.Sitemap {
+  const posts = listBlogPostSummaries();
+  const entries = [sitemapEntry("/blog")];
+  const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+
+  for (let page = 2; page <= pageCount; page++) {
+    entries.push(sitemapEntry(`/blog/${page}`));
+  }
+
+  return entries;
 }
 
 async function blogPosts(): Promise<MetadataRoute.Sitemap> {
@@ -109,22 +118,33 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
       const file = path.join(BLOG_ROOT, rel);
       const fm = readFrontmatter(file) as Record<string, unknown>;
       // An explicit `updated` frontmatter field wins; otherwise the last git
-      // commit touching the post, with file mtime as the no-git fallback.
+      // commit touching the post. Filesystem mtimes are deliberately not used:
+      // checkout and container-copy times change without the article changing.
       const updated =
         typeof fm.updated === "string" && fm.updated.length > 0
-          ? new Date(fm.updated)
-          : null;
-      return {
-        url: `${SITE_URL}${blogUrlForStem(parsed)}`,
-        lastModified:
-          updated ??
-          (await getLastModifiedFromGit(file)) ??
-          fs.statSync(file).mtime,
-        changeFrequency: "yearly" as const,
-        priority: 0.5,
-      };
+          ? validDate(fm.updated)
+          : undefined;
+      return sitemapEntry(
+        blogUrlForStem(parsed),
+        updated ?? (await getLastModifiedFromGit(file)),
+      );
     }),
   );
+}
+
+function sitemapEntry(
+  urlPath: string,
+  lastModified?: Date,
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: urlPath === "/" ? `${SITE_URL}/` : `${SITE_URL}${urlPath}`,
+    ...(lastModified ? { lastModified } : {}),
+  };
+}
+
+function validDate(value: string): Date | undefined {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
 function walk(dir: string): string[] {

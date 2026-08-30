@@ -1,5 +1,6 @@
 ---
-title: "Coming from Apollo Federation"
+title: "Migrate from Apollo Federation"
+metaTitle: "Migrate from Apollo Federation to Hot Chocolate Fusion"
 description: "Map Apollo Federation concepts like @key and _entities to Hot Chocolate Fusion equivalents such as [Lookup], and migrate subgraphs, gateway, and CI/CD."
 ---
 

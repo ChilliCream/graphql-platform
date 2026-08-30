@@ -1,5 +1,6 @@
 ---
 title: "Apollo Federation Connector"
+metaTitle: "Use Apollo Federation Subgraphs with Hot Chocolate Fusion"
 description: "Put a Fusion gateway in front of your existing Apollo Federation subgraphs. Composition auto-detects Apollo Federation SDL and translates @key, @requires, and _entities into the GraphQL Federation model, with no changes to your subgraphs."
 ---
 
@@ -395,8 +396,9 @@ The connector is under active development and ships as a preview. Composition re
 
 - **Apollo Federation v1 requires explicit source settings.** Set `extensions.chillicream.apolloFederationSupport.version` to exact `"1.0"` for that source. Raw v1 SDL without the marker is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Federation v2 schemas continue to use their `@link`; for a remote source, the optional exact `"2.0"` marker selects `_service.sdl` acquisition without enabling the v1 parser.
 - **Several Apollo Federation v2 directives are not supported.** Composition rejects `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
+- **Enums used in input positions must define identical value sets across subgraphs.** When an Apollo Federation subgraph is part of the composition, enum value merging resolves to union, so enums used only in output positions compose even when their values diverge. Enums used in any input position must still agree exactly and are otherwise rejected with `ENUM_VALUES_MISMATCH`; Apollo's input-only intersection merge is not performed. The `enumValuesMergeBehavior` merger setting can force strict merging.
 
-Both error codes are listed in the [Composition log-code reference](../composition.md#log-codes-reference).
+These error codes are listed in the [Composition log-code reference](../composition.md#log-codes-reference).
 
 Feature support tracks the [GraphQL Hive federation-gateway-audit](https://github.com/graphql-hive/federation-gateway-audit) compliance suite, and the set of supported features grows as the connector passes more of that suite.
 

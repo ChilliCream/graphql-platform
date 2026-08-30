@@ -307,7 +307,7 @@ function SkillsSection() {
         <ArrowLink href="https://github.com/chillicream/agent-skills">
           Browse chillicream/agent-skills
         </ArrowLink>
-        <ArrowLink href="/docs/skillz">Read the skills docs</ArrowLink>
+        <ArrowLink href="/docs/skills">Read the skills docs</ArrowLink>
       </div>
     </section>
   );

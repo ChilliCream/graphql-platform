@@ -25,6 +25,7 @@ public sealed class SchemaValidatorTests
                 "DirectiveDefinitionIncludesLocationRule",
                 "DirectiveDefinitionNoSelfReferenceRule",
                 "DirectiveIsDefinedRule",
+                "DirectiveIsInValidLocationRule",
                 "DirectiveIsUniqueRule",
                 "EnumValueIsDefinedRule",
                 "NoInputObjectCycleRule",

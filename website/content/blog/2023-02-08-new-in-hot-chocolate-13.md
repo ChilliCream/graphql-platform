@@ -1,6 +1,7 @@
 ---
 date: "2023-02-08"
 title: "What's new for Hot Chocolate 13"
+description: "Hot Chocolate 13 improves GraphQL over HTTP, developer experience, authorization, subscriptions, data access, performance, and Strawberry Shake."
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 category: "Release"
 featuredImage: "hot-chocolate-13-banner.png"
@@ -705,7 +706,7 @@ If you need a deep dive into the setup of persisted queries with Strawberry Shak
 
 # Banana Cake Pop
 
-With version 13, we are also releasing Banana Cake Pop 4, which packs many new features. You can read all about this [here](https://chillicream.com/blog/2023/02/07/new-in-banana-cake-pop-4).
+With version 13, we are also releasing Banana Cake Pop 4, which packs many new features. You can read all about this in the [Banana Cake Pop 4 announcement](./2023-02-07-new-in-banana-cake-pop-4.md).
 
 # Outlook
 

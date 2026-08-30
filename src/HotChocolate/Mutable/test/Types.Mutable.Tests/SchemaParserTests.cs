@@ -1052,4 +1052,197 @@ public class SchemaParserTests
         Assert.True(directiveDefinition.Directives.ContainsName("meta"));
         Assert.NotNull(directiveDefinition.Features.Get<TypeExtensionMarker>());
     }
+
+    [Theory]
+    [InlineData(
+        """
+        schema {
+            query: Query
+        }
+        """,
+        "query",
+        "Query")]
+    [InlineData(
+        """
+        schema {
+            query: Query
+            mutation: Mutation
+        }
+
+        type Query {
+            a: String
+        }
+        """,
+        "mutation",
+        "Mutation")]
+    [InlineData(
+        """
+        schema {
+            query: Query
+            subscription: Subscription
+        }
+
+        type Query {
+            a: String
+        }
+        """,
+        "subscription",
+        "Subscription")]
+    public void Parse_Should_ThrowSchemaInitializationException_When_SchemaDefinitionNamesUndefinedRootType(
+        string sdl,
+        string operation,
+        string typeName)
+    {
+        // arrange
+        var bytes = Encoding.UTF8.GetBytes(sdl);
+
+        // act
+        void Action() => SchemaParser.Parse(bytes);
+
+        // assert
+        Assert.Equal(
+            $"The {operation} root type '{typeName}' is not defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_RootTypeIsOnlyReferencedByField()
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+                query: Query
+            }
+
+            type Foo {
+                bar: Query
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The query root type 'Query' is not defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_RootTypeIsNotAnObjectType()
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+                query: Foo
+            }
+
+            scalar Foo
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The query root type 'Foo' must be an Object type.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_SchemaExtensionNamesUndefinedRootType()
+    {
+        // arrange
+        const string sdl =
+            """
+            extend schema {
+                query: Query
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The query root type 'Query' is not defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionMemberTypeIsUndefined()
+    {
+        // arrange
+        const string sdl = "union Foo = Bar";
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the undefined type 'Bar'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionMemberTypeIsOnlyReferencedByField()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Baz {
+                qux: Bar
+            }
+
+            union Foo = Bar
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the undefined type 'Bar'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionExtensionMemberTypeIsUndefined()
+    {
+        // arrange
+        const string sdl =
+            """
+            type A {
+                id: ID
+            }
+
+            union Foo = A
+
+            extend union Foo = Undefined
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the undefined type 'Undefined'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+    [Fact]
+    public void Parse_Should_ThrowSchemaInitializationException_When_UnionMemberTypeIsSpecScalar()
+    {
+        // arrange
+        const string sdl = "union Foo = String";
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the type 'String'. Unions can only contain Object types.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
 }
