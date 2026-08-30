@@ -28,7 +28,8 @@ interface LearnArticleCardProps {
 
 /**
  * Article card for a blog post (learn-harmonization.md section 2.5.2): 16:9
- * artwork, kicker, title, and `author · date`. Like `LearnListRow`, the
+ * artwork, kicker, title, and `author · date`, with the author's avatar
+ * before the name when the post has one. Like `LearnListRow`, the
  * title is a stretched link covering the card, so clicking anywhere except
  * the kicker opens the post, and the kicker is its own link to its hub when
  * the caller supplies one (D19). A post without a `featuredImage` falls back
@@ -101,15 +102,27 @@ export function LearnArticleCard({ post, layout = "card", kicker, kickerHref, si
         {split && post.description ? (
           <p className="text-cc-ink-dim mt-4 line-clamp-3 max-w-[68ch] text-lg">{post.description}</p>
         ) : null}
-        <span className={`text-cc-ink-dim text-sm ${split ? "mt-6" : "mt-auto pt-3"}`}>
+        <div className={`text-cc-ink-dim flex items-center gap-2 text-sm ${split ? "mt-6" : "mt-auto pt-3"}`}>
           {post.author ? (
             <>
-              {post.author} <span aria-hidden="true">·</span> {dateLabel}
+              {post.authorImageUrl ? (
+                <Picture
+                  src={post.authorImageUrl}
+                  alt=""
+                  width={22}
+                  height={22}
+                  sizes="22px"
+                  className="h-[22px] w-[22px] rounded-full object-cover"
+                />
+              ) : null}
+              <span>{post.author}</span>
+              <span aria-hidden="true">·</span>
+              <span>{dateLabel}</span>
             </>
           ) : (
-            dateLabel
+            <span>{dateLabel}</span>
           )}
-        </span>
+        </div>
       </div>
     </div>
   );
