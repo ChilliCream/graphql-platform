@@ -243,10 +243,9 @@ public sealed class DefaultMessageBus(
 
             await replyEndpoint.ExecuteAsync(context);
         }
-        catch
+        finally
         {
             _contextPool.Return(context);
-            throw;
         }
     }
 
