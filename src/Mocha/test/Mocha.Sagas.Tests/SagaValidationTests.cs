@@ -189,7 +189,7 @@ public class SagaValidationTests
         // assert
         Assert.Equal(
             "State 'Awaiting' handles any reply but does not handle faults. "
-            + "Add '.OnReplyFault()' to this state, or '.DuringAny().OnReplyFault()' to the saga.",
+            + "Add '.OnFault()' to this state, or '.DuringAny().OnFault()' to the saga.",
             exception.Message);
     }
 
@@ -205,7 +205,7 @@ public class SagaValidationTests
                 .TransitionTo("Awaiting")
                 .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
             descriptor.During("Awaiting").OnAnyReply().TransitionTo("Success");
-            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Success");
+            descriptor.During("Awaiting").OnFault().TransitionTo("Success");
             descriptor.Finally("Success");
         });
 
@@ -227,7 +227,7 @@ public class SagaValidationTests
                 .TransitionTo("Awaiting")
                 .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
             descriptor.During("Awaiting").OnAnyReply().TransitionTo("Success");
-            descriptor.DuringAny().OnReplyFault().TransitionTo("Success");
+            descriptor.DuringAny().OnFault().TransitionTo("Success");
             descriptor.Finally("Success");
         });
 

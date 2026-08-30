@@ -129,7 +129,7 @@ public class ReplyDiagnosticsTests
                 .Send((_, _) => new DiagnosticsRequest())
                 .TransitionTo("Awaiting");
 
-            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Failed");
+            descriptor.During("Awaiting").OnFault().TransitionTo("Failed");
 
             descriptor.Finally("Failed");
         }
@@ -147,7 +147,7 @@ public class ReplyDiagnosticsTests
                 .TransitionTo("Awaiting");
 
             descriptor.During("Awaiting").OnAnyReply().TransitionTo("Done");
-            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Done");
+            descriptor.During("Awaiting").OnFault().TransitionTo("Done");
 
             descriptor.Finally("Done");
         }

@@ -26,7 +26,7 @@ public class SagaRouteConditionTests
     }
 
     [Fact]
-    public void Configure_Should_GateOnSagaIdAndMessageType_When_OnReplyFault()
+    public void Configure_Should_GateOnSagaIdAndMessageType_When_OnFault()
     {
         // arrange & act
         var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
@@ -122,7 +122,7 @@ public class SagaRouteConditionTests
                 .TransitionTo("Awaiting");
 
             descriptor.During("Awaiting").OnAnyReply().TransitionTo("Done");
-            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Done");
+            descriptor.During("Awaiting").OnFault().TransitionTo("Done");
 
             descriptor.Finally("Done");
         }

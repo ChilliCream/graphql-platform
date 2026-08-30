@@ -312,10 +312,10 @@ public class IntegrationTests
     }
 
     [Fact]
-    public async Task Saga_Should_ReceiveFault_When_SendUsedWithOnReplyFault()
+    public async Task Saga_Should_ReceiveFault_When_SendUsedWithOnFault()
     {
         // A saga that uses .Send to dispatch a request whose handler fails terminally routes the
-        // fault reply back to its OnReplyFault transition, correlated by the saga header the fault reply
+        // fault reply back to its OnFault transition, correlated by the saga header the fault reply
         // carries. Without it the saga waits in its send state until it times out.
 
         // arrange
@@ -336,7 +336,7 @@ public class IntegrationTests
         // assert - the handler ran and threw, proving the request was delivered
         await handlerFaulted.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
-        // assert - the fault routed back to the saga and drove its OnReplyFault transition
+        // assert - the fault routed back to the saga and drove its OnFault transition
         var fault = await FaultSaga.Observed.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         Assert.Equal(ErrorCodes.Exception, fault.ErrorCode);
     }
@@ -472,7 +472,7 @@ public class IntegrationTests
                 .TransitionTo("AwaitingResponse");
 
             descriptor.During("AwaitingResponse").OnAnyReply().TransitionTo("Completed");
-            descriptor.During("AwaitingResponse").OnReplyFault().TransitionTo("Completed");
+            descriptor.During("AwaitingResponse").OnFault().TransitionTo("Completed");
 
             descriptor.Finally("Completed");
         }
@@ -495,7 +495,7 @@ public class IntegrationTests
                 .TransitionTo("AwaitingResponse");
 
             descriptor.During("AwaitingResponse").OnAnyReply().TransitionTo("Completed");
-            descriptor.During("AwaitingResponse").OnReplyFault().TransitionTo("Completed");
+            descriptor.During("AwaitingResponse").OnFault().TransitionTo("Completed");
 
             descriptor.Finally("Completed");
         }
@@ -503,7 +503,7 @@ public class IntegrationTests
 
     /// <summary>
     /// Fault saga: StartFaultEvent -> AwaitingResponse (sends FaultingRequest) ->
-    /// OnReplyFault -> Failed (final)
+    /// OnFault -> Failed (final)
     /// </summary>
     public sealed class FaultSaga : Saga<RequestResponseState>
     {
@@ -520,7 +520,7 @@ public class IntegrationTests
 
             descriptor
                 .During("AwaitingResponse")
-                .OnReplyFault()
+                .OnFault()
                 .Then((_, fault) => Observed.TrySetResult(fault))
                 .TransitionTo("Failed");
 

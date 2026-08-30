@@ -152,7 +152,7 @@ public class SagaPublishFaultTests
                 .Publish((_, state) => new ErrorQueueEvent(state.Id))
                 .TransitionTo("Awaiting");
 
-            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Failed");
+            descriptor.During("Awaiting").OnFault().TransitionTo("Failed");
 
             descriptor.Finally("Failed");
         }
@@ -186,7 +186,7 @@ public class SagaPublishFaultTests
 
             descriptor
                 .During("Awaiting")
-                .OnReplyFault()
+                .OnFault()
                 .Then((_, fault) => s_faultObserved.TrySetResult(fault))
                 .TransitionTo("Failed");
 

@@ -108,6 +108,6 @@ internal static class SagaValidator
         throw new SagaInitializationException(
             saga,
             $"State '{stateName}' handles any reply but does not handle faults. "
-            + "Add '.OnReplyFault()' to this state, or '.DuringAny().OnReplyFault()' to the saga.");
+            + "Add '.OnFault()' to this state, or '.DuringAny().OnFault()' to the saga.");
     }
 }

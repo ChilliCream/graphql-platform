@@ -415,7 +415,7 @@ public sealed class SagaStateMachineTests
 
                 x.During("Started").OnAnyReply().TransitionTo("Triggered");
 
-                x.During("Started").OnReplyFault().TransitionTo("Ended");
+                x.During("Started").OnFault().TransitionTo("Ended");
 
                 x.During("Triggered").OnEvent<End>().TransitionTo("Ended");
 

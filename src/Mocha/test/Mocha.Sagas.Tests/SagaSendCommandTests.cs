@@ -128,7 +128,7 @@ public class SagaSendCommandTests
 
             descriptor
                 .During("Awaiting")
-                .OnReplyFault()
+                .OnFault()
                 .Then((_, fault) => s_faultObserved.TrySetResult(fault))
                 .TransitionTo("Failed");
 
@@ -153,7 +153,7 @@ public class SagaSendCommandTests
                 .Then((_, reply) => s_replyObserved.TrySetResult(reply))
                 .TransitionTo("Done");
 
-            descriptor.During("Awaiting").OnReplyFault().TransitionTo("Done");
+            descriptor.During("Awaiting").OnFault().TransitionTo("Done");
 
             descriptor.Finally("Done");
         }
