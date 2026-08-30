@@ -70,8 +70,6 @@ internal partial class MiddlewareContext
 
         public ConditionFlags IncludeConditionFlags => parentContext.IncludeConditionFlags;
 
-        public ReadOnlySpan<ulong> WideIncludeFlags => IncludeConditionFlags.Overflow;
-
         public CancellationToken RequestAborted => parentContext.RequestAborted;
 
         public void ReportError(string errorMessage)

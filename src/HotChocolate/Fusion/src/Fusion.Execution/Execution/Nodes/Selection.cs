@@ -38,6 +38,30 @@ public sealed class Selection : ISelection
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isInternal,
+        ulong deferMask = 0,
+        DeliveryGroup[]? deliveryGroups = null)
+        : this(
+            id,
+            responseName,
+            field,
+            syntaxNodes,
+            includeFlags,
+            isInternal,
+            wideIncludeFlags: null,
+            wideIncludeFlagsStride: 0,
+            deferMask,
+            wideDeferMask: null,
+            deliveryGroups)
+    {
+    }
+
+    internal Selection(
+        int id,
+        string responseName,
+        IOutputFieldDefinition field,
+        FieldSelectionNode[] syntaxNodes,
+        ulong[] includeFlags,
+        bool isInternal,
         ulong[]? wideIncludeFlags = null,
         int wideIncludeFlagsStride = 0,
         ulong deferMask = 0,

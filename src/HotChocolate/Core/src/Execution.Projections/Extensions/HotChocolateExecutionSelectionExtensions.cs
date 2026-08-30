@@ -191,43 +191,6 @@ public static class HotChocolateExecutionSelectionExtensions
                 flags.Overflow)).Expression;
     }
 
-    /// <summary>
-    /// Creates a selector expression from a GraphQL selection and projects exactly
-    /// the fields included by the runtime @skip/@include flags, including the
-    /// overflow words of operations with more than 64 include conditions.
-    /// </summary>
-    /// <param name="selection">
-    /// The selection that shall be converted into a selector expression.
-    /// </param>
-    /// <param name="includeFlags">
-    /// The runtime include flags for the condition indexes 0-63.
-    /// </param>
-    /// <param name="wideIncludeFlags">
-    /// The overflow words for condition indexes 64 and above, available as
-    /// <see cref="HotChocolate.Resolvers.IResolverContext.WideIncludeFlags"/>;
-    /// empty for narrow operations.
-    /// </param>
-    /// <typeparam name="TValue">
-    /// The type of the value that is returned by the <see cref="Selection"/>.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a selector expression that can be used for data projections.
-    /// </returns>
-    public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
-        this Selection selection,
-        ulong includeFlags,
-        ReadOnlySpan<ulong> wideIncludeFlags)
-    {
-        ArgumentNullException.ThrowIfNull(selection);
-
-        if (!selection.DeclaringOperation.HasWideIncludeFlags)
-        {
-            return AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
-        }
-
-        return AsSelector<TValue>(selection, new ConditionFlags(includeFlags, wideIncludeFlags.ToArray()));
-    }
-
     private static ConditionFlags GetIncludeAllConditionFlags(Operation operation)
         => operation.Features.GetOrSetSafe(
             static operation => new IncludeAllConditionFlags(operation.IncludeConditionCount),

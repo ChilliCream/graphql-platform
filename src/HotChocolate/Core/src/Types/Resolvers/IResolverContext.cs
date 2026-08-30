@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.ComponentModel;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Features;
@@ -55,12 +54,6 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// Gets the include condition flags.
     /// </summary>
     ConditionFlags IncludeConditionFlags { get; }
-
-    /// <summary>
-    /// Gets the include flag overflow words.
-    /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    ReadOnlySpan<ulong> WideIncludeFlags => IncludeConditionFlags.Overflow;
 
     /// <summary>
     /// Gets the previous (parent) resolver result.

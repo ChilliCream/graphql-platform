@@ -15,12 +15,20 @@ namespace HotChocolate.Execution.Processing;
 /// The defer usage context this field was collected under, or <c>null</c> if the field
 /// is not inside a deferred fragment.
 /// </param>
-/// <param name="PathIncludeFlagsOverflow">
-/// The overflow words of the path include flags for condition indexes 64 and above,
-/// or <c>null</c> if all conditions on this path sit below 64.
-/// </param>
 public sealed record FieldSelectionNode(
     FieldNode Node,
     ulong PathIncludeFlags,
-    DeferUsage? DeferUsage = null,
-    ulong[]? PathIncludeFlagsOverflow = null);
+    DeferUsage? DeferUsage = null)
+{
+    internal FieldSelectionNode(
+        FieldNode node,
+        ulong pathIncludeFlags,
+        DeferUsage? deferUsage,
+        ulong[]? pathIncludeFlagsOverflow)
+        : this(node, pathIncludeFlags, deferUsage)
+    {
+        PathIncludeFlagsOverflow = pathIncludeFlagsOverflow;
+    }
+
+    internal ulong[]? PathIncludeFlagsOverflow { get; }
+}
