@@ -37,6 +37,8 @@ public class NarrowConditionCachedExecutionBenchmark
                 Job.Default
                     .WithWarmupCount(3)
                     .WithIterationCount(10)
+                    .WithInvocationCount(1024)
+                    .WithUnrollFactor(1)
                     .WithToolchain(InProcessEmitToolchain.Instance));
         }
     }
@@ -69,7 +71,6 @@ public class NarrowConditionCachedExecutionBenchmark
     [Benchmark]
     public Task<ExecutionResultKind> Execute_Cached_Narrow_BaselineCopy()
         => ExecuteAsync();
-
 
     private async Task VerifyCachedExecutionAsync()
     {
@@ -108,7 +109,6 @@ public class NarrowConditionCachedExecutionBenchmark
         await using var result = await _executor.ExecuteAsync(_request);
         return result.Kind;
     }
-
 
     private static IReadOnlyDictionary<string, object?> CreateVariables()
     {

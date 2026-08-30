@@ -39,6 +39,8 @@ public class NarrowConditionCachedExecutionBenchmark
                 Job.Default
                     .WithWarmupCount(3)
                     .WithIterationCount(10)
+                    .WithInvocationCount(1024)
+                    .WithUnrollFactor(1)
                     .WithToolchain(InProcessEmitToolchain.Instance));
         }
     }

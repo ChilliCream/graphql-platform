@@ -28,6 +28,8 @@ public class NarrowConditionOperationBenchmark
                 Job.Default
                     .WithWarmupCount(3)
                     .WithIterationCount(10)
+                    .WithInvocationCount(16384)
+                    .WithUnrollFactor(1)
                     .WithToolchain(InProcessEmitToolchain.Instance));
         }
     }
@@ -47,7 +49,6 @@ public class NarrowConditionOperationBenchmark
     public Operation Compile_Narrow_BaselineCopy()
         => OperationCompiler.Compile("benchmark", _document, _schema);
 
-
     private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddQueryType(
@@ -57,7 +58,6 @@ public class NarrowConditionOperationBenchmark
                     .Type<NonNullType<StringType>>()
                     .Resolve("value"))
             .Create();
-
 
     private static string CreateDocument()
     {

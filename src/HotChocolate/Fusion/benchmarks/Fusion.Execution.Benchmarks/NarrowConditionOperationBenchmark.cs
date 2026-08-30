@@ -33,6 +33,8 @@ public class NarrowConditionOperationBenchmark
                 Job.Default
                     .WithWarmupCount(3)
                     .WithIterationCount(10)
+                    .WithInvocationCount(16384)
+                    .WithUnrollFactor(1)
                     .WithToolchain(InProcessEmitToolchain.Instance));
         }
     }
