@@ -16,6 +16,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build-storybook:test": "storybook build --quiet --output-dir storybook-static",
+    "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/unit/*.test.mjs",
     "test:visual": "yarn build-storybook:test && playwright test",
     "test:visual:update": "yarn build-storybook:test && playwright test --update-snapshots"
   },
