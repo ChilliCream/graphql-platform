@@ -1510,7 +1510,7 @@ Use `FusionRequestOptions` on a Fusion gateway:
 
 ```csharp
 builder.Services
-    .AddFusionGatewayServer()
+    .AddGraphQLGatewayServer()
     .ModifyRequestOptions(options =>
     {
         options.MaxAllowedIncludeConditions = 2_048;
