@@ -36,12 +36,16 @@ public class ServiceAttribute : Attribute
     }
 
     /// <summary>
-    /// Gets the key that shall be used to resolve the service.
+    /// Gets the string service key, or <see langword="null"/> when no key is specified or the service key is not a string.
     /// </summary>
+    /// <remarks>
+    /// Use <see cref="ServiceKey"/> to access service keys of all types.
+    /// </remarks>
+    [Obsolete("Use ServiceKey instead. Key returns null for non-string keys.")]
     public string? Key => ServiceKey as string;
 
     /// <summary>
-    /// Gets the key that shall be used to resolve the service.
+    /// Gets the service key, or <see langword="null"/> when no key is specified.
     /// </summary>
     public object? ServiceKey { get; }
 }

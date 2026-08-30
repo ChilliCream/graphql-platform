@@ -321,7 +321,7 @@ public class ResolverServiceTests
     }
 
     [Fact]
-    public async Task Resolver_KeyedServices_ResolveWith_StringDerived_Enum_And_IntegerKeys()
+    public async Task Resolver_KeyedServices_Should_Resolve_When_Using_String_Derived_Enum_And_Integer_Keys()
     {
         // arrange
         var executor =
