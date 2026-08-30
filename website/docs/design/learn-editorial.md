@@ -307,9 +307,9 @@ column width.
 1. **Breadcrumb**: superseded by website-xwu (2026-08-30):
    `ArticleBreadcrumb` and all /learn breadcrumbs were removed per user
    ruling. The header now opens directly with item 2 (kind chip, when
-   present) or item 4 (title, when neither the kind chip nor the hero image
-   is present); see the spacing chain in the amendment after item 9,
-   amended by website-5dc (2026-08-30).
+   present), item 3 (hero image, when there is no kind chip), or item 4
+   (title, when neither is present); see the spacing chain in the amendment
+   after item 9, amended by website-5dc (2026-08-30).
 2. **Kind chip row** (comparisons/explainers only): the tinted chip per
    section 6.1, plus for evergreen articles an "Updated {date}" line in the
    same mono voice. Blog posts omit this row.
@@ -380,8 +380,9 @@ Chromium, explicit viewport), before any change:
 | 2560     | 1024px, left=608, right=1632 | 736px, left=608 (flush)                          | left 608px / right 928px (includes the 320px TOC column)  |
 
 Header/meta/body gaps (unaffected by this amendment, recorded for
-completeness; the breadcrumb spacing below is superseded by website-xwu and
-website-5dc, 2026-08-30, per item 1's amendment above): first header
+completeness; the breadcrumb spacing this block previously recorded is
+superseded by website-xwu and website-5dc, 2026-08-30, per item 1's
+amendment above): first header
 element (kind chip, hero, or title) → shared subnav rhythm 32px, chip →
 hero 24px (`Picture` `mt-6`, only when a chip precedes the hero), chip/hero
 → title 40px (`h1` `mt-10`, only when a chip or hero precedes the title),
