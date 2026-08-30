@@ -1226,10 +1226,11 @@ CTA banner's arrow `translate-x-1`. No carousels, no auto-advance.
 The uniform `BlogTeaserGrid` page is replaced by the editorial treatments
 (this is the ticket website-c6w.4 rollout):
 
-- Page 1: `ArticleBreadcrumb`, h1 "Articles", then `LearnFeaturedStory`
-  with the newest post, then the remaining posts of the page as
-  `LearnListRow`s in `lg:grid-cols-2 gap-x-10`, then the existing
-  design-system `Pagination`.
+- Page 1: h1 "Articles" (`ArticleBreadcrumb` superseded by website-xwu
+  (2026-08-30): breadcrumbs removed from all /learn pages per user ruling),
+  then `LearnFeaturedStory` with the newest post, then the remaining posts
+  of the page as `LearnListRow`s in `lg:grid-cols-2 gap-x-10`, then the
+  existing design-system `Pagination`.
 - Pages 2+: same shell, rows only (the featured treatment appears once per
   surface, and only where the content is actually newest).
 - Tag pages: heading plus rows, no featured story.
@@ -1279,12 +1280,9 @@ fixes; the rest are absorbed by the v2 structures above.
    date twice (kicker row "AUG 2026" and byline "Aug 3, 2026"). Fix:
    masthead leaves the landing (15); `LearnFeaturedStory` prints the date
    once, in the byline (14.2).
-5. **Two breadcrumb styles across sibling /learn pages.** `/learn/browse`
-   and `/learn/templates/[slug]` use a sentence-case `text-sm` breadcrumb;
-   `/learn/articles` and article pages use the mono uppercase
-   `ArticleBreadcrumb`. Fix: `ArticleBreadcrumb` (mono caption voice)
-   becomes the single breadcrumb on template detail pages; browse drops its
-   breadcrumb entirely (16.1). One breadcrumb component, one voice.
+5. **Two breadcrumb styles across sibling /learn pages.** Superseded by
+   website-xwu (2026-08-30): `ArticleBreadcrumb` and all breadcrumbs were
+   removed from /learn pages per user ruling.
 6. **/learn/articles, double gutter and off-spec width.** The page nests
    `BlogIndexShell` (own `px-5 sm:px-12` + `max-w-6xl`) inside the
    `(content)` layout (own `px-5 sm:px-12` + `max-w-7xl`): measured 1152px
@@ -1441,10 +1439,9 @@ Header (kbx.19 amendment, superseding the original kind-row layout): the
 page opens at the shared 32px subnav-to-content rhythm (no extra header
 `py`), top to bottom:
 
-1. **Breadcrumb**: `ArticleBreadcrumb` (exported from `ArticleLayout`),
-   `Learn / Videos / {title}`, "Videos" linking to
-   `/learn/browse?type=video`, mirroring the template detail breadcrumb
-   (cleanup 17.5: one breadcrumb component, one voice).
+1. **Breadcrumb**: superseded by website-xwu (2026-08-30):
+   `ArticleBreadcrumb` and all /learn breadcrumbs were removed per user
+   ruling.
 2. **Title**: `h1` in the `TemplateDetail` recipe (`font-heading
 text-cc-heading text-h3 sm:text-h2 font-semibold tracking-[-0.02em]
 text-balance`), directly under the breadcrumb: no eyebrow, no
@@ -1579,11 +1576,12 @@ new color literals appear anywhere on the page.
 | `editorial.ts`         | Gains `topicLabelForProduct` for the video kicker (20.2)                                |
 | `src/data/learn/*`     | Extended `VideoItem` shape, owned by the sibling data task (20.1)                       |
 
-Reused as-is: `VideoFacade`, `ArticleBreadcrumb`, `ContentTypeBadge`,
-`LearnCard`, `CardGrid`, `ArrowLink`, `SolidButton`, `Tag`, `Picture`,
-`BrokenMedia`, `formatDate`, `getOptimizedImage`. `LearnVideoDetail` and
-`LearnVideoPlayer` are server components; `VideoFacade` remains the only
-client piece on the page.
+Reused as-is: `VideoFacade`, `ContentTypeBadge`, `LearnCard`, `CardGrid`,
+`ArrowLink`, `SolidButton`, `Tag`, `Picture`, `BrokenMedia`, `formatDate`,
+`getOptimizedImage` (`ArticleBreadcrumb` superseded by website-xwu
+(2026-08-30): breadcrumbs removed from all /learn pages per user ruling).
+`LearnVideoDetail` and `LearnVideoPlayer` are server components;
+`VideoFacade` remains the only client piece on the page.
 
 Non-goals of section 20: data entry of the migrated videos (sibling task),
 the TV redirect map (website-hnm.4), auth or gating of any kind, and any

@@ -88,7 +88,9 @@ export function ArticleLayout({
               className={`mb-6 aspect-video max-h-[27rem] w-full rounded-lg object-cover ${kind ? "mt-6" : ""}`}
             />
           ) : null}
-          <h1 className="font-heading text-cc-heading text-h3 mt-10 mb-4 font-semibold tracking-[-0.02em] text-balance">
+          <h1
+            className={`font-heading text-cc-heading text-h3 mb-4 font-semibold tracking-[-0.02em] text-balance ${kind || heroImageSrc ? "mt-10" : ""}`}
+          >
             {title}
           </h1>
           {standfirst ? <p className="text-cc-ink-dim my-4 text-lg leading-relaxed">{standfirst}</p> : null}
