@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/ChilliCream/" />
+  <Folder Name="/ChilliCream/src/">
+    <Project Path="ChilliCream/src/ChilliCream.Primitives/ChilliCream.Primitives.csproj" />
+  </Folder>
   <Folder Name="/CookieCrumble/" />
   <Folder Name="/CookieCrumble/src/">
     <Project Path="CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" />

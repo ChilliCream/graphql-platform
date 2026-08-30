@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ChilliCream.Primitives/ChilliCream.Primitives.csproj" />
+  </Folder>
+</Solution>

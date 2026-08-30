@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>ChilliCream.Primitives</PackageId>
+    <AssemblyName>ChilliCream.Primitives</AssemblyName>
+    <RootNamespace>ChilliCream</RootNamespace>
+  </PropertyGroup>
+
+</Project>

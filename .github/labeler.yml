@@ -1,3 +1,6 @@
+"🌶️ chilli cream":
+  - changed-files:
+    - any-glob-to-any-file: "src/ChilliCream/**"
 "🌶️ green donut":
   - changed-files:
     - any-glob-to-any-file: "src/GreenDonut/**"

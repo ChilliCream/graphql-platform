@@ -39,6 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ChilliCream\src\ChilliCream.Primitives\ChilliCream.Primitives.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
