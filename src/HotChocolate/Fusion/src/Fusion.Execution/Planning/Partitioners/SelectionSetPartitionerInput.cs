@@ -12,11 +12,8 @@ internal readonly ref struct SelectionSetPartitionerInput
     public bool TreatSourceExternalAsUnresolvable { get; init; }
 
     /// <summary>
-    /// The entering lookup's key selection set when the partitioned selection set sits at a
-    /// lookup entry root. While this scope is active, a sourceExternal field (an Apollo
-    /// Federation @external key field promoted by composition) is only resolvable when the
-    /// key covers it, because the source schema can merely echo the representation it was
-    /// entered with. <c>null</c> deactivates the mechanism.
+    /// When partitioning a lookup entry root, limits <c>sourceExternal</c> fields to those
+    /// included in the entering lookup key. Set to <c>null</c> to disable this constraint.
     /// </summary>
     public SelectionSetNode? EntryKeyCoverage { get; init; }
 }
