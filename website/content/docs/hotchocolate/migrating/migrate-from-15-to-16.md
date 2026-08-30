@@ -1499,7 +1499,7 @@ Configure these limits through `RequestExecutorOptions` on a Hot Chocolate serve
 ```csharp
 builder
     .AddGraphQL()
-    .ModifyOptions(options =>
+    .ModifyRequestOptions(options =>
     {
         options.MaxAllowedIncludeConditions = 2_048;
         options.MaxAllowedDeferConditions = 2_048;
