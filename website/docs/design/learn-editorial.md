@@ -289,7 +289,8 @@ component that takes plain props and renders the article column. It contains
 no blog imports and no filesystem reads, which is what makes it
 ruling-neutral (section 4.4).
 
-Props (all data, no loaders): breadcrumb items; optional kind chip (section
+Props (all data, no loaders): breadcrumb items (dropped; superseded by
+website-xwu, 2026-08-30, see item 1 below); optional kind chip (section
 6.1); title; optional standfirst; meta (author, authorUrl, authorImageUrl,
 published date, optional updated date, reading time); optional hero image
 src; share url/title; tags; the compiled MDX `ReactNode`; a related-items
@@ -303,10 +304,12 @@ amendment after item 9): no article-shell or reading-column width cap
 applies; items 1 to 9, including `Related`, all render at the full main
 column width.
 
-1. **Breadcrumb**: mono caption voice (`font-mono text-xs uppercase
-tracking-wider text-cc-ink-dim`), e.g. `Learn / Articles` with each
-   ancestor a link. Blog posts render `Blog` (Option A) or `Learn / Blog`
-   (Option B) here; the shell just renders what it is given.
+1. **Breadcrumb**: superseded by website-xwu (2026-08-30):
+   `ArticleBreadcrumb` and all /learn breadcrumbs were removed per user
+   ruling. The header now opens directly with item 2 (kind chip, when
+   present) or item 4 (title, when neither the kind chip nor the hero image
+   is present); see the spacing chain in the amendment after item 9,
+   amended by website-5dc (2026-08-30).
 2. **Kind chip row** (comparisons/explainers only): the tinted chip per
    section 6.1, plus for evergreen articles an "Updated {date}" line in the
    same mono voice. Blog posts omit this row.
@@ -377,7 +380,11 @@ Chromium, explicit viewport), before any change:
 | 2560     | 1024px, left=608, right=1632 | 736px, left=608 (flush)                          | left 608px / right 928px (includes the 320px TOC column)  |
 
 Header/meta/body gaps (unaffected by this amendment, recorded for
-completeness): breadcrumb → hero 24px (`Picture` `mt-6`), hero → title 40px,
+completeness; the breadcrumb spacing below is superseded by website-xwu and
+website-5dc, 2026-08-30, per item 1's amendment above): first header
+element (kind chip, hero, or title) → shared subnav rhythm 32px, chip →
+hero 24px (`Picture` `mt-6`, only when a chip precedes the hero), chip/hero
+→ title 40px (`h1` `mt-10`, only when a chip or hero precedes the title),
 title → meta row 16px (`h1 mb-4`), meta row → tags → body 75px aggregate
 (`BlogTags` `my-6` plus its own row height). The old prose column was left
 flush against the shell's left edge (no `mx-auto`), leaving a fixed 288px
@@ -809,26 +816,26 @@ spec and the Part I text is history. Where it says "stands", the shipped v1
 surface is kept and Part II changes nothing about it beyond the container
 and subnav that every /learn route inherits (sections 12 and 13).
 
-| Part I section                    | Disposition under v2                                                                                                                                                                                                              |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 Design direction                | **Amended.** The two-card-family rule (editorial `BlogTeaser` vs catalog `LearnCard`) is replaced by the five-treatment system (section 14). `BlogTeaser` leaves all /learn surfaces. The no-page-backdrop and token rules stand. |
-| 2 Route map                       | **Stands.** Routes are as shipped: `/learn`, `/learn/browse`, `/learn/articles` (+ `/page/[page]`, `/tags/[tag]`), `/learn/articles/[slug]`, `/learn/templates/[slug]`.                                                           |
-| 3.1 Masthead and topic subnav     | **Superseded** by sections 13 and 15.1. `LearnTopicNav` is removed outright; `LearnMasthead` leaves the landing and moves to `/learn/browse` (section 16.1).                                                                      |
-| 3.2 Featured story hero           | **Superseded** by section 14.2. `LearnFeatureHero` is retired and replaced by `LearnFeaturedStory` inside the editorial band.                                                                                                     |
-| 3.3 Latest                        | **Superseded** by sections 14.1 and 15.1. `LearnLatestSection` is retired; Latest becomes the compact list-row column of the band.                                                                                                |
-| 3.4 Topic rails                   | **Amended** by section 15.2. `LearnTopicRail` stays but renders list rows only; the fixed teaser-plus-`LearnCard` mix is abolished.                                                                                               |
-| 3.5 Collection band               | **Stands** (`LearnCollectionSection`). Plain `LearnCard`s remain the correct treatment for catalog items (section 14.5).                                                                                                          |
-| 3.6 Explainers list               | **Stands** (`LearnExplainerList`), with the kind-filter data fix of cleanup item 17.1.                                                                                                                                            |
-| 3.7 Videos                        | **Stands** (`LearnVideoSection`); videos keep plain `LearnCard`s (section 14.5).                                                                                                                                                  |
-| 3.8 Subscribe band                | **Stands** as shipped (the single merged `LearnSubscribeBand`); it gains `id="subscribe"` as the subnav's Subscribe target (section 13.2).                                                                                        |
-| 3.9 Responsive and motion summary | **Amended.** The uniform 1/2/3-column grid rule no longer describes the landing; the band's own collapse rules (section 15.1) and the motion rules of section 15.6 govern.                                                        |
-| 4 Article reading page            | **Stands** (`ArticleLayout` as shipped). v2 adds only the subnav above it and the breadcrumb unification of cleanup item 17.5.                                                                                                    |
-| 5 Browse entry points             | **Amended.** The "persistent" entry is now the subnav's Browse link on every /learn route; the pill-row entry is gone. Scoped and closing entries stand.                                                                          |
-| 6 Comparison page layout          | **Stands.**                                                                                                                                                                                                                       |
-| 7 Blog component dispositions     | **Amended.** `BlogTeaser`/`BlogTeaserGrid` are no longer used on any /learn surface (sections 14.5, 16.2). Their non-learn call sites are untouched.                                                                              |
-| 8 Theme and token rules           | **Stands**, extended by section 14.6 for the new treatments.                                                                                                                                                                      |
-| 9 Component inventory             | **Superseded** by section 18.                                                                                                                                                                                                     |
-| 10 Non-goals                      | **Superseded** by section 19.                                                                                                                                                                                                     |
+| Part I section                    | Disposition under v2                                                                                                                                                                                                                     |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Design direction                | **Amended.** The two-card-family rule (editorial `BlogTeaser` vs catalog `LearnCard`) is replaced by the five-treatment system (section 14). `BlogTeaser` leaves all /learn surfaces. The no-page-backdrop and token rules stand.        |
+| 2 Route map                       | **Stands.** Routes are as shipped: `/learn`, `/learn/browse`, `/learn/articles` (+ `/page/[page]`, `/tags/[tag]`), `/learn/articles/[slug]`, `/learn/templates/[slug]`.                                                                  |
+| 3.1 Masthead and topic subnav     | **Superseded** by sections 13 and 15.1. `LearnTopicNav` is removed outright; `LearnMasthead` leaves the landing and moves to `/learn/browse` (section 16.1).                                                                             |
+| 3.2 Featured story hero           | **Superseded** by section 14.2. `LearnFeatureHero` is retired and replaced by `LearnFeaturedStory` inside the editorial band.                                                                                                            |
+| 3.3 Latest                        | **Superseded** by sections 14.1 and 15.1. `LearnLatestSection` is retired; Latest becomes the compact list-row column of the band.                                                                                                       |
+| 3.4 Topic rails                   | **Amended** by section 15.2. `LearnTopicRail` stays but renders list rows only; the fixed teaser-plus-`LearnCard` mix is abolished.                                                                                                      |
+| 3.5 Collection band               | **Stands** (`LearnCollectionSection`). Plain `LearnCard`s remain the correct treatment for catalog items (section 14.5).                                                                                                                 |
+| 3.6 Explainers list               | **Stands** (`LearnExplainerList`), with the kind-filter data fix of cleanup item 17.1.                                                                                                                                                   |
+| 3.7 Videos                        | **Stands** (`LearnVideoSection`); videos keep plain `LearnCard`s (section 14.5).                                                                                                                                                         |
+| 3.8 Subscribe band                | **Stands** as shipped (the single merged `LearnSubscribeBand`); it gains `id="subscribe"` as the subnav's Subscribe target (section 13.2).                                                                                               |
+| 3.9 Responsive and motion summary | **Amended.** The uniform 1/2/3-column grid rule no longer describes the landing; the band's own collapse rules (section 15.1) and the motion rules of section 15.6 govern.                                                               |
+| 4 Article reading page            | **Stands** (`ArticleLayout` as shipped). v2 adds only the subnav above it; the breadcrumb unification of cleanup item 17.5 is itself superseded by website-xwu (2026-08-30), which removes the breadcrumb entirely (section 4.1 item 1). |
+| 5 Browse entry points             | **Amended.** The "persistent" entry is now the subnav's Browse link on every /learn route; the pill-row entry is gone. Scoped and closing entries stand.                                                                                 |
+| 6 Comparison page layout          | **Stands.**                                                                                                                                                                                                                              |
+| 7 Blog component dispositions     | **Amended.** `BlogTeaser`/`BlogTeaserGrid` are no longer used on any /learn surface (sections 14.5, 16.2). Their non-learn call sites are untouched.                                                                                     |
+| 8 Theme and token rules           | **Stands**, extended by section 14.6 for the new treatments.                                                                                                                                                                             |
+| 9 Component inventory             | **Superseded** by section 18.                                                                                                                                                                                                            |
+| 10 Non-goals                      | **Superseded** by section 19.                                                                                                                                                                                                            |
 
 ---
 
@@ -1218,8 +1225,10 @@ CTA banner's arrow `translate-x-1`. No carousels, no auto-advance.
   the 1600px container: extend `CardGrid` with a `cols: 4` option
   (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` when `step="progressive"`),
   used by the catalog grid and its skeleton fallback only.
-- Template detail pages (`TemplateDetail`) are unchanged apart from subnav,
-  container, and breadcrumb style (17.5).
+- Template detail pages (`TemplateDetail`) are unchanged apart from subnav
+  and container; the breadcrumb style change of cleanup item 17.5 is itself
+  superseded by website-xwu (2026-08-30), which removes /learn breadcrumbs
+  entirely.
 
 ### 16.2 `/learn/articles` (and `/page/[page]`, `/tags/[tag]`)
 
@@ -1241,8 +1250,10 @@ The uniform `BlogTeaserGrid` page is replaced by the editorial treatments
 
 **Amended by learn-harmonization.md D5 and website-kbx.18 (2026-08-24):**
 `ArticleLayout` no longer stands as shipped; it has no article-column width
-cap (section 4.1's kbx.18 amendment). v2 adds the subnav above it and
-unifies the breadcrumb style (17.5). The wider container affects the
+cap (section 4.1's kbx.18 amendment). v2 adds the subnav above it; the
+breadcrumb-unification plan of cleanup item 17.5 is itself superseded by
+website-xwu (2026-08-30), which removes the breadcrumb from the article
+page entirely (section 4.1 item 1). The wider container affects the
 whitespace around the article column (now the full `max-w-8xl` gutter, not
 a `max-w-5xl` inner cap) and the `2xl` TOC rail.
 
