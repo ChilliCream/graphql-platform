@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.ApolloFederation;
 /// on plain types are recorded: there the subgraph merely echoes caller-supplied key
 /// values, so the field is entry/echo-only and marked <c>sourceExternal</c> for the
 /// planner. On an extension type (the <c>@extends</c> directive or <c>extend type</c>
-/// syntax — the Fed-1 entity extension idiom) a key-referenced external field is a full
+/// syntax, the Fed-1 entity extension idiom) a key-referenced external field is a full
 /// contribution backed by the subgraph's own storage and carries no marker.
 /// </summary>
 internal sealed class SourceExternalFieldMetadata
