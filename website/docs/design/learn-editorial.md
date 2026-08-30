@@ -1444,7 +1444,7 @@ page opens at the shared 32px subnav-to-content rhythm (no extra header
    ruling.
 2. **Title**: `h1` in the `TemplateDetail` recipe (`font-heading
 text-cc-heading text-h3 sm:text-h2 font-semibold tracking-[-0.02em]
-text-balance`), directly under the breadcrumb: no eyebrow, no
+text-balance`), at the top of the header: no eyebrow, no
    `ContentTypeBadge`, no topic kicker, no `level` tag above the title
    (kbx.19; consistent with the hub header treatment of kbx.10).
 3. **Standfirst**: the `tagline`, `text-cc-prose mt-5 max-w-2xl text-lg
