@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -21,10 +23,18 @@ public readonly struct ConditionFlags
     /// <summary>
     /// Gets the flags for condition indexes 0 through 63.
     /// </summary>
-    public ulong Word0 { get; }
+    public ulong Word0
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
 
     /// <summary>
     /// Gets the flags for condition indexes 64 and above.
     /// </summary>
-    public ulong[]? Overflow => _overflow;
+    public ulong[]? Overflow
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _overflow;
+    }
 }

@@ -282,8 +282,18 @@ public sealed class Selection : ISelection
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsIncluded(ConditionFlags includeFlags)
-        => IsIncludedWide(includeFlags.Word0, includeFlags.Overflow);
+    {
+        var word0 = includeFlags.Word0;
+
+        if ((_flags & Flags.RequiresWideIncludeFlags) == 0)
+        {
+            return IsIncludedUnchecked(word0);
+        }
+
+        return IsIncludedWide(word0, includeFlags.Overflow);
+    }
 
     internal bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
         => IsIncludedWide(includeFlags, wideIncludeFlags);
