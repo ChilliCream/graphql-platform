@@ -292,7 +292,8 @@ public class WideConditionMaskTests
             .ModifyOptions(o => o.EnableDefer = true)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act: only condition 65 defers; all other fragments fold into the initial result.
+        // act
+        // Only condition 65 defers; all other fragments fold into the initial result.
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(CreateDeferDocument(conditionCount))
@@ -302,29 +303,88 @@ public class WideConditionMaskTests
 
         // assert
         var stream = Assert.IsType<ResponseStream>(result);
-        var payloads = new List<string>();
+        var initialData = default(JsonElement);
+        var incrementalData = new List<object?>();
+        var pendingIds = new List<int>();
+        var incrementalIds = new List<int>();
+        var completedIds = new List<int>();
+        var errors = new List<IError>();
+        var isInitial = true;
+        bool? lastHasNext = null;
 
         await using (stream)
         {
             await foreach (var response in stream.ReadResultsAsync())
             {
-                payloads.Add(response.ToJson());
+                using var json = JsonDocument.Parse(response.ToJson());
+
+                if (isInitial)
+                {
+                    initialData = json.RootElement.GetProperty("data").Clone();
+                    isInitial = false;
+                }
+
+                if (json.RootElement.TryGetProperty("incremental", out var incremental))
+                {
+                    foreach (var patch in incremental.EnumerateArray())
+                    {
+                        incrementalData.Add(patch.GetProperty("data").Clone());
+                    }
+                }
+
+                pendingIds.AddRange(response.Pending.Select(t => t.Id));
+                incrementalIds.AddRange(response.Incremental.Select(t => t.Id));
+                completedIds.AddRange(response.Completed.Select(t => t.Id));
+                errors.AddRange(response.Errors);
+
+                foreach (var patch in response.Incremental)
+                {
+                    errors.AddRange(patch.Errors);
+                }
+
+                foreach (var completed in response.Completed)
+                {
+                    errors.AddRange(completed.Errors ?? []);
+                }
+
+                lastHasNext = response.HasNext;
             }
         }
 
-        Assert.True(payloads.Count >= 2, "the deferred field must arrive in a later payload");
+        var expectedInitialFields = Enumerable
+            .Range(0, conditionCount - 1)
+            .Select(i => $"f{i}: abc")
+            .Prepend("plain: abc")
+            .ToArray();
+        var actualInitialFields = initialData
+            .EnumerateObject()
+            .Select(t => $"{t.Name}: {t.Value.GetString()}")
+            .ToArray();
 
-        using var initial = JsonDocument.Parse(payloads[0]);
-        var data = initial.RootElement.GetProperty("data");
-
-        Assert.Equal("abc", data.GetProperty("plain").GetString());
-
-        for (var i = 0; i < conditionCount; i++)
+        Assert.Equal(expectedInitialFields, actualInitialFields);
+        incrementalData.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "f65": "abc"
+                }
+                """
+            ]);
+        new
         {
-            Assert.Equal(i != 65, data.TryGetProperty($"f{i}", out _));
-        }
-
-        Assert.Contains(payloads.Skip(1), p => p.Contains("\"f65\""));
+            PendingMatchesIncremental = pendingIds.SequenceEqual(incrementalIds),
+            IncrementalMatchesCompleted = incrementalIds.SequenceEqual(completedIds),
+            ErrorCount = errors.Count,
+            FinalHasNext = lastHasNext
+        }.MatchInlineSnapshot(
+            """
+            {
+              "PendingMatchesIncremental": true,
+              "IncrementalMatchesCompleted": true,
+              "ErrorCount": 0,
+              "FinalHasNext": false
+            }
+            """);
     }
 
     private static Schema CreateSchema()
