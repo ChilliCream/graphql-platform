@@ -1490,6 +1490,56 @@ Things that will continue to function this release, but we encourage you to move
 
 The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
+## Raw condition masks replaced by ConditionFlags
+
+Hot Chocolate and Fusion can now compile and execute operations with more than 64 distinct `@skip`/`@include` conditions or `@defer` conditions. `MaxAllowedIncludeConditions` and `MaxAllowedDeferConditions` set the separate limits, and both default to **1,024**. An operation that exceeds either limit produces a GraphQL request error at operation compile time.
+
+Configure these limits through `RequestExecutorOptions` on a Hot Chocolate server:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyOptions(options =>
+    {
+        options.MaxAllowedIncludeConditions = 2_048;
+        options.MaxAllowedDeferConditions = 2_048;
+    });
+```
+
+Use `FusionRequestOptions` on a Fusion gateway:
+
+```csharp
+builder.Services
+    .AddFusionGatewayServer()
+    .ModifyRequestOptions(options =>
+    {
+        options.MaxAllowedIncludeConditions = 2_048;
+        options.MaxAllowedDeferConditions = 2_048;
+    });
+```
+
+The APIs that represented request condition flags as a single `ulong` are deprecated. Replace the raw mask with `ConditionFlags`, which represents both the first 64 conditions and any remaining conditions. For example, use `IResolverContext.IncludeConditionFlags` when checking whether a selection is included:
+
+```diff
+- ulong includeFlags = context.IncludeFlags;
+- bool included = selection.IsIncluded(includeFlags);
++ ConditionFlags includeFlags = context.IncludeConditionFlags;
++ bool included = selection.IsIncluded(includeFlags);
+```
+
+The `ISelectionVisitorContext.IncludeFlags` property is also replaced by `IncludeConditionFlags`. Pass the same value to the `ConditionFlags` overloads of `SelectionEnumerator` and `AsSelector<T>`:
+
+```diff
+- var enumerator = new SelectionEnumerator(selectionSet, context.IncludeFlags);
+- var selector = selection.AsSelector<Product>(context.IncludeFlags);
++ var enumerator = new SelectionEnumerator(selectionSet, context.IncludeConditionFlags);
++ var selector = selection.AsSelector<Product>(context.IncludeConditionFlags);
+```
+
+Use the `ConditionFlags` overloads for `IsIncluded`, `IsSkipped`, `IsDeferred`, `GetActiveDeferUsages`, `GetPrimaryDeferUsage`, and `HasActiveDeferUsage`. Fusion selections likewise replace the raw-mask overloads of `IsIncluded`, `IsDeferred`, `GetActiveDeliveryGroups`, and `HasActiveDeliveryGroup` with their `ConditionFlags` overloads.
+
+The deprecated evaluation overloads, `SelectionEnumerator` constructor, and `AsSelector<T>` overloads continue to work for operations with at most 64 conditions. On wider operations, a deprecated evaluation overload throws `InvalidOperationException` for a conditional or deferrable selection, and the deprecated constructor and selector overloads also throw. The deprecated `IncludeFlags` properties expose only the first 64 flags and cannot represent a wider operation. Operations with more than 64 conditions failed during compilation in earlier releases.
+
 # Noteworthy changes
 
 ## Validation walker is now operation-scoped for fragment visits by default
