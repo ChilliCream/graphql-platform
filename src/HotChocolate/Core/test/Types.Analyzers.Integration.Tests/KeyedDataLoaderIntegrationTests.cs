@@ -10,11 +10,14 @@ public class KeyedDataLoaderIntegrationTests
     public async Task GeneratedDataLoader_Should_Resolve_ServiceAttribute_Keyed_Service()
     {
         // arrange
-        var result = await ExecuteAsync(
+        Action<IServiceCollection> configure =
             services => services.AddKeyedSingleton<KeyedDataLoaderService>(
                 "service",
-                static (_, _) => new("service")),
-            "{ serviceKeyedValue }");
+                static (_, _) => new("service"));
+        const string document = "{ serviceKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
@@ -31,11 +34,14 @@ public class KeyedDataLoaderIntegrationTests
     public async Task GeneratedDataLoader_Should_Resolve_SourceDerived_ServiceAttribute_Keyed_Service()
     {
         // arrange
-        var result = await ExecuteAsync(
+        Action<IServiceCollection> configure =
             services => services.AddKeyedSingleton<KeyedDataLoaderService>(
                 "MEMOIZED",
-                static (_, _) => new("memoized")),
-            "{ derivedServiceKeyedValue }");
+                static (_, _) => new("memoized"));
+        const string document = "{ derivedServiceKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
@@ -52,11 +58,14 @@ public class KeyedDataLoaderIntegrationTests
     public async Task GeneratedDataLoader_Should_Resolve_FromKeyedServices_Enum_Key()
     {
         // arrange
-        var result = await ExecuteAsync(
+        Action<IServiceCollection> configure =
             services => services.AddKeyedSingleton<KeyedDataLoaderService>(
                 KeyedDataLoaderServiceKey.Enum,
-                static (_, _) => new("enum")),
-            "{ enumKeyedValue }");
+                static (_, _) => new("enum"));
+        const string document = "{ enumKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
@@ -73,7 +82,11 @@ public class KeyedDataLoaderIntegrationTests
     public async Task GeneratedDataLoader_Should_Resolve_Null_When_Nullable_Keyed_Service_Is_Absent()
     {
         // arrange
-        var result = await ExecuteAsync(static _ => { }, "{ optionalKeyedValue }");
+        Action<IServiceCollection> configure = static _ => { };
+        const string document = "{ optionalKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
@@ -90,11 +103,14 @@ public class KeyedDataLoaderIntegrationTests
     public async Task GeneratedDataLoader_Should_Resolve_Value_When_Nullable_Keyed_Service_Is_Present()
     {
         // arrange
-        var result = await ExecuteAsync(
+        Action<IServiceCollection> configure =
             services => services.AddKeyedSingleton<KeyedDataLoaderService>(
                 "optional",
-                static (_, _) => new("optional")),
-            "{ optionalKeyedValue }");
+                static (_, _) => new("optional"));
+        const string document = "{ optionalKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
@@ -111,11 +127,14 @@ public class KeyedDataLoaderIntegrationTests
     public async Task GeneratedDataLoader_Should_Resolve_Keyed_Scoped_Service_When_Using_OriginalScope()
     {
         // arrange
-        var result = await ExecuteAsync(
+        Action<IServiceCollection> configure =
             services => services.AddKeyedScoped<KeyedDataLoaderService>(
                 "original-scope",
-                static (_, _) => new("original-scope")),
-            "{ originalScopeKeyedValue }");
+                static (_, _) => new("original-scope"));
+        const string document = "{ originalScopeKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
@@ -132,11 +151,14 @@ public class KeyedDataLoaderIntegrationTests
     public async Task HandWrittenDataLoader_Should_Resolve_FromKeyedServices_Keyed_Service()
     {
         // arrange
-        var result = await ExecuteAsync(
+        Action<IServiceCollection> configure =
             services => services.AddKeyedSingleton<KeyedDataLoaderService>(
                 "hand-written",
-                static (_, _) => new("hand-written")),
-            "{ handWrittenKeyedValue }");
+                static (_, _) => new("hand-written"));
+        const string document = "{ handWrittenKeyedValue }";
+
+        // act
+        var result = await ExecuteAsync(configure, document);
 
         // assert
         result.MatchInlineSnapshot(
