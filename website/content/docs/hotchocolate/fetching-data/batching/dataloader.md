@@ -197,12 +197,12 @@ public BrandByIdDataLoader(
 
 `[Service("primary")]` on a hand-written DataLoader constructor parameter is resolved as an unkeyed service and produces `HC0132`.
 
-| Code     | Meaning                                                                                                 |
-| -------- | ------------------------------------------------------------------------------------------------------- |
-| `HC0130` | A generated DataLoader service parameter uses both `[Service(key)]` and `[FromKeyedServices]`.          |
-| `HC0131` | A keyed-service attribute is applied to a parameter that is not a generated DataLoader service.         |
-| `HC0132` | A keyed `[Service]` attribute is applied to a hand-written DataLoader constructor parameter.            |
-| `HC0133` | A `ServiceAttribute` constructor chain or base-constructor key cannot be determined.                    |
+| Code     | Meaning                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| `HC0130` | A generated DataLoader service parameter uses both `[Service(key)]` and `[FromKeyedServices]`.  |
+| `HC0131` | A keyed-service attribute is applied to a parameter that is not a generated DataLoader service. |
+| `HC0132` | A keyed `[Service]` attribute is applied to a hand-written DataLoader constructor parameter.    |
+| `HC0133` | A `ServiceAttribute` constructor chain or base-constructor key cannot be determined.            |
 
 ## Handling Missing Keys
 
