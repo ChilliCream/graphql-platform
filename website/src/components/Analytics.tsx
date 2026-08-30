@@ -16,8 +16,11 @@ import { getContentGroup } from "@/src/helpers/contentGroup";
  * the current `page_path`. Unknown event names are ignored, so only the events
  * declared in `analyticsEvents` can reach GA4.
  *
- * Both effects no-op until `window.gtag` exists, so they are inert until the
- * user grants consent and Google Tag Manager loads.
+ * Both effects no-op only when `window.gtag` does not exist, i.e. when
+ * `NEXT_PUBLIC_COOKIEBOT_CBID` is unset. Otherwise the shim is defined before
+ * any consent decision, and pre-consent events queue in `dataLayer` until
+ * Google Tag Manager loads after consent and replays them, gated from there
+ * by GTM's per-tag consent checks.
  */
 export function Analytics() {
   const pathname = usePathname();

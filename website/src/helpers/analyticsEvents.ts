@@ -69,9 +69,12 @@ export function isAnalyticsEventName(value: string | undefined): value is Analyt
 }
 
 /**
- * Sends a key event to GA4 through the `gtag` shim. No-ops until the shim
- * exists, which is only after the visitor grants consent and the tag manager
- * loads, so events fired without consent are dropped by design.
+ * Sends a key event to GA4 through the `gtag` shim, which is defined before
+ * any consent decision as soon as `NEXT_PUBLIC_COOKIEBOT_CBID` is set. Events
+ * fired pre-consent queue in `dataLayer` and are replayed by Google Tag
+ * Manager once it loads after consent, where GTM's per-tag consent checks
+ * gate them; this no-ops only when the Cookiebot id is unset, since then no
+ * shim exists at all.
  */
 export function trackEvent<TName extends AnalyticsEventName>(name: TName, params: AnalyticsEventParams<TName>): void {
   window.gtag?.("event", name, {

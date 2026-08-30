@@ -1497,7 +1497,7 @@ export function ClientPage() {
             </SolidButton>
             <OutlineButton
               href="https://nitro.chillicream.com"
-              track={{ name: "nitro_signup_click", params: { location: "nitro_product_closing" } }}
+              track={{ name: "nitro_signup_click", params: { location: "nitro_product_closing_launch" } }}
             >
               Launch Nitro
             </OutlineButton>

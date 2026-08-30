@@ -6,11 +6,14 @@ carries, and the GTM/GA4 configuration a human still has to do.
 
 ## How events reach GA4
 
-`src/components/AnalyticsScripts.tsx` loads Cookiebot and, only after the
-visitor grants statistics or marketing consent, Google Tag Manager. Until then
-`window.gtag` is a `dataLayer.push` shim that queues nothing, so events fired
-without consent are dropped. This is intentional and out of scope for changes
-here.
+`src/components/AnalyticsScripts.tsx` defines `window.dataLayer` and a
+`window.gtag` shim (`dataLayer.push`) in a `beforeInteractive` script as soon
+as `NEXT_PUBLIC_COOKIEBOT_CBID` is set, before any consent decision. Events
+fired before Google Tag Manager loads queue in `dataLayer`; GTM itself is
+injected only after the visitor grants statistics or marketing consent, and
+once loaded it processes the queued entries. Each GTM tag carries its own
+consent check, which is what actually gates an event from reaching GA4. This
+consent behavior is intentional and out of scope for changes here.
 
 `src/helpers/analyticsEvents.ts` is the single source of truth for event names
 and parameters:
@@ -89,8 +92,8 @@ with access to the container and property does this:
    needs its own consent settings.
 4. **GA4 admin: custom dimensions** for the parameters that should be usable in
    reports (`location`, `plan`, `platform`, `arch`, `channel`, `topic`,
-   `item_type`, `item_slug`, `command_key`, `video_id`, `query`). GA4 only
-   surfaces registered event-scoped parameters.
+   `item_type`, `item_slug`, `command_key`, `video_id`, `query`, `repo_url`,
+   `result_url`). GA4 only surfaces registered event-scoped parameters.
 5. **GA4 admin: mark the conversions.** Admin > Events > Mark as key event, for
    the events that count as outcomes, at minimum `contact_form_submit`,
    `nitro_download`, `nitro_signup_click`, `pricing_cta_click`, and
