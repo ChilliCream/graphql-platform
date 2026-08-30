@@ -1816,7 +1816,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     else
                     {
                         Writer.WriteIndentedLine(
-                            "var args{0} = context.Service<{1}>(\"{2}\");",
+                            "var args{0} = context.Service<{1}>({2});",
                             i,
                             ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup),
                             parameter.Key);
@@ -2169,7 +2169,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 sb.Append(", ");
             }
 
-            sb.Append(FormatTypedConstant(arg));
+            sb.Append(CSharpLiteralFormatter.FormatTypedConstant(arg));
             first = false;
         }
 
@@ -2190,7 +2190,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 sb.Append(namedArg.Key);
                 sb.Append(" = ");
-                sb.Append(FormatTypedConstant(namedArg.Value));
+                sb.Append(CSharpLiteralFormatter.FormatTypedConstant(namedArg.Value));
                 first = false;
             }
 
@@ -2198,109 +2198,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         return sb.ToString();
-    }
-
-    private static string FormatTypedConstant(TypedConstant constant)
-    {
-        if (constant.IsNull)
-        {
-            return "null";
-        }
-
-        switch (constant.Kind)
-        {
-            case TypedConstantKind.Primitive:
-                return FormatPrimitive(constant.Value);
-
-            case TypedConstantKind.Enum:
-                return FormatEnumConstant(constant);
-
-            case TypedConstantKind.Type:
-                var typeArg = ((ITypeSymbol)constant.Value!).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                return $"typeof({typeArg})";
-
-            case TypedConstantKind.Array:
-                var elements = constant.Values;
-                if (elements.IsDefaultOrEmpty)
-                {
-                    var elementType = ((IArrayTypeSymbol?)constant.Type)?.ElementType
-                        .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    return $"new {elementType}[] {{ }}";
-                }
-
-                var elementStrings = string.Join(", ", elements.Select(FormatTypedConstant));
-                return $"new[] {{ {elementStrings} }}";
-
-            default:
-                return constant.Value?.ToString() ?? "null";
-        }
-    }
-
-    private static string FormatPrimitive(object? value)
-    {
-        if (value == null)
-        {
-            return "null";
-        }
-
-        return value switch
-        {
-            string s => $"\"{EscapeString(s)}\"",
-            char c => $"'{EscapeChar(c)}'",
-            bool b => b ? "true" : "false",
-            float f => $"{f}f",
-            double d => $"{d}d",
-            decimal m => $"{m}m",
-            long l => $"{l}L",
-            ulong ul => $"{ul}UL",
-            _ => value.ToString() ?? "null"
-        };
-    }
-
-    private static string FormatEnumConstant(TypedConstant constant)
-    {
-        if (constant.Type is not INamedTypeSymbol enumSymbol)
-        {
-            return FormatPrimitive(constant.Value);
-        }
-
-        var enumType = enumSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-        if (constant.Value is not null)
-        {
-            foreach (var member in enumSymbol.GetMembers())
-            {
-                if (member is IFieldSymbol { HasConstantValue: true } field
-                    && Equals(field.ConstantValue, constant.Value))
-                {
-                    return $"{enumType}.{field.Name}";
-                }
-            }
-        }
-
-        return $"({enumType}){constant.Value}";
-    }
-
-    private static string EscapeString(string s)
-    {
-        return s.Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\n", "\\n")
-            .Replace("\r", "\\r")
-            .Replace("\t", "\\t");
-    }
-
-    private static string EscapeChar(char c)
-    {
-        return c switch
-        {
-            '\\' => "\\\\",
-            '\'' => "\\'",
-            '\n' => "\\n",
-            '\r' => "\\r",
-            '\t' => "\\t",
-            _ => c.ToString()
-        };
     }
 
     protected void WriteIsSelectedFields(Resolver resolver)

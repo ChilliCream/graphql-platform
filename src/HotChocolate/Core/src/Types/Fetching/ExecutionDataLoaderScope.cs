@@ -81,20 +81,32 @@ internal sealed class ExecutionDataLoaderScope(
     private static string CreateKey<T>()
         => typeof(T).FullName ?? typeof(T).Name;
 
-    private class DataLoaderServiceProvider : IServiceProvider
+    private class DataLoaderServiceProvider : IServiceProvider, IKeyedServiceProvider
     {
         private readonly IServiceProvider _innerServiceProvider;
         private readonly IServiceProviderIsService? _serviceInspector;
+        private readonly IServiceProviderIsKeyedService? _keyedServiceInspector;
         private readonly IBatchScheduler _batchScheduler;
 
         public DataLoaderServiceProvider(IServiceProvider innerServiceProvider, IBatchScheduler batchScheduler)
         {
             _innerServiceProvider = innerServiceProvider;
             _batchScheduler = batchScheduler;
-            var serviceInspector = innerServiceProvider.GetService<IServiceProviderIsService>();
-            _serviceInspector = serviceInspector is not null
-                ? new CombinedServiceProviderIsService(serviceInspector)
-                : null;
+
+            var keyedServiceInspector = innerServiceProvider.GetService<IServiceProviderIsKeyedService>();
+            if (keyedServiceInspector is not null)
+            {
+                var serviceInspector = new CombinedServiceProviderIsKeyedService(keyedServiceInspector);
+                _serviceInspector = serviceInspector;
+                _keyedServiceInspector = serviceInspector;
+            }
+            else
+            {
+                var serviceInspector = innerServiceProvider.GetService<IServiceProviderIsService>();
+                _serviceInspector = serviceInspector is not null
+                    ? new CombinedServiceProviderIsService(serviceInspector)
+                    : null;
+            }
         }
 
         public object? GetService(Type serviceType)
@@ -106,12 +118,33 @@ internal sealed class ExecutionDataLoaderScope(
                 return _serviceInspector;
             }
 
+            if (serviceType == typeof(IServiceProviderIsKeyedService))
+            {
+                return _keyedServiceInspector;
+            }
+
             if (serviceType == typeof(IBatchScheduler))
             {
                 return _batchScheduler;
             }
 
             return _innerServiceProvider.GetService(serviceType);
+        }
+
+        public object? GetKeyedService(Type serviceType, object? serviceKey)
+        {
+            ArgumentNullException.ThrowIfNull(serviceType);
+
+            return _innerServiceProvider is IKeyedServiceProvider keyedServiceProvider
+                ? keyedServiceProvider.GetKeyedService(serviceType, serviceKey)
+                : null;
+        }
+
+        public object GetRequiredKeyedService(Type serviceType, object? serviceKey)
+        {
+            ArgumentNullException.ThrowIfNull(serviceType);
+
+            return _innerServiceProvider.GetRequiredKeyedService(serviceType, serviceKey);
         }
 
         private sealed class CombinedServiceProviderIsService(
@@ -121,6 +154,18 @@ internal sealed class ExecutionDataLoaderScope(
             public bool IsService(Type serviceType)
                 => typeof(IBatchDispatcher) == serviceType
                     || innerIsServiceInspector.IsService(serviceType);
+        }
+
+        private sealed class CombinedServiceProviderIsKeyedService(
+            IServiceProviderIsKeyedService innerIsKeyedServiceInspector)
+            : IServiceProviderIsKeyedService
+        {
+            public bool IsService(Type serviceType)
+                => typeof(IBatchDispatcher) == serviceType
+                    || innerIsKeyedServiceInspector.IsService(serviceType);
+
+            public bool IsKeyedService(Type serviceType, object? serviceKey)
+                => innerIsKeyedServiceInspector.IsKeyedService(serviceType, serviceKey);
         }
     }
 }
