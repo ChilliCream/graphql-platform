@@ -1511,7 +1511,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     {
         // arrange
         await using var context = await CreateConditionalTestContextAsync();
-        var document = CreateWideConditionalSelectorDocument();
+        var document = CreateWideConditionalSelectorDocument("tenantsCapturedWide");
         var excludedVariables = CreateWideConditionalVariables(include: false);
         var includedVariables = CreateWideConditionalVariables(include: true);
 
@@ -1532,7 +1532,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // arrange
         var diagnostics = new ConditionalCacheDiagnostics();
         await using var context = await CreateConditionalTestContextAsync(2, diagnostics);
-        var wideDocument = CreateWideConditionalSelectorDocument();
+        var wideDocument = CreateWideConditionalSelectorDocument("tenantsCapturedWide");
 
         // act
         await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
@@ -1581,6 +1581,33 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[3]);
     }
 
+    [Fact]
+    public async Task AsSelector_Should_Throw_For_Raw_Flags_When_Wide_Selector_Is_Cached()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+        var document = CreateWideConditionalSelectorDocument("tenantsRawSelectorGuard");
+
+        // act
+        await ExecuteConditionalRequestAsync(
+            context,
+            document,
+            CreateWideConditionalVariables(include: true));
+
+        // assert
+        context.SelectorCapture.RawSelectorExceptions
+            .Select(static exception => $"{exception?.GetType().Name}: {exception?.Message}")
+            .MatchInlineSnapshots(
+                [
+                    """
+                    InvalidOperationException: The operation has more than 64 include conditions; this projection requires the wide include flags. Use AsSelector<TValue>(ConditionFlags).
+                    """,
+                    """
+                    InvalidOperationException: The operation has more than 64 include conditions; this projection requires the wide include flags. Use AsSelector<TValue>(ConditionFlags).
+                    """
+                ]);
+    }
+
     private static async Task ExecuteConditionalSelectorCaptureRequestAsync(
         ConditionalTestContext context,
         bool include)
@@ -1626,7 +1653,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         }
     }
 
-    private static string CreateWideConditionalSelectorDocument()
+    private static string CreateWideConditionalSelectorDocument(string fieldName)
     {
         var variables = new string[65];
         var fields = new string[64];
@@ -1642,7 +1669,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         return $$"""
             query({{string.Join(", ", variables)}}) {
               {{string.Join(Environment.NewLine + "  ", fields)}}
-              tenantsCapturedWide: tenantsCapturedWide {id
+              tenants: {{fieldName}} {id
                 workspaces @include(if: $wide) {
                   id
                 }
@@ -1888,6 +1915,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public sealed class ConditionalSelectorCapture
     {
         public List<LambdaExpression> Selectors { get; } = [];
+
+        public List<Exception?> RawSelectorExceptions { get; } = [];
     }
 
     private sealed class ConditionalCacheDiagnostics : CacheDiagnostics
@@ -1975,6 +2004,30 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             var selection = context.Selection;
             var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
             selectorCapture.Selectors.Add(selector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsRawSelectorGuard(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            var includeFlags = context.IncludeConditionFlags.Word0;
+
+#pragma warning disable CS0618 // The obsolete overloads are the regression scenario under test.
+            selectorCapture.RawSelectorExceptions.Add(
+                Record.Exception(() => selection.AsSelector<ConditionalTenant>(includeFlags)));
+
+            ISelection interfaceSelection = selection;
+            selectorCapture.RawSelectorExceptions.Add(
+                Record.Exception(() => interfaceSelection.AsSelector<ConditionalTenant>(includeFlags)));
+#pragma warning restore CS0618
+
             var query = database.Tenants.Select(selector);
             sqlCapture.Sql = query.ToQueryString();
             return query;

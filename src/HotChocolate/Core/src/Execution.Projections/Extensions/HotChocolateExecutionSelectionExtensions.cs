@@ -63,7 +63,8 @@ public static class HotChocolateExecutionSelectionExtensions
                 nameof(selection));
         }
 
-        return AsSelectorWithIncludeFlags<TValue>(casted, includeFlags);
+        EnsureNarrowIncludeFlags(casted);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(casted, includeFlags);
     }
 
     internal static Expression<Func<TValue, TValue>> AsSelectorWithIncludeFlags<TValue>(
@@ -77,7 +78,8 @@ public static class HotChocolateExecutionSelectionExtensions
                 nameof(selection));
         }
 
-        return AsSelectorWithIncludeFlags<TValue>(casted, includeFlags);
+        EnsureNarrowIncludeFlags(casted);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(casted, includeFlags);
     }
 
     /// <summary>
@@ -121,7 +123,7 @@ public static class HotChocolateExecutionSelectionExtensions
             return GetOrCreateSelectorExpression<TValue>(selection, includeFlags).Expression;
         }
 
-        return AsSelectorWithIncludeFlags<TValue>(selection, IncludeAllFlags);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(selection, IncludeAllFlags);
     }
 
     [Obsolete("Use AsSelector<TValue>(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
@@ -129,7 +131,9 @@ public static class HotChocolateExecutionSelectionExtensions
         this Selection selection,
         ulong includeFlags)
     {
-        return AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
+        ArgumentNullException.ThrowIfNull(selection);
+        EnsureNarrowIncludeFlags(selection);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(selection, includeFlags);
     }
 
     internal static Expression<Func<TValue, TValue>> AsSelectorWithIncludeFlags<TValue>(
@@ -137,7 +141,14 @@ public static class HotChocolateExecutionSelectionExtensions
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(selection);
+        EnsureNarrowIncludeFlags(selection);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(selection, includeFlags);
+    }
 
+    private static Expression<Func<TValue, TValue>> AsSelectorWithNarrowIncludeFlags<TValue>(
+        Selection selection,
+        ulong includeFlags)
+    {
         var selectorExpression = GetOrCreateSelectorExpression<TValue>(selection);
         var conditionMask = selectorExpression.ConditionMask;
         var maskedFlags = includeFlags & conditionMask;
@@ -174,7 +185,7 @@ public static class HotChocolateExecutionSelectionExtensions
 
         if (!selection.DeclaringOperation.HasWideIncludeFlags)
         {
-            return AsSelectorWithIncludeFlags<TValue>(selection, includeFlags.Word0);
+            return AsSelectorWithNarrowIncludeFlags<TValue>(selection, includeFlags.Word0);
         }
 
         var operation = selection.DeclaringOperation;
@@ -189,6 +200,16 @@ public static class HotChocolateExecutionSelectionExtensions
                 selection,
                 flags.Word0,
                 flags.Overflow)).Expression;
+    }
+
+    private static void EnsureNarrowIncludeFlags(Selection selection)
+    {
+        if (selection.DeclaringOperation.HasWideIncludeFlags)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this projection requires "
+                + "the wide include flags. Use AsSelector<TValue>(ConditionFlags).");
+        }
     }
 
     private static ConditionFlags GetIncludeAllConditionFlags(Operation operation)
