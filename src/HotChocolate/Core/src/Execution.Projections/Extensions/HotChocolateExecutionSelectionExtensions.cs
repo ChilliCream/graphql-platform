@@ -291,8 +291,7 @@ public static class HotChocolateExecutionSelectionExtensions
                 {
                     // The cached selector key includes the overflow words, while the
                     // selection cache only stores an all-inclusive selector.
-                    builder.Add(
-                        CreateSelectorExpression<TValue>(child, includeFlags, wideIncludeFlags).Expression);
+                    builder.Add(CreateSelectorExpression<TValue>(child, includeFlags, wideIncludeFlags).Expression);
                     continue;
                 }
 
