@@ -67,21 +67,6 @@ public static class HotChocolateExecutionSelectionExtensions
         return AsSelectorWithNarrowIncludeFlags<TValue>(casted, includeFlags);
     }
 
-    internal static Expression<Func<TValue, TValue>> AsSelectorWithIncludeFlags<TValue>(
-        ISelection selection,
-        ulong includeFlags)
-    {
-        if (selection is not Selection casted)
-        {
-            throw new ArgumentException(
-                $"Expected {typeof(Selection).FullName}.",
-                nameof(selection));
-        }
-
-        EnsureNarrowIncludeFlags(casted);
-        return AsSelectorWithNarrowIncludeFlags<TValue>(casted, includeFlags);
-    }
-
     /// <summary>
     /// Creates a selector expression from a GraphQL selection and projects exactly
     /// the fields included by the runtime @skip/@include flags.
@@ -129,15 +114,6 @@ public static class HotChocolateExecutionSelectionExtensions
     [Obsolete("Use AsSelector<TValue>(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection,
-        ulong includeFlags)
-    {
-        ArgumentNullException.ThrowIfNull(selection);
-        EnsureNarrowIncludeFlags(selection);
-        return AsSelectorWithNarrowIncludeFlags<TValue>(selection, includeFlags);
-    }
-
-    internal static Expression<Func<TValue, TValue>> AsSelectorWithIncludeFlags<TValue>(
-        Selection selection,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(selection);

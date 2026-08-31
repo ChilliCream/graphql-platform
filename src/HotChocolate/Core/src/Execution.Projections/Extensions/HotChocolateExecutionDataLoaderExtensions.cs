@@ -72,7 +72,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ArgumentNullException.ThrowIfNull(dataLoader);
         ArgumentNullException.ThrowIfNull(selection);
 
-        var expression = HotChocolateExecutionSelectionExtensions.AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
+        var expression = selection.AsSelector<TValue>(includeFlags);
         return dataLoader.Select(expression);
     }
 
@@ -169,7 +169,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ArgumentNullException.ThrowIfNull(dataLoader);
         ArgumentNullException.ThrowIfNull(selection);
 
-        var expression = HotChocolateExecutionSelectionExtensions.AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
+        var expression = selection.AsSelector<TValue>(includeFlags);
         return dataLoader.Select(expression);
     }
 
@@ -256,7 +256,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ArgumentNullException.ThrowIfNull(dataLoader);
         ArgumentNullException.ThrowIfNull(selection);
 
-        var expression = HotChocolateExecutionSelectionExtensions.AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
+        var expression = selection.AsSelector<TValue>(includeFlags);
         return dataLoader.Select(expression);
     }
 
@@ -340,7 +340,7 @@ public static class HotChocolateExecutionDataLoaderExtensions
         ArgumentNullException.ThrowIfNull(dataLoader);
         ArgumentNullException.ThrowIfNull(selection);
 
-        var expression = HotChocolateExecutionSelectionExtensions.AsSelectorWithIncludeFlags<TValue>(selection, includeFlags);
+        var expression = selection.AsSelector<TValue>(includeFlags);
         return dataLoader.Select(expression);
     }
 
