@@ -152,7 +152,7 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskDependency>>([]);
 
     public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();

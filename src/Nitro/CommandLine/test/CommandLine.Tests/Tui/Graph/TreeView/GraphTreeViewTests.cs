@@ -82,6 +82,25 @@ public sealed class GraphTreeViewTests
     }
 
     [Fact]
+    public void SetHideClosed_Should_ShowTerminalTasksAndTheirBlockingEdges_When_Disabled()
+    {
+        // arrange
+        var model = Model(
+            [Node("open"), Node("closed", status: TaskStates.Closed)],
+            [Edge("open", "closed")]);
+        var view = new GraphTreeView(model, Set());
+
+        // act
+        view.SetHideClosed(false);
+
+        // assert
+        Assert.Equal([null, "closed", "open"], view.Rows.Select(t => t.TaskId));
+        Assert.Equal(
+            [("closed", 1, 0), ("open", 0, 1)],
+            view.Rows.Where(t => !t.IsRoot).Select(t => (t.TaskId, t.BlockedByCount, t.BlocksCount)));
+    }
+
+    [Fact]
     public void Create_Should_CountVisibleBlockingEdgesAndHighlightSelectionRelationships()
     {
         // arrange

@@ -10,6 +10,7 @@ using ChilliCream.Nitro.CommandLine.Tests.Console;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
+using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
@@ -88,10 +89,10 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildTabs_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
+    public void BuildTabs_Should_RegisterTabsInOrder_TasksMailAgentsMemoryGraph()
     {
         // arrange: guards against the tab order regressing now that a
-        // fourth tab exists.
+        // fifth tab exists.
         var taskStore = new FakeTaskStore();
         var mailStore = new FakeMailStore();
         var agentRegistry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
@@ -137,8 +138,17 @@ public sealed class AgentTuiLauncherTests
             var mailIndex = text.IndexOf("[M]ail", StringComparison.Ordinal);
             var agentsIndex = text.IndexOf("[A]gents", StringComparison.Ordinal);
             var memoryIndex = text.IndexOf("M[e]mory", StringComparison.Ordinal);
+            var graphIndex = text.IndexOf("[G]raph", StringComparison.Ordinal);
 
-            Assert.True(tasksIndex >= 0 && mailIndex > tasksIndex && agentsIndex > mailIndex && memoryIndex > agentsIndex);
+            Assert.True(
+                tasksIndex >= 0
+                && mailIndex > tasksIndex
+                && agentsIndex > mailIndex
+                && memoryIndex > agentsIndex
+                && graphIndex > memoryIndex);
+            Assert.Equal(("Graph", 'G'), (tabs[4].Title, tabs[4].Mnemonic));
+            Assert.IsType<GraphMode>(tabs[4].RootMode);
+            Assert.NotSame(tabs[0].Dispatcher, tabs[4].Dispatcher);
         }
         finally
         {

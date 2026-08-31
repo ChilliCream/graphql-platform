@@ -21,6 +21,7 @@ internal sealed class GraphTreeView
     private GraphModel _model;
     private IReadOnlyList<GraphTreeRow> _rows = [];
     private string? _selectedTaskId;
+    private bool _hideClosed = true;
 
     /// <summary>
     /// Creates the tree projection for <paramref name="model"/>. A null
@@ -68,6 +69,20 @@ internal sealed class GraphTreeView
             _selectedTaskId = _rows.FirstOrDefault(t => !t.IsRoot)?.TaskId;
             RebuildRows();
         }
+    }
+
+    /// <summary>
+    /// Sets whether terminal tasks are excluded from this projection.
+    /// </summary>
+    public void SetHideClosed(bool hideClosed)
+    {
+        if (_hideClosed == hideClosed)
+        {
+            return;
+        }
+
+        _hideClosed = hideClosed;
+        RebuildRows();
     }
 
     /// <summary>
@@ -178,7 +193,9 @@ internal sealed class GraphTreeView
     }
 
     private IReadOnlyList<GraphNode> VisibleNodes()
-        => _model.Nodes.Where(t => !TaskStates.IsTerminal(t.Status)).ToArray();
+        => _hideClosed
+            ? _model.Nodes.Where(t => !TaskStates.IsTerminal(t.Status)).ToArray()
+            : _model.Nodes;
 
     private void RebuildRows()
     {
