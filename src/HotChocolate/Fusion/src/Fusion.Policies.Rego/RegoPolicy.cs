@@ -57,6 +57,8 @@ public sealed class RegoPolicy : IPolicy
     /// <inheritdoc />
     public PolicyRequirements Requirements { get; }
 
+    internal PolicySetHandle Handle => _handle;
+
     /// <inheritdoc />
     public ValueTask EvaluateAsync(
         IPolicyContext context,

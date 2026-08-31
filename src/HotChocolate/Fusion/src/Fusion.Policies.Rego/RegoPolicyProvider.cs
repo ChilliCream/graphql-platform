@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
-using System.Threading.Channels;
 using ChilliCream.Regorus;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
@@ -13,7 +11,9 @@ namespace HotChocolate.Fusion.Policies.Rego;
 /// Compiles the Rego policies and data carried by the Fusion configuration stream and publishes the
 /// complete compiled policy set whenever it changes.
 /// </summary>
-public sealed class RegoPolicyProvider : IPolicyProvider
+public sealed class RegoPolicyProvider
+    : IPolicyProvider
+    , IObserver<PolicyContentSnapshot?>
 {
     private const string RegoLanguage = "rego";
 
@@ -22,15 +22,7 @@ public sealed class RegoPolicyProvider : IPolicyProvider
 #else
     private readonly object _publishSync = new();
 #endif
-    private readonly Channel<ConfigurationEvent> _channel =
-        Channel.CreateUnbounded<ConfigurationEvent>(
-            new UnboundedChannelOptions
-            {
-                SingleReader = false,
-                SingleWriter = false
-            });
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly IDisposable _subscription;
 
     // The provider keeps only the handle it last published. An earlier handle is dropped on
     // rebuild, not retired into a list: the RegoPolicy instances built from it that are still
@@ -38,9 +30,6 @@ public sealed class RegoPolicyProvider : IPolicyProvider
     // compiled policy set's SafeHandle releases the native policy engine memory once nothing
     // references it any more.
     private PolicySetHandle? _currentHandle;
-    private int _processing;
-
-    // Loop-only state. Only touched by the single active drainer at a time.
     private Dictionary<string, PolicyContent> _contents = new(StringComparer.Ordinal);
     private byte[]? _data;
 
@@ -52,15 +41,11 @@ public sealed class RegoPolicyProvider : IPolicyProvider
     /// <summary>
     /// Initializes a new instance of <see cref="RegoPolicyProvider"/>.
     /// </summary>
-    public RegoPolicyProvider(
-        IFusionConfigurationProvider configurationProvider,
-        IFusionExecutionDiagnosticEvents diagnosticEvents)
+    public RegoPolicyProvider(IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
-        ArgumentNullException.ThrowIfNull(configurationProvider);
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _diagnosticEvents = diagnosticEvents;
-        _subscription = configurationProvider.Subscribe(new ConfigurationObserver(this));
     }
 
     /// <inheritdoc />
@@ -70,7 +55,12 @@ public sealed class RegoPolicyProvider : IPolicyProvider
 
         lock (_publishSync)
         {
-            Debug.Assert(!_disposed, "The provider is subscribed during schema creation only.");
+            if (_disposed)
+            {
+                observer.OnCompleted();
+                return EmptySubscription.Instance;
+            }
+
             observer.OnNext(_current);
             _observers = _observers.Add(observer);
         }
@@ -78,74 +68,63 @@ public sealed class RegoPolicyProvider : IPolicyProvider
         return new Subscription(this, observer);
     }
 
-    private void Enqueue(ConfigurationEvent configuration)
+    public void OnNext(PolicyContentSnapshot? content)
     {
-        if (_channel.Writer.TryWrite(configuration))
+        lock (_publishSync)
         {
-            Drain();
-        }
-    }
-
-    private void Drain()
-    {
-        while (true)
-        {
-            if (Interlocked.CompareExchange(ref _processing, 1, 0) != 0)
+            if (_disposed)
             {
                 return;
             }
 
             try
             {
-                while (_channel.Reader.TryRead(out var configuration))
-                {
-                    ProcessSafe(configuration);
-                }
+                Process(content);
             }
-            finally
+            catch (Exception ex)
             {
-                Volatile.Write(ref _processing, 0);
-            }
-
-            if (_channel.Reader.Count == 0)
-            {
-                return;
+                _diagnosticEvents.PolicyUpdateError(ex);
             }
         }
     }
 
-    private void ProcessSafe(ConfigurationEvent configuration)
+    public void OnError(Exception error)
     {
-        try
-        {
-            Process(configuration);
-        }
-        catch (Exception ex)
-        {
-            _diagnosticEvents.PolicyUpdateError(ex);
-        }
     }
 
-    private void Process(ConfigurationEvent configuration)
+    public void OnCompleted()
     {
-        var codeChanged = configuration.Policies.Length != _contents.Count;
+    }
+
+    private void Process(PolicyContentSnapshot? content)
+    {
+        if (content is not { Language: RegoLanguage })
+        {
+            _contents.Clear();
+            _data = null;
+            _currentHandle = null;
+            Emit([]);
+            return;
+        }
+
+        var codeChanged = content.Policies.Length != _contents.Count;
         var contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
 
-        foreach (var content in configuration.Policies)
+        foreach (var policyContent in content.Policies)
         {
-            contents[content.Name] = content;
+            contents[policyContent.Name] = policyContent;
 
             if (!codeChanged
-                && (!_contents.TryGetValue(content.Name, out var existing)
-                    || !existing.Digest.Span.SequenceEqual(content.Digest.Span)))
+                && (!_contents.TryGetValue(policyContent.Name, out var existing)
+                    || !existing.Digest.Span.SequenceEqual(policyContent.Digest.Span)))
             {
                 codeChanged = true;
             }
         }
 
-        var dataChanged = configuration.Data is null
-            ? _data is not null
-            : _data is null || !configuration.Data.AsSpan().SequenceEqual(_data);
+        var data = content.Data.ToArray();
+        var dataChanged = _data is null
+            || !_data.AsSpan().SequenceEqual(data);
 
         if (!codeChanged && !dataChanged)
         {
@@ -153,7 +132,7 @@ public sealed class RegoPolicyProvider : IPolicyProvider
         }
 
         _contents = contents;
-        _data = configuration.Data;
+        _data = data;
         Rebuild();
     }
 
@@ -161,6 +140,7 @@ public sealed class RegoPolicyProvider : IPolicyProvider
     {
         if (_contents.Count == 0)
         {
+            _currentHandle = null;
             Emit([]);
             return;
         }
@@ -240,23 +220,6 @@ public sealed class RegoPolicyProvider : IPolicyProvider
         }
     }
 
-    private void OnConfiguration(FusionConfiguration configuration)
-    {
-        if (configuration.Policies is
-            {
-                Language: RegoLanguage
-            } policies)
-        {
-            Enqueue(new ConfigurationEvent(
-                policies.Policies,
-                policies.Data.ToArray()));
-        }
-        else
-        {
-            Enqueue(new ConfigurationEvent([], null));
-        }
-    }
-
     private void Unsubscribe(IObserver<ImmutableArray<IPolicy>> observer)
     {
         lock (_publishSync)
@@ -276,44 +239,14 @@ public sealed class RegoPolicyProvider : IPolicyProvider
             }
 
             _disposed = true;
+            _current = [];
+            _observers = [];
+            _currentHandle = null;
+            _contents.Clear();
+            _data = null;
         }
-
-        _subscription.Dispose();
-        _channel.Writer.TryComplete();
-
-        while (Interlocked.CompareExchange(ref _processing, 1, 0) != 0)
-        {
-            Thread.Yield();
-        }
-
-        while (_channel.Reader.TryRead(out _))
-        {
-        }
-
-        _currentHandle?.Dispose();
-        _currentHandle = null;
-        _contents.Clear();
-        _data = null;
 
         return ValueTask.CompletedTask;
-    }
-
-    private sealed record ConfigurationEvent(
-        ImmutableArray<PolicyContent> Policies,
-        byte[]? Data);
-
-    private sealed class ConfigurationObserver(RegoPolicyProvider provider)
-        : IObserver<FusionConfiguration>
-    {
-        public void OnNext(FusionConfiguration value) => provider.OnConfiguration(value);
-
-        public void OnError(Exception error)
-        {
-        }
-
-        public void OnCompleted()
-        {
-        }
     }
 
     private sealed class Subscription(
@@ -322,5 +255,14 @@ public sealed class RegoPolicyProvider : IPolicyProvider
         : IDisposable
     {
         public void Dispose() => provider.Unsubscribe(observer);
+    }
+
+    private sealed class EmptySubscription : IDisposable
+    {
+        public static EmptySubscription Instance { get; } = new();
+
+        public void Dispose()
+        {
+        }
     }
 }

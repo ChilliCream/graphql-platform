@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -19,13 +20,15 @@ public sealed class RegoPolicyProviderTests
         // arrange
         await using var config = new MutableFusionConfigurationProvider(
             Config("""{"a":1}""", "d1", Policy("p1", "c1")));
-        await using var provider = new RegoPolicyProvider(config, new CapturingDiagnostics());
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(config.Configuration!.Policies);
         var observer = new CapturingObserver();
         using var subscription = provider.Subscribe(observer);
         var initialInstance = observer.Current("p1.allow");
 
         // act
         config.Publish(Config("""{"a":1}""", "d1", Policy("p1", "c1")));
+        provider.OnNext(config.Configuration!.Policies);
 
         // assert
         Assert.Single(observer.Updates);
@@ -38,7 +41,8 @@ public sealed class RegoPolicyProviderTests
         // arrange
         await using var config = new MutableFusionConfigurationProvider(
             Config("""{"a":1}""", "d1", Policy("p1", "c1"), Policy("p2", "c2")));
-        await using var provider = new RegoPolicyProvider(config, new CapturingDiagnostics());
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(config.Configuration!.Policies);
         var observer = new CapturingObserver();
         using var subscription = provider.Subscribe(observer);
         var first1 = observer.Current("p1.allow");
@@ -47,6 +51,7 @@ public sealed class RegoPolicyProviderTests
         // act
         config.Publish(
             Config("""{"a":2}""", "d2", Policy("p1", "c1"), Policy("p2", "c2")));
+        provider.OnNext(config.Configuration!.Policies);
 
         // assert
         Assert.Equal(2, observer.Updates.Count);
@@ -60,7 +65,8 @@ public sealed class RegoPolicyProviderTests
         // arrange
         await using var config = new MutableFusionConfigurationProvider(
             Config(Policy("p1", "c1"), Policy("p2", "c2")));
-        await using var provider = new RegoPolicyProvider(config, new CapturingDiagnostics());
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(config.Configuration!.Policies);
         var observer = new CapturingObserver();
         using var subscription = provider.Subscribe(observer);
         var first1 = observer.Current("p1.allow");
@@ -68,6 +74,7 @@ public sealed class RegoPolicyProviderTests
 
         // act
         config.Publish(Config(Policy("p1", "c1-changed"), Policy("p2", "c2")));
+        provider.OnNext(config.Configuration!.Policies);
 
         // assert
         // A single policy change rebuilds and publishes one complete replacement snapshot.
@@ -82,13 +89,15 @@ public sealed class RegoPolicyProviderTests
         // arrange
         var diagnostics = new CapturingDiagnostics();
         await using var config = new MutableFusionConfigurationProvider(Config(Policy("p1", "c1")));
-        await using var provider = new RegoPolicyProvider(config, diagnostics);
+        await using var provider = new RegoPolicyProvider(diagnostics);
+        provider.OnNext(config.Configuration!.Policies);
         var observer = new CapturingObserver();
         using var subscription = provider.Subscribe(observer);
         var lastGood = observer.Current("p1.allow");
 
         // act
         config.Publish(Config(Broken("p1", "c1-broken")));
+        provider.OnNext(config.Configuration!.Policies);
 
         // assert
         // The broken update is not published, so the last-good instance remains the current one.
@@ -103,12 +112,14 @@ public sealed class RegoPolicyProviderTests
         // arrange
         await using var config = new MutableFusionConfigurationProvider(
             Config(Policy("p1", "c1"), Policy("p2", "c2")));
-        await using var provider = new RegoPolicyProvider(config, new CapturingDiagnostics());
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(config.Configuration!.Policies);
         var observer = new CapturingObserver();
         using var subscription = provider.Subscribe(observer);
 
         // act
         config.Publish(Config(Policy("p1", "c1")));
+        provider.OnNext(config.Configuration!.Policies);
 
         // assert
         Assert.Single(observer.Updates[^1]);
@@ -129,7 +140,8 @@ public sealed class RegoPolicyProviderTests
             PolicyRequirements.Empty,
             Encoding.UTF8.GetBytes("d1"));
         await using var config = new MutableFusionConfigurationProvider(Config(content));
-        await using var provider = new RegoPolicyProvider(config, new CapturingDiagnostics());
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(config.Configuration!.Policies);
         var observer = new CapturingObserver();
         using var subscription = provider.Subscribe(observer);
 
@@ -141,6 +153,78 @@ public sealed class RegoPolicyProviderTests
         // assert
         Assert.NotNull(policy);
         Assert.Empty(context.DeniedIndices);
+    }
+
+    [Fact]
+    public async Task Policy_Should_RemainUsable_When_ProviderReleasesCurrentSnapshots()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(Config(Policy("p1", "v1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+        var pinnedPolicy = observer.Current("p1.allow");
+
+        // act
+        // Replacement, clearing the content, and provider disposal must only drop the provider's
+        // own references. A policy pinned by an in-flight request owns the handle it needs.
+        provider.OnNext(Config(Policy("p1", "v2")).Policies);
+        provider.OnNext(null);
+        await provider.DisposeAsync();
+        var context = new RegoPolicyTestEntities.TestPolicyContext(
+            entities: new CompositeResultElement[1]);
+        await pinnedPolicy!.EvaluateAsync(context, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(context.DeniedIndices);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReleaseProviderOwnedRoots_When_SnapshotIsReplaced()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(Config(Policy("p1", "v1")).Policies);
+        var handle = CreateWeakHandleReference(provider);
+
+        // act
+        provider.OnNext(Config(Policy("p1", "v2")).Policies);
+        ForceGarbageCollection();
+
+        // assert
+        Assert.False(handle.IsAlive);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReleaseProviderOwnedRoots_When_EmptySnapshotIsPublished()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(Config(Policy("p1", "v1")).Policies);
+        var handle = CreateWeakHandleReference(provider);
+
+        // act
+        provider.OnNext(null);
+        ForceGarbageCollection();
+
+        // assert
+        Assert.False(handle.IsAlive);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReleaseProviderOwnedRoots_When_ProviderIsDisposed()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(Config(Policy("p1", "v1")).Policies);
+        var handle = CreateWeakHandleReference(provider);
+
+        // act
+        await provider.DisposeAsync();
+        ForceGarbageCollection();
+
+        // assert
+        Assert.False(handle.IsAlive);
     }
 
     // The policy name is the full rule path, so a base package named for the pair exposes the
@@ -182,6 +266,23 @@ public sealed class RegoPolicyProviderTests
         return new FusionConfiguration(schema, settings) { Policies = content };
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CreateWeakHandleReference(RegoPolicyProvider provider)
+    {
+        RegoPolicy? policy = null;
+        using var subscription = provider.Subscribe(
+            new DelegatingObserver(value => policy = (RegoPolicy)value[0]));
+        return new WeakReference(policy!.Handle);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ForceGarbageCollection()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
     private sealed class CapturingObserver : IObserver<ImmutableArray<IPolicy>>
     {
         private ImmutableArray<IPolicy> _current = [];
@@ -197,6 +298,20 @@ public sealed class RegoPolicyProviderTests
             Updates.Add(value);
             _current = value;
         }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnCompleted()
+        {
+        }
+    }
+
+    private sealed class DelegatingObserver(Action<ImmutableArray<IPolicy>> onNext)
+        : IObserver<ImmutableArray<IPolicy>>
+    {
+        public void OnNext(ImmutableArray<IPolicy> value) => onNext(value);
 
         public void OnError(Exception error)
         {

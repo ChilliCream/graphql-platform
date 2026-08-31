@@ -268,6 +268,69 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Equal(1, listener.PlanStartCount(operationId));
     }
 
+    [Fact]
+    public async Task SameOperation_Should_NotCoalesceAcrossChangedPolicySnapshots()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var provider = new TestPolicyProvider(new TestPolicy("CanRead"));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var firstPlannerBlock = new FirstPlannerBlockInterceptor();
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .AddOperationPlannerInterceptor(_ => firstPlannerBlock)
+            .ConfigureSchemaServices(
+                (_, services) => services.AddSingleton<IPolicyProvider>(provider))
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
+
+                    type Query {
+                      foo: String @policy(names: "CanRead")
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        const string operationText = "query PolicySnapshot { foo }";
+
+        // act
+        var oldSnapshotRequest = Task.Run(
+            async () => await executor.ExecuteAsync(operationText, cts.Token),
+            CancellationToken.None);
+        await firstPlannerBlock.WaitForEntryAsync(cts.Token);
+        provider.Emit(new TestPolicy("CanRead"));
+        var newSnapshotResult = await executor.ExecuteAsync(operationText, cts.Token);
+        firstPlannerBlock.Release();
+        _ = await oldSnapshotRequest;
+        var operationId = Assert.Single(operationIds.Distinct());
+        var newSnapshotPlan = Assert.IsType<OperationPlan>(
+            newSnapshotResult.ExpectOperationResult().Data!["operationPlan"]);
+        var cache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
+
+        // assert
+        Assert.Equal(2, listener.PlanStartCount(operationId));
+        Assert.True(cache.Current.TryGet(operationId, out var cachedPlan));
+        Assert.Same(newSnapshotPlan, cachedPlan);
+    }
+
     private static RequestDelegate CreateGateMiddleware(
         RequestDelegate next,
         RequestGate gate)
@@ -382,6 +445,32 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         {
             _entered.Set();
             _release.Task.GetAwaiter().GetResult();
+        }
+    }
+
+    private sealed class FirstPlannerBlockInterceptor : IOperationPlannerInterceptor
+    {
+        private readonly TaskCompletionSource _entered =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _release =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _count;
+
+        public ValueTask WaitForEntryAsync(CancellationToken cancellationToken)
+            => new(_entered.Task.WaitAsync(cancellationToken));
+
+        public void Release()
+            => _release.TrySetResult();
+
+        public void OnAfterPlanCompleted(
+            OperationDocumentInfo operationDocumentInfo,
+            OperationPlan operationPlan)
+        {
+            if (Interlocked.Increment(ref _count) == 1)
+            {
+                _entered.TrySetResult();
+                _release.Task.GetAwaiter().GetResult();
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -11,8 +12,7 @@ internal sealed class OperationPlanCacheMiddleware
 {
     private readonly OperationPlanCache _planCache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans =
-        new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<InFlightPlanKey, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans = [];
 
     private OperationPlanCacheMiddleware(
         OperationPlanCache planCache,
@@ -37,13 +37,18 @@ internal sealed class OperationPlanCacheMiddleware
             : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
         context.SetOperationId(operationId);
 
+        var policySession = ((FusionSchemaDefinition)context.Schema).Policies.CaptureForPlanning(_planCache);
+        var policySnapshot = policySession.Policies;
+        context.SetPolicySnapshot(policySnapshot);
+        var inFlightKey = new InFlightPlanKey(operationId, policySnapshot);
+
         // Captured once so lookup and insertion use the same cache generation and version.
         // Re-reading _planCache.Current at insertion time would let a plan built before a
         // policy-triggered Reset() land in the discarded generation, defeating the reset; and
         // for a targeted eviction that mutates the SAME generation in place, it is the version
         // check in Add (not instance identity alone) that keeps a plan built against the old
         // requirements from landing in the live cache after the eviction ran.
-        var session = _planCache.Capture();
+        var session = policySession.PlanCacheSession;
 
         var isSingleFlightLeader = false;
         Lazy<TaskCompletionSource<OperationPlan>>? inFlightPlan = null;
@@ -53,7 +58,7 @@ internal sealed class OperationPlanCacheMiddleware
             context.SetOperationPlan(plan);
             _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
         }
-        else if (_inFlightPlans.TryGetValue(operationId, out inFlightPlan))
+        else if (_inFlightPlans.TryGetValue(inFlightKey, out inFlightPlan))
         {
             // Another request is already planning this operation.
             // Await the leader's result to avoid redundant planning work.
@@ -70,7 +75,7 @@ internal sealed class OperationPlanCacheMiddleware
             inFlightPlan = new Lazy<TaskCompletionSource<OperationPlan>>(
                 static () => new TaskCompletionSource<OperationPlan>(
                     TaskCreationOptions.RunContinuationsAsynchronously));
-            var cachedInFlightPlan = _inFlightPlans.GetOrAdd(operationId, inFlightPlan);
+            var cachedInFlightPlan = _inFlightPlans.GetOrAdd(inFlightKey, inFlightPlan);
 
             if (ReferenceEquals(cachedInFlightPlan, inFlightPlan))
             {
@@ -134,7 +139,7 @@ internal sealed class OperationPlanCacheMiddleware
                 }
                 finally
                 {
-                    _inFlightPlans.TryRemove(operationId, out _);
+                    _inFlightPlans.TryRemove(inFlightKey, out _);
                 }
             }
         }
@@ -150,4 +155,8 @@ internal sealed class OperationPlanCacheMiddleware
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             WellKnownRequestMiddleware.OperationPlanCacheMiddleware);
+
+    private readonly record struct InFlightPlanKey(
+        string OperationId,
+        ImmutableArray<IPolicy> PolicySnapshot);
 }

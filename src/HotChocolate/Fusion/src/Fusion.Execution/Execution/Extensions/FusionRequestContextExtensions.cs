@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -94,6 +95,14 @@ public static class FusionRequestContextExtensions
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
     }
+
+    internal static ImmutableArray<IPolicy> GetPolicySnapshot(this RequestContext context)
+        => context.Features.Get<FusionOperationInfo>()?.PolicySnapshot ?? default;
+
+    internal static void SetPolicySnapshot(
+        this RequestContext context,
+        ImmutableArray<IPolicy> snapshot)
+        => context.Features.GetOrSet<FusionOperationInfo>().PolicySnapshot = snapshot;
 
     internal static bool CollectOperationPlanTelemetry(
         this RequestContext context)

@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Security.Claims;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -13,24 +15,72 @@ public sealed partial class OperationPlanContext
         Lazy<Task<PolicyDecision>>>? _policyDecisions;
 
     /// <summary>
-    /// Resolves the policy with the specified name for this operation. The instance is resolved at
-    /// most once per operation so that a provider update during the operation does not change which
-    /// instance the operation observes.
+    /// Returns the policy instance pinned before node execution for this operation.
     /// </summary>
     internal IPolicy ResolvePolicy(string name)
     {
         lock (_resolvedPoliciesSync)
         {
-            _resolvedPolicies ??= new Dictionary<string, IPolicy>(StringComparer.Ordinal);
-
-            if (_resolvedPolicies.TryGetValue(name, out var resolved))
+            if (_resolvedPolicies is not null
+                && _resolvedPolicies.TryGetValue(name, out var resolved))
             {
                 return resolved;
             }
 
-            var policy = Schema.Policies.Get(name);
-            _resolvedPolicies.Add(name, policy);
-            return policy;
+            throw ThrowHelper.PolicyNameNotFound(name);
+        }
+    }
+
+    private void PinPolicies(ImmutableArray<IPolicy> policySnapshot, IOperationPlan operationPlan)
+    {
+        foreach (var plan in EnumeratePlanParts(operationPlan))
+        {
+            if (plan is not OperationPlan { Policies.IsEmpty: false } rootPlan)
+            {
+                continue;
+            }
+
+            // Request execution captures this snapshot before cache lookup and planning. The fallback
+            // preserves the contract for direct OperationPlanContext callers that bypass the request
+            // pipeline, primarily focused unit tests.
+            if (policySnapshot.IsDefault)
+            {
+                policySnapshot = Schema.Policies.GetSnapshot();
+            }
+
+            _resolvedPolicies ??= new Dictionary<string, IPolicy>(StringComparer.Ordinal);
+
+            foreach (var entry in rootPlan.Policies)
+            {
+                if (_resolvedPolicies.ContainsKey(entry.PolicyName))
+                {
+                    continue;
+                }
+
+                foreach (var policy in policySnapshot)
+                {
+                    if (policy.Name.Equals(entry.PolicyName, StringComparison.Ordinal))
+                    {
+                        _resolvedPolicies.Add(entry.PolicyName, policy);
+                        break;
+                    }
+                }
+
+                if (!_resolvedPolicies.ContainsKey(entry.PolicyName))
+                {
+                    throw ThrowHelper.PolicyNameNotFound(entry.PolicyName);
+                }
+            }
+        }
+    }
+
+    private static IEnumerable<IOperationPlan> EnumeratePlanParts(IOperationPlan rootPlan)
+    {
+        yield return rootPlan;
+
+        foreach (var incrementalPlan in rootPlan.IncrementalPlans)
+        {
+            yield return incrementalPlan;
         }
     }
 

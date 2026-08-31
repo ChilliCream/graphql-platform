@@ -8,10 +8,8 @@ namespace HotChocolate.Fusion.Configuration;
 /// configuration is published.
 /// </summary>
 /// <remarks>
-/// This is the single, schema-generation-scoped delivery channel a policy provider subscribes to for
-/// its content: the request executor manager owns one instance per generation and publishes into it
-/// whenever a policy-only configuration update is adopted without rebuilding the executor. It also
-/// serves as test infrastructure for driving the configuration stream without a package on disk.
+/// This provider is test infrastructure for driving a configuration stream without a package on
+/// disk. Production policy delivery is performed directly by the request executor manager.
 /// </remarks>
 internal sealed class MutableFusionConfigurationProvider : IFusionConfigurationProvider
 {

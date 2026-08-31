@@ -272,7 +272,7 @@ public class CacheTests
     }
 
     [Fact]
-    public void TryRemove_Should_NotOrphan_RingSlot_When_KeyIsReAdded_And_HandCyclesPastIt()
+    public void TryRemove_Should_NotOrphanRingSlot_When_KeyIsReAddedAndHandCyclesPastIt()
     {
         // arrange
         // Regression for the ring/map pairing invariant: TryRemove must clear the ring slot it

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
@@ -96,6 +97,22 @@ public sealed class PolicyCollection
     internal ImmutableArray<IPolicy> GetSnapshot()
         => Volatile.Read(ref _snapshot).Policies;
 
+    /// <summary>
+    /// Captures a policy snapshot and the matching plan-cache session as one publication unit.
+    /// A concurrent provider update holds the same lock while it evicts or resets plans and
+    /// publishes its replacement snapshot, so a request observes either the old pair or the new
+    /// pair, never an old policy snapshot with a new cache generation.
+    /// </summary>
+    internal PolicySnapshotSession CaptureForPlanning(OperationPlanCache planCache)
+    {
+        ArgumentNullException.ThrowIfNull(planCache);
+
+        lock (_applySync)
+        {
+            return new PolicySnapshotSession(_snapshot.Policies, planCache.Capture());
+        }
+    }
+
     private void Apply(ImmutableArray<IPolicy> policies)
     {
         lock (_applySync)
@@ -164,7 +181,7 @@ public sealed class PolicyCollection
             return;
         }
 
-        List<string>? changedNames = null;
+        Dictionary<string, ulong>? changedPolicies = null;
 
         foreach (var (name, previousPolicy) in previous)
         {
@@ -178,13 +195,17 @@ public sealed class PolicyCollection
 
             if (!RequirementsEqual(previousPolicy.Requirements, policy.Requirements))
             {
-                (changedNames ??= []).Add(name);
+                (changedPolicies ??= new Dictionary<string, ulong>(StringComparer.Ordinal)).Add(
+                    name,
+                    policy.Requirements.Resource is { } resource
+                        ? PolicyPlanEntry.ComputeRequirementHash(resource)
+                        : 0);
             }
         }
 
-        if (changedNames is not null)
+        if (changedPolicies is not null)
         {
-            planCache.EvictPolicies(changedNames);
+            planCache.EvictPolicies(changedPolicies);
         }
     }
 
@@ -237,4 +258,8 @@ public sealed class PolicyCollection
             new Dictionary<string, IPolicy>(StringComparer.Ordinal)
                 .ToFrozenDictionary(StringComparer.Ordinal));
     }
+
+    internal readonly record struct PolicySnapshotSession(
+        ImmutableArray<IPolicy> Policies,
+        OperationPlanCache.PlanCacheSession PlanCacheSession);
 }

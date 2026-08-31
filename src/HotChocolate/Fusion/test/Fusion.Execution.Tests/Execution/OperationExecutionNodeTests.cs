@@ -13,6 +13,71 @@ namespace HotChocolate.Fusion.Execution;
 public sealed class OperationExecutionNodeTests : FusionTestBase
 {
     [Fact]
+    public async Task ExecuteAsync_Should_StreamDeferredResults_When_GatewayPlanHasNoPolicies()
+    {
+        // arrange
+        var executor = await CreateDeferExecutorAsync(new DeferredQueryClient());
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """
+            query {
+              immediate
+              ... @defer {
+                deferred
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "immediate": "initial"
+              },
+              "pending": [
+                {
+                  "id": "0",
+                  "path": []
+                }
+              ],
+              "hasNext": true
+            }
+            """,
+            """
+            {
+              "incremental": [
+                {
+                  "id": "0",
+                  "data": {
+                    "deferred": "incremental"
+                  }
+                }
+              ],
+              "completed": [
+                {
+                  "id": "0"
+                }
+              ],
+              "hasNext": false
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_Succeed_When_SourceSchemaReturnsNoResults()
     {
         // arrange
@@ -127,6 +192,35 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 
+    private static async Task<IRequestExecutor> CreateDeferExecutorAsync(ISourceSchemaClient client)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .ModifyOptions(o => o.EnableDefer = true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    # name: source
+                    type Query {
+                      immediate: String
+                      deferred: String
+                    }
+                    """));
+
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestSubscriptionClientFactory(client));
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestSubscriptionClientConfiguration("source", SupportedOperationType.Query)));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
     private static IOperationRequest CreateQueryRequest()
         => OperationRequestBuilder.New()
             .SetDocument(
@@ -180,6 +274,33 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         {
             await Task.Yield();
             yield break;
+        }
+
+        public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+    }
+
+    private sealed class DeferredQueryClient : TestSubscriptionClient
+    {
+        private static readonly byte[] s_initialPayload = """{"data":{"immediate":"initial"}}"""u8.ToArray();
+        private static readonly byte[] s_incrementalPayload =
+            """{"data":{"deferred":"incremental"}}"""u8.ToArray();
+
+        public override async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var payload = request.OperationSourceText.Contains("immediate", StringComparison.Ordinal)
+                ? s_initialPayload
+                : s_incrementalPayload;
+            var arena = context.MemorySource.GetNextArena();
+            var document = SourceResultDocument.Parse(arena, payload, payload.Length);
+            await Task.Yield();
+            yield return new SourceSchemaResult(CompactPath.Root, document);
         }
 
         public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(

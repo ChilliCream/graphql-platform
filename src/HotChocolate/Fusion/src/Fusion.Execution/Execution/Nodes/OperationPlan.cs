@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using System.IO.Hashing;
 using System.Security.Cryptography;
-using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Language;
@@ -37,7 +35,7 @@ public sealed record OperationPlan : IOperationPlan
         DeliveryGroups = deliveryGroups;
         IncrementalPlans = incrementalPlans;
         PolicySlots = policySlots;
-        Policies = CreatePolicyPlanEntries(policySlots, allNodes);
+        Policies = CreatePolicyPlanEntries(policySlots, allNodes, incrementalPlans);
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -108,9 +106,9 @@ public sealed record OperationPlan : IOperationPlan
     public ImmutableArray<PolicyConditionSlot> PolicySlots { get; }
 
     /// <summary>
-    /// Gets every authorization policy this plan references, one entry per distinct policy name,
-    /// whether reached through a request-constant <see cref="PolicySlots"/> condition or through a
-    /// policy execution node target. Empty when the plan references no policy.
+    /// Gets every authorization policy requirement pair this plan references, whether reached through
+    /// a request-constant <see cref="PolicySlots"/> condition or through a policy execution node target.
+    /// Empty when the plan references no policy.
     /// </summary>
     public ImmutableArray<PolicyPlanEntry> Policies { get; }
 
@@ -282,47 +280,92 @@ public sealed record OperationPlan : IOperationPlan
     }
 
     /// <summary>
-    /// Flattens the plan's policy condition slots and policy execution node targets into the
-    /// plan-level policy collection, one entry per distinct (name, slot) pair for a slot-gated
-    /// policy and one entry per distinct name for a policy referenced only through a node target.
-    /// Built on top of the slot table and the node targets without altering how either is produced.
+    /// Flattens policy artifacts from every plan part into the plan-level policy collection, one
+    /// entry per distinct policy name and requirement hash pair.
     /// </summary>
     private static ImmutableArray<PolicyPlanEntry> CreatePolicyPlanEntries(
         ImmutableArray<PolicyConditionSlot> policySlots,
-        ImmutableArray<ExecutionNode> allNodes)
+        ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
     {
-        var seenSlotEntries = new HashSet<(string Name, int Slot)>();
-        var seenTargetNames = new HashSet<string>(StringComparer.Ordinal);
-        var builder = ImmutableArray.CreateBuilder<PolicyPlanEntry>();
+        var entries = new HashSet<(string PolicyName, ulong RequirementHash)>();
+        var namesWithRequirements = new HashSet<string>(StringComparer.Ordinal);
 
-        if (!policySlots.IsDefaultOrEmpty)
+        AddPolicyArtifacts(policySlots, allNodes);
+
+        // The current deferred builder emits no policy artifacts (repo-tqm gap). repo-hc1 owns
+        // the wiring, and this loop inventories them once present.
+        foreach (var incrementalPlan in incrementalPlans)
         {
-            foreach (var slot in policySlots)
-            {
-                var expression = slot.Format();
+            AddPolicyArtifacts([], incrementalPlan.AllNodes);
+        }
 
+        return [.. entries
+            .OrderBy(entry => entry.PolicyName, StringComparer.Ordinal)
+            .ThenBy(entry => entry.RequirementHash)
+            .Select(entry => new PolicyPlanEntry
+            {
+                PolicyName = entry.PolicyName,
+                RequirementHash = entry.RequirementHash
+            })];
+
+        void AddPolicyArtifacts(
+            ImmutableArray<PolicyConditionSlot> slots,
+            ImmutableArray<ExecutionNode> nodes)
+        {
+            if (!nodes.IsDefaultOrEmpty)
+            {
+                foreach (var node in nodes)
+                {
+                    if (node is not PolicyExecutionNode policyNode)
+                    {
+                        continue;
+                    }
+
+                    foreach (var target in policyNode.Targets)
+                    {
+                        foreach (var requirement in target.Requirements)
+                        {
+                            namesWithRequirements.Add(requirement.PolicyName);
+                            entries.Add((
+                                requirement.PolicyName,
+                                PolicyPlanEntry.ComputeRequirementHash(requirement.SelectionSet)));
+                        }
+                    }
+                }
+            }
+
+            AddSlotPolicyNames(slots);
+            AddTargetPolicyNames(nodes);
+        }
+
+        void AddSlotPolicyNames(ImmutableArray<PolicyConditionSlot> slots)
+        {
+            if (slots.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var slot in slots)
+            {
                 foreach (var group in slot.Groups)
                 {
                     foreach (var name in group)
                     {
-                        if (seenSlotEntries.Add((name, slot.Ordinal)))
-                        {
-                            builder.Add(new PolicyPlanEntry
-                            {
-                                PolicyName = name,
-                                Slot = slot.Ordinal,
-                                Expression = expression,
-                                RequirementHash = 0
-                            });
-                        }
+                        AddPolicyName(name);
                     }
                 }
             }
         }
 
-        if (!allNodes.IsDefaultOrEmpty)
+        void AddTargetPolicyNames(ImmutableArray<ExecutionNode> nodes)
         {
-            foreach (var node in allNodes)
+            if (nodes.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var node in nodes)
             {
                 if (node is not PolicyExecutionNode policyNode)
                 {
@@ -331,26 +374,28 @@ public sealed record OperationPlan : IOperationPlan
 
                 foreach (var target in policyNode.Targets)
                 {
-                    foreach (var requirement in target.Requirements)
+                    foreach (var application in target.Policies)
                     {
-                        if (seenTargetNames.Add(requirement.PolicyName))
+                        foreach (var group in application.Groups)
                         {
-                            builder.Add(new PolicyPlanEntry
+                            foreach (var name in group)
                             {
-                                PolicyName = requirement.PolicyName,
-                                RequirementHash = ComputeRequirementHash(requirement.SelectionSet)
-                            });
+                                AddPolicyName(name);
+                            }
                         }
                     }
                 }
             }
         }
 
-        return builder.ToImmutable();
+        void AddPolicyName(string policyName)
+        {
+            if (!namesWithRequirements.Contains(policyName))
+            {
+                entries.Add((policyName, 0));
+            }
+        }
     }
-
-    private static ulong ComputeRequirementHash(SelectionSetNode selectionSet)
-        => XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(selectionSet.ToString(indented: false)));
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
     {

@@ -71,9 +71,8 @@ public sealed partial class OperationPlanner
     /// A plan is built entirely from one such state, read once at the start of <see cref="CreatePlan"/>,
     /// so that every fetch and condition it produces is consistent with a single published policy set.
     /// </summary>
-    private PolicyPlanningState GetPolicyState()
+    private PolicyPlanningState GetPolicyState(ImmutableArray<IPolicy> snapshot)
     {
-        var snapshot = _schema.Policies.GetSnapshot();
         var state = Volatile.Read(ref _policyState);
 
         // ImmutableArray<T> equality is reference equality on the backing array, so this is an
@@ -117,6 +116,21 @@ public sealed partial class OperationPlanner
         string shortHash,
         OperationDefinitionNode operationDefinition,
         CancellationToken cancellationToken = default)
+        => CreatePlan(
+            id,
+            hash,
+            shortHash,
+            operationDefinition,
+            _schema.Policies.GetSnapshot(),
+            cancellationToken);
+
+    internal OperationPlan CreatePlan(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition,
+        ImmutableArray<IPolicy> policySnapshot,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(hash);
@@ -146,7 +160,7 @@ public sealed partial class OperationPlanner
             // Read the policy snapshot once for the whole planning pass, so that every fetch
             // and condition this plan produces is built against a single published policy set,
             // even if the schema's policy collection publishes a new set concurrently.
-            var policyState = GetPolicyState();
+            var policyState = GetPolicyState(policySnapshot);
 
             if (policyState.Requirements.Count > 0)
             {

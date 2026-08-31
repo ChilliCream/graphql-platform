@@ -191,7 +191,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions,
             parserOptions);
         var schemaServices = CreateSchemaServices(
-            configuration,
+            configuration.Settings.Document.RootElement.Clone(),
             setup,
             options,
             requestOptions,
@@ -201,6 +201,7 @@ internal sealed class FusionRequestExecutorManager
 
         try
         {
+            DeliverPolicyContent(schemaServices, configuration.Policies);
             schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
             var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
@@ -215,10 +216,9 @@ internal sealed class FusionRequestExecutorManager
         {
             // Schema completion or pipeline construction can throw (for example a policy referenced by
             // the schema is missing or fails to compile). Dispose the fresh schema, which retires the
-            // live policy registry and disposes the schema services, so the policy providers unsubscribe
-            // from the long-lived configuration provider instead of leaking. When the schema was not
-            // created, its policy registry was already retired during completion, so only the services
-            // remain to dispose.
+            // live policy registry and disposes the schema services. When the schema was not created,
+            // its policy registry was already retired during completion, so only the services remain to
+            // dispose.
             if (schema is not null)
             {
                 await schema.DisposeAsync().ConfigureAwait(false);
@@ -387,7 +387,7 @@ internal sealed class FusionRequestExecutorManager
     }
 
     private ServiceProvider CreateSchemaServices(
-        FusionConfiguration configuration,
+        JsonElement settings,
         FusionGatewaySetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
@@ -395,19 +395,8 @@ internal sealed class FusionRequestExecutorManager
     {
         var schemaServices = new ServiceCollection();
 
-        // The single delivery channel for policy content within one schema generation. A policy
-        // provider registered in the schema services subscribes to it to receive the initial content
-        // and, without an executor rebuild, every later policy-only change: the manager is the only
-        // publisher, invoked on adopt (see WaitForUpdatesAsync), so a provider never observes content
-        // from a configuration newer than the one the manager decided to pair it with.
-        // Registered through a factory, not as a pre-built instance, so the container disposes it
-        // when the schema services are disposed (a pre-built instance would not be).
-        schemaServices.AddSingleton(_ => new MutableFusionConfigurationProvider(configuration));
-        schemaServices.AddSingleton<IFusionConfigurationProvider>(
-            static sp => sp.GetRequiredService<MutableFusionConfigurationProvider>());
-
         AddCoreServices(
-            configuration.Settings.Document.RootElement.Clone(),
+            settings,
             setup,
             schemaServices,
             options,
@@ -582,6 +571,16 @@ internal sealed class FusionRequestExecutorManager
         return schema;
     }
 
+    private static void DeliverPolicyContent(
+        IServiceProvider schemaServices,
+        PolicyContentSnapshot? content)
+    {
+        if (schemaServices.GetService<IPolicyProvider>() is IObserver<PolicyContentSnapshot?> sink)
+        {
+            sink.OnNext(content);
+        }
+    }
+
     private RequestDelegate CreatePipeline(
         FusionGatewaySetup setup,
         ISchemaDefinition schema,
@@ -734,19 +733,16 @@ internal sealed class FusionRequestExecutorManager
                 {
                     // The schema and settings are unchanged, so the executor is not rebuilt: this is a
                     // policy-only update (or a manifest/signature-only no-op). The new content is handed
-                    // to the current generation's policy provider through its schema-scoped delivery
-                    // channel; a provider with no resource requirement change applies it in place, and
+                    // to the current generation's policy provider; a provider with no resource
+                    // requirement change applies it in place, and
                     // one whose requirements did change already evicted the affected cached plans before
-                    // publishing (PolicyCollection). The newly emitted configuration is now the
-                    // provider's replay value and is read by providers that subscribe later, so it must
-                    // stay alive: adopt it as the current configuration and dispose the one it replaced.
+                    // publishing (PolicyCollection). Adopt it as the current configuration and dispose
+                    // the one it replaced.
                     if (!ReferenceEquals(configuration, _currentConfiguration))
                     {
                         var replaced = _currentConfiguration;
                         _currentConfiguration = configuration;
-                        Executor.Schema.Services
-                            .GetRequiredService<MutableFusionConfigurationProvider>()
-                            .Publish(configuration);
+                        DeliverPolicyContent(Executor.Schema.Services, configuration.Policies);
                         replaced.Dispose();
                     }
 

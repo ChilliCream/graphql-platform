@@ -188,7 +188,7 @@ public sealed class PolicyCollectionTests : FusionTestBase
 
         // A request captures the session before planning, exactly like the middleware does, so
         // the plan below is built against the snapshot that is about to become stale.
-        var session = planCache.Capture();
+        var policySession = schema.Policies.CaptureForPlanning(planCache);
         var plan = PlanOperation(schema, "{ secretA }");
 
         // act
@@ -197,7 +197,7 @@ public sealed class PolicyCollectionTests : FusionTestBase
         provider.Emit(
             new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id ownerId }")),
             new TestPolicy("B", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
-        planCache.Add(session, "plan", plan);
+        planCache.Add(policySession.PlanCacheSession, "plan", plan);
 
         // assert
         // The version check in Add must reject the late insert instead of letting a plan built
@@ -233,6 +233,30 @@ public sealed class PolicyCollectionTests : FusionTestBase
         // assert
         // The plan is evicted even though only one of the two policies it references changed.
         Assert.False(session.Cache.TryGet("plan", out _));
+    }
+
+    [Fact]
+    public async Task Apply_Should_EvictIndexedPlan_When_PolicyRequirementChangesFromEmptyToNonEmpty()
+    {
+        // arrange
+        var provider = new TestPolicyProvider(new TestPolicy("A"), new TestPolicy("B"));
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(CreateTwoSecretsSchemaDocument(), services);
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        schema.Policies.AttachPlanCache(planCache);
+        var session = planCache.Capture();
+        var plan = PlanOperation(schema, "{ secretA }");
+        planCache.Add(session, "plan", plan);
+
+        // act
+        provider.Emit(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            new TestPolicy("B"));
+
+        // assert
+        Assert.False(planCache.Current.TryGet("plan", out _));
     }
 
     [Fact]

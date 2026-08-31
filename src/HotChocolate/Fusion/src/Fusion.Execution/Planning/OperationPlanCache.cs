@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Fusion.Execution.Nodes;
 
@@ -26,57 +27,64 @@ internal sealed class OperationPlanCache
     private readonly int _capacity;
     private readonly CacheDiagnostics? _diagnostics;
 
-    // Maps a policy name to the ids of the currently cached plans that reference it, so that a
-    // requirement change can evict precisely those plans without enumerating the whole cache.
-    // Kept in the same generation as _current: Reset() clears it together with the cache it
-    // indexes.
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _plansByPolicy =
-        new(StringComparer.Ordinal);
-
-    // Approximate count of ids currently indexed across all buckets in _plansByPolicy. Used only
-    // to decide when a maintenance sweep is due, never to gate correctness.
-    private long _indexedIdCount;
-
-    // Incremented before any removal/swap in EvictPolicies or Reset. Add() reads it before and
-    // after writing the cache and the index; a mismatch means an eviction ran concurrently and
-    // the just-added plan must be undone instead of staying reachable under stale requirements.
+    // Even values identify stable cache generations. Mutations bracket their removal or swap with
+    // odd values, so Capture never pairs an in-progress cache change with a policy snapshot.
+    // Add validates its captured stable value while holding the same lock that protects cache and
+    // index publication, so a stale plan is never made reachable.
     private long _version;
+    private readonly object _mutationSync = new();
 
-    private Cache<OperationPlan> _current;
+    private Generation _generation;
+
+    // This is deliberately internal and used only by deterministic concurrency tests. It opens
+    // the precise capture-to-publication window without changing the production synchronization.
+    internal Action? BeforeAddValidation { get; set; }
 
     public OperationPlanCache(int capacity, CacheDiagnostics? diagnostics)
     {
         _capacity = capacity;
         _diagnostics = diagnostics;
-        _current = new Cache<OperationPlan>(capacity, diagnostics);
+        _generation = new Generation(capacity, diagnostics);
     }
 
     /// <summary>
     /// Gets the operation plan cache currently in effect.
     /// </summary>
-    public Cache<OperationPlan> Current => Volatile.Read(ref _current);
+    public Cache<OperationPlan> Current => Volatile.Read(ref _generation).Cache;
 
     /// <summary>
     /// Test-only accessor for the approximate indexed id count, so tests can assert on index
     /// bookkeeping without relying on internal timing.
     /// </summary>
-    internal long IndexedIdCountForTesting => Interlocked.Read(ref _indexedIdCount);
+    internal long IndexedIdCountForTesting => Interlocked.Read(ref Volatile.Read(ref _generation).IndexedIdCount);
 
     /// <summary>
     /// Captures the cache generation and version currently in effect, for a caller to plan
     /// against and later pass to <see cref="Add"/>.
     /// </summary>
     /// <remarks>
-    /// The version is read before the cache reference so that an eviction racing with this call
-    /// is never missed: if it lands after this read, either it has not yet touched the cache the
-    /// caller is about to plan against (an ABA the version bump forces <see cref="Add"/> to
-    /// notice), or it already produced the cache reference this call then observes.
+    /// A session is returned only after observing the same stable generation version before and
+    /// after the generation reference. A mutation exposes an odd version while it changes the
+    /// cache, so a caller never captures an in-progress generation.
     /// </remarks>
     public PlanCacheSession Capture()
     {
-        var version = Volatile.Read(ref _version);
-        var cache = Current;
-        return new PlanCacheSession(cache, version);
+        while (true)
+        {
+            var version = Volatile.Read(ref _version);
+
+            if ((version & 1) != 0)
+            {
+                continue;
+            }
+
+            var generation = Volatile.Read(ref _generation);
+
+            if (version == Volatile.Read(ref _version))
+            {
+                return new PlanCacheSession(generation, version);
+            }
+        }
     }
 
     /// <summary>
@@ -101,65 +109,96 @@ internal sealed class OperationPlanCache
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(plan);
 
-        var cache = session.Cache;
+        BeforeAddValidation?.Invoke();
 
-        cache.TryAdd(id, plan);
-
-        foreach (var entry in plan.Policies)
+        lock (_mutationSync)
         {
-            var bucket = _plansByPolicy.GetOrAdd(
-                entry.PolicyName,
-                static _ => new ConcurrentDictionary<string, byte>(StringComparer.Ordinal));
+            var generation = session.Generation;
 
-            if (bucket.TryAdd(id, 0))
+            // Validation and publication are one critical section. In particular, never expose
+            // a plan before proving it was built against the current policy requirement
+            // generation. A stale Add must leave a newer generation's cache and index untouched.
+            if (session.Version != Volatile.Read(ref _version)
+                || !ReferenceEquals(generation, Volatile.Read(ref _generation)))
             {
-                Interlocked.Increment(ref _indexedIdCount);
+                return;
             }
-        }
 
-        // Re-check after writing. An eviction that ran before the writes above already missed
-        // this plan's id (it was not indexed yet) and left it reachable under a stale
-        // requirement, so it must be undone here. An eviction that runs after this point either
-        // has not yet observed the id (harmless, the entry stays and is correct for the new
-        // requirements too) or observes it and evicts normally through EvictPolicies.
-        if (Volatile.Read(ref _version) != session.Version)
-        {
-            cache.TryRemove(id);
+            var cache = generation.Cache;
+            var cachedPlan = cache.GetOrCreate(id, static (_, value) => value, plan);
 
-            foreach (var entry in plan.Policies)
+            if (!ReferenceEquals(cachedPlan, plan))
             {
-                if (_plansByPolicy.TryGetValue(entry.PolicyName, out var planIds)
-                    && planIds.TryRemove(id, out _))
+                return;
+            }
+
+            if (!plan.Policies.IsEmpty)
+            {
+                generation.PoliciesByPlan.TryAdd(id, plan.Policies);
+            }
+
+            foreach (var policyEntries in plan.Policies.GroupBy(entry => entry.PolicyName, StringComparer.Ordinal))
+            {
+                var bucket = generation.PlansByPolicy.GetOrAdd(
+                    policyEntries.Key,
+                    static _ => new ConcurrentDictionary<string, ImmutableHashSet<ulong>>(
+                        StringComparer.Ordinal));
+
+                if (bucket.TryAdd(id, policyEntries.Select(entry => entry.RequirementHash).ToImmutableHashSet()))
                 {
-                    Interlocked.Decrement(ref _indexedIdCount);
+                    Interlocked.Increment(ref generation.IndexedIdCount);
                 }
             }
 
-            return;
+            MaintainIndexSize(generation);
         }
-
-        MaintainIndexSize(cache);
     }
 
     /// <summary>
-    /// Evicts every cached plan that references one of the given policy names, leaving plans
-    /// that reference none of them in place.
+    /// Evicts every cached plan whose recorded requirement differs from a newly published policy
+    /// requirement, leaving plans that reference none of those policies in place.
     /// </summary>
-    public void EvictPolicies(IReadOnlyCollection<string> policyNames)
+    public void EvictPolicies(IReadOnlyDictionary<string, ulong> requirementHashes)
     {
-        Interlocked.Increment(ref _version);
-
-        var current = Current;
-
-        foreach (var name in policyNames)
+        lock (_mutationSync)
         {
-            if (_plansByPolicy.TryRemove(name, out var planIds))
+            var generation = Volatile.Read(ref _generation);
+            HashSet<string>? planIds = null;
+
+            Interlocked.Increment(ref _version);
+
+            try
             {
-                foreach (var id in planIds.Keys)
+                foreach (var (name, requirementHash) in requirementHashes)
                 {
-                    current.TryRemove(id);
-                    Interlocked.Decrement(ref _indexedIdCount);
+                    if (!generation.PlansByPolicy.TryGetValue(name, out var indexedPlans))
+                    {
+                        continue;
+                    }
+
+                    foreach (var (id, recordedHashes) in indexedPlans)
+                    {
+                        if (recordedHashes.Any(recordedHash => recordedHash != requirementHash))
+                        {
+                            (planIds ??= new HashSet<string>(StringComparer.Ordinal)).Add(id);
+                        }
+                    }
                 }
+
+                var current = generation.Cache;
+
+                if (planIds is not null)
+                {
+                    foreach (var id in planIds)
+                    {
+                        current.TryRemove(id);
+                        RemovePlanFromIndex(generation, id);
+                    }
+                }
+            }
+            finally
+            {
+                Interlocked.Increment(ref _version);
             }
         }
     }
@@ -169,11 +208,19 @@ internal sealed class OperationPlanCache
     /// </summary>
     public void Reset()
     {
-        Interlocked.Increment(ref _version);
+        lock (_mutationSync)
+        {
+            Interlocked.Increment(ref _version);
 
-        Volatile.Write(ref _current, new Cache<OperationPlan>(_capacity, _diagnostics));
-        _plansByPolicy.Clear();
-        Volatile.Write(ref _indexedIdCount, 0);
+            try
+            {
+                Volatile.Write(ref _generation, new Generation(_capacity, _diagnostics));
+            }
+            finally
+            {
+                Interlocked.Increment(ref _version);
+            }
+        }
     }
 
     /// <summary>
@@ -186,20 +233,20 @@ internal sealed class OperationPlanCache
     /// as a side effect, which is an acceptable perturbation for a maintenance pass that only
     /// runs rarely.
     /// </remarks>
-    private void MaintainIndexSize(Cache<OperationPlan> cache)
+    private void MaintainIndexSize(Generation generation)
     {
-        if (Interlocked.Read(ref _indexedIdCount) <= (long)_capacity * MaxIndexedIdsMultiplier)
+        if (Interlocked.Read(ref generation.IndexedIdCount) <= (long)_capacity * MaxIndexedIdsMultiplier)
         {
             return;
         }
 
-        foreach (var bucket in _plansByPolicy.Values)
+        foreach (var bucket in generation.PlansByPolicy.Values)
         {
             foreach (var id in bucket.Keys)
             {
-                if (!cache.TryGet(id, out _) && bucket.TryRemove(id, out _))
+                if (!generation.Cache.TryGet(id, out _))
                 {
-                    Interlocked.Decrement(ref _indexedIdCount);
+                    RemovePlanFromIndex(generation, id);
                 }
             }
         }
@@ -210,10 +257,73 @@ internal sealed class OperationPlanCache
     /// that <see cref="Add"/> can detect a concurrent eviction that ran while planning was in
     /// flight.
     /// </summary>
-    public readonly struct PlanCacheSession(Cache<OperationPlan> cache, long version)
+    private static void DecrementIndexCount(Generation generation)
     {
-        public Cache<OperationPlan> Cache { get; } = cache;
+        while (true)
+        {
+            var count = Interlocked.Read(ref generation.IndexedIdCount);
 
-        public long Version { get; } = version;
+            if (count == 0
+                || Interlocked.CompareExchange(ref generation.IndexedIdCount, count - 1, count) == count)
+            {
+                return;
+            }
+        }
+    }
+
+    private static void RemovePlanFromIndex(Generation generation, string id)
+    {
+        if (!generation.PoliciesByPlan.TryRemove(id, out var entries))
+        {
+            return;
+        }
+
+        foreach (var name in entries.Select(entry => entry.PolicyName).Distinct(StringComparer.Ordinal))
+        {
+            if (generation.PlansByPolicy.TryGetValue(name, out var indexedPlans)
+                && indexedPlans.TryRemove(id, out _))
+            {
+                DecrementIndexCount(generation);
+            }
+        }
+    }
+
+    internal sealed class Generation
+    {
+        public Generation(int capacity, CacheDiagnostics? diagnostics)
+        {
+            Cache = new Cache<OperationPlan>(capacity, diagnostics);
+            PlansByPolicy = new ConcurrentDictionary<
+                string,
+                ConcurrentDictionary<string, ImmutableHashSet<ulong>>>(
+                StringComparer.Ordinal);
+            PoliciesByPlan = new ConcurrentDictionary<string, ImmutableArray<PolicyPlanEntry>>(
+                StringComparer.Ordinal);
+        }
+
+        public Cache<OperationPlan> Cache { get; }
+
+        public ConcurrentDictionary<
+            string,
+            ConcurrentDictionary<string, ImmutableHashSet<ulong>>> PlansByPolicy { get; }
+
+        public ConcurrentDictionary<string, ImmutableArray<PolicyPlanEntry>> PoliciesByPlan { get; }
+
+        public long IndexedIdCount;
+    }
+
+    public readonly struct PlanCacheSession
+    {
+        internal PlanCacheSession(Generation generation, long version)
+        {
+            Generation = generation;
+            Version = version;
+        }
+
+        private Generation Generation { get; }
+
+        public Cache<OperationPlan> Cache => Generation.Cache;
+
+        public long Version { get; }
     }
 }

@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Policies.Rego;
@@ -29,7 +28,6 @@ public static class RegoFusionGatewayBuilderExtensions
                 // whichever one runs second.
                 services.TryAddSingleton<IPolicyProvider>(
                     static sp => new RegoPolicyProvider(
-                        sp.GetRequiredService<IFusionConfigurationProvider>(),
                         sp.GetRequiredService<IFusionExecutionDiagnosticEvents>()));
             });
     }

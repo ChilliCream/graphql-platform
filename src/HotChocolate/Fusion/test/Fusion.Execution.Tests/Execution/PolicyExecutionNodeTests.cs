@@ -377,6 +377,43 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_UsePinnedPolicy_When_ProviderReplacesItDuringRequest()
+    {
+        // arrange
+        var initialPolicy = new BlockingPolicy();
+        var originalSecondPolicy = new CountingAllowPolicy("CanReadSecond");
+        var replacementFirstPolicy = new CountingAllowPolicy("CanReadSecret");
+        var replacementSecondPolicy = new CountingAllowPolicy("CanReadSecond");
+        var executor = await CreateExpressionExecutorAsync(
+            "@policy(names: [[\"CanReadSecret\", \"CanReadSecond\"]], onDenied: NULL)",
+            initialPolicy,
+            originalSecondPolicy);
+        var provider = Assert.IsType<TestPolicyProvider>(
+            executor.Schema.Services.GetRequiredService<IPolicyProvider>());
+
+        // act
+        var execution = executor.ExecuteAsync("{ secret }", TestContext.Current.CancellationToken);
+        await initialPolicy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
+        provider.Emit(replacementFirstPolicy, replacementSecondPolicy);
+        initialPolicy.Release.TrySetResult();
+        await using var result = await execution;
+
+        // assert
+        Assert.Equal(1, initialPolicy.EvaluationCount);
+        Assert.Equal(1, originalSecondPolicy.EvaluationCount);
+        Assert.Equal(0, replacementFirstPolicy.EvaluationCount);
+        Assert.Equal(0, replacementSecondPolicy.EvaluationCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task EvaluatePolicyOnceAsync_Should_CacheFailure()
     {
         // arrange

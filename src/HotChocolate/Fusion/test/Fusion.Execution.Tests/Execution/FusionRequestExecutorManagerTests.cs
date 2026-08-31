@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Collections.Immutable;
@@ -259,6 +260,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         // arrange
         var evictions = 0;
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var policyContentSink = new PolicyContentSink();
 
         var configProvider = new TestFusionConfigurationProvider(
             CreateConfigurationWithPolicy("{ id }", "grant-v1"u8));
@@ -267,6 +269,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
             new ServiceCollection()
                 .AddGraphQLGateway()
                 .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices(
+                    (_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(policyContentSink))
                 .Services
                 .BuildServiceProvider();
 
@@ -281,13 +285,13 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         }));
 
         var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
-        var channel = initialExecutor.Schema.Services
-            .GetRequiredService<MutableFusionConfigurationProvider>();
+        var initialContentDelivered = ReferenceEquals(
+            configProvider.Configuration!.Policies,
+            policyContentSink.Current);
 
         // act
         // A rego source-only change keeps the schema and settings unchanged, so it is adopted
-        // without rebuilding the executor: it is delivered through the schema generation's
-        // configuration channel instead.
+        // without rebuilding the executor and delivered directly to the current provider.
         configProvider.UpdateConfiguration(
             CreateConfigurationWithPolicy("{ id }", "grant-v2"u8));
 
@@ -295,13 +299,10 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         // longer a rebuild trigger: it is handled by targeted plan-cache eviction inside
         // PolicyCollection, adopted the same way as a source-only change.
         var finalConfiguration = CreateConfigurationWithPolicy("{ id name }", "grant-v2"u8);
+        var delivery = policyContentSink.Expect(finalConfiguration.Policies);
         configProvider.UpdateConfiguration(finalConfiguration);
 
-        while (!ReferenceEquals(channel.Configuration, finalConfiguration))
-        {
-            cts.Token.ThrowIfCancellationRequested();
-            await Task.Delay(10, cts.Token);
-        }
+        await delivery.WaitAsync(cts.Token);
 
         var executorAfterChange = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
@@ -309,8 +310,82 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         // Neither change rebuilt the executor, so no eviction occurred and the same instance is
         // still served.
         Assert.Equal(
-            (Evictions: 0, SameExecutor: true),
-            (Evictions: evictions, SameExecutor: ReferenceEquals(initialExecutor, executorAfterChange)));
+            (
+                Evictions: 0,
+                SameExecutor: true,
+                InitialContentDelivered: true,
+                DeliveredContent: finalConfiguration.Policies),
+            (
+                Evictions: evictions,
+                SameExecutor: ReferenceEquals(initialExecutor, executorAfterChange),
+                InitialContentDelivered: initialContentDelivered,
+                DeliveredContent: policyContentSink.Current));
+    }
+
+    private sealed class PolicyContentSink
+        : IPolicyProvider
+        , IObserver<PolicyContentSnapshot?>
+    {
+        private readonly object _sync = new();
+        private TaskCompletionSource<PolicyContentSnapshot?>? _expected;
+        private PolicyContentSnapshot? _expectedContent;
+
+        public PolicyContentSnapshot? Current { get; private set; }
+
+        public Task<PolicyContentSnapshot?> Expect(PolicyContentSnapshot? content)
+        {
+            lock (_sync)
+            {
+                _expected = new TaskCompletionSource<PolicyContentSnapshot?>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _expectedContent = content;
+
+                if (ReferenceEquals(Current, content))
+                {
+                    _expected.TrySetResult(content);
+                }
+
+                return _expected.Task;
+            }
+        }
+
+        public void OnNext(PolicyContentSnapshot? value)
+        {
+            lock (_sync)
+            {
+                Current = value;
+
+                if (ReferenceEquals(_expectedContent, value))
+                {
+                    _expected.TrySetResult(value);
+                }
+            }
+        }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnCompleted()
+        {
+        }
+
+        public IDisposable Subscribe(IObserver<ImmutableArray<IPolicy>> observer)
+        {
+            observer.OnNext([]);
+            return EmptyDisposable.Instance;
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        private sealed class EmptyDisposable : IDisposable
+        {
+            public static EmptyDisposable Instance { get; } = new();
+
+            public void Dispose()
+            {
+            }
+        }
     }
 
     private static FusionConfiguration CreateConfigurationWithPolicy(

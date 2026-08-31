@@ -45,10 +45,8 @@ public sealed class RegoPolicyIntegrationTests
                 ct);
             configurations.Add(v1);
 
-            await using var configProvider = new MutableFusionConfigurationProvider(v1);
-            await using var policyProvider = new RegoPolicyProvider(
-                configProvider,
-                new NoopDiagnostics());
+            await using var policyProvider = new RegoPolicyProvider(new NoopDiagnostics());
+            policyProvider.OnNext(v1.Policies);
             using var registry = new PolicyCollection(policyProvider);
             registry.Connect();
 
@@ -64,7 +62,7 @@ public sealed class RegoPolicyIntegrationTests
                 ct);
             configurations.Add(v2);
             var before = registry.Get(PolicyName);
-            configProvider.Publish(v2);
+            policyProvider.OnNext(v2.Policies);
             var dedupKeyUnchanged = DedupKey(v1) == DedupKey(v2);
             var reloadReplacedInstance = !ReferenceEquals(before, registry.Get(PolicyName));
             var v2Product2Denied = await IsDeniedAsync(registry, "2", ct);
@@ -75,7 +73,7 @@ public sealed class RegoPolicyIntegrationTests
                 """{ "permissions": { "product_readers": { "2": true } } }""",
                 ct);
             configurations.Add(v3);
-            configProvider.Publish(v3);
+            policyProvider.OnNext(v3.Policies);
             var v3Product2Denied = await IsDeniedAsync(registry, "2", ct);
             var v3Product1Denied = await IsDeniedAsync(registry, "1", ct);
 

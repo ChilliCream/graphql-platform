@@ -69,6 +69,8 @@ public sealed partial class OperationPlanContext
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
+        PinPolicies(requestContext.GetPolicySnapshot(), operationPlan);
+
         EnsureNodeArrayCapacity(operationPlan.MaxNodeId);
     }
 
