@@ -9,6 +9,7 @@ internal sealed class DeferConditionCollection : ICollection<DeferCondition>
 
     public DeferConditionCollection(int maxAllowedConditions)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedConditions, 0);
         _maxAllowedConditions = maxAllowedConditions;
     }
 
