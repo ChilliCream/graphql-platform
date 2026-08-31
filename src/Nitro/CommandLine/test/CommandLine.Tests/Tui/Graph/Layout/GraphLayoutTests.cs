@@ -104,6 +104,30 @@ public sealed class GraphLayoutTests
     }
 
     [Fact]
+    public void Layout_Should_AcceptTransposeCandidatesOnlyWhenTheirFullCrossingCountImproves()
+    {
+        // arrange
+        var model = Model(
+            [Node("a"), Node("b"), Node("c"), Node("d"), Node("e"), Node("f")],
+            [Edge("a", "d"), Edge("a", "e"), Edge("b", "c"), Edge("b", "f"), Edge("c", "e"), Edge("d", "f")]);
+        var metrics = new GraphLayoutMetrics(captureCandidateObservations: true);
+
+        // act
+        _ = new GraphLayout(metrics: metrics).Layout(model, Sizes(model));
+
+        // assert
+        Assert.Contains(metrics.CandidateObservations, t => t.Accepted);
+        Assert.Contains(metrics.CandidateObservations, t => !t.Accepted);
+        Assert.All(
+            metrics.CandidateObservations,
+            t =>
+            {
+                Assert.Equal(t.FullAfter - t.FullBefore, t.IncidentAfter - t.IncidentBefore);
+                Assert.Equal(t.FullAfter < t.FullBefore, t.Accepted);
+            });
+    }
+
+    [Fact]
     public void Layout_Should_UseIncidentComparisons_ForRepresentativeLargeGraphs()
     {
         // arrange

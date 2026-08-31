@@ -274,6 +274,7 @@ internal sealed class GraphLayout
         var segmentsByLayer = segments
             .GroupBy(t => t.From.Layer)
             .ToDictionary(t => t.Key, t => (IReadOnlyList<LayoutSegment>)t.ToArray());
+        var captureCandidateObservations = metrics?.CaptureCandidateObservations == true;
 
         for (var pass = 0; pass < 4; pass++)
         {
@@ -286,11 +287,22 @@ internal sealed class GraphLayout
                     var right = layer[index + 1];
                     metrics?.RecordCandidate();
                     var before = CountIncidentCrossings(left, right, segmentsByLayer, metrics);
+                    var fullBefore = captureCandidateObservations
+                        ? CountCrossings(segments)
+                        : 0;
                     (layer[index], layer[index + 1]) = (layer[index + 1], layer[index]);
                     left.Order = index + 1;
                     right.Order = index;
                     var after = CountIncidentCrossings(left, right, segmentsByLayer, metrics);
-                    if (after < before)
+                    var fullAfter = captureCandidateObservations
+                        ? CountCrossings(segments)
+                        : 0;
+                    var accepted = after < before;
+                    if (captureCandidateObservations)
+                    {
+                        metrics!.RecordCandidateObservation(before, after, fullBefore, fullAfter, accepted);
+                    }
+                    if (accepted)
                     {
                         changed = true;
                     }
@@ -433,9 +445,24 @@ internal sealed class GraphLayout
 /// </summary>
 internal sealed class GraphLayoutMetrics
 {
+    private readonly List<GraphLayoutCandidateObservation>? _candidateObservations;
+
+    public GraphLayoutMetrics(bool captureCandidateObservations = false)
+    {
+        if (captureCandidateObservations)
+        {
+            _candidateObservations = [];
+        }
+    }
+
     public int CandidateCount { get; private set; }
 
     public int IncidentComparisonCount { get; private set; }
+
+    public bool CaptureCandidateObservations => _candidateObservations is not null;
+
+    public IReadOnlyList<GraphLayoutCandidateObservation> CandidateObservations
+        => _candidateObservations ?? Array.Empty<GraphLayoutCandidateObservation>();
 
     public void RecordCandidate()
     {
@@ -446,4 +473,27 @@ internal sealed class GraphLayoutMetrics
     {
         IncidentComparisonCount++;
     }
+
+    public void RecordCandidateObservation(
+        int incidentBefore,
+        int incidentAfter,
+        int fullBefore,
+        int fullAfter,
+        bool accepted)
+    {
+        _candidateObservations?.Add(
+            new GraphLayoutCandidateObservation(
+                incidentBefore,
+                incidentAfter,
+                fullBefore,
+                fullAfter,
+                accepted));
+    }
 }
+
+internal sealed record GraphLayoutCandidateObservation(
+    int IncidentBefore,
+    int IncidentAfter,
+    int FullBefore,
+    int FullAfter,
+    bool Accepted);
