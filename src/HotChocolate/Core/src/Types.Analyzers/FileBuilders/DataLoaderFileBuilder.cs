@@ -339,11 +339,24 @@ public sealed class DataLoaderFileBuilder : IDisposable
             {
                 if (parameter.Kind is DataLoaderParameterKind.Service)
                 {
-                    _writer.WriteIndentedLine(
-                        "var {0} = {1}.GetRequiredService<{2}>();",
-                        parameter.VariableName,
-                        isScoped ? "scope.ServiceProvider" : "_services",
-                        parameter.Type.ToFullyQualifiedWithNullRefQualifier());
+                    if (parameter.Key is { } serviceKey)
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = {1}.{2}<{3}>({4});",
+                            parameter.VariableName,
+                            isScoped ? "scope.ServiceProvider" : "_services",
+                            parameter.IsNullable ? "GetKeyedService" : "GetRequiredKeyedService",
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
+                            serviceKey);
+                    }
+                    else
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = {1}.GetRequiredService<{2}>();",
+                            parameter.VariableName,
+                            isScoped ? "scope.ServiceProvider" : "_services",
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier());
+                    }
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
                 {

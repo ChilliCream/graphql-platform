@@ -39,6 +39,18 @@ namespace System.Runtime.CompilerServices
 }
 #pragma warning restore CS9113 // Parameter is unread.</value>
   </data>
+  <data name="DataLoader_KeyedServiceAttributeConflict" xml:space="preserve">
+    <value>A DataLoader service parameter cannot use both [Service(key)] and [FromKeyedServices]. Use one keyed-service attribute.</value>
+  </data>
+  <data name="DataLoader_KeyedServiceAttributeIgnored" xml:space="preserve">
+    <value>This keyed-service attribute has no effect here. Remove it or apply it to a DataLoader service parameter.</value>
+  </data>
+  <data name="DataLoader_KeyedServiceOnConstructorParameter" xml:space="preserve">
+    <value>A keyed [Service] attribute on a hand-written DataLoader constructor parameter is resolved as an unkeyed service. Use [FromKeyedServices] instead.</value>
+  </data>
+  <data name="DataLoader_KeyedServiceKeyNotDeterminable" xml:space="preserve">
+    <value>The key of this derived [Service] attribute cannot be determined at compile time. Define the attribute in source or apply the key directly.</value>
+  </data>
   <data name="DataLoader_MultipleAttributes" xml:space="preserve">
     <value>A method can have only one [DataLoader] attribute</value>
   </data>

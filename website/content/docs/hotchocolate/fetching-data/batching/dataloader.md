@@ -146,6 +146,64 @@ The DataLoader kind is derived from the method signature:
 
 Beyond the key parameter, a DataLoader method can declare additional parameters: a `CancellationToken`, services from dependency injection (like the `CatalogContext` above), `[DataLoaderState]` parameters for passing context data, and data-integration parameters such as `PagingArguments`, `QueryContext<T>`, or `ISelectorBuilder` (see [Entity Framework](../integrations/entity-framework.md) and [Pagination](../pagination.md)).
 
+## Keyed Services
+
+Generated DataLoader methods can resolve keyed services with `[Service("key")]` or `[FromKeyedServices(key)]`. `[Service]` has parity with `[FromKeyedServices]` and supports any attribute constant, including strings, enum values, and integers. String keys remain supported unchanged. A non-nullable parameter is required. A nullable parameter is optional and can resolve to `null`.
+
+```csharp
+internal enum CatalogServiceKey
+{
+    ReadOnly
+}
+
+[AttributeUsage(AttributeTargets.Parameter)]
+internal sealed class ReadOnlyCatalogAttribute : ServiceAttribute
+{
+    public ReadOnlyCatalogAttribute()
+        : base("read-only")
+    {
+    }
+}
+
+internal static class BrandDataLoaders
+{
+    [DataLoader]
+    public static async Task<Dictionary<int, Brand>> GetBrandByIdAsync(
+        IReadOnlyList<int> ids,
+        [Service("primary")] CatalogContext primaryContext,
+        [Service(CatalogServiceKey.ReadOnly)] CatalogContext? readOnlyContext,
+        [ReadOnlyCatalog] CatalogCache cache,
+        CancellationToken ct)
+        => await primaryContext.Brands
+            .Where(b => ids.Contains(b.Id))
+            .ToDictionaryAsync(b => b.Id, ct);
+}
+```
+
+For attributes derived from `ServiceAttribute`, the constructor chain must be available in source and the key passed to the `ServiceAttribute` base constructor must be statically determinable. If `HC0133` remains, apply the key directly with `[Service("key")]` or `[FromKeyedServices(key)]`. Keys can be any constant, including strings, enum values, and integers. `KeyedService.AnyKey` is not supported.
+
+Hand-written DataLoader constructors use `[FromKeyedServices]`:
+
+```csharp
+public BrandByIdDataLoader(
+    [FromKeyedServices("primary")] CatalogContext context,
+    IBatchScheduler batchScheduler,
+    DataLoaderOptions options)
+    : base(batchScheduler, options)
+{
+    _context = context;
+}
+```
+
+`[Service("primary")]` on a hand-written DataLoader constructor parameter is resolved as an unkeyed service and produces `HC0132`.
+
+| Code     | Meaning                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| `HC0130` | A generated DataLoader service parameter uses both `[Service(key)]` and `[FromKeyedServices]`.  |
+| `HC0131` | A keyed-service attribute is applied to a parameter that is not a generated DataLoader service. |
+| `HC0132` | A keyed `[Service]` attribute is applied to a hand-written DataLoader constructor parameter.    |
+| `HC0133` | A `ServiceAttribute` constructor chain or base-constructor key cannot be determined.            |
+
 ## Handling Missing Keys
 
 A batch DataLoader returns `null` for keys that are absent from the returned dictionary. If that `null` flows into a non-nullable GraphQL field, the execution engine reports a standard non-null violation at that field's path (error code `HC0018`) and applies regular null propagation:

@@ -14,7 +14,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
         IMethodSymbol attributeSymbol,
         AttributeData attributeData,
         IMethodSymbol methodSymbol,
-        MethodDeclarationSyntax methodSyntax)
+        MethodDeclarationSyntax methodSyntax,
+        Compilation compilation)
     {
         Validate(methodSymbol, methodSyntax);
 
@@ -39,7 +40,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
         MethodName = methodSymbol.Name;
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
-        Parameters = CreateParameters(methodSymbol);
+        Parameters = CreateParameters(methodSymbol, compilation);
         Groups = methodSymbol.GetDataLoaderGroupKeys();
     }
 
@@ -154,7 +155,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
         }
     }
 
-    internal static ImmutableArray<DataLoaderParameterInfo> CreateParameters(IMethodSymbol method)
+    internal static ImmutableArray<DataLoaderParameterInfo> CreateParameters(IMethodSymbol method, Compilation compilation)
     {
         var builder = ImmutableArray.CreateBuilder<DataLoaderParameterInfo>();
         builder.Add(new DataLoaderParameterInfo("keys", method.Parameters[0], DataLoaderParameterKind.Key));
@@ -245,11 +246,26 @@ public sealed class DataLoaderInfo : SyntaxInfo
             }
 
             // lastly if we land here we assume that the parameter is a service.
+            var serviceAttributeInfo = parameter.GetServiceAttributeInfo(compilation);
+            var key = serviceAttributeInfo.HasServiceAttribute
+                ? serviceAttributeInfo.ServiceKey is { } serviceKey
+                    ? CSharpLiteralFormatter.FormatTypedConstant(serviceKey)
+                    : serviceAttributeInfo.SourceDerivedServiceKey is { } sourceDerivedServiceKey
+                        ? CSharpLiteralFormatter.FormatPrimitive(
+                            sourceDerivedServiceKey,
+                            serviceAttributeInfo.SourceDerivedServiceKeyType)
+                        : null
+                : serviceAttributeInfo.HasFromKeyedServicesAttribute
+                    && serviceAttributeInfo.FromKeyedServicesKey is { } fromKeyedServicesKey
+                    ? CSharpLiteralFormatter.FormatTypedConstant(fromKeyedServicesKey)
+                    : null;
+
             builder.Add(
                 new DataLoaderParameterInfo(
                     $"p{i}",
                     parameter,
-                    DataLoaderParameterKind.Service));
+                    DataLoaderParameterKind.Service,
+                    key: key));
         }
 
         return builder.ToImmutable();

@@ -56,7 +56,8 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                             attributeSymbol,
                             attributeData,
                             methodSymbol,
-                            methodSyntax);
+                            methodSyntax,
+                            compilation);
                         return true;
                     }
 

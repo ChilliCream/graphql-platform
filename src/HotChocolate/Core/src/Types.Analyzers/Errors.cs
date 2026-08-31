@@ -321,6 +321,42 @@ public static class Errors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor DataLoaderKeyedServiceAttributeConflict =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderKeyedServiceAttributeConflict,
+            title: "Conflicting Keyed Service Attributes",
+            messageFormat: SourceGenResources.DataLoader_KeyedServiceAttributeConflict,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderKeyedServiceAttributeIgnored =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderKeyedServiceAttributeIgnored,
+            title: "Keyed Service Attribute Ignored",
+            messageFormat: SourceGenResources.DataLoader_KeyedServiceAttributeIgnored,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderKeyedServiceOnConstructorParameter =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderKeyedServiceOnConstructorParameter,
+            title: "Keyed Service Attribute on DataLoader Constructor Parameter",
+            messageFormat: SourceGenResources.DataLoader_KeyedServiceOnConstructorParameter,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DataLoaderKeyedServiceKeyNotDeterminable =
+        new(
+            id: ErrorCodes.Analyzers.DataLoaderKeyedServiceKeyNotDeterminable,
+            title: "Keyed Service Key Not Determinable",
+            messageFormat: SourceGenResources.DataLoader_KeyedServiceKeyNotDeterminable,
+            category: "DataLoader",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
     public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
         new(
             id: ErrorCodes.Analyzers.InterfaceTypeStaticKeywordMissing,
