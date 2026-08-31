@@ -1,6 +1,8 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.TreeView;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
+using Spectre.Console;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph.TreeView;
@@ -92,12 +94,14 @@ public sealed class GraphTreeViewTests
         view.SelectTask("selected");
 
         // assert
-        var blocker = Assert.Single(view.Rows, t => t.TaskId == "blocker");
-        var selected = Assert.Single(view.Rows, t => t.TaskId == "selected");
-        var dependent = Assert.Single(view.Rows, t => t.TaskId == "dependent");
-        Assert.Equal((0, 1, true), (blocker.BlockedByCount, blocker.BlocksCount, blocker.IsRelatedToSelection));
-        Assert.Equal((1, 1, true), (selected.BlockedByCount, selected.BlocksCount, selected.IsSelected));
-        Assert.Equal((1, 0, true), (dependent.BlockedByCount, dependent.BlocksCount, dependent.IsRelatedToSelection));
+        Assert.Equal(
+            [
+                ((string?)null, 0, 0, false, false),
+                ("blocker", 0, 1, false, true),
+                ("dependent", 1, 0, false, true),
+                ("selected", 1, 1, true, false)
+            ],
+            view.Rows.Select(t => (t.TaskId, t.BlockedByCount, t.BlocksCount, t.IsSelected, t.IsRelatedToSelection)));
     }
 
     [Fact]
@@ -184,6 +188,42 @@ public sealed class GraphTreeViewTests
         Assert.Contains("└─   ○ [T] child child  blocked by 1 / blocks 0", console.Output);
     }
 
+    [Fact]
+    public void Render_Should_TruncateTitlesWithinWidthAndRetainRowStylesForSelectedRelationships()
+    {
+        // arrange
+        var model = Model(
+            [
+                Node("blocker", title: "Blocker title is deliberately long"),
+                Node("selected", title: "Selected title is deliberately long")
+            ],
+            [Edge("blocker", "selected")]);
+        var view = new GraphTreeView(model, Set());
+        view.SelectTask("selected");
+        var plainConsole = new TestConsole().Width(50).Height(10);
+        var ansiConsole = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(50)
+            .Height(10);
+
+        // act
+        plainConsole.Write(view.Render(50, 10));
+        ansiConsole.Write(view.Render(50, 10));
+
+        // assert
+        Assert.Equal(
+            "Root\n├─   ○ [T] Block… blocker  blocked by 0 / blocks 1\n└─   ○ [T] Sele… selected  blocked by 1 / blocks 0\n",
+            plainConsole.Output);
+        AssertSelectedTokenPrefixesText(ansiConsole.Output, "status.glyph.open", "○");
+        AssertSelectedTokenPrefixesText(ansiConsole.Output, "badge.type.task", "[T]");
+        AssertSelectedTokenPrefixesText(ansiConsole.Output, "footer.key", "blocker");
+        var selectionPrefix = GetAnsiPrefix(ThemeTokens.GetStyle("selection.highlight"));
+        Assert.True(
+            ansiConsole.Output.Contains(selectionPrefix + "├─", StringComparison.Ordinal)
+            && ansiConsole.Output.Contains(selectionPrefix + "└─", StringComparison.Ordinal));
+    }
+
     private static GraphModel EpicWithChildren(int childCount)
     {
         var nodes = new List<GraphNode> { Node("epic", type: TaskTypes.Epic) };
@@ -225,4 +265,19 @@ public sealed class GraphTreeViewTests
 
     private static IReadOnlySet<string> Set(params string[] ids)
         => ids.ToHashSet(StringComparer.Ordinal);
+
+    private static void AssertSelectedTokenPrefixesText(string output, string token, string text)
+    {
+        var tokenStyle = ThemeTokens.GetStyle(token);
+        var selectionStyle = ThemeTokens.GetStyle("selection.highlight");
+        var composedStyle = new Style(tokenStyle.Foreground, selectionStyle.Background, tokenStyle.Decoration);
+        Assert.Contains(GetAnsiPrefix(composedStyle) + text, output);
+    }
+
+    private static string GetAnsiPrefix(Style style)
+    {
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        console.Write(new Markup("x", style));
+        return console.Output[..console.Output.IndexOf('x')];
+    }
 }

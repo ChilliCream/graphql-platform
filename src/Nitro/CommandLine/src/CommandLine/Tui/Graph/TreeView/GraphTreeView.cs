@@ -1,3 +1,4 @@
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
@@ -326,8 +327,8 @@ internal sealed class GraphTreeView
 
     private static string RenderRow(GraphTreeRow row, int width)
     {
-        var text = row.IsRoot ? "Root" : RenderTask(row);
         var connector = row.Connector.BuildConnector();
+        var text = row.IsRoot ? "Root" : RenderTask(row, width - MeasureWidth(connector));
         var line = Markup.Escape(connector) + text;
 
         if (row.IsSelected || row.IsRelatedToSelection)
@@ -335,10 +336,10 @@ internal sealed class GraphTreeView
             line = Stylize(ThemeTokens.GetStyle("selection.highlight").ToMarkup(), line);
         }
 
-        return TruncateMarkup(line, width);
+        return line;
     }
 
-    private static string RenderTask(GraphTreeRow row)
+    private static string RenderTask(GraphTreeRow row, int width)
     {
         var task = row.Task!;
         var fold = row.HasChildren ? (row.IsExpanded ? "▾ " : "▸ ") : "  ";
@@ -349,23 +350,93 @@ internal sealed class GraphTreeView
             badges += $"  {row.ContainedMatchCount} hits";
         }
 
+        var prefix = $"{fold}{TaskGlyphs.Status(task.Status)} [{TaskGlyphs.TypeCode(task.Type)}] ";
+        var suffix = $" {task.Id}{badges}";
+        var title = Truncate(task.Title, width - MeasureWidth(prefix) - MeasureWidth(suffix));
+
         return $"{Markup.Escape(fold)}{TaskGlyphs.StatusMarkup(task.Status)} {TaskGlyphs.TypeCodeMarkup(task.Type)} "
-            + $"{Markup.Escape(task.Title)} {Stylize(ThemeTokens.GetStyle("footer.key").ToMarkup(), Markup.Escape(task.Id))}"
+            + $"{Markup.Escape(title)} {Stylize(ThemeTokens.GetStyle("footer.key").ToMarkup(), Markup.Escape(task.Id))}"
             + Markup.Escape(badges);
     }
 
     private static string Stylize(string styleMarkup, string content)
         => styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
 
-    private static string TruncateMarkup(string markup, int width)
+    private static string Truncate(string value, int width)
     {
-        var plain = Markup.Remove(markup);
-
-        if (plain.Length <= width)
+        if (width <= 0)
         {
-            return markup;
+            return string.Empty;
         }
 
-        return Markup.Escape(width == 1 ? "…" : string.Concat(plain.AsSpan(0, width - 1), "…"));
+        if (MeasureWidth(value) <= width)
+        {
+            return value;
+        }
+
+        if (width == 1)
+        {
+            return "…";
+        }
+
+        var budget = width - 1;
+        var used = 0;
+        var builder = new StringBuilder();
+
+        foreach (var rune in value.EnumerateRunes())
+        {
+            var runeWidth = GetRuneWidth(rune);
+
+            if (used + runeWidth > budget)
+            {
+                break;
+            }
+
+            builder.Append(rune);
+            used += runeWidth;
+        }
+
+        return builder.Append('…').ToString();
+    }
+
+    private static int MeasureWidth(string value)
+    {
+        var width = 0;
+
+        foreach (var rune in value.EnumerateRunes())
+        {
+            width += GetRuneWidth(rune);
+        }
+
+        return width;
+    }
+
+    private static int GetRuneWidth(Rune rune)
+    {
+        var value = rune.Value;
+
+        return value switch
+        {
+            >= 0x1100 and <= 0x115F => 2,
+            >= 0x2E80 and <= 0x303E => 2,
+            >= 0x3041 and <= 0x33FF => 2,
+            >= 0x3400 and <= 0x4DBF => 2,
+            >= 0x4E00 and <= 0x9FFF => 2,
+            >= 0xA000 and <= 0xA4CF => 2,
+            >= 0xAC00 and <= 0xD7A3 => 2,
+            >= 0xF900 and <= 0xFAFF => 2,
+            >= 0xFE30 and <= 0xFE4F => 2,
+            >= 0xFF00 and <= 0xFFE6 => 2,
+            >= 0x1F1E6 and <= 0x1F1FF => 2,
+            >= 0x1F200 and <= 0x1F2FF => 2,
+            >= 0x1F300 and <= 0x1F5FF => 2,
+            >= 0x1F600 and <= 0x1F64F => 2,
+            >= 0x1F680 and <= 0x1F6FF => 2,
+            >= 0x1F900 and <= 0x1F9FF => 2,
+            >= 0x1FA70 and <= 0x1FAFF => 2,
+            >= 0x20000 and <= 0x2FFFD => 2,
+            >= 0x30000 and <= 0x3FFFD => 2,
+            _ => 1
+        };
     }
 }
