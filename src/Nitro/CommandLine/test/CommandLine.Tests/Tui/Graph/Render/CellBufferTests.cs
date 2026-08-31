@@ -69,8 +69,26 @@ public sealed class CellBufferTests
         // assert
         Assert.Equal(new[] { blocks, parent, overrideOwner }, normal.Owners.ToArray());
         Assert.Equal(new[] { overrideOwner, parent, blocks }, reversed.Owners.ToArray());
-        Assert.Equal(new StyledCell('┆', new Style(Color.Red), Decoration.Dim), Describe(normal));
+        Assert.Equal(new StyledCell('┆', new Style(Color.Red, null, Decoration.Dim), Decoration.Dim), Describe(normal));
         Assert.Equal(Describe(normal), Describe(reversed));
+    }
+
+    [Fact]
+    public void SetArrow_Should_KeepHigherPriorityStrokeGlyph_When_ArrowHasLowerPriority()
+    {
+        // arrange
+        var buffer = new CellBuffer(1, 1);
+        var owner = new object();
+        var style = new Style(Color.Red, null, Decoration.Dim);
+        buffer.Connect(0, 0, CanvasDirections.Left | CanvasDirections.Right, style, owner, true, 3, 0);
+
+        // act
+        buffer.SetArrow(0, 0, '▶', new Style(Color.Blue), owner, false, 1, 0);
+        var cell = buffer.Get(0, 0);
+
+        // assert
+        Assert.Equal('┄', cell.Glyph);
+        Assert.Equal(style, cell.Style);
     }
 
     private static void Write(CellBuffer buffer, string text, int y)

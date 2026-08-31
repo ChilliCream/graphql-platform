@@ -52,6 +52,7 @@ internal sealed class GraphEdgeRouter
             .OrderBy(t => t.Key.FromId, StringComparer.Ordinal)
             .ThenBy(t => t.Key.ToId, StringComparer.Ordinal)
             .ThenBy(t => t.Key.Kind)
+            .ThenBy(t => t.Key.IsReversed)
             .Select((group, ordinal) => new SemanticEdge(
                 group.Key,
                 ordinal,
@@ -70,12 +71,18 @@ internal sealed class GraphEdgeRouter
             .ToArray();
         var spanCount = semanticEdges.Sum(t => t.Spans.Count);
         var geometryBySpan = new Dictionary<GraphLayoutEdgeSpan, RoutedSpan>();
+        var arrows = new Dictionary<GraphEdge, ArrowGeometry>();
+        var acceptedRouteCells = new HashSet<GraphLayoutPoint>();
+        var reservedArrowCells = new HashSet<GraphLayoutPoint>();
         var maxX = layout.Nodes.Count == 0 ? 0 : layout.Nodes.Max(t => t.X + t.Width);
         var maxY = layout.Nodes.Count == 0 ? 0 : layout.Nodes.Max(t => t.Y + t.Height);
 
         foreach (var semanticEdge in semanticEdges)
         {
             var pending = new List<RoutedSpan>(semanticEdge.Spans.Count);
+            var localReservedArrowCells = new HashSet<GraphLayoutPoint>(reservedArrowCells);
+            RoutePort? arrowPort = null;
+            EdgeContribution? arrowContribution = null;
             var routed = true;
             for (var index = 0; index < semanticEdge.Spans.Count; index++)
             {
@@ -92,6 +99,11 @@ internal sealed class GraphEdgeRouter
                     sourceNodes,
                     targetNodes,
                     layout.Nodes,
+                    localReservedArrowCells,
+                    (start, end) => (IsNodeAt(span.FromPosition, semanticEdge.Edge.ToId, nodesByPosition)
+                            && (acceptedRouteCells.Contains(start.Point) || reservedArrowCells.Contains(start.Point)))
+                        || (IsNodeAt(span.ToPosition, semanticEdge.Edge.ToId, nodesByPosition)
+                            && (acceptedRouteCells.Contains(end.Point) || reservedArrowCells.Contains(end.Point))),
                     out var route))
                 {
                     routed = false;
@@ -104,9 +116,25 @@ internal sealed class GraphEdgeRouter
                     semanticEdge.OverrideStyle,
                     options);
                 pending.Add(new RoutedSpan(span, route.Points, contribution, route.Start, route.End));
+
+                if (TryGetArrowPort(span, semanticEdge.Edge.ToId, route, nodesByPosition, out var selectedArrowPort))
+                {
+                    if (arrowPort is not null
+                        || selectedArrowPort.Direction == CanvasDirections.None
+                        || acceptedRouteCells.Contains(selectedArrowPort.Point)
+                        || reservedArrowCells.Contains(selectedArrowPort.Point))
+                    {
+                        routed = false;
+                        break;
+                    }
+
+                    arrowPort = selectedArrowPort;
+                    arrowContribution = contribution;
+                    localReservedArrowCells.Add(selectedArrowPort.Point);
+                }
             }
 
-            if (!routed)
+            if (!routed || arrowPort is null || arrowContribution is null)
             {
                 continue;
             }
@@ -116,7 +144,14 @@ internal sealed class GraphEdgeRouter
                 geometryBySpan.Add(geometry.Span, geometry);
                 maxX = Math.Max(maxX, geometry.Points.Max(t => t.X) + 1);
                 maxY = Math.Max(maxY, geometry.Points.Max(t => t.Y) + 1);
+                foreach (var point in geometry.Points)
+                {
+                    acceptedRouteCells.Add(point);
+                }
             }
+
+            arrows.Add(semanticEdge.Edge, new ArrowGeometry(arrowPort.Value, arrowContribution.Value));
+            reservedArrowCells.Add(arrowPort.Value.Point);
         }
 
         var buffer = new CellBuffer(maxX, maxY);
@@ -138,7 +173,10 @@ internal sealed class GraphEdgeRouter
 
         foreach (var semanticEdge in semanticEdges)
         {
-            DrawArrow(buffer, semanticEdge, geometryBySpan, nodesByPosition);
+            if (arrows.TryGetValue(semanticEdge.Edge, out var arrow))
+            {
+                DrawArrow(buffer, semanticEdge, arrow);
+            }
         }
 
         return new GraphRenderResult(buffer, routes, layout)
@@ -154,6 +192,8 @@ internal sealed class GraphEdgeRouter
         IReadOnlyList<GraphLayoutNode> sourceNodes,
         IReadOnlyList<GraphLayoutNode> targetNodes,
         IReadOnlyList<GraphLayoutNode> allNodes,
+        HashSet<GraphLayoutPoint> blockedPoints,
+        Func<RoutePort, RoutePort, bool> isUnavailableTargetPort,
         out RouteGeometry route)
     {
         var starts = GetPorts(span.FromPosition, span.ToPosition, nodesByPosition, allNodes);
@@ -162,7 +202,12 @@ internal sealed class GraphEdgeRouter
         {
             foreach (var end in ends)
             {
-                if (TryFindRoute(start, end, index, sourceNodes, targetNodes, allNodes, out var points))
+                if (isUnavailableTargetPort(start, end))
+                {
+                    continue;
+                }
+
+                if (TryFindRoute(start, end, index, sourceNodes, targetNodes, allNodes, blockedPoints, out var points))
                 {
                     route = new RouteGeometry(points, start, end);
                     return true;
@@ -250,6 +295,47 @@ internal sealed class GraphEdgeRouter
         }
     }
 
+    private static bool TryGetAnchor(
+        RoutePort port,
+        IReadOnlyList<GraphLayoutNode> nodes,
+        HashSet<GraphLayoutPoint> blockedPoints,
+        out GraphLayoutPoint anchor)
+    {
+        anchor = port.Direction switch
+        {
+            CanvasDirections.Right => new GraphLayoutPoint(port.Point.X - 1, port.Point.Y),
+            CanvasDirections.Left => new GraphLayoutPoint(port.Point.X + 1, port.Point.Y),
+            CanvasDirections.Down => new GraphLayoutPoint(port.Point.X, port.Point.Y - 1),
+            CanvasDirections.Up => new GraphLayoutPoint(port.Point.X, port.Point.Y + 1),
+            _ => port.Point
+        };
+
+        return anchor.X >= 0
+            && anchor.Y >= 0
+            && !Contains(nodes, anchor.X, anchor.Y)
+            && !blockedPoints.Contains(anchor);
+    }
+
+    private static List<GraphLayoutPoint> ComposeRoute(
+        GraphLayoutPoint startPort,
+        GraphLayoutPoint startAnchor,
+        IReadOnlyList<GraphLayoutPoint> interior,
+        GraphLayoutPoint endAnchor,
+        GraphLayoutPoint endPort)
+    {
+        var route = new List<GraphLayoutPoint>(interior.Count + 4);
+        Add(route, startPort);
+        Add(route, startAnchor);
+        foreach (var point in interior)
+        {
+            Add(route, point);
+        }
+
+        Add(route, endAnchor);
+        Add(route, endPort);
+        return route;
+    }
+
     private static bool TryFindRoute(
         RoutePort start,
         RoutePort end,
@@ -257,9 +343,13 @@ internal sealed class GraphEdgeRouter
         IReadOnlyList<GraphLayoutNode> sourceNodes,
         IReadOnlyList<GraphLayoutNode> targetNodes,
         IReadOnlyList<GraphLayoutNode> allNodes,
+        HashSet<GraphLayoutPoint> blockedPoints,
         out List<GraphLayoutPoint> route)
     {
-        if (Contains(allNodes, start.Point.X, start.Point.Y) || Contains(allNodes, end.Point.X, end.Point.Y))
+        if (blockedPoints.Contains(start.Point)
+            || blockedPoints.Contains(end.Point)
+            || !TryGetAnchor(start, allNodes, blockedPoints, out var startAnchor)
+            || !TryGetAnchor(end, allNodes, blockedPoints, out var endAnchor))
         {
             route = [];
             return false;
@@ -283,21 +373,30 @@ internal sealed class GraphEdgeRouter
         for (var offset = 0; offset < candidateCount; offset++)
         {
             var channel = low + ((index + offset) % candidateCount);
-            var points = Route(start.Point, end.Point, channel);
-            if (IsClear(points, allNodes))
+            var points = Route(startAnchor, endAnchor, channel);
+            if (IsClearRoute(points, allNodes, blockedPoints, start, end))
             {
-                route = points;
+                route = ComposeRoute(start.Point, startAnchor, points, endAnchor, end.Point);
                 return true;
             }
         }
 
-        return TryFindGridRoute(start.Point, end.Point, allNodes, out route);
+        if (TryFindGridRoute(startAnchor, endAnchor, allNodes, blockedPoints, out var gridRoute)
+            && IsClearRoute(gridRoute, allNodes, blockedPoints, start, end))
+        {
+            route = ComposeRoute(start.Point, startAnchor, gridRoute, endAnchor, end.Point);
+            return true;
+        }
+
+        route = [];
+        return false;
     }
 
     private static bool TryFindGridRoute(
         GraphLayoutPoint start,
         GraphLayoutPoint end,
         IReadOnlyList<GraphLayoutNode> nodes,
+        HashSet<GraphLayoutPoint> blockedPoints,
         out List<GraphLayoutPoint> route)
     {
         var maxX = Math.Max(Math.Max(start.X, end.X), nodes.Count == 0 ? 0 : nodes.Max(t => t.X + t.Width)) + 1;
@@ -322,7 +421,12 @@ internal sealed class GraphEdgeRouter
             {
                 var nextX = x + step.X;
                 var nextY = y + step.Y;
-                if (nextX < 0 || nextX > maxX || nextY < 0 || nextY > maxY || Contains(nodes, nextX, nextY))
+                if (nextX < 0
+                    || nextX > maxX
+                    || nextY < 0
+                    || nextY > maxY
+                    || Contains(nodes, nextX, nextY)
+                    || blockedPoints.Contains(new GraphLayoutPoint(nextX, nextY)))
                 {
                     continue;
                 }
@@ -351,13 +455,28 @@ internal sealed class GraphEdgeRouter
         }
 
         route.Reverse();
-        return IsClear(route, nodes);
+        return IsClear(route, nodes, blockedPoints);
     }
 
     private static int ToIndex(int x, int y, int width) => (y * width) + x;
 
-    private static bool IsClear(IEnumerable<GraphLayoutPoint> points, IReadOnlyList<GraphLayoutNode> nodes)
-        => points.All(point => !Contains(nodes, point.X, point.Y));
+    private static bool IsClear(
+        IEnumerable<GraphLayoutPoint> points,
+        IReadOnlyList<GraphLayoutNode> nodes,
+        HashSet<GraphLayoutPoint>? blockedPoints = null)
+        => points.All(point => !Contains(nodes, point.X, point.Y)
+            && (blockedPoints is null || !blockedPoints.Contains(point)));
+
+    private static bool IsClearRoute(
+        IEnumerable<GraphLayoutPoint> points,
+        IReadOnlyList<GraphLayoutNode> nodes,
+        HashSet<GraphLayoutPoint> blockedPoints,
+        RoutePort start,
+        RoutePort end)
+        => points.All(point => !Contains(nodes, point.X, point.Y)
+            && !blockedPoints.Contains(point)
+            && (start.Direction == CanvasDirections.None || point != start.Point)
+            && (end.Direction == CanvasDirections.None || point != end.Point));
 
     private static bool Contains(IReadOnlyList<GraphLayoutNode> nodes, int x, int y)
     {
@@ -465,46 +584,40 @@ internal sealed class GraphEdgeRouter
     private static void DrawArrow(
         CellBuffer buffer,
         SemanticEdge semanticEdge,
-        IReadOnlyDictionary<GraphLayoutEdgeSpan, RoutedSpan> geometryBySpan,
-        IReadOnlyDictionary<GraphLayoutPoint, GraphLayoutNode> nodesByPosition)
+        ArrowGeometry arrow)
     {
-        foreach (var span in semanticEdge.Spans)
+        buffer.SetArrow(
+            arrow.Port.Point.X,
+            arrow.Port.Point.Y,
+            ArrowFor(arrow.Port.Direction, semanticEdge.Edge.Kind),
+            arrow.Contribution.Style,
+            semanticEdge.Edge,
+            arrow.Contribution.Dashed,
+            arrow.Contribution.Rank,
+            arrow.Contribution.Ordinal);
+    }
+
+    private static bool TryGetArrowPort(
+        GraphLayoutEdgeSpan span,
+        string targetId,
+        RouteGeometry route,
+        IReadOnlyDictionary<GraphLayoutPoint, GraphLayoutNode> nodesByPosition,
+        out RoutePort port)
+    {
+        if (IsNodeAt(span.FromPosition, targetId, nodesByPosition))
         {
-            if (!geometryBySpan.TryGetValue(span, out var geometry))
-            {
-                return;
-            }
-
-            RoutePort port;
-            if (IsNodeAt(span.FromPosition, semanticEdge.Edge.ToId, nodesByPosition))
-            {
-                port = geometry.Start;
-            }
-            else if (IsNodeAt(span.ToPosition, semanticEdge.Edge.ToId, nodesByPosition))
-            {
-                port = geometry.End;
-            }
-            else
-            {
-                continue;
-            }
-
-            if (port.Direction == CanvasDirections.None)
-            {
-                return;
-            }
-
-            buffer.SetArrow(
-                port.Point.X,
-                port.Point.Y,
-                ArrowFor(port.Direction, semanticEdge.Edge.Kind),
-                geometry.Contribution.Style,
-                semanticEdge.Edge,
-                geometry.Contribution.Dashed,
-                geometry.Contribution.Rank,
-                geometry.Contribution.Ordinal);
-            return;
+            port = route.Start;
+            return true;
         }
+
+        if (IsNodeAt(span.ToPosition, targetId, nodesByPosition))
+        {
+            port = route.End;
+            return true;
+        }
+
+        port = default;
+        return false;
     }
 
     private static char ArrowFor(CanvasDirections direction, GraphEdgeKind kind)
@@ -560,6 +673,8 @@ internal sealed class GraphEdgeRouter
         List<GraphLayoutPoint> Points,
         RoutePort Start,
         RoutePort End);
+
+    private readonly record struct ArrowGeometry(RoutePort Port, EdgeContribution Contribution);
 
     private sealed record RoutedSpan(
         GraphLayoutEdgeSpan Span,

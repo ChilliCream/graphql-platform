@@ -89,8 +89,11 @@ internal sealed class CellBuffer
 
         ref var cell = ref GetState(x, y);
         AddOwner(ref cell, owner);
+        var canReplaceStrokeGlyph = !cell.HasStyle
+            || IsAtLeastPriority(rank, ordinal, cell.Rank, cell.Ordinal);
         ApplyContribution(ref cell, style, dashed, rank, ordinal);
-        if (!cell.HasExplicitGlyph || IsHigherPriority(rank, ordinal, cell.GlyphRank, cell.GlyphOrdinal))
+        if (canReplaceStrokeGlyph
+            && (!cell.HasExplicitGlyph || IsAtLeastPriority(rank, ordinal, cell.GlyphRank, cell.GlyphOrdinal)))
         {
             cell.Glyph = glyph;
             cell.HasExplicitGlyph = true;
@@ -230,6 +233,9 @@ internal sealed class CellBuffer
 
     private static bool IsHigherPriority(int rank, int ordinal, int otherRank, int otherOrdinal)
         => rank > otherRank || (rank == otherRank && ordinal < otherOrdinal);
+
+    private static bool IsAtLeastPriority(int rank, int ordinal, int otherRank, int otherOrdinal)
+        => rank > otherRank || (rank == otherRank && ordinal <= otherOrdinal);
 
     private bool Contains(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 
