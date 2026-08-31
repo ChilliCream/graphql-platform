@@ -683,9 +683,10 @@ internal sealed class FusionComposeCommand : Command
     }
 
     /// <summary>
-    /// Opens the archive for update, or creates it when it does not exist. A concurrent
-    /// reader, such as a gateway reloading the archive, holds the file only briefly, so
-    /// a locked archive is retried until the reader releases its handle.
+    /// Opens the archive for update, or creates it when it does not exist. An attempt
+    /// that fails with an <see cref="IOException"/>, such as a sharing violation from a
+    /// concurrent reader, is retried at a fixed delay; after
+    /// <see cref="MaxArchiveOpenAttempts"/> attempts the exception propagates.
     /// </summary>
     private static async Task<FusionArchive> OpenOrCreateArchiveAsync(
         IFileSystem fileSystem,
@@ -702,6 +703,7 @@ internal sealed class FusionComposeCommand : Command
             }
             catch (IOException) when (attempt < MaxArchiveOpenAttempts)
             {
+                // Retry: the archive is briefly locked by a concurrent reader.
             }
 
             await Task.Delay(s_archiveOpenRetryDelay, cancellationToken);
