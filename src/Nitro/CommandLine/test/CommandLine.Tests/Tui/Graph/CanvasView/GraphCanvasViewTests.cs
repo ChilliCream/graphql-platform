@@ -176,7 +176,7 @@ public sealed class GraphCanvasViewTests
         var status = ThemeTokens.GetStyle("status.glyph.closed");
         var type = ThemeTokens.GetStyle("badge.type.task");
         var footer = ThemeTokens.GetStyle("footer.key");
-        var terminal = Decoration.Dim;
+        const Decoration terminal = Decoration.Dim;
 
         // act
         var buffer = view.CreateRenderResult().Buffer;
