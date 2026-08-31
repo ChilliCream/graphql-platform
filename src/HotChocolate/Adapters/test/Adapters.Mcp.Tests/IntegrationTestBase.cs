@@ -973,6 +973,38 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task ListTools_InitializeToolsToolCreationFails_SurfacesBothToolsAndLogsFailure()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        // A document that passes validation but that the tool factory cannot build a tool
+        // for: the operation is anonymous, so no tool title can be derived from it.
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(Utf8GraphQLParser.Parse("{ books { title } }"))
+            {
+                Name = "failing"
+            },
+            TestContext.Current.CancellationToken);
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Valid { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var listener = new TestMcpDiagnosticEventListener();
+        var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, tool => tool.Name == "valid");
+        Assert.Contains(result, tool => tool.Name == "failing");
+        var (toolName, _) = Assert.Single(listener.ToolCreationFailureLog);
+        Assert.Equal("failing", toolName);
+    }
+
+    [Fact]
     public async Task CallTool_InvalidDocument_ReturnsErrorResult()
     {
         // arrange
@@ -1485,7 +1517,14 @@ public abstract class IntegrationTestBase
 
 public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
 {
+    public List<(string ToolName, Exception Exception)> ToolCreationFailureLog { get; } = [];
+
     public List<IError> ValidationErrorLog { get; } = [];
+
+    public override void ToolCreationFailed(string toolName, Exception exception)
+    {
+        ToolCreationFailureLog.Add((toolName, exception));
+    }
 
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {

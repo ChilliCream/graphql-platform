@@ -271,7 +271,18 @@ internal sealed class McpStorageObserver : IDisposable
                 continue;
             }
 
-            tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
+            try
+            {
+                tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
+            }
+            catch (Exception exception)
+            {
+                _diagnosticEvents.ToolCreationFailed(toolDefinition.Name, exception);
+                // Treat a definition the tool factory cannot build a tool for like an
+                // invalid one, so a single broken definition does not take down the
+                // remaining tools.
+                invalidFallbacks.TryAdd(toolDefinition.Name, toolDefinition);
+            }
         }
 
         // For names with no valid definition at all, surface the first invalid one so calls
