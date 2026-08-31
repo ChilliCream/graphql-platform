@@ -75,10 +75,12 @@ public sealed class GraphCanvasViewTests
         // act
         _ = view.Render(12, 3);
         var selected = view.Layout.FindNode("dependent")!;
+        var centerX = selected.X + (selected.Width / 2);
+        var centerY = selected.Y + (selected.Height / 2);
 
         // assert
-        Assert.InRange(selected.X, view.Viewport.X, view.Viewport.X + view.Viewport.Width - 1);
-        Assert.InRange(selected.Y, view.Viewport.Y, view.Viewport.Y + view.Viewport.Height - 1);
+        Assert.InRange(centerX, view.Viewport.X, view.Viewport.X + view.Viewport.Width - 1);
+        Assert.InRange(centerY, view.Viewport.Y, view.Viewport.Y + view.Viewport.Height - 1);
     }
 
     [Fact]
