@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
@@ -122,7 +123,7 @@ public sealed class FusionRequestOptions : ICloneable
 
             field = value;
         }
-    } = 1024;
+    } = IncludeConditionCollection.DefaultMaxAllowedConditions;
 
     /// <summary>
     /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
@@ -139,7 +140,7 @@ public sealed class FusionRequestOptions : ICloneable
 
             field = value;
         }
-    } = 1024;
+    } = DeferConditionCollection.DefaultMaxAllowedConditions;
 
     /// <summary>
     /// Gets or sets the persisted operation options.

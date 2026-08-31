@@ -12,7 +12,7 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
     private readonly OrderedDictionary<IncludeCondition, int> _dictionary = [];
     private readonly int _maxAllowedConditions;
 
-    public IncludeConditionCollection(int maxAllowedConditions = DefaultMaxAllowedConditions)
+    public IncludeConditionCollection(int maxAllowedConditions)
     {
         _maxAllowedConditions = maxAllowedConditions;
     }

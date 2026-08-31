@@ -12,7 +12,7 @@ internal sealed class DeferConditionCollection : ICollection<DeferCondition>
     private readonly OrderedDictionary<DeferCondition, int> _dictionary = [];
     private readonly int _maxAllowedConditions;
 
-    public DeferConditionCollection(int maxAllowedConditions = DefaultMaxAllowedConditions)
+    public DeferConditionCollection(int maxAllowedConditions)
     {
         _maxAllowedConditions = maxAllowedConditions;
     }
