@@ -538,12 +538,32 @@ public sealed partial class OperationCompiler
                 hasStreamSelections);
     }
 
-    private static bool HasStreamSelections(
+    private bool HasStreamSelections(
         SelectionSetNode selectionSet,
         IComplexTypeDefinition type)
     {
         foreach (var selection in selectionSet.Selections)
         {
+            if (selection is InlineFragmentNode inlineFragmentNode)
+            {
+                var effectiveType = type;
+
+                if (inlineFragmentNode.TypeCondition is { }
+                    && !_schema.Types.TryGetType<IComplexTypeDefinition>(
+                        inlineFragmentNode.TypeCondition.Name.Value,
+                        out effectiveType))
+                {
+                    continue;
+                }
+
+                if (HasStreamSelections(inlineFragmentNode.SelectionSet, effectiveType))
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
             if (selection is not FieldNode fieldNode
                 || !type.Fields.TryGetField(fieldNode.Name.Value, out var field))
             {

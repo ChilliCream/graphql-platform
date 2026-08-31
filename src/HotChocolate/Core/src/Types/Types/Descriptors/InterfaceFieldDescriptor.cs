@@ -45,22 +45,40 @@ public class InterfaceFieldDescriptor
         Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
         Configuration.Name = naming.GetMemberName(member, MemberKind.InterfaceField);
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.InterfaceField);
-        Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
-
         if (naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
 
-        if (member is MethodInfo m)
+        switch (member)
         {
-            _parameterInfos = context.TypeInspector.GetParameters(m);
-            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            case MethodInfo m:
+                _parameterInfos = context.TypeInspector.GetParameters(m);
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
 
-            if (m.IsDefined(typeof(BatchResolverAttribute)))
-            {
-                Configuration.Flags |= CoreFieldFlags.BatchResolver;
-            }
+                if (m.IsDefined(typeof(BatchResolverAttribute)))
+                {
+                    Configuration.SetBatchResolverFlags();
+                    var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                        ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
+                    Configuration.ResultType = elementType;
+                    Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                }
+                else
+                {
+                    Configuration.ResultType = m.ReturnType;
+                    Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                }
+                break;
+
+            case PropertyInfo p:
+                Configuration.ResultType = p.PropertyType;
+                Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                break;
+
+            default:
+                Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+                break;
         }
     }
 
