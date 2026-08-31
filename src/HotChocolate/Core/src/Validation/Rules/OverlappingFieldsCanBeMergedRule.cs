@@ -75,7 +75,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                         .SetMessage(conflict.Reason)
                         .AddLocations(fieldNodes.Order(FieldLocationComparer.Instance))
                         .SetPath(conflict.Path)
-                        .SpecifiedBy("sec-Field-Selection-Merging")
+                        .SpecifiedBy("sec-Field-Selection-Merging", rfc: conflict.Rfc)
                         .Build());
             }
 
@@ -252,11 +252,14 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                     continue;
                 }
 
-                conflict = RequireNoOverlappingStreams(group, newPath, context);
-                if (conflict is not null)
+                if (context.IsStreamEnabled)
                 {
-                    conflictsResult.Add(conflict);
-                    continue;
+                    conflict = RequireNoOverlappingStreams(group, newPath, context);
+                    if (conflict is not null)
+                    {
+                        conflictsResult.Add(conflict);
+                        continue;
+                    }
                 }
 
                 var subSelections = MergeSubSelections(context, group);
@@ -624,7 +627,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 + "This violates the HasNoOverlappingStreams validation rule.",
                 responseName),
             GetFieldNodes(fields, context),
-            path);
+            path,
+            rfc: 1223);
     }
 
     private static HashSet<FieldNode> GetFieldNodes(HashSet<FieldAndType> fields, MergeContext context)
@@ -669,13 +673,19 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
     }
 
-    private sealed class Conflict(string reason, HashSet<FieldNode> fields, Path? path = null)
+    private sealed class Conflict(
+        string reason,
+        HashSet<FieldNode> fields,
+        Path? path = null,
+        int? rfc = null)
     {
         public string Reason { get; } = reason;
 
         public HashSet<FieldNode> Fields { get; } = fields;
 
         public Path? Path { get; } = path;
+
+        public int? Rfc { get; } = rfc;
     }
 
     private sealed class HashSetComparer<T> : IEqualityComparer<HashSet<T>> where T : notnull
@@ -716,6 +726,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             _maxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons;
             _remainingBudget = maxAllowedFieldMergeComparisons;
             TypenameFieldType = new NonNullType(context.Schema.Types["String"]);
+            IsStreamEnabled = context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
         }
 
         public bool BudgetExhausted { get; private set; }
@@ -765,6 +776,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             new HashSet<HashSet<FieldNode>>(HashSetComparer<FieldNode>.Instance);
 
         public DocumentValidatorContext.FragmentContext Fragments => _context.Fragments;
+
+        public bool IsStreamEnabled { get; }
 
         public Dictionary<string, HashSet<FieldAndType>> RentFieldMap()
         {

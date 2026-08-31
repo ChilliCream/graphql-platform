@@ -1,4 +1,6 @@
 using HotChocolate.Language;
+using HotChocolate.StarWars;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Validation.Rules;
 
@@ -371,6 +373,37 @@ public class FieldSelectionMergingRuleTests
         // act
         // assert
         ExpectErrors(document);
+    }
+
+    [Fact]
+    public void Stream_Fields_Are_Only_Reported_As_Undefined_When_Stream_Is_Disabled()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+        var validator = DocumentValidatorBuilder.New()
+            .AddDefaultRules()
+            .Build();
+        const string document =
+            """
+            {
+                __schema {
+                    types @stream(initialCount: 1) {
+                        name
+                    }
+                    types @stream(initialCount: 1) {
+                        name
+                    }
+                }
+            }
+            """;
+
+        // act
+        var result = validator.Validate(schema, Utf8GraphQLParser.Parse(document));
+
+        // assert
+        result.Errors.MatchSnapshot();
     }
 
     [Fact]

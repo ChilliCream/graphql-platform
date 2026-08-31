@@ -15,6 +15,7 @@
     "streamedFields"
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Field-Selection-Merging",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1223"
   }
 }
