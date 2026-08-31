@@ -187,7 +187,7 @@ internal sealed class OperationExecutionMiddleware
             {
                 if (resultBuffer[i].IsStreamResult() && operationContextBuffer[i] is { } contextOwner)
                 {
-                    resultBuffer[i].RegisterForCleanup(contextOwner);
+                    resultBuffer[i].RegisterForCleanup((IAsyncDisposable)contextOwner);
 
                     // Ownership now belongs to the stream, so we drop it from the buffer to keep
                     // ReleaseResources from disposing (and pooling) the context a second time.
@@ -265,7 +265,7 @@ internal sealed class OperationExecutionMiddleware
 
             if (result.IsStreamResult())
             {
-                result.RegisterForCleanup(operationContextOwner);
+                result.RegisterForCleanup((IAsyncDisposable)operationContextOwner);
                 operationContextOwner = null;
             }
 

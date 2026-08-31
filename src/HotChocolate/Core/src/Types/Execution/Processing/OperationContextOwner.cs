@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing;
 /// <see cref="OperationContext"/>.
 /// </para>
 /// </summary>
-internal sealed class OperationContextOwner : IDisposable
+internal sealed class OperationContextOwner : IDisposable, IAsyncDisposable
 {
     private readonly ObjectPool<OperationContext> _pool;
     private readonly OperationContext _context;
@@ -51,6 +51,15 @@ internal sealed class OperationContextOwner : IDisposable
     {
         if (_disposed == 0 && CompareExchange(ref _disposed, 1, 0) == 0)
         {
+            _pool.Return(_context);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed == 0 && CompareExchange(ref _disposed, 1, 0) == 0)
+        {
+            await _context.CleanAsync().ConfigureAwait(false);
             _pool.Return(_context);
         }
     }

@@ -36,7 +36,73 @@ internal sealed partial class DeferExecutionCoordinator
     /// <summary>
     /// Resets the coordinator to its initial state so it can be reused.
     /// </summary>
+    public async ValueTask ResetAsync()
+    {
+        List<OperationResult>? cleanup = null;
+
+        lock (_sync)
+        {
+            if (_completedResults.Count > 0)
+            {
+                cleanup ??= [];
+                cleanup.AddRange(_completedResults.Values);
+            }
+
+            foreach (var branch in _branchLookup.Values)
+            {
+                if (branch.Results is { Count: > 0 } results)
+                {
+                    cleanup ??= [];
+                    cleanup.AddRange(results);
+                }
+            }
+
+            if (_results.Count > 0)
+            {
+                cleanup ??= [];
+                cleanup.AddRange(_results);
+            }
+
+            ResetUnsafe();
+        }
+
+        if (cleanup is not null)
+        {
+            foreach (var result in cleanup)
+            {
+                await result.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+    }
+
     public void Reset()
+    {
+        lock (_sync)
+        {
+            if (_completedResults.Count > 0 || _results.Count > 0 || HasBufferedResultsUnsafe())
+            {
+                throw new InvalidOperationException(
+                    "The coordinator has results that must be cleaned asynchronously before it can be reset.");
+            }
+
+            ResetUnsafe();
+        }
+    }
+
+    private bool HasBufferedResultsUnsafe()
+    {
+        foreach (var branch in _branchLookup.Values)
+        {
+            if (branch.Results is { Count: > 0 })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void ResetUnsafe()
     {
         _branchIdLookup.Clear();
         _streamBranchIdLookup.Clear();
@@ -47,7 +113,6 @@ internal sealed partial class DeferExecutionCoordinator
         _completedBranches.Clear();
         _results.Clear();
         _branchTracker = null!;
-        _processQueue = null;
         _hasBranches = false;
         _isComplete = false;
         _mainBranchId = 0;

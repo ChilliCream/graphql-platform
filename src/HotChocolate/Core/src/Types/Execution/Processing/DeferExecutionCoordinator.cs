@@ -21,7 +21,6 @@ internal sealed partial class DeferExecutionCoordinator
     private readonly List<OperationResult> _results = [];
     private readonly AsyncAutoResetEvent _signal = new();
     private HashSet<int>? _mainBranchChildren;
-    private Queue<int>? _processQueue;
     private BranchTracker _branchTracker = null!;
     private int _mainBranchId;
     private volatile bool _hasBranches;
@@ -116,8 +115,8 @@ internal sealed partial class DeferExecutionCoordinator
 
     /// <summary>
     /// Enqueues a deferred result for the specified branch.
-    /// If the parent branch has already been announced, the result is composed
-    /// and delivered immediately; otherwise it is stored until the parent is announced.
+    /// If the branch has already been announced, the result is composed and delivered
+    /// immediately; otherwise it is stored until the branch data is revealed.
     /// </summary>
     public void EnqueueResult(OperationResult result, int branchId)
     {
@@ -125,18 +124,16 @@ internal sealed partial class DeferExecutionCoordinator
 
         lock (_sync)
         {
+            if (_completedResults.TryGetValue(branchId, out var previousResult))
+            {
+                result.RegisterForCleanup(previousResult);
+            }
+
             _completedResults[branchId] = result;
 
-            if (IsParentAnnouncedUnsafe(branchId))
+            if (_announced.Contains(branchId))
             {
-                if (!_announced.Contains(branchId))
-                {
-                    var parentBranchId = _branchLookup[branchId].ParentBranchId;
-                    var payload = GetPayloadUnsafe(null, out var isNewPayload);
-                    AnnounceChildrenUnsafe(parentBranchId, payload);
-                    CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
-                }
-                else if (_completedResults.Remove(branchId, out var readyResult))
+                if (_completedResults.Remove(branchId, out var readyResult))
                 {
                     ComposeAndDeliverUnsafe(branchId, readyResult);
                 }
@@ -148,7 +145,7 @@ internal sealed partial class DeferExecutionCoordinator
     /// Enqueues a single streamed list item for the specified branch.
     /// The branch remains pending until <see cref="CompleteStream"/> is called.
     /// </summary>
-    public void EnqueueStreamItem(OperationResult result, int branchId)
+    public ValueTask EnqueueStreamItem(OperationResult result, int branchId)
     {
         AssertInitialized();
 
@@ -160,19 +157,23 @@ internal sealed partial class DeferExecutionCoordinator
                 || branch.Kind != BranchKind.Stream
                 || _completedBranches.Contains(branchId))
             {
-                return;
+                return result.DisposeAsync();
             }
 
             if (!_announced.Contains(branchId))
             {
                 (branch.Results ??= []).Add(result);
-                return;
+                return ValueTask.CompletedTask;
             }
 
             var payload = GetPayloadUnsafe(result, out var isNewPayload);
-            AnnounceChildrenUnsafe(branchId, payload);
-            AddStreamItemUnsafe(branchId, result, payload, isNewPayload);
+            if (AddStreamItemUnsafe(branchId, result, payload, isNewPayload))
+            {
+                AnnounceChildrenUnsafe(branchId, payload);
+            }
+
             CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+            return ValueTask.CompletedTask;
         }
     }
 
@@ -203,8 +204,8 @@ internal sealed partial class DeferExecutionCoordinator
             }
 
             var payload = GetPayloadUnsafe(null, out var isNewPayload);
-            AnnounceChildrenUnsafe(branchId, payload);
             payload.Completed = payload.Completed.Add(new CompletedResult(branchId, errors));
+            DropUnannouncedChildrenUnsafe(branchId, payload);
             CompleteBranchUnsafe(branchId);
             CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
         }
@@ -214,25 +215,29 @@ internal sealed partial class DeferExecutionCoordinator
     /// Aborts all pending branches at or below <paramref name="path"/>.
     /// Announced branches receive a failed completion while branches that were not announced are dropped.
     /// </summary>
-    public void AbortBranches(Path path, IReadOnlyList<IError> errors)
+    public async ValueTask AbortBranchesAsync(Path path, IReadOnlyList<IError> errors)
     {
         AssertInitialized();
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(errors);
+
+        List<OperationResult>? cleanup = null;
 
         lock (_sync)
         {
             OperationResult? payload = null;
             var isNewPayload = false;
 
-            foreach (var (branchId, branch) in _branchLookup)
+            foreach (var branchId in _branchLookup.Keys)
             {
+                ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
                 if (_completedBranches.Contains(branchId) || !IsAtOrBelow(path, branch.Path))
                 {
                     continue;
                 }
 
-                _completedResults.Remove(branchId);
+                DetachBranchResultsUnsafe(branchId, ref cleanup);
 
                 if (_announced.Contains(branchId))
                 {
@@ -245,12 +250,22 @@ internal sealed partial class DeferExecutionCoordinator
 
             if (payload is not null)
             {
+                RegisterCleanupUnsafe(payload, cleanup);
                 CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
             }
             else if (_announced.Contains(_mainBranchId) && _pendingBranches == 0)
             {
                 payload = GetPayloadUnsafe(null, out isNewPayload);
+                RegisterCleanupUnsafe(payload, cleanup);
                 CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+            }
+        }
+
+        if (cleanup is not null)
+        {
+            foreach (var result in cleanup)
+            {
+                await result.DisposeAsync().ConfigureAwait(false);
             }
         }
     }
@@ -321,23 +336,27 @@ internal sealed partial class DeferExecutionCoordinator
         }
 
         _announced.Add(branchId);
-        AnnounceChildrenUnsafe(branchId, payload);
+
+        var hasData = result.Data is { IsValueNull: false };
+
+        if (isInitialPayload || hasData)
+        {
+            AnnounceChildrenUnsafe(branchId, payload);
+        }
 
         if (!isInitialPayload)
         {
             AddCompletedBranch(branchId, result, payload);
             CompleteBranchUnsafe(branchId);
+
+            if (!hasData)
+            {
+                DropUnannouncedChildrenUnsafe(branchId, payload);
+            }
         }
 
         CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: !isInitialPayload && isNewPayload);
     }
-
-    /// <summary>
-    /// Determines whether the parent of the specified branch has already been announced to the response stream.
-    /// </summary>
-    private bool IsParentAnnouncedUnsafe(int branchId)
-        => _branchLookup.TryGetValue(branchId, out var branch)
-            && _announced.Contains(branch.ParentBranchId);
 
     private void AnnounceChildrenUnsafe(int branchId, OperationResult result)
     {
@@ -348,50 +367,44 @@ internal sealed partial class DeferExecutionCoordinator
             return;
         }
 
-        var processQueue = _processQueue ??= new Queue<int>();
-        processQueue.Clear();
-        processQueue.Enqueue(branchId);
-
-        while (processQueue.TryDequeue(out var parentBranchId))
+        foreach (var childId in children)
         {
-            foreach (var childId in GetChildrenUnsafe(parentBranchId))
+            if (!_announced.Add(childId))
             {
-                if (!_announced.Add(childId))
+                continue;
+            }
+
+            ref var child = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, childId);
+            result.Pending = result.Pending.Add(new PendingResult(childId, child.Path, child.Label));
+
+            if (child.Kind == BranchKind.Defer
+                && _completedResults.Remove(childId, out var childResult))
+            {
+                result.RegisterForCleanup(childResult);
+                AddCompletedBranch(childId, childResult, result);
+                CompleteBranchUnsafe(childId);
+
+                if (childResult.Data is { IsValueNull: false })
                 {
-                    continue;
+                    AnnounceChildrenUnsafe(childId, result);
                 }
-
-                ref var child = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, childId);
-                result.Pending = result.Pending.Add(new PendingResult(childId, child.Path, child.Label));
-
-                if (child.Kind == BranchKind.Defer
-                    && _completedResults.Remove(childId, out var childResult))
+                else
                 {
-                    result.RegisterForCleanup(childResult);
-                    AddCompletedBranch(childId, childResult, result);
-                    CompleteBranchUnsafe(childId);
+                    DropUnannouncedChildrenUnsafe(childId, result);
                 }
-                else if (child.Kind == BranchKind.Stream)
+            }
+            else if (child.Kind == BranchKind.Stream
+                && child.Results is { Count: > 0 } results)
+            {
+                foreach (var streamResult in results)
                 {
-                    if (child.Results is { Count: > 0 } results)
+                    if (AddStreamItemUnsafe(childId, streamResult, result, resultIsStreamResult: false))
                     {
-                        foreach (var streamResult in results)
-                        {
-                            AddStreamItemUnsafe(childId, streamResult, result, resultIsStreamResult: false);
-                        }
-
-                        results.Clear();
-                    }
-
-                    if (child.IsStreamComplete)
-                    {
-                        result.Completed = result.Completed.Add(
-                            new CompletedResult(childId, child.CompletionErrors));
-                        CompleteBranchUnsafe(childId);
+                        AnnounceChildrenUnsafe(childId, result);
                     }
                 }
 
-                processQueue.Enqueue(childId);
+                results.Clear();
             }
         }
     }
@@ -419,7 +432,7 @@ internal sealed partial class DeferExecutionCoordinator
         }
     }
 
-    private void AddStreamItemUnsafe(
+    private bool AddStreamItemUnsafe(
         int branchId,
         OperationResult streamResult,
         OperationResult result,
@@ -427,7 +440,12 @@ internal sealed partial class DeferExecutionCoordinator
     {
         if (!streamResult.Data.HasValue)
         {
-            return;
+            if (!resultIsStreamResult)
+            {
+                result.RegisterForCleanup(streamResult);
+            }
+
+            return false;
         }
 
         if (!resultIsStreamResult)
@@ -437,6 +455,70 @@ internal sealed partial class DeferExecutionCoordinator
 
         result.Incremental = result.Incremental.Add(
             new IncrementalListResult(branchId, streamResult.Data.Value, streamResult.Errors));
+        return true;
+    }
+
+    private void DropUnannouncedChildrenUnsafe(int branchId, OperationResult payload)
+    {
+        foreach (var childId in GetChildrenUnsafe(branchId))
+        {
+            if (_announced.Contains(childId) || _completedBranches.Contains(childId))
+            {
+                continue;
+            }
+
+            DropUnannouncedChildrenUnsafe(childId, payload);
+            DetachBranchResultsUnsafe(childId, payload);
+            CompleteBranchUnsafe(childId);
+        }
+    }
+
+    private void DetachBranchResultsUnsafe(int branchId, OperationResult payload)
+    {
+        if (_completedResults.Remove(branchId, out var completedResult))
+        {
+            payload.RegisterForCleanup(completedResult);
+        }
+
+        ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+        if (branch.Results is { Count: > 0 } results)
+        {
+            foreach (var result in results)
+            {
+                payload.RegisterForCleanup(result);
+            }
+
+            results.Clear();
+        }
+    }
+
+    private void DetachBranchResultsUnsafe(int branchId, ref List<OperationResult>? cleanup)
+    {
+        if (_completedResults.Remove(branchId, out var completedResult))
+        {
+            (cleanup ??= []).Add(completedResult);
+        }
+
+        ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+        if (branch.Results is { Count: > 0 } results)
+        {
+            cleanup ??= [];
+            cleanup.AddRange(results);
+            results.Clear();
+        }
+    }
+
+    private static void RegisterCleanupUnsafe(OperationResult payload, List<OperationResult>? cleanup)
+    {
+        if (cleanup is not null)
+        {
+            foreach (var result in cleanup)
+            {
+                payload.RegisterForCleanup(result);
+            }
+        }
     }
 
     private OperationResult GetPayloadUnsafe(OperationResult? streamResult, out bool isNewPayload)

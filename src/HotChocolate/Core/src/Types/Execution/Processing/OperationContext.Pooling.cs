@@ -185,28 +185,43 @@ internal sealed partial class OperationContext
             _branchTracker.Reset();
             _workScheduler.Clear();
             _deferExecutionCoordinator.Reset();
-
-            _currentBranchTracker = _branchTracker;
-            _currentWorkScheduler = _workScheduler;
-
-            _requestContext = null!;
-            _schema = null!;
-            _errorHandler = null!;
-            _resolvers = null!;
-            _diagnosticEvents = null!;
-            _contextData = null!;
-            _operation = null!;
-            _variables = null!;
-            _services = null!;
-            _rootValue = null;
-            _resolveQueryRootValue = null!;
-            _batchDispatcher = null!;
-            _memory = null;
-            _branchId = int.MinValue;
-            _propagateNullValues = false;
-            _isInitialized = false;
-            Result.Reset();
+            CleanUnsafe();
         }
+    }
+
+    public async ValueTask CleanAsync()
+    {
+        if (_isInitialized)
+        {
+            _branchTracker.Reset();
+            _workScheduler.Clear();
+            await _deferExecutionCoordinator.ResetAsync().ConfigureAwait(false);
+            CleanUnsafe();
+        }
+    }
+
+    private void CleanUnsafe()
+    {
+        _currentBranchTracker = _branchTracker;
+        _currentWorkScheduler = _workScheduler;
+
+        _requestContext = null!;
+        _schema = null!;
+        _errorHandler = null!;
+        _resolvers = null!;
+        _diagnosticEvents = null!;
+        _contextData = null!;
+        _operation = null!;
+        _variables = null!;
+        _services = null!;
+        _rootValue = null;
+        _resolveQueryRootValue = null!;
+        _batchDispatcher = null!;
+        _memory = null;
+        _branchId = int.MinValue;
+        _propagateNullValues = false;
+        _isInitialized = false;
+        Result.Reset();
     }
 
     public void ResetScheduler()
