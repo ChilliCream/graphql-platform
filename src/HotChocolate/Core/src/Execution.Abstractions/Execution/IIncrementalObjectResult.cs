@@ -23,16 +23,21 @@ public sealed class IncrementalObjectResult : IIncrementalResult
     /// <param name="data">
     /// The additional response fields to merge into the deferred fragment location.
     /// </param>
+    /// <param name="extensions">
+    /// Additional information associated with this incremental result.
+    /// </param>
     public IncrementalObjectResult(
         int id,
         ImmutableList<IError>? errors = null,
         Path? subPath = null,
-        OperationResultData? data = null)
+        OperationResultData? data = null,
+        IReadOnlyDictionary<string, object?>? extensions = null)
     {
         Id = id;
         Errors = errors ?? [];
         SubPath = subPath;
         Data = data;
+        Extensions = extensions;
     }
 
     /// <summary>
@@ -57,4 +62,9 @@ public sealed class IncrementalObjectResult : IIncrementalResult
     /// Gets the additional response fields to merge into the deferred fragment location.
     /// </summary>
     public OperationResultData? Data { get; }
+
+    /// <summary>
+    /// Gets additional information associated with this incremental result, or <c>null</c> when none is present.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?>? Extensions { get; }
 }

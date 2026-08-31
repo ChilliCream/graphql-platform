@@ -10,7 +10,12 @@ namespace HotChocolate.Execution;
 /// For @defer: indicates where the deferred fragment fields will be added.
 /// </param>
 /// <param name="Label">The label from the @defer or @stream directive's label argument, if present.</param>
-public sealed record PendingResult(int Id, Path Path, string? Label = null)
+/// <param name="Extensions">Additional information associated with this pending result, if present.</param>
+public sealed record PendingResult(
+    int Id,
+    Path Path,
+    string? Label = null,
+    IReadOnlyDictionary<string, object?>? Extensions = null)
 {
     /// <summary>
     /// Gets the request unique pending data identifier.
@@ -28,4 +33,9 @@ public sealed record PendingResult(int Id, Path Path, string? Label = null)
     /// Gets the label from the @defer or @stream directive's label argument, if present.
     /// </summary>
     public string? Label { get; init; } = Label;
+
+    /// <summary>
+    /// Gets additional information associated with this pending result, or <c>null</c> when none is present.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?>? Extensions { get; init; } = Extensions;
 }
