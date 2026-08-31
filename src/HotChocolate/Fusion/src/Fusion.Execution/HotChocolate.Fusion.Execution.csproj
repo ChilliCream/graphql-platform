@@ -15,6 +15,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.NATS.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.Kafka.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
@@ -23,6 +24,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +46,8 @@
     <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Utf8.SyntaxTree\HotChocolate.Language.Utf8.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
@@ -146,6 +150,9 @@
     </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpResponseMessageReceived.cs">
       <Link>Transport\Http\OnHttpResponseMessageReceived.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\ReadTimeoutStream.cs">
+      <Link>Transport\Http\ReadTimeoutStream.cs</Link>
     </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Json\JsonResultEnumerable.cs">
       <Link>Transport\Http\Json\JsonResultEnumerable.cs</Link>

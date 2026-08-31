@@ -76,7 +76,7 @@ public sealed class OperationManager : IOperationManager
 
         if (session is not null)
         {
-            session.Completed += (_, _) => Complete(sessionId);
+            session.Completed += (_, _) => CompleteSession(sessionId, session);
             session.BeginExecute(request, _cancellationToken);
             return true;
         }
@@ -109,7 +109,7 @@ public sealed class OperationManager : IOperationManager
 
         if (session is not null)
         {
-            session.Completed += (_, _) => Complete(sessionId);
+            session.Completed += (_, _) => CompleteSession(sessionId, session);
             session.BeginExecuteBatch(requests, _cancellationToken);
             return true;
         }
@@ -141,6 +141,24 @@ public sealed class OperationManager : IOperationManager
         return false;
     }
 
+    private void CompleteSession(string sessionId, IOperationSession session)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            if (_subs.TryGetValue(sessionId, out var current) && ReferenceEquals(current, session))
+            {
+                _subs.Remove(sessionId);
+                session.Dispose();
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     private OperationSession CreateSession(string sessionId)
         => new(_socketSession, _executorSession, sessionId);
 
@@ -151,7 +169,18 @@ public sealed class OperationManager : IOperationManager
         {
             _cts.Cancel();
             _cts.Dispose();
-            _subs.Clear();
+
+            _lock.EnterWriteLock();
+
+            try
+            {
+                _subs.Clear();
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+
             _disposed = true;
         }
     }

@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Options;
+
 namespace HotChocolate.Fusion.Aspire;
 
 /// <summary>
@@ -6,14 +8,35 @@ namespace HotChocolate.Fusion.Aspire;
 public struct GraphQLCompositionSettings
 {
     /// <summary>
+    /// Gets or sets a value indicating whether Nitro schema validation shall be disabled.
+    /// </summary>
+    public bool DisableSchemaValidation { get; set; }
+
+    /// <summary>
+    /// Gets or sets how <c>@cacheControl</c> directives are merged.
+    /// </summary>
+    public DirectiveMergeBehavior? CacheControlMergeBehavior { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether Global Object Identification should be enabled.
     /// </summary>
     public bool? EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
+    /// Gets or sets how enum values are merged when the same enum type is defined in multiple
+    /// source schemas.
+    /// </summary>
+    public EnumValuesMergeBehavior? EnumValuesMergeBehavior { get; set; }
+
+    /// <summary>
     /// Gets or sets how the gateway resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution? NodeResolution { get; set; }
+
+    /// <summary>
+    /// Gets or sets how <c>@tag</c> directives are merged.
+    /// </summary>
+    public DirectiveMergeBehavior? TagMergeBehavior { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether satisfiability paths should be included in the

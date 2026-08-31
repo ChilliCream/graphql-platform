@@ -43,6 +43,8 @@ nitro fusion upload \
 
 # `nitro fusion publish`
 
+Since: 16.6.0, Nitro: 10.3.0
+
 Publish a Fusion configuration to a stage.
 
 ```shell
@@ -271,19 +273,33 @@ nitro fusion compose \
 
 ## Options
 
-| Option                                          | Env                        | Description                                                                                                                                                               |
-| ----------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-f, --source-schema-file <source-schema-file>` |                            | One or more paths to a source schema file (`.graphqls`) or to a directory that contains one. When omitted, source schemas are auto-discovered from the working directory. |
-| `-a, --archive <archive>`                       | `NITRO_FUSION_CONFIG_FILE` | Path to the output Fusion archive file. The `--configuration` alias is deprecated.                                                                                        |
-| `-e, --env, --environment <environment>`        |                            | Name of the environment used for value substitution in `schema-settings.json` files.                                                                                      |
-| `--enable-global-object-identification`         |                            | Add the `Query.node` field for global object identification.                                                                                                              |
-| `--include-satisfiability-paths`                |                            | Include paths in satisfiability error messages to make composition errors easier to diagnose.                                                                             |
-| `--remove-source-schema <remove-source-schema>` |                            | One or more source schemas to remove from the archive before composing. Cannot be combined with `--watch`.                                                                |
-| `--watch`                                       |                            | Watch source files for changes and recompose automatically.                                                                                                               |
-| `-w, --working-directory <working-directory>`   |                            | Working directory for the command. Used for relative paths and source schema auto-discovery.                                                                              |
-| `--exclude-by-tag <exclude-by-tag>`             |                            | One or more tags to exclude from the composition.                                                                                                                         |
+| Option                                                                        | Env                        | Description                                                                                                                                                               |
+| ----------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-f, --source-schema-file <source-schema-file>`                               |                            | One or more paths to a source schema file (`.graphqls`) or to a directory that contains one. When omitted, source schemas are auto-discovered from the working directory. |
+| `--source-schema-url <source-schema-url>`                                     |                            | URL from which to download a source schema. Repeat once per remote source.                                                                                                |
+| `--source-schema-settings-file <source-schema-settings-file>`                 |                            | Settings file paired by occurrence with `--source-schema-url`. Repeat once per remote source.                                                                             |
+| `-a, --archive <archive>`                                                     | `NITRO_FUSION_CONFIG_FILE` | Path to the output Fusion archive file. The `--configuration` alias is deprecated.                                                                                        |
+| `-e, --env, --environment <environment>`                                      |                            | Name of the environment used for value substitution in `schema-settings.json` files.                                                                                      |
+| `--cache-control-merge-behavior <ignore\|include\|include-private>`           |                            | Choose how `@cacheControl` directives are merged.                                                                                                                         |
+| `--enable-global-object-identification`                                       |                            | Add the `Query.node` field for global object identification.                                                                                                              |
+| `--enum-values-merge-behavior <auto\|strict\|union>`                          |                            | Choose how enum values are merged across source schemas.                                                                                                                  |
+| `--node-resolution <gateway\|source-schema>`                                  |                            | Choose whether `Query.node` identifiers are resolved by the gateway or a source schema.                                                                                   |
+| `--tag-merge-behavior <ignore\|include\|include-private>`                     |                            | Choose how `@tag` directives are merged.                                                                                                                                  |
+| `--shareable-field-runtime-type-routing <common-runtime-types\|source-local>` |                            | Choose how runtime types are routed for Apollo Federation shareable abstract fields.                                                                                      |
+| `--allow-non-resolvable-interface-objects`                                    |                            | Allow Apollo Federation interface objects without a resolvable key.                                                                                                       |
+| `--include-satisfiability-paths`                                              |                            | Include paths in satisfiability error messages to make composition errors easier to diagnose.                                                                             |
+| `--remove-source-schema <remove-source-schema>`                               |                            | One or more source schemas to remove from the archive before composing. Cannot be combined with `--watch`.                                                                |
+| `--watch`                                                                     |                            | Watch source files for changes and recompose automatically.                                                                                                               |
+| `-w, --working-directory <working-directory>`                                 |                            | Working directory for the command. Used for relative paths and source schema auto-discovery.                                                                              |
+| `--exclude-by-tag <exclude-by-tag>`                                           |                            | One or more tags to exclude from the composition.                                                                                                                         |
 
 > `--source-schema-file` accepts either a schema file or a directory. In both cases, a `schema-settings.json` file is expected to sit next to the schema file (when a directory is given, both files must be inside that directory).
+
+Local schema files do not use `--source-schema-settings-file`. For a local file, Nitro derives the companion settings path from the schema file. For example, `./inventory/schema.graphqls` uses `./inventory/schema-settings.json`.
+
+For remote sources, repeat `--source-schema-url` and `--source-schema-settings-file` the same number of times. Nitro pairs them by occurrence: the first URL uses the first settings file, the second URL uses the second settings file, and so on. Keep each pair adjacent so the relationship remains visible in scripts.
+
+The paired settings file selects the acquisition protocol. An absent `apolloFederationSupport` marker makes Nitro GET raw SDL from the exact URL. Exact `"1.0"` and `"2.0"` markers make Nitro POST an Apollo `_service { sdl }` query. See [Getting the Subgraph Schema](../../fusion/connectors/apollofederation.md#getting-the-subgraph-schema) for the settings shape and protocol details.
 
 ## Examples
 
@@ -295,6 +311,24 @@ nitro fusion compose \
   --source-schema-file ./reviews/schema.graphqls \
   --archive ./gateway.far \
   --env "dev"
+```
+
+Compose two remote schemas and one local schema:
+
+```shell
+nitro fusion compose \
+  --source-schema-url https://products.example.com/graphql \
+  --source-schema-settings-file ./products/schema-settings.json \
+  --source-schema-url https://reviews.example.com/graphql \
+  --source-schema-settings-file ./reviews/schema-settings.json \
+  --source-schema-file ./inventory/schema.graphqls \
+  --archive ./gateway.far
+```
+
+After a successful composition, Nitro prints:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 Auto-discover source schemas from a working directory:
@@ -322,6 +356,8 @@ nitro fusion compose \
   --source-schema-file ./reviews-v2/schema.graphqls
 ```
 
+In watch mode, Nitro observes local schema directories and paired remote settings files. A watched change triggers recomposition and fetches the remote schemas again. Nitro does not poll remote URLs.
+
 # `nitro fusion settings set`
 
 Set a Fusion composition setting on a Fusion archive. Use this to flip composition-level toggles after a composition has been produced, without recomposing from sources.
@@ -333,10 +369,10 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> \
 
 ## Arguments
 
-| Argument          | Description                                                                                                                                   |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<SETTING_NAME>`  | Name of the setting to change. One of `cache-control-merge-behavior`, `exclude-by-tag`, `global-object-identification`, `tag-merge-behavior`. |
-| `<SETTING_VALUE>` | New value for the setting. Required.                                                                                                          |
+| Argument          | Description                                  |
+| ----------------- | -------------------------------------------- |
+| `<SETTING_NAME>`  | Name of a setting listed in the table below. |
+| `<SETTING_VALUE>` | New value for the setting. Required.         |
 
 ## Options
 
@@ -344,6 +380,20 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> \
 | ---------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------- |
 | `-a, --archive <archive>`                | `NITRO_FUSION_CONFIG_FILE` | Path to the Fusion archive file to update. Required. The `--configuration` alias is deprecated. |
 | `-e, --env, --environment <environment>` |                            | Name of the environment used for value substitution in `schema-settings.json` files.            |
+
+## Available Settings
+
+| Setting                                  | Values                                 | Description                                                         |
+| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------- |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key.            |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | Choose how `@cacheControl` directives are merged.                   |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | Choose how enum values are merged across source schemas.            |
+| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields and types by tag.                                    |
+| `global-object-identification`           | `true`, `false`                        | Enable global object identification through `Query.node`.           |
+| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics.                        |
+| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` identifiers.                       |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields. |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | Choose how `@tag` directives are merged.                            |
 
 ## Examples
 
@@ -353,6 +403,135 @@ Enable global object identification on an archive:
 nitro fusion settings set global-object-identification "true" \
   --archive ./gateway.far \
   --env "dev"
+```
+
+After a successful update, Nitro prints:
+
+```text
+Composed new configuration.
+```
+
+For examples of node resolution, shareable runtime type routing, and tag exclusion, see [Fusion CLI](../../fusion/cli.md#nitro-fusion-settings-set).
+
+# `nitro fusion source-schema init`
+
+Create the `schema-settings.json` file that a source schema needs for composition. The settings file is written next to the schema file it belongs to, under the name composition looks for, so `nitro fusion compose` picks it up without further configuration.
+
+Running the command against an existing settings file updates the values you pass and preserves every other setting in the file, which makes it safe to re-run from a pipeline.
+
+```shell
+nitro fusion source-schema init [options]
+```
+
+## Options
+
+| Option                            | Env            | Description                                                                                   |
+| --------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `--name <name>`                   |                | Name that identifies the source schema in the composite schema. Required for a new file.      |
+| `-f, --source-schema-file <path>` |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to. |
+| `--settings-file <path>`          |                | Write the settings to this path instead of deriving it from the schema file.                  |
+| `--url <url>`                     |                | URL the gateway uses to reach the source schema. Required for a new file.                     |
+| `--dev-url <url>`                 |                | URL a local development environment uses to reach the source schema.                          |
+| `--client-name <name>`            |                | Name of the HTTP client the gateway uses to reach the source schema.                          |
+| `--api-id <id>`                   | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                              |
+| `--schema-type <type>`            |                | `graphql-federation`, `apollo-federation-1`, or `apollo-federation-2`.                        |
+| `--variable-batching <bool>`      |                | Whether the source schema supports variable batching. Defaults to `false` for a new file.     |
+| `--request-batching <bool>`       |                | Whether the source schema supports request batching. Defaults to `false` for a new file.      |
+| `--alias-batching <bool>`         |                | Whether the source schema supports alias batching. Defaults to `true` for a new file.         |
+| `--batching-format <format>...`   |                | One or more response media types supported for batching, such as `application/jsonl`.         |
+| `-w, --working-directory <path>`  |                | Working directory for the command.                                                            |
+
+`--name` and `--url` are only required when the settings file does not exist yet, since an existing file already carries both. On an interactive terminal the command asks for whichever of the two you did not pass. Everywhere else, including CI, omitting one fails rather than guessing a value.
+
+New settings default to GraphQL Federation. An interactive terminal asks for the schema type and preselects GraphQL Federation. It also asks whether variable, request, and alias batching are supported. Existing settings keep their schema type unless `--schema-type` is passed.
+
+Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which composition resolves against the [`environments`](../../fusion/cli.md#environments) section of the settings file.
+
+## Source schema types
+
+`--schema-type` describes the specification implemented by the source schema.
+
+| Type                  | What it declares                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `graphql-federation`  | GraphQL Federation semantics from the Composite Schemas Specification. This is the default used by Fusion. |
+| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
+| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
+
+Selecting an Apollo Federation type writes the corresponding `1.0` or `2.0` marker. Selecting `graphql-federation` removes that marker. Schema-type changes do not modify transport capabilities.
+
+## Batching capabilities
+
+New settings declare the following batching capabilities:
+
+```json
+{
+  "variableBatching": false,
+  "requestBatching": false,
+  "aliasBatching": true
+}
+```
+
+Pass the corresponding batching option with `true` or `false` to override a value. Pass one or more media types to `--batching-format` to write the `formats` array. When updating an existing file, omitted batching options preserve their current values.
+
+In interactive mode, pressing Enter accepts `false` for variable batching, `false` for request batching, and `true` for alias batching. Batching response formats can only be configured explicitly with `--batching-format`.
+
+> A source schema configured with an Apollo Federation type that composition fetches over HTTP (via `--source-schema-url` on `nitro fusion compose`) is retrieved through Apollo Federation's `_service` field. A source schema read from a local file is read as it is on disk, and the marker only affects directive semantics.
+
+## Where the file is written
+
+The target path is resolved in this order:
+
+1. `--settings-file`, when given.
+2. Next to `--source-schema-file` as `<schema-file-name>-settings.json`. A path that is not named like a schema file counts as a directory, whether or not it exists yet: the schema file inside it determines the name, and `schema-settings.json` is used when it holds none.
+3. `schema-settings.json` in the working directory.
+
+## Examples
+
+Create settings for a subgraph next to its schema file:
+
+```shell
+nitro fusion source-schema init \
+  --name "products" \
+  --source-schema-file ./products/schema.graphqls \
+  --url "https://products.example.com/graphql"
+```
+
+This writes `./products/schema-settings.json`:
+
+```json
+{
+  "name": "products",
+  "transports": {
+    "http": {
+      "url": "https://products.example.com/graphql",
+      "capabilities": {
+        "batching": {
+          "variableBatching": false,
+          "requestBatching": false,
+          "aliasBatching": true
+        }
+      }
+    }
+  }
+}
+```
+
+Create settings for an Apollo Federation subgraph:
+
+```shell
+nitro fusion source-schema init \
+  --name "reviews" \
+  --source-schema-file ./reviews/schema.graphqls \
+  --url "https://reviews.example.com/graphql" \
+  --schema-type apollo-federation-2
+```
+
+Point an existing settings file at a new URL without touching its other settings:
+
+```shell
+nitro fusion source-schema init \
+  --source-schema-file ./products/schema.graphqls \
+  --url "https://products.staging.example.com/graphql"
 ```
 
 # `nitro fusion run`

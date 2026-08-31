@@ -69,11 +69,119 @@ namespace HotChocolate.Types.Analyzers.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A DataLoader service parameter cannot use both [Service(key)] and [FromKeyedServices]. Use one keyed-service attribute..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceAttributeConflict {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceAttributeConflict", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This keyed-service attribute has no effect here. Remove it or apply it to a DataLoader service parameter..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceAttributeIgnored {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceAttributeIgnored", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The key of this derived [Service] attribute cannot be determined at compile time. Define the attribute in source or apply the key directly..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceKeyNotDeterminable {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceKeyNotDeterminable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A keyed [Service] attribute on a hand-written DataLoader constructor parameter is resolved as an unkeyed service. Use [FromKeyedServices] instead..
+        /// </summary>
+        internal static string DataLoader_KeyedServiceOnConstructorParameter {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyedServiceOnConstructorParameter", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to A DataLoader must at least provides a key or keys parameter.
         /// </summary>
         internal static string DataLoader_KeyParameterMissing {
             get {
                 return ResourceManager.GetString("DataLoader_KeyParameterMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The DataLoader type '{0}' is used by multiple [DataLoader&lt;T&gt;] methods in this assembly and cannot be injected by interface.
+        /// </summary>
+        internal static string DataLoader_DuplicateType {
+            get {
+                return ResourceManager.GetString("DataLoader_DuplicateType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The first parameter of a [DataLoader&lt;T&gt;] method must be {0}.
+        /// </summary>
+        internal static string DataLoader_KeyParameterInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_KeyParameterInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DataLoader method parameters must not be ref/in/out/ref readonly.
+        /// </summary>
+        internal static string DataLoader_ParameterModifierInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_ParameterModifierInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A method can have only one [DataLoader] attribute.
+        /// </summary>
+        internal static string DataLoader_MultipleAttributes {
+            get {
+                return ResourceManager.GetString("DataLoader_MultipleAttributes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The DataLoader type '{0}' declares members that must be implemented by the partial '{1}' class.
+        /// </summary>
+        internal static string DataLoader_MissingInterfaceImplementation {
+            get {
+                return ResourceManager.GetString("DataLoader_MissingInterfaceImplementation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DataLoaderAccessModifier.PublicInterface is treated as Public on [DataLoader&lt;T&gt;] methods.
+        /// </summary>
+        internal static string DataLoader_PublicInterfaceAccessModifier {
+            get {
+                return ResourceManager.GetString("DataLoader_PublicInterfaceAccessModifier", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The return type of a [DataLoader&lt;T&gt;] method must be {0}.
+        /// </summary>
+        internal static string DataLoader_ReturnTypeInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_ReturnTypeInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type argument of [DataLoader&lt;T&gt;] must be an interface that derives from exactly one closed IBatchDataLoader&lt;TKey, TValue&gt; or ICacheDataLoader&lt;TKey, TValue&gt; contract.
+        /// </summary>
+        internal static string DataLoader_TypeInvalid {
+            get {
+                return ResourceManager.GetString("DataLoader_TypeInvalid", resourceCulture);
             }
         }
         

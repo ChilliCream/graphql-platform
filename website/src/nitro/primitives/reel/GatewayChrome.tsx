@@ -1,4 +1,5 @@
 import { token } from "../../lib/tokens";
+import { UnderlineTab } from "@/src/nitro/primitives/UnderlineTab";
 import {
   IconApiGateway,
   IconClose,
@@ -105,32 +106,13 @@ export function GatewayChrome({ activeView }: { activeView: GatewayView }) {
         {VIEWS.map((v) => {
           const on = v === activeView;
           return (
-            <span
+            <UnderlineTab
               key={v}
-              data-testid={`gw-view-${v}`}
-              style={{
-                position: "relative",
-                fontSize: 13,
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                color: on ? token.textStrong : token.textSecondary,
-              }}
-            >
-              {v}
-              {on && (
-                <span
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: 2,
-                    background: token.graphEdgeActive,
-                  }}
-                />
-              )}
-            </span>
+              testId={`gw-view-${v}`}
+              label={v}
+              active={on}
+              height="100%"
+            />
           );
         })}
         <span

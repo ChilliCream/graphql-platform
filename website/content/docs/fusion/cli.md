@@ -79,18 +79,25 @@ nitro fusion compose [options]
 
 | Option                                                                        | Description                                                                         | Default                                                      |
 | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `--source-schema-file <path>` (alias: `-f`)                                   | Path to a source schema file. Can be repeated.                                      | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
+| `--source-schema-file <path>` (alias: `-f`)                                   | Path to a local source schema file or directory. Can be repeated.                   | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
+| `--source-schema-url <url>`                                                   | URL from which to download a source schema. Can be repeated.                        | --                                                           |
+| `--source-schema-settings-file <path>`                                        | Settings file for the corresponding URL occurrence. Can be repeated.                | --                                                           |
 | `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                  | `./gateway.far`                                              |
 | `--environment <name>` (alias: `--env`, `-e`)                                 | Environment name for variable substitution                                          | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
 | `--enable-global-object-identification`                                       | Enable Relay-style global object identification                                     | `false`                                                      |
 | `--node-resolution <gateway\|source-schema>`                                  | Choose who resolves `Query.node` identifiers                                        | `gateway`                                                    |
 | `--shareable-field-runtime-type-routing <source-local\|common-runtime-types>` | Choose how type-conditioned selections are routed for Apollo shareable abstractions | `source-local`                                               |
+| `--allow-non-resolvable-interface-objects`                                    | Allow Apollo interface objects without a resolvable key                             | `false`                                                      |
 | `--include-satisfiability-paths`                                              | Include satisfiability diagnostic paths                                             | `false`                                                      |
-| `--watch`                                                                     | Recompose on file changes                                                           | `false`                                                      |
+| `--watch`                                                                     | Recompose on file or paired remote-settings changes                                 | `false`                                                      |
 | `--exclude-by-tag <tag>`                                                      | Exclude fields/types by tag. Can be repeated.                                       | --                                                           |
 | `--working-directory <path>` (alias: `-w`)                                    | Working directory for resolving paths                                               | Current directory                                            |
 
-Each `.graphqls` file must have a companion `-settings.json` file (for example, `schema.graphqls` requires `schema-settings.json`). If no `--source-schema-file` is specified, the CLI scans the working directory for all `.graphql` and `.graphqls` files.
+Each local `.graphql` or `.graphqls` file must have a companion `-settings.json` file. For example, `schema.graphqls` requires `schema-settings.json`. Local files do not use `--source-schema-settings-file`.
+
+For remote schemas, repeat `--source-schema-url` and `--source-schema-settings-file` the same number of times. Nitro pairs them by occurrence: the first URL uses the first settings file, the second URL uses the second settings file, and so on. Keep each pair adjacent in scripts. The settings file selects GET or Apollo `_service.sdl` acquisition as described in [Getting the Subgraph Schema](./connectors/apollofederation.md#getting-the-subgraph-schema).
+
+If no local file, remote URL, or source removal is specified, the CLI scans the working directory for all `.graphql` and `.graphqls` files.
 
 When an archive has no stored setting, composition uses `gateway` for node resolution and `source-local` for shareable-field runtime type routing. If you recompose an existing archive without the corresponding flag, Nitro preserves the stored value. See [Shareable Abstract Field Routing](./connectors/apollofederation.md#shareable-abstract-field-routing) for the routing behavior.
 
@@ -107,6 +114,24 @@ nitro fusion compose \
   --enable-global-object-identification
 ```
 
+Compose two remote schemas and one local schema. Each remote settings option corresponds to the URL occurrence above it:
+
+```shell
+nitro fusion compose \
+  --source-schema-url https://products.example.com/graphql \
+  --source-schema-settings-file ./Products/schema-settings.json \
+  --source-schema-url https://reviews.example.com/graphql \
+  --source-schema-settings-file ./Reviews/schema-settings.json \
+  --source-schema-file ./Inventory/schema.graphqls \
+  --archive gateway.far
+```
+
+After a successful composition, Nitro prints:
+
+```text
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
+```
+
 Auto-discover and compose all schemas in the current directory:
 
 ```shell
@@ -118,6 +143,8 @@ Watch mode for local development:
 ```shell
 nitro fusion compose --watch
 ```
+
+Watch mode observes local schema directories and paired remote settings files. A watched change triggers recomposition and fetches the remote schemas again. Nitro does not poll remote URLs.
 
 Exclude fields tagged as experimental or internal:
 
@@ -388,14 +415,17 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                                | Values                                 | Description                                                        |
-| -------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| `global-object-identification`         | `true`, `false`                        | Enable Relay-style node queries                                    |
-| `node-resolution`                      | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
-| `shareable-field-runtime-type-routing` | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
-| `cache-control-merge-behavior`         | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
-| `tag-merge-behavior`                   | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
-| `exclude-by-tag`                       | Comma-separated tags                   | Exclude fields/types by tag                                        |
+| Setting                                  | Values                                 | Description                                                        |
+| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key            |
+| `global-object-identification`           | `true`, `false`                        | Enable Relay-style node queries                                    |
+| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics                        |
+| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | How to merge enum values across source schemas                     |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
+| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
 
 ## Examples
 
@@ -542,6 +572,34 @@ The unique source schema name used in composition. Must match the name used in `
 **Type:** `string` (required)
 
 The URL template for the subgraph's GraphQL endpoint. Use `{{VARIABLE_NAME}}` for environment-specific substitution.
+
+### `transports.http.devUrl`
+
+**Type:** `string` (optional)
+
+The URL a local development environment reaches this source schema at. It supports the same `{{VARIABLE_NAME}}` substitution as `url`.
+
+`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./local-development.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
+
+```json
+{
+  "name": "products-api",
+  "transports": {
+    "http": {
+      "url": "https://products.example.com/graphql",
+      "devUrl": "http://localhost:5110/graphql"
+    }
+  }
+}
+```
+
+When such a source schema defines no `devUrl`, composition falls back to its `url` and logs the warning `SOURCE_SCHEMA_DEV_URL_MISSING`, because a deployed URL is often not reachable from a developer machine. When the URL that is selected for such a source schema references a variable that its environment does not define, composition logs the warning `SOURCE_SCHEMA_URL_VARIABLE_UNRESOLVED`, falls back from an unresolvable `devUrl` to the `url`, and composes an unresolvable `url` as it is. Neither case fails the composition.
+
+### `transports.websockets.devUrl`
+
+**Type:** `string` (optional)
+
+The same as `transports.http.devUrl`, for the WebSocket URL of the source schema. A source schema that does not run in the local AppHost and defines no `devUrl` here keeps its configured `transports.websockets.url` without a warning.
 
 ### `transports.http.clientName`
 

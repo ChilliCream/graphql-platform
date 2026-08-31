@@ -9,6 +9,133 @@ namespace HotChocolate.Authorization;
 public class CodeFirstAuthorizationTests
 {
     [Fact]
+    public async Task Authorize_Field_Roles_Apply_And_Policy_Roles_Apply()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddAuthorizationCore()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("fieldRolesApply")
+                    .Resolve("x")
+                    .Authorize(["admin", "user"], ApplyPolicy.AfterResolver);
+                d.Field("fieldPolicyRolesApply")
+                    .Resolve("x")
+                    .Authorize("READ", ["admin", "user"], ApplyPolicy.AfterResolver);
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Authorize_Field_Roles_Validation_Authorizes_At_Request_Level()
+    {
+        // arrange
+        // both fields carry a roles-based validation policy;
+        // request-level enforcement must be triggered by the field configuration alone.
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.NotAllowed);
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("rolesValidation")
+                    .Type<StringType>()
+                    .Resolve("x")
+                    .Authorize(["admin", "user"], ApplyPolicy.Validation);
+                d.Field("policyRolesValidation")
+                    .Type<StringType>()
+                    .Resolve("x")
+                    .Authorize("READ", ["admin", "user"], ApplyPolicy.Validation);
+            })
+            .AddAuthorizationHandler(_ => handler)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ rolesValidation policyRolesValidation }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // request-level rejection: an error with no path, raised before resolvers run
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task Authorize_Type_Roles_Apply_And_Policy_Roles_Apply()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddAuthorizationCore()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Authorize(["type_reader", "type_writer"], ApplyPolicy.AfterResolver);
+                d.Authorize("READ", ["type_reader", "type_writer"], ApplyPolicy.AfterResolver);
+                d.Field("field").Resolve("x");
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Authorize_Type_Roles_Apply_And_Policy_Roles_Apply_Generic()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddAuthorizationCore()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("rolesApply")
+                    .Type<RolesApplyType>()
+                    .Resolve(new RolesApplyModel("a"));
+                d.Field("policyRolesApply")
+                    .Type<PolicyRolesApplyType>()
+                    .Resolve(new PolicyRolesApplyModel("b"));
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Authorize_Person_NoAccess()
     {
         // arrange
@@ -652,6 +779,26 @@ public class CodeFirstAuthorizationTests
             }
 
             return new(AuthorizeResult.Allowed);
+        }
+    }
+
+    private sealed record RolesApplyModel(string? Value);
+
+    private sealed record PolicyRolesApplyModel(string? Value);
+
+    private sealed class RolesApplyType : ObjectType<RolesApplyModel>
+    {
+        protected override void Configure(IObjectTypeDescriptor<RolesApplyModel> descriptor)
+        {
+            descriptor.Authorize(["reader", "writer"], ApplyPolicy.AfterResolver);
+        }
+    }
+
+    private sealed class PolicyRolesApplyType : ObjectType<PolicyRolesApplyModel>
+    {
+        protected override void Configure(IObjectTypeDescriptor<PolicyRolesApplyModel> descriptor)
+        {
+            descriptor.Authorize("READ", ["reader", "writer"], ApplyPolicy.AfterResolver);
         }
     }
 }

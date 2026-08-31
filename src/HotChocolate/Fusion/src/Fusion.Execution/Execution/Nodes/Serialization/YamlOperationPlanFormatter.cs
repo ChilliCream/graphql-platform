@@ -253,7 +253,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(node.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -445,7 +446,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -499,7 +501,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -556,12 +559,10 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("schema: {0}", node.SchemaName);
         }
 
-        // The lookup operation is serialized rather than the rewritten
-        // _entities operation because the node derives the rewritten form
-        // from the lookup operation when it is created.
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(node.LookupOperation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -600,15 +601,24 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         ExecutionNodeTrace? trace,
         CodeWriter writer)
     {
-        foreach (var opDef in batchNode.Operations)
+        var operations = batchNode.Operations;
+        var lookups = batchNode.Lookups;
+
+        for (var i = 0; i < operations.Length; i++)
         {
-            WriteApolloOperationDefinitionAsNode(batchNode, opDef, trace, writer);
+            WriteApolloOperationDefinitionAsNode(
+                batchNode,
+                operations[i],
+                lookups[i].Operation,
+                trace,
+                writer);
         }
     }
 
     private static void WriteApolloOperationDefinitionAsNode(
         ApolloOperationBatchExecutionNode batchNode,
         SingleOperationDefinition opDef,
+        OperationSourceText operation,
         ExecutionNodeTrace? trace,
         CodeWriter writer)
     {
@@ -624,7 +634,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(operation.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {

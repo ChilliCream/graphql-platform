@@ -116,13 +116,37 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasResult = await enumerator.MoveNextAsync();
+        Assert.True(hasResult);
+        var errorResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
+        var hasNextResult = await enumerator.MoveNextAsync();
 
         // assert
-        var arena = Assert.IsType<MemoryArena>(mintedArena);
-        Assert.False(hasResult);
-        Assert.Throws<ObjectDisposedException>(() => arena.Rent(1));
-        Assert.Equal(0, arena.RentedPageCount);
+        try
+        {
+            // the failure surfaces as one terminal error result and then the stream ends;
+            // the arena minted during the failed iteration was never bound, so the enumerator owns and releases it
+            var arena = (MemoryArena)mintedArena;
+            var exception = errorResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(errorResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasNextResult,
+                        ArenaRentExceptionType = Record.Exception(() => arena.Rent(1))?.GetType().Name,
+                        ArenaRentedPageCount = arena.RentedPageCount
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
+        }
+        finally
+        {
+            await errorResult.DisposeAsync();
+        }
     }
 
     [Fact]
@@ -141,21 +165,39 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasFirstResult = await enumerator.MoveNextAsync();
+        Assert.True(hasFirstResult);
         var firstResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
         var hasSecondResult = await enumerator.MoveNextAsync();
+        Assert.True(hasSecondResult);
+        var secondResult = enumerator.Current;
+        var hasThirdResult = await enumerator.MoveNextAsync();
 
         // assert
         try
         {
-            var firstArena = Assert.IsType<MemoryArena>(mintedArena);
-            Assert.True(hasFirstResult);
-            Assert.False(hasSecondResult);
-            Assert.False(firstArena.IsDisposed);
+            // the delivered event arrives, then one terminal error result, then the stream ends;
+            // the arena bound to the delivered event is still owned by that result
+            var firstArena = (MemoryArena)mintedArena;
+            var exception = secondResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(secondResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasThirdResult,
+                        FirstEventArenaDisposed = firstArena.IsDisposed
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
         }
         finally
         {
             await firstResult.DisposeAsync();
+            await secondResult.DisposeAsync();
         }
     }
 
@@ -294,7 +336,7 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             SourceSchemaClientRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var payload = request.OperationSourceText.Contains("immediate", StringComparison.Ordinal)
+            var payload = request.OperationSourceText.Value.Span.IndexOf("immediate"u8) >= 0
                 ? s_initialPayload
                 : s_incrementalPayload;
             var arena = context.MemorySource.GetNextArena();

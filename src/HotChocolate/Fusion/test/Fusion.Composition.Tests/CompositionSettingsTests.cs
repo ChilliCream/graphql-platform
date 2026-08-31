@@ -117,6 +117,78 @@ public sealed class CompositionSettingsTests
     }
 
     [Fact]
+    public void EnumValuesMergeBehavior_Should_RoundTripAsString_When_Serialized()
+    {
+        // arrange
+        var settings = new CompositionSettings
+        {
+            Merger = { EnumValuesMergeBehavior = EnumValuesMergeBehavior.Union }
+        };
+
+        // act
+        using var document = JsonSerializer.SerializeToDocument(
+            settings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+        var roundTripped = document.Deserialize(
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        // assert
+        Assert.Equal(
+            "Union",
+            document.RootElement
+                .GetProperty("merger")
+                .GetProperty("enumValuesMergeBehavior")
+                .GetString());
+        Assert.Equal(
+            EnumValuesMergeBehavior.Union,
+            roundTripped!.Merger.EnumValuesMergeBehavior);
+        Assert.Equal(
+            EnumValuesMergeBehavior.Union,
+            roundTripped.Merger.ToOptions().EnumValuesMergeBehavior);
+    }
+
+    [Fact]
+    public void MergeInto_Should_PreserveExistingEnumValuesMergeBehavior_When_OverrideIsUnset()
+    {
+        // arrange
+        var existing = new CompositionSettings
+        {
+            Merger = { EnumValuesMergeBehavior = EnumValuesMergeBehavior.Union }
+        };
+
+        // act
+        var merged = new CompositionSettings().MergeInto(existing);
+
+        // assert
+        Assert.Equal(EnumValuesMergeBehavior.Union, merged.Merger.EnumValuesMergeBehavior);
+    }
+
+    [Fact]
+    public void LegacySettings_Should_DefaultEnumValuesMergeBehaviorToAuto()
+    {
+        // arrange
+        const string json =
+            """
+            {
+              "merger": {
+                "enableGlobalObjectIdentification": true
+              }
+            }
+            """;
+
+        // act
+        var settings = JsonSerializer.Deserialize(
+            json,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        // assert
+        Assert.Null(settings!.Merger.EnumValuesMergeBehavior);
+        Assert.Equal(
+            EnumValuesMergeBehavior.Auto,
+            settings.Merger.ToOptions().EnumValuesMergeBehavior);
+    }
+
+    [Fact]
     public void LegacySettings_Should_DefaultNodeResolutionToGateway()
     {
         const string json =

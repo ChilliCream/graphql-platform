@@ -21,6 +21,7 @@ public sealed class AccountType : ObjectType<Account>
         descriptor.Field(a => a.Name).Type<NonNullType<StringType>>();
     }
 
-    private static Account ResolveById(string id)
-        => new() { Id = id, Name = BData.FindName(id) };
+    private static Account? ResolveById(string id)
+        => BData.Accounts.FirstOrDefault(
+            account => string.Equals(account.Id, id, StringComparison.Ordinal));
 }

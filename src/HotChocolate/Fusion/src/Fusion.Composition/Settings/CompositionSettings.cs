@@ -46,6 +46,8 @@ internal sealed record CompositionSettings
 
         public bool? EnableGlobalObjectIdentification { get; set; }
 
+        public EnumValuesMergeBehavior? EnumValuesMergeBehavior { get; set; }
+
         public NodeResolution? NodeResolution { get; set; }
 
         public bool? RemoveUnreferencedDefinitions { get; init; }

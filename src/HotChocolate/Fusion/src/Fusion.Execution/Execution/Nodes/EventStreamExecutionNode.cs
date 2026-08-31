@@ -206,6 +206,7 @@ public sealed class EventStreamExecutionNode : ExecutionNode
         private readonly IDisposable _subscriptionScope;
         private readonly BrokerSubscription _subscription;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
+        private bool _completed;
         private bool _disposed;
 
         public EventStreamSubscriptionEnumerator(
@@ -244,13 +245,67 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
         public async ValueTask<bool> MoveNextAsync()
         {
-            if (_disposed || _cancellationToken.IsCancellationRequested)
+            if (_disposed || _completed || _cancellationToken.IsCancellationRequested)
             {
                 Current = null!;
                 return false;
             }
 
-            if (!await _subscription.Enumerator.MoveNextAsync().ConfigureAwait(false))
+            bool hasResult;
+
+            try
+            {
+                hasResult = await _subscription.Enumerator.MoveNextAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                _completed = true;
+
+                // A cancellation signalled while the broker read was in flight (client
+                // abort, shutdown or enumerator disposal) is the same graceful teardown
+                // as observing the token before the read, not a subscription event
+                // error. The broker enumerator runs on the dispose token, which links
+                // the external cancellation token.
+                if (exception is OperationCanceledException
+                    && _disposeCts.IsCancellationRequested)
+                {
+                    Current = null!;
+                    return false;
+                }
+
+                _diagnosticEvents.SubscriptionEventError(
+                    _context,
+                    _node,
+                    _subscription.Source.SchemaName,
+                    _subscriptionId,
+                    exception);
+
+                // A failed broker read ends the stream with a single terminal error result,
+                // mirroring how the operation subscription node terminates on a failed
+                // transport read. The error result is built on its own event arena, like
+                // every delivered event, so the arena travels with that result. No per-event
+                // scope is open at read stage.
+                _context.SetActiveEventArena(_subscription.ArenaSource.GetNextArena());
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
+
+                var timestamp = Stopwatch.GetTimestamp();
+                Current = new EventMessageResult(
+                    _node.Id,
+                    Activity.Current,
+                    ExecutionStatus.Failed,
+                    Disposable.Empty,
+                    timestamp,
+                    Stopwatch.GetTimestamp(),
+                    Exception: exception,
+                    VariableValueSets: [],
+                    DependentsToExecute: default);
+                return true;
+            }
+
+            if (!hasResult)
             {
                 Current = null!;
                 return false;
@@ -274,11 +329,16 @@ public sealed class EventStreamExecutionNode : ExecutionNode
             _disposeCts.Dispose();
         }
 
+        /// <summary>
+        /// Decodes one broker message into an event result. A message that cannot be decoded produces
+        /// one error result for that event and the subscription stays open for the following messages.
+        /// </summary>
         private EventMessageResult ProcessEvent(BrokerSubscription subscription, EventMessage message)
         {
             SourceSchemaResult? sourceResult = null;
             IDisposable? scope = null;
             var arenaBefore = subscription.ArenaSource.Arena;
+            var arenaBound = false;
             var start = Stopwatch.GetTimestamp();
 
             try
@@ -301,6 +361,7 @@ public sealed class EventStreamExecutionNode : ExecutionNode
                     _resultBuffer[0] = sourceResult;
 
                     _context.SetActiveEventArena(subscription.ArenaSource.Arena);
+                    arenaBound = true;
                     _context.AddPartialResults(
                         _node._source,
                         _resultBuffer,
@@ -326,9 +387,19 @@ public sealed class EventStreamExecutionNode : ExecutionNode
                 message.Dispose();
                 sourceResult?.Dispose();
 
-                if (!ReferenceEquals(subscription.ArenaSource.Arena, arenaBefore))
+                // The arena minted for this event is owned by this enumerator until it is bound as the
+                // active event arena. The error result is built on its own event arena: a minted but
+                // unbound arena is released and replaced by a fresh one; a bound arena stays active.
+                if (!arenaBound)
                 {
-                    ((IDisposable)subscription.ArenaSource.Arena).Dispose();
+                    var arena = subscription.ArenaSource.Arena;
+
+                    if (!ReferenceEquals(arena, arenaBefore))
+                    {
+                        ((IDisposable)arena).Dispose();
+                    }
+
+                    _context.SetActiveEventArena(subscription.ArenaSource.GetNextArena());
                 }
 
                 scope ??= Disposable.Empty;

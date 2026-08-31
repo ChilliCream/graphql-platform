@@ -1,7 +1,838 @@
+using System.Collections.Concurrent;
+using HotChocolate.Types.Analyzers;
+using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace HotChocolate.Types;
 
 public class DataLoaderTests
 {
+    [Fact]
+    public void TryCreate_Should_CreateBatchModel_When_GenericAttributeUsesClosedKindInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>("Entity")]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var info = TryCreateGenericDataLoaderInfo(source);
+
+        // assert
+        var dataLoader = Assert.IsType<GenericDataLoaderInfo>(info);
+        Assert.Equal(DataLoaderKind.Batch, dataLoader.Kind);
+        Assert.Equal("EntityDataLoader", dataLoader.Name);
+        Assert.Equal("int", dataLoader.KeyType.ToDisplayString());
+        Assert.Equal("string", dataLoader.ValueType.ToDisplayString());
+    }
+
+    [Fact]
+    public void TryCreate_Should_CreateCacheModel_When_GenericAttributeUsesDerivedKindInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : ICacheDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>(ServiceScope = DataLoaderServiceScope.OriginalScope, MaxBatchSize = 10)]
+                public static ValueTask<string> GetEntityByIdAsync(int key)
+                    => default;
+            }
+            """;
+
+        // act
+        var info = TryCreateGenericDataLoaderInfo(source);
+
+        // assert
+        var dataLoader = Assert.IsType<GenericDataLoaderInfo>(info);
+        Assert.Equal(DataLoaderKind.Cache, dataLoader.Kind);
+        Assert.Equal("EntityByIdDataLoader", dataLoader.Name);
+        Assert.False(dataLoader.IsScoped);
+        Assert.Equal(10, dataLoader.MaxBatchSize);
+    }
+
+    [Fact]
+    public void TryCreate_Should_ReturnNull_When_GenericContractOrMethodShapeIsInvalid()
+    {
+        // arrange
+        const string concreteTypeSource =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal sealed class EntityLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<EntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+        const string invalidReturnTypeSource =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : ICacheDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(int key)
+                    => default!;
+            }
+            """;
+
+        // act
+        var concreteTypeInfo = TryCreateGenericDataLoaderInfo(concreteTypeSource);
+        var invalidReturnTypeInfo = TryCreateGenericDataLoaderInfo(invalidReturnTypeSource);
+
+        // assert
+        Assert.Null(concreteTypeInfo);
+        Assert.Null(invalidReturnTypeInfo);
+    }
+
+    [Theory]
+    [MemberData(nameof(GenericDataLoaderContractCases))]
+    public void TryCreate_Should_ModelExpectedContract_When_GenericDataLoaderMethodIsExamined(
+        string source,
+        DataLoaderKind? expectedKind)
+    {
+        // arrange
+        var compilation = TestHelper.CreateCompilation(source);
+
+        // act
+        var info = TryCreateGenericDataLoaderInfo(source);
+
+        // assert
+        Assert.Empty(
+            compilation.GetDiagnostics(TestContext.Current.CancellationToken)
+                .Where(t => t.Severity is DiagnosticSeverity.Error));
+
+        if (expectedKind is { } kind)
+        {
+            var dataLoader = Assert.IsType<GenericDataLoaderInfo>(info);
+            Assert.Equal(kind, dataLoader.Kind);
+        }
+        else
+        {
+            Assert.Null(info);
+        }
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitGenericAndOldDataLoaders_When_BothAttributesAreUsed()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>]
+                public static Task<IReadOnlyDictionary<int, string>> GetGenericAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetOldAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var inspectedDataLoaders = InspectDataLoaders(source);
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        Assert.Single(inspectedDataLoaders.OfType<GenericDataLoaderInfo>());
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitGenericBatchDataLoader_When_ContractIsClosedKindInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>(MaxBatchSize = 2)]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitPublicGenericDataLoader_When_AccessModifierIsPublicInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>(
+                    AccessModifier = DataLoaderAccessModifier.PublicInterface)]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitPublicInterfaceAndInternalDataLoader_When_AccessModifierIsPublicInterface()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader(AccessModifier = DataLoaderAccessModifier.PublicInterface)]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_EmitGenericCacheDataLoader_When_ContractOverridesTheName()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : ICacheDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>("CustomEntity", ServiceScope = DataLoaderServiceScope.OriginalScope)]
+                public static ValueTask<string> GetEntityByIdAsync(int key)
+                    => default;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_UseBatchPath_When_GenericBatchValueIsAnArray()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string[]>>]
+                public static Task<IReadOnlyDictionary<int, string[]>> GetEntitiesByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_ImplementGenericContract_When_ItDeclaresAdditionalMembers()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            public interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+                string Description { get; }
+            }
+
+            public sealed partial class EntityByIdDataLoader
+            {
+                public string Description => "custom";
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public void Generate_Should_EmitNothing_When_GenericDataLoaderMethodIsInvalid()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<ICacheDataLoader<int, string>>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(int key)
+                    => default!;
+            }
+            """;
+
+        // act
+        var output = GetGeneratedOutputSummary(source);
+
+        // assert
+        output.MatchInlineSnapshot(
+            """
+            Generated sources: 0
+            Generator diagnostics: 0
+            Compilation diagnostics: 0
+            """);
+    }
+
+    [Fact]
+    public async Task Generate_Should_RegisterGenericDataLoaderContract_When_ItIsUniqueWithinModule()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_RegisterGenericDataLoadersByClass_When_TheyShareAContract()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            internal interface IEntityLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetFirstEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<IEntityLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetSecondEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_RegisterOldAndGenericDataLoaders_When_ModuleContainsBoth()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            internal interface IGenericLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            internal static class Loaders
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetOldEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<IGenericLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetGenericEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_ResolveGroupedGenericDataLoadersByContractOrClass_When_Appropriate()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+
+            namespace TestNamespace;
+
+            public interface IUniqueLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            public interface ISharedLoader : IBatchDataLoader<int, string>
+            {
+            }
+
+            [DataLoaderGroup("Loaders")]
+            internal static class LoaderMethods
+            {
+                [DataLoader<IUniqueLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetUniqueByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<ISharedLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetFirstByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<ISharedLoader>]
+                public static Task<IReadOnlyDictionary<int, string>> GetSecondByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Generate_Should_SuppressGenericDataLoaderRegistration_When_RegistrationCodeIsDisabled()
+    {
+        // arrange
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            [assembly: DataLoaderModule("Test")]
+            [assembly: DataLoaderDefaults(GenerateRegistrationCode = false)]
+
+            namespace TestNamespace;
+
+            internal static class Loaders
+            {
+                [DataLoader<IBatchDataLoader<int, string>>]
+                public static Task<IReadOnlyDictionary<int, string>> GetEntityByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    public static IEnumerable<object?[]> GenericDataLoaderContractCases()
+    {
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            DataLoaderKind.Batch
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IEntityLoader : ICacheDataLoader<int, string> { }",
+                "IEntityLoader",
+                "ValueTask<string> GetAsync(int key) => default;"),
+            DataLoaderKind.Cache
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "ICacheDataLoader<int, string>",
+                "Task<string> GetAsync(int key) => default!;"),
+            DataLoaderKind.Cache
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IEntityLoader : IBatchDataLoader<int, string> { }",
+                "IEntityLoader",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            DataLoaderKind.Batch
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "ValueTask<IDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default;"),
+            DataLoaderKind.Batch
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<string> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IInvalid : IBatchDataLoader<int, string>, ICacheDataLoader<int, string> { }",
+                "IInvalid",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;",
+                """
+                namespace GreenDonut
+                {
+                    public sealed class DataLoaderAttributeXAttribute<T> : System.Attribute { }
+                }
+                """,
+                "DataLoaderAttributeX<IBatchDataLoader<int, string>>"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;",
+                """
+                namespace GreenDonut
+                {
+                    public static class DataLoaderAttributeX
+                    {
+                        public sealed class NestedAttribute<T> : System.Attribute { }
+                    }
+                }
+                """,
+                "DataLoaderAttributeX.Nested<IBatchDataLoader<int, string>>"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal interface IReadOnlyList<T> { }",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "internal class Task<T> { }",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<Dictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(ref IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(in IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(ref readonly IReadOnlyList<int> keys) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(out IReadOnlyList<int> keys) { keys = default!; return default!; }"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "",
+                "IBatchDataLoader<int, string>",
+                "Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys, ref int marker) => default!;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "private static Task<IReadOnlyDictionary<int, string>> s_result = default!;",
+                "IBatchDataLoader<int, string>",
+                "ref Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => ref s_result;"),
+            null
+        ];
+        yield return
+        [
+            CreateGenericDataLoaderSource(
+                "private static Task<IReadOnlyDictionary<int, string>> s_result = default!;",
+                "IBatchDataLoader<int, string>",
+                "ref readonly Task<IReadOnlyDictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => ref s_result;"),
+            null
+        ];
+    }
+
+    [Fact]
+    public async Task Generate_Should_LinkImplementationToAnnotatedMethod_When_SourceMethodIsOverloaded()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    [DataLoaderState("state")] int? state,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                public static Task<IReadOnlyDictionary<string, Entity>> GetEntityByIdAsync(
+                    IReadOnlyList<string> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public class Entity
+            {
+            }
+            """,
+            compilation =>
+            {
+                var methodSyntax = compilation.SyntaxTrees
+                    .SelectMany(t => t.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+                    .Single(m => m.AttributeLists
+                        .SelectMany(a => a.Attributes)
+                        .Any(a => a.Name.ToString() == "DataLoader"));
+                var sourceMethod = compilation
+                    .GetSemanticModel(methodSyntax.SyntaxTree)
+                    .GetDeclaredSymbol(methodSyntax);
+                var generatedTree = compilation.SyntaxTrees.Single(
+                    t => t.FilePath.StartsWith("GreenDonutDataLoader", StringComparison.Ordinal));
+                var semanticModel = compilation.GetSemanticModel(generatedTree);
+                var crefs = generatedTree
+                    .GetRoot()
+                    .DescendantNodes(descendIntoTrivia: true)
+                    .OfType<XmlCrefAttributeSyntax>()
+                    .Select(a => a.Cref)
+                    .ToArray();
+
+                var cref = Assert.Single(crefs);
+                Assert.Empty(cref.GetDiagnostics());
+                Assert.True(
+                    SymbolEqualityComparer.Default.Equals(
+                        sourceMethod,
+                        semanticModel.GetSymbolInfo(cref).Symbol));
+            }).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
     [Fact]
     public async Task GenerateSource_BatchDataLoader_With_ValueType_Result_MatchesSnapshot()
     {
@@ -1097,4 +1928,183 @@ public class DataLoaderTests
             }
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
+
+    [Fact]
+    public async Task GenerateSource_DataLoaderKeyedServices_MatchesSnapshot()
+    {
+        // arrange
+        const string source =
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+            using Microsoft.Extensions.DependencyInjection;
+
+            namespace TestNamespace;
+
+            internal enum ServiceKey
+            {
+                First
+            }
+
+            internal sealed class ServiceDependency;
+
+            internal sealed class MemoizedInScopeAttribute : ServiceAttribute
+            {
+                public MemoizedInScopeAttribute()
+                    : base(global::TestNamespace.ServiceKey.First)
+                {
+                }
+            }
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [Service("service")] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByDerivedServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [MemoizedInScope] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByFromKeyedServicesAsync(
+                    IReadOnlyList<int> keys,
+                    [FromKeyedServices(ServiceKey.First)] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetOptionalByServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [Service("optional")] ServiceDependency? service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader(ServiceScope = DataLoaderServiceScope.OriginalScope)]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredByOriginalScopeServiceKeyAsync(
+                    IReadOnlyList<int> keys,
+                    [Service("original-scope")] ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, string>> GetRequiredUnkeyedAsync(
+                    IReadOnlyList<int> keys,
+                    ServiceDependency service,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """;
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(source);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    private static GenericDataLoaderInfo? TryCreateGenericDataLoaderInfo(
+        string source,
+        string? methodName = null)
+    {
+        var compilation = TestHelper.CreateCompilation(source);
+        var syntaxTree = compilation.SyntaxTrees.Single();
+        var methods = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>();
+        var methodSyntax = methodName is null
+            ? methods.Single()
+            : methods.Single(t => t.Identifier.ValueText == methodName);
+        var attributeSyntax = methodSyntax.AttributeLists.SelectMany(t => t.Attributes).Single();
+        var semanticModel = compilation.GetSemanticModel(syntaxTree);
+        var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodSyntax)!;
+        var attributeSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(attributeSyntax).Symbol!;
+        var attributeData = methodSymbol.GetAttributes().Single();
+
+        return GenericDataLoaderInfo.TryCreate(
+                attributeSyntax,
+                attributeSymbol,
+                attributeData,
+                methodSymbol,
+                methodSyntax,
+                compilation,
+                out var dataLoaderInfo)
+            ? dataLoaderInfo
+            : null;
+    }
+
+    private static string GetGeneratedOutputSummary(string source)
+    {
+        var compilation = TestHelper.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new GraphQLServerGenerator());
+        driver = driver.RunGenerators(compilation);
+        var result = driver.GetRunResult().Results.Single();
+
+        return $"""
+            Generated sources: {result.GeneratedSources.Length}
+            Generator diagnostics: {result.Diagnostics.Length}
+            Compilation diagnostics: {compilation.GetDiagnostics().Length}
+            """;
+    }
+
+    private static IReadOnlyCollection<SyntaxInfo> InspectDataLoaders(string source)
+    {
+        var compilation = TestHelper.CreateCompilation(source);
+        var inspected = new ConcurrentQueue<SyntaxInfo>();
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new DataLoaderInspectionGenerator(inspected));
+        driver = driver.RunGenerators(compilation);
+
+        return inspected;
+    }
+
+    private sealed class DataLoaderInspectionGenerator(ConcurrentQueue<SyntaxInfo> inspected)
+        : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context)
+        {
+            var inspector = new DataLoaderInspector();
+            var syntaxInfos = context.SyntaxProvider
+                .CreateSyntaxProvider(
+                    static (node, _) => node is MethodDeclarationSyntax { AttributeLists.Count: > 0 },
+                    (context, _) => inspector.TryHandle(context, out var syntaxInfo) ? syntaxInfo : null)
+                .Where(static t => t is not null)
+                .Select(static (t, _) => t!);
+
+            context.RegisterSourceOutput(syntaxInfos, (_, syntaxInfo) => inspected.Enqueue(syntaxInfo));
+        }
+    }
+
+    private static string CreateGenericDataLoaderSource(
+        string declarations,
+        string dataLoaderType,
+        string method,
+        string additionalDeclarations = "",
+        string? attribute = null)
+        => $$"""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+
+            {{additionalDeclarations}}
+
+            namespace TestNamespace
+            {
+                internal static class Loaders
+                {
+                    {{declarations}}
+
+                    [{{attribute ?? $"DataLoader<{dataLoaderType}>"}}]
+                    public static {{method}}
+                }
+            }
+            """;
 }

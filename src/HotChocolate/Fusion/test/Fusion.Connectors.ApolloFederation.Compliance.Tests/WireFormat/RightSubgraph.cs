@@ -29,7 +29,7 @@ public static class RightSubgraph
             .AddType<ChildType>();
 
         var app = builder.Build();
-        app.MapSubgraph();
+        app.MapSubgraph(enableBatching: true);
 
         await app.StartAsync();
 

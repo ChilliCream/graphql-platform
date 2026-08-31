@@ -19,6 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Primitives\src\Primitives\Types\DirectiveNames.cs" Link="Helpers\DirectiveNames.cs" />
+    <Compile Include="..\..\..\Primitives\src\Primitives\ErrorCodes.cs" Link="ErrorCodes.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.11.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.11.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" VersionOverride="3.11.0" PrivateAssets="all" />

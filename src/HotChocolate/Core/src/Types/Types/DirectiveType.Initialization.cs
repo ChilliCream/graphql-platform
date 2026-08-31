@@ -67,8 +67,9 @@ public partial class DirectiveType
         _inputParser = context.DescriptorContext.InputParser;
 
         Locations = configuration.Locations;
-        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
-        DeprecationReason = configuration.DeprecationReason;
+        DeprecationReason = string.IsNullOrWhiteSpace(configuration.DeprecationReason)
+            ? null
+            : configuration.DeprecationReason;
         Arguments = OnCompleteFields(context, configuration);
         IsPublic = configuration.IsPublic
             || context.DescriptorContext.Options.DisableInternalDirectives;

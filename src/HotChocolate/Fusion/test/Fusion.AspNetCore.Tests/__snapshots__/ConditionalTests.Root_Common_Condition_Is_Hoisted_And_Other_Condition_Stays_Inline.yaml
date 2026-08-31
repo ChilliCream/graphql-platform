@@ -1,0 +1,77 @@
+title: Root_Common_Condition_Is_Hoisted_And_Other_Condition_Stays_Inline
+request:
+  document: |
+    query testQuery($s: Boolean!, $x: Boolean!) {
+      a @skip(if: $s) @include(if: $x)
+      b @skip(if: $s)
+    }
+  variables: |
+    {
+      "s": false,
+      "x": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "a": "Query",
+        "b": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        a: String
+        b: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_337dd2aa_1($x: Boolean!) {
+              a @include(if: $x)
+              b
+            }
+          variables: |
+            {
+              "x": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": "Query",
+                  "b": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($s: Boolean!, $x: Boolean!) {
+          a @skip(if: $s) @include(if: $x)
+          b @skip(if: $s)
+        }
+      name: testQuery
+      hash: 337dd2aac6522eb1350cd6b4ea833dc0
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_337dd2aa_1($x: Boolean!) {
+          a @include(if: $x)
+          b
+        }
+      conditions:
+        - variable: $s
+          passingValue: false
+      forwardedVariables:
+        - x

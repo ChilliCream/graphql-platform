@@ -102,7 +102,7 @@ public sealed class MessageEnvelope
 
     /// <summary>
     /// Must be processed before this timestamp.
-    /// Used for TTL / NServiceBus "TimeToBeReceived".
+    /// Used for message time-to-live.
     /// </summary>
     public DateTimeOffset? DeliverBy { get; init; }
 

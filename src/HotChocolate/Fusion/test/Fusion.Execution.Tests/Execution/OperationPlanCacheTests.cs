@@ -203,7 +203,7 @@ public class OperationPlanCacheTests : FusionTestBase
                         }
                     ]
                 })
-            .ToImmutableArray();
+            .ToArray();
         var node = new PolicyExecutionNode(1, targets, []);
         var plan = OperationPlan.Create(
             "agreeing-policy-requirements",
@@ -295,7 +295,9 @@ public class OperationPlanCacheTests : FusionTestBase
         };
 
         // act
-        var add = Task.Run(() => planCache.Add(session, "stale", plan));
+        var add = Task.Run(
+            () => planCache.Add(session, "stale", plan),
+            TestContext.Current.CancellationToken);
         entered.Wait(TestContext.Current.CancellationToken);
         planCache.EvictPolicies(new Dictionary<string, ulong>(StringComparer.Ordinal)
         {
@@ -307,7 +309,9 @@ public class OperationPlanCacheTests : FusionTestBase
         // assert
         Assert.Equal(
             (Cached: false, IndexedIds: 0L),
-            (planCache.Current.TryGet("stale", out _), planCache.IndexedIdCountForTesting));
+            (
+                Cached: planCache.Current.TryGet("stale", out _),
+                IndexedIds: planCache.IndexedIdCountForTesting));
     }
 
     [Fact]
@@ -328,7 +332,9 @@ public class OperationPlanCacheTests : FusionTestBase
         };
 
         // act
-        var oldAdd = Task.Run(() => planCache.Add(oldSession, "old", plan));
+        var oldAdd = Task.Run(
+            () => planCache.Add(oldSession, "old", plan),
+            TestContext.Current.CancellationToken);
         entered.Wait(TestContext.Current.CancellationToken);
         planCache.Reset();
         planCache.BeforeAddValidation = null;
@@ -340,9 +346,9 @@ public class OperationPlanCacheTests : FusionTestBase
         Assert.Equal(
             (OldCached: false, CurrentCached: true, IndexedIds: 1L),
             (
-                planCache.Current.TryGet("old", out _),
-                planCache.Current.TryGet("current", out _),
-                planCache.IndexedIdCountForTesting));
+                OldCached: planCache.Current.TryGet("old", out _),
+                CurrentCached: planCache.Current.TryGet("current", out _),
+                IndexedIds: planCache.IndexedIdCountForTesting));
     }
 
     [Fact]

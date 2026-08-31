@@ -124,6 +124,26 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     }
 
     [Fact]
+    public async Task RequestNotFound_ReturnsError()
+    {
+        // arrange
+        SetupReleaseDeploymentSlotMutation(CreateReleaseDeploymentSlotRequestNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "cancel", "--request-id", RequestId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task RequestIdFromArg_Success_ReturnsSuccess()
     {
         // arrange
@@ -166,7 +186,6 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
         string> GetReleaseDeploymentSlotErrors() => new()
     {
         { CreateReleaseDeploymentSlotUnauthorizedError(), "Unauthorized." },
-        { CreateReleaseDeploymentSlotRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateReleaseDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 

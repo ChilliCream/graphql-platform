@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
+import { ChartCanvas } from "./ChartCanvas";
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
@@ -42,12 +43,11 @@ export function MarkerLine({
   const side = at > 0.5 ? "right" : "left";
 
   return (
-    <div
+    <ChartCanvas
       ref={ref}
       className={className}
-      style={{ position: "relative", width: "100%", height: "100%", ...style }}
-      role="img"
-      aria-label={`Marker ${label}${caption ? ` (${caption})` : ""}`}
+      style={style}
+      label={`Marker ${label}${caption ? ` (${caption})` : ""}`}
     >
       <motion.div
         aria-hidden
@@ -105,6 +105,6 @@ export function MarkerLine({
           </span>
         )}
       </motion.div>
-    </div>
+    </ChartCanvas>
   );
 }

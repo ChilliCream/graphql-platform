@@ -23,11 +23,11 @@ public sealed class QueryType : ObjectType
             {
                 var id = ctx.ArgumentValue<string>("id");
 
-                if (SubgraphBData.AccountsById.TryGetValue(id, out _))
+                if (SubgraphBData.AccountsById.TryGetValue(id, out var account))
                 {
                     // Intentionally corrupted: Account.id is @external in
                     // this subgraph, so we return "never" as the id.
-                    return (INode)new Account { Id = "never" };
+                    return (INode)new Account { Id = "never", ChatIds = account.ChatIds };
                 }
 
                 if (SubgraphBData.ChatsById.TryGetValue(id, out var chat))

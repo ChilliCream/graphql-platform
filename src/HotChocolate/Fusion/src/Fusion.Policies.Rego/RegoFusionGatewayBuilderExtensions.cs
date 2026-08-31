@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Policies.Rego;

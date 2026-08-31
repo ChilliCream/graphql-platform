@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Mocha.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Sagas")]
+[assembly: InternalsVisibleTo("Mocha.TestHelpers")]
 [assembly: InternalsVisibleTo("Mocha.Sagas.TestHelpers")]
 [assembly: InternalsVisibleTo("Mocha.Sagas.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Inbox")]
@@ -16,6 +17,8 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mocha.Sagas.Tests")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres")]
+[assembly: InternalsVisibleTo("Mocha.Transport.AzureServiceBus")]
+[assembly: InternalsVisibleTo("Mocha.Transport.AzureServiceBus.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Transport.InMemory.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Transport.Postgres.Tests")]

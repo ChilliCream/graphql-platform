@@ -15,11 +15,12 @@ internal sealed class ExecutePlanNodeSpan(
     string? schemaName,
     FusionActivityEnricher enricher) : SpanBase(activity)
 {
-    private static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
+    internal static FrozenDictionary<ExecutionNodeType, string> KindValues { get; } =
         new Dictionary<ExecutionNodeType, string>
         {
             [ExecutionNodeType.Operation] = GraphQL.Operation.Step.KindValues.Operation,
             [ExecutionNodeType.OperationBatch] = GraphQL.Operation.Step.KindValues.OperationBatch,
+            [ExecutionNodeType.EventStream] = GraphQL.Operation.Step.KindValues.EventStream,
             [ExecutionNodeType.Introspection] = GraphQL.Operation.Step.KindValues.Introspection,
             [ExecutionNodeType.Node] = GraphQL.Operation.Step.KindValues.Node
         }.ToFrozenDictionary();
@@ -50,15 +51,50 @@ internal sealed class ExecutePlanNodeSpan(
         activity.EnrichDocumentInfo(context.RequestContext.OperationDocumentInfo);
 
         activity.SetTag(GraphQL.Operation.Step.Id, node.Id.ToString(CultureInfo.InvariantCulture));
-        activity.SetTag(GraphQL.Operation.Step.Kind, KindValues[node.Type]);
-        activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
 
-        if (node is OperationExecutionNode operationExecutionNode)
+        // An execution node type that has no mapped kind value produces an untagged
+        // span instead of failing the node's execution.
+        if (KindValues.TryGetValue(node.Type, out var kind))
         {
-            SetSourceSchemaTags(activity, operationExecutionNode.Operation, schemaName);
+            activity.SetTag(GraphQL.Operation.Step.Kind, kind);
         }
 
+        activity.SetTag(GraphQL.Operation.Step.Plan.Id, context.OperationPlan.Id);
+
+        SetSourceSchemaTags(activity, node, schemaName);
+
         return new ExecutePlanNodeSpan(activity, context, node, schemaName, enricher);
+    }
+
+    internal static void SetSourceSchemaTags(
+        Activity activity,
+        ExecutionNode node,
+        string? schemaName)
+    {
+        switch (node)
+        {
+            case OperationExecutionNode operationExecutionNode:
+                SetSourceSchemaTags(activity, operationExecutionNode.Operation, schemaName);
+                break;
+
+            case ApolloOperationExecutionNode apolloOperationExecutionNode:
+                SetSourceSchemaTags(activity, apolloOperationExecutionNode.Operation, schemaName);
+                break;
+
+            case OperationBatchExecutionNode operationBatchExecutionNode:
+                SetSourceSchemaBatchTags(
+                    activity,
+                    schemaName,
+                    operationBatchExecutionNode.Operations.Length);
+                break;
+
+            case ApolloOperationBatchExecutionNode apolloOperationBatchExecutionNode:
+                SetSourceSchemaBatchTags(
+                    activity,
+                    schemaName,
+                    apolloOperationBatchExecutionNode.Operations.Length);
+                break;
+        }
     }
 
     protected override void OnComplete()
@@ -89,6 +125,19 @@ internal sealed class ExecutePlanNodeSpan(
         }
 
         activity.SetTag(GraphQL.SourceSchema.Operation.Name, operation.Name);
-        activity.SetTag(GraphQL.SourceSchema.Operation.Hash, $"sha256:{operation.Hash}");
+        activity.SetTag(GraphQL.SourceSchema.Operation.Hash, $"sha256:{operation.Hash.Sha256}");
+    }
+
+    private static void SetSourceSchemaBatchTags(
+        Activity activity,
+        string? schemaName,
+        int operationCount)
+    {
+        if (!string.IsNullOrWhiteSpace(schemaName))
+        {
+            activity.SetTag(GraphQL.SourceSchema.Name, schemaName);
+        }
+
+        activity.SetTag(GraphQL.SourceSchema.Batch.OperationCount, operationCount);
     }
 }

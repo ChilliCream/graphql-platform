@@ -1,6 +1,8 @@
 "use client";
 
+import { Card } from "@/src/design-system/Card";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 interface FaqSectionProps {
   readonly id: string;
@@ -37,7 +39,7 @@ export function FaqSection({
 
       <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4">
         {items.map((item) => (
-          <FaqItem key={item.question} item={item} />
+          <FaqItem key={item.question} sectionId={id} item={item} />
         ))}
       </div>
     </section>
@@ -45,34 +47,51 @@ export function FaqSection({
 }
 
 function FaqItem({
+  sectionId,
   item,
 }: {
+  readonly sectionId: string;
   readonly item: { readonly question: string; readonly answer: string };
 }) {
   return (
-    <details className="group border-cc-card-border hover:border-cc-card-border-hover bg-cc-card-bg/60 rounded-2xl border transition-colors">
-      <summary className="text-cc-heading font-heading flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-base font-semibold">
-        <span>{item.question}</span>
-        <span
-          aria-hidden="true"
-          className="text-cc-accent mt-1 flex-none font-mono text-sm transition-transform group-open:rotate-45"
-        >
-          +
-        </span>
-      </summary>
-      <div
-        className="text-cc-ink cursor-pointer px-5 pb-5 text-sm leading-relaxed"
-        onClick={(event) => {
-          // Clicking the open answer collapses it, unless the user is selecting
-          // text. The accessible keyboard toggle stays the <summary>.
-          if (window.getSelection()?.toString()) {
+    <Card className="bg-cc-card-bg/60" hoverBorder>
+      <details
+        className="group"
+        onToggle={(event) => {
+          if (!event.currentTarget.open) {
             return;
           }
-          event.currentTarget.closest("details")?.removeAttribute("open");
+
+          sendAnalyticsEvent("faq_open", {
+            faq_section: sectionId,
+            faq_question: item.question,
+            page_path: window.location.pathname,
+          });
         }}
       >
-        {item.answer}
-      </div>
-    </details>
+        <summary className="text-cc-heading font-heading flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-base font-semibold">
+          <span>{item.question}</span>
+          <span
+            aria-hidden="true"
+            className="text-cc-accent mt-1 flex-none font-mono text-sm transition-transform group-open:rotate-45"
+          >
+            +
+          </span>
+        </summary>
+        <div
+          className="text-cc-ink cursor-pointer px-5 pb-5 text-sm leading-relaxed"
+          onClick={(event) => {
+            // Clicking the open answer collapses it, unless the user is selecting
+            // text. The accessible keyboard toggle stays the <summary>.
+            if (window.getSelection()?.toString()) {
+              return;
+            }
+            event.currentTarget.closest("details")?.removeAttribute("open");
+          }}
+        >
+          {item.answer}
+        </div>
+      </details>
+    </Card>
   );
 }

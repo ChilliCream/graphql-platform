@@ -17,6 +17,7 @@ public sealed class QueryType : ObjectType
             .Field("media")
             .Type<ListType<MediaUnionType>>()
             .Shareable()
-            .Resolve(_ => SubgraphAData.Media);
+            .Resolve(_ => throw new InvalidOperationException(
+                "The query planner must use subgraph 'b' for Query.media."));
     }
 }

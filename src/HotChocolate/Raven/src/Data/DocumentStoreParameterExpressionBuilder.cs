@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -11,14 +12,31 @@ namespace HotChocolate.Data.Raven;
 
 internal sealed class DocumentStoreParameterExpressionBuilder()
     : LambdaParameterExpressionBuilder<IAsyncDocumentSession>(ctx => ctx.AsyncSession(), isPure: false)
-    , IParameterFieldConfiguration
+    , IParameterDescriptorFieldConfiguration
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public override ArgumentKind Kind => ArgumentKind.Service;
 
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(IAsyncDocumentSession);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(IAsyncDocumentSession);
+
+    IParameterBinding IParameterBindingFactory.Create(ParameterDescriptor parameter)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)(object)context.AsyncSession();
+
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
+        => ApplyConfiguration(descriptor);
+
+    public void ApplyConfiguration(ParameterDescriptor parameter, ObjectFieldDescriptor descriptor)
+        => ApplyConfiguration(descriptor);
+
+    private static void ApplyConfiguration(ObjectFieldDescriptor descriptor)
     {
         if (descriptor.Extend().Configuration is { ResultType: { } resultType } definition
             && TryExtractEntityType(resultType, out var entityType))

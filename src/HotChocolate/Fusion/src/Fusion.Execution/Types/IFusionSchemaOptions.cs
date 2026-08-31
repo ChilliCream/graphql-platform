@@ -18,6 +18,14 @@ public interface IFusionSchemaOptions
     bool EnableDefer { get; }
 
     /// <summary>
+    /// Gets whether <c>@deprecated</c> on object types is enabled. When <c>true</c>, the
+    /// introspection schema exposes <c>isDeprecated</c> and <c>deprecationReason</c> on
+    /// <c>__Type</c> and the <c>includeDeprecated</c> argument on <c>__Type.possibleTypes</c>
+    /// and <c>__Schema.types</c>.
+    /// </summary>
+    bool EnableObjectDeprecation { get; }
+
+    /// <summary>
     /// Gets whether opt-in feature support is enabled. When <c>true</c>, the introspection
     /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
     /// introspection unless the client opts into their feature.

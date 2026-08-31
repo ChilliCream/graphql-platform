@@ -8,4 +8,6 @@ namespace HotChocolate.Fusion.Suites.ProvidesOnInterface.SubgraphA;
 public sealed class Dog : IAnimal
 {
     public string Id { get; init; } = default!;
+
+    public string? Name { get; init; }
 }

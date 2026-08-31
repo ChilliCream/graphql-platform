@@ -321,6 +321,11 @@ public sealed partial class SyntaxSerializer
         writer.Write("...");
         writer.WriteName(node.Name);
 
+        if (node.Arguments.Count > 0)
+        {
+            WriteArguments(node.Arguments, writer);
+        }
+
         WriteDirectives(node.Directives, writer);
     }
 

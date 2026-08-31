@@ -5,6 +5,7 @@ import { areaFromLine, smoothLinePath, type Pt } from "../lib/scale";
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
+import { ChartCanvas } from "./ChartCanvas";
 
 export interface SparklineProps {
   values: number[];
@@ -16,6 +17,7 @@ export interface SparklineProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -33,11 +35,12 @@ export function Sparkline({
   progress,
   playWindow,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: SparklineProps): React.JSX.Element {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
   const clipId = useId().replace(/:/g, "");
 
   const plotTop = PAD_Y;
@@ -74,13 +77,7 @@ export function Sparkline({
       : "Sparkline");
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{ position: "relative", width: "100%", height: "100%", ...style }}
-      role="img"
-      aria-label={label}
-    >
+    <ChartCanvas ref={ref} className={className} style={style} label={label}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
@@ -123,6 +120,6 @@ export function Sparkline({
           }
         />
       </svg>
-    </div>
+    </ChartCanvas>
   );
 }

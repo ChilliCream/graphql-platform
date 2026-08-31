@@ -1,8 +1,11 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Features;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -28,6 +31,27 @@ public class Book : Product
     public required string Title { get; set; }
 }
 
+[ObjectType<Book>]
+public static partial class BookBatchType
+{
+    [BatchResolver]
+    public static List<string> GetBatchGreeting(
+        [Parent] List<Book> books,
+        BatchCurrentUser currentUser)
+    {
+        var result = new List<string>(books.Count);
+
+        foreach (var book in books)
+        {
+            result.Add($"{currentUser.Name}:{book.Title}");
+        }
+
+        return result;
+    }
+}
+
+public sealed record BatchCurrentUser(string Name);
+
 public class Television : Product;
 
 [ObjectType<Television>]
@@ -50,6 +74,12 @@ public static partial class Query
     public static PagingArguments PagingArguments { get; private set; }
 
     public static IsSelectedNode GetIsSelectedTest([IsSelected("name")] bool isSelected)
+    {
+        return new IsSelectedNode { WasNameSelected = isSelected };
+    }
+
+    public static IsSelectedNode GetIsSelectedPatternTest(
+        [IsSelected("name description")] bool isSelected)
     {
         return new IsSelectedNode { WasNameSelected = isSelected };
     }
@@ -116,6 +146,71 @@ public static partial class Query
     // distinct GraphQL types but the FactoryTypeReference cache keyed only on
     // the syntactic structure, so one position reused the IType of the other.
     public static IReadOnlyCollection<Shape> GetShapes() => [];
+
+    public static string GetConfiguredLocalState(ConfiguredLocalState state)
+        => state.Value;
+}
+
+public sealed record ConfiguredLocalState(string Value);
+
+public sealed class LocalStateParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterDescriptorFieldConfiguration
+{
+    private const string StateKey = "configuredLocalState";
+    private int _applyCount;
+
+    public ArgumentKind Kind => ArgumentKind.LocalState;
+
+    public bool IsPure => false;
+
+    public bool IsDefaultHandler => false;
+
+    public bool CanHandle(ParameterInfo parameter)
+        => parameter.ParameterType == typeof(ConfiguredLocalState);
+
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(ConfiguredLocalState);
+
+    public Expression Build(ParameterExpressionBuilderContext context)
+    {
+        Expression<Func<IResolverContext, ConfiguredLocalState>> expression =
+            static context => context.GetLocalState<ConfiguredLocalState>(StateKey);
+
+        return Expression.Invoke(expression, context.ResolverContext);
+    }
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new LocalStateBinding();
+
+    public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
+        => ApplyConfiguration(descriptor);
+
+    public void ApplyConfiguration(ParameterDescriptor parameter, ObjectFieldDescriptor descriptor)
+        => ApplyConfiguration(descriptor);
+
+    private void ApplyConfiguration(ObjectFieldDescriptor descriptor)
+    {
+        _applyCount++;
+
+        descriptor.Use(
+            next => async context =>
+            {
+                context.SetLocalState(
+                    StateKey,
+                    new ConfiguredLocalState($"configured:{_applyCount}"));
+                await next(context);
+            });
+    }
+
+    private sealed class LocalStateBinding : IParameterBinding
+    {
+        public bool IsPure => false;
+
+        public T Execute<T>(IResolverContext context)
+            => (T)(object)context.GetLocalState<ConfiguredLocalState>(StateKey);
+    }
 }
 
 public class Shape
@@ -133,7 +228,16 @@ public static partial class Mutation
     // which must coerce the inner type and honor whether the argument was provided.
     public static string SetOptionalValue(Optional<string?> value)
         => value.HasValue ? value.Value ?? "null" : "unset";
+
+    // When the CurrentUser parameter is supplied through AddParameterExpressionBuilder,
+    // the source-generated binding must resolve it from that custom builder rather than
+    // exposing it as a GraphQL input argument. Without a custom builder registered the
+    // parameter legitimately becomes an implicit argument of type CurrentUserInput.
+    public static string CreateExport(CurrentUser currentUser, string name)
+        => $"{currentUser.Name}:{name}";
 }
+
+public sealed record CurrentUser(string Name);
 
 public class IsSelectedNode
 {

@@ -8,10 +8,12 @@ namespace HotChocolate.Fusion.WireFormat.Left;
 
 /// <summary>
 /// The <c>left</c> Apollo Federation subgraph for the entity-batch wire-format
-/// tests. Exposes <c>Query.parent</c> and owns the <c>Child</c> key. Each
-/// <c>Parent.child</c> selection yields a <c>Child</c> reference that the gateway
-/// resolves against the <c>right</c> subgraph, so a query that selects
-/// <c>child</c> twice produces two same-subgraph entity lookups.
+/// tests. Exposes <c>Query.parent</c> and <c>Query.parents</c> and owns the
+/// <c>Child</c> key. Each <c>Parent.child</c> selection yields a <c>Child</c>
+/// reference that the gateway resolves against the <c>right</c> subgraph, so a
+/// query that selects <c>child</c> twice produces two same-subgraph entity
+/// lookups, and a <c>child</c> selection below <c>parents</c> produces one lookup
+/// that carries one representation per list item.
 /// </summary>
 public static class LeftSubgraph
 {
@@ -31,7 +33,7 @@ public static class LeftSubgraph
             .AddType<ChildType>();
 
         var app = builder.Build();
-        app.MapSubgraph();
+        app.MapSubgraph(enableBatching: true);
 
         await app.StartAsync();
 
@@ -61,6 +63,16 @@ public sealed class QueryType : ObjectType
             .Field("parent")
             .Type<ParentType>()
             .Resolve(_ => new Parent { Id = "1", ChildId = "1" });
+
+        descriptor
+            .Field("parents")
+            .Type<NonNullType<ListType<NonNullType<ParentType>>>>()
+            .Resolve(
+                _ => new Parent[]
+                {
+                    new() { Id = "1", ChildId = "1" },
+                    new() { Id = "2", ChildId = "2" }
+                });
     }
 }
 

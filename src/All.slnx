@@ -264,6 +264,7 @@
   <Folder Name="/HotChocolate/Language/src/">
     <Project Path="HotChocolate/Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
     <Project Path="HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
+    <Project Path="HotChocolate/Language/src/Language.Utf8.SyntaxTree/HotChocolate.Language.Utf8.SyntaxTree.csproj" />
     <Project Path="HotChocolate/Language/src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
     <Project Path="HotChocolate/Language/src/Language.Web/HotChocolate.Language.Web.csproj" />
     <Project Path="HotChocolate/Language/src/Language/HotChocolate.Language.csproj" />
@@ -375,6 +376,7 @@
     <Project Path="Mocha/src/Mocha.Mediator/Mocha.Mediator.csproj" />
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
+    <Project Path="Mocha/src/Mocha.Transport.AzureServiceBus/Mocha.Transport.AzureServiceBus.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
@@ -392,6 +394,7 @@
     <Project Path="Mocha/test/Mocha.Sagas.Tests/Mocha.Sagas.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.TestHelpers/Mocha.TestHelpers.csproj" />
     <Project Path="Mocha/test/Mocha.Tests/Mocha.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Transport.AzureServiceBus.Tests/Mocha.Transport.AzureServiceBus.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
@@ -404,6 +407,7 @@
   </Folder>
   <Folder Name="/Nitro/CommandLine/test/">
     <Project Path="Nitro/CommandLine/test/CommandLine.Tests/Nitro.CommandLine.Tests.csproj" />
+    <Project Path="Nitro/CommandLine/test/CommandLine.Smoke.Tests/Nitro.CommandLine.Smoke.Tests.csproj" />
   </Folder>
   <Folder Name="/Nitro/Common/" />
   <Folder Name="/Nitro/Common/src/">

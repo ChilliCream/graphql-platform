@@ -50,6 +50,14 @@ internal static class ThrowHelper
                     method.Name)
                 .Build());
 
+    public static SchemaException ObjectDeprecationNotEnabled(string typeName)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ObjectTypeDescriptor_Deprecated_NotEnabled,
+                    typeName)
+                .Build());
+
     public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
         => new SchemaException(
             SchemaErrorBuilder.New()

@@ -1,4 +1,5 @@
 import { CheckIcon } from "@/src/components/CheckIcon";
+import { CheckListItem } from "@/src/components/CheckListItem";
 
 type CheckListVariant = "plain" | "pill";
 
@@ -22,27 +23,31 @@ export function CheckList({
   columns = 1,
   className = "",
 }: CheckListProps) {
-  const listClass =
-    variant === "pill"
-      ? "grid gap-3"
-      : `text-cc-ink grid gap-2 text-sm ${columns === 2 ? "sm:grid-cols-2" : ""}`;
-  const itemClass =
-    variant === "pill"
-      ? "border-cc-card-border bg-cc-bg/40 flex items-start gap-3 rounded-xl border px-4 py-3"
-      : "flex items-start gap-2";
+  if (variant === "pill") {
+    return (
+      <ul className={`grid gap-3 ${className}`.trim()}>
+        {items.map((item) => (
+          <CheckListItem
+            key={item}
+            className="border-cc-card-border bg-cc-bg/40 rounded-xl border px-4 py-3"
+          >
+            {item}
+          </CheckListItem>
+        ))}
+      </ul>
+    );
+  }
 
   return (
-    <ul className={`${listClass} ${className}`.trim()}>
+    <ul
+      className={`text-cc-ink grid gap-2 text-sm ${columns === 2 ? "sm:grid-cols-2" : ""} ${className}`.trim()}
+    >
       {items.map((item) => (
-        <li key={item} className={itemClass}>
+        <li key={item} className="flex items-start gap-2">
           <span className="text-cc-accent mt-1 flex-none">
             <CheckIcon />
           </span>
-          <span
-            className={variant === "pill" ? "text-cc-ink text-sm" : undefined}
-          >
-            {item}
-          </span>
+          <span>{item}</span>
         </li>
       ))}
     </ul>

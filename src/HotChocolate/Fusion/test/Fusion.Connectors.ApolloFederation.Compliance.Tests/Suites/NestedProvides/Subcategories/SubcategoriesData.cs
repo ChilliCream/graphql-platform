@@ -45,30 +45,19 @@ internal static class SubcategoriesData
 
         foreach (var catId in catIds)
         {
-            categories.Add(BuildCategory(catId));
+            categories.Add(new CategoryEntity { Id = catId });
         }
 
         return new Product { Id = id, Categories = categories };
     }
 
     /// <summary>
-    /// Builds a <see cref="CategoryEntity"/> with its subcategories
-    /// resolved one level deep.
+    /// Builds a <see cref="CategoryEntity"/> reference.
     /// </summary>
-    public static CategoryEntity BuildCategory(string id)
-    {
-        List<CategoryEntity>? subs = null;
+    public static CategoryEntity BuildCategory(string id) => new() { Id = id };
 
-        if (SubCategories.TryGetValue(id, out var subIds))
-        {
-            subs = new List<CategoryEntity>(subIds.Count);
-
-            foreach (var subId in subIds)
-            {
-                subs.Add(BuildCategory(subId));
-            }
-        }
-
-        return new CategoryEntity { Id = id, SubCategories = subs };
-    }
+    public static IReadOnlyList<CategoryEntity> GetSubCategories(string id)
+        => SubCategories.TryGetValue(id, out var subIds)
+            ? subIds.Select(static subId => new CategoryEntity { Id = subId }).ToArray()
+            : [];
 }

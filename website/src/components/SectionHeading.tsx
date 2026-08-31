@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 type Align = "left" | "center";
 type Size = "md" | "lg";
@@ -40,11 +41,7 @@ export function SectionHeading({
 
   return (
     <div className={centered ? "text-center" : undefined}>
-      {eyebrow && (
-        <p className="text-cc-ink-dim font-mono text-xs tracking-[0.18em] uppercase">
-          {eyebrow}
-        </p>
-      )}
+      {eyebrow && <Eyebrow color="ink-dim">{eyebrow}</Eyebrow>}
       <h2
         id={titleId}
         className={`font-heading text-cc-heading font-semibold text-balance ${TITLE_SIZE[size]} ${
@@ -55,7 +52,7 @@ export function SectionHeading({
       </h2>
       {description && (
         <p
-          className={`text-cc-ink mt-4 max-w-xl text-pretty ${DESCRIPTION_SIZE[size]} ${
+          className={`text-cc-ink mt-4 max-w-3xl text-pretty ${DESCRIPTION_SIZE[size]} ${
             centered ? "mx-auto" : ""
           }`}
         >

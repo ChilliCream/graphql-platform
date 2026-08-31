@@ -60,7 +60,7 @@ jobs:
         with:
           path: |
             website/public/_optimized
-          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/src/image-optimization/**', 'website/scripts/optimize-images.mjs') }}
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/src/image-optimization/**', 'website/scripts/optimize-images.mjs', 'website/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-optimized-images-
 
@@ -70,6 +70,10 @@ jobs:
 
       - name: Generate Git Metadata
         run: yarn generate-git-metadata
+        working-directory: website
+
+      - name: Generate Agent Skills
+        run: yarn generate-agent-skills
         working-directory: website
 
       - name: Build Website

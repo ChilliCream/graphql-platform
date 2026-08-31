@@ -140,13 +140,24 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 type);
         }
 
+        // Materialized once so both this check and the self-reentry exclusion below
+        // share the same candidate set.
+        var candidateSchemas = schema.GetPossibleSchemas(workItem.SelectionSet).ToArray();
+
+        // True only when the sole schema able to serve this selection is also the one
+        // the self-reentry rule excludes, leaving zero candidate plans otherwise.
+        var onlyCandidateIsExcludedSelf = !workItem.AllowSourceSchemaReentry
+            && candidateSchemas is [(var soleSchema, _)]
+            && soleSchema.Equals(workItem.FromSchema, StringComparison.Ordinal);
+
         // Each branch starts from the same popped template and mutates a local copy
         // of backlog state. This avoids recomputing backlog shape from collections
         // for every candidate.
-        foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (toSchema, resolutionCost) in candidateSchemas)
         {
             if (!workItem.AllowSourceSchemaReentry
-                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal)
+                && !onlyCandidateIsExcludedSelf)
             {
                 continue;
             }
@@ -251,7 +262,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
     /// requires as input. Such a lookup cannot make progress on its own; the key must be supplied
     /// from the parent path instead.
     /// </summary>
-    private static bool IsSelfCyclicLookup(OperationWorkItem workItem, Lookup lookup)
+    internal static bool IsSelfCyclicLookup(OperationWorkItem workItem, Lookup lookup)
     {
         var requested = workItem.SelectionSet.Node.Selections;
 
@@ -300,6 +311,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
     {
         var enqueued = false;
         var hasCoveringAbstractLookup = false;
+        var possibleTypes = schema.GetPossibleTypes(type, includeInaccessible: true);
+
+        if (possibleTypes.IsEmpty)
+        {
+            return false;
+        }
 
         // Phase 1: we try to find a single schema that can resolve all concrete types as
         // this would allow us to batch all requests to these into a single GraphQL batch request.
@@ -329,7 +346,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             // for each concrete type that implements the abstract type,
             // find a lookup in the target schema.
-            foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
+            foreach (var possibleType in possibleTypes)
             {
                 if (!schema.TryGetBestDirectLookup(possibleType, fromSchemas, toSchema, out var concreteLookup))
                 {
@@ -389,7 +406,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         string? topSchema = null;
         double topCost = 0;
 
-        foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
+        foreach (var possibleType in possibleTypes)
         {
             // rewrite the selection set to target the concrete type with a
             // fragment path so the executor can match the runtime type.

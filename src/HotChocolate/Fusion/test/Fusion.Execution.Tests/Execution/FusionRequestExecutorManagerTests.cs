@@ -355,9 +355,10 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
             {
                 Current = value;
 
-                if (ReferenceEquals(_expectedContent, value))
+                if (_expected is { } expected
+                    && ReferenceEquals(_expectedContent, value))
                 {
-                    _expected.TrySetResult(value);
+                    expected.TrySetResult(value);
                 }
             }
         }
@@ -548,7 +549,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.Equal("a", httpConfig.Name);
         Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
-        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SourceSchemaClientCapabilities.Default, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
         Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
         Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
@@ -597,7 +598,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.Equal("a", httpConfig.Name);
         Assert.Equal("my-custom-client", httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
-        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SourceSchemaClientCapabilities.Default, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
         Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
         Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
@@ -756,7 +757,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.Equal("a", httpConfig.Name);
         Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
-        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SourceSchemaClientCapabilities.Default, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.Query | SupportedOperationType.Mutation, httpConfig.SupportedOperations);
         Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
         Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
@@ -817,7 +818,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.Equal("a", httpConfig.Name);
         Assert.Equal(HttpSourceSchemaClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
         Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
-        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SourceSchemaClientCapabilities.Default, httpConfig.Capabilities);
         Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
         Assert.Equal("application/json, text/plain", httpConfig.DefaultAcceptHeaderValue);
         Assert.Equal("application/jsonl", httpConfig.BatchingAcceptHeaderValue);

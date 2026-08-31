@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { COMPANY_SOCIAL_LINKS } from "@/src/helpers/companyLinks";
+import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
 import { ChilliCreamText } from "@/src/icons/ChilliCreamText";
 import { GitHubIcon } from "@/src/icons/GitHub";
@@ -8,14 +10,16 @@ import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 
+import { GitHubStarButton } from "./GitHubStarButton";
+
 const tools = {
   blog: "/blog",
-  github: "https://github.com/ChilliCream/graphql-platform",
-  linkedIn: "https://www.linkedin.com/company/chillicream",
+  github: GITHUB_REPO_URL,
+  linkedIn: COMPANY_SOCIAL_LINKS.linkedIn,
   shop: "https://store.chillicream.com",
   slack: "https://slack.chillicream.com/",
-  youtube: "https://www.youtube.com/c/ChilliCream",
-  x: "https://x.com/Chilli_Cream",
+  youtube: COMPANY_SOCIAL_LINKS.youtube,
+  x: COMPANY_SOCIAL_LINKS.x,
 };
 
 const products: { path: string; title: string }[] = [
@@ -24,7 +28,7 @@ const products: { path: string; title: string }[] = [
   { path: "hotchocolate", title: "Hot Chocolate" },
   { path: "strawberryshake", title: "Strawberry Shake" },
   { path: "mocha", title: "Mocha" },
-  { path: "skillz", title: "Skillz" },
+  { path: "skills", title: "Skills" },
 ];
 
 const basicPages: { path: string; title: string }[] = [
@@ -51,15 +55,20 @@ export default function Footer() {
               <br />
               United States
             </address>
+            <div className="flex">
+              <GitHubStarButton />
+            </div>
           </div>
           <div className="grid flex-4 grid-cols-2 gap-8 md:grid-cols-4">
             <LinkColumn title="Platform">
               <NavLink href="/platform/analytics">Analytics</NavLink>
-              <NavLink href="/platform/continuous-integration">
-                Continuous Integration
-              </NavLink>
+              <NavLink href="/platform/release-safety">Release Safety</NavLink>
               <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
+              <NavLink href="/platform/agentic-coding">
+                Agentic Development
+              </NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
+              <NavLink href="/products/mocha">Mocha</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">
               <NavLink href="/services/advisory">Advisory</NavLink>

@@ -118,6 +118,38 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
     }
 
     [Fact]
+    public void PackedFlags_Should_PreserveAllEightBits_WhenRowsAreCreated()
+    {
+        // Arrange
+        const ElementFlags flags = (ElementFlags)DbRow.FlagsMask;
+        var replaceCursor = _metaDb.AppendNull(parentRow: 7);
+
+        // Act
+        var cursors = new[]
+        {
+            _metaDb.Append(ElementTokenType.String, flags: flags),
+            _metaDb.AppendEmptyProperty(parentRow: 0, selectionId: 1, flags: flags),
+            _metaDb.AppendEmptyPropertyWithNullValue(parentRow: 0, selectionId: 2, flags: flags),
+            _metaDb.AppendStartObject(
+                parentRow: 0,
+                selectionSetId: 3,
+                propertyCount: 0,
+                flags: flags),
+            _metaDb.AppendStartArray(parentRow: 0, length: 0, flags: flags),
+            replaceCursor
+        };
+        _metaDb.ReplacePreserveParent(replaceCursor, ElementTokenType.String, flags: flags);
+
+        // Assert
+        // The flags sit above the 22-bit id and the 2-bit reference type and fill the int.
+        Assert.Equal(24, DbRow.FlagsShift);
+        Assert.Equal(8, DbRow.FlagsBitCount);
+        Assert.Equal(0xFF, DbRow.FlagsMask);
+        Assert.Equal(32, DbRow.FlagsShift + DbRow.FlagsBitCount);
+        Assert.All(cursors, cursor => Assert.Equal(flags, _metaDb.Get(cursor).Flags));
+    }
+
+    [Fact]
     public void Get_WithComplexChildren_ReturnsCorrectFlag()
     {
         // Arrange
@@ -201,7 +233,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         const int maxSizeOrLength = int.MaxValue; // 31 bits
         const int maxSourceDocumentId = 0x7FFF; // 15 bits (reduced from 16)
         const int maxParentRow = 0x0FFFFFFF; // 28 bits
-        const int maxSelectionSetId = 0x7FFF; // 15 bits
+        const int maxSelectionSetId = CompositeResultDocument.DbRow.OperationReferenceIdMask; // 22 bits
 
         // Act
         var index = _metaDb.Append(
@@ -221,6 +253,78 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(maxSourceDocumentId, row.SourceDocumentId);
         Assert.Equal(maxParentRow, row.Parent);
         Assert.Equal(maxSelectionSetId, row.OperationReferenceId);
+    }
+
+    [Fact]
+    public void OperationReferenceId_Should_NotOverlapTypeAndFlags_When_AllBitsAreSet()
+    {
+        // Arrange
+        // The widest id, a non-zero reference type and every flag share one int; each
+        // field must survive the round trip untouched by its neighbors.
+        const int maxId = CompositeResultDocument.DbRow.OperationReferenceIdMask;
+        const ElementFlags allFlags = (ElementFlags)CompositeResultDocument.DbRow.FlagsMask;
+
+        // Act
+        var index = _metaDb.Append(
+            ElementTokenType.StartObject,
+            operationReferenceId: maxId,
+            operationReferenceType: OperationReferenceType.Selection,
+            flags: allFlags);
+        var row = _metaDb.Get(index);
+
+        var snapshot =
+            $$"""
+            Id: {{row.OperationReferenceId}}
+            Type: {{row.OperationReferenceType}}
+            Flags: {{row.Flags}}
+            IdBits: {{CompositeResultDocument.DbRow.OperationReferenceIdBitCount}}
+            IdMax: {{maxId}}
+            """;
+
+        // Assert
+        snapshot.MatchInlineSnapshot(
+            """
+            Id: 4194303
+            Type: Selection
+            Flags: Invalidated, SourceResult, IsNullable, IsRoot, IsInternal, IsExcluded, IsEnumValue, NullMarker
+            IdBits: 22
+            IdMax: 4194303
+            """);
+    }
+
+    [Fact]
+    public void InlineAppenders_Should_EncodeSameLayoutAsRowConstructor_When_IdExceedsFifteenBits()
+    {
+        // Arrange
+        // The templated appenders write the selection-and-flags word inline instead of
+        // going through the DbRow constructor, so an id above the old 15-bit ceiling
+        // must decode identically from every producer.
+        const int wideId = 0x8000 + 12345; // needs bit 15 and above
+        const ElementFlags flags = ElementFlags.IsNullable | ElementFlags.NullMarker;
+
+        // Act
+        var constructed = _metaDb.Append(
+            ElementTokenType.PropertyName,
+            operationReferenceId: wideId,
+            operationReferenceType: OperationReferenceType.Selection,
+            flags: flags);
+        var emptyProperty = _metaDb.AppendEmptyProperty(parentRow: 0, wideId, flags);
+        var propertyWithNull = _metaDb.AppendEmptyPropertyWithNullValue(parentRow: 0, wideId, flags);
+        var startObject = _metaDb.AppendStartObject(parentRow: 0, wideId, propertyCount: 1, flags);
+
+        var rows = new[]
+        {
+            _metaDb.Get(constructed),
+            _metaDb.Get(emptyProperty),
+            _metaDb.Get(propertyWithNull),
+            _metaDb.Get(startObject)
+        };
+
+        // Assert
+        Assert.All(rows, row => Assert.Equal(wideId, row.OperationReferenceId));
+        Assert.All(rows, row => Assert.Equal(flags, row.Flags));
+        Assert.Equal(OperationReferenceType.Selection, rows[1].OperationReferenceType);
+        Assert.Equal(OperationReferenceType.SelectionSet, rows[3].OperationReferenceType);
     }
 
     [Fact]
@@ -419,11 +523,15 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             flags: ElementFlags.None);
 
         // Act
-        _metaDb.SetFlags(index, ElementFlags.IsNullable | ElementFlags.IsRoot);
+        _metaDb.SetFlags(
+            index,
+            ElementFlags.IsNullable | ElementFlags.IsRoot | ElementFlags.NullMarker);
 
         // Assert — Flags updated, other fields preserved
         var row = _metaDb.Get(index);
-        Assert.Equal(ElementFlags.IsNullable | ElementFlags.IsRoot, row.Flags);
+        Assert.Equal(
+            ElementFlags.IsNullable | ElementFlags.IsRoot | ElementFlags.NullMarker,
+            row.Flags);
         Assert.Equal(ElementTokenType.PropertyName, row.TokenType);
         Assert.Equal(100, row.Parent);
         Assert.Equal(42, row.OperationReferenceId);

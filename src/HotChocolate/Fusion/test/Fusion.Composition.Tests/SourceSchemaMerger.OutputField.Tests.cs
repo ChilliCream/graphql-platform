@@ -308,6 +308,55 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             """);
     }
 
+    [Fact]
+    public void Merge_Should_PreserveConditionedProvides_When_FieldReturnsUnion()
+    {
+        AssertMatches(
+            [
+                """
+                type Query {
+                    media: [Media] @provides(fields: "... on Book { title }")
+                }
+
+                union Media = Book | Movie
+
+                type Book {
+                    id: ID!
+                    title: String @external
+                }
+
+                type Movie {
+                    id: ID!
+                    title: String
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              media: [Media] @fusion__field(schema: A, provides: "... on Book { title }")
+            }
+
+            type Book @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+              title: String @fusion__field(schema: A, partial: true)
+            }
+
+            type Movie @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+              title: String @fusion__field(schema: A)
+            }
+
+            union Media
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Book")
+              @fusion__unionMember(schema: A, member: "Movie") = Book | Movie
+            """);
+    }
+
     // Even if an output field is only @deprecated in one source schema, the composite output field
     // is marked as @deprecated.
     [Fact]
@@ -368,10 +417,10 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             """);
     }
 
-    // If an output field is deprecated without a deprecation reason, a default reason is inserted
-    // to be compatible with the latest spec.
+    // If an output field is deprecated without a deprecation reason, the merged schema prints
+    // @deprecated without arguments.
     [Fact]
-    public void Merge_DeprecatedOutputFieldsWithoutReasonInsertsDefaultReason_MatchesSnapshot()
+    public void Merge_DeprecatedOutputFieldsWithoutReason_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -390,10 +439,7 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             ],
             """
             type Product @fusion__type(schema: A) @fusion__type(schema: B) {
-              name: String
-                @fusion__field(schema: A)
-                @fusion__field(schema: B)
-                @deprecated(reason: "No longer supported.")
+              name: String @fusion__field(schema: A) @fusion__field(schema: B) @deprecated
             }
             """);
     }

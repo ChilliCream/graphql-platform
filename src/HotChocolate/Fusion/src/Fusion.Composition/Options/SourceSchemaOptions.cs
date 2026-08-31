@@ -23,4 +23,6 @@ public sealed class SourceSchemaOptions
     /// The severity used when a field is deprecated but the implemented interface field is not.
     /// </summary>
     public LogSeverity InvalidFieldDeprecationSeverity { get; set; } = LogSeverity.Warning;
+
+    internal bool IsApolloFederationV1 { get; set; }
 }

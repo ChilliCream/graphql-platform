@@ -322,7 +322,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         _ = await oldSnapshotRequest;
         var operationId = Assert.Single(operationIds.Distinct());
         var newSnapshotPlan = Assert.IsType<OperationPlan>(
-            newSnapshotResult.ExpectOperationResult().Data!["operationPlan"]);
+            newSnapshotResult.ExpectOperationResult().Extensions!["operationPlan"]);
         var cache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
 
         // assert

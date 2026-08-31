@@ -20,6 +20,11 @@ public sealed class Selection : ISelection
     private readonly ulong _deferMask;
     private readonly DeliveryGroup[] _deliveryGroups;
     private readonly ITypeDefinition _namedType;
+    private readonly IType _type;
+    private readonly IType _unwrappedType;
+    private readonly IType? _listElementType;
+    private readonly TypeKind _unwrappedKind;
+    private readonly TypeKind _listElementKind;
     private Flags _flags;
     private SelectionSet? _childSelectionSet;
 
@@ -57,7 +62,20 @@ public sealed class Selection : ISelection
             _flags |= Flags.HasPolicy;
         }
 
-        var namedType = field.Type.NamedType();
+        var type = field.Type;
+        _type = type;
+
+        var isNonNull = type.Kind is TypeKind.NonNull;
+        var unwrappedType = isNonNull ? type.InnerType() : type;
+        _unwrappedType = unwrappedType;
+        _unwrappedKind = unwrappedType.Kind;
+
+        if (isNonNull)
+        {
+            _flags |= Flags.NonNull;
+        }
+
+        var namedType = type.NamedType();
         _namedType = namedType;
 
         if (namedType.IsLeafType())
@@ -68,6 +86,29 @@ public sealed class Selection : ISelection
         if (namedType is FusionEnumTypeDefinition)
         {
             _flags |= Flags.EnumValue;
+        }
+
+        if (namedType is FusionObjectTypeDefinition { IsValueType: true }
+            or FusionInterfaceTypeDefinition { IsValueType: true }
+            or FusionUnionTypeDefinition { IsValueType: true })
+        {
+            _flags |= Flags.ValueTypeNamedType;
+        }
+
+        if (_unwrappedKind is TypeKind.List)
+        {
+            var listElementType = ((ListType)unwrappedType).ElementType;
+            _listElementType = listElementType;
+
+            var listElementKind = listElementType.Kind;
+
+            if (listElementKind is TypeKind.NonNull)
+            {
+                _flags |= Flags.NonNullListElement;
+                listElementKind = listElementType.InnerType().Kind;
+            }
+
+            _listElementKind = listElementKind;
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
@@ -110,7 +151,50 @@ public sealed class Selection : ISelection
     public IOutputFieldDefinition Field { get; }
 
     /// <inheritdoc />
-    public IType Type => Field.Type;
+    public IType Type => _type;
+
+    /// <summary>
+    /// Gets a value indicating whether the selection's field type is non-nullable.
+    /// </summary>
+    internal bool IsNonNull => (_flags & Flags.NonNull) == Flags.NonNull;
+
+    /// <summary>
+    /// Gets the selection's field type with its non-null wrapper removed.
+    /// Equals <see cref="Type"/> when the field type is nullable.
+    /// </summary>
+    internal IType UnwrappedType => _unwrappedType;
+
+    /// <summary>
+    /// Gets the type kind of <see cref="UnwrappedType"/>.
+    /// </summary>
+    internal TypeKind UnwrappedKind => _unwrappedKind;
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="NamedType"/> is a value type,
+    /// a type shared across source schemas that has no entity lookups.
+    /// </summary>
+    internal bool IsValueTypeNamedType => (_flags & Flags.ValueTypeNamedType) == Flags.ValueTypeNamedType;
+
+    /// <summary>
+    /// Gets the element type of the first list level when <see cref="UnwrappedKind"/>
+    /// is <see cref="TypeKind.List"/>; otherwise, <c>null</c>. The element type
+    /// keeps its non-null wrapper.
+    /// </summary>
+    internal IType? ListElementType => _listElementType;
+
+    /// <summary>
+    /// Gets the type kind of the first list level's element type after removing
+    /// its non-null wrapper. Only meaningful when <see cref="UnwrappedKind"/> is
+    /// <see cref="TypeKind.List"/>.
+    /// </summary>
+    internal TypeKind ListElementKind => _listElementKind;
+
+    /// <summary>
+    /// Gets a value indicating whether the first list level's element type is
+    /// non-nullable. Only meaningful when <see cref="UnwrappedKind"/> is
+    /// <see cref="TypeKind.List"/>.
+    /// </summary>
+    internal bool IsNonNullListElement => (_flags & Flags.NonNullListElement) == Flags.NonNullListElement;
 
     /// <summary>
     /// Gets the selection set that contains this selection.
@@ -250,6 +334,11 @@ public sealed class Selection : ISelection
     }
 
     public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
+
+    /// <summary>
+    /// Gets a value indicating whether this selection can be deferred for some request.
+    /// </summary>
+    internal bool CanBeDeferred => _deferMask != 0;
 
     /// <summary>
     /// Returns the active delivery groups for this selection after resolving
@@ -407,6 +496,9 @@ nextItem:
         Leaf = 2,
         EnumValue = 4,
         Sealed = 8,
-        HasPolicy = 16
+        NonNull = 16,
+        ValueTypeNamedType = 32,
+        NonNullListElement = 64,
+        HasPolicy = 128
     }
 }

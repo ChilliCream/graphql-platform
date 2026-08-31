@@ -25,12 +25,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
               nitro fusion publish validate [options]
 
             Options:
-              --request-id <request-id>                            The ID of a request [env: NITRO_REQUEST_ID]
-              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                  The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                       Show help and usage information
+              --request-id <request-id>           The ID of a request [env: NITRO_REQUEST_ID]
+              -a, --archive <archive> (REQUIRED)  The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
+              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                      Show help and usage information
 
             Example:
               nitro fusion publish validate --archive ./gateway.far
@@ -101,6 +101,27 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """
             Validating Fusion configuration
             └── ✕ Failed to validate the Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RequestNotFound_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation(CreateValidationRequestNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration request was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -374,7 +395,6 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         string> GetValidationErrors() => new()
     {
         { CreateValidationUnauthorizedError(), "Unauthorized." },
-        { CreateValidationRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateValidationInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 

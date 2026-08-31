@@ -11,6 +11,8 @@ import { Cursor } from "../../../primitives/reel/Cursor";
 import { CodeBlock } from "../../../primitives/CodeBlock";
 import { PlanGraph } from "../../../primitives/reel/PlanGraph";
 import { TABREEL_CANVAS } from "../../../primitives/reel/TabReel";
+import { UnderlineTab } from "../../../primitives/UnderlineTab";
+import { Badge } from "../../../primitives/Badge";
 import { token } from "../../../lib/tokens";
 import { ease } from "../../../lib/motion";
 import { timeline } from "../../../lib/timeline";
@@ -238,19 +240,12 @@ export function FusionQueryPlanScreen({
                   fontSize: 12,
                 }}
               >
-                <span style={{ position: "relative", color: token.textStrong }}>
-                  GraphQL Variables
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: -8,
-                      height: 2,
-                      background: ORANGE,
-                    }}
-                  />
-                </span>
+                <UnderlineTab
+                  label="GraphQL Variables"
+                  active
+                  fontSize={12}
+                  underlineOffset={-8}
+                />
                 <span style={{ color: token.textSecondary }}>HTTP Headers</span>
               </div>
               <div style={{ height: 56, overflow: "hidden" }}>
@@ -337,11 +332,22 @@ function ResponseHeader({
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      <SubTab label="Response" active={subTab === 0} />
-      <SubTab
+      <UnderlineTab
+        label="Response"
+        active={subTab === 0}
+        fontSize={13.5}
+        fontWeight={400}
+        activeFontWeight={600}
+        height={36}
+      />
+      <UnderlineTab
         label="Operation Plan"
         active={subTab === 1}
-        testid="plan-subtab"
+        fontSize={13.5}
+        fontWeight={400}
+        activeFontWeight={600}
+        height={36}
+        testId="plan-subtab"
       />
       <div
         style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}
@@ -426,45 +432,6 @@ function ResponseHeader({
         )}
       </div>
     </div>
-  );
-}
-
-function SubTab({
-  label,
-  active,
-  testid,
-}: {
-  label: string;
-  active?: boolean;
-  testid?: string;
-}) {
-  return (
-    <span
-      data-testid={testid}
-      style={{
-        position: "relative",
-        fontSize: 13.5,
-        fontWeight: active ? 600 : 400,
-        color: active ? token.textStrong : token.textSecondary,
-        height: 36,
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      {label}
-      {active && (
-        <span
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 2,
-            background: ORANGE,
-          }}
-        />
-      )}
-    </span>
   );
 }
 
@@ -644,29 +611,13 @@ function ColumnHeader({
       }}
     >
       {title && (
-        <span
-          style={{
-            position: "relative",
-            fontSize: 14,
-            fontWeight: 600,
-            color: token.textStrong,
-            display: "flex",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {title}
-          <span
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 2,
-              background: ORANGE,
-            }}
-          />
-        </span>
+        <UnderlineTab
+          label={title}
+          active
+          fontSize={14}
+          fontWeight={600}
+          height="100%"
+        />
       )}
       <div
         style={{
@@ -926,30 +877,13 @@ function SubgraphView({ progress }: { progress: MotionValue<number> }) {
                   fontSize: 12,
                 }}
               >
-                <span style={{ position: "relative", color: token.textStrong }}>
-                  Variables
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: -8,
-                      height: 2,
-                      background: ORANGE,
-                    }}
-                  />
-                </span>
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    color: token.textSecondary,
-                    border: `1px solid ${token.border}`,
-                    borderRadius: 4,
-                    padding: "1px 6px",
-                  }}
-                >
-                  batched · 2
-                </span>
+                <UnderlineTab
+                  label="Variables"
+                  active
+                  fontSize={12}
+                  underlineOffset={-8}
+                />
+                <Badge size="xs">batched · 2</Badge>
               </div>
               <div
                 style={{ height: 88, overflow: "hidden", position: "relative" }}

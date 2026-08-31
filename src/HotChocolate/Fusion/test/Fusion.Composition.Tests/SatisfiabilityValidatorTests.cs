@@ -2401,6 +2401,187 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-with-argument
+    public void RequiresWithArgument()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    weight: Int @external
+                    price(currency: String!): Int @external
+                    shippingEstimate(
+                        args: String
+                            @require(field: "{ price(currency: \"USD\"), weight }")
+                    ): Int
+                    category: Category @external
+                    isExpensiveCategory(
+                        averagePrice: Int
+                            @require(field: "category.averagePrice(currency: \"USD\")")
+                    ): Boolean
+                }
+
+                type Category @external {
+                    averagePrice(currency: String!): Int
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    products: [Product]
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    name: String
+                    price(currency: String!): Int
+                    weight: Int
+                    category: Category
+                }
+
+                type Category {
+                    averagePrice(currency: String!): Int
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    feed: [Post]
+                    postById(id: ID!): Post @lookup @inaccessible # Added
+                    commentById(id: ID!): Comment @lookup @inaccessible # Added
+                }
+
+                type Post @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Comment @key(fields: "id") {
+                    id: ID!
+                    authorId: ID
+                    body: String!
+                }
+                """,
+                """
+                # Schema D
+                type Query {
+                    postById(id: ID!): Post @lookup @inaccessible # Added
+                    commentById(id: ID!): Comment @lookup @inaccessible # Added
+                }
+
+                type Post @key(fields: "id") {
+                    id: ID!
+                    author(
+                        authorIds: [ID]
+                            @require(field: "comments(limit: 3)[{ authorId }]")
+                    ): Author
+                    comments(limit: Int!): [Comment]
+                }
+
+                type Comment @key(fields: "id") {
+                    id: ID!
+                    date: String
+                    authorId: ID @external
+                }
+
+                type Author {
+                    id: ID!
+                    name: String
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-with-argument-conflict
+    public void RequiresWithArgumentConflict()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    weight: Int @external
+                    price(currency: String!): Int @external
+                    shippingEstimate(
+                        args: String
+                            @require(field: "{ price(currency: \"USD\"), weight }")
+                    ): Int
+                    shippingEstimateEUR(
+                        args: String
+                            @require(field: "{ price(currency: \"EUR\"), weight }")
+                    ): Int
+                    category: Category @external
+                    isExpensiveCategory(
+                        averagePrice: Int
+                            @require(field: "category.averagePrice(currency: \"USD\")")
+                    ): Boolean
+                }
+
+                type Category @external {
+                    averagePrice(currency: String!): Int
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    products: [Product]
+                    productByUpc(upc: String!): Product @lookup @inaccessible # Added
+                }
+
+                type Product @key(fields: "upc") {
+                    upc: String!
+                    name: String
+                    price(currency: String!): Int
+                    weight: Int
+                    category: Category
+                }
+
+                type Category {
+                    averagePrice(currency: String!): Int
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     // https://github.com/graphql-hive/federation-gateway-audit/tree/main/src/test-suites/requires-with-fragments
     public void RequiresWithFragments()
     {

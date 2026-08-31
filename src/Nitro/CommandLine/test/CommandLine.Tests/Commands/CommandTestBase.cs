@@ -15,9 +15,12 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -35,7 +38,19 @@ public abstract class CommandTestBase
     private readonly NitroCommandFixture _fixture;
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
+    private IFileSystem? _fileSystemOverride;
+    private INitroInstanceIdProvider? _instanceIdProviderOverride;
+    private IStandardInputReader? _standardInputOverride;
+    private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
+    private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
+    private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
+    private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
+    private Services.Workspace.IActingActorResolver? _actingActorResolverOverride;
+    protected readonly FakeTimeProvider FakeTime =
+        new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
+    private readonly Mock<IHttpClientFactory> _httpClientFactoryMock = new();
     protected readonly Mock<ISchemasClient> SchemasClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IClientsClient> ClientsClientMock = new(MockBehavior.Strict);
@@ -68,9 +83,128 @@ public abstract class CommandTestBase
         _interactionMode = mode;
     }
 
+    /// <summary>
+    /// Replaces the mocked file system with the given implementation, for
+    /// tests that run commands against real files in a temp directory.
+    /// </summary>
+    private protected void SetupFileSystem(IFileSystem fileSystem)
+    {
+        _fileSystemOverride = fileSystem;
+    }
+
+    /// <summary>
+    /// Points the global memory store at a fixed directory instead of the
+    /// real machine's application data directory, so tests that exercise
+    /// <c>--scope global</c> stay isolated to their own temp directory.
+    /// </summary>
+
+    /// <summary>
+    /// Points the Nitro instance id resolution at a fixed value instead of
+    /// hashing the real machine's id, so tests that seed rows by host stay
+    /// isolated from the machine running them.
+    /// </summary>
+    private protected void SetupInstanceId(string id)
+    {
+        _instanceIdProviderOverride = new FixedInstanceIdProvider(id);
+    }
+
+    /// <summary>
+    /// Points the global config directory at a fixed directory instead of the
+    /// real machine's application data directory, so tests stay isolated to
+    /// their own temp directory.
+    /// </summary>
+    private protected void SetupGlobalConfigDirectory(string directory)
+    {
+        _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Points the Claude Code, Codex, and Copilot ancestor-session walk at
+    /// fixed results instead of the real process tree the test host runs
+    /// under, which (running nested inside a live Claude Code session) it
+    /// cannot control or predict deterministically. All three default to no
+    /// ancestor found when not given.
+    /// </summary>
+    /// <summary>
+    /// Feeds <paramref name="payload"/> to a command that reads standard
+    /// input, such as a hook adapter.
+    /// </summary>
+    protected void SetupStandardInput(string payload)
+    {
+        _standardInputOverride = new FixedStandardInputReader(payload);
+    }
+
+    /// <summary>
+    /// Points Claude Code <c>settings.json</c> resolution at fixed paths
+    /// instead of the real machine's home directory, so hook command tests
+    /// never read whatever happens to be installed on the machine running
+    /// the test.
+    /// </summary>
+    private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
+    {
+        _claudeSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
+    }
+
+    /// <summary>
+    /// Points Codex CLI config resolution at fixed paths instead of the
+    /// real machine's <c>CODEX_HOME</c>, so hook command tests never read
+    /// whatever happens to be installed on the machine running the test.
+    /// </summary>
+    private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
+    {
+        _codexPathResolverOverride = new FixedCodexPathResolver(hooksJsonPath, configTomlPath);
+    }
+
+    /// <summary>
+    /// Replaces the real subprocess-spawning <c>codex queue</c> client with
+    /// the given fake, so tests exercising a codex-thread ping through the
+    /// CLI never shell out to a real <c>codex</c> binary.
+    /// </summary>
+    private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
+    {
+        _codexQueueClientOverride = client;
+    }
+
+    /// <summary>
+    /// Replaces the real Claude peer-socket client with a fake, so command
+    /// tests never connect to a live Claude Code session.
+    /// </summary>
+    private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
+    {
+        _claudePeerClientOverride = client;
+    }
+
+    /// <summary>
+    /// Resolves the acting actor to <paramref name="actor"/> when a command
+    /// omits <c>--actor</c>. Commands under test run without a detectable
+    /// harness session, which is the only other identity source.
+    /// </summary>
+    protected void SetupActingActor(string actor)
+    {
+        _actingActorResolverOverride = new FixedActingActorResolver(actor);
+    }
+
+    /// <summary>
+    /// Drops the fixed <see cref="Services.Workspace.IActingActorResolver"/>
+    /// so the real one runs, including its guard that the actor was actually
+    /// allocated. For tests about that guard itself; every other test keeps
+    /// the fixed resolver so it does not have to seed an actor first.
+    /// </summary>
+    protected void SetupRealActingActor()
+    {
+        _actingActorResolverOverride = null;
+    }
+
     protected void SetupNoAuthentication()
     {
         _authenticated = false;
+    }
+
+    protected void SetupHttpClient(HttpClient client)
+    {
+        _httpClientFactoryMock
+            .Setup(factory => factory.CreateClient(It.IsAny<string>()))
+            .Returns(client);
     }
 
     protected void SetupSession()
@@ -85,6 +219,14 @@ public abstract class CommandTestBase
         _useSessionWithWorkspace = true;
     }
 
+    /// <summary>
+    /// The actor <see cref="ExecuteCommandAsync"/> supplies to any command
+    /// that declares a required <c>--actor</c> option and was not given one
+    /// explicitly. Null leaves the arguments untouched, so a test that
+    /// asserts the requirement itself still sees the parse failure.
+    /// </summary>
+    private protected string? DefaultActor { get; set; }
+
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
         var arguments = args.ToList();
@@ -93,6 +235,8 @@ public abstract class CommandTestBase
         {
             arguments.AddRange(["--api-key", "default-api-key"]);
         }
+
+        AddDefaultActorIfRequired(arguments);
 
         var stdOutWriter = new StringWriter();
         var stdErrWriter = new StringWriter();
@@ -124,7 +268,6 @@ public abstract class CommandTestBase
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            _environmentVariableProviderMock.Object,
             new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
@@ -144,6 +287,45 @@ public abstract class CommandTestBase
             rootCommand.Name);
     }
 
+    /// <summary>
+    /// Appends <c>--actor <see cref="DefaultActor"/></c> when the command the
+    /// arguments resolve to declares a required <c>--actor</c> option and the
+    /// caller did not pass one, so a test only spells the actor out when the
+    /// actor itself is what it is about.
+    /// </summary>
+    private void AddDefaultActorIfRequired(List<string> arguments)
+    {
+        if (DefaultActor is null || arguments.Contains("--actor"))
+        {
+            return;
+        }
+
+        // Walked by name rather than parsed: parsing here would run the
+        // options' own default factories, which need command services this
+        // invocation has not built yet.
+        Command command = _fixture.RootCommand;
+
+        foreach (var token in arguments)
+        {
+            if (token.StartsWith('-'))
+            {
+                break;
+            }
+
+            if (command.Subcommands.FirstOrDefault(c => c.Name == token) is not { } subcommand)
+            {
+                break;
+            }
+
+            command = subcommand;
+        }
+
+        if (command.Options.Any(o => o.Name == "--actor" && o.Required))
+        {
+            arguments.AddRange(["--actor", DefaultActor]);
+        }
+    }
+
     internal InteractiveCommand StartInteractiveCommand(params string[] args)
     {
         var arguments = args.ToList();
@@ -152,6 +334,8 @@ public abstract class CommandTestBase
         {
             arguments.AddRange(["--api-key", "default-api-key"]);
         }
+
+        AddDefaultActorIfRequired(arguments);
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
@@ -173,7 +357,6 @@ public abstract class CommandTestBase
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            _environmentVariableProviderMock.Object,
             new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
@@ -226,8 +409,52 @@ public abstract class CommandTestBase
                         "Workspace from session")));
         }
 
-        services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
+
+        if (_instanceIdProviderOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_instanceIdProviderOverride));
+        }
+
+        if (_globalConfigDirectoryProviderOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
+        if (_claudeSettingsPathResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
+        }
+
+        if (_codexPathResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_codexPathResolverOverride));
+        }
+
+        if (_codexQueueClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_codexQueueClientOverride));
+        }
+
+        if (_claudePeerClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudePeerClientOverride));
+        }
+
+        if (_actingActorResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_actingActorResolverOverride));
+        }
+
+        services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
+
+        if (_standardInputOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_standardInputOverride));
+        }
+
+        services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_browserLauncherMock.Object));
         services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));
@@ -353,10 +580,23 @@ public abstract class CommandTestBase
             .ReturnsAsync(content);
     }
 
-    protected void SetupEnvironmentVariable(string variableName, string value)
+    protected void SetupEnvironmentVariable(string variableName, string? value)
     {
         _environmentVariableProviderMock
             .Setup(x => x.GetEnvironmentVariable("NITRO_" + variableName))
+            .Returns(value);
+    }
+
+    /// <summary>
+    /// Stubs <paramref name="variableName"/> exactly as given, without the
+    /// <c>NITRO_</c> prefix <see cref="SetupEnvironmentVariable"/> always
+    /// adds: for the small set of authoritative harness-launch variables a
+    /// harness itself sets unprefixed, e.g. <c>CODEX_SESSION_ID</c>.
+    /// </summary>
+    protected void SetupRawEnvironmentVariable(string variableName, string? value)
+    {
+        _environmentVariableProviderMock
+            .Setup(x => x.GetEnvironmentVariable(variableName))
             .Returns(value);
     }
 
@@ -403,7 +643,7 @@ public abstract class CommandTestBase
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         foreach (var file in _files)
         {
@@ -430,6 +670,31 @@ public sealed record CommandResult(
     string StdOut,
     string StdErr,
     string ExecutableName);
+internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvider
+{
+    public Task<string> GetIdAsync(string globalConfigDirectory, CancellationToken cancellationToken)
+        => Task.FromResult(id);
+}
+
+internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
+{
+    public string GetDirectory() => directory;
+}
+
+internal sealed class FixedClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
+    : Services.Hook.IClaudeSettingsPathResolver
+{
+    public string Resolve(string scope)
+        => scope == Services.Hook.HookInstallScopes.Project ? projectScopePath : userScopePath;
+}
+
+internal sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath)
+    : Services.Hook.ICodexPathResolver
+{
+    public string ResolveHooksJson() => hooksJsonPath;
+
+    public string ResolveConfigToml() => configTomlPath;
+}
 
 internal sealed class InteractiveCommand(
     Func<CancellationToken, Task<CommandResult>> executeAsync,

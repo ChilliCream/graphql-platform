@@ -6,8 +6,9 @@ import {
 } from "@/src/components/advisory/advisoryLinks";
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
-import { CheckIcon } from "@/src/components/CheckIcon";
+import { CheckListItem } from "@/src/components/CheckListItem";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 /**
@@ -26,7 +27,7 @@ export function ContactBand() {
             eyebrow="Ready when you are"
             title="One call is usually enough to know."
             titleId="contact-heading"
-            description="Tell us what you are building. You walk us through it, we ask the questions, and you leave with a clear next step. If we are not the right fit, we will tell you."
+            description="Tell us what you are building. You walk us through it, we ask the hard questions, and you leave with a clear next step. If we are not the right fit, we will tell you."
           />
           <ContactSpec />
         </div>
@@ -35,10 +36,10 @@ export function ContactBand() {
         <div>
           <ButtonRow align="stacked">
             <SolidButton href={CONTACT_FORM} className="w-full">
-              Talk to us
+              Discuss your project
             </SolidButton>
             <OutlineButton href={CONSULTING_MAILTO} className="w-full">
-              Email us
+              Email the advisory team
             </OutlineButton>
           </ButtonRow>
         </div>
@@ -54,24 +55,19 @@ function ContactSpec() {
   }[] = [
     { label: "Consulting", value: "Packages of hours" },
     { label: "Contracting", value: "Scoped statement of work" },
-    { label: "NDA", value: "Mutual NDA on request" },
-    { label: "Start", value: "Often the same week" },
+    { label: "NDA", value: "Discuss before sharing materials" },
+    { label: "Timing", value: "Confirmed during discovery" },
   ];
   return (
     <ul className="mt-6 grid gap-3 sm:grid-cols-2">
       {items.map((item) => (
-        <li key={item.label} className="flex items-start gap-3">
-          <span className="text-cc-accent mt-[5px] flex-none">
-            <CheckIcon />
-          </span>
-          <span className="text-cc-ink text-sm">
-            <span className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-              {item.label}
-            </span>
-            <br />
-            {item.value}
-          </span>
-        </li>
+        <CheckListItem key={item.label}>
+          <Eyebrow as="span" size="2xs">
+            {item.label}
+          </Eyebrow>
+          <br />
+          {item.value}
+        </CheckListItem>
       ))}
     </ul>
   );

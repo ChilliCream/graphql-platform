@@ -1,12 +1,15 @@
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -34,7 +37,6 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
                 estimatedDelivery(postCode: "12345")
             }
             """);
-
         using var buffer = new PooledArrayWriter();
         var formatter = new JsonOperationPlanFormatter(
             new JsonWriterOptions
@@ -54,6 +56,269 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    // Source schema A owns the union and the nested lookups, source schema B the Asset entity
+    // fields. Without request grouping the merged multi-target lookups become batch nodes that
+    // hold a single BatchOperationDefinition with fan-in dependencies.
+    private const string UnionSiblingAssetSchemaA =
+        """
+        # name: a
+        type Query {
+          search: [CandidateResult!]!
+          meterTypeById(id: Int!): MeterType @lookup @internal
+          categoryByDbId(dbId: Int!): Category @lookup @internal
+        }
+        union CandidateResult = NotSubmissableResult | ExistingResult | ConfigMatchesResult | CustomResult
+        type ExistingResult { asset: Asset }
+        type ConfigMatchesResult { asset: Asset }
+        type NotSubmissableResult { asset: Asset }
+        type CustomResult { asset: Asset }
+        type Asset @key(fields: "dbId") { dbId: Int! }
+        type MeterType @key(fields: "id") {
+          id: Int!
+          type: String!
+        }
+        type Category @key(fields: "dbId") {
+          dbId: Int!
+          allowedMeterTypes: [MeterType!]!
+        }
+        """;
+
+    private const string UnionSiblingAssetSchemaB =
+        """
+        # name: b
+        type Query {
+          assetByDbId(dbId: Int!): Asset @lookup @internal
+        }
+        type Asset @key(fields: "dbId") {
+          dbId: Int!
+          statusMessage: String
+          meterType: MeterType
+          category: Category
+        }
+        type MeterType @key(fields: "id") { id: Int! }
+        type Category @key(fields: "dbId") { dbId: Int! }
+        """;
+
+    [Fact]
+    public void Parse_Plan_Preserves_Optional_Dependency_Wiring_For_Single_Merged_Batch_Node()
+    {
+        // arrange
+        // each fan-in dependency of a merged multi-target operation only feeds a subset of
+        // its targets, so it must be wired optional on the parsed plan just like on the built plan
+        var compositeSchema = ComposeSchema(UnionSiblingAssetSchemaA, UnionSiblingAssetSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query testQuery {
+              search {
+                ... on ExistingResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on ConfigMatchesResult {
+                  asset {
+                    category { allowedMeterTypes { type } }
+                    meterType { type }
+                  }
+                }
+                ... on NotSubmissableResult {
+                  asset {
+                    meterType { type }
+                    statusMessage
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on CustomResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+              }
+            }
+            """,
+            new OperationPlannerOptions { EnableRequestGrouping = false });
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        var originalWiring = DescribeDependencyWiring(originalPlan);
+        Assert.Equal(originalWiring, DescribeDependencyWiring(parsedPlan));
+        Assert.Distinct(CollectNodeAndDefinitionIds(parsedPlan));
+        originalWiring.MatchInlineSnapshot(
+            """
+            1 Operation required=[] optional=[]
+            5 Operation required=[1] optional=[]
+            8 Operation required=[1] optional=[]
+            14 OperationBatch(Merged) required=[] optional=[1]
+            15 OperationBatch(Merged) required=[] optional=[5, 8, 14]
+            16 OperationBatch(Merged) required=[] optional=[5, 8, 14]
+
+            """);
+    }
+
+    [Fact]
+    public void Parse_Plan_Preserves_Optional_Dependency_Wiring_For_Grouped_Batch_Nodes()
+    {
+        // arrange
+        // grouped batch nodes carry their own identifier, so the parser must rebuild the
+        // batch node from the batching group identifier and redirect every member identifier
+        var compositeSchema = ComposeSchema(UnionSiblingAssetSchemaA, UnionSiblingAssetSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query testQuery {
+              search {
+                ... on ExistingResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on ConfigMatchesResult {
+                  asset {
+                    category { allowedMeterTypes { type } }
+                    meterType { type }
+                  }
+                }
+                ... on NotSubmissableResult {
+                  asset {
+                    meterType { type }
+                    statusMessage
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on CustomResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+              }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        var originalWiring = DescribeDependencyWiring(originalPlan);
+        Assert.Equal(originalWiring, DescribeDependencyWiring(parsedPlan));
+        Assert.Distinct(CollectNodeAndDefinitionIds(parsedPlan));
+        originalWiring.MatchInlineSnapshot(
+            """
+            1 Operation required=[] optional=[]
+            14 OperationBatch(3) required=[] optional=[1]
+            15 OperationBatch(2) required=[] optional=[14]
+
+            """);
+    }
+
+    private static List<int> CollectNodeAndDefinitionIds(OperationPlan plan)
+    {
+        var ids = new List<int>();
+
+        foreach (var node in plan.AllNodes)
+        {
+            ids.Add(node.Id);
+
+            switch (node)
+            {
+                case OperationBatchExecutionNode batchNode:
+                    foreach (var operation in batchNode.Operations)
+                    {
+                        ids.Add(operation.Id);
+                    }
+                    break;
+
+                case ApolloOperationBatchExecutionNode apolloBatchNode:
+                    foreach (var operation in apolloBatchNode.Operations)
+                    {
+                        ids.Add(operation.Id);
+                    }
+                    break;
+            }
+        }
+
+        return ids;
+    }
+
+    private static string DescribeDependencyWiring(OperationPlan plan)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var node in plan.AllNodes.OrderBy(n => n.Id))
+        {
+            builder.Append(node.Id);
+            builder.Append(' ');
+            builder.Append(node.Type);
+
+            if (node is OperationBatchExecutionNode batchNode)
+            {
+                builder.Append(
+                    batchNode.Operations is [BatchOperationDefinition]
+                        ? "(Merged)"
+                        : $"({batchNode.Operations.Length})");
+            }
+
+            AppendDependencyIds(builder, " required=", node.Dependencies);
+            AppendDependencyIds(builder, " optional=", node.OptionalDependencies);
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static void AppendDependencyIds(
+        StringBuilder builder,
+        string label,
+        ReadOnlySpan<IOperationPlanNode> dependencies)
+    {
+        var ids = new List<int>();
+
+        foreach (var dependency in dependencies)
+        {
+            ids.Add(dependency.Id);
+        }
+
+        ids.Sort();
+        builder.Append(label);
+        builder.Append('[');
+        builder.Append(string.Join(", ", ids));
+        builder.Append(']');
     }
 
     // Source schema A defines the Media interface and its implementing types; source schema B is
@@ -230,6 +495,58 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Should_PreserveSourceResponseNameMapping_When_PlanIsRoundTripped()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    clientName: name
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var json = JsonNode.Parse(formatter.Format(originalPlan))!;
+        var operationNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["type"]?.GetValue<string>() is "Operation"
+                && t["resultSelectionSet"]?.GetValue<string>()
+                    .Contains("productBySlug", StringComparison.Ordinal) == true);
+        var operationNodeId = operationNode["id"]!.GetValue<int>();
+        const string resultSelectionSet =
+            "{ productBySlug { fusion__field_1: name "
+            + "@fusion__responseName(name: \"clientName\") } }";
+        operationNode["resultSelectionSet"] = resultSelectionSet;
+        var planSource = Encoding.UTF8.GetBytes(
+            json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        var parsedOperationNode = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.Id == operationNodeId);
+        Assert.Equal(
+            resultSelectionSet,
+            parsedOperationNode.ResultSelectionSet.ToString(indented: false));
+    }
+
+    [Fact]
     public void Parse_Plan_With_Node()
     {
         // arrange
@@ -272,7 +589,6 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
               }
             }
             """);
-
         using var buffer = new PooledArrayWriter();
         var formatter = new JsonOperationPlanFormatter(
             new JsonWriterOptions
@@ -310,6 +626,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
                 }
             }
             """);
+        var originalNode = Assert.Single(
+            originalPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
 
         using var buffer = new PooledArrayWriter();
         var formatter = new JsonOperationPlanFormatter(
@@ -329,7 +647,48 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
         // assert
-        Assert.Single(originalPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
+        var parsedNode = Assert.Single(parsedPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
+        AssertOperationSourceTextEqual(originalNode.Operation, parsedNode.Operation);
+        AssertApolloLookup(parsedNode.Lookup, "Product");
+        FormatRepresentationShapeRoundTrip(
+            originalNode.Lookup.RepresentationShape,
+            parsedNode.Lookup.RepresentationShape).MatchInlineSnapshot(
+            """
+            {
+              "planner": [
+                {
+                  "name": "id",
+                  "responseName": "id",
+                  "requirementIndex": 0,
+                  "lhsPath": [],
+                  "isList": false,
+                  "skipOnNull": true,
+                  "elementInputType": null,
+                  "parentTypeCondition": null,
+                  "typeCondition": null,
+                  "requiresTypeName": false,
+                  "nodes": "default",
+                  "branches": []
+                }
+              ],
+              "parser": [
+                {
+                  "name": "id",
+                  "responseName": "id",
+                  "requirementIndex": 0,
+                  "lhsPath": [],
+                  "isList": false,
+                  "skipOnNull": true,
+                  "elementInputType": null,
+                  "parentTypeCondition": null,
+                  "typeCondition": null,
+                  "requiresTypeName": false,
+                  "nodes": "default",
+                  "branches": []
+                }
+              ]
+            }
+            """);
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
@@ -354,6 +713,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
                 }
             }
             """);
+        var originalNode = Assert.Single(
+            originalPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
 
         using var buffer = new PooledArrayWriter();
         var formatter = new JsonOperationPlanFormatter(
@@ -374,8 +735,213 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         MatchSnapshot(originalPlan);
-        Assert.Single(originalPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        var parsedNode = Assert.Single(
+            parsedPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        Assert.Equal(originalNode.Lookups.Length, parsedNode.Lookups.Length);
+
+        for (var i = 0; i < originalNode.Lookups.Length; i++)
+        {
+            AssertOperationSourceTextEqual(
+                originalNode.Lookups[i].Operation,
+                parsedNode.Lookups[i].Operation);
+        }
+
+        Assert.Collection(
+            parsedNode.Lookups.ToArray(),
+            lookup => AssertApolloLookup(lookup, "Brand"),
+            lookup => AssertApolloLookup(lookup, "Product"));
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void Format_Should_WriteEntitiesOperationMetadata_When_PlanHasApolloLookup()
+    {
+        // arrange
+        var compositeSchema = ComposeApolloSchema();
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                products {
+                    id
+                    name
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+
+        // act
+        var planSource = formatter.Format(plan);
+
+        // assert
+        GetNodes(planSource, "ApolloOperation").MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void Format_Should_WriteEntitiesOperationMetadata_When_PlanHasApolloLookupBatch()
+    {
+        // arrange
+        var compositeSchema = ComposeApolloSchema();
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                products {
+                    id
+                    name
+                }
+                brands {
+                    id
+                    name
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+
+        // act
+        var planSource = formatter.Format(plan);
+
+        // assert
+        GetNodes(planSource, "ApolloOperationBatch").MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void Parse_Should_DeriveAliasedRepresentationPath_When_RequirementIsNested()
+    {
+        // arrange
+        var compositeSchema = ComposeApolloSchema(NestedRequiresSchemaA, NestedRequiresSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                foos {
+                    id
+                    details: bar {
+                        x
+                    }
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var planSource = formatter.Format(originalPlan);
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(planSource));
+
+        // assert
+        GetNodes(planSource, "ApolloOperation").MatchSnapshot(extension: ".json");
+        Assert.Equal(planSource, formatter.Format(parsedPlan));
+        var parsedNode = Assert.Single(
+            parsedPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
+        FormatRepresentationShape(parsedNode.Lookup.RepresentationShape)
+            .ToJsonString(new JsonSerializerOptions { WriteIndented = true })
+            .MatchInlineSnapshot(
+            """
+            [
+              {
+                "name": "id",
+                "responseName": "id",
+                "requirementIndex": 0,
+                "lhsPath": [],
+                "isList": false,
+                "skipOnNull": true,
+                "elementInputType": null,
+                "parentTypeCondition": null,
+                "typeCondition": null,
+                "requiresTypeName": false,
+                "nodes": "default",
+                "branches": []
+              },
+              {
+                "name": "bar",
+                "responseName": "details",
+                "requirementIndex": -1,
+                "lhsPath": [],
+                "isList": false,
+                "skipOnNull": true,
+                "elementInputType": null,
+                "parentTypeCondition": null,
+                "typeCondition": null,
+                "requiresTypeName": false,
+                "nodes": [
+                  {
+                    "name": "y",
+                    "responseName": "y",
+                    "requirementIndex": 1,
+                    "lhsPath": [],
+                    "isList": false,
+                    "skipOnNull": false,
+                    "elementInputType": null,
+                    "parentTypeCondition": null,
+                    "typeCondition": null,
+                    "requiresTypeName": false,
+                    "nodes": "default",
+                    "branches": []
+                  }
+                ],
+                "branches": []
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ApolloNodeHasNoSchema()
+    {
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => ParseApolloPlanWithMutatedNode(node => node.Remove("schema")));
+
+        // assert
+        Assert.Equal(
+            "The schema is required on an Apollo operation of a valid operation plan.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ApolloNodeHasEmptyEntityType()
+    {
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => ParseApolloPlanWithMutatedNode(node => node["entityType"] = ""));
+
+        // assert
+        Assert.Equal(
+            "The entityType is required on an Apollo operation of a valid operation plan.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_ApolloNodeHasNoEntityType()
+    {
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => ParseApolloPlanWithMutatedNode(node => node.Remove("entityType")));
+
+        // assert
+        Assert.Equal(
+            "The entityType is required on an Apollo operation of a valid operation plan.",
+            exception.Message);
     }
 
     [Fact]
@@ -539,10 +1105,10 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
-    public void Parse_Plan_Without_BatchingGroupId()
+    public void Parse_Plan_Without_BatchingGroupId_As_StandaloneOperations()
     {
         // arrange
-        // Strip batchingGroupId from a formatted plan to simulate a legacy payload.
+        // A missing batchingGroupId is the current discriminator for a standalone operation.
         var compositeSchema = CreateCompositeSchema();
         var originalPlan = PlanOperation(
             compositeSchema,
@@ -566,14 +1132,17 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         formatter.Format(buffer, originalPlan);
 
         var json = JsonNode.Parse(buffer.WrittenSpan)!;
+        var standaloneNodeIds = new List<int>();
+
         foreach (var node in json["nodes"]!.AsArray())
         {
             if (node?["type"]?.GetValue<string>() is "Operation")
             {
+                standaloneNodeIds.Add(node["id"]!.GetValue<int>());
                 node.AsObject().Remove("batchingGroupId");
             }
         }
-        var legacyPlanSource = Encoding.UTF8.GetBytes(
+        var standalonePlanSource = Encoding.UTF8.GetBytes(
             json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         var compiler = new OperationCompiler(
             compositeSchema,
@@ -582,11 +1151,227 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
-        var parsedPlan = parser.Parse(legacyPlanSource);
+        var parsedPlan = parser.Parse(standalonePlanSource);
 
         // assert
-        Assert.NotEmpty(parsedPlan.AllNodes.OfType<OperationExecutionNode>());
+        Assert.Equal(
+            standaloneNodeIds,
+            parsedPlan.AllNodes.Select(
+                node => Assert.IsType<OperationExecutionNode>(node).Id));
     }
+
+    /// <summary>
+    /// Returns the nodes of the given type from a formatted plan as an indented JSON array.
+    /// </summary>
+    private static string GetNodes(string planSource, string nodeType)
+    {
+        var nodes = JsonNode.Parse(planSource)!["nodes"]!
+            .AsArray()
+            .Where(t => t!["type"]!.GetValue<string>() == nodeType)
+            .Select(t => t!.DeepClone())
+            .ToArray();
+
+        return new JsonArray(nodes).ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static void AssertApolloLookup(
+        ApolloEntityLookup lookup,
+        string entityTypeName)
+    {
+        Assert.Equal(entityTypeName, lookup.EntityTypeName);
+        Assert.False(lookup.RepresentationShape.IsDefault);
+        Assert.NotNull(lookup.OperationDocument);
+        Assert.Collection(
+            lookup.RepresentationShape,
+            node =>
+            {
+                Assert.Equal("id", node.Name);
+                Assert.Equal("id", node.ResponseName);
+                Assert.Equal(0, node.RequirementIndex);
+            });
+        Assert.Contains("_entities", Encoding.UTF8.GetString(lookup.Operation.Value.Span));
+    }
+
+    private static void AssertOperationSourceTextEqual(
+        OperationSourceText expected,
+        OperationSourceText actual)
+    {
+        Assert.Equal(expected.Name, actual.Name);
+        Assert.Equal(expected.Type, actual.Type);
+        Assert.Equal(expected.Hash, actual.Hash);
+        Assert.Equal(expected.Value.ToArray(), actual.Value.ToArray());
+    }
+
+    private static string FormatRepresentationShapeRoundTrip(
+        ImmutableArray<RepresentationShapeNode> plannerShape,
+        ImmutableArray<RepresentationShapeNode> parserShape)
+        => new JsonObject
+        {
+            ["planner"] = FormatRepresentationShape(plannerShape),
+            ["parser"] = FormatRepresentationShape(parserShape)
+        }.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+
+    private static JsonNode FormatRepresentationShape(
+        ImmutableArray<RepresentationShapeNode> shape)
+    {
+        if (shape.IsDefault)
+        {
+            return JsonValue.Create("default")!;
+        }
+
+        var nodes = new JsonArray();
+
+        foreach (var node in shape)
+        {
+            var lhsPath = new JsonArray();
+
+            foreach (var segment in node.LhsPath)
+            {
+                lhsPath.Add(segment);
+            }
+
+            var branches = new JsonArray();
+
+            foreach (var branch in node.Branches)
+            {
+                branches.Add(new JsonObject
+                {
+                    ["typeCondition"] = branch.TypeCondition,
+                    ["nodes"] = FormatRepresentationShape(branch.Nodes)
+                });
+            }
+
+            nodes.Add(new JsonObject
+            {
+                ["name"] = node.Name,
+                ["responseName"] = node.ResponseName,
+                ["requirementIndex"] = node.RequirementIndex,
+                ["lhsPath"] = lhsPath,
+                ["isList"] = node.IsList,
+                ["skipOnNull"] = node.SkipOnNull,
+                ["elementInputType"] = node.ElementInputType?.ToString(),
+                ["parentTypeCondition"] = node.ParentTypeCondition,
+                ["typeCondition"] = node.TypeCondition,
+                ["requiresTypeName"] = node.RequiresTypeName,
+                ["nodes"] = FormatRepresentationShape(node.Nodes),
+                ["branches"] = branches
+            });
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Formats a plan with a single Apollo lookup, applies the mutation to its
+    /// Apollo node and parses the mutated plan.
+    /// </summary>
+    private static OperationPlan ParseApolloPlanWithMutatedNode(
+        Action<JsonObject> mutateApolloNode)
+    {
+        var compositeSchema = ComposeApolloSchema();
+        var plan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                products {
+                    id
+                    name
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter();
+        var planSource = JsonNode.Parse(formatter.Format(plan))!;
+        var apolloNode = planSource["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .Single(t => t["type"]!.GetValue<string>() == "ApolloOperation");
+
+        mutateApolloNode(apolloNode);
+
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        return parser.Parse(Encoding.UTF8.GetBytes(planSource.ToJsonString()));
+    }
+
+    // Source schema "a" owns 'Bar.y' and source schema "b" requires it for
+    // 'Bar.x', so the lookup on "b" binds its requirement on the nested 'bar'
+    // field. The client aliases 'bar', which makes the binding path carry a
+    // response name that differs from the field name.
+    private const string NestedRequiresSchemaA =
+        """
+        schema @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@shareable"]) {
+          query: Query
+        }
+
+        type Foo @key(fields: "id") {
+          id: ID!
+          bar: Bar @shareable
+        }
+
+        type Bar {
+          y: String @shareable
+        }
+
+        type Query {
+          foos: [Foo!]
+          _service: _Service!
+          _entities(representations: [_Any!]!): [_Entity]!
+        }
+
+        type _Service { sdl: String! }
+
+        union _Entity = Foo
+
+        scalar FieldSet
+        scalar _Any
+
+        directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+        directive @link(url: String! import: [String!]) repeatable on SCHEMA
+        directive @shareable on FIELD_DEFINITION | OBJECT
+        """;
+
+    private const string NestedRequiresSchemaB =
+        """
+        schema @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@requires", "@shareable"]) {
+          query: Query
+        }
+
+        type Foo @key(fields: "id") {
+          id: ID! @external
+          bar: Bar @shareable
+        }
+
+        type Bar {
+          y: String @external
+          x: Int @requires(fields: "y")
+        }
+
+        type Query {
+          _service: _Service!
+          _entities(representations: [_Any!]!): [_Entity]!
+        }
+
+        type _Service { sdl: String! }
+
+        union _Entity = Foo
+
+        scalar FieldSet
+        scalar _Any
+
+        directive @external on FIELD_DEFINITION | OBJECT
+        directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+        directive @link(url: String! import: [String!]) repeatable on SCHEMA
+        directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+        directive @shareable on FIELD_DEFINITION | OBJECT
+        """;
 
     /// <summary>
     /// Composes a schema from two Apollo Federation subgraphs. Source schema
@@ -660,6 +1445,13 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
 
+        return ComposeApolloSchema(sourceSchemaA, sourceSchemaB);
+    }
+
+    private static FusionSchemaDefinition ComposeApolloSchema(
+        string sourceSchemaA,
+        string sourceSchemaB)
+    {
         var sourceTexts = new[]
         {
             new SourceSchemaText("a", sourceSchemaA),

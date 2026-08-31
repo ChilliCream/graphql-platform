@@ -17,7 +17,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Execution;
 
-namespace HotChocolate.Fusion.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]
@@ -52,14 +52,14 @@ public class GraphQLQueryBenchmark
         _client = _server.CreateClient();
 
         var fusionItems = new HotChocolate.Fusion.Transport.OperationRequest(
-            "{ items }",
+            "{ items }"u8.ToArray(),
             id: null,
             operationName: null,
             onError: null,
             variables: VariableValues.Empty,
             extensions: JsonSegment.Empty);
         var fusionFewItems = new HotChocolate.Fusion.Transport.OperationRequest(
-            "{ fewItems }",
+            "{ fewItems }"u8.ToArray(),
             id: null,
             operationName: null,
             onError: null,

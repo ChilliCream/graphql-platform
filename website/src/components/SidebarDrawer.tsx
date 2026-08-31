@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
-import { IconButton } from "@/src/design-system/IconButton";
+import { useEffect, useState, type ReactNode } from "react";
+import { MobileDrawer } from "@/src/components/MobileDrawer";
 
 export const SIDEBAR_OPEN_EVENT = "docs:open-sidebar";
 
@@ -14,14 +13,6 @@ export function SidebarDrawer({
   closeLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const [prevPathname, setPrevPathname] = useState(pathname);
-  if (prevPathname !== pathname) {
-    setPrevPathname(pathname);
-    if (open) {
-      setOpen(false);
-    }
-  }
 
   useEffect(() => {
     const handler = () => setOpen(true);
@@ -65,62 +56,19 @@ export function SidebarDrawer({
     };
   }, []);
 
-  function handleContentClick(event: MouseEvent<HTMLDivElement>) {
-    const target = event.target as HTMLElement;
-    if (target.closest("a")) {
-      setOpen(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
-
   return (
     <>
-      <div
-        className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
-        aria-hidden={!open}
+      <MobileDrawer
+        side="left"
+        breakpoint="lg"
+        open={open}
+        onOpenChange={setOpen}
+        closeOnPathnameChange
+        closeOnContentClickSelector="a"
+        closeLabel={closeLabel}
       >
-        <div
-          className={`bg-cc-black/40 absolute inset-0 transition-opacity ${
-            open ? "opacity-100" : "opacity-0"
-          }`}
-          onClick={() => setOpen(false)}
-        />
-        <div
-          className={`bg-cc-bg absolute inset-y-0 left-0 w-80 max-w-[85vw] overflow-y-auto shadow-xl transition-transform duration-200 ${
-            open ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="border-cc-card-border flex items-center justify-end border-b px-3 py-2">
-            <IconButton aria-label={closeLabel} onClick={() => setOpen(false)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5"
-                aria-hidden="true"
-              >
-                <line x1="6" y1="6" x2="18" y2="18" />
-                <line x1="6" y1="18" x2="18" y2="6" />
-              </svg>
-            </IconButton>
-          </div>
-          <div onClick={handleContentClick}>{children}</div>
-        </div>
-      </div>
+        {children}
+      </MobileDrawer>
 
       <aside className="cc-content-dark border-cc-card-border hidden border-r lg:block">
         <div className="sticky top-18 flex max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] flex-col">

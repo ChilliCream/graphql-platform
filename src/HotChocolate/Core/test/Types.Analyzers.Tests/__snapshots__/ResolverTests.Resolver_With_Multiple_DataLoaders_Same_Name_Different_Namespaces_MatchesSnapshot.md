@@ -20,6 +20,9 @@ namespace TestNamespace.DataAccess.Entities
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Entities.EntityDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.DataAccess.Entities.Entity>
         , IEntityByIdDataLoader
@@ -75,6 +78,9 @@ namespace TestNamespace.DataAccess.Products
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataAccess.Products.ProductDataLoaders.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.DataAccess.Products.Product>
         , IEntityByIdDataLoader
@@ -232,6 +238,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetEntityAsync_id(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetEntityAsync();
                 },

@@ -4,6 +4,7 @@ using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
@@ -27,9 +28,11 @@ internal sealed partial class SourceSchemaPreprocessor(
     ICompositionLog log,
     Version? sourceSchemaVersion = null,
     SourceSchemaPreprocessorOptions? options = null,
-    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning)
+    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning,
+    bool isApolloFederationV1 = false)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
+    private readonly ScopedCompositionLog _log = new(log);
 
     public CompositionResult Preprocess()
     {
@@ -37,8 +40,9 @@ internal sealed partial class SourceSchemaPreprocessor(
 
         SourceExternalFieldMetadata.CaptureMarker(schema);
 
-        var isFederationSchema = FederationSchemaTransformer.IsFederationSchema(schema)
-            && FederationSchemaAnalyzer.Validate(schema, log);
+        var isFederationSchema = isApolloFederationV1
+            || (FederationSchemaTransformer.IsFederationSchema(schema)
+                && FederationSchemaAnalyzer.Validate(schema, _log));
 
         if (isFederationSchema)
         {
@@ -75,9 +79,16 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (fusionV1CompatibilityMode || _options.InferShareable)
+        if (isApolloFederationV1
+            || fusionV1CompatibilityMode
+            || _options.InferShareable)
         {
             ApplyShareableDirectives();
+        }
+
+        if (isFederationSchema)
+        {
+            RemoveEmptyQueryRoot.Apply(schema);
         }
 
         // Additional schema validation will catch issues introduced during preprocessing. It runs
@@ -89,7 +100,7 @@ internal sealed partial class SourceSchemaPreprocessor(
             var validationLog = new ValidationLog();
             if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
             {
-                log.WriteValidationLog(
+                _log.WriteValidationLog(
                     validationLog, schema, invalidFieldDeprecationSeverity);
             }
         }
@@ -97,9 +108,10 @@ internal sealed partial class SourceSchemaPreprocessor(
         if (isFederationSchema)
         {
             RemoveExternalFields.Apply(schema);
+            RemoveEmptyQueryRoot.Apply(schema);
         }
 
-        return log.HasErrors
+        return _log.HasErrors
             ? ErrorHelper.SourceSchemaPreprocessingFailed()
             : CompositionResult.Success();
     }
@@ -374,13 +386,16 @@ internal sealed partial class SourceSchemaPreprocessor(
                         continue;
                     }
 
-                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal) || field.Directives.ContainsName(Inaccessible))
+                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+                        || field.Directives.ContainsName(External)
+                        || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
                         || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+                        || otherField.Directives.ContainsName(External)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;

@@ -10,10 +10,12 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Schema : ITypeResolverInterceptor
 {
+    private readonly bool _enableObjectDeprecation;
     private readonly bool _enableOptInFeatures;
 
-    public __Schema(bool enableOptInFeatures = false)
+    public __Schema(bool enableObjectDeprecation, bool enableOptInFeatures)
     {
+        _enableObjectDeprecation = enableObjectDeprecation;
         _enableOptInFeatures = enableOptInFeatures;
     }
 
@@ -26,7 +28,14 @@ internal sealed class __Schema : ITypeResolverInterceptor
                 break;
 
             case "types":
-                features.Set(new ResolveFieldValue(Types));
+                if (_enableObjectDeprecation)
+                {
+                    features.Set(new ResolveFieldValue(TypesWithDeprecation));
+                }
+                else
+                {
+                    features.Set(new ResolveFieldValue(Types));
+                }
                 break;
 
             case "queryType":
@@ -75,6 +84,33 @@ internal sealed class __Schema : ITypeResolverInterceptor
             var type = context.Schema.Types[i++];
             context.AddRuntimeResult(type);
             element.CreateObjectValue(context.Selection, context.IncludeFlags);
+        }
+    }
+
+    public static void TypesWithDeprecation(FieldContext context)
+    {
+        var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+        var types = context.Schema.Types;
+        var count = includeDeprecated
+            ? types.Count
+            : types.Count(t => t is not IObjectTypeDefinition { IsDeprecated: true });
+        using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
+
+        foreach (var type in types)
+        {
+            if (!includeDeprecated && type is IObjectTypeDefinition { IsDeprecated: true })
+            {
+                continue;
+            }
+
+            if (!list.MoveNext())
+            {
+                Debug.Fail("Expected enumerator of list value to be able to advance");
+                break;
+            }
+
+            context.AddRuntimeResult(type);
+            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
 

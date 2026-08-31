@@ -169,6 +169,23 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = true;
 
     /// <summary>
+    /// Gets or sets whether <c>@deprecated</c> on object types is enabled. When <c>true</c>, the
+    /// introspection schema exposes <c>isDeprecated</c> and <c>deprecationReason</c> on
+    /// <c>__Type</c> and the <c>includeDeprecated</c> argument on <c>__Type.possibleTypes</c>
+    /// and <c>__Schema.types</c>.
+    /// </summary>
+    public bool EnableObjectDeprecation
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets whether opt-in feature support is enabled. When <c>true</c>, the introspection
     /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
     /// introspection unless the client opts into their feature.
@@ -207,20 +224,11 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     /// </returns>
     public FusionOptions Clone()
     {
-        return new FusionOptions
-        {
-            EvictionTimeout = EvictionTimeout,
-            OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
-            OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
-            OperationDocumentCacheSize = OperationDocumentCacheSize,
-            PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
-            LazyInitialization = LazyInitialization,
-            NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
-            EnableDefer = EnableDefer,
-            EnableOptInFeatures = EnableOptInFeatures,
-            EnableSemanticIntrospection = EnableSemanticIntrospection
-        };
+        var clone = (FusionOptions)MemberwiseClone();
+
+        clone._isReadOnly = false;
+
+        return clone;
     }
 
     object ICloneable.Clone() => Clone();

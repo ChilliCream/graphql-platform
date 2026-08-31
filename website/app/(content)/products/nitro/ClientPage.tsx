@@ -9,45 +9,58 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import dynamic from "next/dynamic";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useId, useRef } from "react";
 
-import { ControlPlaneConsole } from "@/src/components/nitro/ControlPlaneConsole";
+import { MockWindowChrome } from "@/src/components/MockWindowChrome";
+import { NitroDownload } from "@/src/components/nitro/NitroDownload";
 import { RisingParticles } from "@/src/components/nitro/RisingParticles";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
-import {
-  BarSeries,
-  CountUp,
-  HBarSeries,
-  InsightsTable,
-  LineAreaChart,
-  NitroCompose,
-  NitroDiagnose,
-  NitroFusion,
-  NitroReel,
-  NitroSchema,
-  NitroTheme,
-  NitroTrace,
-  TraceWaterfall,
-} from "@/src/nitro";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
 
-interface EyebrowProps {
-  readonly children: ReactNode;
-}
-
-function Eyebrow({ children }: EyebrowProps) {
-  return (
-    <span
-      className="text-caption font-medium tracking-[0.22em] uppercase"
-      style={{ color: "#16b9e4" }}
-    >
-      {children}
-    </span>
-  );
-}
+const ControlPlaneConsole = dynamic(() =>
+  import("@/src/components/nitro/ControlPlaneConsole").then(
+    (m) => m.ControlPlaneConsole,
+  ),
+);
+const BarSeries = dynamic(() => import("@/src/nitro").then((m) => m.BarSeries));
+const CountUp = dynamic(() => import("@/src/nitro").then((m) => m.CountUp));
+const HBarSeries = dynamic(() =>
+  import("@/src/nitro").then((m) => m.HBarSeries),
+);
+const InsightsTable = dynamic(() =>
+  import("@/src/nitro").then((m) => m.InsightsTable),
+);
+const LineAreaChart = dynamic(() =>
+  import("@/src/nitro").then((m) => m.LineAreaChart),
+);
+const NitroCompose = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroCompose),
+);
+const NitroDiagnose = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroDiagnose),
+);
+const NitroFusion = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroFusion),
+);
+const NitroSchema = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroSchema),
+);
+const NitroTheme = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroTheme),
+);
+const NitroTrace = dynamic(() =>
+  import("@/src/nitro").then((m) => m.NitroTrace),
+);
+const TraceWaterfall = dynamic(() =>
+  import("@/src/nitro").then((m) => m.TraceWaterfall),
+);
 
 interface SectionIntroProps {
   readonly index?: string;
@@ -82,7 +95,9 @@ function SectionIntro({
             {index}
           </span>
         )}
-        <Eyebrow>{eyebrow}</Eyebrow>
+        <Eyebrow as="span" color="accent" className="text-caption font-medium">
+          {eyebrow}
+        </Eyebrow>
       </div>
       <h2 className="text-cc-heading font-heading text-h3 text-balance">
         {title}
@@ -96,35 +111,6 @@ function SectionIntro({
   );
 }
 
-interface CardProps {
-  readonly className?: string;
-  readonly children: ReactNode;
-  readonly glow?: boolean;
-}
-
-function Card({ className, children, glow = false }: CardProps) {
-  return (
-    <div
-      className={[
-        "border-cc-card-border bg-cc-card-bg relative overflow-hidden rounded-2xl border",
-        className ?? "",
-      ].join(" ")}
-    >
-      {glow && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-24 right-0 -z-0 h-56 w-56 opacity-40 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(50% 50% at 60% 40%, rgba(22,185,228,0.18), transparent 70%)",
-          }}
-        />
-      )}
-      <div className="relative z-10 flex h-full flex-col">{children}</div>
-    </div>
-  );
-}
-
 interface CardHeaderProps {
   readonly title: string;
   readonly hint?: ReactNode;
@@ -133,13 +119,13 @@ interface CardHeaderProps {
 function CardHeader({ title, hint }: CardHeaderProps) {
   return (
     <div className="flex items-baseline justify-between gap-3 px-5 pt-5">
-      <h3 className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
+      <Eyebrow as="h3" color="ink-dim" className="text-[10px]">
         {title}
-      </h3>
+      </Eyebrow>
       {hint && (
-        <span className="text-cc-ink-dim font-mono text-[10px] tracking-[0.18em] uppercase">
+        <Eyebrow as="span" color="ink-dim" className="text-[10px]">
           {hint}
-        </span>
+        </Eyebrow>
       )}
     </div>
   );
@@ -155,7 +141,6 @@ function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
       theme="dark"
-      reducedMotion="never"
       className={className}
       style={
         {
@@ -175,21 +160,34 @@ interface FramedVisualProps {
   readonly children: ReactNode;
 }
 
+interface DeferredVisualProps {
+  readonly children: ReactNode;
+}
+
+function DeferredVisual({ children }: DeferredVisualProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { margin: "100% 0px" });
+
+  return (
+    <div ref={ref} style={{ aspectRatio: "1504 / 940" }}>
+      {inView ? children : null}
+    </div>
+  );
+}
+
 function FramedVisual({ children }: FramedVisualProps) {
   return (
-    <div className="relative">
-      <div
-        aria-hidden="true"
-        className="absolute -inset-x-6 -inset-y-4 -z-10 rounded-[2rem] opacity-40 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(60% 60% at 50% 40%, rgba(22,185,228,0.16), transparent 70%)",
-        }}
-      />
-      <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border shadow-2xl shadow-black/50">
-        {children}
-      </div>
-    </div>
+    <MockWindowChrome
+      glow={{
+        background:
+          "radial-gradient(60% 60% at 50% 40%, rgba(22,185,228,0.16), transparent 70%)",
+        inset: "-inset-x-6 -inset-y-4",
+        blur: "blur-3xl",
+        rounded: "rounded-[2rem]",
+      }}
+    >
+      {children}
+    </MockWindowChrome>
   );
 }
 
@@ -247,7 +245,9 @@ function Showcase({
           ].join(" ")}
           hiddenClassName="translate-y-8 opacity-0"
         >
-          <FramedVisual>{visual}</FramedVisual>
+          <FramedVisual>
+            <DeferredVisual>{visual}</DeferredVisual>
+          </FramedVisual>
         </RevealOnScroll>
       </div>
     </section>
@@ -351,6 +351,7 @@ interface HeroSparksProps {
 
 function HeroSparks({ reduced, className }: HeroSparksProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
+  const inView = useInView(ref, { amount: 0.01 });
 
   useEffect(() => {
     const canvas = ref.current;
@@ -358,7 +359,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       return;
     }
     const ctx = canvas.getContext("2d");
-    if (!ctx) {
+    if (!ctx || !inView) {
       return;
     }
 
@@ -461,7 +462,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [reduced]);
+  }, [inView, reduced]);
 
   return (
     <canvas
@@ -489,6 +490,9 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
         @keyframes v22-breathe {
           0%, 100% { opacity: 0.9; }
           50% { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .v22-hero-flare { animation: none !important; }
         }
         .v22-hero-reel [role="group"] > div:first-child { display: none !important; }
         @media (max-width: 639px) {
@@ -908,7 +912,7 @@ const TRACE: Trace = {
 function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion() ?? false;
-  const inView = useInView(ref, { amount: 0.25, once: true });
+  const inView = useInView(ref, { amount: 0.25 });
   const progress = useMotionValue(reduced ? 1 : 0);
 
   useEffect(() => {
@@ -923,7 +927,7 @@ function useBentoProgress() {
     return () => controls.stop();
   }, [reduced, inView, progress]);
 
-  return { ref, progress };
+  return { ref, progress, inView };
 }
 
 const ERROR_CURVE = [
@@ -933,9 +937,10 @@ const ERROR_CURVE = [
 
 interface ErrorRateSparkProps {
   readonly progress: MotionValue<number>;
+  readonly active: boolean;
 }
 
-function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
+function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
   const W = 240;
   const H = 64;
   const PAD = 6;
@@ -1033,13 +1038,13 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
             border: `1px solid ${stroke}`,
           }}
           animate={
-            reduced
-              ? undefined
+            reduced || !active
+              ? { scale: 0.7, opacity: 0 }
               : { scale: [0.7, 1.6, 0.7], opacity: [0.6, 0, 0.6] }
           }
           transition={
-            reduced
-              ? undefined
+            reduced || !active
+              ? { duration: 0 }
               : { repeat: Infinity, duration: 1.8, ease: "easeInOut" }
           }
         />
@@ -1066,135 +1071,147 @@ function ErrorRateSpark({ progress }: ErrorRateSparkProps) {
 }
 
 function SignalsBento() {
-  const { ref, progress } = useBentoProgress();
+  const { ref, progress, inView } = useBentoProgress();
 
   return (
     <div ref={ref} className="grid grid-cols-1 gap-4 sm:grid-cols-6">
       <Card className="sm:col-span-4" glow>
-        <CardHeader title="Latency" hint={<LatencyLegend />} />
-        <div className="px-5 pt-3 pb-5">
-          <NitroCanvas>
-            <LineAreaChart
-              series={[
-                {
-                  values: P95_SERIES,
-                  stroke: BENTO_P95,
-                  fill: true,
-                  fillGradient: true,
-                  fillOpacity: 0.28,
-                  strokeWidth: 1.2,
-                },
-                {
-                  values: P99_SERIES,
-                  stroke: BENTO_P99,
-                  fill: true,
-                  fillGradient: true,
-                  fillOpacity: 0.2,
-                  strokeWidth: 1.2,
-                },
-              ]}
-              domain={[0, 180]}
-              height={168}
-              grid
-              showHead
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
+        <div className="relative z-10 flex h-full flex-col">
+          <CardHeader title="Latency" hint={<LatencyLegend />} />
+          <div className="px-5 pt-3 pb-5">
+            <NitroCanvas>
+              <LineAreaChart
+                series={[
+                  {
+                    values: P95_SERIES,
+                    stroke: BENTO_P95,
+                    fill: true,
+                    fillGradient: true,
+                    fillOpacity: 0.28,
+                    strokeWidth: 1.2,
+                  },
+                  {
+                    values: P99_SERIES,
+                    stroke: BENTO_P99,
+                    fill: true,
+                    fillGradient: true,
+                    fillOpacity: 0.2,
+                    strokeWidth: 1.2,
+                  },
+                ]}
+                domain={[0, 180]}
+                height={168}
+                grid
+                showHead
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+          </div>
         </div>
       </Card>
 
       <Card className="sm:col-span-2">
-        <CardHeader title="Throughput" hint="ops / min" />
-        <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
-          <NitroCanvas className="h-11">
-            <CountUp
-              value={94200}
-              format={(n) => Math.round(n).toLocaleString("en-US")}
-              style={{ justifyContent: "flex-start", fontSize: 34 }}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
-          <NitroCanvas className="mt-3 h-16">
-            <BarSeries
-              values={THROUGHPUT_BARS}
-              color={BENTO_THROUGHPUT}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
-        </div>
-      </Card>
-
-      <Card className="sm:col-span-3">
-        <CardHeader title="Top clients" hint="by impact" />
-        <div className="px-5 pt-3 pb-5">
-          <NitroCanvas>
-            <HBarSeries
-              clients={CLIENTS as Client[]}
-              maxBars={5}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
-        </div>
-      </Card>
-
-      <Card className="sm:col-span-3">
-        <CardHeader title="Error rate" hint="% of requests" />
-        <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
-          <div className="flex items-baseline gap-2">
-            <span
-              className="font-heading text-h4 tabular-nums"
-              style={{ color: "#f0786a" }}
-            >
-              0.31%
-            </span>
-            <span className="text-cc-ink-dim text-caption">
-              within budget · 1.6% peak
-            </span>
+        <div className="relative z-10 flex h-full flex-col">
+          <CardHeader title="Throughput" hint="ops / min" />
+          <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
+            <NitroCanvas className="h-11">
+              <CountUp
+                value={94200}
+                format={(n) => Math.round(n).toLocaleString("en-US")}
+                style={{ justifyContent: "flex-start", fontSize: 34 }}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+            <NitroCanvas className="mt-3 h-16">
+              <BarSeries
+                values={THROUGHPUT_BARS}
+                color={BENTO_THROUGHPUT}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
           </div>
-          <div className="mt-3 h-16">
-            <ErrorRateSpark progress={progress} />
+        </div>
+      </Card>
+
+      <Card className="sm:col-span-3">
+        <div className="relative z-10 flex h-full flex-col">
+          <CardHeader title="Top clients" hint="by impact" />
+          <div className="px-5 pt-3 pb-5">
+            <NitroCanvas>
+              <HBarSeries
+                clients={CLIENTS as Client[]}
+                maxBars={5}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="sm:col-span-3">
+        <div className="relative z-10 flex h-full flex-col">
+          <CardHeader title="Error rate" hint="% of requests" />
+          <div className="flex flex-1 flex-col justify-between px-5 pt-4 pb-5">
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-heading text-h4 tabular-nums"
+                style={{ color: "#f0786a" }}
+              >
+                0.31%
+              </span>
+              <span className="text-cc-ink-dim text-caption">
+                within budget · 1.6% peak
+              </span>
+            </div>
+            <div className="mt-3 h-16">
+              <ErrorRateSpark progress={progress} active={inView} />
+            </div>
           </div>
         </div>
       </Card>
 
       <Card className="sm:col-span-4">
-        <CardHeader title="Impact score" hint="what hurts most" />
-        <div className="px-5 pt-3 pb-5">
-          <NitroCanvas>
-            <InsightsTable
-              rows={INSIGHTS as InsightRow[]}
-              errorThreshold={0.02}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
+        <div className="relative z-10 flex h-full flex-col">
+          <CardHeader title="Impact score" hint="what hurts most" />
+          <div className="px-5 pt-3 pb-5">
+            <NitroCanvas>
+              <InsightsTable
+                rows={INSIGHTS as InsightRow[]}
+                errorThreshold={0.02}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+          </div>
         </div>
       </Card>
 
       <Card className="sm:col-span-2">
-        <CardHeader title="Slow span" hint="checkout" />
-        <div className="nitro-trace px-5 pt-4 pb-5">
-          <style>{`
-            .nitro-trace [role="img"] > div:first-child { display: none; }
-            .nitro-trace [style*="dashed"] { display: none; }
-            .nitro-trace [role="img"] > div:nth-child(2) > div:last-child > div:last-child {
-              left: auto !important;
-              right: 0;
-              transform: none;
-            }
-          `}</style>
-          <NitroCanvas>
-            <TraceWaterfall
-              trace={TRACE}
-              rowHeight={34}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
+        <div className="relative z-10 flex h-full flex-col">
+          <CardHeader title="Slow span" hint="checkout" />
+          <div className="nitro-trace px-5 pt-4 pb-5">
+            <style>{`
+              .nitro-trace [role="img"] > div:first-child { display: none; }
+              .nitro-trace [style*="dashed"] { display: none; }
+              .nitro-trace [role="img"] > div:nth-child(2) > div:last-child > div:last-child {
+                left: auto !important;
+                right: 0;
+                transform: none;
+              }
+            `}</style>
+            <NitroCanvas>
+              <TraceWaterfall
+                trace={TRACE}
+                rowHeight={34}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+          </div>
         </div>
       </Card>
     </div>
@@ -1251,29 +1268,31 @@ const SCHEMA_CHANGES: readonly {
 function ClassificationCard() {
   return (
     <Card className="mt-1">
-      <div className="flex items-center justify-between px-4 py-3">
-        <span className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">
-          orders-api · v14
-        </span>
-        <span className="text-cc-danger text-caption font-mono">
-          publish blocked
-        </span>
-      </div>
-      <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
-        {SCHEMA_CHANGES.map((c) => (
-          <div
-            key={c.field}
-            className="flex items-center justify-between gap-3 px-4 py-2.5"
-          >
-            <code className="text-cc-ink truncate font-mono text-xs">
-              {c.field}
-            </code>
-            <KindPill kind={c.kind} />
-          </div>
-        ))}
-      </div>
-      <div className="text-cc-ink-dim border-cc-card-border border-t px-4 py-2.5 font-mono text-[11px]">
-        1 safe · 1 dangerous · 1 breaking
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">
+            orders-api · v14
+          </span>
+          <span className="text-cc-danger text-caption font-mono">
+            publish blocked
+          </span>
+        </div>
+        <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
+          {SCHEMA_CHANGES.map((c) => (
+            <div
+              key={c.field}
+              className="flex items-center justify-between gap-3 px-4 py-2.5"
+            >
+              <code className="text-cc-ink truncate font-mono text-xs">
+                {c.field}
+              </code>
+              <KindPill kind={c.kind} />
+            </div>
+          ))}
+        </div>
+        <div className="text-cc-ink-dim border-cc-card-border border-t px-4 py-2.5 font-mono text-[11px]">
+          1 safe · 1 dangerous · 1 breaking
+        </div>
       </div>
     </Card>
   );
@@ -1333,64 +1352,69 @@ function DeliveryBand() {
       <div className="mt-12 grid gap-4 lg:grid-cols-3">
         <RevealOnScroll className="lg:col-span-2">
           <Card>
-            <div className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-cc-heading font-heading text-h6">
-                CI schema check
-              </span>
-              <span className="text-cc-danger border-cc-danger/40 bg-cc-danger/[0.08] rounded border px-2 py-0.5 font-mono text-[10px] tracking-[0.12em]">
-                FAILED
-              </span>
-            </div>
-            <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
-              {CI_CHECKS.map((c) => (
-                <div
-                  key={c.label}
-                  className="flex items-center gap-3 px-5 py-3"
-                >
-                  <CheckIconMark state={c.state} />
-                  <span className="text-cc-ink font-mono text-sm">
-                    {c.label}
-                  </span>
-                  <span className="text-cc-ink-dim ml-auto font-mono text-xs">
-                    {c.detail}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="text-cc-ink-dim border-cc-card-border border-t px-5 py-3 font-mono text-[11px]">
-              merging is blocked until every check passes
+            <div className="relative z-10 flex h-full flex-col">
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <span className="text-cc-heading font-heading text-h6">
+                  CI schema check
+                </span>
+                <span className="text-cc-danger border-cc-danger/40 bg-cc-danger/[0.08] rounded border px-2 py-0.5 font-mono text-[10px] tracking-[0.12em]">
+                  FAILED
+                </span>
+              </div>
+              <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
+                {CI_CHECKS.map((c) => (
+                  <div
+                    key={c.label}
+                    className="flex items-center gap-3 px-5 py-3"
+                  >
+                    <CheckIconMark state={c.state} />
+                    <span className="text-cc-ink font-mono text-sm">
+                      {c.label}
+                    </span>
+                    <span className="text-cc-ink-dim ml-auto font-mono text-xs">
+                      {c.detail}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-cc-ink-dim border-cc-card-border border-t px-5 py-3 font-mono text-[11px]">
+                merging is blocked until every check passes
+              </div>
             </div>
           </Card>
         </RevealOnScroll>
 
         <RevealOnScroll>
           <Card className="h-full">
-            <div className="flex flex-col gap-5 p-6">
-              <div>
-                <div className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">
-                  Persisted operations
+            <div className="relative z-10 flex h-full flex-col">
+              <div className="flex flex-col gap-5 p-6">
+                <div>
+                  <div className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">
+                    Persisted operations
+                  </div>
+                  <p className="text-cc-ink mt-2 text-sm leading-relaxed">
+                    With strict trusted documents configured, production accepts
+                    registered operation IDs instead of arbitrary GraphQL
+                    documents.
+                  </p>
                 </div>
-                <p className="text-cc-ink mt-2 text-sm leading-relaxed">
-                  Only registered query hashes execute. Ad-hoc queries and
-                  injection never reach a resolver.
-                </p>
-              </div>
-              <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
-                <div className="text-cc-ink-dim">POST /graphql</div>
-                <div className="mt-1 truncate" style={{ color: "#16b9e4" }}>
-                  documentId: sha256:7f3a9b2e…
+                <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
+                  <div className="text-cc-ink-dim">POST /graphql</div>
+                  <div className="mt-1 truncate" style={{ color: "#16b9e4" }}>
+                    documentId: sha256:7f3a9b2e…
+                  </div>
+                  <div className="text-cc-success mt-1">
+                    200 · trusted · 12 ms
+                  </div>
                 </div>
-                <div className="text-cc-success mt-1">
-                  200 · trusted · 12 ms
+                <div className="mt-auto flex items-center gap-2">
+                  <span className="text-cc-success text-caption font-mono">
+                    ● safe rollout
+                  </span>
+                  <span className="text-cc-ink-dim text-caption">
+                    stage → canary → prod
+                  </span>
                 </div>
-              </div>
-              <div className="mt-auto flex items-center gap-2">
-                <span className="text-cc-success text-caption font-mono">
-                  ● safe rollout
-                </span>
-                <span className="text-cc-ink-dim text-caption">
-                  stage → canary → prod
-                </span>
               </div>
             </div>
           </Card>
@@ -1410,14 +1434,20 @@ function Hero({ reduced }: HeroProps) {
       <HeroAurora reduced={reduced} />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">
-        <RevealOnScroll className="flex max-w-2xl flex-col gap-6">
+        <RevealOnScroll className="relative z-20 flex max-w-2xl flex-col gap-6">
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
               className="h-px w-16 rounded-full"
               style={{ background: "#16b9e4" }}
             />
-            <Eyebrow>API Operations Platform</Eyebrow>
+            <Eyebrow
+              as="span"
+              color="accent"
+              className="text-caption font-medium"
+            >
+              API Operations Platform
+            </Eyebrow>
           </div>
           <h1
             className="font-heading text-h1 text-balance"
@@ -1445,7 +1475,7 @@ function Hero({ reduced }: HeroProps) {
                   "0 0 24px rgba(22,185,228,0.5), 0 0 52px rgba(240,120,106,0.28)",
               }}
             >
-              <SolidButton href="/docs/nitro">See it in action</SolidButton>
+              <NitroDownload />
             </span>
             <OutlineButton href="https://nitro.chillicream.com">
               Launch Nitro
@@ -1545,13 +1575,8 @@ function PageAtmosphere() {
       className="pointer-events-none absolute inset-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
     >
       <RisingParticles
-        color="22,185,228"
-        count={16}
-        className="absolute inset-0"
-      />
-      <RisingParticles
-        color="240,120,106"
-        count={12}
+        colors={["22,185,228", "240,120,106"]}
+        count={28}
         className="absolute inset-0"
       />
       <div
@@ -1680,7 +1705,13 @@ export function ClientPage() {
 
       <section className="border-cc-card-border border-t py-24 text-center sm:py-32">
         <RevealOnScroll className="mx-auto flex max-w-2xl flex-col items-center gap-6">
-          <Eyebrow>Ready when you are</Eyebrow>
+          <Eyebrow
+            as="span"
+            color="accent"
+            className="text-caption font-medium"
+          >
+            Ready when you are
+          </Eyebrow>
           <h2 className="text-cc-heading font-heading text-h2 text-balance">
             Put your API on one control plane.
           </h2>
@@ -1689,10 +1720,10 @@ export function ClientPage() {
             governance, client safety, and release checks as your team grows.
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-            <SolidButton href="/get-started">Start for Free</SolidButton>
-            <OutlineButton href="https://nitro.chillicream.com">
-              Launch Nitro
-            </OutlineButton>
+            <SolidButton href="https://nitro.chillicream.com">
+              Start Nitro for Free
+            </SolidButton>
+            <OutlineButton href="/pricing">Compare Nitro Plans</OutlineButton>
           </div>
         </RevealOnScroll>
       </section>

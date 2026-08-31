@@ -153,12 +153,13 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
             validDefinitions.Add(definition);
         }
 
-        UpdateEndpointsAndOpenApiDefinitions(validDefinitions, schema);
+        UpdateEndpointsAndOpenApiDefinitions(validDefinitions, schema, events);
     }
 
     private void UpdateEndpointsAndOpenApiDefinitions(
         List<IOpenApiDefinition> definitions,
-        ISchemaDefinition schema)
+        ISchemaDefinition schema,
+        IOpenApiDiagnosticEvents events)
     {
         var endpoints = definitions
             .OfType<OpenApiEndpointDefinition>()
@@ -175,10 +176,10 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         // wins. If no duplicate produces a valid descriptor, the first one whose document
         // failed validation is kept so the route is still registered (the middleware returns
         // HTTP 500 on call). Descriptors that fail to construct outright are skipped.
-        // Track the chosen definitions in parallel with the descriptors so the same selection
-        // feeds both the runtime endpoints and the OpenAPI document generation.
-        var chosenDefinitions = new List<OpenApiEndpointDefinition>();
-        var chosenDescriptors = new List<OpenApiEndpointDescriptor>();
+        // Keep each chosen definition paired with its descriptor so promotion cannot select
+        // a definition and runtime descriptor from different endpoints.
+        var chosenEndpoints =
+            new List<(OpenApiEndpointDefinition Definition, OpenApiEndpointDescriptor Descriptor)>();
         var keyToIndex = new Dictionary<(string, string), int>();
         var keyHasValid = new HashSet<(string, string)>();
 
@@ -191,14 +192,23 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
                 continue;
             }
 
+            var endpointName = endpoint.OperationDefinition.Name!.Value;
+
             OpenApiEndpointDescriptor descriptor;
 
             try
             {
                 descriptor = OpenApiEndpointFactory.CreateEndpointDescriptor(endpoint, modelsByName, schema);
             }
-            catch
+            catch (Exception exception)
             {
+                events.ValidationErrors(
+                [
+                    new OpenApiDefinitionValidationError(
+                        $"Endpoint '{endpointName}' could not be initialized: {exception.Message}",
+                        endpoint)
+                ]);
+
                 continue;
             }
 
@@ -207,35 +217,53 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
                 if (keyToIndex.TryGetValue(key, out var existingIndex))
                 {
                     // Promote: an earlier invalid descriptor is being replaced by a valid one.
-                    chosenDefinitions[existingIndex] = endpoint;
-                    chosenDescriptors[existingIndex] = descriptor;
+                    chosenEndpoints[existingIndex] = (endpoint, descriptor);
                 }
                 else
                 {
-                    keyToIndex[key] = chosenDescriptors.Count;
-                    chosenDefinitions.Add(endpoint);
-                    chosenDescriptors.Add(descriptor);
+                    keyToIndex[key] = chosenEndpoints.Count;
+                    chosenEndpoints.Add((endpoint, descriptor));
                 }
 
                 keyHasValid.Add(key);
             }
-            else if (!keyToIndex.ContainsKey(key))
+            else
             {
-                keyToIndex[key] = chosenDescriptors.Count;
-                chosenDefinitions.Add(endpoint);
-                chosenDescriptors.Add(descriptor);
+                events.ValidationErrors(
+                [
+                    .. descriptor.DocumentErrors.Select(
+                        error => new OpenApiDefinitionValidationError(
+                            $"Endpoint '{endpointName}' has an invalid document: {error.Message}",
+                            endpoint))
+                ]);
+
+                if (!keyToIndex.ContainsKey(key))
+                {
+                    keyToIndex[key] = chosenEndpoints.Count;
+                    chosenEndpoints.Add((endpoint, descriptor));
+                }
             }
         }
 
-        _transformer.AddDefinitions(chosenDefinitions.ToArray(), models, modelsByName, schema);
+        // Endpoints with an invalid document cannot execute, so they are left out of the
+        // OpenAPI document rather than described as callable.
+        _transformer.AddDefinitions(
+            chosenEndpoints
+                .Where(e => e.Descriptor.HasValidDocument)
+                .Select(e => e.Definition)
+                .ToArray(),
+            models,
+            modelsByName,
+            schema,
+            events);
 
         var httpEndpoints = new List<Endpoint>();
 
-        foreach (var descriptor in chosenDescriptors)
+        foreach (var endpoint in chosenEndpoints)
         {
             try
             {
-                httpEndpoints.Add(OpenApiEndpointFactory.CreateEndpoint(schema.Name, descriptor));
+                httpEndpoints.Add(OpenApiEndpointFactory.CreateEndpoint(schema.Name, endpoint.Descriptor));
             }
             catch
             {

@@ -12,7 +12,7 @@ public sealed class AdminType : ObjectType<Admin>
 {
     protected override void Configure(IObjectTypeDescriptor<Admin> descriptor)
     {
-        descriptor.Field(a => a.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(a => a.Id).Type<IdType>();
         descriptor.Field(a => a.Name).Shareable().Type<StringType>();
 
         descriptor

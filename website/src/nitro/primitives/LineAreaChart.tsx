@@ -13,6 +13,7 @@ import {
 import { ease } from "../lib/motion";
 import { token } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
+import { ChartCanvas } from "./ChartCanvas";
 
 export interface LineSeries {
   values: number[];
@@ -47,6 +48,7 @@ export interface LineAreaChartProps {
   seriesStagger?: number;
   showHead?: boolean;
   durationMs?: number;
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -68,6 +70,7 @@ export function LineAreaChart({
   seriesStagger = 0.12,
   showHead = false,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
@@ -76,6 +79,7 @@ export function LineAreaChart({
     progress,
     playWindow,
     durationMs,
+    once,
   });
   const pulse = !reduced && inView;
   const label = ariaLabel ?? `Line chart with ${series.length} series`;
@@ -105,13 +109,7 @@ export function LineAreaChart({
   const span = Math.max(0.001, 1 - (series.length - 1) * seriesStagger);
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{ position: "relative", width: "100%", height: "100%", ...style }}
-      role="img"
-      aria-label={label}
-    >
+    <ChartCanvas ref={ref} className={className} style={style} label={label}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
@@ -159,7 +157,7 @@ export function LineAreaChart({
           );
         })}
       </svg>
-    </div>
+    </ChartCanvas>
   );
 }
 

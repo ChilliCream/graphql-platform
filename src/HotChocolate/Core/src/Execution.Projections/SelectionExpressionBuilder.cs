@@ -113,6 +113,7 @@ internal sealed class SelectionExpressionBuilder
         var typeNode = new TypeNode(entityType.RuntimeType);
         var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, entityType);
         CollectSelections(context, selectionSet, typeNode);
+        AddAlwaysProjectedFields(typeNode, entityType);
         dependencyMask = mask.Value;
         root.TryAddNode(typeNode);
 
@@ -147,6 +148,7 @@ internal sealed class SelectionExpressionBuilder
                 var possibleTypeNode = new TypeNode(possibleType.RuntimeType);
                 var possibleSelectionSet = selection.DeclaringOperation.GetSelectionSet(selection, possibleType);
                 CollectSelections(context, possibleSelectionSet, possibleTypeNode);
+                AddAlwaysProjectedFields(possibleTypeNode, possibleType);
                 parent.TryAddNode(possibleTypeNode);
 
                 if (possibleTypeNode.Nodes.Count == 0)
@@ -162,6 +164,7 @@ internal sealed class SelectionExpressionBuilder
         var typeNode = new TypeNode(objectType.RuntimeType);
         var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, (ObjectType)namedType);
         CollectSelections(context, selectionSet, typeNode);
+        AddAlwaysProjectedFields(typeNode, objectType);
         parent.TryAddNode(typeNode);
 
         if (typeNode.Nodes.Count == 0)
@@ -449,6 +452,11 @@ internal sealed class SelectionExpressionBuilder
         var field = selection.Field;
         var namedType = field.Type.NamedType();
 
+        if (field.Flags.HasFlag(CoreFieldFlags.NotProjected))
+        {
+            return;
+        }
+
         // A field is projectable if it has a pure member resolver before middleware is
         // compiled and the member is declared on the parent runtime type, a base type, or
         // an implemented interface. Middleware prevents the pure resolver from being used
@@ -504,6 +512,21 @@ internal sealed class SelectionExpressionBuilder
     private static bool IsLeafScalarAutoProperty(PropertyInfo property)
         => (property.PropertyType.IsValueType || property.PropertyType == typeof(string))
             && property.GetMethod?.GetCustomAttribute<CompilerGeneratedAttribute>() is not null;
+
+    private static void AddAlwaysProjectedFields(
+        TypeNode parent,
+        ObjectType selectionType)
+    {
+        foreach (var field in selectionType.Fields)
+        {
+            if (field.Flags.HasFlag(CoreFieldFlags.AlwaysProjected)
+                && field.Type.NamedType().IsLeafType()
+                && field.Member is PropertyInfo property)
+            {
+                parent.AddOrGetNode(property);
+            }
+        }
+    }
 
     private static void TryAddAnyLeafField(
         TypeNode parent,
@@ -786,7 +809,7 @@ internal sealed class SelectionExpressionBuilder
         }
 
         var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
-        return nullabilityInfo.WriteState == NullabilityState.Nullable;
+        return nullabilityInfo.ReadState != NullabilityState.NotNull;
     }
 
     private readonly record struct Context(

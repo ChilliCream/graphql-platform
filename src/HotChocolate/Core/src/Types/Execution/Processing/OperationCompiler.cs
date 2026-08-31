@@ -115,6 +115,7 @@ public sealed partial class OperationCompiler
                 compilationContext,
                 _optimizers.SelectionSetOptimizers,
                 parentIsInternal: false,
+                parentIsProjectionRequirement: false,
                 ref lastId);
 
             compilationContext.Register(selectionSet, selectionSet.Id);
@@ -207,6 +208,7 @@ public sealed partial class OperationCompiler
                 compilationContext,
                 optimizers,
                 selection.IsInternal,
+                selection.IsProjectionRequirement,
                 ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
@@ -291,6 +293,7 @@ public sealed partial class OperationCompiler
         CompilationContext compilationContext,
         ImmutableArray<ISelectionSetOptimizer> optimizers,
         bool parentIsInternal,
+        bool parentIsProjectionRequirement,
         ref int lastId)
     {
         var i = 0;
@@ -311,6 +314,7 @@ public sealed partial class OperationCompiler
             // whole subtree exists only for engine-internal purposes (for example the
             // projection optimizers) and is never part of the client-facing result.
             var isInternal = parentIsInternal || IsInternal(first.Node);
+            var isProjectionRequirement = parentIsProjectionRequirement;
             var hasNonDeferredNode = first.DeferUsage is null;
 
             if (first.PathIncludeFlags == 0)
@@ -428,6 +432,7 @@ public sealed partial class OperationCompiler
                 field,
                 nodes.ToArray(),
                 includeFlags.Count > 0 ? includeFlags.ToArray() : [],
+                isProjectionRequirement,
                 deferUsage: finalDeferUsage,
                 deferMask: deferMask,
                 isInternal: isInternal,

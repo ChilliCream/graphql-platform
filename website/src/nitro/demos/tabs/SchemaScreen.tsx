@@ -9,6 +9,9 @@ import { Stage } from "../../primitives/reel/Stage";
 import { AppFrame } from "../../primitives/reel/AppFrame";
 import { Cursor } from "../../primitives/reel/Cursor";
 import { TABREEL_CANVAS } from "../../primitives/reel/TabReel";
+import { Badge } from "../../primitives/Badge";
+import { UnderlineTab } from "../../primitives/UnderlineTab";
+import { PanelTile } from "../../primitives/PanelTile";
 import { token } from "../../lib/tokens";
 import { ease } from "../../lib/motion";
 import { smoothLinePath, areaFromLine, type Pt } from "../../lib/scale";
@@ -363,33 +366,7 @@ function GatewayViewNav() {
     >
       {views.map((v) => {
         const on = v === "Schema";
-        return (
-          <span
-            key={v}
-            style={{
-              position: "relative",
-              fontSize: 13,
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              color: on ? token.textStrong : token.textSecondary,
-            }}
-          >
-            {v}
-            {on && (
-              <span
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 2,
-                  background: ORANGE,
-                }}
-              />
-            )}
-          </span>
-        );
+        return <UnderlineTab key={v} label={v} active={on} height="100%" />;
       })}
       <span
         style={{
@@ -427,30 +404,7 @@ function GatewayViewNav() {
 
 function SchemaToolbar() {
   const tab = (t: string, on?: boolean) => (
-    <span
-      style={{
-        position: "relative",
-        fontSize: 13,
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        color: on ? token.textStrong : token.textSecondary,
-      }}
-    >
-      {t}
-      {on && (
-        <span
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 2,
-            background: ORANGE,
-          }}
-        />
-      )}
-    </span>
+    <UnderlineTab label={t} active={!!on} height="100%" />
   );
   return (
     <div
@@ -1140,28 +1094,7 @@ function CoordinateUsage({ progress }: { progress: MotionValue<number> }) {
           value="0.04"
         />
       </div>
-      <div
-        style={{
-          background: token.card,
-          border: `1px solid ${token.borderStrong}`,
-          borderRadius: 8,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: 34,
-            display: "flex",
-            alignItems: "center",
-            padding: "0 14px",
-            borderBottom: `1px solid ${token.border}`,
-            fontSize: 13,
-            fontWeight: 600,
-            color: token.textStrong,
-          }}
-        >
-          Clients
-        </div>
+      <PanelTile title="Clients" borderStrong bodyPadding="0">
         {CLIENTS.map((c, i) => (
           <div key={c.name}>
             <div
@@ -1223,7 +1156,7 @@ function CoordinateUsage({ progress }: { progress: MotionValue<number> }) {
             {i === 0 && <ExpandedOps progress={progress} />}
           </div>
         ))}
-      </div>
+      </PanelTile>
     </div>
   );
 }
@@ -1255,29 +1188,12 @@ function ChartTile({
   const last = pts[pts.length - 1];
   const GRID = [0.18, 0.5, 0.82];
   return (
-    <div
-      style={{
-        flex: 1,
-        background: token.card,
-        border: `1px solid ${token.borderStrong}`,
-        borderRadius: 8,
-        padding: 12,
-        minWidth: 0,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          marginBottom: 2,
-        }}
-      >
-        <span
-          style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-        >
-          {title}
-        </span>
+    <PanelTile
+      title={title}
+      borderStrong
+      flex="1"
+      bodyPadding="12px"
+      headerExtra={
         <span style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
           <span
             style={{
@@ -1293,7 +1209,9 @@ function ChartTile({
             {unit}
           </span>
         </span>
-      </div>
+      }
+      style={{ minWidth: 0 }}
+    >
       <div
         style={{ fontSize: 10, color: token.textSecondary, marginBottom: 6 }}
       >
@@ -1404,7 +1322,7 @@ function ChartTile({
           </div>
         </div>
       </div>
-    </div>
+    </PanelTile>
   );
 }
 
@@ -1426,29 +1344,6 @@ function GridCol({
       }}
     >
       {children}
-    </span>
-  );
-}
-
-function OpBadge({ letter = "Q", color }: { letter?: string; color: string }) {
-  return (
-    <span
-      style={{
-        flex: "0 0 auto",
-        width: 17,
-        height: 17,
-        borderRadius: 3,
-        border: `1px solid ${color}`,
-        color,
-        fontSize: 10.5,
-        fontWeight: 700,
-        lineHeight: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {letter}
     </span>
   );
 }
@@ -1541,7 +1436,13 @@ function ExpandedOps({ progress }: { progress: MotionValue<number> }) {
             >
               <GridCol w="1">
                 <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                  <OpBadge letter="Q" color={token.icQuery} />
+                  <Badge
+                    square
+                    letter="Q"
+                    size="xs"
+                    border={token.icQuery}
+                    color={token.icQuery}
+                  />
                   <span
                     style={{
                       fontSize: 13,

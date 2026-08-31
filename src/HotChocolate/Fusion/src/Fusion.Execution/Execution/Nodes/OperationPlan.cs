@@ -36,8 +36,13 @@ public sealed record OperationPlan : IOperationPlan
         IncrementalPlans = incrementalPlans;
         PolicySlots = policySlots;
         Policies = CreatePolicyPlanEntries(policySlots, allNodes, incrementalPlans);
-        _nodesById = CreateNodeLookup(allNodes);
+        _nodesById = CreateNodeLookup(
+            allNodes,
+            out var usesDynamicSchemaNames,
+            out var usesBatchNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
+        UsesDynamicSchemaNames = usesDynamicSchemaNames;
+        UsesBatchNodes = usesBatchNodes;
     }
 
     /// <summary>
@@ -116,6 +121,10 @@ public sealed record OperationPlan : IOperationPlan
     /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     public int MaxNodeId { get; }
+
+    internal bool UsesDynamicSchemaNames { get; }
+
+    internal bool UsesBatchNodes { get; }
 
     /// <summary>
     /// Retrieves the execution node associated with a plan node identifier.
@@ -251,8 +260,10 @@ public sealed record OperationPlan : IOperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
+        var policies = CreatePolicyPlanEntries(policySlots, allNodes, incrementalPlans);
+
         using var buffer = new PooledArrayWriter(initialBufferSize: 4096);
-        s_formatter.Format(buffer, operation, allNodes, policySlots);
+        s_formatter.Format(buffer, operation, allNodes, policySlots, policies);
 
         // Generate a unique identifier for the operation plan by hashing its serialized form.
         // The hash is appended to the same buffer to reuse the already-allocated memory.
@@ -397,8 +408,14 @@ public sealed record OperationPlan : IOperationPlan
         }
     }
 
-    private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
+    private static ExecutionNode?[] CreateNodeLookup(
+        ImmutableArray<ExecutionNode> allNodes,
+        out bool usesDynamicSchemaNames,
+        out bool usesBatchNodes)
     {
+        usesDynamicSchemaNames = false;
+        usesBatchNodes = false;
+
         if (allNodes.IsDefaultOrEmpty)
         {
             return [];
@@ -409,6 +426,17 @@ public sealed record OperationPlan : IOperationPlan
         foreach (var node in allNodes)
         {
             maxId = Math.Max(maxId, node.Id);
+
+            switch (node.Type)
+            {
+                case ExecutionNodeType.Node:
+                    usesDynamicSchemaNames = true;
+                    break;
+
+                case ExecutionNodeType.OperationBatch:
+                    usesBatchNodes = true;
+                    break;
+            }
 
             if (node is OperationBatchExecutionNode batchNode)
             {

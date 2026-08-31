@@ -17,6 +17,11 @@ public static partial class ActivityTestHelper
     // stable regardless of those JIT/coverage differences.
     [GeneratedRegex(@"\n--- End of stack trace from previous location ---", RegexOptions.CultureInvariant)]
     private static partial Regex StackTraceResumptionMarkerRegex();
+    // Runtime-async continuation frames (RuntimeAsyncTaskContinuation) appear in captured stack
+    // traces on runtimes that enable runtime async and are absent otherwise. Removing them keeps
+    // the snapshot stable across runtime versions.
+    [GeneratedRegex(@"\n\s+at System\.Runtime\.CompilerServices\.RuntimeAsyncTaskContinuation[^\n]*", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTraceRuntimeAsyncFrameRegex();
 
     public static IDisposable CaptureActivities(out Capture activities)
     {
@@ -89,6 +94,8 @@ public static partial class ActivityTestHelper
                 });
 
                 scrubbedStackTrace = StackTraceResumptionMarkerRegex().Replace(scrubbedStackTrace, "");
+
+                scrubbedStackTrace = StackTraceRuntimeAsyncFrameRegex().Replace(scrubbedStackTrace, "");
 
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,

@@ -4,7 +4,6 @@ using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -17,6 +16,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
+    private NullMarkerState _nullMarkerState;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -285,6 +285,55 @@ public sealed partial class CompositeResultDocument : IDisposable
         return false;
     }
 
+    internal bool RequiresNullMarkerFinalization
+        => (_nullMarkerState & NullMarkerState.RequiresFinalization)
+            is NullMarkerState.RequiresFinalization;
+
+    internal bool HasNullMarkers
+        => (_nullMarkerState & NullMarkerState.HasMarkers) is NullMarkerState.HasMarkers;
+
+    internal bool IsNullMarker(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        return (_metaDb.GetFlags(current) & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+    }
+
+    internal void RequireNullMarkerFinalization()
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        _nullMarkerState |= NullMarkerState.RequiresFinalization;
+    }
+
+    internal void CompleteNullMarkerFinalization()
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        _nullMarkerState &= ~NullMarkerState.RequiresFinalization;
+    }
+
+    internal void SetNullMarker(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var flags = _metaDb.GetFlags(current);
+        if ((flags & ElementFlags.NullMarker) is not ElementFlags.NullMarker)
+        {
+            _metaDb.SetFlags(current, flags | ElementFlags.NullMarker);
+        }
+
+        _nullMarkerState |= NullMarkerState.HasMarkers;
+    }
+
+    [Flags]
+    private enum NullMarkerState : byte
+    {
+        None = 0,
+        RequiresFinalization = 1,
+        HasMarkers = 2
+    }
+
     internal bool IsInternalProperty(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
@@ -372,31 +421,57 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
-    {
-        var selections = selectionSet.Selections;
-        var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
+        => CreateObject(parent, selectionSet, out _);
 
-        foreach (var selection in selections)
+    internal CompositeResultElement CreateObject(
+        Cursor parent,
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
+    {
+        var template = selectionSet.ObjectTemplate;
+        Debug.Assert(template.Rows.Length > 0, "The selection set is in an invalid state.");
+
+        // The template rows are canonical: they never carry IsExcluded. Each document evaluates
+        // its own skip/include and defer state and hands the block-relative property row offsets
+        // of the selections it excludes to the block append, which stamps the flag alongside the
+        // parent pointers.
+        var conditionalSelections = template.ConditionalSelections;
+        var excludedRowOffsets = conditionalSelections.Length <= 256
+            ? stackalloc int[conditionalSelections.Length]
+            : new int[conditionalSelections.Length];
+        var excludedCount = 0;
+        var selections = selectionSet.Selections;
+
+        if (conditionalSelections.Length > 0)
         {
-            if (selection.Field.IsIntrospectionField
-                && selection.Field.Name == IntrospectionFieldNames.TypeName)
+            foreach (var index in conditionalSelections)
             {
-                // __typename resolves to the concrete type of this selection set. Synthesizing it
-                // here means payloads that never echo __typename (such as broker event streams)
-                // still report it, while a subgraph that does echo it simply overwrites the slot
-                // with the identical value.
-                WriteTypeNameProperty(startObjectCursor, selection, selectionSet.Id);
-            }
-            else
-            {
-                WriteEmptyProperty(startObjectCursor, selection);
+                if (IsExcluded(selections[index]))
+                {
+                    // The property row of selection index i is row (i * 2) + 1 of the object block.
+                    excludedRowOffsets[excludedCount++] = (index * 2) + 1;
+                }
             }
         }
 
-        _metaDb.AppendEndObject();
+        var startObjectCursor = _metaDb.AppendObjectBlock(
+            template.Rows,
+            parent.Value,
+            excludedRowOffsets[..excludedCount]);
+
+        objectContext = new CompositeObjectContext(
+            this,
+            startObjectCursor,
+            selectionSet,
+            (selections.Length * 2) + 1);
 
         return new CompositeResultElement(this, startObjectCursor);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsExcluded(Selection selection)
+        => !selection.IsIncluded(_includeFlags)
+            || selection.IsDeferred(_deferFlags);
 
     /// <summary>
     /// Upgrades an interface-typed element produced by an <c>@interfaceObject</c> stand-in to its
@@ -451,9 +526,16 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
+        => AssignSourceValue(target, source._parent, source._cursor, source.GetValueRow());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignSourceValue(
+        CompositeResultElement target,
+        SourceResultDocument source,
+        SourceResultDocument.Cursor sourceCursor,
+        SourceResultDocument.DbRow sourceRow)
     {
-        var row = source.GetValueRow();
-        var parent = source._parent;
+        var parent = source;
 
         if (parent.Id == -1)
         {
@@ -464,12 +546,10 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
-        var tokenType = row.TokenType.ToElementTokenType();
+        var tokenType = sourceRow.TokenType.ToElementTokenType();
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
-            var sourceCursor = source._cursor;
-
             _metaDb.ReplacePreserveParent(
                 cursor: target.Cursor,
                 tokenType: tokenType,
@@ -483,8 +563,8 @@ public sealed partial class CompositeResultDocument : IDisposable
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: tokenType,
-            location: row.Location,
-            sizeOrLength: row.SizeOrLength,
+            location: sourceRow.Location,
+            sizeOrLength: sourceRow.SizeOrLength,
             sourceDocumentId: parent.Id,
             flags: ElementFlags.SourceResult);
     }
@@ -498,66 +578,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Cursor WriteStartObject(Cursor parent, int selectionSetId, int propertyCount)
-        => _metaDb.AppendStartObject(parent.Value, selectionSetId, propertyCount, ElementFlags.None);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartArray(Cursor parent, int length = 0)
         => _metaDb.AppendStartArray(parent.Value, length, ElementFlags.None);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEndArray() => _metaDb.AppendEndArray();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyProperty(Cursor parent, Selection selection)
-        => _metaDb.AppendEmptyPropertyWithNullValue(
-            parentRow: parent.Value,
-            selectionId: selection.Id,
-            flags: GetPropertyFlags(selection));
-
-    // Writes the __typename property with its value already set to the concrete type name of the
-    // enclosing selection set. The value row stores the selection-set id as an inline string
-    // reference, so the interned type name is resolved (and quoted) lazily when read.
-    private void WriteTypeNameProperty(Cursor parent, Selection selection, int selectionSetId)
-    {
-        var propertyCursor = _metaDb.AppendEmptyProperty(
-            parentRow: parent.Value,
-            selectionId: selection.Id,
-            flags: GetPropertyFlags(selection));
-
-        _metaDb.Append(
-            ElementTokenType.String,
-            location: selectionSetId,
-            parentRow: propertyCursor.Value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ElementFlags GetPropertyFlags(Selection selection)
-    {
-        var flags = ElementFlags.None;
-
-        if (selection.IsInternal)
-        {
-            flags = ElementFlags.IsInternal;
-        }
-
-        if (!selection.IsIncluded(_includeFlags) || selection.IsDeferred(_deferFlags))
-        {
-            flags |= ElementFlags.IsExcluded;
-        }
-
-        if (selection.Type.Kind is not TypeKind.NonNull)
-        {
-            flags |= ElementFlags.IsNullable;
-        }
-
-        if (selection.IsEnumValue)
-        {
-            flags |= ElementFlags.IsEnumValue;
-        }
-
-        return flags;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyValue(Cursor parent) => _metaDb.AppendNull(parent.Value);

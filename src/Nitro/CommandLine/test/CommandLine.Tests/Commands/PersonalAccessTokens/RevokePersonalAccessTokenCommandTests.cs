@@ -205,6 +205,25 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
     }
 
     [Fact]
+    public async Task TokenNotFound_ReturnsError()
+    {
+        // arrange
+        SetupRevokePersonalAccessTokenMutation(CreateRevokePersonalAccessTokenNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync("pat", "revoke", PatId, "--force");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            PAT not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task RevokePersonalAccessTokenThrows_ReturnsError()
     {
         // arrange
@@ -230,7 +249,6 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
     public static TheoryData<IRevokePersonalAccessTokenCommandMutation_RevokePersonalAccessToken_Errors, string>
         GetRevokePersonalAccessTokenErrors() => new()
     {
-        { CreateRevokePersonalAccessTokenNotFoundError(), "PAT not found" },
         { CreateRevokePersonalAccessTokenUnauthorizedError(), "Unexpected mutation error: Not authorized" }
     };
 }

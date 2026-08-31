@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { token } from "../../lib/tokens";
+import { StrokeIcon } from "./StrokeIcon";
 
 export const SIDEBAR_W = 264;
 const RAIL_W = 44;
@@ -34,33 +35,6 @@ const TREE: Node[] = [
   { name: "Shopify", kind: "folder", depth: 0, color: GOLD },
 ];
 
-const Svg = ({
-  d,
-  size = 14,
-  sw = 1.5,
-  color,
-  fill = "none",
-}: {
-  d: string;
-  size?: number;
-  sw?: number;
-  color?: string;
-  fill?: string;
-}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill={fill}
-    stroke={color ?? "currentColor"}
-    strokeWidth={sw}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{ flex: "0 0 auto" }}
-  >
-    <path d={d} />
-  </svg>
-);
 const P = {
   folder: "M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z",
   caretR: "M9 6l6 6-6 6",
@@ -166,7 +140,7 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
                 }}
               />
             )}
-            <Svg d={d} size={19} sw={1.5} />
+            <StrokeIcon d={d} size={19} strokeWidth={1.5} />
           </div>
         ))}
       </div>
@@ -193,9 +167,9 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
             Documents
           </span>
           <span style={{ display: "flex", gap: 8, color: token.textSecondary }}>
-            <Svg d={P.newFile} size={14} />
-            <Svg d={P.newFolder} size={14} />
-            <Svg d={P.newDoc} size={14} />
+            <StrokeIcon d={P.newFile} size={14} />
+            <StrokeIcon d={P.newFolder} size={14} />
+            <StrokeIcon d={P.newDoc} size={14} />
           </span>
         </div>
         <div style={{ margin: "0 8px 7px" }}>
@@ -213,7 +187,7 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
               color: token.textSecondary,
             }}
           >
-            <Svg d={P.search} size={12} sw={1.6} />
+            <StrokeIcon d={P.search} size={12} strokeWidth={1.6} />
             Filter…
           </div>
         </div>
@@ -245,9 +219,18 @@ export function Sidebar({ selected = "createOrder", style }: SidebarProps) {
                         width: 9,
                       }}
                     >
-                      <Svg d={n.open ? P.caretD : P.caretR} size={9} sw={2} />
+                      <StrokeIcon
+                        d={n.open ? P.caretD : P.caretR}
+                        size={9}
+                        strokeWidth={2}
+                      />
                     </span>
-                    <Svg d={P.folder} size={14} sw={1.4} color={n.color} />
+                    <StrokeIcon
+                      d={P.folder}
+                      size={14}
+                      strokeWidth={1.4}
+                      color={n.color}
+                    />
                   </>
                 ) : (
                   <>

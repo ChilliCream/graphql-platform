@@ -36,7 +36,11 @@ public sealed class OperationCompiler
     /// </summary>
     public FusionSchemaDefinition Schema => _schema;
 
-    public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
+    public Operation Compile(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -92,6 +96,7 @@ public sealed class OperationCompiler
             return new Operation(
                 id,
                 hash,
+                shortHash,
                 operationDefinition,
                 rootType,
                 _schema,
@@ -331,6 +336,13 @@ public sealed class OperationCompiler
                 : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
             var hasPolicy = HasPolicy(field);
+
+            if (field.Type.NamedType() is FusionInterfaceTypeDefinition interfaceType
+                && interfaceType.TypeNameLookupTypes.IsDefault)
+            {
+                interfaceType.PrepareTypeNameLookupTypes(
+                    _schema.GetPossibleTypes(interfaceType));
+            }
 
             var selection = new Selection(
                 ++lastId,

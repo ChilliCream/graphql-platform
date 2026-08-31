@@ -3,9 +3,9 @@ operation:
       {
         node(id: "a1") {
           __typename @fusion__requirement
-          id @fusion__requirement
           ... on Account {
             displayName
+            id @fusion__requirement
           }
         }
       }
@@ -50,10 +50,12 @@ nodes:
     type: ApolloOperation
     schema: a
     operation: |
-      query Op_123456789101112_4($__fusion_1_id: ID!, $__fusion_2_id: ID) {
-        fusion__lookup_accountById(id: $__fusion_1_id) {
-          __typename
-          displayName(id: $__fusion_2_id)
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Account {
+            __typename
+            displayName
+          }
         }
       }
     source: $._entities

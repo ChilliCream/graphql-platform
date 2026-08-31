@@ -139,7 +139,7 @@ public static class DirectiveNames
             /// <summary>
             /// The default reason of the @deprecated directive.
             /// </summary>
-            public const string DefaultReason = "No longer supported.";
+            public const string DefaultReason = "No longer supported";
         }
     }
 

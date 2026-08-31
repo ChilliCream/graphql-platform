@@ -320,7 +320,7 @@ internal sealed class OperationPlanCache
             Version = version;
         }
 
-        private Generation Generation { get; }
+        internal Generation Generation { get; }
 
         public Cache<OperationPlan> Cache => Generation.Cache;
 

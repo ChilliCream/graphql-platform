@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
@@ -22,11 +23,11 @@ const CREDENTIALS = [
   },
   {
     title: "How we work",
-    body: "In your repo, in your channels, in your timezone window. Written status every week. Honest answers when something is not the right fit, even when that means a smaller engagement.",
+    body: "The proposal defines the codebase, channels, checkpoints, and deliverables for the engagement, so your team knows how the work will run before it starts.",
     bullets: [
-      "Embedded in your codebase",
-      "Written weekly status reports",
-      "We will say no when no is the right answer",
+      "Work tied to your code and architecture",
+      "Shared delivery checkpoints",
+      "Defined written deliverables",
     ],
   },
 ];
@@ -46,15 +47,17 @@ export function TeamSection() {
         description="ChilliCream advisory is not a generalist consultancy that learned GraphQL last quarter. The engineers on the call are the ones who write the framework you depend on."
       />
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {CREDENTIALS.map((column) => (
-          <PerkCard
-            key={column.title}
-            title={column.title}
-            intro={column.body}
-            items={column.bullets}
-          />
-        ))}
+      <div className="mt-10">
+        <CardGrid cols={3} gap={6}>
+          {CREDENTIALS.map((column) => (
+            <PerkCard
+              key={column.title}
+              title={column.title}
+              intro={column.body}
+              items={column.bullets}
+            />
+          ))}
+        </CardGrid>
       </div>
     </section>
   );

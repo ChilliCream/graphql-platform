@@ -235,7 +235,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUserPostsAndComments_defer_1 {
+            query GetUserPostsAndComments_defer_3 {
               user(id: "1") {
                 id
               }
@@ -272,7 +272,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
+            query GetUserPostsAndComments_defer_1($postLimit: Int!, $__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 posts(first: $postLimit) {
                   id
@@ -307,8 +307,8 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 posts(first: $postLimit) {
                   id
                 }
@@ -317,7 +317,7 @@ sourceSchemas:
           variables: |
             {
               "postLimit": 3,
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_2_id": "VXNlcjox"
             }
         response:
           results:
@@ -361,8 +361,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUserPostsAndComments_defer_3($commentLimit: Int!, $__fusion_2_id: ID!) {
-              postById(id: $__fusion_2_id) {
+            query GetUserPostsAndComments_defer_1($commentLimit: Int!, $__fusion_1_id: ID!) {
+              postById(id: $__fusion_1_id) {
                 comments(first: $commentLimit) {
                   id
                 }
@@ -372,15 +372,15 @@ sourceSchemas:
             [
               {
                 "commentLimit": 2,
-                "__fusion_2_id": "UG9zdDox"
+                "__fusion_1_id": "UG9zdDox"
               },
               {
                 "commentLimit": 2,
-                "__fusion_2_id": "UG9zdDoy"
+                "__fusion_1_id": "UG9zdDoy"
               },
               {
                 "commentLimit": 2,
-                "__fusion_2_id": "UG9zdDoz"
+                "__fusion_1_id": "UG9zdDoz"
               }
             ]
         response:
@@ -484,7 +484,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
+            query GetUserPostsAndComments_defer_1($postLimit: Int!, $__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 posts(first: $postLimit) {
                   id
@@ -505,7 +505,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query GetUserPostsAndComments_defer_1 {
+            query GetUserPostsAndComments_defer_3 {
               user(id: "1") {
                 id
               }
@@ -523,31 +523,10 @@ operationPlan:
       nodes:
         - id: 1
           type: Operation
-          schema: B
-          operation: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                posts(first: $postLimit) {
-                  id
-                }
-              }
-            }
-          source: $.userById
-          target: $.user
-          requirements:
-            - name: __fusion_1_id
-              selectionMap: >-
-                id
-          forwardedVariables:
-            - postLimit
-          dependencies:
-            - parentNodeId: 2
-        - id: 2
-          type: Operation
           schema: C
           operation: |
-            query GetUserPostsAndComments_defer_3($commentLimit: Int!, $__fusion_2_id: ID!) {
-              postById(id: $__fusion_2_id) {
+            query GetUserPostsAndComments_defer_1($commentLimit: Int!, $__fusion_1_id: ID!) {
+              postById(id: $__fusion_1_id) {
                 comments(first: $commentLimit) {
                   id
                 }
@@ -556,10 +535,31 @@ operationPlan:
           source: $.postById
           target: $.user.posts
           requirements:
-            - name: __fusion_2_id
+            - name: __fusion_1_id
               selectionMap: >-
                 id
           forwardedVariables:
             - commentLimit
           dependencies:
-            - id: 1
+            - id: 2
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
+                posts(first: $postLimit) {
+                  id
+                }
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_2_id
+              selectionMap: >-
+                id
+          forwardedVariables:
+            - postLimit
+          dependencies:
+            - parentNodeId: 2

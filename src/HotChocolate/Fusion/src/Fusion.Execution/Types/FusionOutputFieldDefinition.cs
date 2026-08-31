@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Collections;
@@ -24,15 +25,16 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     /// </summary>
     /// <param name="name">The name of the field.</param>
     /// <param name="description">The description of the field.</param>
-    /// <param name="isDeprecated">A value indicating whether the field is deprecated.</param>
-    /// <param name="deprecationReason">The deprecation reason if the field is deprecated.</param>
+    /// <param name="deprecationReason">
+    /// The deprecation reason, or <c>null</c> if the field is not deprecated.
+    /// An empty or white-space value is treated as <c>null</c>.
+    /// </param>
     /// <param name="isInaccessible">A value indicating whether the field is marked as inaccessible.</param>
     /// <param name="isGatewayField">A value indicating whether the field is implemented by the gateway rather than resolved from a source schema.</param>
     /// <param name="arguments">The collection of arguments for this field.</param>
     public FusionOutputFieldDefinition(
         string name,
         string? description,
-        bool isDeprecated,
         string? deprecationReason,
         bool isInaccessible,
         bool isGatewayField,
@@ -43,15 +45,10 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
 
         Name = name;
         Description = description;
-        DeprecationReason = deprecationReason;
+        DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
         Arguments = arguments;
 
         var flags = FieldDefinitionFlags.None;
-
-        if (isDeprecated)
-        {
-            flags |= FieldDefinitionFlags.Deprecated;
-        }
 
         if (name.StartsWith("__"))
         {
@@ -112,9 +109,11 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public SchemaCoordinate Coordinate => new(DeclaringType.Name, Name, ofDirective: false);
 
     /// <summary>
-    /// Gets a value indicating whether this field is deprecated.
+    /// Defines if this field is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
-    public bool IsDeprecated => (_flags & FieldDefinitionFlags.Deprecated) == FieldDefinitionFlags.Deprecated;
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
     /// Gets a value indicating whether this field is an introspection field.
@@ -122,7 +121,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public bool IsIntrospectionField => (_flags & FieldDefinitionFlags.Introspection) == FieldDefinitionFlags.Introspection;
 
     /// <summary>
-    /// Gets the deprecation reason if the field is deprecated.
+    /// Gets the deprecation reason, or <c>null</c> if this field is not deprecated.
     /// </summary>
     public string? DeprecationReason { get; }
 
@@ -286,9 +285,8 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     private enum FieldDefinitionFlags : byte
     {
         None = 0,
-        Deprecated = 1,
-        Introspection = 2,
-        Inaccessible = 4,
-        GatewayField = 8
+        Introspection = 1,
+        Inaccessible = 2,
+        GatewayField = 4
     }
 }

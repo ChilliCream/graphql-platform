@@ -306,45 +306,6 @@ operationPlan:
       forwardedVariables:
         - skip1
         - skip2
-    - id: 2
-      type: Operation
-      schema: B
-      operation: |
-        query Op_0731cc53_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            upvotes
-          }
-        }
-      source: $.discussionById
-      target: $.abstractTypes<Discussion>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      conditions:
-        - variable: $skip1
-          passingValue: false
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: B
-      operation: |
-        query Op_0731cc53_4($__fusion_3_id: ID!) {
-          discussionById(id: $__fusion_3_id) {
-            score
-          }
-        }
-      source: $.discussionById
-      target: $.abstractTypes<Discussion>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
     - id: 3
       type: Operation
       schema: C
@@ -370,5 +331,44 @@ operationPlan:
           passingValue: false
       forwardedVariables:
         - skip2
+      dependencies:
+        - id: 1
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_0731cc53_2($__fusion_1_id: ID!) {
+          discussionById(id: $__fusion_1_id) {
+            upvotes
+          }
+        }
+      source: $.discussionById
+      target: $.abstractTypes<Discussion>
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $skip1
+          passingValue: false
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query Op_0731cc53_4($__fusion_3_id: ID!) {
+          discussionById(id: $__fusion_3_id) {
+            score
+          }
+        }
+      source: $.discussionById
+      target: $.abstractTypes<Discussion>
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
       dependencies:
         - id: 1

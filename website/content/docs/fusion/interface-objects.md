@@ -324,7 +324,7 @@ No source schema defines an interface with the stand-in's name. Define the real 
 
 The stand-in key does not match a key on the real interface. Use one of the interface entity's keys on the stand-in.
 
-## Source schema 'B' contributes fields to 'Media' but provides no lookup to resolve them.
+## Source schema 'B' contributes fields to 'Media' but provides no lookup to resolve them
 
 This `UNSATISFIABLE_QUERY_PATH` message means a stand-in adds a non-key field, but its source has no lookup returning that stand-in. Add a nullable lookup. You can mark it `@internal` when clients should not call it.
 

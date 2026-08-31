@@ -19,10 +19,20 @@ public sealed partial class CompositeResultDocument
         internal const int LocationOrRowsOffset = 12;
         internal const int SourceAndTypeOffset = 16;
 
+        // Bit layout of _selectionAndFlags, low to high: OperationReferenceId,
+        // OperationReferenceType, Flags. The layout fills the int exactly.
+        internal const int OperationReferenceIdBitCount = 22;
+        internal const int OperationReferenceIdMask = (1 << OperationReferenceIdBitCount) - 1;
+        internal const int OperationReferenceTypeShift = OperationReferenceIdBitCount;
+        internal const int OperationReferenceTypeMask = 0x03;
+        internal const int FlagsShift = OperationReferenceTypeShift + 2;
+        internal const int FlagsBitCount = 8;
+        internal const int FlagsMask = 0xFF;
+
         // 29 bits parent cursor value + 3 reserved
         private readonly int _parent;
 
-        // 15 bits OperationReferenceId + 2 bits OperationReferenceType + 7 bits Flags + 8 reserved
+        // 22 bits OperationReferenceId + 2 bits OperationReferenceType + 8 bits Flags
         private readonly int _selectionAndFlags;
 
         // 1 bit HasComplexChildren (sign) + 31 bits SizeOrLength
@@ -50,18 +60,18 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(sizeOrLength >= UnknownSize);
             Debug.Assert(sourceDocumentId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits (cursor value)
-            Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
+            Debug.Assert(operationReferenceId is >= 0 and <= OperationReferenceIdMask); // 22 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x1FFFFFFF); // 29 bits
-            Debug.Assert((byte)flags <= 127); // 7 bits (0x7F)
-            Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
+            Debug.Assert((byte)operationReferenceType <= OperationReferenceTypeMask); // 2 bits
+            Debug.Assert((int)flags is >= 0 and <= FlagsMask);
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
             var locationOrRows = location != 0 ? location : numberOfRows;
 
             _parent = parentRow & 0x1FFFFFFF;
             _selectionAndFlags = operationReferenceId
-                | ((int)operationReferenceType << 15)
-                | ((int)flags << 17);
+                | ((int)operationReferenceType << OperationReferenceTypeShift)
+                | (((int)flags & FlagsMask) << FlagsShift);
             _sizeOrLengthUnion = sizeOrLength;
             _locationOrRows = locationOrRows & 0x1FFFFFFF;
             _sourceAndType = (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15);
@@ -82,7 +92,8 @@ public sealed partial class CompositeResultDocument
         /// 2 bits = 4 possible values
         /// </remarks>
         public OperationReferenceType OperationReferenceType
-            => (OperationReferenceType)((_selectionAndFlags >> 15) & 0x03);
+            => (OperationReferenceType)(
+                (_selectionAndFlags >>> OperationReferenceTypeShift) & OperationReferenceTypeMask);
 
         /// <summary>
         /// Byte offset in source data, or the packed cursor value of the target row for references.
@@ -138,17 +149,29 @@ public sealed partial class CompositeResultDocument
         /// Reference to GraphQL selection set or selection metadata.
         /// </summary>
         /// <remarks>
-        /// 15 bits = 32K selections
+        /// 22 bits = 4M selections
         /// </remarks>
-        public int OperationReferenceId => _selectionAndFlags & 0x7FFF;
+        public int OperationReferenceId => _selectionAndFlags & OperationReferenceIdMask;
 
         /// <summary>
         /// Element metadata flags.
         /// </summary>
         /// <remarks>
-        /// 7 bits = 128 combinations
+        /// 8 bits = 256 combinations
         /// </remarks>
-        public ElementFlags Flags => (ElementFlags)((_selectionAndFlags >> 17) & 0x7F);
+        public ElementFlags Flags
+            => (ElementFlags)((_selectionAndFlags >>> FlagsShift) & FlagsMask);
+
+        public bool IsNullMarker
+            => (Flags & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int ReadOperationReferenceId(int selectionAndFlags)
+            => selectionAndFlags & OperationReferenceIdMask;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ElementFlags ReadFlags(int selectionAndFlags)
+            => (ElementFlags)((selectionAndFlags >>> FlagsShift) & FlagsMask);
 
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).
@@ -173,6 +196,7 @@ public sealed partial class CompositeResultDocument
         IsRoot = 8,
         IsInternal = 16,
         IsExcluded = 32,
-        IsEnumValue = 64
+        IsEnumValue = 64,
+        NullMarker = 128
     }
 }

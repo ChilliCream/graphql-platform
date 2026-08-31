@@ -2624,7 +2624,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             SourceSchemaClientRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            Requests.Add(request.OperationSourceText);
+            Requests.Add(Encoding.UTF8.GetString(request.OperationSourceText.Value.Span));
             var arena = context.MemorySource.GetNextArena();
             var document = SourceResultDocument.Parse(arena, _payload, _payload.Length);
             await Task.Yield();
@@ -2728,7 +2728,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             ExecutionCount++;
-            Requests = request.OperationSourceText
+            Requests = Encoding.UTF8.GetString(request.OperationSourceText.Value.Span)
                 + "\nvariables: "
                 + Encoding.UTF8.GetString(request.Variables[0].Values.AsSequence().ToArray());
 
@@ -2826,7 +2826,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
                 var request = requests[i];
                 Requests.Add(FormatRequest(request));
 
-                if (!request.OperationSourceText.Contains("viewerById", StringComparison.Ordinal))
+                if (request.OperationSourceText.Value.Span.IndexOf("viewerById"u8) < 0)
                 {
                     throw new InvalidOperationException("The denied product lookup was dispatched.");
                 }
@@ -2859,7 +2859,9 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             var variables = request.Variables.Length == 0
                 ? "{}"
                 : Encoding.UTF8.GetString(request.Variables[0].Values.AsSequence().ToArray());
-            return request.OperationSourceText + "\nvariables: " + variables;
+            return Encoding.UTF8.GetString(request.OperationSourceText.Value.Span)
+                + "\nvariables: "
+                + variables;
         }
     }
 
@@ -2890,10 +2892,12 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             for (var i = 0; i < requests.Length; i++)
             {
                 var request = requests[i];
-                Requests.Add(request.OperationSourceText);
+                var operationSourceText =
+                    Encoding.UTF8.GetString(request.OperationSourceText.Value.Span);
+                Requests.Add(operationSourceText);
 
-                if (!request.OperationSourceText.Contains("... on Viewer", StringComparison.Ordinal)
-                    || request.OperationSourceText.Contains("... on Product", StringComparison.Ordinal))
+                if (!operationSourceText.Contains("... on Viewer", StringComparison.Ordinal)
+                    || operationSourceText.Contains("... on Product", StringComparison.Ordinal))
                 {
                     throw new InvalidOperationException("The denied product lookup was dispatched.");
                 }

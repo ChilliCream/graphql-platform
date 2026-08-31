@@ -2,14 +2,19 @@ using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Logging;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
+using FusionLogEntryBuilder = HotChocolate.Fusion.Logging.LogEntryBuilder;
+using FusionLogEntryCodes = HotChocolate.Fusion.Logging.LogEntryCodes;
 using LogEntryHelper = HotChocolate.Fusion.Logging.LogEntryHelper;
 using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
+using static HotChocolate.Fusion.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion;
 
@@ -17,10 +22,12 @@ internal sealed class SourceSchemaParser(
     SourceSchemaText sourceSchemaText,
     ICompositionLog log,
     SourceSchemaParserOptions? options = null,
-    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning)
+    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning,
+    bool isApolloFederationV1 = false)
 {
     private static readonly SchemaValidator s_schemaValidator = new();
     private readonly SourceSchemaParserOptions _options = options ?? new SourceSchemaParserOptions();
+    private readonly ScopedCompositionLog _log = new(log);
 
     public CompositionResult<MutableSchemaDefinition> Parse()
     {
@@ -28,18 +35,41 @@ internal sealed class SourceSchemaParser(
         schema.AddBuiltInFusionTypes();
         schema.AddBuiltInFusionDirectives();
 
-        // Apollo Federation's @requires directive has no Fusion-native definition (the Fusion
-        // equivalent @require differs in name and argument shape). Register it before parsing
-        // federation source schemas so an applied @requires binds to a real definition instead
-        // of a missing one; preprocessing then rewrites it to @require and removes the
-        // definition. A non-federation schema does not get the definition, so an applied
-        // @requires is reported as an unknown directive, steering authors to @require.
-        if (IsFederationSourceText(sourceSchemaText)
-            && schema.Types.TryGetType<MutableScalarTypeDefinition>(
-                WellKnownTypeNames.FieldSelectionSet, out var fieldSelectionSetType))
+        if (isApolloFederationV1)
         {
+            FederationV1DirectiveDefinitions.Apply(schema);
+        }
+
+        if (!isApolloFederationV1 && IsFederationSourceText(sourceSchemaText))
+        {
+            // Apollo Federation's @requires directive has no Fusion-native definition (the Fusion
+            // equivalent @require differs in name and argument shape). Register it before parsing
+            // federation source schemas so an applied @requires binds to a real definition instead
+            // of a missing one; preprocessing then rewrites it to @require and removes the
+            // definition. A non-federation schema does not get the definition, so an applied
+            // @requires is reported as an unknown directive, steering authors to @require.
+            if (schema.Types.TryGetType<MutableScalarTypeDefinition>(
+                WellKnownTypeNames.FieldSelectionSet, out var fieldSelectionSetType))
+            {
+                schema.DirectiveDefinitions.Add(
+                    new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
+            }
+
+            // Apollo Federation's @external may also be applied to object types, which the
+            // Fusion @external definition does not allow. Replace it so federation applications
+            // bind to the federation shape; RemoveFederationInfrastructure drops the definition
+            // during preprocessing.
+            schema.DirectiveDefinitions.Remove(WellKnownDirectiveNames.External);
             schema.DirectiveDefinitions.Add(
-                new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
+                new MutableDirectiveDefinition(FederationDirectiveNames.External)
+                {
+                    Locations = DirectiveLocation.FieldDefinition | DirectiveLocation.Object
+                });
+
+            // @link carries the federation vocabulary a subgraph imports and is applied to the
+            // schema itself. RemoveFederationInfrastructure drops the definition and every
+            // application during preprocessing.
+            schema.DirectiveDefinitions.Add(LinkMutableDirectiveDefinition.Create(schema));
         }
 
         // Parse source schema.
@@ -56,7 +86,7 @@ internal sealed class SourceSchemaParser(
         }
         catch (Exception ex)
         {
-            log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema));
+            _log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema));
         }
 
         // Parse optional source schema extensions.
@@ -75,24 +105,43 @@ internal sealed class SourceSchemaParser(
             }
             catch (Exception ex)
             {
-                log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema, inExtensions: true));
+                _log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema, inExtensions: true));
             }
         }
 
+        if (isApolloFederationV1
+            && FederationSchemaTransformer.IsFederationSchema(schema))
+        {
+            _log.Write(
+                FusionLogEntryBuilder.New()
+                    .SetMessage(
+                        SourceSchemaParser_ConflictingApolloFederationVersion,
+                        schema.Name)
+                    .SetCode(FusionLogEntryCodes.ConflictingApolloFederationVersion)
+                    .SetSeverity(LogSeverity.Error)
+                    .SetSchema(schema)
+                    .Build());
+        }
+
+        if (isApolloFederationV1)
+        {
+            FederationV1SchemaAnalyzer.Validate(schema, _log);
+        }
+
         // Schema validation.
-        if (_options.EnableSchemaValidation && !log.HasErrors)
+        if (_options.EnableSchemaValidation && !_log.HasErrors)
         {
             var validationLog = new ValidationLog();
             s_schemaValidator.Validate(schema, validationLog);
 
             if (validationLog.HasErrors)
             {
-                log.WriteValidationLog(
+                _log.WriteValidationLog(
                     validationLog, schema, invalidFieldDeprecationSeverity);
             }
         }
 
-        return log.HasErrors
+        return _log.HasErrors
             ? ErrorHelper.SourceSchemaParsingFailed()
             : schema;
     }

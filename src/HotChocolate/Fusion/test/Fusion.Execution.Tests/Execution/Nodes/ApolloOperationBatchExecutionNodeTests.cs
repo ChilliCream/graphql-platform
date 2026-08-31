@@ -1,3 +1,6 @@
+using System.Text;
+using HotChocolate.Fusion.Types;
+
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
@@ -39,7 +42,7 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
         """;
 
     [Fact]
-    public void Create_Should_BuildPerLookupDocuments_When_TwoLookupDefinitions()
+    public void CreateFromLookup_Should_BuildPerLookupDocuments_When_TwoLookupDefinitions()
     {
         // arrange
         var schema = ComposeSchema(SchemaA, SchemaB);
@@ -47,16 +50,19 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
         var operations = GetLookupDefinitions(plan);
 
         // act
-        var node = ApolloOperationBatchExecutionNode.Create(1, operations, schema);
+        var node = ApolloOperationBatchExecutionNode.CreateFromLookup(1, operations, schema);
 
         // assert
         // Each lookup keeps its own rewritten '_entities' document declaring
         // its own representations variable.
         Assert.Equal("b", node.SchemaName);
+        Assert.All(
+            node.Lookups.ToArray(),
+            lookup => Assert.False(lookup.RepresentationShape.IsDefault));
         string[] documents =
         [
-            node.Lookups[0].Operation.SourceText,
-            node.Lookups[1].Operation.SourceText
+            Encoding.UTF8.GetString(node.Lookups[0].Operation.Value.Span),
+            Encoding.UTF8.GetString(node.Lookups[1].Operation.Value.Span)
         ];
         documents.MatchInlineSnapshots(
         [
@@ -82,7 +88,77 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public void Create_Should_Throw_When_SingleDefinition()
+    public void CreateFromParser_Should_MaterializeEmptyRepresentationShape_When_NoRequirements()
+    {
+        // arrange
+        var schema = ComposeSchema(SchemaA, SchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var operations = GetLookupDefinitions(plan);
+        var plannedBatch = ApolloOperationBatchExecutionNode.CreateFromLookup(1, operations, schema);
+        var operation = operations[0];
+        var plannedLookup = plannedBatch.Lookups[0];
+
+        // act
+        var node = ApolloOperationExecutionNode.CreateFromParser(
+            1,
+            plannedLookup.Operation,
+            plannedLookup.EntityTypeName,
+            operation.SchemaName!,
+            operation.Target,
+            requirements: [],
+            forwardedVariables: [.. operation.ForwardedVariables],
+            operation.ResultSelectionSet,
+            conditions: [.. operation.Conditions],
+            operation.RequiresFileUpload,
+            schema);
+
+        // assert
+        Assert.False(node.Lookup.RepresentationShape.IsDefault);
+        Assert.Empty(node.Lookup.RepresentationShape);
+        Assert.NotNull(node.Lookup.OperationDocument);
+    }
+
+    [Fact]
+    public void CreateFromParser_Should_MaterializeEmptyRepresentationShapes_When_BatchHasNoRequirements()
+    {
+        // arrange
+        var schema = ComposeSchema(SchemaA, SchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var plannedOperations = GetLookupDefinitions(plan);
+        var plannedBatch = ApolloOperationBatchExecutionNode.CreateFromLookup(1, plannedOperations, schema);
+        var operations = new SingleOperationDefinition[plannedOperations.Length];
+        var lookups = new ApolloEntityLookup[plannedOperations.Length];
+
+        for (var i = 0; i < plannedOperations.Length; i++)
+        {
+            operations[i] = WithoutRequirements(plannedOperations[i]);
+            lookups[i] = new ApolloEntityLookup(
+                plannedBatch.Lookups[i].Operation,
+                plannedBatch.Lookups[i].OperationDocument,
+                plannedBatch.Lookups[i].EntityTypeName,
+                RepresentationShape: default);
+        }
+
+        // act
+        var node = ApolloOperationBatchExecutionNode.CreateFromParser(
+            1,
+            operations,
+            lookups,
+            schema);
+
+        // assert
+        Assert.All(
+            node.Lookups.ToArray(),
+            lookup =>
+            {
+                Assert.False(lookup.RepresentationShape.IsDefault);
+                Assert.Empty(lookup.RepresentationShape);
+                Assert.NotNull(lookup.OperationDocument);
+            });
+    }
+
+    [Fact]
+    public void CreateFromLookup_Should_Throw_When_SingleDefinition()
     {
         // arrange
         var schema = ComposeSchema(SchemaA, SchemaB);
@@ -90,7 +166,7 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
         var operations = GetLookupDefinitions(plan);
 
         // act
-        void Act() => ApolloOperationBatchExecutionNode.Create(1, [operations[0]], schema);
+        void Act() => ApolloOperationBatchExecutionNode.CreateFromLookup(1, [operations[0]], schema);
 
         // assert
         var exception = Assert.Throws<ArgumentException>(Act);
@@ -100,7 +176,29 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public void Create_Should_Throw_When_SchemaNamesDiffer()
+    public void CreateFromParser_Should_Throw_When_LookupCountDiffers()
+    {
+        // arrange
+        var schema = ComposeSchema(SchemaA, SchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var operations = GetLookupDefinitions(plan);
+
+        // act
+        void Act() => ApolloOperationBatchExecutionNode.CreateFromParser(
+            1,
+            operations,
+            [],
+            schema);
+
+        // assert
+        var exception = Assert.Throws<ArgumentException>(Act);
+        Assert.StartsWith(
+            "An Apollo entity batch requires one parsed entity lookup per operation definition.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void CreateFromLookup_Should_Throw_When_SchemaNamesDiffer()
     {
         // arrange
         const string schemaC =
@@ -133,7 +231,7 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
         var otherOperation = GetSingleLookupDefinition(otherPlan);
 
         // act
-        void Act() => ApolloOperationBatchExecutionNode.Create(
+        void Act() => ApolloOperationBatchExecutionNode.CreateFromLookup(
             1,
             [operations[0], otherOperation],
             schema);
@@ -174,6 +272,7 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
                 return new SingleOperationDefinition(
                     lookupNode.Id,
                     lookupNode.Operation,
+                    lookupNode.LookupTypeName,
                     lookupNode.SchemaName,
                     lookupNode.Target,
                     lookupNode.Source,
@@ -187,4 +286,19 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
 
         throw new InvalidOperationException("The plan does not contain a lookup definition.");
     }
+
+    private static SingleOperationDefinition WithoutRequirements(
+        SingleOperationDefinition operation)
+        => new(
+            operation.Id,
+            operation.SourceText,
+            operation.LookupTypeName,
+            operation.SchemaName,
+            operation.Target,
+            operation.Source,
+            requirements: [],
+            forwardedVariables: [.. operation.ForwardedVariables],
+            operation.ResultSelectionSet,
+            conditions: [.. operation.Conditions],
+            operation.RequiresFileUpload);
 }

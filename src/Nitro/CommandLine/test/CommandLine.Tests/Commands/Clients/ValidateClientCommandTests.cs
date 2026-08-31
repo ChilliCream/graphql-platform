@@ -156,6 +156,47 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     }
 
     [Fact]
+    public async Task ClientNotFound_ReturnsError()
+    {
+        SetupOperationsFile();
+        SetupValidateClientMutation(
+            new ValidateClientVersion_ValidateClient_Errors_ClientNotFoundError("Client not found.", ClientId));
+
+        var result = await ExecuteCommandAsync(
+            "client", "validate", "--stage", Stage, "--client-id", ClientId,
+            "--operations-file", OperationsFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupOperationsFile();
+        SetupValidateClientMutation(
+            new ValidateClientVersion_ValidateClient_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "client", "validate", "--stage", Stage, "--client-id", ClientId,
+            "--operations-file", OperationsFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task StartClientValidationReturnsNullRequestId_ReturnsError()
     {
         // arrange
@@ -286,19 +327,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
                 "UnauthorizedOperation",
                 "Not authorized to validate."),
             "Not authorized to validate."
-        },
-        {
-            new ValidateClientVersion_ValidateClient_Errors_ClientNotFoundError(
-                "Client not found.",
-                "client-1"),
-            "Client not found."
-        },
-        {
-            new ValidateClientVersion_ValidateClient_Errors_StageNotFoundError(
-                "StageNotFoundError",
-                "Stage not found.",
-                "dev"),
-            "Stage not found."
         },
         {
             new ValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError(

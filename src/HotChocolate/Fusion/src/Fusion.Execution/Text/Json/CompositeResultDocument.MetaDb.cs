@@ -28,9 +28,6 @@ public sealed partial class CompositeResultDocument
 
             log.MetaDbCreated(2, Cursor.RowsPerChunkFor(0), 1);
 
-            // Clear pooled slots so unallocated chunks are recognizable by a null buffer.
-            chunks.AsSpan().Clear();
-
             // Rent the first chunk now to avoid branching on first append. The document always
             // starts at chunk 0 (Size1K) and ramps up as it grows.
             var chunkBytes = 1 << (10 + (int)Cursor.ChunkSizeFor(0));
@@ -104,8 +101,8 @@ public sealed partial class CompositeResultDocument
         internal Cursor AppendEmptyProperty(int parentRow, int selectionId, ElementFlags flags)
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
-            Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert(selectionId is >= 0 and <= DbRow.OperationReferenceIdMask);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -119,8 +116,8 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
                 selectionId
-                | ((int)OperationReferenceType.Selection << 15)
-                | ((int)flags << 17));
+                | ((int)OperationReferenceType.Selection << DbRow.OperationReferenceTypeShift)
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // ints 2..3 must be zero (int 4 is written directly below)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 8), 0, 8);
@@ -138,8 +135,8 @@ public sealed partial class CompositeResultDocument
         internal Cursor AppendEmptyPropertyWithNullValue(int parentRow, int selectionId, ElementFlags flags)
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
-            Debug.Assert(selectionId is >= 0 and <= 0x7FFF);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert(selectionId is >= 0 and <= DbRow.OperationReferenceIdMask);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var next = _next;
             var byteOffset = next.ByteOffset;
@@ -158,8 +155,8 @@ public sealed partial class CompositeResultDocument
                 Unsafe.WriteUnaligned(
                     ref Unsafe.Add(ref row0, 4),
                     selectionId
-                    | ((int)OperationReferenceType.Selection << 15)
-                    | ((int)flags << 17));
+                    | ((int)OperationReferenceType.Selection << DbRow.OperationReferenceTypeShift)
+                    | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 8);
                 // int 4: PropertyName token
                 Unsafe.WriteUnaligned(
@@ -185,9 +182,9 @@ public sealed partial class CompositeResultDocument
         internal Cursor AppendStartObject(int parentRow, int selectionSetId, int propertyCount, ElementFlags flags)
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
-            Debug.Assert(selectionSetId is >= 0 and <= 0x7FFF);
+            Debug.Assert(selectionSetId is >= 0 and <= DbRow.OperationReferenceIdMask);
             Debug.Assert(propertyCount is >= 0 and <= 0x0FFFFFFF); // room for (count*2)+1 in 29 bits
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -201,8 +198,8 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
                 selectionSetId
-                | ((int)OperationReferenceType.SelectionSet << 15)
-                | ((int)flags << 17));
+                | ((int)OperationReferenceType.SelectionSet << DbRow.OperationReferenceTypeShift)
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: sizeOrLength = property count
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), propertyCount);
@@ -224,7 +221,7 @@ public sealed partial class CompositeResultDocument
         {
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
             Debug.Assert(length is >= 0 and <= int.MaxValue);
-            Debug.Assert((byte)flags <= 127);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             var (chunk, byteOffset, cursor) = ReserveRow();
 
@@ -237,7 +234,7 @@ public sealed partial class CompositeResultDocument
             // int 1: flags only (no OpRefId / no OpRefType for arrays)
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
-                (int)flags << 17);
+                ((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift);
 
             // int 2: sizeOrLength = length
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 8), length);
@@ -336,6 +333,192 @@ public sealed partial class CompositeResultDocument
         }
 
         /// <summary>
+        /// Appends a pre-built object row block (StartObject, one PropertyName and value row per
+        /// selection, EndObject) and stamps the per-instance parent pointers: the StartObject
+        /// row points at the caller's parent, each PropertyName row at the StartObject row, and
+        /// each value row at its PropertyName row. <paramref name="excludedRowOffsets"/> lists
+        /// the block-relative offsets of the property rows to mark
+        /// <see cref="ElementFlags.IsExcluded"/>, in ascending order; the flag is stamped while
+        /// the parent pointers are written. Returns the cursor of the StartObject row.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor AppendObjectBlock(
+            ReadOnlySpan<byte> template,
+            int parentRow,
+            ReadOnlySpan<int> excludedRowOffsets)
+        {
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF);
+            Debug.Assert(template.Length >= DbRow.Size * 2);
+            Debug.Assert(template.Length % DbRow.Size == 0);
+
+            var next = _next;
+            var byteOffset = next.ByteOffset;
+            var chunks = _chunks;
+
+            // Fast path: the whole block fits into the current chunk, so the packed cursor
+            // value advances by plain integer increments and no chunk carry can occur while
+            // stamping the parent pointers.
+            if (byteOffset + template.Length <= _chunkBytes
+                && (uint)next.Chunk < (uint)chunks.Length
+                && chunks[next.Chunk] is { Buffer: { } buffer } segment)
+            {
+                // The capacity guard above is only meaningful together with the rented-buffer
+                // check: after a cursor carry into an unrented chunk, _chunkBytes still holds
+                // the previous chunk's capacity and only ReserveRow refreshes it.
+                Debug.Assert(_chunkBytes == 1 << (10 + (int)Cursor.ChunkSizeFor(next.Chunk)));
+
+                ref var dest = ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(buffer),
+                    segment.Offset + byteOffset);
+
+                Unsafe.CopyBlockUnaligned(
+                    ref dest,
+                    ref MemoryMarshal.GetReference(template),
+                    (uint)template.Length);
+
+                // Stamp the StartObject row's parent; the trailing EndObject row keeps its
+                // template parent of zero.
+                Unsafe.WriteUnaligned(ref dest, parentRow);
+
+                var rowCount = template.Length / DbRow.Size;
+                var startValue = next.Value;
+
+                // Excluded offsets are ascending and always odd (property rows), so the loop
+                // visits every one of them; a sentinel merge stamps the flag into the int right
+                // next to the parent pointer that was just written.
+                var excludedIndex = 0;
+                var nextExcluded = excludedRowOffsets.IsEmpty ? int.MaxValue : excludedRowOffsets[0];
+
+                for (var rowOffset = 1; rowOffset < rowCount - 1; rowOffset += 2)
+                {
+                    Unsafe.WriteUnaligned(
+                        ref Unsafe.Add(ref dest, rowOffset * DbRow.Size),
+                        startValue);
+                    Unsafe.WriteUnaligned(
+                        ref Unsafe.Add(ref dest, (rowOffset + 1) * DbRow.Size),
+                        startValue + rowOffset);
+
+                    if (rowOffset == nextExcluded)
+                    {
+                        ref var flagsRef = ref Unsafe.Add(
+                            ref dest,
+                            (rowOffset * DbRow.Size) + DbRow.SelectionAndFlagsOffset);
+                        Unsafe.WriteUnaligned(
+                            ref flagsRef,
+                            Unsafe.ReadUnaligned<int>(ref flagsRef)
+                                | ((int)ElementFlags.IsExcluded << DbRow.FlagsShift));
+                        excludedIndex++;
+                        nextExcluded = excludedIndex < excludedRowOffsets.Length ? excludedRowOffsets[excludedIndex] : int.MaxValue;
+                    }
+                }
+
+                Debug.Assert(excludedIndex == excludedRowOffsets.Length);
+
+                _next = next + rowCount;
+                return next;
+            }
+
+            return AppendObjectBlockSpanning(template, parentRow, excludedRowOffsets);
+        }
+
+        // Applies a block that does not fit into the current chunk, copying whole-row segments
+        // and rolling chunks through ReserveRow exactly like the per-row appenders. Parent
+        // pointers cannot be stamped with plain integer adds across a chunk carry, so each
+        // segment stamps with its own base cursor value; the only cross-segment reference is a
+        // value row whose PropertyName row closed the previous segment, which is stamped from
+        // that segment's last cursor value.
+        private Cursor AppendObjectBlockSpanning(
+            ReadOnlySpan<byte> template,
+            int parentRow,
+            ReadOnlySpan<int> excludedRowOffsets)
+        {
+            var totalRows = template.Length / DbRow.Size;
+            var startObjectCursor = default(Cursor);
+            var startObjectValue = 0;
+            var previousRowValue = 0;
+            var rowIndex = 0;
+
+            // The excluded offsets are block-relative, ascending, and always odd (property
+            // rows), so the segment walks visit them in order and a single sentinel cursor
+            // spans all segments. A property row that is the last row of a segment is stamped
+            // by that segment's walk; the value row opening the next segment is even and never
+            // matches. The StartObject and EndObject rows are skipped below, and no excluded
+            // offset can name them: the largest property offset is totalRows - 3.
+            var excludedIndex = 0;
+            var nextExcluded = excludedRowOffsets.IsEmpty ? int.MaxValue : excludedRowOffsets[0];
+
+            while (rowIndex < totalRows)
+            {
+                var (chunk, byteOffset, cursor) = ReserveRow();
+                var segmentRows = Math.Min(
+                    (_chunkBytes - byteOffset) / DbRow.Size,
+                    totalRows - rowIndex);
+                var segmentBase = cursor.Value;
+
+                ref var dest = ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + byteOffset);
+
+                Unsafe.CopyBlockUnaligned(
+                    ref dest,
+                    ref Unsafe.Add(
+                        ref MemoryMarshal.GetReference(template),
+                        rowIndex * DbRow.Size),
+                    (uint)(segmentRows * DbRow.Size));
+
+                if (rowIndex == 0)
+                {
+                    startObjectCursor = cursor;
+                    startObjectValue = segmentBase;
+                    Unsafe.WriteUnaligned(ref dest, parentRow);
+                }
+
+                for (var i = 0; i < segmentRows; i++)
+                {
+                    var blockRow = rowIndex + i;
+
+                    if (blockRow == 0 || blockRow == totalRows - 1)
+                    {
+                        // The StartObject row is stamped above; the EndObject row keeps its
+                        // template parent of zero.
+                        continue;
+                    }
+
+                    var parentValue = (blockRow & 1) == 1
+                        ? startObjectValue
+                        : i == 0
+                            ? previousRowValue
+                            : segmentBase + i - 1;
+
+                    Unsafe.WriteUnaligned(
+                        ref Unsafe.Add(ref dest, i * DbRow.Size),
+                        parentValue);
+
+                    if (blockRow == nextExcluded)
+                    {
+                        ref var flagsRef = ref Unsafe.Add(
+                            ref dest,
+                            (i * DbRow.Size) + DbRow.SelectionAndFlagsOffset);
+                        Unsafe.WriteUnaligned(
+                            ref flagsRef,
+                            Unsafe.ReadUnaligned<int>(ref flagsRef)
+                                | ((int)ElementFlags.IsExcluded << DbRow.FlagsShift));
+                        excludedIndex++;
+                        nextExcluded = excludedIndex < excludedRowOffsets.Length ? excludedRowOffsets[excludedIndex] : int.MaxValue;
+                    }
+                }
+
+                previousRowValue = segmentBase + segmentRows - 1;
+                rowIndex += segmentRows;
+                _next = cursor + segmentRows;
+            }
+
+            Debug.Assert(excludedIndex == excludedRowOffsets.Length);
+
+            return startObjectCursor;
+        }
+
+        /// <summary>
         /// Reserves the next row slot, advancing to a new chunk if necessary. Does not
         /// advance <see cref="_next"/>; the caller updates it after writing the row.
         /// </summary>
@@ -343,6 +526,12 @@ public sealed partial class CompositeResultDocument
         private (MemorySegment chunk, int byteOffset, Cursor cursor) ReserveRow()
         {
             var next = _next;
+
+            if (next == Cursor.End)
+            {
+                throw new InvalidOperationException("The metadata database has reached its maximum capacity.");
+            }
+
             var chunkIndex = next.Chunk;
             var byteOffset = next.ByteOffset;
 
@@ -426,6 +615,7 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             AssertValidCursor(cursor);
+            Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             ref var row = ref RowRef(cursor);
 
@@ -433,8 +623,8 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, DbRow.SelectionAndFlagsOffset),
                 operationReferenceId
-                | ((int)operationReferenceType << 15)
-                | ((int)flags << 17));
+                | ((int)operationReferenceType << DbRow.OperationReferenceTypeShift)
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: SizeOrLength (full 32 bits; preserves the sign bit / UnknownSize sentinel)
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, DbRow.SizeOffset), sizeOrLength);
@@ -456,6 +646,107 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             return Unsafe.ReadUnaligned<DbRow>(ref RowRef(cursor));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly SequentialReader CreateSequentialReader(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+            return new SequentialReader(_chunks, cursor);
+        }
+
+        internal readonly struct PropertyMetadata
+        {
+            private readonly int _selectionAndFlags;
+
+            internal PropertyMetadata(int selectionAndFlags)
+            {
+                _selectionAndFlags = selectionAndFlags;
+            }
+
+            internal int SelectionId
+                => DbRow.ReadOperationReferenceId(_selectionAndFlags);
+
+            internal ElementFlags Flags
+                => DbRow.ReadFlags(_selectionAndFlags);
+        }
+
+        internal ref struct SequentialReader
+        {
+            private readonly MemorySegment[] _chunks;
+            private ref byte _chunkBase;
+            private int _chunkIndex;
+            private int _row;
+            private int _byteOffset;
+            private int _chunkLength;
+            private int _segmentOffset;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal SequentialReader(MemorySegment[] chunks, Cursor cursor)
+            {
+                _chunks = chunks;
+                _chunkBase = ref Unsafe.NullRef<byte>();
+                _chunkIndex = 0;
+                _row = 0;
+                _byteOffset = 0;
+                _chunkLength = 0;
+                _segmentOffset = 0;
+                MoveTo(cursor);
+            }
+
+            internal readonly Cursor Cursor
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => Cursor.From(_chunkIndex, _row);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal readonly DbRow PeekRow()
+                => Unsafe.ReadUnaligned<DbRow>(
+                    ref Unsafe.Add(ref _chunkBase, _segmentOffset + _byteOffset));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal PropertyMetadata ReadProperty()
+            {
+                var selectionAndFlags = Unsafe.ReadUnaligned<int>(
+                    ref Unsafe.Add(
+                        ref _chunkBase,
+                        _segmentOffset + _byteOffset + DbRow.SelectionAndFlagsOffset));
+                var property = new PropertyMetadata(selectionAndFlags);
+
+                Advance(1);
+                return property;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal void Advance(int rowCount)
+            {
+                Debug.Assert(rowCount > 0);
+                var nextRow = _row + rowCount;
+
+                if ((uint)nextRow < (uint)(_chunkLength / DbRow.Size))
+                {
+                    _row = nextRow;
+                    _byteOffset += rowCount * DbRow.Size;
+                    return;
+                }
+
+                MoveTo(Cursor.AddRows(rowCount));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void MoveTo(Cursor cursor)
+            {
+                var segment = _chunks[cursor.Chunk];
+                Debug.Assert(segment.Buffer is not null);
+
+                _chunkIndex = cursor.Chunk;
+                _row = cursor.Row;
+                _byteOffset = cursor.ByteOffset;
+                _chunkLength = segment.Length;
+                _segmentOffset = segment.Offset;
+                _chunkBase = ref MemoryMarshal.GetArrayDataReference(segment.Buffer);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -546,21 +837,22 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             var selectionAndFlags = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SelectionAndFlagsOffset));
-            return (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
+            return (ElementFlags)((selectionAndFlags >>> DbRow.FlagsShift) & DbRow.FlagsMask);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly void SetFlags(Cursor cursor, ElementFlags flags)
         {
             AssertValidCursor(cursor);
-            Debug.Assert((byte)flags <= 127, "Flags value exceeds 7-bit limit");
-
+            Debug.Assert(
+                (int)flags is >= 0 and <= DbRow.FlagsMask,
+                $"Flags value exceeds {DbRow.FlagsBitCount}-bit limit");
             var fieldSpan = RowSpan(cursor)[DbRow.SelectionAndFlagsOffset..];
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Clear bits 17..23 (7-bit Flags region) then OR new flags in.
-            var clearedValue = (int)((uint)currentValue & ~(0x7Fu << 17));
-            var newValue = clearedValue | ((int)flags << 17);
+            var clearedValue = currentValue & ~(DbRow.FlagsMask << DbRow.FlagsShift);
+            var newValue = clearedValue
+                | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }

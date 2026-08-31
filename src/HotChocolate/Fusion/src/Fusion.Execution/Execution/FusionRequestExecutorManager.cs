@@ -360,6 +360,7 @@ internal sealed class FusionRequestExecutorManager
     private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors(
         FusionOptions options)
     {
+        var enableObjectDeprecation = options.EnableObjectDeprecation;
         var enableOptIn = options.EnableOptInFeatures;
 
         var interceptors = new Dictionary<string, ITypeResolverInterceptor>
@@ -369,8 +370,8 @@ internal sealed class FusionRequestExecutorManager
             { nameof(__EnumValue), new __EnumValue(enableOptIn) },
             { nameof(__Field), new __Field(enableOptIn) },
             { nameof(__InputValue), new __InputValue(enableOptIn) },
-            { nameof(__Schema), new __Schema(enableOptIn) },
-            { nameof(__Type), new __Type(enableOptIn) }
+            { nameof(__Schema), new __Schema(enableObjectDeprecation, enableOptIn) },
+            { nameof(__Type), new __Type(enableObjectDeprecation, enableOptIn) }
         };
 
         if (enableOptIn)

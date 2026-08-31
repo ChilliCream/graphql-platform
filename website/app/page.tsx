@@ -1,5 +1,12 @@
 import { FromOurBlog } from "@/src/components/FromOurBlog";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
+import { PatternBand } from "@/src/components/PatternBand";
+import { PcbBand } from "@/src/components/PcbBand";
+import { AgenticSection } from "@/src/components/home/agentic/AgenticSection";
 import { BuildYourWay } from "@/src/components/home/BuildYourWay";
+import { CombinedGovernance } from "@/src/components/home/combined/CombinedGovernance";
+import { CombinedMessaging } from "@/src/components/home/combined/CombinedMessaging";
+import { CombinedObservability } from "@/src/components/home/combined/CombinedObservability";
 import { FusionFlow } from "@/src/components/home/FusionFlow";
 import { GrabADrink } from "@/src/components/home/GrabADrink";
 import { HomeHero } from "@/src/components/home/HomeHero";
@@ -9,24 +16,61 @@ import { NitroSection } from "@/src/components/home/nitro/NitroSection";
 import { ProtocolCards } from "@/src/components/home/ProtocolCards";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_TITLE } from "@/src/helpers/site";
+import { ORGANIZATION_ID, schemaRef } from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
+const PAGE = {
   title: SITE_TITLE,
   description:
-    "The ChilliCream GraphQL Platform: build, connect, and observe GraphQL APIs with Hot Chocolate, Fusion, Strawberry Shake, and Nitro.",
+    "Build, federate, observe, and evolve GraphQL APIs on .NET with open-source Hot Chocolate, Fusion, Strawberry Shake, and Mocha, plus the Nitro control plane.",
   path: "/",
   absoluteTitle: true,
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 export default function Home() {
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        about={schemaRef(ORGANIZATION_ID)}
+      />
       <HomeHero />
       <LogoCloud />
       <BuildYourWay />
       <FusionFlow />
       <ProtocolCards />
       <NitroSection />
+      <PatternBand
+        pattern="lines"
+        contain={false}
+        recessed
+        className="pb-16 sm:pb-24"
+      >
+        <AgenticSection />
+      </PatternBand>
+      <PatternBand
+        pattern="grid"
+        contain={false}
+        blend
+        className="pb-16 sm:pb-24"
+      >
+        <CombinedObservability />
+      </PatternBand>
+      <PcbBand className="pb-16 sm:pb-24">
+        <CombinedMessaging />
+      </PcbBand>
+      <PatternBand
+        pattern="dots"
+        contain={false}
+        blend
+        recessedBottom
+        className="pb-16 sm:pb-24"
+      >
+        <CombinedGovernance />
+      </PatternBand>
       <NitroPricing />
       <GrabADrink />
       <div className="px-5 py-8 sm:px-12">

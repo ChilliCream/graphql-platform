@@ -1,7 +1,29 @@
+using System.Text.Json;
+using Mocha.Scheduling;
+
 namespace Mocha;
 
 internal static class ThrowHelper
 {
+    public static Exception HeaderDictionaryKeyMustBeString(string headerKey, object? dictionaryKey)
+    {
+        var keyType = dictionaryKey?.GetType().FullName ?? "null";
+
+        return new JsonException(
+            $"The header '{headerKey}' holds a dictionary keyed by '{keyType}' that cannot be "
+                + "written as JSON. Use string keys.");
+    }
+
+    public static Exception HeaderValueNotSupported(
+        string headerKey,
+        object value,
+        NotSupportedException innerException)
+        => new JsonException(
+            $"The header '{headerKey}' holds a value of type '{value.GetType().FullName}' that cannot be "
+                + "written as JSON. Set the header to a supported value type, or register JSON type "
+                + "metadata for it.",
+            innerException);
+
     public static Exception BeforeAndAfterConflict()
         => new ArgumentException(
             "Only one of 'before' or 'after' can be specified at the same time.");
@@ -170,6 +192,46 @@ internal static class ThrowHelper
     public static Exception DispatchSerializerNotFound(string contentType, string messageType)
         => new InvalidOperationException(
             $"No serializer found for content type {contentType} and message type {messageType}");
+
+    public static Exception ScheduledDispatchUnsupported(Type transportType)
+        => new NotSupportedException(
+            "Scheduled dispatch is not supported for transport "
+            + $"'{transportType.FullName}'. Register a transport-specific scheduled "
+            + "message store or configure a fallback scheduler.");
+
+    public static Exception ScheduledStoreTokenPrefixEmpty()
+        => new InvalidOperationException(
+            "Scheduled message store registrations must define a non-empty token prefix.");
+
+    public static Exception ScheduledStoreTypeInvalid(Type storeType)
+        => new InvalidOperationException(
+            $"Scheduled message store type '{storeType.FullName}' must implement "
+            + $"'{typeof(IScheduledMessageStore).FullName}'.");
+
+    public static Exception ScheduledStoreFallbackMustNotSpecifyTransport()
+        => new InvalidOperationException(
+            "Fallback scheduled message store registrations must not specify a transport type.");
+
+    public static Exception ScheduledStoreTransportRequired()
+        => new InvalidOperationException(
+            "Transport-specific scheduled message store registrations must specify a transport type.");
+
+    public static Exception ScheduledStoreTokenPrefixesOverlap(string left, string right)
+        => new InvalidOperationException(
+            $"Scheduled message store token prefixes '{left}' and '{right}' overlap.");
+
+    public static Exception ScheduledStoreDuplicateTransport(Type transportType)
+        => new InvalidOperationException(
+            $"Duplicate scheduled message store registration for transport '{transportType.FullName}'.");
+
+    public static Exception ScheduledStoreMultipleFallbacks()
+        => new InvalidOperationException(
+            "Only one fallback scheduled message store registration is allowed.");
+
+    public static Exception ScheduledStoreAmbiguousMatch(Type transportType)
+        => new InvalidOperationException(
+            "Multiple scheduled message store registrations match transport "
+            + $"'{transportType.FullName}'.");
 
     public static Exception TopologyRequired()
         => new InvalidOperationException("Topology is required");

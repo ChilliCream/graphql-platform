@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
+import { Badge } from "./Badge";
 import { Sparkline } from "./Sparkline";
 import { ease } from "../lib/motion";
 import { token, IMPACT_STOPS } from "../lib/tokens";
@@ -9,11 +10,13 @@ import type { InsightRow, SpanKind } from "../lib/data";
 
 export interface InsightsTableProps {
   rows: InsightRow[];
+  nameHeader?: string;
   errorThreshold?: number;
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   rowStagger?: number;
   durationMs?: number;
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -52,16 +55,18 @@ const NUM: CSSProperties = {
 
 export function InsightsTable({
   rows,
+  nameHeader = "Subgraph",
   errorThreshold = 0.03,
   progress,
   playWindow,
   rowStagger = 0.1,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
 }: InsightsTableProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const span = Math.max(0.001, 1 - Math.max(0, rows.length - 1) * rowStagger);
   const label =
@@ -104,7 +109,7 @@ export function InsightsTable({
         <thead>
           <tr>
             <th scope="col" style={HEADER}>
-              Subgraph
+              {nameHeader}
             </th>
             <th scope="col" style={{ ...HEADER, textAlign: "right" }}>
               Avg latency
@@ -135,6 +140,7 @@ export function InsightsTable({
                 progress={progress}
                 window={[r0, r1]}
                 errorThreshold={errorThreshold}
+                once={once}
               />
             );
           })}
@@ -144,19 +150,23 @@ export function InsightsTable({
   );
 }
 
+interface RowProps {
+  readonly row: InsightRow;
+  readonly t: MotionValue<number>;
+  readonly progress?: MotionValue<number>;
+  readonly window: [number, number];
+  readonly errorThreshold: number;
+  readonly once?: boolean;
+}
+
 function Row({
   row,
   t,
   progress,
   window: [w0, w1],
   errorThreshold,
-}: {
-  row: InsightRow;
-  t: MotionValue<number>;
-  progress?: MotionValue<number>;
-  window: [number, number];
-  errorThreshold: number;
-}) {
+  once,
+}: RowProps) {
   const reveal = useTransform(t, [w0, w1], [0, 1], {
     ease: ease.out,
     clamp: true,
@@ -175,25 +185,17 @@ function Row({
         <div
           style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}
         >
-          <span
-            aria-label={SPAN_LABEL[row.spanKind]}
-            style={{
-              flex: "none",
-              width: 17,
-              height: 17,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: token.mono,
-              fontSize: 10,
-              fontWeight: 700,
-              color: token.textSecondary,
-              background: token.surface,
-              border: `1px solid ${token.border}`,
-              borderRadius: 4,
-            }}
-          >
-            Q
+          <span aria-label={SPAN_LABEL[row.spanKind]}>
+            <Badge
+              square
+              letter="Q"
+              mono
+              size="xs"
+              background={token.surface}
+              border={token.border}
+              color={token.textSecondary}
+              style={{ borderRadius: 4 }}
+            />
           </span>
           <span
             title={row.name}
@@ -229,6 +231,7 @@ function Row({
             height={22}
             progress={progress}
             playWindow={[w0, w1]}
+            once={once}
             ariaLabel={`${row.name} latency trend`}
           />
         </div>

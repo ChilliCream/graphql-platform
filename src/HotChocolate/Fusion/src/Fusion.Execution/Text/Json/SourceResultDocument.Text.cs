@@ -12,8 +12,17 @@ public sealed partial class SourceResultDocument
     internal string? GetString(Cursor cursor, JsonTokenType expectedType)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        return GetStringInternal(_parsedData.Get(cursor), expectedType);
+    }
 
-        var row = _parsedData.Get(cursor);
+    internal string? GetString(DbRow row, JsonTokenType expectedType)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        return GetStringInternal(row, expectedType);
+    }
+
+    private string? GetStringInternal(DbRow row, JsonTokenType expectedType)
+    {
         var rowTokenType = row.TokenType;
 
         if (rowTokenType is JsonTokenType.Null)
@@ -142,7 +151,17 @@ public sealed partial class SourceResultDocument
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(cursor);
+        return GetRawValueInternal(cursor, row, includeQuotes);
+    }
 
+    internal ReadOnlySpan<byte> GetRawValue(Cursor cursor, DbRow row, bool includeQuotes)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        return GetRawValueInternal(cursor, row, includeQuotes);
+    }
+
+    private ReadOnlySpan<byte> GetRawValueInternal(Cursor cursor, DbRow row, bool includeQuotes)
+    {
         if (row.IsSimpleValue)
         {
             // Strings are stored quote-inclusive, so the quoted form is the stored span and the
@@ -162,9 +181,18 @@ public sealed partial class SourceResultDocument
     internal ReadOnlyMemory<byte> GetRawValueAsMemory(Cursor cursor, bool includeQuotes)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
-
         var row = _parsedData.Get(cursor);
+        return GetRawValueAsMemoryInternal(cursor, row, includeQuotes);
+    }
 
+    internal ReadOnlyMemory<byte> GetRawValueAsMemory(Cursor cursor, DbRow row, bool includeQuotes)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        return GetRawValueAsMemoryInternal(cursor, row, includeQuotes);
+    }
+
+    private ReadOnlyMemory<byte> GetRawValueAsMemoryInternal(Cursor cursor, DbRow row, bool includeQuotes)
+    {
         if (row.IsSimpleValue)
         {
             if (!includeQuotes && row.TokenType == JsonTokenType.String)

@@ -1027,10 +1027,14 @@ public class ObjectTypeTests
         await TestHelper.GetGeneratedSourceSnapshot(
             """
             using System.Collections.Generic;
+            using System.Security.Claims;
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
+            using HotChocolate.Execution;
+            using HotChocolate.Language;
             using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
 
             namespace TestNamespace;
 
@@ -1046,7 +1050,13 @@ public class ObjectTypeTests
                 [BatchResolver]
                 public static ValueTask<List<string>> GetGreeting(
                     [Parent] List<User> users,
-                    CancellationToken cancellationToken)
+                    CancellationToken cancellationToken,
+                    ClaimsPrincipal claimsPrincipal,
+                    DocumentNode documentNode,
+                    FieldNode fieldNode,
+                    IOutputFieldDefinition outputField,
+                    ConnectionFlags connectionFlags,
+                    ISelection selection)
                     => default!;
             }
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);

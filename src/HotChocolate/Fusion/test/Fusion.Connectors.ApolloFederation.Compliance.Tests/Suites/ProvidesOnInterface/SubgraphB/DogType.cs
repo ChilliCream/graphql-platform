@@ -13,7 +13,7 @@ public sealed class DogType : ObjectType<Dog>
     {
         descriptor.Implements<AnimalInterfaceType>();
 
-        descriptor.Field(d => d.Id).Shareable().Type<NonNullType<IdType>>();
-        descriptor.Field(d => d.Name).Shareable().Type<StringType>();
+        descriptor.Field(d => d.Id).External().Type<NonNullType<IdType>>();
+        descriptor.Field(d => d.Name).External().Type<StringType>();
     }
 }

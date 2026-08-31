@@ -1,6 +1,7 @@
 import NextLink from "next/link";
 import type { ReactElement } from "react";
 
+import { CardGrid } from "@/src/components/CardGrid";
 import { GITHUB, SLACK, YOUTUBE } from "@/src/components/help/helpLinks";
 import { IconFeatureCard } from "@/src/components/IconFeatureCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
@@ -35,7 +36,7 @@ const CHANNELS: readonly Channel[] = [
   },
   {
     title: "Slack",
-    copy: "Live conversation with maintainers and 7000+ developers.",
+    copy: "Public, best-effort help from maintainers and other users.",
     href: SLACK,
     external: true,
     icon: <ChatIcon />,
@@ -49,7 +50,7 @@ const CHANNELS: readonly Channel[] = [
   },
   {
     title: "GitHub",
-    copy: "Source, issues, and discussions for graphql-platform.",
+    copy: "Source code, tracked issues, and technical discussions.",
     href: GITHUB,
     external: true,
     icon: <BranchIcon />,
@@ -57,9 +58,8 @@ const CHANNELS: readonly Channel[] = [
 ];
 
 /**
- * The self-serve channels: five linked cards (docs, blog, and the community
- * channels) to try before booking a session, rendered with the shared
- * `IconFeatureCard`.
+ * The self-serve channels: five linked cards for documentation, articles, and
+ * community support.
  */
 export function SelfServeGrid() {
   return (
@@ -73,11 +73,11 @@ export function SelfServeGrid() {
           description="Most questions have already been answered. Five places to look before you reach out."
         />
       </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <CardGrid cols={3} step="progressive" gap={6}>
         {CHANNELS.map((channel) => (
           <ChannelCard key={channel.title} channel={channel} />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

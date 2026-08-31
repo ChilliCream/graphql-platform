@@ -15,6 +15,8 @@ import {
 } from "../../primitives/reel/GatewayChrome";
 import { TableList } from "../../primitives/reel/TableList";
 import { TABREEL_CANVAS } from "../../primitives/reel/TabReel";
+import { Badge } from "../../primitives/Badge";
+import { PanelTile } from "../../primitives/PanelTile";
 import { token } from "../../lib/tokens";
 import { ease } from "../../lib/motion";
 import { timeline } from "../../lib/timeline";
@@ -720,66 +722,6 @@ function ProductionStageHeader() {
   );
 }
 
-function Tile({
-  title,
-  height,
-  headerExtra,
-  children,
-}: {
-  title: string;
-  height?: number;
-  headerExtra?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        minWidth: 0,
-        height,
-        background: token.card,
-        border: `1px solid ${token.border}`,
-        borderRadius: 8,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <div
-        style={{
-          height: 36,
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "0 14px",
-          borderBottom: `1px solid ${token.border}`,
-        }}
-      >
-        <span
-          style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
-        >
-          {title}
-        </span>
-        {headerExtra && (
-          <span style={{ marginLeft: "auto", display: "flex" }}>
-            {headerExtra}
-          </span>
-        )}
-      </div>
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          padding: "12px 14px 10px",
-          position: "relative",
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function MetricBadge({ value, sub }: { value: string; sub: string }) {
   return (
     <span style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
@@ -811,7 +753,7 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
         overflow: "hidden",
       }}
     >
-      <Tile
+      <PanelTile
         title="Latency"
         height={LAT_TILE_H}
         headerExtra={<MetricBadge value="128 ms" sub="p95" />}
@@ -827,11 +769,11 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
             },
           ]}
         />
-      </Tile>
+      </PanelTile>
 
       <div style={{ display: "flex", gap: TILE_GAP, height: TP_ROW_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Throughput"
             headerExtra={<MetricBadge value="4.9K" sub="opm" />}
           >
@@ -839,10 +781,10 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
               values={OVERVIEW.throughput}
               color={token.chThroughput}
             />
-          </Tile>
+          </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Clients"
             headerExtra={
               <span style={{ fontSize: 11, color: token.textSecondary }}>
@@ -851,22 +793,22 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
             }
           >
             <ClientsBars />
-          </Tile>
+          </PanelTile>
         </div>
       </div>
 
       <div style={{ display: "flex", gap: TILE_GAP, height: FAIL_ROW_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
-          <Tile title="Failed Operations">
+          <PanelTile title="Failed Operations">
             <AreaLineChart
               values={OVERVIEW.failed}
               color={token.chP95}
               legendLabel="createOrder"
             />
-          </Tile>
+          </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Errors"
             headerExtra={
               <span style={{ fontSize: 11, color: token.errorText }}>
@@ -875,7 +817,7 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
             }
           >
             <ErrorList progress={progress} />
-          </Tile>
+          </PanelTile>
         </div>
       </div>
 
@@ -1434,8 +1376,26 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
             >
               {EXCEPTION.type}
             </span>
-            <Pill text={FAILING_OP} icon={<IconMutation size={11} />} />
-            <Pill text={GQL_ERROR.code} danger />
+            <Badge
+              mono
+              bold
+              icon={<IconMutation size={11} />}
+              background={token.bg}
+              color={token.text}
+              style={{ gap: 5, padding: "2px 8px" }}
+            >
+              {FAILING_OP}
+            </Badge>
+            <Badge
+              mono
+              bold
+              background="rgba(207,34,46,0.14)"
+              border={DANGER}
+              color={token.errorText}
+              style={{ gap: 5, padding: "2px 8px" }}
+            >
+              {GQL_ERROR.code}
+            </Badge>
           </div>
           <div style={{ fontSize: 13.5, color: token.text, marginTop: 4 }}>
             {EXCEPTION.message}
@@ -1454,7 +1414,7 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
         }}
       >
         <div style={{ flex: "0 0 58%", minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Occurrences"
             headerExtra={
               <span style={{ fontSize: 11, color: token.textSecondary }}>
@@ -1463,7 +1423,7 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
             }
           >
             <OccurrenceBars progress={progress} />
-          </Tile>
+          </PanelTile>
         </div>
         <div
           style={{
@@ -1492,12 +1452,12 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
         }}
       >
         <div style={{ flex: "0 0 38%", minWidth: 0, display: "flex" }}>
-          <Tile title="Where it occurs">
+          <PanelTile title="Where it occurs">
             <WhereItOccurs />
-          </Tile>
+          </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-          <Tile
+          <PanelTile
             title="Example traces"
             headerExtra={
               <span style={{ fontSize: 11, color: token.textSecondary }}>
@@ -1506,14 +1466,14 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
             }
           >
             <ExampleTraces />
-          </Tile>
+          </PanelTile>
         </div>
       </motion.div>
 
       <motion.div
         style={{ flex: 1, minHeight: 0, display: "flex", opacity: stackOp }}
       >
-        <Tile
+        <PanelTile
           title="Server Stack Trace"
           headerExtra={
             <span
@@ -1528,7 +1488,7 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
           }
         >
           <ErrorStackTrace progress={progress} />
-        </Tile>
+        </PanelTile>
       </motion.div>
     </div>
   );
@@ -1572,37 +1532,6 @@ function ViewLogsButton({ progress }: { progress: MotionValue<number> }) {
     >
       View logs <IconChevronRight size={13} color="currentColor" />
     </motion.span>
-  );
-}
-
-function Pill({
-  text,
-  icon,
-  danger,
-}: {
-  text: string;
-  icon?: React.ReactNode;
-  danger?: boolean;
-}) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        fontSize: 11,
-        fontWeight: 600,
-        padding: "2px 8px",
-        borderRadius: 4,
-        fontFamily: token.mono,
-        background: danger ? "rgba(207,34,46,0.14)" : token.bg,
-        border: `1px solid ${danger ? DANGER : token.border}`,
-        color: danger ? token.errorText : token.text,
-      }}
-    >
-      {icon}
-      {text}
-    </span>
   );
 }
 
@@ -2340,7 +2269,9 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
         <span style={{ fontSize: 13, color: token.textStrong }}>
           {SPAN_NAME}
         </span>
-        <Badge text="142 ms" />
+        <Badge mono background={token.bg}>
+          142 ms
+        </Badge>
       </div>
 
       <motion.div style={{ position: "relative", flex: 1, minHeight: 0 }}>
@@ -2495,26 +2426,5 @@ function StackTrace({ progress }: { progress: MotionValue<number> }) {
         })}
       </div>
     </motion.div>
-  );
-}
-
-function Badge({ text }: { text: string }) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        fontSize: 11,
-        fontWeight: 500,
-        padding: "2px 7px",
-        borderRadius: 4,
-        background: token.bg,
-        border: `1px solid ${token.border}`,
-        color: token.textSecondary,
-        fontFamily: token.mono,
-      }}
-    >
-      {text}
-    </span>
   );
 }

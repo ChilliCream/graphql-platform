@@ -55,6 +55,14 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
                 }
             }
 
+            if (!isUsed
+                && schema.Features.Get<ConnectorKindMetadata>()?.Kind == "ApolloFederation"
+                && RemoveExternalFields.CollectProvidesReferences(schema)
+                    .Contains((type.Name, field.Name)))
+            {
+                isUsed = true;
+            }
+
             // An @external field is also considered used when it is referenced by a
             // @require field-selection map on the same source schema. This shares the
             // exact collector used to preserve those externals during preprocessing.

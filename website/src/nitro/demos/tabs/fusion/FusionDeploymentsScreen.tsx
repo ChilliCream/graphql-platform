@@ -10,6 +10,7 @@ import { TABREEL_CANVAS } from "../../../primitives/reel/TabReel";
 import { token } from "../../../lib/tokens";
 import { ease } from "../../../lib/motion";
 import { timeline } from "../../../lib/timeline";
+import { Badge } from "../../../primitives/Badge";
 import {
   IconCheck,
   IconSpinner,
@@ -331,9 +332,25 @@ function DeploymentList({ progress }: { progress: MotionValue<number> }) {
                   >
                     {r.title}
                   </span>
-                  <TagBadge tag={r.tag} />
+                  <Badge mono color={token.text} style={{ padding: "1px 6px" }}>
+                    {r.tag}
+                  </Badge>
                   {r.subgraph && <SubgraphBadge name={r.subgraph} />}
-                  {r.approved && <ApprovedBadge />}
+                  {r.approved && (
+                    <Badge
+                      icon={<IconCheck size={10} color={GREEN_TEXT} />}
+                      bold
+                      color={GREEN_TEXT}
+                      border={GREEN}
+                      style={{
+                        marginLeft: "auto",
+                        fontSize: 10.5,
+                        padding: "1px 6px",
+                      }}
+                    >
+                      Approved
+                    </Badge>
+                  )}
                 </div>
                 <div style={{ fontSize: 11.5, color: token.textSecondary }}>
                   Started{" "}
@@ -395,26 +412,6 @@ function StatusIcon() {
   );
 }
 
-function TagBadge({ tag }: { tag: string }) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        fontSize: 11,
-        fontFamily: token.mono,
-        color: token.text,
-        border: `1px solid ${token.border}`,
-        borderRadius: 4,
-        padding: "1px 6px",
-      }}
-    >
-      {tag}
-    </span>
-  );
-}
-
 function SubgraphBadge({ name }: { name: string }) {
   return (
     <span
@@ -427,27 +424,6 @@ function SubgraphBadge({ name }: { name: string }) {
       }}
     >
       <IconApiGateway size={11} color={token.icObject} /> {name}
-    </span>
-  );
-}
-
-function ApprovedBadge() {
-  return (
-    <span
-      style={{
-        marginLeft: "auto",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        fontSize: 10.5,
-        fontWeight: 600,
-        color: GREEN_TEXT,
-        border: `1px solid ${GREEN}`,
-        borderRadius: 4,
-        padding: "1px 6px",
-      }}
-    >
-      <IconCheck size={10} color={GREEN_TEXT} /> Approved
     </span>
   );
 }

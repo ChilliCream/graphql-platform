@@ -7,12 +7,14 @@ interface RisingParticlesProps {
   readonly className?: string;
   readonly count?: number;
   readonly color?: string;
+  readonly colors?: readonly string[];
 }
 
 export function RisingParticles({
   className,
   count = 42,
   color = "180,205,255",
+  colors,
 }: RisingParticlesProps) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLCanvasElement | null>(null);
@@ -27,6 +29,9 @@ export function RisingParticles({
       return;
     }
 
+    const palette = colors?.length ? colors : [color];
+    const maxPixels = 1_000_000;
+    const maxFps = 24;
     let dpr = 1;
     const rand = (i: number) => {
       const x = Math.sin(i * 127.1 + 11.3) * 43758.5453;
@@ -38,14 +43,15 @@ export function RisingParticles({
       r: 0.6 + rand(i * 3 + 3) * 1.4,
       sp: 0.004 + rand(i + 9) * 0.012,
       tw: rand(i + 21),
+      color: palette[i % palette.length],
     }));
 
     const resize = () => {
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
       const base = Math.min(window.devicePixelRatio || 1, 2);
-      const cap = Math.sqrt(4_000_000 / Math.max(1, cw * ch));
-      dpr = Math.max(0.75, Math.min(base, cap));
+      const cap = Math.sqrt(maxPixels / Math.max(1, cw * ch));
+      dpr = Math.max(0.25, Math.min(base, cap));
       canvas.width = Math.max(1, Math.round(cw * dpr));
       canvas.height = Math.max(1, Math.round(ch * dpr));
     };
@@ -69,8 +75,8 @@ export function RisingParticles({
         const a = tw * (0.3 + 0.4 * (1 - y));
         const rad = p.r * dpr * 3;
         const g = ctx.createRadialGradient(px, py, 0, px, py, rad);
-        g.addColorStop(0, `rgba(${color},${a})`);
-        g.addColorStop(1, `rgba(${color},0)`);
+        g.addColorStop(0, `rgba(${p.color},${a})`);
+        g.addColorStop(1, `rgba(${p.color},0)`);
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(px, py, rad, 0, Math.PI * 2);
@@ -79,8 +85,12 @@ export function RisingParticles({
     };
 
     let raf = 0;
-    const loop = () => {
-      draw();
+    let previousFrame = 0;
+    const loop = (now: number) => {
+      if (now - previousFrame >= 1000 / maxFps) {
+        previousFrame = now;
+        draw();
+      }
       raf = requestAnimationFrame(loop);
     };
     if (reduced) {
@@ -93,7 +103,7 @@ export function RisingParticles({
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [count, color, reduced]);
+  }, [count, color, colors, reduced]);
 
   return (
     <canvas

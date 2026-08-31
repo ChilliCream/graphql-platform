@@ -62,7 +62,7 @@ internal static class RegoPolicyTestEntities
             .OfType<OperationDefinitionNode>()
             .Single();
         var operation = new OperationCompiler(schema, s_fieldMapPool)
-            .Compile("test", "test", operationDefinition);
+            .Compile("test", "test", "test", operationDefinition);
         var result = new CompositeResultDocument(
             CommonTestExtensions.CreateArena(),
             operation,

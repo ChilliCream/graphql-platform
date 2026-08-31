@@ -5,6 +5,7 @@ import { ease } from "../lib/motion";
 import { token, IMPACT_STOPS } from "../lib/tokens";
 import { useChartClock } from "../lib/useInViewLoop";
 import type { Client } from "../lib/data";
+import { ChartCanvas } from "./ChartCanvas";
 
 export interface BarItem {
   label: string;
@@ -22,6 +23,7 @@ export interface HBarSeriesProps {
   playWindow?: [number, number];
   rowStagger?: number;
   durationMs?: number;
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -43,11 +45,12 @@ export function HBarSeries({
   playWindow,
   rowStagger = 0.12,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: HBarSeriesProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const rows = (items ?? clients?.map(toItem) ?? [])
     .slice()
@@ -67,15 +70,11 @@ export function HBarSeries({
       .join(", ")}`;
 
   return (
-    <div
+    <ChartCanvas
       ref={ref}
       className={className}
-      role="img"
-      aria-label={label}
+      label={label}
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -99,7 +98,7 @@ export function HBarSeries({
           />
         );
       })}
-    </div>
+    </ChartCanvas>
   );
 }
 

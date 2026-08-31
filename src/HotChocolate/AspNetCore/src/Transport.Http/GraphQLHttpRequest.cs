@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Net.Http.Headers;
 using HotChocolate.Language;
 #if FUSION
+using System.Text;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport.Http;
@@ -41,7 +42,7 @@ public sealed class GraphQLHttpRequest
 
 #if FUSION
         Body = new OperationRequest(
-            query,
+            Encoding.UTF8.GetBytes(query),
             id: null,
             operationName: null,
             onError: null,
@@ -70,7 +71,7 @@ public sealed class GraphQLHttpRequest
     {
 #if FUSION
         if (string.IsNullOrEmpty(body.Id)
-            && string.IsNullOrEmpty(body.Query)
+            && body.Query.IsEmpty
             && body.Extensions.IsEmpty)
         {
             throw new ArgumentException(
@@ -110,7 +111,7 @@ public sealed class GraphQLHttpRequest
     {
 #if FUSION
         if (string.IsNullOrEmpty(body.Id)
-            && string.IsNullOrEmpty(body.Query)
+            && body.Query.IsEmpty
             && body.Extensions.IsEmpty)
         {
             throw new ArgumentException(
@@ -158,7 +159,7 @@ public sealed class GraphQLHttpRequest
         {
 #if FUSION
             if (string.IsNullOrEmpty(request.Id)
-                && string.IsNullOrEmpty(request.Query)
+                && request.Query.IsEmpty
                 && request.Extensions.IsEmpty)
 #else
             if (string.IsNullOrEmpty(request.Id)

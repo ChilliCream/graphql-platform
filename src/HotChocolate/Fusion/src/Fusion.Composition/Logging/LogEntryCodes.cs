@@ -2,6 +2,8 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string ConflictingApolloFederationVersion =
+        "CONFLICTING_APOLLO_FEDERATION_VERSION";
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
     public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
     public const string CursorArgumentRequiresCursorField = "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD";
@@ -28,6 +30,8 @@ public static class LogEntryCodes
     public const string FederationDirectiveNotSupported = "FEDERATION_DIRECTIVE_NOT_SUPPORTED";
     public const string FederationPolicyLocationNotSupported = "FEDERATION_POLICY_LOCATION_NOT_SUPPORTED";
     public const string FederationV1NotSupported = "FEDERATION_V1_NOT_SUPPORTED";
+    public const string FederationV1DirectiveNotSupported =
+        "FEDERATION_V1_DIRECTIVE_NOT_SUPPORTED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
     public const string ImplementedByInaccessible = "IMPLEMENTED_BY_INACCESSIBLE";
@@ -41,8 +45,11 @@ public static class LogEntryCodes
     public const string InterfaceObjectKeyMismatch = "INTERFACE_OBJECT_KEY_MISMATCH";
     public const string InterfaceObjectKeyMissing = "INTERFACE_OBJECT_KEY_MISSING";
     public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
+    public const string InvalidEnumValuesMergeBehavior = "INVALID_ENUM_VALUES_MERGE_BEHAVIOR";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
+    public const string InvalidApolloFederationSupportSettings =
+        "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
     public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
@@ -80,6 +87,7 @@ public static class LogEntryCodes
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
+    public const string ReferenceToDeprecatedType = "REFERENCE_TO_DEPRECATED_TYPE";
     public const string ReferenceToInaccessibleType = "REFERENCE_TO_INACCESSIBLE_TYPE";
     public const string ReferenceToInternalType = "REFERENCE_TO_INTERNAL_TYPE";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";
@@ -88,6 +96,8 @@ public static class LogEntryCodes
     public const string RootMutationUsed = "ROOT_MUTATION_USED";
     public const string RootQueryUsed = "ROOT_QUERY_USED";
     public const string RootSubscriptionUsed = "ROOT_SUBSCRIPTION_USED";
+    public const string SourceSchemaDevUrlMissing = "SOURCE_SCHEMA_DEV_URL_MISSING";
+    public const string SourceSchemaUrlVariableUnresolved = "SOURCE_SCHEMA_URL_VARIABLE_UNRESOLVED";
     public const string SpecifiedByUrlMismatch = "SPECIFIED_BY_URL_MISMATCH";
     public const string EventStreamMessageInvalidFields = "EVENT_STREAM_MESSAGE_INVALID_FIELDS";
     public const string EventStreamMessageAbstractTypeRequiresTypeName =

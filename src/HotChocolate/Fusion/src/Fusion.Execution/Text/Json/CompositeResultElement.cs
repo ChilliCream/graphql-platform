@@ -43,9 +43,17 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        var formatter = new RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
-        formatter.WriteValue(_cursor, row);
+        if (_parent.HasNullMarkers)
+        {
+            var formatter = new NullMarkerRawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
+        else
+        {
+            var formatter = new RawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
     }
 
     /// <summary>
@@ -185,6 +193,21 @@ public readonly partial struct CompositeResultElement
             }
 
             return _parent.IsNullOrInvalidated(_cursor);
+        }
+    }
+
+    internal bool IsRoot => _cursor.IsZero;
+
+    internal bool IsNullMarker
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsNullMarker(_cursor);
         }
     }
 
@@ -431,6 +454,16 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        string propertyName,
+        ref PropertyLookupMemo memo,
+        out CompositeResultElement value)
+    {
+        ArgumentNullException.ThrowIfNull(propertyName);
+
+        return _parent.TryGetNamedPropertyValue(_cursor, propertyName, ref memo, out value);
+    }
+
     /// <summary>
     /// Attempts to get a property by UTF-8 encoded name when the current element is an object.
     /// </summary>
@@ -472,6 +505,18 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         return _parent.GetObjectContext(_cursor);
+    }
+
+    /// <summary>
+    /// Classifies this element in one step. Returns <c>false</c> for an undefined slot
+    /// that still needs to be initialized, returns <c>true</c> with the object context
+    /// for an object, and throws for any other value kind.
+    /// </summary>
+    internal bool TryGetObjectContext(out CompositeObjectContext objectContext)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetObjectContext(_cursor, out objectContext);
     }
 
     /// <summary>
@@ -978,12 +1023,17 @@ public readonly partial struct CompositeResultElement
     }
 
     internal void SetObjectValue(SelectionSet selectionSet)
+        => SetObjectValue(selectionSet, out _);
+
+    internal void SetObjectValue(
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
+        var obj = _parent.CreateObject(_cursor, selectionSet, out objectContext);
         _parent.AssignCompositeValue(this, obj);
     }
 
@@ -1004,11 +1054,25 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
+    internal void SetLeafValue(SourceResultElementSnapshot source)
+    {
+        CheckValidInstance();
+
+        _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
+    }
+
     internal void SetNullValue()
     {
         CheckValidInstance();
 
         _parent.AssignNullValue(this);
+    }
+
+    internal void SetNullMarker()
+    {
+        CheckValidInstance();
+
+        _parent.SetNullMarker(_cursor);
     }
 
     /// <inheritdoc />

@@ -9,8 +9,7 @@ public sealed class BookType : ObjectType<Book>
     {
         descriptor
             .Implements<ProductInterfaceType>()
-            .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .Key("id");
 
         descriptor.Field(b => b.Id).Type<NonNullType<IdType>>();
         descriptor.Field(b => b.Price).External().Type<FloatType>();
@@ -28,7 +27,4 @@ public sealed class BookType : ObjectType<Book>
                         && !string.Equals(b.Id, book.Id, StringComparison.Ordinal));
             });
     }
-
-    private static Book? ResolveById(string id)
-        => AData.BooksById.TryGetValue(id, out var book) ? book : null;
 }

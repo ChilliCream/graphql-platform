@@ -1,3 +1,4 @@
+import { CardGrid } from "@/src/components/CardGrid";
 import { PerkCard } from "@/src/components/PerkCard";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { MixIcon } from "@/src/icons/MixIcon";
@@ -15,7 +16,7 @@ const LEVELS = [
       "Schema-first thinking and the type system",
       "Queries, mutations, variables, and fragments",
       "Hot Chocolate basics on ASP.NET Core",
-      "Wiring up a real Relay or Apollo client",
+      "Connecting a Relay or Apollo client",
       "Pagination, errors, and the everyday traps",
     ],
     Icon: SeedIcon,
@@ -32,7 +33,7 @@ const LEVELS = [
       "Parallel tracks for newcomers and veterans",
       "Pair exercises that mix the two groups",
       "A real schema review on your codebase",
-      "Working sessions on the bugs you brought with you",
+      "Working sessions on current design questions",
     ],
     Icon: MixIcon,
     accent: "violet",
@@ -70,7 +71,7 @@ export function LevelsSection() {
           description="The curriculum is the same set of building blocks. The order, the depth, and the exercises change for the room."
         />
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <CardGrid cols={3} gap={4}>
         {LEVELS.map((level) => (
           <PerkCard
             key={level.title}
@@ -84,7 +85,7 @@ export function LevelsSection() {
             accent={level.accent}
           />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }

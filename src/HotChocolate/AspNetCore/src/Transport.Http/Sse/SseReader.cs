@@ -11,7 +11,7 @@ namespace HotChocolate.Transport.Http;
 #endif
 
 #if FUSION
-internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource)
+internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource, TimeSpan readTimeout)
     : IAsyncEnumerable<SourceResultDocument>
 #else
 internal sealed class SseReader(HttpResponseMessage message)
@@ -23,6 +23,10 @@ internal sealed class SseReader(HttpResponseMessage message)
     private const string NextEvent = "next";
     private const string CompleteEvent = "complete";
 
+#if FUSION
+    private const int MaxSingleSpanRecordLength = 16 * 1024;
+
+#endif
 #if !FUSION
     private static readonly SseItemParser<OperationResult?> s_itemParser =
         static (eventType, data) =>
@@ -38,13 +42,20 @@ internal sealed class SseReader(HttpResponseMessage message)
 #endif
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var responseStream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using var stream = readTimeout == Timeout.InfiniteTimeSpan
+            ? responseStream
+            : new ReadTimeoutStream(responseStream, readTimeout);
+#else
         await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
 #if FUSION
-        // Only a "next" event produces a document: its payload bytes are filled exactly once into the
-        // geometric arena segments of a freshly acquired arena and parsed in place. The parser is
-        // pull-based and never invokes this delegate for the following event before the current one has
-        // been consumed, so the arena acquired here pairs with the document the consumer is about to read.
+        // Only a "next" event produces a document: its payload bytes are filled exactly once into a
+        // freshly acquired arena and parsed in place. The parser is pull-based and never invokes this
+        // delegate for the following event before the current one has been consumed, so the arena
+        // acquired here pairs with the document the consumer is about to read.
         var parser = SseParser.Create(
             stream,
             (eventType, data) =>
@@ -80,6 +91,21 @@ internal sealed class SseReader(HttpResponseMessage message)
 #if FUSION
     private static SourceResultDocument FillAndParse(IMemoryArena arena, ReadOnlySpan<byte> data)
     {
+        if (data.Length > 0 && data.Length <= MaxSingleSpanRecordLength)
+        {
+            var buffer = arena.Rent(data.Length);
+            data.CopyTo(buffer.Span);
+
+            var segments = arena.RentSegmentTable(1);
+            segments[0] = buffer;
+
+            return SourceResultDocument.ParseFilled(
+                arena,
+                segments,
+                usedChunks: 1,
+                lastLength: data.Length);
+        }
+
         // The payload is filled once, directly into the arena's gap-free geometric segments using the
         // same per-event mechanic as the other streaming readers, then parsed in place via ParseFilled
         // so no bytes are copied a second time.

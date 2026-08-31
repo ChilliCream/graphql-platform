@@ -1,14 +1,15 @@
 import { Band } from "@/src/components/Band";
 import { CheckList } from "@/src/components/CheckList";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { Card } from "@/src/design-system/Card";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 const FUN_FACTS = [
   "Plenty of breaks, by design",
   "Pair and group exercises",
   "Real schemas, not lorem ipsum",
   "Questions welcome, including the basic ones",
-  "Working sessions on your real codebase",
-  "Optional recap doc after the week",
+  "Optional work in your codebase",
 ];
 
 const FUN_AVOID = [
@@ -20,8 +21,7 @@ const FUN_AVOID = [
 ];
 
 /**
- * The honesty band: the warm pitch for how the sessions actually feel on the
- * left, and a short list of what we will not do on the right.
+ * The workshop-style training pitch and a short list of formats we avoid.
  */
 export function FunBand() {
   return (
@@ -45,12 +45,12 @@ export function FunBand() {
         </div>
       }
       aside={
-        <div className="border-cc-card-border bg-cc-surface/60 rounded-2xl border p-6">
-          <div className="text-cc-nav-label mb-3 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+        <Card variant="plain" className="bg-cc-surface/60 p-6">
+          <Eyebrow size="2xs" className="mb-3">
             What we will not do
-          </div>
+          </Eyebrow>
           <CheckList columns={1} items={FUN_AVOID} />
-        </div>
+        </Card>
       }
     />
   );

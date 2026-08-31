@@ -3,10 +3,11 @@ import {
   CONTRACTING_MAILTO,
   CONTACT_FORM,
 } from "@/src/components/advisory/advisoryLinks";
-import { CheckIcon } from "@/src/components/CheckIcon";
-import { PopularBadge } from "@/src/components/PopularBadge";
-import { popularBorderStyle } from "@/src/components/popularRing";
+import { CardGrid } from "@/src/components/CardGrid";
+import { CheckListItem } from "@/src/components/CheckListItem";
+import { HighlightCard } from "@/src/components/HighlightCard";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 
 interface Tier {
   readonly id: "consulting" | "contracting";
@@ -22,26 +23,26 @@ interface Tier {
   readonly highlight?: boolean;
 }
 
-const TIERS: readonly Tier[] = [
+export const ADVISORY_TIERS: readonly Tier[] = [
   {
     id: "consulting",
     eyebrow: "Packages of hours",
     name: "Consulting",
     tagline:
-      "Consulting in packages of hours to get the help you need at any stage of your project. The best way to get started.",
+      "Use a package of hours for architecture, troubleshooting, code review, or guidance at a specific point in your project.",
     priceLine: "20h",
     priceNote: "increments",
     bestFor:
       "Teams that already own the build and need a senior GraphQL engineer on call for design, troubleshooting, and review.",
     perks: [
-      "Mentoring and guidance",
-      "Architecture",
-      "Troubleshooting",
-      "Code Review",
-      "Best practices education",
+      "Architecture and schema design",
+      "Fusion composition and rollout guidance",
+      "Performance troubleshooting",
+      "Code and design review",
+      "Team mentoring",
     ],
-    primaryCta: { label: "Talk to us", href: CONTACT_FORM },
-    secondaryCta: { label: "Email us", href: CONSULTING_MAILTO },
+    primaryCta: { label: "Discuss consulting", href: CONTACT_FORM },
+    secondaryCta: { label: "Email the team", href: CONSULTING_MAILTO },
     highlight: true,
   },
   {
@@ -49,14 +50,19 @@ const TIERS: readonly Tier[] = [
     eyebrow: "Scoped engagements",
     name: "Contracting",
     tagline:
-      "Options for teams who do not have the time, bandwidth, and/or expertise to implement their own GraphQL solutions.",
+      "Scope an implementation when your team needs delivery capacity or deep product expertise, from proof of concept through production rollout.",
     priceLine: "Custom",
     priceNote: "scope & timeline",
     bestFor:
       "Teams that want our engineers to deliver a working result, from a proof of concept to a production rollout.",
-    perks: ["Proof of concept", "Implementation"],
-    primaryCta: { label: "Talk to an Expert", href: CONTACT_FORM },
-    secondaryCta: { label: "Email us", href: CONTRACTING_MAILTO },
+    perks: [
+      "Technical discovery and scope",
+      "Proof of concept",
+      "Production implementation",
+      "Milestones and defined deliverables",
+    ],
+    primaryCta: { label: "Scope an engagement", href: CONTACT_FORM },
+    secondaryCta: { label: "Email the team", href: CONTRACTING_MAILTO },
   },
 ];
 
@@ -68,13 +74,13 @@ export function TierGrid() {
   return (
     <section aria-labelledby="tiers-heading" className="pt-6 pb-16 sm:pb-24">
       <h2 id="tiers-heading" className="sr-only">
-        Engagement tiers
+        GraphQL consulting and contracting options
       </h2>
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
-        {TIERS.map((tier) => (
+      <CardGrid cols={2} breakpoint="lg" gap={6} itemsStretch>
+        {ADVISORY_TIERS.map((tier) => (
           <TierCard key={tier.id} tier={tier} />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 }
@@ -82,13 +88,9 @@ export function TierGrid() {
 function TierCard({ tier }: { readonly tier: Tier }) {
   if (tier.highlight) {
     return (
-      <div
-        className="relative flex h-full flex-col rounded-3xl p-7 sm:p-9"
-        style={popularBorderStyle}
-      >
-        <PopularBadge label="Start here" />
+      <HighlightCard highlight badgeLabel="Start here" gap="">
         <TierCardBody tier={tier} />
-      </div>
+      </HighlightCard>
     );
   }
 
@@ -102,9 +104,7 @@ function TierCard({ tier }: { readonly tier: Tier }) {
 function TierCardBody({ tier }: { readonly tier: Tier }) {
   return (
     <>
-      <p className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-        {tier.eyebrow}
-      </p>
+      <Eyebrow size="2xs">{tier.eyebrow}</Eyebrow>
       <h3 className="font-heading text-cc-heading text-h3 mt-3 font-semibold">
         {tier.name}
       </h3>
@@ -126,22 +126,17 @@ function TierCardBody({ tier }: { readonly tier: Tier }) {
         className="border-cc-ink-faint my-6 border-t border-dashed"
       />
 
-      <p className="text-cc-nav-label font-mono text-[0.65rem] tracking-[0.18em] uppercase">
-        Best for
-      </p>
+      <Eyebrow size="2xs">Best for</Eyebrow>
       <p className="text-cc-ink mt-2 text-sm leading-relaxed">{tier.bestFor}</p>
 
-      <p className="text-cc-nav-label mt-6 font-mono text-[0.65rem] tracking-[0.18em] uppercase">
+      <Eyebrow size="2xs" className="mt-6">
         What is included
-      </p>
+      </Eyebrow>
       <ul className="mt-3 flex flex-1 flex-col gap-3">
         {tier.perks.map((perk) => (
-          <li key={perk} className="flex items-start gap-3">
-            <span className="text-cc-accent mt-[5px] flex-none">
-              <CheckIcon />
-            </span>
-            <span className="text-cc-ink text-sm">{perk}</span>
-          </li>
+          <CheckListItem key={perk} iconClassName="text-cc-accent mt-[5px]">
+            {perk}
+          </CheckListItem>
         ))}
       </ul>
 

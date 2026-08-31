@@ -9,11 +9,3 @@ internal class WaitForApprovalOption : Option<bool>
         this.DefaultFromEnvironmentValue(EnvironmentVariables.WaitForApproval);
     }
 }
-
-internal sealed class OptionalWaitForApprovalOption : WaitForApprovalOption
-{
-    public OptionalWaitForApprovalOption() : base()
-    {
-        Required = false;
-    }
-}

@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Suites.ProvidesOnUnion.SubgraphA;
 
 public static class SubgraphASubgraph
 {
-    public const string Name = "subgraph-a";
+    public const string Name = "a";
 
     public static async Task<SubgraphHost> BuildAsync()
     {

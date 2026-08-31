@@ -1,9 +1,10 @@
 import { CheckList } from "@/src/components/CheckList";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { SlackIcon } from "@/src/icons/Slack";
 
 const POINTS = [
-  "A reply within one business day",
-  "Straight to the core engineers",
+  "Straight to the ChilliCream team",
+  "Share your stack, constraints, and timeline",
   "No sales runaround",
 ];
 
@@ -15,15 +16,14 @@ const POINTS = [
 export function ContactIntro() {
   return (
     <div className="flex h-full flex-col">
-      <p className="text-cc-accent font-mono text-xs font-semibold tracking-[0.18em] uppercase">
-        Talk to us
-      </p>
+      <Eyebrow color="accent">Talk to us</Eyebrow>
       <h1 className="font-heading text-cc-heading mt-5 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
         Tell us what you need.
       </h1>
       <p className="text-cc-ink-dim mt-5 text-base leading-relaxed text-pretty">
-        Wherever you are and wherever you&rsquo;re headed, you&rsquo;ll hear
-        back from the core team, not a first-line queue.
+        Whether you are evaluating Nitro, planning a GraphQL project, training a
+        team, or looking for product support, you will hear from the people
+        behind the stack, not a first-line queue.
       </p>
       <CheckList className="mt-8" items={POINTS} />
       <div className="mt-auto pt-10">

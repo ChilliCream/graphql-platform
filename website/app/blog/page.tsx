@@ -1,41 +1,56 @@
-import { Pagination } from "@/src/design-system/Pagination";
-import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
-import { Typography } from "@/src/design-system/Typography";
+import { BlogIndexShell } from "@/src/components/BlogIndexShell";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { paginate } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  BLOG_DESCRIPTION,
+  BLOG_ID,
+  createBlogItemListNode,
+  createBlogNode,
+} from "@/src/helpers/blogStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { schemaRef } from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
+const PAGE = {
   title: "Blog",
-  description: "The ChilliCream blog: announcements, deep dives, and how-tos.",
+  description: BLOG_DESCRIPTION,
   path: "/blog",
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 export default function BlogsIndex() {
   const posts = listBlogPostSummaries();
   const slice = paginate(posts, 1);
   if (slice === null) {
-    return (
-      <div className="px-5 py-8 sm:px-12">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6">
-          <Typography variant="h1">Blog</Typography>
-          <BlogTeaserGrid posts={[]} />
-        </div>
-      </div>
-    );
+    return <BlogIndexShell title="Blog" posts={[]} />;
   }
 
+  const postList = createBlogItemListNode(
+    PAGE.path,
+    "Latest ChilliCream blog posts",
+    slice.posts,
+  );
+
   return (
-    <div className="px-5 py-8 sm:px-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <Typography variant="h1">Blog</Typography>
-        <BlogTeaserGrid posts={slice.posts} />
-        <Pagination
-          currentPage={slice.currentPage}
-          totalPages={slice.totalPages}
-          hrefForPage={(p) => (p === 1 ? "/blog" : `/blog/${p}`)}
-        />
-      </div>
-    </div>
+    <>
+      <PageStructuredData
+        {...PAGE}
+        pageType="CollectionPage"
+        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Blog" }]}
+        mainEntity={schemaRef(postList["@id"]!)}
+        about={schemaRef(BLOG_ID)}
+        additionalNodes={[createBlogNode(), postList]}
+      />
+      <BlogIndexShell
+        title="Blog"
+        posts={slice.posts}
+        pagination={{
+          currentPage: slice.currentPage,
+          totalPages: slice.totalPages,
+          hrefForPage: (p) => (p === 1 ? "/blog" : `/blog/${p}`),
+        }}
+      />
+    </>
   );
 }

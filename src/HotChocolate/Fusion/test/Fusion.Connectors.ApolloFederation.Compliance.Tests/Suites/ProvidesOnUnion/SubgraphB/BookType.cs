@@ -8,13 +8,9 @@ public sealed class BookType : ObjectType<Book>
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
         descriptor
-            .Key("id")
-            .ResolveReferenceWith(_ => ResolveById(default!));
+            .Key("id");
 
         descriptor.Field(b => b.Id).Type<NonNullType<IdType>>();
-        descriptor.Field(b => b.Title).Shareable().Type<StringType>();
+        descriptor.Field(b => b.Title).External().Type<StringType>();
     }
-
-    private static Book? ResolveById(string id)
-        => SubgraphBData.BooksById.TryGetValue(id, out var book) ? book : new Book { Id = id };
 }

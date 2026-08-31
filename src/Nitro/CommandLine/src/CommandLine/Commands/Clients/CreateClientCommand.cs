@@ -68,7 +68,8 @@ internal sealed class CreateClientCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
                         ICreateClientCommandMutation_CreateClient_Errors_DuplicateNameError => Messages.DuplicateName(name, "Client"),
                         IError err => Messages.UnexpectedMutationError(err),
