@@ -1,6 +1,9 @@
 #if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
 #endif
+using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
+using ChilliCream.Nitro.CommandLine.Commands.Fusion.Settings;
+using ChilliCream.Nitro.CommandLine.Commands.Fusion.SourceSchema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 

@@ -1,19 +1,25 @@
 using System.Text.Json.Serialization;
+using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Clients;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Label;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Tasks;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
@@ -67,7 +73,29 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(RemoveTaskLabelCommand.TaskLabelRemovedResult))]
 [JsonSerializable(typeof(TaskComment))]
 [JsonSerializable(typeof(TaskConfigEntry))]
-[JsonSerializable(typeof(InitTaskCommand.TaskWorkspaceInitResult))]
+[JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceInitResult))]
+[JsonSerializable(typeof(LoginAgentCommand.AgentLoginResult))]
+[JsonSerializable(typeof(InitAgentCommand.AgentWorkspaceMigrateResult))]
 [JsonSerializable(typeof(DoctorTaskCommand.TaskDoctorResult))]
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
+[JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
+[JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
+[JsonSerializable(typeof(MailMessageResult))]
+[JsonSerializable(typeof(MailSendResult))]
+[JsonSerializable(typeof(ListResult<MailInboxRowResult>))]
+[JsonSerializable(typeof(MailMessageDetailResult))]
+[JsonSerializable(typeof(ListResult<MailMessageDetailResult>))]
+[JsonSerializable(typeof(MailIdsResult))]
+[JsonSerializable(typeof(ListResult<MailThreadRowResult>))]
+[JsonSerializable(typeof(MemoryRecordResult))]
+[JsonSerializable(typeof(ListResult<MemoryRecordResult>))]
+[JsonSerializable(typeof(MemoryRecordDetailResult))]
+[JsonSerializable(typeof(MemoryContextResult))]
+[JsonSerializable(typeof(MemoryTagCount))]
+[JsonSerializable(typeof(ListResult<MemoryTagCount>))]
+[JsonSerializable(typeof(MemoryJournalEntryResult))]
+[JsonSerializable(typeof(ListResult<MemoryJournalEntryResult>))]
+[JsonSerializable(typeof(MemoryPromotionResult))]
+[JsonSerializable(typeof(MemoryEntryResult))]
+[JsonSerializable(typeof(ListResult<MemoryEntryResult>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

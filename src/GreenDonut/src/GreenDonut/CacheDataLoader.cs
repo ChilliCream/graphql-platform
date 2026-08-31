@@ -2,6 +2,7 @@ namespace GreenDonut;
 
 public abstract class CacheDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
+    , ICacheDataLoader<TKey, TValue>
     where TKey : notnull
 {
     protected CacheDataLoader(DataLoaderOptions options)
@@ -51,6 +52,7 @@ public abstract class CacheDataLoader<TKey, TValue>
 
 public abstract class StatefulCacheDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
+    , ICacheDataLoader<TKey, TValue>
     where TKey : notnull
 {
     protected StatefulCacheDataLoader(DataLoaderOptions options)

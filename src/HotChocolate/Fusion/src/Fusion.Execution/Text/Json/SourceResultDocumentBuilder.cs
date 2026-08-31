@@ -46,6 +46,30 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         Root = new SourceResultElementBuilder(this, rootIndex);
     }
 
+    public SourceResultDocumentBuilder(
+        IMemoryArena arena,
+        Operation operation,
+        ulong includeFlags,
+        ReadOnlySpan<Selection> rootSelections)
+        : this(arena, operation, new ConditionFlags(includeFlags), rootSelections)
+    {
+    }
+
+    public SourceResultDocumentBuilder(
+        IMemoryArena arena,
+        Operation operation,
+        ConditionFlags includeFlags,
+        ReadOnlySpan<Selection> rootSelections)
+    {
+        _arena = arena ?? throw new ArgumentNullException(nameof(arena));
+        _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _wideIncludeFlags = includeFlags.Overflow;
+        _metaDb = new MetaDb();
+
+        var rootIndex = CreateObjectValue(rootSelections, includeFlags.Word0);
+        Root = new SourceResultElementBuilder(this, rootIndex);
+    }
+
     public SourceResultElementBuilder Root { get; }
 
     internal ElementTokenType GetElementTokenType(int index)
@@ -67,6 +91,20 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
     internal int GetEndIndex(int index) => index + _metaDb.GetNumberOfRows(index) - 1;
 
+    internal int GetPropertyCount(int startIndex)
+    {
+        Debug.Assert(_metaDb.GetElementTokenType(startIndex) is ElementTokenType.StartObject);
+
+        return _metaDb.Get(startIndex).SizeOrLength;
+    }
+
+    internal Selection GetPropertySelection(int propertyIndex)
+    {
+        Debug.Assert(_metaDb.GetElementTokenType(propertyIndex) is ElementTokenType.PropertyName);
+
+        return _operation.GetSelectionById(_metaDb.GetLocation(propertyIndex));
+    }
+
     internal int CreateObjectValue(ReadOnlySpan<Selection> selections, ulong includeFlags)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -84,7 +122,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
                 }
 
                 propertyCount++;
-                _metaDb.Append(ElementTokenType.PropertyName);
+                _metaDb.Append(ElementTokenType.PropertyName, location: selection.Id);
                 _metaDb.Append(ElementTokenType.None);
             }
         }
@@ -98,7 +136,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
                 }
 
                 propertyCount++;
-                _metaDb.Append(ElementTokenType.PropertyName);
+                _metaDb.Append(ElementTokenType.PropertyName, location: selection.Id);
                 _metaDb.Append(ElementTokenType.None);
             }
         }

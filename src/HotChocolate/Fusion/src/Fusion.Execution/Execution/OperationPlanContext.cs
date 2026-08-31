@@ -312,7 +312,23 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             return;
         }
 
-        _variableValueSets[node.Id] = variableValueSets;
+        // The paths of these variable value sets wrap pooled segment arrays that the
+        // result store reclaims once the node's results are merged, after which a later
+        // node rents and overwrites them. The trace outlives that merge, so it must own
+        // detached copies of the paths.
+        var detached = new VariableValues[variableValueSets.Length];
+
+        for (var i = 0; i < variableValueSets.Length; i++)
+        {
+            var variableValueSet = variableValueSets[i];
+            detached[i] = variableValueSet with
+            {
+                Path = variableValueSet.Path.Detach(),
+                AdditionalPaths = variableValueSet.AdditionalPaths.Detach()
+            };
+        }
+
+        _variableValueSets[node.Id] = ImmutableCollectionsMarshal.AsImmutableArray(detached);
     }
 
     internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)

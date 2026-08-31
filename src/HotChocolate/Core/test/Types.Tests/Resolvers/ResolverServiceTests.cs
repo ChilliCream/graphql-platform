@@ -321,6 +321,39 @@ public class ResolverServiceTests
     }
 
     [Fact]
+    public async Task Resolver_KeyedServices_Should_Resolve_When_Using_String_Derived_Enum_And_Integer_Keys()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton("abc", (_, _) => new KeyedService("abc"))
+                .AddKeyedSingleton(KeyedServiceKey.Enum, (_, _) => new KeyedService("enum"))
+                .AddKeyedSingleton(42, (_, _) => new KeyedService("integer"))
+                .AddGraphQL()
+                .AddQueryType<QueryWithObjectServiceKeys>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result =
+            await executor.ExecuteAsync(
+                "{ stringKey enumKey integerKey }",
+                TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "stringKey": "abc",
+                "enumKey": "enum",
+                "integerKey": "integer"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Resolver_Optional_KeyedService_Does_Not_Exist()
     {
         var executor =
@@ -415,10 +448,27 @@ public class ResolverServiceTests
             => service?.Key ?? "No Service";
     }
 
+    public class QueryWithObjectServiceKeys
+    {
+        public string StringKey([AbcService] KeyedService service)
+            => service.Key;
+
+        public string EnumKey([Service(KeyedServiceKey.Enum)] KeyedService service)
+            => service.Key;
+
+        public string IntegerKey([Service(42)] KeyedService service)
+            => service.Key;
+    }
+
     public class KeyedService(string key)
     {
         public string Key => key;
     }
 
     public class AbcService() : ServiceAttribute("abc");
+
+    public enum KeyedServiceKey
+    {
+        Enum
+    }
 }

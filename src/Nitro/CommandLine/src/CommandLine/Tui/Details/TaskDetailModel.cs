@@ -5,38 +5,6 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// The distinguishing direction of a <see cref="TaskDetailRow"/>: an outgoing
-/// dependency of the loaded task, or an incoming dependent that the loaded
-/// task blocks.
-/// </summary>
-internal enum TaskDetailRowKind
-{
-    Dependency,
-    Blocks
-}
-
-/// <summary>
-/// One row in the loaded task's combined dependency and blocks list, indexed
-/// by its position in <see cref="TaskDetailModel.Rows"/>. Null
-/// <see cref="Status"/> and <see cref="Title"/> mean the target task no
-/// longer exists.
-/// </summary>
-internal sealed record TaskDetailRow(
-    int Index,
-    TaskDetailRowKind Kind,
-    string Type,
-    string TargetId,
-    string? Status,
-    string? Title)
-{
-    /// <summary>
-    /// Whether this row's dependency type gates readiness, per
-    /// <see cref="TaskDependencyTypes.IsBlocking"/>.
-    /// </summary>
-    public bool IsBlocking => TaskDependencyTypes.IsBlocking(Type);
-}
-
-/// <summary>
 /// The loaded state behind a task detail view: the task and its related
 /// data, a cursor over its combined dependency and blocks rows, and a
 /// navigation stack for drilling into related tasks and returning.

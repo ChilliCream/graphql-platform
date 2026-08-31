@@ -42,6 +42,9 @@
   <data name="OperationPlannerGuardrailException_GuardrailExceeded" xml:space="preserve">
     <value>Planner guardrail exceeded for operation '{0}': {1} (Limit={2}, Observed={3}).</value>
   </data>
+  <data name="DeferredMutationLookupRequiredException_NoLookupAvailable" xml:space="preserve">
+    <value>The @defer fragment at path '{0}' cannot be planned: its anchor type '{1}' has no lookup in the composite schema, so the deferred fields could only be sourced by re-running the mutation root field a second time, which would duplicate its side effects.</value>
+  </data>
   <data name="SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup" xml:space="preserve">
     <value>The execution node with id '{0}' is registered to be part of batching group '{1}', but no request was submitted for that node.</value>
   </data>
@@ -110,5 +113,17 @@
   </data>
   <data name="FetchResultStore_InvalidTargetValueKind" xml:space="preserve">
     <value>Expected the value at result path '{1}' for selection path '{0}' to be an object or list, but found '{2}'.</value>
+  </data>
+  <data name="DocumentRewriter_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="DocumentRewriter_InvalidTypeConditionOnInlineFragment" xml:space="preserve">
+    <value>An inline fragment on type '{0}' has an invalid type condition. The type '{1}' does not exist.</value>
+  </data>
+  <data name="DocumentRewriter_InvalidTypeConditionOnFragment" xml:space="preserve">
+    <value>The fragment '{0}' has an invalid type condition. The type '{1}' does not exist.</value>
+  </data>
+  <data name="DocumentRewriter_FragmentDoesNotExist" xml:space="preserve">
+    <value>A fragment with the name '{0}' does not exist.</value>
   </data>
 </root>

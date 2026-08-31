@@ -1482,6 +1482,12 @@ Such schemas now fail at build with a schema error. This applies to defaults on 
 
 If your schema fails to build after upgrading, correct the default value to a literal compatible with its type. `[ID]`-typed defaults given as strings remain valid; only genuinely incompatible literals are rejected.
 
+## ProjectionFeature removed
+
+The public `HotChocolate.Data.Projections.ProjectionFeature` record has been removed. The state it carried is now tracked through internal field flags. This change lands in **16.6.2**.
+
+Use the existing `IsProjected()` descriptor extension or the `[IsProjected]` attribute to configure projection behavior; reading the feature from a field's `Features` collection is no longer possible.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

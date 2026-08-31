@@ -38,10 +38,6 @@ internal static class Messages
         => $"Source schema settings file '{path}' does not contain a JSON object. "
             + $"Remove it or write to a different path with '{OptionalSettingsFileOption.OptionName}'.";
 
-    public static string ApolloFederationVersionRequiresKind()
-        => $"The option '{OptionalApolloFederationVersionOption.OptionName}' requires "
-            + $"'{SourceSchemaKindOption.OptionName} {SourceSchemaKindOption.ApolloFederation}'.";
-
     public static string SourceSchemaUrlSettingsCountMismatch()
         => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
             + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";

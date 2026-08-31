@@ -197,7 +197,10 @@ internal interface ITaskStore
     /// Closes every given task and records a closed event for each. All
     /// tasks are validated before any is written: either every task closes
     /// or none does. Throws <see cref="ExitException"/> when any task does
-    /// not exist, is a tombstone, or is already closed.
+    /// not exist, is a tombstone, or is already closed. After the close
+    /// commits, enforces <see cref="TaskStates.ClosedTaskCap"/>: if the
+    /// closed count now exceeds the cap, the oldest closed tasks move to
+    /// <see cref="TaskStates.Archived"/> until exactly the cap remains.
     /// </summary>
     Task<IReadOnlyList<TaskItem>> CloseTaskAsync(
         IReadOnlyList<string> ids,
@@ -206,9 +209,9 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reopens a closed task and records a reopened event. Throws
-    /// <see cref="ExitException"/> when the task does not exist or is not
-    /// closed.
+    /// Reopens a closed or archived task and records a reopened event.
+    /// Throws <see cref="ExitException"/> when the task does not exist or is
+    /// not closed or archived.
     /// </summary>
     Task<TaskItem> ReopenTaskAsync(
         string id,
@@ -249,7 +252,9 @@ internal interface ITaskStore
 
     /// <summary>
     /// Closes every epic whose non-tombstone children all closed, and records
-    /// a closed event for each.
+    /// a closed event for each. After the close commits, enforces
+    /// <see cref="TaskStates.ClosedTaskCap"/> the same way
+    /// <see cref="CloseTaskAsync"/> does.
     /// </summary>
     Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(
         string actor,
@@ -369,24 +374,6 @@ internal interface ITaskStore
 
         return new TaskDependencyAddResult { Cycle = null };
     }
-
-    /// <summary>
-    /// Returns every task, including tombstones, with its labels, outgoing
-    /// dependencies, and comments embedded, ordered by id.
-    /// </summary>
-    Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Upserts each record by id: a record whose updated_at is at or after
-    /// the stored task's updated_at, or whose task does not exist yet,
-    /// replaces the stored task together with its labels, outgoing
-    /// dependencies, and comments. A record whose stored task is newer is
-    /// left untouched. Tombstoned records are stored as tombstones.
-    /// </summary>
-    Task<TaskImportResult> ImportTasksAsync(
-        IReadOnlyList<TaskSyncRecord> records,
-        CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the workspace database and schema in the given directory when

@@ -90,4 +90,56 @@ public sealed class KeyDispatcherTests
         // assert
         Assert.Equal(CursorDirection.Down, Assert.IsType<TuiMessage.MoveCursor>(message).Direction);
     }
+
+    [Fact]
+    public void CombineHints_Should_AppendGlobalHints_After_ContextHints()
+    {
+        // arrange
+        var globalMap = new KeyMap(
+            [new KeyBinding(new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'), () => new TuiMessage.QuitRequested(), new KeyHint("q", "quit"))]);
+        var dispatcher = new KeyDispatcher(globalMap);
+        KeyHint[] contextHints = [new KeyHint("j", "move")];
+
+        // act
+        var combined = dispatcher.CombineHints(contextHints, suppressedGlobalHints: []);
+
+        // assert
+        Assert.Equal([new KeyHint("j", "move"), new KeyHint("q", "quit")], combined);
+    }
+
+    [Fact]
+    public void CombineHints_Should_NotRepeat_When_GlobalHintAlreadyInContextHints()
+    {
+        // arrange
+        var globalMap = new KeyMap(
+            [new KeyBinding(new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'), () => new TuiMessage.QuitRequested(), new KeyHint("q", "quit"))]);
+        var dispatcher = new KeyDispatcher(globalMap);
+        KeyHint[] contextHints = [new KeyHint("q", "quit")];
+
+        // act
+        var combined = dispatcher.CombineHints(contextHints, suppressedGlobalHints: []);
+
+        // assert
+        Assert.Equal([new KeyHint("q", "quit")], combined);
+    }
+
+    [Fact]
+    public void CombineHints_Should_DropSuppressedGlobalHints()
+    {
+        // arrange: a mode overrides a global gesture its current state makes
+        // inert (see ITuiMode.SuppressedGlobalHints), so the footer must not
+        // advertise it even though the global table still binds it.
+        var globalMap = new KeyMap(
+        [
+            new KeyBinding(new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'), () => new TuiMessage.QuitRequested(), new KeyHint("q", "quit")),
+            new KeyBinding(new KeyChord(ConsoleKey.R, ConsoleModifiers.None, 'r'), () => new TuiMessage.RefreshRequested(), new KeyHint("r", "refresh"))
+        ]);
+        var dispatcher = new KeyDispatcher(globalMap);
+
+        // act
+        var combined = dispatcher.CombineHints(contextHints: [], suppressedGlobalHints: [new KeyHint("r", "refresh")]);
+
+        // assert
+        Assert.Equal([new KeyHint("q", "quit")], combined);
+    }
 }

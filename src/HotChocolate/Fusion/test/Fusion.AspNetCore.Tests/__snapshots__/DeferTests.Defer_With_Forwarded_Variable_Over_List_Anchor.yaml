@@ -228,7 +228,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUsersPosts_defer_2($limit: Int!, $__fusion_1_id: ID!) {
+            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 posts(first: $limit) {
                   id
@@ -347,7 +347,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUsersPosts_defer_2($limit: Int!, $__fusion_1_id: ID!) {
+            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 posts(first: $limit) {
                   id

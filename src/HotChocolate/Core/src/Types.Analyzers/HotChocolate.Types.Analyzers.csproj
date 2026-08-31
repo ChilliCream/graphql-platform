@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\..\Primitives\src\Primitives\Types\DirectiveNames.cs" Link="Helpers\DirectiveNames.cs" />
+    <Compile Include="..\..\..\Primitives\src\Primitives\ErrorCodes.cs" Link="ErrorCodes.cs" />
   </ItemGroup>
 
   <ItemGroup>

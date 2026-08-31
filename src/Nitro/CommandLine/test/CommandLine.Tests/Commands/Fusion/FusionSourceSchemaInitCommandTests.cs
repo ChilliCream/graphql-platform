@@ -25,20 +25,23 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               nitro fusion source-schema init [options]
 
             Options:
-              --name <name>                                     The name that identifies the source schema in the composite schema
-              -f, --source-schema-file <source-schema-file>     The path to the source schema file (.graphqls) the settings belong to, or a directory containing it
-              --settings-file <settings-file>                   The path to write the settings file to, instead of deriving it from the source schema file
-              --url <url>                                       The URL the gateway uses to reach the source schema
-              --dev-url <dev-url>                               The URL a local development environment uses to reach the source schema
-              --client-name <client-name>                       The name of the HTTP client the gateway uses to reach the source schema
-              --api-id <api-id>                                 The ID of the API [env: NITRO_API_ID]
-              --kind <apollo-federation|generic|hot-chocolate>  The kind of GraphQL server that serves the source schema. When omitted, kind-specific settings are left unchanged
-              --apollo-federation-version <1.0|2.0>             The Apollo Federation version the source schema is built with
-              -w, --working-directory <working-directory>       Set the working directory for the command
-              --cloud-url <cloud-url>                           The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                               The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                                   The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                    Show help and usage information
+              --name <name>                                                               The name that identifies the source schema in the composite schema
+              -f, --source-schema-file <source-schema-file>                               The path to the source schema file (.graphqls) the settings belong to, or a directory containing it
+              --settings-file <settings-file>                                             The path to write the settings file to, instead of deriving it from the source schema file
+              --url <url>                                                                 The URL the gateway uses to reach the source schema
+              --dev-url <dev-url>                                                         The URL a local development environment uses to reach the source schema
+              --client-name <client-name>                                                 The name of the HTTP client the gateway uses to reach the source schema
+              --api-id <api-id>                                                           The ID of the API [env: NITRO_API_ID]
+              --schema-type <apollo-federation-1|apollo-federation-2|graphql-federation>  The source schema specification. New settings default to GraphQL Federation
+              --variable-batching <false|true>                                            Whether the source schema supports variable batching. Defaults to false
+              --request-batching <false|true>                                             Whether the source schema supports request batching. Defaults to false
+              --alias-batching <false|true>                                               Whether the source schema supports alias batching. Defaults to true
+              --batching-format <batching-format>                                         One or more response formats the source schema supports for batching
+              -w, --working-directory <working-directory>                                 Set the working directory for the command
+              --cloud-url <cloud-url>                                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                                         The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                                              Show help and usage information
 
             Example:
               nitro fusion source-schema init \
@@ -81,7 +84,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "https://products.example.com/graphql"
+                  "url": "https://products.example.com/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               }
             }
@@ -120,7 +130,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "https://products.example.com/graphql"
+                  "url": "https://products.example.com/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               }
             }
@@ -158,7 +175,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "https://products.example.com/graphql"
+                  "url": "https://products.example.com/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               }
             }
@@ -198,7 +222,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "https://products.example.com/graphql"
+                  "url": "https://products.example.com/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               }
             }
@@ -259,7 +290,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "reviews",
               "transports": {
                 "http": {
-                  "url": "http://localhost:5000/graphql"
+                  "url": "http://localhost:5000/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               }
             }
@@ -304,7 +342,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
                 "http": {
                   "url": "{{API_URL}}",
                   "devUrl": "http://localhost:5110/graphql",
-                  "clientName": "fusion"
+                  "clientName": "fusion",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               },
               "extensions": {
@@ -317,7 +362,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
     }
 
     [Fact]
-    public async Task Init_WithHotChocolateKind_WritesTransportCapabilities()
+    public async Task Init_Should_WriteDefaultBatchingCapabilities_When_SettingsAreNew()
     {
         // arrange
         SetupNoAuthentication();
@@ -332,9 +377,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "--name",
             "products",
             "--url",
-            "http://localhost:5000/graphql",
-            "--kind",
-            "hot-chocolate");
+            "http://localhost:5000/graphql");
 
         // assert
         result.AssertSuccess(
@@ -351,11 +394,10 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
                   "url": "http://localhost:5000/graphql",
                   "capabilities": {
                     "batching": {
-                      "variableBatching": true,
-                      "requestBatching": true,
+                      "variableBatching": false,
+                      "requestBatching": false,
                       "aliasBatching": true
-                    },
-                    "onError": "propagate"
+                    }
                   }
                 }
               }
@@ -364,7 +406,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
     }
 
     [Fact]
-    public async Task Init_WithApolloFederationKind_WritesFederationSupport()
+    public async Task Init_Should_WriteFederation1Support_When_SchemaTypeIsApolloFederation1()
     {
         // arrange
         SetupNoAuthentication();
@@ -380,10 +422,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "products",
             "--url",
             "http://localhost:5000/graphql",
-            "--kind",
-            "apollo-federation",
-            "--apollo-federation-version",
-            "1.0");
+            "--schema-type",
+            "apollo-federation-1");
 
         // assert
         result.AssertSuccess(
@@ -397,7 +437,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "http://localhost:5000/graphql"
+                  "url": "http://localhost:5000/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               },
               "extensions": {
@@ -412,7 +459,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
     }
 
     [Fact]
-    public async Task Init_WithApolloFederationKind_DefaultsToVersion2()
+    public async Task Init_Should_WriteFederation2Support_When_SchemaTypeIsApolloFederation2()
     {
         // arrange
         SetupNoAuthentication();
@@ -428,8 +475,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "products",
             "--url",
             "http://localhost:5000/graphql",
-            "--kind",
-            "apollo-federation");
+            "--schema-type",
+            "apollo-federation-2");
 
         // assert
         result.AssertSuccess(
@@ -443,7 +490,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "http://localhost:5000/graphql"
+                  "url": "http://localhost:5000/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": false,
+                      "requestBatching": false,
+                      "aliasBatching": true
+                    }
+                  }
                 }
               },
               "extensions": {
@@ -539,8 +593,6 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "fusion",
             "source-schema",
             "init",
-            "--kind",
-            "apollo-federation",
             "--url",
             "https://products.example.com/graphql");
 
@@ -568,7 +620,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
     }
 
     [Fact]
-    public async Task Init_ChangingKindToGeneric_RemovesKindSpecificSettings()
+    public async Task Init_Should_PreserveBatchingSettings_When_ChangingToGraphQLFederation()
     {
         // arrange
         SetupNoAuthentication();
@@ -580,7 +632,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "transports": {
                 "http": {
                   "url": "http://localhost:5110/graphql",
-                  "capabilities": { "onError": "propagate" }
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": true,
+                      "requestBatching": true,
+                      "aliasBatching": false,
+                      "formats": ["application/jsonl"]
+                    }
+                  }
                 }
               },
               "extensions": {
@@ -596,8 +655,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "fusion",
             "source-schema",
             "init",
-            "--kind",
-            "generic");
+            "--schema-type",
+            "graphql-federation");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -608,7 +667,17 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "http://localhost:5110/graphql"
+                  "url": "http://localhost:5110/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": true,
+                      "requestBatching": true,
+                      "aliasBatching": false,
+                      "formats": [
+                        "application/jsonl"
+                      ]
+                    }
+                  }
                 }
               },
               "extensions": {
@@ -646,8 +715,8 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "fusion",
             "source-schema",
             "init",
-            "--kind",
-            "apollo-federation");
+            "--schema-type",
+            "apollo-federation-2");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -806,10 +875,12 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
     }
 
     [Fact]
-    public async Task Init_ApolloFederationVersionWithoutMatchingKind_ReturnsError()
+    public async Task Init_Should_WriteConfiguredBatching_When_BatchingOptionsArePassed()
     {
         // arrange
         SetupNoAuthentication();
+        var capturedStream = SetupCreateFile("schema-settings.json");
+        SetupDirectory("");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -818,19 +889,47 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
             "init",
             "--name",
             "products",
-            "--apollo-federation-version",
-            "2.0");
+            "--url",
+            "http://localhost:5000/graphql",
+            "--variable-batching",
+            "true",
+            "--request-batching",
+            "true",
+            "--alias-batching",
+            "false",
+            "--batching-format",
+            "application/jsonl",
+            "multipart/mixed");
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        Assert.Equal(0, result.ExitCode);
+
+        Encoding.UTF8.GetString(capturedStream.ToArray()).MatchInlineSnapshot(
             """
-            The option '--apollo-federation-version' requires '--kind apollo-federation'.
+            {
+              "name": "products",
+              "transports": {
+                "http": {
+                  "url": "http://localhost:5000/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": true,
+                      "requestBatching": true,
+                      "aliasBatching": false,
+                      "formats": [
+                        "application/jsonl",
+                        "multipart/mixed"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
             """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Init_Interactive_PromptsForNameAndUrl()
+    public async Task Init_Should_PromptForSettings_When_Interactive()
     {
         // arrange
         SetupNoAuthentication();
@@ -845,6 +944,10 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
         // act
         command.Input("products");
         command.Input("https://products.example.com/graphql");
+        command.SelectOption(0);
+        command.Confirm(true);
+        command.Confirm(true);
+        command.Confirm(false);
 
         var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
@@ -857,7 +960,14 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
               "name": "products",
               "transports": {
                 "http": {
-                  "url": "https://products.example.com/graphql"
+                  "url": "https://products.example.com/graphql",
+                  "capabilities": {
+                    "batching": {
+                      "variableBatching": true,
+                      "requestBatching": true,
+                      "aliasBatching": false
+                    }
+                  }
                 }
               }
             }
