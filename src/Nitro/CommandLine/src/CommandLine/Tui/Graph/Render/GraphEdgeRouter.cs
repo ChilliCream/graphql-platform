@@ -80,7 +80,7 @@ internal sealed class GraphEdgeRouter
         foreach (var semanticEdge in semanticEdges)
         {
             var pending = new List<RoutedSpan>(semanticEdge.Spans.Count);
-            var localReservedArrowCells = new HashSet<GraphLayoutPoint>(reservedArrowCells);
+            GraphLayoutPoint? pendingArrowPoint = null;
             RoutePort? arrowPort = null;
             EdgeContribution? arrowContribution = null;
             var routed = true;
@@ -91,6 +91,8 @@ internal sealed class GraphEdgeRouter
                 nodesByLayer.TryGetValue(span.ToLayer, out var targetNodes);
                 sourceNodes ??= [];
                 targetNodes ??= [];
+                var isFromTarget = IsNodeAt(span.FromPosition, semanticEdge.Edge.ToId, nodesByPosition);
+                var isToTarget = IsNodeAt(span.ToPosition, semanticEdge.Edge.ToId, nodesByPosition);
 
                 if (!TryFindRoute(
                     span,
@@ -99,11 +101,11 @@ internal sealed class GraphEdgeRouter
                     sourceNodes,
                     targetNodes,
                     layout.Nodes,
-                    localReservedArrowCells,
-                    (start, end) => (IsNodeAt(span.FromPosition, semanticEdge.Edge.ToId, nodesByPosition)
-                            && (acceptedRouteCells.Contains(start.Point) || reservedArrowCells.Contains(start.Point)))
-                        || (IsNodeAt(span.ToPosition, semanticEdge.Edge.ToId, nodesByPosition)
-                            && (acceptedRouteCells.Contains(end.Point) || reservedArrowCells.Contains(end.Point))),
+                    acceptedRouteCells,
+                    reservedArrowCells,
+                    pendingArrowPoint,
+                    isFromTarget,
+                    isToTarget,
                     out var route))
                 {
                     routed = false;
@@ -122,7 +124,7 @@ internal sealed class GraphEdgeRouter
                     if (arrowPort is not null
                         || selectedArrowPort.Direction == CanvasDirections.None
                         || acceptedRouteCells.Contains(selectedArrowPort.Point)
-                        || reservedArrowCells.Contains(selectedArrowPort.Point))
+                        || IsReserved(selectedArrowPort.Point, reservedArrowCells, pendingArrowPoint))
                     {
                         routed = false;
                         break;
@@ -130,7 +132,7 @@ internal sealed class GraphEdgeRouter
 
                     arrowPort = selectedArrowPort;
                     arrowContribution = contribution;
-                    localReservedArrowCells.Add(selectedArrowPort.Point);
+                    pendingArrowPoint = selectedArrowPort.Point;
                 }
             }
 
@@ -192,8 +194,11 @@ internal sealed class GraphEdgeRouter
         IReadOnlyList<GraphLayoutNode> sourceNodes,
         IReadOnlyList<GraphLayoutNode> targetNodes,
         IReadOnlyList<GraphLayoutNode> allNodes,
-        HashSet<GraphLayoutPoint> blockedPoints,
-        Func<RoutePort, RoutePort, bool> isUnavailableTargetPort,
+        HashSet<GraphLayoutPoint> acceptedRouteCells,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint,
+        bool isFromTarget,
+        bool isToTarget,
         out RouteGeometry route)
     {
         var starts = GetPorts(span.FromPosition, span.ToPosition, nodesByPosition, allNodes);
@@ -202,12 +207,24 @@ internal sealed class GraphEdgeRouter
         {
             foreach (var end in ends)
             {
-                if (isUnavailableTargetPort(start, end))
+                if ((isFromTarget && (acceptedRouteCells.Contains(start.Point)
+                        || IsReserved(start.Point, reservedArrowCells, pendingArrowPoint)))
+                    || (isToTarget && (acceptedRouteCells.Contains(end.Point)
+                        || IsReserved(end.Point, reservedArrowCells, pendingArrowPoint))))
                 {
                     continue;
                 }
 
-                if (TryFindRoute(start, end, index, sourceNodes, targetNodes, allNodes, blockedPoints, out var points))
+                if (TryFindRoute(
+                    start,
+                    end,
+                    index,
+                    sourceNodes,
+                    targetNodes,
+                    allNodes,
+                    reservedArrowCells,
+                    pendingArrowPoint,
+                    out var points))
                 {
                     route = new RouteGeometry(points, start, end);
                     return true;
@@ -298,7 +315,8 @@ internal sealed class GraphEdgeRouter
     private static bool TryGetAnchor(
         RoutePort port,
         IReadOnlyList<GraphLayoutNode> nodes,
-        HashSet<GraphLayoutPoint> blockedPoints,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint,
         out GraphLayoutPoint anchor)
     {
         anchor = port.Direction switch
@@ -313,7 +331,7 @@ internal sealed class GraphEdgeRouter
         return anchor.X >= 0
             && anchor.Y >= 0
             && !Contains(nodes, anchor.X, anchor.Y)
-            && !blockedPoints.Contains(anchor);
+            && !IsReserved(anchor, reservedArrowCells, pendingArrowPoint);
     }
 
     private static List<GraphLayoutPoint> ComposeRoute(
@@ -343,13 +361,14 @@ internal sealed class GraphEdgeRouter
         IReadOnlyList<GraphLayoutNode> sourceNodes,
         IReadOnlyList<GraphLayoutNode> targetNodes,
         IReadOnlyList<GraphLayoutNode> allNodes,
-        HashSet<GraphLayoutPoint> blockedPoints,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint,
         out List<GraphLayoutPoint> route)
     {
-        if (blockedPoints.Contains(start.Point)
-            || blockedPoints.Contains(end.Point)
-            || !TryGetAnchor(start, allNodes, blockedPoints, out var startAnchor)
-            || !TryGetAnchor(end, allNodes, blockedPoints, out var endAnchor))
+        if (IsReserved(start.Point, reservedArrowCells, pendingArrowPoint)
+            || IsReserved(end.Point, reservedArrowCells, pendingArrowPoint)
+            || !TryGetAnchor(start, allNodes, reservedArrowCells, pendingArrowPoint, out var startAnchor)
+            || !TryGetAnchor(end, allNodes, reservedArrowCells, pendingArrowPoint, out var endAnchor))
         {
             route = [];
             return false;
@@ -374,15 +393,23 @@ internal sealed class GraphEdgeRouter
         {
             var channel = low + ((index + offset) % candidateCount);
             var points = Route(startAnchor, endAnchor, channel);
-            if (IsClearRoute(points, allNodes, blockedPoints, start, end, startAnchor, endAnchor))
+            if (IsClearRoute(points, allNodes, reservedArrowCells, pendingArrowPoint, start, end, startAnchor, endAnchor))
             {
                 route = ComposeRoute(start.Point, startAnchor, points, endAnchor, end.Point);
                 return true;
             }
         }
 
-        if (TryFindGridRoute(startAnchor, endAnchor, allNodes, blockedPoints, start, end, out var gridRoute)
-            && IsClearRoute(gridRoute, allNodes, blockedPoints, start, end, startAnchor, endAnchor))
+        if (TryFindGridRoute(
+                startAnchor,
+                endAnchor,
+                allNodes,
+                reservedArrowCells,
+                pendingArrowPoint,
+                start,
+                end,
+                out var gridRoute)
+            && IsClearRoute(gridRoute, allNodes, reservedArrowCells, pendingArrowPoint, start, end, startAnchor, endAnchor))
         {
             route = ComposeRoute(start.Point, startAnchor, gridRoute, endAnchor, end.Point);
             return true;
@@ -396,7 +423,8 @@ internal sealed class GraphEdgeRouter
         GraphLayoutPoint start,
         GraphLayoutPoint end,
         IReadOnlyList<GraphLayoutNode> nodes,
-        HashSet<GraphLayoutPoint> blockedPoints,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint,
         RoutePort startPort,
         RoutePort endPort,
         out List<GraphLayoutPoint> route)
@@ -429,7 +457,7 @@ internal sealed class GraphEdgeRouter
                     || nextY < 0
                     || nextY > maxY
                     || Contains(nodes, nextX, nextY)
-                    || (nextPoint != end && IsBlocked(nextPoint, blockedPoints, startPort, endPort)))
+                    || (nextPoint != end && IsBlocked(nextPoint, reservedArrowCells, pendingArrowPoint, startPort, endPort)))
                 {
                     continue;
                 }
@@ -458,7 +486,7 @@ internal sealed class GraphEdgeRouter
         }
 
         route.Reverse();
-        return IsClear(route, nodes, blockedPoints);
+        return IsClear(route, nodes, reservedArrowCells, pendingArrowPoint);
     }
 
     private static int ToIndex(int x, int y, int width) => (y * width) + x;
@@ -466,30 +494,42 @@ internal sealed class GraphEdgeRouter
     private static bool IsClear(
         IEnumerable<GraphLayoutPoint> points,
         IReadOnlyList<GraphLayoutNode> nodes,
-        HashSet<GraphLayoutPoint>? blockedPoints = null)
+        HashSet<GraphLayoutPoint>? reservedArrowCells = null,
+        GraphLayoutPoint? pendingArrowPoint = null)
         => points.All(point => !Contains(nodes, point.X, point.Y)
-            && (blockedPoints is null || !blockedPoints.Contains(point)));
+            && (reservedArrowCells is null || !IsReserved(point, reservedArrowCells, pendingArrowPoint)));
 
     private static bool IsClearRoute(
         IEnumerable<GraphLayoutPoint> points,
         IReadOnlyList<GraphLayoutNode> nodes,
-        HashSet<GraphLayoutPoint> blockedPoints,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint,
         RoutePort start,
         RoutePort end,
         GraphLayoutPoint startAnchor,
         GraphLayoutPoint endAnchor)
         => points.All(point => !Contains(nodes, point.X, point.Y)
-            && !blockedPoints.Contains(point)
-            && (point == startAnchor || point == endAnchor || !IsBlocked(point, blockedPoints, start, end)));
+            && !IsReserved(point, reservedArrowCells, pendingArrowPoint)
+            && (point == startAnchor
+                || point == endAnchor
+                || !IsBlocked(point, reservedArrowCells, pendingArrowPoint, start, end)));
 
     private static bool IsBlocked(
         GraphLayoutPoint point,
-        HashSet<GraphLayoutPoint> blockedPoints,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint,
         RoutePort start,
         RoutePort end)
-        => blockedPoints.Contains(point)
+        => IsReserved(point, reservedArrowCells, pendingArrowPoint)
             || (start.Direction != CanvasDirections.None && point == start.Point)
             || (end.Direction != CanvasDirections.None && point == end.Point);
+
+    private static bool IsReserved(
+        GraphLayoutPoint point,
+        HashSet<GraphLayoutPoint> reservedArrowCells,
+        GraphLayoutPoint? pendingArrowPoint)
+        => reservedArrowCells.Contains(point)
+            || (pendingArrowPoint is { } pending && pending == point);
 
     private static bool Contains(IReadOnlyList<GraphLayoutNode> nodes, int x, int y)
     {

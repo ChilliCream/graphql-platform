@@ -340,11 +340,9 @@ public sealed class GraphEdgeRouterTests
         // arrange
         var highlighted = Edge("a", "b");
         var parent = Edge("a", "b", GraphEdgeKind.ParentChild);
-        var blocks = Edge("c", "d");
         var highlightedSpan = Span(highlighted, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0), reversed: true);
         var parentSpan = Span(parent, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0));
-        var blocksSpan = Span(blocks, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0));
-        var nodes = new[] { Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 1, 1, 0) };
+        var nodes = new[] { Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 3, 1, 0) };
         var options = new GraphEdgeRenderOptions
         {
             IncludeParentChild = true,
@@ -352,18 +350,18 @@ public sealed class GraphEdgeRouterTests
             ParentChildStyle = new Style(Color.Green),
             StyleOverride = edge => edge == highlighted ? new Style(Color.Red) : (Style?)null
         };
-        var first = new GraphEdgeRouter().Route(Frame(nodes, [highlightedSpan, parentSpan, blocksSpan]), options);
+        var first = new GraphEdgeRouter().Route(Frame(nodes, [highlightedSpan, parentSpan]), options);
 
         // act
-        var second = new GraphEdgeRouter().Route(Frame(nodes, [blocksSpan, parentSpan, highlightedSpan]), options);
-        var point = first.Routes.Single(t => t.Span.Edge == highlighted).Points[2];
+        var second = new GraphEdgeRouter().Route(Frame(nodes, [parentSpan, highlightedSpan]), options);
+        var point = new GraphLayoutPoint(3, 0);
         var firstCell = first.Buffer.Get(point.X, point.Y);
         var secondCell = second.Buffer.Get(point.X, point.Y);
 
         // assert
-        Assert.Equal(first.Routes.Select(t => t.Span.Edge), second.Routes.Select(t => t.Span.Edge));
-        Assert.Equal(new[] { highlighted }, firstCell.Owners.ToArray());
-        Assert.Equal('┄', firstCell.Glyph);
+        Assert.Equal(RouteProjection(first), RouteProjection(second));
+        Assert.Equal(2, firstCell.Owners.Count);
+        Assert.Equal('┬', firstCell.Glyph);
         Assert.Equal(new Style(Color.Red, null, Decoration.Dim), firstCell.Style);
         Assert.Equal(Describe(firstCell), Describe(secondCell));
     }
