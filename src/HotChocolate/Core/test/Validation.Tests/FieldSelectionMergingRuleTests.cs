@@ -281,66 +281,96 @@ public class FieldSelectionMergingRuleTests
     }
 
     [Fact]
-    public void Stream_Mergeable()
+    public void Stream_Fields_With_Identical_Arguments_Are_Not_Mergeable()
     {
-        ExpectValid(
+        // arrange
+        const string document =
             """
             {
                 __type (type: "Foo") {
-                    name
-                    fields @stream(initialCount: 1) {
-                        type {
-                            name
-                        }
+                    streamedFields: fields @stream(initialCount: 1) {
+                        name
                     }
-                    fields @stream(initialCount: 1) {
+                    streamedFields: fields @stream(initialCount: 1) {
                         name
                     }
                 }
             }
-            """);
+            """;
+
+        // act
+        // assert
+        ExpectErrors(document);
     }
 
     [Fact]
-    public void Stream_Argument_Mismatch()
+    public void Stream_Field_And_Plain_Field_Are_Not_Mergeable()
     {
-        ExpectErrors(
+        // arrange
+        const string document =
             """
             {
                 __type (type: "Foo") {
-                    name
                     fields @stream(initialCount: 1) {
-                        type {
-                            name
-                        }
-                    }
-                    fields @stream(initialCount: 2) {
                         name
-                    }
-                }
-            }
-            """);
-    }
-
-    [Fact]
-    public void Stream_On_Some_Fields()
-    {
-        ExpectErrors(
-            """
-            {
-                __type (type: "Foo") {
-                    name
-                    fields @stream(initialCount: 1) {
-                        type {
-                            name
-                        }
                     }
                     fields {
                         name
                     }
                 }
             }
-            """);
+            """;
+
+        // act
+        // assert
+        ExpectErrors(document);
+    }
+
+    [Fact]
+    public void Single_Stream_Field_Is_Valid()
+    {
+        // arrange
+        const string document =
+            """
+            {
+                __type (type: "Foo") {
+                    fields @stream(initialCount: 1) {
+                        name
+                    }
+                }
+            }
+            """;
+
+        // act
+        // assert
+        ExpectValid(document);
+    }
+
+    [Fact]
+    public void Stream_Field_Overlapping_Field_In_Fragment_Is_Not_Mergeable()
+    {
+        // arrange
+        const string document =
+            """
+            {
+                __type (type: "Foo") {
+                    fields @stream(initialCount: 1) {
+                        name
+                    }
+                    ... Fields
+                }
+            }
+
+            fragment Fields on __Type {
+                fields {
+                    name
+                }
+            }
+            """;
+
+        // act
+        // assert
+        ExpectErrors(document);
     }
 
     [Fact]
