@@ -66,7 +66,6 @@ internal static class GraphCanvasNodeRenderer
     private static void RenderCompact(CellBuffer buffer, GraphLayoutNode layoutNode, GraphNode node, bool selected)
     {
         var width = layoutNode.Width;
-        var baseStyle = GetBaseStyle(node, selected);
         RenderMetadata(buffer, layoutNode.X, layoutNode.Y, width, node, selected, appendTitle: true);
     }
 

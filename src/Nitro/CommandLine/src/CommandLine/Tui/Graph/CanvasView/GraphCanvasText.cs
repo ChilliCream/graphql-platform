@@ -1,6 +1,6 @@
 using System.Buffers;
 using System.Text;
-using Wcwidth;
+using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;
 
@@ -78,5 +78,5 @@ internal static class GraphCanvasText
     }
 
     private static bool IsSingleCell(Rune rune)
-        => rune.IsBmp && UnicodeCalculator.GetWidth(rune) == 1;
+        => rune.IsBmp && ((char)rune.Value).GetCellWidth() == 1;
 }
