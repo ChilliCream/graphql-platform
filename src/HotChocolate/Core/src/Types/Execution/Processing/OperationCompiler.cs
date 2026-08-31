@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Options;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
@@ -27,8 +28,8 @@ public sealed partial class OperationCompiler
         InputParser inputValueParser,
         ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool,
         OperationCompilerOptimizers optimizers,
-        int maxAllowedIncludeConditions = IncludeConditionCollection.DefaultMaxAllowedConditions,
-        int maxAllowedDeferConditions = DeferConditionCollection.DefaultMaxAllowedConditions)
+        int maxAllowedIncludeConditions,
+        int maxAllowedDeferConditions)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(fieldsPool);
@@ -72,7 +73,9 @@ public sealed partial class OperationCompiler
             new InputParser(),
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()),
-            new OperationCompilerOptimizers())
+            new OperationCompilerOptimizers(),
+            RequestExecutorOptions.DefaultMaxAllowedConditions,
+            RequestExecutorOptions.DefaultMaxAllowedConditions)
             .Compile(id, hash, operationName, document, context ?? EmptyFeatureProvider.Instance);
 
     public Operation Compile(

@@ -4,11 +4,6 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class DeferConditionCollection : ICollection<DeferCondition>
 {
-    /// <summary>
-    /// The default maximum number of defer conditions an operation may declare.
-    /// </summary>
-    public const int DefaultMaxAllowedConditions = 1024;
-
     private readonly OrderedDictionary<DeferCondition, int> _dictionary = [];
     private readonly int _maxAllowedConditions;
 

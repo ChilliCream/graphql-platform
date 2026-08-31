@@ -24,8 +24,8 @@ public sealed class OperationCompiler
     public OperationCompiler(
         FusionSchemaDefinition schema,
         ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool,
-        int maxAllowedIncludeConditions = IncludeConditionCollection.DefaultMaxAllowedConditions,
-        int maxAllowedDeferConditions = DeferConditionCollection.DefaultMaxAllowedConditions)
+        int maxAllowedIncludeConditions = FusionRequestOptions.DefaultMaxAllowedConditions,
+        int maxAllowedDeferConditions = FusionRequestOptions.DefaultMaxAllowedConditions)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(fieldsPool);

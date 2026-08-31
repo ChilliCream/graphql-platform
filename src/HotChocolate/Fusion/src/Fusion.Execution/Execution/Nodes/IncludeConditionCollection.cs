@@ -4,11 +4,6 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal class IncludeConditionCollection : ICollection<IncludeCondition>
 {
-    /// <summary>
-    /// The default maximum number of include conditions an operation may declare.
-    /// </summary>
-    public const int DefaultMaxAllowedConditions = 1024;
-
     private readonly OrderedDictionary<IncludeCondition, int> _dictionary = [];
     private readonly int _maxAllowedConditions;
 

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
@@ -7,6 +6,7 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class FusionRequestOptions : ICloneable
 {
+    internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private bool _isReadOnly;
 
@@ -123,7 +123,7 @@ public sealed class FusionRequestOptions : ICloneable
 
             field = value;
         }
-    } = IncludeConditionCollection.DefaultMaxAllowedConditions;
+    } = DefaultMaxAllowedConditions;
 
     /// <summary>
     /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
@@ -140,7 +140,7 @@ public sealed class FusionRequestOptions : ICloneable
 
             field = value;
         }
-    } = DeferConditionCollection.DefaultMaxAllowedConditions;
+    } = DefaultMaxAllowedConditions;
 
     /// <summary>
     /// Gets or sets the persisted operation options.

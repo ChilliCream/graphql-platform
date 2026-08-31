@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
@@ -11,6 +10,7 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
+    internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
 
@@ -89,7 +89,7 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// request error at operation compile time.
     /// <c>1024</c> by default.
     /// </summary>
-    public int MaxAllowedIncludeConditions { get; set; } = IncludeConditionCollection.DefaultMaxAllowedConditions;
+    public int MaxAllowedIncludeConditions { get; set; } = DefaultMaxAllowedConditions;
 
     /// <summary>
     /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
@@ -97,5 +97,5 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// request error at operation compile time.
     /// <c>1024</c> by default.
     /// </summary>
-    public int MaxAllowedDeferConditions { get; set; } = DeferConditionCollection.DefaultMaxAllowedConditions;
+    public int MaxAllowedDeferConditions { get; set; } = DefaultMaxAllowedConditions;
 }
