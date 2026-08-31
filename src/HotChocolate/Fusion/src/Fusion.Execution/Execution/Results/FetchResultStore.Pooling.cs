@@ -11,30 +11,6 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore
 {
-    /// <summary>
-    /// Initializes the <see cref="FetchResultStore"/> for a new request.
-    /// </summary>
-    public void Initialize(
-        IMemoryArena arena,
-        FusionSchemaDefinition schema,
-        IErrorHandler errorHandler,
-        Operation operation,
-        ErrorHandlingMode errorHandlingMode,
-        ulong includeFlags,
-        ulong deferFlags,
-        int pathSegmentLocalPoolCapacity,
-        ulong[]? wideIncludeFlags = null,
-        ulong[]? wideDeferFlags = null)
-        => Initialize(
-            arena,
-            schema,
-            errorHandler,
-            operation,
-            errorHandlingMode,
-            new ConditionFlags(includeFlags, wideIncludeFlags),
-            new ConditionFlags(deferFlags, wideDeferFlags),
-            pathSegmentLocalPoolCapacity);
-
     public void Initialize(
         IMemoryArena arena,
         FusionSchemaDefinition schema,
