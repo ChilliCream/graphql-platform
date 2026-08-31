@@ -11,7 +11,12 @@ internal sealed class GraphDataLoader(ITaskStore store)
     public async Task<GraphModel> LoadAsync(CancellationToken cancellationToken)
     {
         var tasks = await store.QueryTasksAsync(
-            new TaskFilter { IncludeAll = true, ExcludeTombstones = true },
+            new TaskFilter
+            {
+                IncludeAll = true,
+                IncludeArchived = true,
+                ExcludeTombstones = true
+            },
             cancellationToken);
         var dependencies = await store.GetDependencyEdgesAsync(cancellationToken);
         var nodes = new List<GraphNode>(tasks.Count);

@@ -80,6 +80,37 @@ public sealed class GraphReducerTests
     }
 
     [Fact]
+    public void Reduce_Should_CollapseNestedDescendantsIntoTheOuterEpic_When_OnlyTheOuterEpicIsCollapsed()
+    {
+        // arrange
+        var model = Model(
+            [
+                Node("outer", type: TaskTypes.Epic),
+                Node("inner", type: TaskTypes.Epic),
+                Node("descendant"),
+                Node("outside")
+            ],
+            [
+                Edge("outer", "inner", GraphEdgeKind.ParentChild),
+                Edge("inner", "descendant", GraphEdgeKind.ParentChild),
+                Edge("descendant", "outside"),
+                Edge("outside", "descendant")
+            ]);
+        var options = new GraphReductionOptions { CollapsedEpicIds = Set("outer") };
+
+        // act
+        var reduced = GraphReducer.Reduce(model, options);
+
+        // assert
+        var outer = Assert.Single(reduced.Nodes, t => t.Id == "outer");
+        Assert.Equal(["outer", "outside"], reduced.Nodes.Select(t => t.Id));
+        Assert.Equal(2, outer.HiddenChildCount);
+        Assert.Equal(
+            [Edge("outer", "outside"), Edge("outside", "outer", isReversed: true)],
+            reduced.Edges);
+    }
+
+    [Fact]
     public void Reduce_Should_ApplyEveryStage_When_OptionsAreComposed()
     {
         // arrange

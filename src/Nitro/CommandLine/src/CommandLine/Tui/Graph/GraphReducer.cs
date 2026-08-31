@@ -168,15 +168,20 @@ internal static class GraphReducer
         {
             var current = id;
             var seenIds = new HashSet<string>(StringComparer.Ordinal);
+            var representative = id;
 
-            while (parentByChild.TryGetValue(current, out var parentId)
-                && activeEpicIds.Contains(parentId)
-                && seenIds.Add(current))
+            while (seenIds.Add(current)
+                && parentByChild.TryGetValue(current, out var parentId))
             {
                 current = parentId;
+
+                if (activeEpicIds.Contains(current))
+                {
+                    representative = current;
+                }
             }
 
-            return current;
+            return representative;
         }
     }
 
