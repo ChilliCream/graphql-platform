@@ -31,7 +31,7 @@ public sealed class GraphEdgeRouterTests
             .ToArray();
 
         // assert
-        Assert.Empty(intrusions);
+        Assert.Equal([], intrusions);
     }
 
     [Fact]
@@ -59,14 +59,14 @@ public sealed class GraphEdgeRouterTests
         // arrange
         var layout = Frame(
             [Node("dependency", 0, 0, 2, 1, 0, 0), Node("dependent", 8, 2, 2, 1, 1, 0)],
-            [Span("dependency", "dependent", 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 2), reversed: true)]);
+            [Span("dependent", "dependency", 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 2), reversed: true)]);
 
         // act
         var result = new GraphEdgeRouter().Route(layout);
         var route = Assert.Single(result.Routes);
 
         // assert
-        Assert.Equal('◀', result.Buffer.Get(route.Points[0].X, route.Points[0].Y).Glyph);
+        Assert.Equal('◀', result.Buffer.Get(2, 0).Glyph);
         Assert.Contains(route.Points, point => result.Buffer.Get(point.X, point.Y).Glyph is '┄' or '┆');
         Assert.All(
             route.Points,
@@ -93,7 +93,7 @@ public sealed class GraphEdgeRouterTests
         // act
         var highlighted = new GraphEdgeRouter().Route(
             layout,
-            new GraphEdgeRenderOptions { StyleOverride = edge => edge == first ? new Style(Color.Red) : null });
+            new GraphEdgeRenderOptions { StyleOverride = edge => edge == first ? new Style(Color.Red) : (Style?)null });
         var changed = Cells(highlighted.Buffer)
             .Where(point => normal.Buffer.Get(point.X, point.Y).Style != highlighted.Buffer.Get(point.X, point.Y).Style)
             .ToArray();
@@ -166,7 +166,7 @@ public sealed class GraphEdgeRouterTests
 
         // assert
         Assert.Equal(first, second);
-        Assert.Empty(first.Where(point => layout.Nodes.Any(node => Contains(node, point))));
+        Assert.Equal([], first.Where(point => layout.Nodes.Any(node => Contains(node, point))).ToArray());
         Assert.All(first.Zip(first.Skip(1)), pair => Assert.Equal(1, Math.Abs(pair.First.X - pair.Second.X) + Math.Abs(pair.First.Y - pair.Second.Y)));
     }
 
@@ -194,6 +194,109 @@ public sealed class GraphEdgeRouterTests
         Assert.Equal(new GraphLayoutPoint(2, 0), arrows[0]);
         Assert.Equal('◀', result.Buffer.Get(arrows[0].X, arrows[0].Y).Glyph);
         Assert.Equal('┄', result.Buffer.Get(5, 0).Glyph);
+    }
+
+    [Fact]
+    public void Route_Should_DeduplicateEqualSpansForOneSemanticEdge()
+    {
+        // arrange
+        var edge = Edge("a", "b");
+        var span = Span(edge, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0));
+        var layout = Frame(
+            [Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 1, 1, 0)],
+            [span, span]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout);
+        var arrows = Cells(result.Buffer)
+            .Where(point => result.Buffer.Get(point.X, point.Y).Glyph is '▶' or '▷' or '◀' or '◁' or '▼' or '▽' or '▲' or '△')
+            .ToArray();
+
+        // assert
+        Assert.Single(result.Routes);
+        Assert.Equal(1, result.RenderedEdgeCount);
+        Assert.Single(arrows);
+        Assert.Equal("nodes: 2  edges: 1  grid: 10 x 1  crossings: 0  reversed: 0", GraphRenderFooter.CreateText(result));
+    }
+
+    [Fact]
+    public void Route_Should_UseFreePerimeterPortsWhenAlignedNodesTouch()
+    {
+        // arrange
+        var layout = Frame(
+            [
+                Node("a", 0, 0, 2, 2, 0, 0), Node("b", 2, 0, 2, 2, 1, 0),
+                Node("blocker", 4, 0, 1, 2, 2, 0)
+            ],
+            [Span("a", "b", 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(2, 0))]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout);
+        var route = Assert.Single(result.Routes);
+        var intrusions = route.Points.Where(point => layout.Nodes.Any(node => Contains(node, point))).ToArray();
+
+        // assert
+        Assert.Equal([], intrusions);
+        Assert.Equal('▲', result.Buffer.Get(2, 2).Glyph);
+        Assert.Equal(1, result.RenderedEdgeCount);
+    }
+
+    [Fact]
+    public void Route_Should_DiscardSemanticEdgeWhenAnEndpointHasNoFreePort()
+    {
+        // arrange
+        var layout = Frame(
+            [
+                Node("a", 1, 1, 1, 1, 0, 0), Node("left", 0, 1, 1, 1, 0, 1),
+                Node("right", 2, 1, 1, 1, 0, 2), Node("top", 1, 0, 1, 1, 0, 3),
+                Node("bottom", 1, 2, 1, 1, 0, 4), Node("b", 6, 1, 1, 1, 1, 0)
+            ],
+            [Span("a", "b", 0, 1, 0, 0, new GraphLayoutPoint(1, 1), new GraphLayoutPoint(6, 1))]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout);
+        var arrows = Cells(result.Buffer)
+            .Where(point => result.Buffer.Get(point.X, point.Y).Glyph is '▶' or '▷' or '◀' or '◁' or '▼' or '▽' or '▲' or '△')
+            .ToArray();
+
+        // assert
+        Assert.Equal([], result.Routes);
+        Assert.Equal(0, result.RenderedEdgeCount);
+        Assert.Equal([], arrows);
+    }
+
+    [Fact]
+    public void Route_Should_KeepSharedCellContributionsStableAcrossInputOrder()
+    {
+        // arrange
+        var highlighted = Edge("a", "b");
+        var parent = Edge("a", "b", GraphEdgeKind.ParentChild);
+        var blocks = Edge("c", "d");
+        var highlightedSpan = Span(highlighted, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0), reversed: true);
+        var parentSpan = Span(parent, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0));
+        var blocksSpan = Span(blocks, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0));
+        var nodes = new[] { Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 1, 1, 0) };
+        var options = new GraphEdgeRenderOptions
+        {
+            IncludeParentChild = true,
+            BlocksStyle = new Style(Color.Blue),
+            ParentChildStyle = new Style(Color.Green),
+            StyleOverride = edge => edge == highlighted ? new Style(Color.Red) : (Style?)null
+        };
+        var first = new GraphEdgeRouter().Route(Frame(nodes, [highlightedSpan, parentSpan, blocksSpan]), options);
+
+        // act
+        var second = new GraphEdgeRouter().Route(Frame(nodes, [blocksSpan, parentSpan, highlightedSpan]), options);
+        var point = first.Routes.Single(t => t.Span.Edge == highlighted).Points[2];
+        var firstCell = first.Buffer.Get(point.X, point.Y);
+        var secondCell = second.Buffer.Get(point.X, point.Y);
+
+        // assert
+        Assert.Equal(first.Routes.Select(t => t.Span.Edge), second.Routes.Select(t => t.Span.Edge));
+        Assert.Equal(new[] { highlighted, parent, blocks }, firstCell.Owners.ToArray());
+        Assert.Equal('┄', firstCell.Glyph);
+        Assert.Equal(new Style(Color.Red, null, Decoration.Dim), firstCell.Style);
+        Assert.Equal(Describe(firstCell), Describe(secondCell));
     }
 
     [Fact]
@@ -231,6 +334,9 @@ public sealed class GraphEdgeRouterTests
         }
     }
 
+    private static RenderedCell Describe(CanvasCell cell)
+        => new(cell.Glyph, cell.Style, string.Join(",", cell.Owners.Select(t => ((GraphEdge)t).ToString())));
+
     private static GraphLayoutResult Frame(
         IReadOnlyList<GraphLayoutNode> nodes,
         IReadOnlyList<GraphLayoutEdgeSpan> spans,
@@ -267,4 +373,6 @@ public sealed class GraphEdgeRouterTests
 
     private static GraphEdge Edge(string from, string to, GraphEdgeKind kind = GraphEdgeKind.Blocks)
         => new(from, to, kind);
+
+    private sealed record RenderedCell(char Glyph, Style Style, string Owners);
 }

@@ -122,6 +122,49 @@ internal sealed class CellBuffer
     /// </summary>
     public IRenderable Render(CanvasViewport viewport) => new BufferRenderable(this, viewport);
 
+    internal IEnumerable<Segment> GetSegments(CanvasViewport viewport, int maxWidth)
+    {
+        var width = Math.Max(0, Math.Min(viewport.Width, maxWidth));
+        var height = Math.Max(0, viewport.Height);
+        var characters = ArrayPool<char>.Shared.Rent(Math.Max(1, width));
+        try
+        {
+            for (var row = 0; row < height; row++)
+            {
+                var length = 0;
+                var style = Style.Plain;
+                var hasStyle = false;
+                for (var column = 0; column < width; column++)
+                {
+                    var cell = Get(viewport.X + column, viewport.Y + row);
+                    if (hasStyle && cell.Style != style)
+                    {
+                        yield return new Segment(new string(characters, 0, length), style);
+                        length = 0;
+                    }
+
+                    style = cell.Style;
+                    hasStyle = true;
+                    characters[length++] = cell.Glyph;
+                }
+
+                if (length > 0)
+                {
+                    yield return new Segment(new string(characters, 0, length), style);
+                }
+
+                if (row < height - 1)
+                {
+                    yield return Segment.LineBreak;
+                }
+            }
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(characters);
+        }
+    }
+
     /// <summary>
     /// Returns the plain text contained in a rectangular window.
     /// </summary>
@@ -233,47 +276,7 @@ internal sealed class CellBuffer
     private sealed class BufferRenderable(CellBuffer buffer, CanvasViewport viewport) : Renderable
     {
         protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
-        {
-            var width = Math.Max(0, Math.Min(viewport.Width, maxWidth));
-            var height = Math.Max(0, viewport.Height);
-            var characters = ArrayPool<char>.Shared.Rent(Math.Max(1, width));
-            try
-            {
-                for (var row = 0; row < height; row++)
-                {
-                    var length = 0;
-                    var style = Style.Plain;
-                    var hasStyle = false;
-                    for (var column = 0; column < width; column++)
-                    {
-                        var cell = buffer.Get(viewport.X + column, viewport.Y + row);
-                        if (hasStyle && cell.Style != style)
-                        {
-                            yield return new Segment(new string(characters, 0, length), style);
-                            length = 0;
-                        }
-
-                        style = cell.Style;
-                        hasStyle = true;
-                        characters[length++] = cell.Glyph;
-                    }
-
-                    if (length > 0)
-                    {
-                        yield return new Segment(new string(characters, 0, length), style);
-                    }
-
-                    if (row < height - 1)
-                    {
-                        yield return Segment.LineBreak;
-                    }
-                }
-            }
-            finally
-            {
-                ArrayPool<char>.Shared.Return(characters);
-            }
-        }
+            => buffer.GetSegments(viewport, maxWidth);
     }
 
     private struct CellState
