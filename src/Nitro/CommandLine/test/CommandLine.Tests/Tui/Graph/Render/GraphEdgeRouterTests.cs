@@ -347,30 +347,31 @@ public sealed class GraphEdgeRouterTests
     public void Route_Should_RollBackTargetReservation_When_AfterTargetSpanFails()
     {
         // arrange
-        var failed = Edge("a", "b");
-        var succeeding = Edge("e", "f");
+        var failed = Edge("a", "target");
+        var succeeding = Edge("c", "target");
         var nodes = new[]
         {
-            Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 1, 1, 0),
-            Node("e", 0, 6, 2, 1, 0, 1), Node("f", 8, 6, 2, 1, 1, 1),
+            Node("a", 0, 0, 2, 1, 0, 0), Node("c", 0, 6, 2, 1, 0, 1),
+            Node("target", 8, 0, 2, 1, 1, 0),
             Node("left", 3, 4, 1, 1, 2, 0), Node("right", 5, 4, 1, 1, 2, 1),
             Node("top", 4, 3, 1, 1, 2, 2), Node("bottom", 4, 5, 1, 1, 2, 3)
         };
-        var goodSpan = Span(succeeding, 0, 1, 1, 1, new GraphLayoutPoint(0, 6), new GraphLayoutPoint(8, 6));
+        var succeedingSpan = Span(succeeding, 0, 1, 1, 0, new GraphLayoutPoint(0, 6), new GraphLayoutPoint(8, 0));
         var failedSpans = new[]
         {
             Span(failed, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0)),
             Span(failed, 1, 2, 0, 0, new GraphLayoutPoint(4, 4), new GraphLayoutPoint(6, 4))
         };
-        var withoutFailed = new GraphEdgeRouter().Route(Frame(nodes, [goodSpan]));
+        var withoutFailed = new GraphEdgeRouter().Route(Frame(nodes, [succeedingSpan]));
 
         // act
-        var withFailed = new GraphEdgeRouter().Route(Frame(nodes, [.. failedSpans, goodSpan]));
+        var withFailed = new GraphEdgeRouter().Route(Frame(nodes, [.. failedSpans, succeedingSpan]));
 
         // assert
         Assert.Equal(1, withFailed.RenderedEdgeCount);
         Assert.Equal(RouteProjection(withoutFailed), RouteProjection(withFailed));
         Assert.Equal(ArrowCells(withoutFailed.Buffer), ArrowCells(withFailed.Buffer));
+        Assert.Equal(CellProjection(withoutFailed.Buffer), CellProjection(withFailed.Buffer));
     }
 
     [Fact]
@@ -448,6 +449,13 @@ public sealed class GraphEdgeRouterTests
     private static IReadOnlyList<string> RouteProjection(GraphRenderResult result)
         => result.Routes
             .Select(t => $"{t.Span.Edge}|{string.Join(",", t.Points)}")
+            .ToArray();
+
+    private static IReadOnlyList<string> CellProjection(CellBuffer buffer)
+        => Cells(buffer)
+            .Select(point => (Point: point, Cell: buffer.Get(point.X, point.Y)))
+            .Where(t => t.Cell.Glyph != ' ' || t.Cell.Owners.Count > 0)
+            .Select(t => $"{t.Point}|{Describe(t.Cell)}")
             .ToArray();
 
     private static RenderedCell Describe(CanvasCell cell)
