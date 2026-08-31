@@ -19,7 +19,8 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         ITypeSymbol dataLoaderType,
         DataLoaderKind kind,
         ITypeSymbol keyType,
-        ITypeSymbol valueType)
+        ITypeSymbol valueType,
+        Compilation compilation)
     {
         AttributeSyntax = attributeSyntax;
         AttributeSymbol = attributeSymbol;
@@ -44,7 +45,7 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         MaxBatchSize = attributeData.GetMaxBatchSize();
         KeyParameter = methodSymbol.Parameters[0];
         ContainingType = methodSymbol.ContainingType.ToDisplayString();
-        Parameters = DataLoaderInfo.CreateParameters(methodSymbol);
+        Parameters = DataLoaderInfo.CreateParameters(methodSymbol, compilation);
         Groups = methodSymbol.GetDataLoaderGroupKeys();
     }
 
@@ -165,7 +166,8 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
             attributeSymbol.ContainingType.TypeArguments[0],
             kind,
             keyType,
-            valueType);
+            valueType,
+            compilation);
         return true;
     }
 

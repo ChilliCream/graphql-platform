@@ -276,6 +276,369 @@ public class DataLoaderCodeFixTests
     }
 
     [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_RemoveOnlyTheKeyedAttribute()
+    {
+        // arrange
+        const string source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Service("key")][Obsolete]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Obsolete]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_RemoveOnlyKeyedAttributes_WhenKeyedAndKeylessServiceAttributesArePresent()
+    {
+        // arrange
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            class KeyedAttribute() : ServiceAttribute("key") { }
+            class KeylessAttribute : ServiceAttribute { }
+
+            internal static class TestClass
+            {
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeyedThenKeylessAsync([Keyed][Keyless] IReadOnlyList<int> keys) => default!;
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeylessThenKeyedAsync([Keyless][Keyed] IReadOnlyList<int> keys) => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyFixAllAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            class KeyedAttribute() : ServiceAttribute("key") { }
+            class KeylessAttribute : ServiceAttribute { }
+
+            internal static class TestClass
+            {
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeyedThenKeylessAsync([Keyless] IReadOnlyList<int> keys) => default!;
+                [DataLoader] public static Task<IReadOnlyDictionary<int, string>> GetKeylessThenKeyedAsync([Keyless] IReadOnlyList<int> keys) => default!;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_PreserveCommentAndConditionalTrivia_When_AttributeListIsStandalone()
+    {
+        // arrange
+        const string source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+            // The keyed service is ignored.
+            #if DEBUG
+            #endif
+            [Service("key")]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+            // The keyed service is ignored.
+            #if DEBUG
+            #endif
+
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceAttributeIgnoredCodeFix_Should_PreserveSurroundingComments_When_AttributeListContainsUnrelatedAttribute()
+    {
+        // arrange
+        const string source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Obsolete, /* before keyed service */ Service("key") /* after keyed service */]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceAttributeIgnoredAnalyzer(),
+            new DataLoaderKeyedServiceAttributeIgnoredCodeFixProvider(),
+            "Remove keyed service attribute");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using GreenDonut;
+            using HotChocolate;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                internal static Task<IReadOnlyDictionary<int, string>> GetAsync(
+                    [Obsolete /* before keyed service */  /* after keyed service */]
+                    IReadOnlyList<int> keys)
+                    => default!;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_ReplaceDirectServiceAndPreserveTrivia()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+            using Microsoft.Extensions.DependencyInjection;
+
+            class Loader : IDataLoader
+            {
+                public Loader(
+            // The keyed service is required by this loader.
+            #if DEBUG
+            #endif
+                    [Service(/* key */ "key")]
+                    object service)
+                {
+                }
+            }
+            """;
+
+        // act
+        var fixedSource = await ApplyCodeFixAsync(
+            source,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider(),
+            "Use FromKeyedServices");
+
+        // assert
+        fixedSource.MatchInlineSnapshot("""
+            using GreenDonut;
+            using HotChocolate;
+            using Microsoft.Extensions.DependencyInjection;
+
+            class Loader : IDataLoader
+            {
+                public Loader(
+            // The keyed service is required by this loader.
+            #if DEBUG
+            #endif
+                    [global::Microsoft.Extensions.DependencyInjection.FromKeyedServices(/* key */ "key")]
+                    object service)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_CompileWithoutImportAndPreserveNamedArgumentTrivia()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader(
+                    [Service(key: /* key */ "key")]
+                    object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """;
+
+        // act
+        using var workspace = new AdhocWorkspace();
+        var document = CreateDocument(workspace, source);
+        var fixedDocument = await ApplyCodeFixDocumentAsync(
+            document,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider(),
+            "Use FromKeyedServices");
+        var fixedCompilation = await fixedDocument.Project.GetCompilationAsync(
+            TestContext.Current.CancellationToken);
+        var fixedSource = (await fixedDocument.GetTextAsync(TestContext.Current.CancellationToken)).ToString();
+
+        // assert
+        Assert.Empty(fixedCompilation!.GetDiagnostics(TestContext.Current.CancellationToken).Where(t => t.Severity == DiagnosticSeverity.Error));
+        fixedSource.MatchInlineSnapshot("""
+            using GreenDonut;
+            using HotChocolate;
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader(
+                    [global::Microsoft.Extensions.DependencyInjection.FromKeyedServices(key: /* key */ "key")]
+                    object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_Compile_When_ServiceKeyIsEnum()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+
+            enum ServiceKey { First }
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader([Service(ServiceKey.First)] object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """;
+
+        // act
+        using var workspace = new AdhocWorkspace();
+        var document = CreateDocument(workspace, source);
+        var fixedDocument = await ApplyCodeFixDocumentAsync(
+            document,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider(),
+            "Use FromKeyedServices");
+        var fixedCompilation = await fixedDocument.Project.GetCompilationAsync(
+            TestContext.Current.CancellationToken);
+        var fixedSource = (await fixedDocument.GetTextAsync(TestContext.Current.CancellationToken)).ToString();
+
+        // assert
+        Assert.Empty(fixedCompilation!.GetDiagnostics(TestContext.Current.CancellationToken).Where(t => t.Severity == DiagnosticSeverity.Error));
+        fixedSource.MatchInlineSnapshot("""
+            using GreenDonut;
+            using HotChocolate;
+
+            enum ServiceKey { First }
+
+            abstract class Loader : DataLoaderBase<int, string>
+            {
+                public Loader([global::Microsoft.Extensions.DependencyInjection.FromKeyedServices(ServiceKey.First)] object service)
+                    : base(null!, new DataLoaderOptions())
+                { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task KeyedServiceOnConstructorParameterCodeFix_Should_NotRegisterForDerivedAttribute()
+    {
+        // arrange
+        const string source = """
+            using GreenDonut;
+            using HotChocolate;
+
+            class MemoizedInScopeAttribute() : ServiceAttribute("key")
+            {
+            }
+
+            class Loader : IDataLoader
+            {
+                public Loader([MemoizedInScope] object service)
+                {
+                }
+            }
+            """;
+
+        // act
+        var actions = await GetCodeFixesAsync(
+            source,
+            new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
+            new DataLoaderKeyedServiceOnConstructorParameterCodeFixProvider());
+
+        // assert
+        Assert.Empty(actions);
+    }
+
+    [Fact]
     public async Task SignatureCodeFixes_Should_UseLastContract_When_GenericAttributesConflict()
     {
         // arrange

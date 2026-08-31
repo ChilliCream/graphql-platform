@@ -25,6 +25,7 @@ public static class WellKnownAttributes
     public const string ParentAttribute = "HotChocolate.ParentAttribute";
     public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
     public const string ServiceAttribute = "HotChocolate.ServiceAttribute";
+    public const string FromKeyedServicesAttribute = "Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute";
     public const string ArgumentAttribute = "HotChocolate.ArgumentAttribute";
     public const string BindMemberAttribute = "HotChocolate.Types.BindMemberAttribute";
     public const string BindFieldAttribute = "HotChocolate.Types.BindFieldAttribute";

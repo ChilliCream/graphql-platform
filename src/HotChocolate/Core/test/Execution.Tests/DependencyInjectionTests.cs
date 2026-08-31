@@ -1,3 +1,5 @@
+using GreenDonut;
+using HotChocolate.Fetching;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -173,6 +175,110 @@ public class DependencyInjectionTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Keyed_DataLoader_Service_Is_Resolved()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton<KeyedService>("keyed")
+                .AddGraphQL()
+                .AddQueryType<KeyedDataLoaderQuery>()
+                .AddDataLoader<KeyedDataLoader>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ value }", TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "value": "keyed"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Custom_DataLoader_Factory_Can_Create_Keyed_DataLoader()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton<KeyedService>("keyed")
+                .AddGraphQL()
+                .AddQueryType<KeyedDataLoaderQuery>()
+                .AddDataLoader<KeyedDataLoader>(serviceProvider =>
+                {
+                    var serviceInspector = serviceProvider.GetRequiredService<IServiceProviderIsService>();
+                    var keyedServiceInspector =
+                        serviceProvider.GetRequiredService<IServiceProviderIsKeyedService>();
+
+                    Assert.Same(serviceInspector, keyedServiceInspector);
+                    Assert.IsAssignableFrom<IServiceProviderIsKeyedService>(serviceInspector);
+                    Assert.True(keyedServiceInspector.IsKeyedService(typeof(KeyedService), "keyed"));
+
+                    return ActivatorUtilities.CreateInstance<KeyedDataLoader>(serviceProvider);
+                })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ value }", TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "value": "keyed"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Unkeyed_DataLoader_Service_Is_Resolved_From_NonKeyed_Provider()
+    {
+        // arrange
+        IServiceProvider services =
+            new ServiceCollection()
+                .AddScoped<SomeService>()
+                .AddGraphQL()
+                .AddQueryType<UnkeyedDataLoaderQuery>()
+                .AddDataLoader<UnkeyedDataLoader>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        using var scope = services.CreateScope();
+
+        var serviceProvider = new NonKeyedServiceProvider(scope.ServiceProvider);
+        var serviceInspector = serviceProvider.GetRequiredService<IServiceProviderIsService>();
+        Assert.True(serviceInspector.IsService(typeof(IBatchDispatcher)));
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument("{ value }")
+                .SetServices(serviceProvider)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "value": "Hello_0"
+              }
+            }
+            """);
+    }
+
     public class SomeService
     {
         private int _i;
@@ -207,5 +313,77 @@ public class DependencyInjectionTests
         }
 
         public string Hello() => _service.SayHello();
+    }
+
+    public class KeyedService
+    {
+        public string Value => "keyed";
+    }
+
+    public class KeyedDataLoaderQuery
+    {
+        public async Task<string?> GetValueAsync(
+            KeyedDataLoader dataLoader,
+            CancellationToken cancellationToken)
+            => await dataLoader.LoadAsync("key", cancellationToken);
+    }
+
+    public class KeyedDataLoader(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options,
+        [FromKeyedServices("keyed")] KeyedService service)
+        : BatchDataLoader<string, string>(batchScheduler, options)
+    {
+        protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
+            IReadOnlyList<string> keys,
+            CancellationToken cancellationToken)
+        {
+            var results = new Dictionary<string, string>();
+
+            foreach (var key in keys)
+            {
+                results[key] = service.Value;
+            }
+
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(results);
+        }
+    }
+
+    public class UnkeyedDataLoaderQuery
+    {
+        public async Task<string?> GetValueAsync(
+            UnkeyedDataLoader dataLoader,
+            CancellationToken cancellationToken)
+            => await dataLoader.LoadAsync("key", cancellationToken);
+    }
+
+    public class UnkeyedDataLoader(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options,
+        SomeService service)
+        : BatchDataLoader<string, string>(batchScheduler, options)
+    {
+        protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
+            IReadOnlyList<string> keys,
+            CancellationToken cancellationToken)
+        {
+            var results = new Dictionary<string, string>();
+
+            foreach (var key in keys)
+            {
+                results[key] = service.SayHello();
+            }
+
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(results);
+        }
+    }
+
+    private sealed class NonKeyedServiceProvider(IServiceProvider innerServiceProvider)
+        : IServiceProvider
+    {
+        public object? GetService(Type serviceType)
+            => serviceType == typeof(IServiceProviderIsKeyedService)
+                ? null
+                : innerServiceProvider.GetService(serviceType);
     }
 }
