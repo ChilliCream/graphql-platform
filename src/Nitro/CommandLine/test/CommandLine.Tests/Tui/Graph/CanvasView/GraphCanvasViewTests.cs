@@ -296,12 +296,9 @@ public sealed class GraphCanvasViewTests
                 Graph…
                 nodes…
                 """,
-                """
-                Graph…
-                ┌─────
-                nodes…
-                """
+                "Graph…\n      \nnodes…"
             ]);
+        Assert.Equal(new CanvasViewport(12, 2, 6, 1), view.Viewport);
     }
 
     [Fact]
