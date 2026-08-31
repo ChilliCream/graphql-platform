@@ -16,6 +16,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
     private readonly TaskCompletionSource<StreamPageCompletion> _completionSource =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private int _enumerationStarted;
+    private Exception? _completionException;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamPage{T}"/> class.
@@ -67,6 +68,11 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         ArgumentNullException.ThrowIfNull(createCursor);
         ArgumentOutOfRangeException.ThrowIfNegative(arguments.First ?? 0);
 
+        if (arguments.Last is not null || arguments.Before is not null)
+        {
+            throw ThrowHelper.StreamPage_BackwardPaginationNotSupported(nameof(arguments));
+        }
+
         _items = items;
         _arguments = arguments;
         _createCursor = createCursor;
@@ -97,7 +103,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
             throw new InvalidOperationException("A streamed page can only be enumerated once.");
         }
 
-        return EnumerateAsync(cancellationToken).GetAsyncEnumerator();
+        return new Enumerator(this, cancellationToken);
     }
 
     private async IAsyncEnumerable<T> GetItemsAsync(
@@ -113,7 +119,6 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var completed = false;
-        var completionState = new CompletionState();
 
         try
         {
@@ -124,18 +129,18 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
             var itemIndex = 0;
             var requestedSize = _arguments.First;
 
-            var enumerator = GetAsyncEnumerator(cancellationToken, completionState);
+            var enumerator = GetSourceAsyncEnumerator(cancellationToken);
             try
             {
                 while (requestedSize is null || itemIndex < requestedSize)
                 {
-                    if (!await MoveNextAsync(enumerator, completionState))
+                    if (!await MoveNextAsync(enumerator))
                     {
                         break;
                     }
 
                     fetchCount++;
-                    var cursor = CreateCursor(new EdgeEntry<T>(enumerator.Current, 0, 0, 0), completionState);
+                    var cursor = CreateCursor(new EdgeEntry<T>(enumerator.Current, 0, 0, 0));
                     startCursor ??= cursor;
                     endCursor = cursor;
                     itemIndex++;
@@ -145,7 +150,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
 
                 if (requestedSize is not null)
                 {
-                    hasNextPage = await MoveNextAsync(enumerator, completionState);
+                    hasNextPage = await MoveNextAsync(enumerator);
 
                     if (hasNextPage)
                     {
@@ -155,7 +160,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
             }
             finally
             {
-                await DisposeAsync(enumerator, completionState);
+                await DisposeAsync(enumerator);
             }
 
             _completionSource.TrySetResult(
@@ -170,7 +175,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         {
             if (!completed)
             {
-                if (completionState.Exception is { } exception)
+                if (_completionException is { } exception)
                 {
                     _completionSource.TrySetException(exception);
                 }
@@ -182,9 +187,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
     }
 
-    private IAsyncEnumerator<T> GetAsyncEnumerator(
-        CancellationToken cancellationToken,
-        CompletionState completionState)
+    private IAsyncEnumerator<T> GetSourceAsyncEnumerator(CancellationToken cancellationToken)
     {
         try
         {
@@ -192,14 +195,12 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            completionState.Exception = exception;
+            _completionException = exception;
             throw;
         }
     }
 
-    private static async ValueTask<bool> MoveNextAsync(
-        IAsyncEnumerator<T> enumerator,
-        CompletionState completionState)
+    private async ValueTask<bool> MoveNextAsync(IAsyncEnumerator<T> enumerator)
     {
         try
         {
@@ -207,12 +208,12 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            completionState.Exception = exception;
+            _completionException = exception;
             throw;
         }
     }
 
-    private static async ValueTask DisposeAsync(IAsyncEnumerator<T> enumerator, CompletionState completionState)
+    private async ValueTask DisposeAsync(IAsyncEnumerator<T> enumerator)
     {
         try
         {
@@ -220,12 +221,12 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            completionState.Exception = exception;
+            _completionException = exception;
             throw;
         }
     }
 
-    private string CreateCursor(EdgeEntry<T> entry, CompletionState completionState)
+    private string CreateCursor(EdgeEntry<T> entry)
     {
         try
         {
@@ -233,13 +234,42 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            completionState.Exception = exception;
+            _completionException = exception;
             throw;
         }
     }
 
-    private sealed class CompletionState
+    private sealed class Enumerator(StreamPage<T> page, CancellationToken cancellationToken)
+        : IAsyncEnumerator<StreamPageEdge<T>>
     {
-        public Exception? Exception { get; set; }
+        private IAsyncEnumerator<StreamPageEdge<T>>? _enumerator;
+        private int _state;
+
+        public StreamPageEdge<T> Current => _enumerator!.Current;
+
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            if (Interlocked.CompareExchange(ref _state, 1, 0) is 2)
+            {
+                return false;
+            }
+
+            _enumerator ??= page.EnumerateAsync(cancellationToken).GetAsyncEnumerator();
+            return await _enumerator.MoveNextAsync();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (Interlocked.CompareExchange(ref _state, 2, 0) is 0)
+            {
+                page._completionSource.TrySetCanceled();
+                return;
+            }
+
+            if (_enumerator is { } enumerator)
+            {
+                await enumerator.DisposeAsync();
+            }
+        }
     }
 }

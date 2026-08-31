@@ -167,6 +167,36 @@ public class StreamPageTests
     }
 
     [Fact]
+    public async Task Completion_Should_BeCanceled_When_EnumerationIsDisposedBeforeItStarts()
+    {
+        // arrange
+        var page = new StreamPage<string>(
+            CreateItems("a"),
+            new PagingArguments(first: 1),
+            static item => item);
+        var enumerator = page.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        await enumerator.DisposeAsync();
+
+        // assert
+        await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnsupportedPagingArguments))]
+    public void Constructor_Should_Throw_When_BackwardPagingArgumentsAreSpecified(
+        PagingArguments arguments)
+    {
+        // act
+        var exception = Assert.Throws<ArgumentException>(
+            () => new StreamPage<string>(CreateItems("a"), arguments, static item => item));
+
+        // assert
+        Assert.Equal("arguments", exception.ParamName);
+    }
+
+    [Fact]
     public async Task Completion_Should_NotReportPreviousPage_When_AfterIsSpecifiedButSourceIsEmpty()
     {
         // arrange
@@ -208,6 +238,13 @@ public class StreamPageTests
         Assert.False(emptyCompletion.HasPreviousPage);
         Assert.True(overfetchCompletion.HasNextPage);
         Assert.True(overfetchCompletion.HasPreviousPage);
+    }
+
+    public static IEnumerable<object[]> UnsupportedPagingArguments()
+    {
+        yield return [new PagingArguments(last: 1)];
+        yield return [new PagingArguments(before: "before")];
+        yield return [new PagingArguments(first: 1, after: "after", last: 1, before: "before")];
     }
 
     private static async Task EnumerateAsync(StreamPage<string> page)
