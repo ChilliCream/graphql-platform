@@ -147,22 +147,35 @@ internal sealed class GraphCanvasView
     {
         if (width <= 0 || height <= 0)
         {
-            return new Markup(string.Empty);
+            Viewport = default;
+            return Text.Empty;
         }
 
         var result = CreateRenderResult();
         var noticeHeight = _model.IsReduced ? 1 : 0;
-        var canvasHeight = Math.Max(0, height - noticeHeight);
+        var footerHeight = height > noticeHeight ? 1 : 0;
+        var canvasHeight = Math.Max(0, height - noticeHeight - footerHeight);
         Viewport = CreateViewport(result.Buffer, width, canvasHeight);
-        var canvas = result.Buffer.Render(Viewport);
+        var rows = new List<IRenderable>(noticeHeight + footerHeight + 1);
 
-        if (!_model.IsReduced)
+        if (_model.IsReduced)
         {
-            return canvas;
+            var notice = GraphCanvasText.Truncate($"Graph reduced: {_model.HiddenNodeCount} nodes hidden", width);
+            rows.Add(CreateLine(notice, ThemeTokens.GetStyle("toast.warn.border")));
         }
 
-        var notice = $"Graph reduced: {_model.HiddenNodeCount} nodes hidden";
-        return new Rows(new Markup($"[{ThemeTokens.GetStyle("toast.warn.border").ToMarkup()}]{Markup.Escape(notice)}[/]"), canvas);
+        if (canvasHeight > 0)
+        {
+            rows.Add(result.Buffer.Render(Viewport));
+        }
+
+        if (footerHeight > 0)
+        {
+            var footer = GraphCanvasText.Truncate(GraphRenderFooter.CreateText(result), width);
+            rows.Add(CreateLine(footer, Style.Plain));
+        }
+
+        return rows.Count == 1 ? rows[0] : new Rows(rows);
     }
 
     private void RebuildLayout()
@@ -185,11 +198,18 @@ internal sealed class GraphCanvasView
     {
         if (_selectedTaskId is null)
         {
+            ClearCycle();
             return false;
         }
 
-        var originId = _cycleDirection == direction && _cycleOriginId is not null
-            ? _cycleOriginId
+        var continuingCycle = _cycleDirection == direction && _cycleOriginId is not null;
+        if (!continuingCycle)
+        {
+            ClearCycle();
+        }
+
+        var originId = continuingCycle
+            ? _cycleOriginId!
             : _selectedTaskId;
         var candidates = GetHorizontalCandidates(originId, direction);
 
@@ -199,7 +219,14 @@ internal sealed class GraphCanvasView
             return false;
         }
 
-        var currentIndex = _cycleDirection == direction && _cycleOriginId == originId
+        if (candidates.Count == 1)
+        {
+            _selectedTaskId = candidates[0];
+            ClearCycle();
+            return true;
+        }
+
+        var currentIndex = continuingCycle && _cycleOriginId == originId
             ? IndexOf(candidates, _selectedTaskId)
             : -1;
         _selectedTaskId = candidates[(currentIndex + 1) % candidates.Count];
@@ -236,6 +263,8 @@ internal sealed class GraphCanvasView
 
     private bool MoveVertical(int delta)
     {
+        ClearCycle();
+
         if (_selectedTaskId is null)
         {
             return false;
@@ -254,8 +283,6 @@ internal sealed class GraphCanvasView
             .ToArray();
         var index = Array.FindIndex(layer, node => node.Id == _selectedTaskId);
         var nextIndex = Math.Clamp(index + delta, 0, layer.Length - 1);
-        ClearCycle();
-
         if (nextIndex == index)
         {
             return false;
@@ -288,6 +315,12 @@ internal sealed class GraphCanvasView
         _cycleOriginId = null;
         _cycleDirection = null;
     }
+
+    private static Text CreateLine(string value, Style style)
+        => new(value, style)
+        {
+            Overflow = Overflow.Crop
+        };
 
     private static int IndexOf(IReadOnlyList<string> values, string? value)
     {
