@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
@@ -159,7 +160,7 @@ public sealed class OperationCompiler
             var first = nodes[0];
 
             CollectFields(
-                new PathIncludeFlagsBuilder(first.PathIncludeFlags, first.PathIncludeFlagsOverflow),
+                new PathIncludeFlagsBuilder(first.PathConditionFlags.Word0, first.PathConditionFlags.Overflow),
                 first.Node.SelectionSet!.Selections,
                 objectType,
                 fields,
@@ -174,7 +175,7 @@ public sealed class OperationCompiler
                     var node = nodes[i];
 
                     CollectFields(
-                        new PathIncludeFlagsBuilder(node.PathIncludeFlags, node.PathIncludeFlagsOverflow),
+                        new PathIncludeFlagsBuilder(node.PathConditionFlags.Word0, node.PathConditionFlags.Overflow),
                         node.Node.SelectionSet!.Selections,
                         objectType,
                         fields,
@@ -236,9 +237,8 @@ public sealed class OperationCompiler
                 nodes.Add(
                     new FieldSelectionNode(
                         fieldNode,
-                        pathIncludeFlags.Word0,
-                        parentDeliveryGroup,
-                        pathIncludeFlags.Overflow));
+                        new ConditionFlags(pathIncludeFlags.Word0, pathIncludeFlags.Overflow),
+                        parentDeliveryGroup));
             }
             else if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
@@ -510,7 +510,7 @@ public sealed class OperationCompiler
             return;
         }
 
-        if (node.PathIncludeFlags == 0 && IsOverflowEmpty(node.PathIncludeFlagsOverflow))
+        if (node.PathConditionFlags.Word0 == 0 && IsOverflowEmpty(node.PathConditionFlags.Overflow))
         {
             alwaysIncluded = true;
             if (includeFlags.Count > 0)
@@ -522,7 +522,7 @@ public sealed class OperationCompiler
         else if (!alwaysIncluded)
         {
             includeFlags.Add(node.PathIncludeFlags);
-            wideIncludeFlags?.Add(node.PathIncludeFlagsOverflow ?? []);
+            wideIncludeFlags?.Add(node.PathConditionFlags.Overflow ?? []);
         }
     }
 

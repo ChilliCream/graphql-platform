@@ -5,30 +5,72 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a field selection node with its path include flags and defer usage.
 /// </summary>
-/// <param name="Node">
-/// The syntax node that represents the field selection.
-/// </param>
-/// <param name="PathIncludeFlags">
-/// The flags that must be all set for this selection to be included.
-/// </param>
-/// <param name="DeferUsage">
-/// The defer usage context this field was collected under, or <c>null</c> if the field
-/// is not inside a deferred fragment.
-/// </param>
-public sealed record FieldSelectionNode(
-    FieldNode Node,
-    ulong PathIncludeFlags,
-    DeferUsage? DeferUsage = null)
+public sealed record FieldSelectionNode
 {
-    internal FieldSelectionNode(
+    private readonly ConditionFlags _pathConditionFlags;
+
+    /// <summary>
+    /// Gets the syntax node that represents the field selection.
+    /// </summary>
+    public FieldNode Node { get; }
+
+    /// <summary>
+    /// Gets the flags that must be all set for this selection to be included.
+    /// </summary>
+    public ulong PathIncludeFlags { get; }
+
+    /// <summary>
+    /// Gets the defer usage context this field was collected under.
+    /// </summary>
+    public DeferUsage? DeferUsage { get; }
+
+    [Obsolete("Use the ConditionFlags constructor instead. This constructor cannot express more than 64 conditions.")]
+    public FieldSelectionNode(
         FieldNode node,
         ulong pathIncludeFlags,
-        DeferUsage? deferUsage,
-        ulong[]? pathIncludeFlagsOverflow)
-        : this(node, pathIncludeFlags, deferUsage)
+        DeferUsage? deferUsage = null)
     {
-        PathIncludeFlagsOverflow = pathIncludeFlagsOverflow;
+        Node = node;
+        PathIncludeFlags = pathIncludeFlags;
+        DeferUsage = deferUsage;
+        _pathConditionFlags = new ConditionFlags(pathIncludeFlags);
     }
 
-    internal ulong[]? PathIncludeFlagsOverflow { get; }
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldSelectionNode"/>.
+    /// </summary>
+    /// <param name="node">The syntax node that represents the field selection.</param>
+    /// <param name="pathIncludeFlags">The flags that must be all set for this selection to be included.</param>
+    /// <param name="deferUsage">The defer usage context this field was collected under.</param>
+    public FieldSelectionNode(
+        FieldNode node,
+        ConditionFlags pathIncludeFlags,
+        DeferUsage? deferUsage = null)
+    {
+        Node = node;
+        PathIncludeFlags = pathIncludeFlags.Word0;
+        DeferUsage = deferUsage;
+        _pathConditionFlags = pathIncludeFlags;
+    }
+
+    /// <summary>
+    /// Gets the flags that must be all set for this selection to be included.
+    /// </summary>
+    public ConditionFlags PathConditionFlags => _pathConditionFlags;
+
+    /// <summary>
+    /// Deconstructs this field selection node.
+    /// </summary>
+    /// <param name="node">The syntax node that represents the field selection.</param>
+    /// <param name="pathIncludeFlags">The flags that must be all set for this selection to be included.</param>
+    /// <param name="deferUsage">The defer usage context this field was collected under.</param>
+    public void Deconstruct(
+        out FieldNode node,
+        out ulong pathIncludeFlags,
+        out DeferUsage? deferUsage)
+    {
+        node = Node;
+        pathIncludeFlags = PathIncludeFlags;
+        deferUsage = DeferUsage;
+    }
 }

@@ -192,7 +192,7 @@ public sealed partial class OperationCompiler
             var hasWideDeferFlags = operation.HasWideDeferFlags;
 
             CollectFields(
-                new PathIncludeFlagsBuilder(first.PathIncludeFlags, first.PathIncludeFlagsOverflow),
+                new PathIncludeFlagsBuilder(first.PathConditionFlags.Word0, first.PathConditionFlags.Overflow),
                 first.Node.SelectionSet!.Selections,
                 objectType,
                 fields,
@@ -207,7 +207,7 @@ public sealed partial class OperationCompiler
                     var node = nodes[i];
 
                     CollectFields(
-                        new PathIncludeFlagsBuilder(node.PathIncludeFlags, node.PathIncludeFlagsOverflow),
+                        new PathIncludeFlagsBuilder(node.PathConditionFlags.Word0, node.PathConditionFlags.Overflow),
                         node.Node.SelectionSet!.Selections,
                         objectType,
                         fields,
@@ -273,9 +273,8 @@ public sealed partial class OperationCompiler
                 nodes.Add(
                     new FieldSelectionNode(
                         fieldNode,
-                        pathIncludeFlags.Word0,
-                        parentDeferUsage,
-                        pathIncludeFlags.Overflow));
+                        new ConditionFlags(pathIncludeFlags.Word0, pathIncludeFlags.Overflow),
+                        parentDeferUsage));
             }
             else if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
@@ -348,14 +347,14 @@ public sealed partial class OperationCompiler
             var isProjectionRequirement = parentIsProjectionRequirement;
             var hasNonDeferredNode = first.DeferUsage is null;
 
-            if (first.PathIncludeFlags == 0 && IsOverflowEmpty(first.PathIncludeFlagsOverflow))
+            if (first.PathConditionFlags.Word0 == 0 && IsOverflowEmpty(first.PathConditionFlags.Overflow))
             {
                 alwaysIncluded = true;
             }
             else
             {
                 includeFlags.Add(first.PathIncludeFlags);
-                wideIncludeFlags?.Add(first.PathIncludeFlagsOverflow ?? []);
+                wideIncludeFlags?.Add(first.PathConditionFlags.Overflow ?? []);
             }
 
             if (first.DeferUsage is not null)
@@ -375,7 +374,7 @@ public sealed partial class OperationCompiler
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
 
-                    if (next.PathIncludeFlags == 0 && IsOverflowEmpty(next.PathIncludeFlagsOverflow))
+                    if (next.PathConditionFlags.Word0 == 0 && IsOverflowEmpty(next.PathConditionFlags.Overflow))
                     {
                         alwaysIncluded = true;
                         if (includeFlags.Count > 0)
@@ -387,7 +386,7 @@ public sealed partial class OperationCompiler
                     else if (!alwaysIncluded)
                     {
                         includeFlags.Add(next.PathIncludeFlags);
-                        wideIncludeFlags?.Add(next.PathIncludeFlagsOverflow ?? []);
+                        wideIncludeFlags?.Add(next.PathConditionFlags.Overflow ?? []);
                     }
 
                     if (next.DeferUsage is null)
