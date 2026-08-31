@@ -374,15 +374,15 @@ internal sealed class GraphEdgeRouter
         {
             var channel = low + ((index + offset) % candidateCount);
             var points = Route(startAnchor, endAnchor, channel);
-            if (IsClearRoute(points, allNodes, blockedPoints, start, end))
+            if (IsClearRoute(points, allNodes, blockedPoints, start, end, startAnchor, endAnchor))
             {
                 route = ComposeRoute(start.Point, startAnchor, points, endAnchor, end.Point);
                 return true;
             }
         }
 
-        if (TryFindGridRoute(startAnchor, endAnchor, allNodes, blockedPoints, out var gridRoute)
-            && IsClearRoute(gridRoute, allNodes, blockedPoints, start, end))
+        if (TryFindGridRoute(startAnchor, endAnchor, allNodes, blockedPoints, start, end, out var gridRoute)
+            && IsClearRoute(gridRoute, allNodes, blockedPoints, start, end, startAnchor, endAnchor))
         {
             route = ComposeRoute(start.Point, startAnchor, gridRoute, endAnchor, end.Point);
             return true;
@@ -397,6 +397,8 @@ internal sealed class GraphEdgeRouter
         GraphLayoutPoint end,
         IReadOnlyList<GraphLayoutNode> nodes,
         HashSet<GraphLayoutPoint> blockedPoints,
+        RoutePort startPort,
+        RoutePort endPort,
         out List<GraphLayoutPoint> route)
     {
         var maxX = Math.Max(Math.Max(start.X, end.X), nodes.Count == 0 ? 0 : nodes.Max(t => t.X + t.Width)) + 1;
@@ -421,12 +423,13 @@ internal sealed class GraphEdgeRouter
             {
                 var nextX = x + step.X;
                 var nextY = y + step.Y;
+                var nextPoint = new GraphLayoutPoint(nextX, nextY);
                 if (nextX < 0
                     || nextX > maxX
                     || nextY < 0
                     || nextY > maxY
                     || Contains(nodes, nextX, nextY)
-                    || blockedPoints.Contains(new GraphLayoutPoint(nextX, nextY)))
+                    || (nextPoint != end && IsBlocked(nextPoint, blockedPoints, startPort, endPort)))
                 {
                     continue;
                 }
@@ -472,11 +475,21 @@ internal sealed class GraphEdgeRouter
         IReadOnlyList<GraphLayoutNode> nodes,
         HashSet<GraphLayoutPoint> blockedPoints,
         RoutePort start,
-        RoutePort end)
+        RoutePort end,
+        GraphLayoutPoint startAnchor,
+        GraphLayoutPoint endAnchor)
         => points.All(point => !Contains(nodes, point.X, point.Y)
             && !blockedPoints.Contains(point)
-            && (start.Direction == CanvasDirections.None || point != start.Point)
-            && (end.Direction == CanvasDirections.None || point != end.Point));
+            && (point == startAnchor || point == endAnchor || !IsBlocked(point, blockedPoints, start, end)));
+
+    private static bool IsBlocked(
+        GraphLayoutPoint point,
+        HashSet<GraphLayoutPoint> blockedPoints,
+        RoutePort start,
+        RoutePort end)
+        => blockedPoints.Contains(point)
+            || (start.Direction != CanvasDirections.None && point == start.Point)
+            || (end.Direction != CanvasDirections.None && point == end.Point);
 
     private static bool Contains(IReadOnlyList<GraphLayoutNode> nodes, int x, int y)
     {

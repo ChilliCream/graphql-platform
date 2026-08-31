@@ -123,6 +123,37 @@ public sealed class GraphEdgeRouterTests
     }
 
     [Fact]
+    public void Route_Should_ReserveDistinctFanInArrowPorts_When_InputOrderChanges()
+    {
+        // arrange
+        var blocks = Edge("a", "target");
+        var parent = Edge("c", "target", GraphEdgeKind.ParentChild);
+        var nodes = new[]
+        {
+            Node("a", 0, 0, 2, 1, 0, 0), Node("c", 0, 3, 2, 1, 0, 1),
+            Node("target", 8, 0, 2, 4, 1, 0)
+        };
+        var spans = new[]
+        {
+            Span(blocks, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0)),
+            Span(parent, 0, 1, 1, 0, new GraphLayoutPoint(0, 3), new GraphLayoutPoint(8, 0))
+        };
+        var options = new GraphEdgeRenderOptions { IncludeParentChild = true };
+        var first = new GraphEdgeRouter().Route(Frame(nodes, spans), options);
+
+        // act
+        var second = new GraphEdgeRouter().Route(Frame(nodes, spans.Reverse().ToArray()), options);
+        var arrows = ArrowCells(first.Buffer).OrderBy(t => t.Point.Y).ThenBy(t => t.Point.X).ToArray();
+
+        // assert
+        Assert.Equal(2, first.RenderedEdgeCount);
+        Assert.Equal(['▶', '▷'], arrows.Select(t => t.Glyph).Order().ToArray());
+        Assert.Equal(2, arrows.Select(t => t.Point).Distinct().Count());
+        Assert.All(first.Routes, route => Assert.Equal(1, route.Points.Count(point => arrows.Any(arrow => arrow.Point == point))));
+        Assert.Equal(RouteProjection(first), RouteProjection(second));
+    }
+
+    [Fact]
     public void Route_Should_UseOneArrowForEveryLongLogicalEdge()
     {
         // arrange
@@ -185,6 +216,7 @@ public sealed class GraphEdgeRouterTests
 
         // act
         var result = new GraphEdgeRouter().Route(layout);
+        var route = result.Routes[0];
         var arrows = Cells(result.Buffer)
             .Where(point => result.Buffer.Get(point.X, point.Y).Glyph is '▶' or '▷' or '◀' or '◁')
             .ToArray();
@@ -194,6 +226,7 @@ public sealed class GraphEdgeRouterTests
         Assert.Equal(new GraphLayoutPoint(2, 0), arrows[0]);
         Assert.Equal('◀', result.Buffer.Get(arrows[0].X, arrows[0].Y).Glyph);
         Assert.Equal('┄', result.Buffer.Get(5, 0).Glyph);
+        Assert.Equal([new GraphLayoutPoint(2, 0), new GraphLayoutPoint(3, 0)], route.Points.Take(2));
     }
 
     [Fact]
@@ -236,6 +269,12 @@ public sealed class GraphEdgeRouterTests
         var intrusions = route.Points.Where(point => layout.Nodes.Any(node => Contains(node, point))).ToArray();
 
         // assert
+        Assert.Equal(
+            [
+                new GraphLayoutPoint(0, 2), new GraphLayoutPoint(0, 3), new GraphLayoutPoint(1, 3),
+                new GraphLayoutPoint(2, 3), new GraphLayoutPoint(2, 2)
+            ],
+            route.Points);
         Assert.Equal([], intrusions);
         Assert.Equal('▲', result.Buffer.Get(2, 2).Glyph);
         Assert.Equal(1, result.RenderedEdgeCount);
@@ -266,6 +305,36 @@ public sealed class GraphEdgeRouterTests
     }
 
     [Fact]
+    public void Route_Should_RollBackTargetReservation_When_AfterTargetSpanFails()
+    {
+        // arrange
+        var failed = Edge("a", "b");
+        var succeeding = Edge("e", "f");
+        var nodes = new[]
+        {
+            Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 1, 1, 0),
+            Node("e", 0, 6, 2, 1, 0, 1), Node("f", 8, 6, 2, 1, 1, 1),
+            Node("left", 3, 4, 1, 1, 2, 0), Node("right", 5, 4, 1, 1, 2, 1),
+            Node("top", 4, 3, 1, 1, 2, 2), Node("bottom", 4, 5, 1, 1, 2, 3)
+        };
+        var goodSpan = Span(succeeding, 0, 1, 1, 1, new GraphLayoutPoint(0, 6), new GraphLayoutPoint(8, 6));
+        var failedSpans = new[]
+        {
+            Span(failed, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0)),
+            Span(failed, 1, 2, 0, 0, new GraphLayoutPoint(4, 4), new GraphLayoutPoint(6, 4))
+        };
+        var withoutFailed = new GraphEdgeRouter().Route(Frame(nodes, [goodSpan]));
+
+        // act
+        var withFailed = new GraphEdgeRouter().Route(Frame(nodes, [.. failedSpans, goodSpan]));
+
+        // assert
+        Assert.Equal(1, withFailed.RenderedEdgeCount);
+        Assert.Equal(RouteProjection(withoutFailed), RouteProjection(withFailed));
+        Assert.Equal(ArrowCells(withoutFailed.Buffer), ArrowCells(withFailed.Buffer));
+    }
+
+    [Fact]
     public void Route_Should_KeepSharedCellContributionsStableAcrossInputOrder()
     {
         // arrange
@@ -293,7 +362,7 @@ public sealed class GraphEdgeRouterTests
 
         // assert
         Assert.Equal(first.Routes.Select(t => t.Span.Edge), second.Routes.Select(t => t.Span.Edge));
-        Assert.Equal(new[] { highlighted, parent, blocks }, firstCell.Owners.ToArray());
+        Assert.Equal(new[] { highlighted }, firstCell.Owners.ToArray());
         Assert.Equal('┄', firstCell.Glyph);
         Assert.Equal(new Style(Color.Red, null, Decoration.Dim), firstCell.Style);
         Assert.Equal(Describe(firstCell), Describe(secondCell));
@@ -333,6 +402,16 @@ public sealed class GraphEdgeRouterTests
             }
         }
     }
+
+    private static IEnumerable<ArrowCell> ArrowCells(CellBuffer buffer)
+        => Cells(buffer)
+            .Select(point => new ArrowCell(point, buffer.Get(point.X, point.Y).Glyph))
+            .Where(t => t.Glyph is '▶' or '▷' or '◀' or '◁' or '▼' or '▽' or '▲' or '△');
+
+    private static IReadOnlyList<string> RouteProjection(GraphRenderResult result)
+        => result.Routes
+            .Select(t => $"{t.Span.Edge}|{string.Join(",", t.Points)}")
+            .ToArray();
 
     private static RenderedCell Describe(CanvasCell cell)
         => new(cell.Glyph, cell.Style, string.Join(",", cell.Owners.Select(t => ((GraphEdge)t).ToString())));
@@ -375,4 +454,7 @@ public sealed class GraphEdgeRouterTests
         => new(from, to, kind);
 
     private sealed record RenderedCell(char Glyph, Style Style, string Owners);
+
+    private sealed record ArrowCell(GraphLayoutPoint Point, char Glyph);
+
 }
