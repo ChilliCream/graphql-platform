@@ -1019,6 +1019,65 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
         Assert.False(File.Exists(archiveFile));
     }
 
+    [Fact]
+    public async Task Compose_Should_Succeed_When_ArchiveIsTemporarilyLockedByReader()
+    {
+        const string initialSourceSchema = "type Query { initial: String }";
+        const string updatedSourceSchema = "type Query { updated: String }";
+        const string settingsJson =
+            """{ "name": "Remote", "transports": { "http": { "url": "http://runtime/graphql" } } }""";
+        var archiveFile = CreateTempFile();
+        SetupFile("remote/schema-settings.json", settingsJson);
+        using var initialClient =
+            CreateClient(_ => Response(HttpStatusCode.OK, initialSourceSchema));
+        SetupHttpClient(initialClient);
+        string[] arguments =
+        [
+            "fusion",
+            "compose",
+            "--source-schema-url",
+            "https://composition.example/graphql/schema.graphql",
+            "--source-schema-settings-file",
+            "remote/schema-settings.json",
+            "--archive",
+            archiveFile
+        ];
+        var initialResult = await ExecuteCommandAsync(arguments);
+        Assert.Equal(0, initialResult.ExitCode);
+        using var updatedClient =
+            CreateClient(_ => Response(HttpStatusCode.OK, updatedSourceSchema));
+        SetupHttpClient(updatedClient);
+        await using var reader = File.OpenRead(archiveFile);
+
+        try
+        {
+            await using var probe = File.Open(archiveFile, FileMode.Open, FileAccess.ReadWrite);
+            Assert.Skip("This environment does not enforce file sharing.");
+        }
+        catch (IOException)
+        {
+            // The reader blocks opening the archive for update until it is disposed.
+        }
+
+        var commandTask = ExecuteCommandAsync(arguments);
+        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        await reader.DisposeAsync();
+        var result = await commandTask;
+
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(archiveFile);
+        using var configuration = await archive.TryGetSourceSchemaConfigurationAsync(
+            "Remote",
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(configuration);
+        await using var schemaStream = await configuration.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken);
+        using var streamReader = new StreamReader(schemaStream);
+        Assert.Equal(
+            updatedSourceSchema,
+            await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken));
+    }
+
     private string CreateTempFile()
     {
         var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
