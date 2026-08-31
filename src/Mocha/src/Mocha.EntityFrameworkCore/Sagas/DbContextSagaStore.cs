@@ -126,6 +126,11 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     /// <returns>The deserialized saga state, or <c>default</c> if no state is found for the given identifier.</returns>
     public async Task<T?> LoadAsync<T>(Saga saga, Guid id, CancellationToken cancellationToken)
     {
+        // An in-scope retry re-reads through the same store after a conflicted save. The instance
+        // the failed attempt left in the change tracker would otherwise be served back by identity
+        // resolution, so it is detached first and the committed row is materialized fresh.
+        DetachTrackedState(saga.Name, id);
+
         // as the state is scoped we load the whole saga state into memory for the concurrency check
         var sageState = await context
             .Set<SagaState>()
@@ -145,6 +150,18 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
         finally
         {
             document.Dispose();
+        }
+    }
+
+    private void DetachTrackedState(string sagaName, Guid id)
+    {
+        foreach (var entry in context.ChangeTracker.Entries<SagaState>())
+        {
+            if (entry.Entity.Id == id && entry.Entity.SagaName == sagaName)
+            {
+                entry.State = EntityState.Detached;
+                break;
+            }
         }
     }
 
