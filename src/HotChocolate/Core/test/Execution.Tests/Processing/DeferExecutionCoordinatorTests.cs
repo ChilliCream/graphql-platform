@@ -205,6 +205,8 @@ public sealed class DeferExecutionCoordinatorTests
     {
         // arrange
         var coordinator = CreateCoordinator(out var mainBranchId);
+        var initialResult = CreateResult();
+        coordinator.EnqueueResult(initialResult);
         var streamBranchId = coordinator.RegisterStreamBranch(mainBranchId, Path.Root.Append("items"), null);
         var deferBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
         var deferredHolder = new CountingMemoryHolder();
