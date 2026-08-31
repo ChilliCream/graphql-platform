@@ -994,14 +994,23 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var listResult = await mcpClient.ListToolsAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "failing",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(2, result.Count);
-        Assert.Contains(result, tool => tool.Name == "valid");
-        Assert.Contains(result, tool => tool.Name == "failing");
+        Assert.Equal(2, listResult.Count);
+        Assert.Contains(listResult, tool => tool.Name == "valid");
+        Assert.Contains(listResult, tool => tool.Name == "failing");
         var (toolName, _) = Assert.Single(listener.ToolCreationFailureLog);
         Assert.Equal("failing", toolName);
+        Assert.Equal(true, callResult.IsError);
+        var content = Assert.Single(callResult.Content);
+        Assert.Equal(
+            "The tool 'failing' is currently unavailable.",
+            Assert.IsType<TextContentBlock>(content).Text);
     }
 
     [Fact]
