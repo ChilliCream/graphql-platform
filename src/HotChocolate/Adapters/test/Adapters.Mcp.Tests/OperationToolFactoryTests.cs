@@ -439,6 +439,157 @@ public sealed class OperationToolFactoryTests
     }
 
     [Fact]
+    public void CreateTool_InlineFragmentsOnDifferentTypesSelectSameField_MergesIntoSingleProperty()
+    {
+        // arrange
+        var schema = CreateVehicleSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetVehicles {
+                vehicles {
+                    id
+                    ... on Car {
+                        engine {
+                            power
+                        }
+                    }
+                    ... on Truck {
+                        engine {
+                            power
+                        }
+                    }
+                }
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_InlineFragmentsWithDivergingSubSelections_UnionsSubSelections()
+    {
+        // arrange
+        var schema = CreateVehicleSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetVehicles {
+                vehicles {
+                    id
+                    ... on Car {
+                        engine {
+                            power
+                        }
+                    }
+                    ... on Truck {
+                        engine {
+                            power
+                            fuelKind
+                        }
+                    }
+                }
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_InlineFragmentsWithDivergingListSubSelections_UnionsItemSubSelections()
+    {
+        // arrange
+        var schema = CreateVehicleSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetVehicles {
+                vehicles {
+                    ... on Car {
+                        wheels {
+                            size
+                        }
+                    }
+                    ... on Truck {
+                        wheels {
+                            size
+                            treadDepth
+                        }
+                    }
+                }
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_FragmentSpreadsSelectSameField_MergesIntoSingleProperty()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithInterfaceType {
+                withInterfaceType {
+                    ...CatFields
+                    ...DogFields
+                }
+            }
+
+            fragment CatFields on Cat {
+                name
+            }
+
+            fragment DogFields on Dog {
+                name
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_DuplicateFieldSelection_MergesIntoSingleProperty()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetBooks {
+                books {
+                    title
+                    title
+                }
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
     public void CreateTool_WithSkipAndInclude_CreatesCorrectOutputSchema()
     {
         // arrange
@@ -834,6 +985,19 @@ public sealed class OperationToolFactoryTests
             .Create();
     }
 
+    private static Schema CreateVehicleSchema()
+    {
+        return SchemaBuilder
+            .New()
+            .AddMcp()
+            .ModifyOptions(o => o.StripLeadingIFromInterface = true)
+            .AddQueryType<VehicleQuery>()
+            .AddInterfaceType<IVehicle>()
+            .AddObjectType<Car>()
+            .AddObjectType<Truck>()
+            .Create();
+    }
+
     public sealed class RecursiveFilterQuery
     {
         public int GetWithRecursiveFilter(RecursiveFilter? filter) => filter is null ? 0 : 1;
@@ -847,4 +1011,22 @@ public sealed class OperationToolFactoryTests
 
         public string? Name { get; set; }
     }
+
+    public sealed class VehicleQuery
+    {
+        public IVehicle[] GetVehicles() => [];
+    }
+
+    public interface IVehicle
+    {
+        string Id { get; }
+    }
+
+    public sealed record Car(string Id, Engine? Engine, Wheel[]? Wheels) : IVehicle;
+
+    public sealed record Truck(string Id, Engine? Engine, Wheel[]? Wheels) : IVehicle;
+
+    public sealed record Engine(int Power, string? FuelKind);
+
+    public sealed record Wheel(int Size, double? TreadDepth);
 }
