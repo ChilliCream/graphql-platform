@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -6,6 +7,7 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
@@ -210,6 +212,114 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
         directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
         directive @link(url: String! import: [String!]) repeatable on SCHEMA
         """;
+
+    // Apollo Federation subgraphs reproducing issue #10312: 'X.b' is declared @external in
+    // 'sourceu' (it is only referenced there by @key(fields: "b")) and is resolvable solely in
+    // 'sourcev', so the planner must never select 'b' from 'sourceu'. The only correct plan is the
+    // chain arrival ('c') -> sourceu ('a' by key 'c') -> sourcev ('b' by key 'a') -> target
+    // ('result' by key 'b').
+    private const string ExternalKeyFieldArrival =
+        """
+        # name: arrival
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.9"
+            import: ["@key"])
+
+        type Query {
+          x: X!
+        }
+
+        type X {
+          c: ID!
+        }
+        """;
+
+    private const string ExternalKeyFieldSourceU =
+        """
+        # name: sourceu
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.9"
+            import: ["@key", "@external"])
+
+        type X @key(fields: "b") @key(fields: "c") {
+          b: ID! @external
+          c: ID! @external
+          a: ID!
+        }
+        """;
+
+    private const string ExternalKeyFieldSourceV =
+        """
+        # name: sourcev
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.9"
+            import: ["@key", "@external"])
+
+        type X @key(fields: "a") {
+          a: ID! @external
+          b: ID!
+        }
+        """;
+
+    private const string ExternalKeyFieldTarget =
+        """
+        # name: target
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.9"
+            import: ["@key", "@external"])
+
+        type X @key(fields: "b") {
+          b: ID! @external
+          result: String!
+        }
+        """;
+
+    [Fact]
+    public void Plan_Should_FetchKeyFieldFromResolvingSchema_When_KeyFieldIsSourceExternal()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            ExternalKeyFieldArrival,
+            ExternalKeyFieldSourceU,
+            ExternalKeyFieldSourceV,
+            ExternalKeyFieldTarget);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              x {
+                result
+              }
+            }
+            """);
+
+        var yaml = new YamlOperationPlanFormatter().Format(plan);
+
+        // assert
+        // 'X.b' is @external in 'sourceu' and only resolvable in 'sourcev', so any operation that
+        // selects 'b' must be directed at 'sourcev'.
+        var offendingSchemas = GetSourceOperations(plan)
+            .Where(node => node.SchemaName != "sourcev" && SelectsField(node.OperationText, "b"))
+            .Select(node => node.SchemaName)
+            .ToArray();
+
+        if (offendingSchemas.Length > 0)
+        {
+            Assert.Fail(
+                "'X.b' can only be resolved by 'sourcev', but the plan selects 'b' from "
+                + $"'{string.Join("', '", offendingSchemas)}':\n{yaml}");
+        }
+
+        Assert.Contains(
+            GetSourceOperations(plan),
+            node => node.SchemaName == "sourcev" && SelectsField(node.OperationText, "b"));
+    }
 
     [Fact]
     public void Plan_Should_Route_Apollo_Entity_Lookup_Through_Entities_Query()
@@ -465,6 +575,65 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
                 .OfType<OperationExecutionNode>()
                 .Where(node => node.SchemaName is not null)
                 .Select(node => node.SchemaName!));
+    }
+
+    private static IEnumerable<(string SchemaName, string OperationText)> GetSourceOperations(
+        OperationPlan plan)
+    {
+        foreach (var node in plan.AllNodes)
+        {
+            switch (node)
+            {
+                case OperationExecutionNode { SchemaName: { } schemaName } operation:
+                    yield return (schemaName, Encoding.UTF8.GetString(operation.Operation.Value.Span));
+                    break;
+
+                case ApolloOperationExecutionNode operation:
+                    yield return (operation.SchemaName, Encoding.UTF8.GetString(operation.Operation.Value.Span));
+                    break;
+            }
+        }
+    }
+
+    private static bool SelectsField(string operationText, string fieldName)
+    {
+        var document = Utf8GraphQLParser.Parse(operationText);
+
+        return document.Definitions
+            .OfType<OperationDefinitionNode>()
+            .Any(operation => SelectsField(operation.SelectionSet, fieldName));
+    }
+
+    private static bool SelectsField(SelectionSetNode selectionSet, string fieldName)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    if (field.Name.Value == fieldName)
+                    {
+                        return true;
+                    }
+
+                    if (field.SelectionSet is not null && SelectsField(field.SelectionSet, fieldName))
+                    {
+                        return true;
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    if (SelectsField(inlineFragment.SelectionSet, fieldName))
+                    {
+                        return true;
+                    }
+
+                    break;
+            }
+        }
+
+        return false;
     }
 
     private static FusionSchemaDefinition CreateCorruptedNodeSchema()
