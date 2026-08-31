@@ -39,15 +39,14 @@ internal sealed partial class DeferExecutionCoordinator
     public void Reset()
     {
         _branchIdLookup.Clear();
+        _streamBranchIdLookup.Clear();
         _branchLookup.Clear();
         _mainBranchChildren?.Clear();
-        _completed.Clear();
-        _delivered.Clear();
+        _completedResults.Clear();
+        _announced.Clear();
+        _completedBranches.Clear();
         _results.Clear();
         _branchTracker = null!;
-        _pendingBuilder = null;
-        _incrementalBuilder = null;
-        _completedBuilder = null;
         _processQueue = null;
         _hasBranches = false;
         _isComplete = false;

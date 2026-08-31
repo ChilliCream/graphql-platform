@@ -1,7 +1,7 @@
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fetching;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -13,18 +13,17 @@ internal sealed partial class DeferExecutionCoordinator
     private readonly object _sync = new();
 #endif
     private readonly Dictionary<DeferredBranchKey, int> _branchIdLookup = [];
+    private readonly Dictionary<StreamBranchKey, int> _streamBranchIdLookup = [];
     private readonly Dictionary<int, DeferredBranch> _branchLookup = [];
-    private HashSet<int>? _mainBranchChildren;
-    private readonly Dictionary<int, OperationResult> _completed = [];
-    private readonly HashSet<int> _delivered = [];
+    private readonly Dictionary<int, OperationResult> _completedResults = [];
+    private readonly HashSet<int> _announced = [];
+    private readonly HashSet<int> _completedBranches = [];
     private readonly List<OperationResult> _results = [];
     private readonly AsyncAutoResetEvent _signal = new();
+    private HashSet<int>? _mainBranchChildren;
+    private Queue<int>? _processQueue;
     private BranchTracker _branchTracker = null!;
     private int _mainBranchId;
-    private ImmutableList<PendingResult>.Builder? _pendingBuilder;
-    private ImmutableList<IIncrementalResult>.Builder? _incrementalBuilder;
-    private ImmutableList<CompletedResult>.Builder? _completedBuilder;
-    private Queue<int>? _processQueue;
     private volatile bool _hasBranches;
     private volatile bool _isComplete;
     private int _pendingBranches;
@@ -40,7 +39,7 @@ internal sealed partial class DeferExecutionCoordinator
     }
 
     /// <summary>
-    /// Gets whether any deferred execution branches have been registered.
+    /// Gets whether any deferred or stream execution branches have been registered.
     /// </summary>
     public bool HasBranches => _hasBranches;
 
@@ -61,8 +60,38 @@ internal sealed partial class DeferExecutionCoordinator
             {
                 newBranchId = _branchTracker.CreateNewBranchId();
                 GetChildrenUnsafe(currentBranchId).Add(newBranchId);
-                _branchLookup.Add(newBranchId, new DeferredBranch(path, deferUsage, currentBranchId));
+                _branchLookup.Add(
+                    newBranchId,
+                    new DeferredBranch(path, deferUsage.Label, currentBranchId, BranchKind.Defer));
                 _branchIdLookup.Add(key, newBranchId);
+                _hasBranches = true;
+                _pendingBranches++;
+            }
+
+            return newBranchId;
+        }
+    }
+
+    /// <summary>
+    /// Registers a new stream execution branch for the specified <paramref name="path"/>.
+    /// The branch shares the same identifier namespace and parent hierarchy as deferred branches.
+    /// </summary>
+    public int RegisterStreamBranch(int currentBranchId, Path path, string? label)
+    {
+        AssertInitialized();
+
+        var key = new StreamBranchKey(path, label, currentBranchId);
+
+        lock (_sync)
+        {
+            if (!_streamBranchIdLookup.TryGetValue(key, out var newBranchId))
+            {
+                newBranchId = _branchTracker.CreateNewBranchId();
+                GetChildrenUnsafe(currentBranchId).Add(newBranchId);
+                _branchLookup.Add(
+                    newBranchId,
+                    new DeferredBranch(path, label, currentBranchId, BranchKind.Stream));
+                _streamBranchIdLookup.Add(key, newBranchId);
                 _hasBranches = true;
                 _pendingBranches++;
             }
@@ -87,8 +116,8 @@ internal sealed partial class DeferExecutionCoordinator
 
     /// <summary>
     /// Enqueues a deferred result for the specified branch.
-    /// If the parent branch has already been delivered, the result is composed
-    /// and delivered immediately; otherwise it is stored until the parent is delivered.
+    /// If the parent branch has already been announced, the result is composed
+    /// and delivered immediately; otherwise it is stored until the parent is announced.
     /// </summary>
     public void EnqueueResult(OperationResult result, int branchId)
     {
@@ -96,12 +125,132 @@ internal sealed partial class DeferExecutionCoordinator
 
         lock (_sync)
         {
-            _completed[branchId] = result;
+            _completedResults[branchId] = result;
 
-            if (IsParentDeliveredUnsafe(branchId)
-                && _completed.Remove(branchId, out var readyResult))
+            if (IsParentAnnouncedUnsafe(branchId))
             {
-                ComposeAndDeliverUnsafe(branchId, readyResult);
+                if (!_announced.Contains(branchId))
+                {
+                    var parentBranchId = _branchLookup[branchId].ParentBranchId;
+                    var payload = GetPayloadUnsafe(null, out var isNewPayload);
+                    AnnounceChildrenUnsafe(parentBranchId, payload);
+                    CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+                }
+                else if (_completedResults.Remove(branchId, out var readyResult))
+                {
+                    ComposeAndDeliverUnsafe(branchId, readyResult);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Enqueues a single streamed list item for the specified branch.
+    /// The branch remains pending until <see cref="CompleteStream"/> is called.
+    /// </summary>
+    public void EnqueueStreamItem(OperationResult result, int branchId)
+    {
+        AssertInitialized();
+
+        lock (_sync)
+        {
+            ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+            if (Unsafe.IsNullRef(ref branch)
+                || branch.Kind != BranchKind.Stream
+                || _completedBranches.Contains(branchId))
+            {
+                return;
+            }
+
+            if (!_announced.Contains(branchId))
+            {
+                (branch.Results ??= []).Add(result);
+                return;
+            }
+
+            var payload = GetPayloadUnsafe(result, out var isNewPayload);
+            AnnounceChildrenUnsafe(branchId, payload);
+            AddStreamItemUnsafe(branchId, result, payload, isNewPayload);
+            CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+        }
+    }
+
+    /// <summary>
+    /// Completes a stream branch, optionally with errors that prevented normal completion.
+    /// </summary>
+    public void CompleteStream(int branchId, IReadOnlyList<IError>? errors = null)
+    {
+        AssertInitialized();
+
+        lock (_sync)
+        {
+            ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+            if (Unsafe.IsNullRef(ref branch)
+                || branch.Kind != BranchKind.Stream
+                || _completedBranches.Contains(branchId))
+            {
+                return;
+            }
+
+            branch.IsStreamComplete = true;
+            branch.CompletionErrors = errors;
+
+            if (!_announced.Contains(branchId))
+            {
+                return;
+            }
+
+            var payload = GetPayloadUnsafe(null, out var isNewPayload);
+            AnnounceChildrenUnsafe(branchId, payload);
+            payload.Completed = payload.Completed.Add(new CompletedResult(branchId, errors));
+            CompleteBranchUnsafe(branchId);
+            CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+        }
+    }
+
+    /// <summary>
+    /// Aborts all pending branches at or below <paramref name="path"/>.
+    /// Announced branches receive a failed completion while branches that were not announced are dropped.
+    /// </summary>
+    public void AbortBranches(Path path, IReadOnlyList<IError> errors)
+    {
+        AssertInitialized();
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(errors);
+
+        lock (_sync)
+        {
+            OperationResult? payload = null;
+            var isNewPayload = false;
+
+            foreach (var (branchId, branch) in _branchLookup)
+            {
+                if (_completedBranches.Contains(branchId) || !IsAtOrBelow(path, branch.Path))
+                {
+                    continue;
+                }
+
+                _completedResults.Remove(branchId);
+
+                if (_announced.Contains(branchId))
+                {
+                    payload ??= GetPayloadUnsafe(null, out isNewPayload);
+                    payload.Completed = payload.Completed.Add(new CompletedResult(branchId, errors));
+                }
+
+                CompleteBranchUnsafe(branchId);
+            }
+
+            if (payload is not null)
+            {
+                CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+            }
+            else if (_announced.Contains(_mainBranchId) && _pendingBranches == 0)
+            {
+                payload = GetPayloadUnsafe(null, out isNewPayload);
+                CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
             }
         }
     }
@@ -152,134 +301,198 @@ internal sealed partial class DeferExecutionCoordinator
 
     private void ComposeAndDeliverUnsafe(int branchId, OperationResult result)
     {
-        var children = GetChildrenUnsafe(branchId);
+        var isInitialPayload = branchId == _mainBranchId;
+        OperationResult payload;
+        bool isNewPayload;
 
-        if (children.Count > 0)
+        if (isInitialPayload)
         {
-            var pendingBuilder = _pendingBuilder ??= ImmutableList.CreateBuilder<PendingResult>();
-            var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
-            var completedBuilder = _completedBuilder ??= ImmutableList.CreateBuilder<CompletedResult>();
-            var processQueue = _processQueue ??= new Queue<int>();
-
-            pendingBuilder.Clear();
-            incrementalBuilder.Clear();
-            completedBuilder.Clear();
-            processQueue.Clear();
-
-            foreach (var childId in children)
-            {
-                var child = _branchLookup[childId];
-
-                pendingBuilder.Add(
-                    new PendingResult(
-                        childId,
-                        child.Path,
-                        child.Group.Label));
-
-                if (_completed.Remove(childId, out var childResult))
-                {
-                    result.RegisterForCleanup(childResult);
-                    AddCompletedBranch(childId, childResult, incrementalBuilder, completedBuilder);
-                    _delivered.Add(childId);
-                    _pendingBranches--;
-                    processQueue.Enqueue(childId);
-                }
-            }
-
-            while (processQueue.TryDequeue(out var parentId))
-            {
-                foreach (var grandchildId in GetChildrenUnsafe(parentId))
-                {
-                    var branch = _branchLookup[grandchildId];
-
-                    pendingBuilder.Add(
-                        new PendingResult(
-                            grandchildId,
-                            branch.Path,
-                            branch.Group.Label));
-
-                    if (_completed.Remove(grandchildId, out var gcResult))
-                    {
-                        result.RegisterForCleanup(gcResult);
-                        AddCompletedBranch(grandchildId, gcResult, incrementalBuilder, completedBuilder);
-                        _delivered.Add(grandchildId);
-                        _pendingBranches--;
-                        processQueue.Enqueue(grandchildId);
-                    }
-                }
-            }
-
-            result.Pending = pendingBuilder.ToImmutable();
-            result.Incremental = incrementalBuilder.ToImmutable();
-            result.Completed = completedBuilder.ToImmutable();
+            payload = result;
+            isNewPayload = true;
+        }
+        else
+        {
+            payload = GetPayloadUnsafe(result, out isNewPayload);
         }
 
-        // For deferred branches (not main branch), transform the result's data into an incremental result.
-        // Per spec: only the initial payload has root "data"; subsequent payloads use "incremental" array.
-        if (branchId != _mainBranchId)
+        if (!ReferenceEquals(payload, result))
         {
-            var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
-            var completedBuilder = _completedBuilder ??= ImmutableList.CreateBuilder<CompletedResult>();
-
-            if (children.Count == 0)
-            {
-                incrementalBuilder.Clear();
-                completedBuilder.Clear();
-            }
-
-            AddCompletedBranch(branchId, result, incrementalBuilder, completedBuilder);
-
-            result.Incremental = incrementalBuilder.ToImmutable();
-            result.Completed = completedBuilder.ToImmutable();
-            result.Data = null;
-            result.Errors = [];
+            payload.RegisterForCleanup(result);
         }
 
-        _delivered.Add(branchId);
+        _announced.Add(branchId);
+        AnnounceChildrenUnsafe(branchId, payload);
 
-        if (branchId != _mainBranchId)
+        if (!isInitialPayload)
         {
-            _pendingBranches--;
+            AddCompletedBranch(branchId, result, payload);
+            CompleteBranchUnsafe(branchId);
         }
 
-        var isComplete = _delivered.Contains(_mainBranchId) && _pendingBranches == 0;
-        result.HasNext = !isComplete;
-
-        _results.Add(result);
-        _isComplete = isComplete;
-        _signal.Set();
+        CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: !isInitialPayload && isNewPayload);
     }
 
     /// <summary>
-    /// Determines whether the parent of the specified branch has already
-    /// delivered its result to the response stream.
+    /// Determines whether the parent of the specified branch has already been announced to the response stream.
     /// </summary>
-    private bool IsParentDeliveredUnsafe(int branchId)
+    private bool IsParentAnnouncedUnsafe(int branchId)
         => _branchLookup.TryGetValue(branchId, out var branch)
-            && _delivered.Contains(branch.ParentBranchId);
+            && _announced.Contains(branch.ParentBranchId);
+
+    private void AnnounceChildrenUnsafe(int branchId, OperationResult result)
+    {
+        var children = GetChildrenUnsafe(branchId);
+
+        if (children.Count == 0)
+        {
+            return;
+        }
+
+        var processQueue = _processQueue ??= new Queue<int>();
+        processQueue.Clear();
+        processQueue.Enqueue(branchId);
+
+        while (processQueue.TryDequeue(out var parentBranchId))
+        {
+            foreach (var childId in GetChildrenUnsafe(parentBranchId))
+            {
+                if (!_announced.Add(childId))
+                {
+                    continue;
+                }
+
+                ref var child = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, childId);
+                result.Pending = result.Pending.Add(new PendingResult(childId, child.Path, child.Label));
+
+                if (child.Kind == BranchKind.Defer
+                    && _completedResults.Remove(childId, out var childResult))
+                {
+                    result.RegisterForCleanup(childResult);
+                    AddCompletedBranch(childId, childResult, result);
+                    CompleteBranchUnsafe(childId);
+                }
+                else if (child.Kind == BranchKind.Stream)
+                {
+                    if (child.Results is { Count: > 0 } results)
+                    {
+                        foreach (var streamResult in results)
+                        {
+                            AddStreamItemUnsafe(childId, streamResult, result, resultIsStreamResult: false);
+                        }
+
+                        results.Clear();
+                    }
+
+                    if (child.IsStreamComplete)
+                    {
+                        result.Completed = result.Completed.Add(
+                            new CompletedResult(childId, child.CompletionErrors));
+                        CompleteBranchUnsafe(childId);
+                    }
+                }
+
+                processQueue.Enqueue(childId);
+            }
+        }
+    }
 
     private static void AddCompletedBranch(
         int branchId,
         OperationResult branchResult,
-        ImmutableList<IIncrementalResult>.Builder incrementalBuilder,
-        ImmutableList<CompletedResult>.Builder completedBuilder)
+        OperationResult result)
     {
         if (branchResult.Data.HasValue && !branchResult.Data.Value.IsValueNull)
         {
             // data is valid (possibly with contained errors) — deliver incremental data
-            incrementalBuilder.Add(
+            result.Incremental = result.Incremental.Add(
                 new IncrementalObjectResult(
                     branchId,
                     branchResult.Errors,
                     subPath: null,
                     branchResult.Data));
-            completedBuilder.Add(new CompletedResult(branchId));
+            result.Completed = result.Completed.Add(new CompletedResult(branchId));
         }
         else
         {
-            // errors bubbled above the incremental result's path — no data to deliver
-            completedBuilder.Add(new CompletedResult(branchId, branchResult.Errors));
+            // errors bubbled above the incremental result path, so no data can be delivered
+            result.Completed = result.Completed.Add(new CompletedResult(branchId, branchResult.Errors));
         }
+    }
+
+    private void AddStreamItemUnsafe(
+        int branchId,
+        OperationResult streamResult,
+        OperationResult result,
+        bool resultIsStreamResult)
+    {
+        if (!streamResult.Data.HasValue)
+        {
+            return;
+        }
+
+        if (!resultIsStreamResult)
+        {
+            result.RegisterForCleanup(streamResult);
+        }
+
+        result.Incremental = result.Incremental.Add(
+            new IncrementalListResult(branchId, streamResult.Data.Value, streamResult.Errors));
+    }
+
+    private OperationResult GetPayloadUnsafe(OperationResult? streamResult, out bool isNewPayload)
+    {
+        if (_results.Count > 0)
+        {
+            isNewPayload = false;
+            return _results[^1];
+        }
+
+        isNewPayload = true;
+        return streamResult
+            ?? new OperationResult(new OperationResultData(s_emptyData, false, EmptyFormatter.Instance, null));
+    }
+
+    private void CommitPayloadUnsafe(OperationResult result, bool isNewPayload, bool isPayloadIncremental)
+    {
+        var isComplete = _announced.Contains(_mainBranchId) && _pendingBranches == 0;
+        result.HasNext = !isComplete;
+
+        if (isPayloadIncremental && result.Data.HasValue)
+        {
+            result.Data = null;
+            result.Errors = [];
+        }
+
+        if (isNewPayload)
+        {
+            _results.Add(result);
+        }
+
+        _isComplete = isComplete;
+        _signal.Set();
+    }
+
+    private void CompleteBranchUnsafe(int branchId)
+    {
+        if (_completedBranches.Add(branchId))
+        {
+            _pendingBranches--;
+        }
+    }
+
+    private static bool IsAtOrBelow(Path ancestor, Path path)
+    {
+        if (path.Length < ancestor.Length)
+        {
+            return false;
+        }
+
+        while (path.Length > ancestor.Length)
+        {
+            path = path.Parent;
+        }
+
+        return path.Equals(ancestor);
     }
 
     /// <summary>
@@ -306,11 +519,34 @@ internal sealed partial class DeferExecutionCoordinator
 
     private readonly record struct DeferredBranchKey(Path Path, DeferUsage Group, int ParentBranchId);
 
-    private struct DeferredBranch(Path path, DeferUsage group, int parentBranchId)
+    private readonly record struct StreamBranchKey(Path Path, string? Label, int ParentBranchId);
+
+    private struct DeferredBranch(Path path, string? label, int parentBranchId, BranchKind kind)
     {
         public Path Path { get; } = path;
-        public DeferUsage Group { get; } = group;
+        public string? Label { get; } = label;
         public int ParentBranchId { get; } = parentBranchId;
+        public BranchKind Kind { get; } = kind;
         public HashSet<int>? Children { get; set; }
+        public List<OperationResult>? Results { get; set; }
+        public IReadOnlyList<IError>? CompletionErrors { get; set; }
+        public bool IsStreamComplete { get; set; }
+    }
+
+    private enum BranchKind : byte
+    {
+        Defer,
+        Stream
+    }
+
+    private static readonly object s_emptyData = new();
+
+    private sealed class EmptyFormatter : IRawJsonFormatter
+    {
+        public static EmptyFormatter Instance { get; } = new();
+
+        public void WriteDataTo(JsonWriter jsonWriter)
+        {
+        }
     }
 }
