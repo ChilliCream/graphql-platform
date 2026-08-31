@@ -173,28 +173,9 @@ internal static class InternalServiceCollectionExtensions
 
         public override bool Return(OperationContext obj)
         {
-            if (!obj.IsInitialized)
-            {
-                return true;
-            }
-
-            if (obj.IsSharedScheduler)
-            {
-                obj.ResetScheduler();
-            }
-
-            // if work related to the operation context has completed we can
-            // reuse the operation context.
-            if (!obj.Scheduler.IsInitialized || obj.Scheduler.IsCompleted)
-            {
-                obj.Clean();
-                return true;
-            }
-
-            // we also clean if we cannot reuse the context so that the context is
-            // gracefully discarded and can be garbage collected.
+            var canReturnToPool = obj.CanReturnToPool();
             obj.Clean();
-            return false;
+            return canReturnToPool;
         }
     }
 }

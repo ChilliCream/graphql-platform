@@ -58,6 +58,49 @@ public sealed class DeferExecutionCoordinatorTests
     }
 
     [Fact]
+    public void CompleteStreamBeforeReveal_Should_CompleteZeroItemStream()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var streamBranchId = coordinator.RegisterStreamBranch(mainBranchId, Path.Root.Append("items"), null);
+        var error = ErrorBuilder.New().SetMessage("boom").Build();
+        var initialResult = CreateResult();
+
+        // act
+        coordinator.CompleteStream(streamBranchId, [error]);
+        coordinator.EnqueueResult(initialResult);
+
+        // assert
+        Assert.Equal([streamBranchId], initialResult.Pending.Select(t => t.Id));
+        var completed = Assert.Single(initialResult.Completed);
+        Assert.Same(error, Assert.Single(completed.Errors!));
+        Assert.False(initialResult.HasNext);
+    }
+
+    [Fact]
+    public async Task CompleteStreamBeforeReveal_Should_FlushBufferedItemsAndCompleteStream()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var streamBranchId = coordinator.RegisterStreamBranch(mainBranchId, Path.Root.Append("items"), null);
+        var error = ErrorBuilder.New().SetMessage("boom").Build();
+        var initialResult = CreateResult();
+
+        // act
+        await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
+        await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
+        coordinator.CompleteStream(streamBranchId, [error]);
+        coordinator.EnqueueResult(initialResult);
+
+        // assert
+        Assert.Equal([streamBranchId], initialResult.Pending.Select(t => t.Id));
+        Assert.Equal([streamBranchId, streamBranchId], initialResult.Incremental.Select(t => t.Id));
+        var completed = Assert.Single(initialResult.Completed);
+        Assert.Same(error, Assert.Single(completed.Errors!));
+        Assert.False(initialResult.HasNext);
+    }
+
+    [Fact]
     public void NestedDeferredBranch_Should_BeAnnouncedWithTheRevealingStreamItem()
     {
         // arrange
@@ -158,7 +201,7 @@ public sealed class DeferExecutionCoordinatorTests
     }
 
     [Fact]
-    public async Task Coordinator_Should_DisposeBufferedResultsOnAbortAndReset()
+    public async Task AbortBranches_Should_TransferCleanupToPayload()
     {
         // arrange
         var coordinator = CreateCoordinator(out var mainBranchId);
@@ -171,6 +214,13 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         await coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
+
+        // assert
+        Assert.Equal(0, deferredHolder.DisposeCount);
+        Assert.Equal(0, streamHolder.DisposeCount);
+
+        // act
+        await initialResult.DisposeAsync();
         await coordinator.ResetAsync();
 
         // assert

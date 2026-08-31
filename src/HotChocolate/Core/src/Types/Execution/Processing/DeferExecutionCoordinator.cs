@@ -251,12 +251,14 @@ internal sealed partial class DeferExecutionCoordinator
             if (payload is not null)
             {
                 RegisterCleanupUnsafe(payload, cleanup);
+                cleanup = null;
                 CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
             }
             else if (_announced.Contains(_mainBranchId) && _pendingBranches == 0)
             {
                 payload = GetPayloadUnsafe(null, out isNewPayload);
                 RegisterCleanupUnsafe(payload, cleanup);
+                cleanup = null;
                 CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
             }
         }
@@ -405,6 +407,14 @@ internal sealed partial class DeferExecutionCoordinator
                 }
 
                 results.Clear();
+            }
+
+            if (child.Kind == BranchKind.Stream && child.IsStreamComplete)
+            {
+                result.Completed = result.Completed.Add(
+                    new CompletedResult(childId, child.CompletionErrors));
+                DropUnannouncedChildrenUnsafe(childId, result);
+                CompleteBranchUnsafe(childId);
             }
         }
     }

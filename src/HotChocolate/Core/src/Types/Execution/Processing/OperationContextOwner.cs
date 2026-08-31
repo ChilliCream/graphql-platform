@@ -59,8 +59,13 @@ internal sealed class OperationContextOwner : IDisposable, IAsyncDisposable
     {
         if (_disposed == 0 && CompareExchange(ref _disposed, 1, 0) == 0)
         {
+            var canReturnToPool = _context.CanReturnToPool();
             await _context.CleanAsync().ConfigureAwait(false);
-            _pool.Return(_context);
+
+            if (canReturnToPool)
+            {
+                _pool.Return(_context);
+            }
         }
     }
 }

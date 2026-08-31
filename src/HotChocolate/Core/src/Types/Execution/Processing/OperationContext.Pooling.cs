@@ -65,6 +65,21 @@ internal sealed partial class OperationContext
 
     public bool IsSharedScheduler => !ReferenceEquals(_workScheduler, _currentWorkScheduler);
 
+    public bool CanReturnToPool()
+    {
+        if (!_isInitialized)
+        {
+            return true;
+        }
+
+        if (IsSharedScheduler)
+        {
+            ResetScheduler();
+        }
+
+        return !_currentWorkScheduler.IsInitialized || _currentWorkScheduler.IsCompleted;
+    }
+
     public void Initialize(
         RequestContext requestContext,
         IServiceProvider scopedServices,
