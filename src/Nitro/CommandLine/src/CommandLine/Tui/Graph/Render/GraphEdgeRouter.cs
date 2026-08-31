@@ -211,10 +211,10 @@ internal sealed class GraphEdgeRouter
         if (side is CanvasDirections.Left or CanvasDirections.Right)
         {
             var x = side == CanvasDirections.Left ? node.X - 1 : node.X + node.Width;
-            foreach (var y in CenterOut(node.Y, node.Height))
+            foreach (var portY in CenterOut(node.Y, node.Height))
             {
                 yield return new RoutePort(
-                    new GraphLayoutPoint(x, y),
+                    new GraphLayoutPoint(x, portY),
                     side == CanvasDirections.Left ? CanvasDirections.Right : CanvasDirections.Left);
             }
 
