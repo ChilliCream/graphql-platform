@@ -504,6 +504,38 @@ public sealed class OperationToolFactoryTests
     }
 
     [Fact]
+    public void CreateTool_InlineFragmentsWithDivergingListSubSelections_UnionsItemSubSelections()
+    {
+        // arrange
+        var schema = CreateVehicleSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetVehicles {
+                vehicles {
+                    ... on Car {
+                        wheels {
+                            size
+                        }
+                    }
+                    ... on Truck {
+                        wheels {
+                            size
+                            treadDepth
+                        }
+                    }
+                }
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
     public void CreateTool_FragmentSpreadsSelectSameField_MergesIntoSingleProperty()
     {
         // arrange
@@ -990,9 +1022,11 @@ public sealed class OperationToolFactoryTests
         string Id { get; }
     }
 
-    public sealed record Car(string Id, Engine? Engine) : IVehicle;
+    public sealed record Car(string Id, Engine? Engine, Wheel[]? Wheels) : IVehicle;
 
-    public sealed record Truck(string Id, Engine? Engine) : IVehicle;
+    public sealed record Truck(string Id, Engine? Engine, Wheel[]? Wheels) : IVehicle;
 
     public sealed record Engine(int Power, string? FuelKind);
+
+    public sealed record Wheel(int Size, double? TreadDepth);
 }
