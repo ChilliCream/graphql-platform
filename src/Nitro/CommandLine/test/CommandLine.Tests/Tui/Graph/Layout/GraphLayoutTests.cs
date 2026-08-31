@@ -50,6 +50,30 @@ public sealed class GraphLayoutTests
     }
 
     [Fact]
+    public void Layout_Should_PreserveValidSeededLayers_When_AnEdgeIsReplaced()
+    {
+        // arrange
+        var initial = Model(
+            [Node("a"), Node("b"), Node("c")],
+            [Edge("a", "b"), Edge("b", "c")]);
+        var mutated = Model(
+            [Node("a"), Node("c")],
+            [Edge("a", "c")]);
+        var layout = new GraphLayout();
+        var initialFrame = layout.Layout(initial, Sizes(initial));
+
+        // act
+        var unseededFrame = layout.Layout(mutated, Sizes(mutated));
+        var seededFrame = layout.Layout(mutated, Sizes(mutated), initialFrame);
+
+        // assert
+        Assert.Equal(1, unseededFrame.FindNode("c")!.Layer);
+        Assert.Equal(2, seededFrame.FindNode("c")!.Layer);
+        Assert.Equal(0, seededFrame.FindNode("a")!.Order);
+        Assert.Equal(0, seededFrame.FindNode("c")!.Order);
+    }
+
+    [Fact]
     public void Layout_Should_ReportTheKnownBicliqueCrossingCount()
     {
         // arrange
@@ -62,6 +86,61 @@ public sealed class GraphLayoutTests
 
         // assert
         Assert.Equal(1, result.CrossingCount);
+    }
+
+    [Fact]
+    public void Layout_Should_MatchFullCrossingRecount_When_TransposingLayers()
+    {
+        // arrange
+        var model = Model(
+            [Node("a"), Node("b"), Node("c"), Node("d"), Node("e"), Node("f")],
+            [Edge("a", "d"), Edge("a", "e"), Edge("b", "c"), Edge("b", "f"), Edge("c", "e"), Edge("d", "f")]);
+
+        // act
+        var result = new GraphLayout().Layout(model, Sizes(model));
+
+        // assert
+        Assert.Equal(CountCrossings(result.EdgeSpans), result.CrossingCount);
+    }
+
+    [Fact]
+    public void Layout_Should_UseIncidentComparisons_ForRepresentativeLargeGraphs()
+    {
+        // arrange
+        var nodes = new List<GraphNode>();
+        var edges = new List<GraphEdge>();
+        for (var layer = 0; layer < 2; layer++)
+        {
+            for (var index = 0; index < 200; index++)
+            {
+                nodes.Add(Node($"{layer:D2}-{index:D3}"));
+            }
+        }
+
+        for (var index = 0; index < 200; index++)
+        {
+            edges.Add(Edge($"00-{index:D3}", $"01-{index:D3}"));
+        }
+
+        for (var index = 0; index < 200; index++)
+        {
+            edges.Add(Edge($"00-{index:D3}", $"01-{(index + 1) % 200:D3}"));
+        }
+
+        var model = Model(nodes, edges);
+        var metrics = new GraphLayoutMetrics();
+
+        // act
+        var result = new GraphLayout(metrics: metrics).Layout(model, Sizes(model));
+
+        // assert
+        var fullRecountComparisons = result.EdgeSpans
+            .GroupBy(t => t.FromLayer)
+            .Sum(t => (long)t.Count() * (t.Count() - 1) / 2);
+        var legacyCandidateWork = metrics.CandidateCount * fullRecountComparisons * 2;
+        Assert.Equal(400, result.EdgeSpans.Count);
+        Assert.True(legacyCandidateWork > 500_000_000);
+        Assert.True(metrics.IncidentComparisonCount * 40L < legacyCandidateWork);
     }
 
     [Fact]
@@ -133,4 +212,27 @@ public sealed class GraphLayoutTests
 
     private static IReadOnlyDictionary<string, GraphNodeSize> Sizes(GraphModel model)
         => model.Nodes.ToDictionary(t => t.Id, _ => new GraphNodeSize(1, 1), StringComparer.Ordinal);
+
+    private static int CountCrossings(IReadOnlyList<GraphLayoutEdgeSpan> spans)
+    {
+        var count = 0;
+        foreach (var layer in spans.GroupBy(t => t.FromLayer))
+        {
+            var ordered = layer.ToArray();
+            for (var left = 0; left < ordered.Length; left++)
+            {
+                for (var right = left + 1; right < ordered.Length; right++)
+                {
+                    var from = ordered[left].FromOrder.CompareTo(ordered[right].FromOrder);
+                    var to = ordered[left].ToOrder.CompareTo(ordered[right].ToOrder);
+                    if (from != 0 && to != 0 && from != to)
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
 }

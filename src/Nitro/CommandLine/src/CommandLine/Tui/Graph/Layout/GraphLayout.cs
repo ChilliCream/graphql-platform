@@ -9,13 +9,16 @@ internal sealed class GraphLayout
 {
     private readonly IGraphLayeringStrategy _layering;
     private readonly IGraphCoordinateAssigner _coordinates;
+    private readonly GraphLayoutMetrics? _metrics;
 
     public GraphLayout(
         IGraphLayeringStrategy? layering = null,
-        IGraphCoordinateAssigner? coordinates = null)
+        IGraphCoordinateAssigner? coordinates = null,
+        GraphLayoutMetrics? metrics = null)
     {
         _layering = layering ?? new LongestPathLayering();
         _coordinates = coordinates ?? new OrderedCoordinateAssigner();
+        _metrics = metrics;
     }
 
     public GraphLayoutResult Layout(
@@ -30,12 +33,12 @@ internal sealed class GraphLayout
 
         if (layerSpacing < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(layerSpacing));
+            throw ThrowHelper.LayerSpacingMustBeNonNegative();
         }
 
         if (nodeSpacing < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(nodeSpacing));
+            throw ThrowHelper.NodeSpacingMustBeNonNegative();
         }
 
         var orderedNodes = model.Nodes.OrderBy(t => t.Id, StringComparer.Ordinal).ToArray();
@@ -50,7 +53,7 @@ internal sealed class GraphLayout
         var layers = CreateVertices(orderedNodes, measuredNodeSizes, layersById);
         var segments = AddSegments(arcs, layers, layersById);
         Order(layers, previousLayout);
-        MinimizeCrossings(layers, segments);
+        MinimizeCrossings(layers, segments, _metrics);
 
         var nodes = _coordinates.Assign(layers, layerSpacing, nodeSpacing)
             .Values
@@ -192,7 +195,10 @@ internal sealed class GraphLayout
         return string.CompareOrdinal(left.Key, right.Key);
     }
 
-    private static void MinimizeCrossings(IReadOnlyList<List<LayoutVertex>> layers, IReadOnlyList<LayoutSegment> segments)
+    private static void MinimizeCrossings(
+        IReadOnlyList<List<LayoutVertex>> layers,
+        IReadOnlyList<LayoutSegment> segments,
+        GraphLayoutMetrics? metrics)
     {
         var best = layers.Select(t => t.ToArray()).ToArray();
         var bestCrossingCount = CountCrossings(segments);
@@ -214,7 +220,7 @@ internal sealed class GraphLayout
                 }
             }
 
-            Transpose(layers, segments);
+            Transpose(layers, segments, metrics);
             var crossingCount = CountCrossings(segments);
             if (crossingCount < bestCrossingCount)
             {
@@ -260,8 +266,15 @@ internal sealed class GraphLayout
         return orders.Length == 0 ? vertex.Order : orders.Average();
     }
 
-    private static void Transpose(IReadOnlyList<List<LayoutVertex>> layers, IReadOnlyList<LayoutSegment> segments)
+    private static void Transpose(
+        IReadOnlyList<List<LayoutVertex>> layers,
+        IReadOnlyList<LayoutSegment> segments,
+        GraphLayoutMetrics? metrics)
     {
+        var segmentsByLayer = segments
+            .GroupBy(t => t.From.Layer)
+            .ToDictionary(t => t.Key, t => (IReadOnlyList<LayoutSegment>)t.ToArray());
+
         for (var pass = 0; pass < 4; pass++)
         {
             var changed = false;
@@ -269,10 +282,14 @@ internal sealed class GraphLayout
             {
                 for (var index = 0; index < layer.Count - 1; index++)
                 {
-                    var before = CountCrossings(segments);
+                    var left = layer[index];
+                    var right = layer[index + 1];
+                    metrics?.RecordCandidate();
+                    var before = CountIncidentCrossings(left, right, segmentsByLayer, metrics);
                     (layer[index], layer[index + 1]) = (layer[index + 1], layer[index]);
-                    SetOrders(layer);
-                    var after = CountCrossings(segments);
+                    left.Order = index + 1;
+                    right.Order = index;
+                    var after = CountIncidentCrossings(left, right, segmentsByLayer, metrics);
                     if (after < before)
                     {
                         changed = true;
@@ -280,7 +297,8 @@ internal sealed class GraphLayout
                     else
                     {
                         (layer[index], layer[index + 1]) = (layer[index + 1], layer[index]);
-                        SetOrders(layer);
+                        left.Order = index;
+                        right.Order = index + 1;
                     }
                 }
             }
@@ -297,22 +315,79 @@ internal sealed class GraphLayout
         var count = 0;
         foreach (var layer in segments.GroupBy(t => t.From.Layer))
         {
-            var ordered = layer.OrderBy(t => t.Sequence).ToArray();
-            for (var left = 0; left < ordered.Length; left++)
+            var ordered = layer
+                .OrderBy(t => t.From.Order)
+                .ThenBy(t => t.Sequence)
+                .ToArray();
+            var tree = new FenwickTree(layer.Max(t => t.To.Order) + 1);
+            var seen = 0;
+
+            for (var start = 0; start < ordered.Length;)
             {
-                for (var right = left + 1; right < ordered.Length; right++)
+                var end = start + 1;
+                while (end < ordered.Length && ordered[start].From.Order == ordered[end].From.Order)
                 {
-                    var from = ordered[left].From.Order.CompareTo(ordered[right].From.Order);
-                    var to = ordered[left].To.Order.CompareTo(ordered[right].To.Order);
-                    if (from != 0 && to != 0 && from != to)
-                    {
-                        count++;
-                    }
+                    end++;
+                }
+
+                for (var index = start; index < end; index++)
+                {
+                    count += seen - tree.Sum(ordered[index].To.Order + 1);
+                }
+
+                for (var index = start; index < end; index++)
+                {
+                    tree.Add(ordered[index].To.Order, 1);
+                    seen++;
+                }
+
+                start = end;
+            }
+        }
+
+        return count;
+    }
+
+    private static int CountIncidentCrossings(
+        LayoutVertex left,
+        LayoutVertex right,
+        IReadOnlyDictionary<int, IReadOnlyList<LayoutSegment>> segmentsByLayer,
+        GraphLayoutMetrics? metrics)
+    {
+        var incident = left.Incoming
+            .Concat(left.Outgoing)
+            .Concat(right.Incoming)
+            .Concat(right.Outgoing)
+            .ToArray();
+        var incidentSequences = incident.Select(t => t.Sequence).ToHashSet();
+        var count = 0;
+
+        foreach (var segment in incident)
+        {
+            foreach (var other in segmentsByLayer[segment.From.Layer])
+            {
+                metrics?.RecordIncidentComparison();
+                if (segment.Sequence == other.Sequence ||
+                    (incidentSequences.Contains(other.Sequence) && other.Sequence < segment.Sequence))
+                {
+                    continue;
+                }
+
+                if (Crosses(segment, other))
+                {
+                    count++;
                 }
             }
         }
 
         return count;
+    }
+
+    private static bool Crosses(LayoutSegment left, LayoutSegment right)
+    {
+        var from = left.From.Order.CompareTo(right.From.Order);
+        var to = left.To.Order.CompareTo(right.To.Order);
+        return from != 0 && to != 0 && from != to;
     }
 
     private static void SetOrders(IReadOnlyList<LayoutVertex> layer)
@@ -321,5 +396,54 @@ internal sealed class GraphLayout
         {
             layer[index].Order = index;
         }
+    }
+
+    private sealed class FenwickTree
+    {
+        private readonly int[] _values;
+
+        public FenwickTree(int length)
+        {
+            _values = new int[length + 1];
+        }
+
+        public void Add(int index, int value)
+        {
+            for (index++; index < _values.Length; index += index & -index)
+            {
+                _values[index] += value;
+            }
+        }
+
+        public int Sum(int length)
+        {
+            var sum = 0;
+            for (; length > 0; length -= length & -length)
+            {
+                sum += _values[length];
+            }
+
+            return sum;
+        }
+    }
+}
+
+/// <summary>
+/// Captures crossing minimization operations for verification.
+/// </summary>
+internal sealed class GraphLayoutMetrics
+{
+    public int CandidateCount { get; private set; }
+
+    public int IncidentComparisonCount { get; private set; }
+
+    public void RecordCandidate()
+    {
+        CandidateCount++;
+    }
+
+    public void RecordIncidentComparison()
+    {
+        IncidentComparisonCount++;
     }
 }

@@ -30,7 +30,10 @@ internal sealed class LongestPathLayering : IGraphLayeringStrategy
             }
         }
 
-        var layers = nodeIds.ToDictionary(t => t, _ => 0, StringComparer.Ordinal);
+        var layers = nodeIds.ToDictionary(
+            t => t,
+            t => previousLayers.GetValueOrDefault(t),
+            StringComparer.Ordinal);
         while (ready.Count > 0)
         {
             var candidate = ready.Min!;
