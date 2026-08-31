@@ -10,6 +10,46 @@ namespace HotChocolate.Execution.Processing;
 public class OperationCompilerTests
 {
     [Fact]
+    public void Compile_Should_MarkStreamableSelectionAndOperationAsIncremental_When_StreamDirectiveIsPresent()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<StreamQuery>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ streamable @stream }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var selection = operation.RootSelectionSet.Selections[0];
+
+        // assert
+        Assert.Equal(1, operation.RootSelectionSet.Selections.Length);
+        Assert.True(selection.IsStream);
+        Assert.True(operation.RootSelectionSet.HasIncrementalParts);
+        Assert.True(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_Should_IgnoreStreamDirective_When_FieldIsNotStaticallyStreamable()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<StreamQuery>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ plain @stream }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var selection = operation.RootSelectionSet.Selections[0];
+
+        // assert
+        Assert.Equal(1, operation.RootSelectionSet.Selections.Length);
+        Assert.False(selection.IsStream);
+        Assert.False(operation.RootSelectionSet.HasIncrementalParts);
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
     public void Prepare_One_Field()
     {
         // arrange
@@ -1972,6 +2012,17 @@ public class OperationCompilerTests
         sb.AppendLine();
         sb.AppendLine(compiled.ToString());
         sb.ToString().Replace("\r", "").MatchSnapshot();
+    }
+
+    public class StreamQuery
+    {
+        public async IAsyncEnumerable<int> GetStreamable()
+        {
+            yield return 1;
+            await Task.CompletedTask;
+        }
+
+        public int[] GetPlain() => [1];
     }
 
     public class Foo

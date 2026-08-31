@@ -84,6 +84,13 @@ public class InterfaceFieldDescriptor
 
         CompleteArguments(definition);
 
+        if (!definition.HasStreamResult
+            && definition.ResultType?.IsGenericType is true
+            && definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        {
+            definition.HasStreamResult = true;
+        }
+
         Context.Descriptors.Pop();
     }
 

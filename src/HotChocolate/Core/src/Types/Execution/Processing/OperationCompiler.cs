@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Features;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -134,7 +135,9 @@ public sealed partial class OperationCompiler
                 compilationContext.Features,
                 lastId,
                 compilationContext.ElementsById,
-                hasIncrementalParts: result.HasIncrementalParts);
+                hasIncrementalParts: deferConditions.Count > 0
+                    || selectionSet.HasIncrementalParts
+                    || HasStreamSelections(operationDefinition.SelectionSet, rootType));
 
             selectionSet.Complete(operation);
 
@@ -300,6 +303,7 @@ public sealed partial class OperationCompiler
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
         var hasDeferredSelections = false;
+        var hasStreamSelections = false;
         var includeFlags = new List<ulong>();
         var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
@@ -451,6 +455,11 @@ public sealed partial class OperationCompiler
             compilationContext.Register(selection, selection.Id);
             selections[i++] = selection;
 
+            if (selection.IsStream)
+            {
+                hasStreamSelections = true;
+            }
+
             if (includeFlags.Count > 0)
             {
                 isConditional = true;
@@ -460,7 +469,14 @@ public sealed partial class OperationCompiler
         // if there are no optimizers registered for this selection we exit early.
         if (optimizers.Length == 0)
         {
-            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
+            return new SelectionSet(
+                selectionSetId,
+                path,
+                typeContext,
+                selections,
+                isConditional,
+                hasDeferredSelections,
+                hasStreamSelections);
         }
 
         var current = ImmutableCollectionsMarshal.AsImmutableArray(selections);
@@ -485,7 +501,14 @@ public sealed partial class OperationCompiler
         // This mean we can simply construct the SelectionSet.
         if (current == rewritten)
         {
-            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
+            return new SelectionSet(
+                selectionSetId,
+                path,
+                typeContext,
+                selections,
+                isConditional,
+                hasDeferredSelections,
+                hasStreamSelections);
         }
 
         if (current.Length < rewritten.Length)
@@ -505,7 +528,44 @@ public sealed partial class OperationCompiler
         }
 
         selections = ImmutableCollectionsMarshal.AsArray(rewritten)!;
-        return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
+        return new SelectionSet(
+                selectionSetId,
+                path,
+                typeContext,
+                selections,
+                isConditional,
+                hasDeferredSelections,
+                hasStreamSelections);
+    }
+
+    private static bool HasStreamSelections(
+        SelectionSetNode selectionSet,
+        IComplexTypeDefinition type)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode fieldNode
+                || !type.Fields.TryGetField(fieldNode.Name.Value, out var field))
+            {
+                continue;
+            }
+
+            if (fieldNode.IsStreamable()
+                && field is FieldBase { Flags: var flags }
+                && (flags & CoreFieldFlags.Stream) == CoreFieldFlags.Stream)
+            {
+                return true;
+            }
+
+            if (fieldNode.SelectionSet is not null
+                && field.Type.NamedType() is IComplexTypeDefinition fieldType
+                && HasStreamSelections(fieldNode.SelectionSet, fieldType))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
