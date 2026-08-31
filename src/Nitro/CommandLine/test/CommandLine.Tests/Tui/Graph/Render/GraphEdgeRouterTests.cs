@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
+using ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph.Render;
@@ -119,6 +120,80 @@ public sealed class GraphEdgeRouterTests
 
         // assert
         Assert.Equal(['▶', '▷'], arrows);
+    }
+
+    [Fact]
+    public void Route_Should_UseOneArrowForEveryLongLogicalEdge()
+    {
+        // arrange
+        var edge = Edge("a", "b");
+        var layout = Frame(
+            [Node("a", 0, 0, 2, 1, 0, 0), Node("b", 15, 0, 2, 1, 3, 0)],
+            [
+                Span(edge, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(5, 0)),
+                Span(edge, 1, 2, 0, 0, new GraphLayoutPoint(5, 0), new GraphLayoutPoint(10, 0)),
+                Span(edge, 2, 3, 0, 0, new GraphLayoutPoint(10, 0), new GraphLayoutPoint(15, 0))
+            ]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout);
+        var arrows = Cells(result.Buffer)
+            .Where(point => result.Buffer.Get(point.X, point.Y).Glyph is '▶' or '▷' or '◀' or '◁')
+            .ToArray();
+
+        // assert
+        Assert.Equal(3, result.Routes.Count);
+        Assert.Single(arrows);
+        Assert.Equal(new GraphLayoutPoint(14, 0), arrows[0]);
+        Assert.Equal('─', result.Buffer.Get(5, 0).Glyph);
+        Assert.Equal("nodes: 2  edges: 1  grid: 17 x 1  crossings: 0  reversed: 0", GraphRenderFooter.CreateText(result));
+    }
+
+    [Fact]
+    public void Route_Should_FindDeterministicFallbackOutsideEveryNode()
+    {
+        // arrange
+        var layout = Frame(
+            [
+                Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 4, 2, 1, 1, 0),
+                Node("obstacle", 2, 1, 6, 3, 2, 0)
+            ],
+            [Span("a", "b", 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 4))]);
+
+        // act
+        var first = new GraphEdgeRouter().Route(layout).Routes[0].Points;
+        var second = new GraphEdgeRouter().Route(layout).Routes[0].Points;
+
+        // assert
+        Assert.Equal(first, second);
+        Assert.Empty(first.Where(point => layout.Nodes.Any(node => Contains(node, point))));
+        Assert.All(first.Zip(first.Skip(1)), pair => Assert.Equal(1, Math.Abs(pair.First.X - pair.Second.X) + Math.Abs(pair.First.Y - pair.Second.Y)));
+    }
+
+    [Fact]
+    public void Route_Should_PlaceReversedLongEdgeArrowAtSemanticTarget()
+    {
+        // arrange
+        var edge = Edge("a", "b");
+        var layout = Frame(
+            [Node("b", 0, 0, 2, 1, 0, 0), Node("a", 15, 0, 2, 1, 3, 0)],
+            [
+                Span(edge, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(5, 0), reversed: true),
+                Span(edge, 1, 2, 0, 0, new GraphLayoutPoint(5, 0), new GraphLayoutPoint(10, 0), reversed: true),
+                Span(edge, 2, 3, 0, 0, new GraphLayoutPoint(10, 0), new GraphLayoutPoint(15, 0), reversed: true)
+            ]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout);
+        var arrows = Cells(result.Buffer)
+            .Where(point => result.Buffer.Get(point.X, point.Y).Glyph is '▶' or '▷' or '◀' or '◁')
+            .ToArray();
+
+        // assert
+        Assert.Single(arrows);
+        Assert.Equal(new GraphLayoutPoint(2, 0), arrows[0]);
+        Assert.Equal('◀', result.Buffer.Get(arrows[0].X, arrows[0].Y).Glyph);
+        Assert.Equal('┄', result.Buffer.Get(5, 0).Glyph);
     }
 
     [Fact]

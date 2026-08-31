@@ -1,3 +1,4 @@
+using System.Buffers;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -48,6 +49,17 @@ internal sealed class CellBuffer
         Style style,
         object owner,
         bool dashed = false)
+        => Connect(x, y, directions, style, owner, dashed, 0, 0);
+
+    internal void Connect(
+        int x,
+        int y,
+        CanvasDirections directions,
+        Style style,
+        object owner,
+        bool dashed,
+        int rank,
+        int ordinal)
     {
         if (!Contains(x, y))
         {
@@ -56,13 +68,34 @@ internal sealed class CellBuffer
 
         ref var cell = ref GetState(x, y);
         cell.Directions |= directions;
-        cell.Style = style;
-        cell.HasStyle = true;
-        cell.Dashed |= dashed;
-        cell.Owners ??= [];
-        if (!cell.Owners.Contains(owner))
+        AddOwner(ref cell, owner);
+        ApplyContribution(ref cell, style, dashed, rank, ordinal);
+    }
+
+    internal void SetArrow(
+        int x,
+        int y,
+        char glyph,
+        Style style,
+        object owner,
+        bool dashed,
+        int rank,
+        int ordinal)
+    {
+        if (!Contains(x, y))
         {
-            cell.Owners.Add(owner);
+            return;
+        }
+
+        ref var cell = ref GetState(x, y);
+        AddOwner(ref cell, owner);
+        ApplyContribution(ref cell, style, dashed, rank, ordinal);
+        if (!cell.HasExplicitGlyph || IsHigherPriority(rank, ordinal, cell.GlyphRank, cell.GlyphOrdinal))
+        {
+            cell.Glyph = glyph;
+            cell.HasExplicitGlyph = true;
+            cell.GlyphRank = rank;
+            cell.GlyphOrdinal = ordinal;
         }
     }
 
@@ -78,7 +111,10 @@ internal sealed class CellBuffer
 
         ref var cell = ref GetState(x, y);
         var glyph = cell.HasExplicitGlyph ? cell.Glyph : GlyphFor(cell.Directions, cell.Dashed);
-        return new CanvasCell(glyph, cell.HasStyle ? cell.Style : Style.Plain, cell.Owners ?? []);
+        return new CanvasCell(
+            glyph,
+            cell.HasStyle ? cell.Style : Style.Plain,
+            new CellOwners(cell.Owner, cell.AdditionalOwners));
     }
 
     /// <summary>
@@ -105,6 +141,52 @@ internal sealed class CellBuffer
 
         return string.Join(Environment.NewLine, lines);
     }
+
+    private static void AddOwner(ref CellState cell, object owner)
+    {
+        if (cell.Owner is null)
+        {
+            cell.Owner = owner;
+            return;
+        }
+
+        if (ReferenceEquals(cell.Owner, owner) || cell.Owner.Equals(owner))
+        {
+            return;
+        }
+
+        var additional = cell.AdditionalOwners;
+        if (additional is null)
+        {
+            cell.AdditionalOwners = [owner];
+            return;
+        }
+
+        if (!additional.Contains(owner))
+        {
+            additional.Add(owner);
+        }
+    }
+
+    private static void ApplyContribution(
+        ref CellState cell,
+        Style style,
+        bool dashed,
+        int rank,
+        int ordinal)
+    {
+        if (!cell.HasStyle || IsHigherPriority(rank, ordinal, cell.Rank, cell.Ordinal))
+        {
+            cell.Style = style;
+            cell.Dashed = dashed;
+            cell.HasStyle = true;
+            cell.Rank = rank;
+            cell.Ordinal = ordinal;
+        }
+    }
+
+    private static bool IsHigherPriority(int rank, int ordinal, int otherRank, int otherOrdinal)
+        => rank > otherRank || (rank == otherRank && ordinal < otherOrdinal);
 
     private bool Contains(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 
@@ -152,30 +234,59 @@ internal sealed class CellBuffer
     {
         protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
         {
-            var width = Math.Max(0, viewport.Width);
+            var width = Math.Max(0, Math.Min(viewport.Width, maxWidth));
             var height = Math.Max(0, viewport.Height);
-            for (var row = 0; row < height; row++)
+            var characters = ArrayPool<char>.Shared.Rent(Math.Max(1, width));
+            try
             {
-                for (var column = 0; column < width; column++)
+                for (var row = 0; row < height; row++)
                 {
-                    var cell = buffer.Get(viewport.X + column, viewport.Y + row);
-                    yield return new Segment(cell.Glyph.ToString(), cell.Style);
-                }
+                    var length = 0;
+                    var style = Style.Plain;
+                    var hasStyle = false;
+                    for (var column = 0; column < width; column++)
+                    {
+                        var cell = buffer.Get(viewport.X + column, viewport.Y + row);
+                        if (hasStyle && cell.Style != style)
+                        {
+                            yield return new Segment(new string(characters, 0, length), style);
+                            length = 0;
+                        }
 
-                if (row < height - 1)
-                {
-                    yield return Segment.LineBreak;
+                        style = cell.Style;
+                        hasStyle = true;
+                        characters[length++] = cell.Glyph;
+                    }
+
+                    if (length > 0)
+                    {
+                        yield return new Segment(new string(characters, 0, length), style);
+                    }
+
+                    if (row < height - 1)
+                    {
+                        yield return Segment.LineBreak;
+                    }
                 }
+            }
+            finally
+            {
+                ArrayPool<char>.Shared.Return(characters);
             }
         }
     }
 
     private struct CellState
     {
+        public object? Owner;
+        public List<object>? AdditionalOwners;
         public char Glyph;
         public Style Style;
         public CanvasDirections Directions;
-        public List<object>? Owners;
+        public int Rank;
+        public int Ordinal;
+        public int GlyphRank;
+        public int GlyphOrdinal;
         public bool Dashed;
         public bool HasStyle;
         public bool HasExplicitGlyph;
