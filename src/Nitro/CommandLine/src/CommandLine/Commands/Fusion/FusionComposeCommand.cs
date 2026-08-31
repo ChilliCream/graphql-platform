@@ -10,6 +10,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionComposeCommand : Command
 {
+    private const int MaxArchiveOpenAttempts = 50;
+    private static readonly TimeSpan s_archiveOpenRetryDelay = TimeSpan.FromMilliseconds(100);
+
     public FusionComposeCommand() : base("compose")
     {
         Description = "Compose multiple source schemas into a single composite schema.";
@@ -599,9 +602,10 @@ internal sealed class FusionComposeCommand : Command
                 }
             }
 
-            using var archive = fileSystem.FileExists(archiveFile) || File.Exists(archiveFile)
-                ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-                : FusionArchive.Create(archiveFile);
+            using var archive = await OpenOrCreateArchiveAsync(
+                fileSystem,
+                archiveFile,
+                cancellationToken);
 
             if (removeSourceSchemas.Count > 0)
             {
@@ -675,6 +679,32 @@ internal sealed class FusionComposeCommand : Command
             {
                 settings.Dispose();
             }
+        }
+    }
+
+    /// <summary>
+    /// Opens the archive for update, or creates it when it does not exist. A concurrent
+    /// reader, such as a gateway reloading the archive, holds the file only briefly, so
+    /// a locked archive is retried until the reader releases its handle.
+    /// </summary>
+    private static async Task<FusionArchive> OpenOrCreateArchiveAsync(
+        IFileSystem fileSystem,
+        string archiveFile,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return fileSystem.FileExists(archiveFile) || File.Exists(archiveFile)
+                    ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+                    : FusionArchive.Create(archiveFile);
+            }
+            catch (IOException) when (attempt < MaxArchiveOpenAttempts)
+            {
+            }
+
+            await Task.Delay(s_archiveOpenRetryDelay, cancellationToken);
         }
     }
 
