@@ -553,7 +553,7 @@ public sealed class Selection : ISelection, IFeatureProvider
                 + "the wide defer flags. Use IsDeferred(ConditionFlags, DeferUsage?).");
         }
 
-        return IsDeferred(deferFlags, default(ReadOnlySpan<ulong>), parentDeferUsage);
+        return IsDeferred(deferFlags, default, parentDeferUsage);
     }
 
     /// <summary>
