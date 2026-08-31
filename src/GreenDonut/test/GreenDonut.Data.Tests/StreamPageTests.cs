@@ -71,7 +71,70 @@ public class StreamPageTests
     }
 
     [Fact]
+    public async Task Items_Should_ProjectNodes_When_ItemsAreEnumerated()
+    {
+        // arrange
+        var page = new StreamPage<string>(
+            CreateItems("a", "b", "c"),
+            new PagingArguments(first: 2),
+            static item => item);
+        List<string> items = [];
+
+        // act
+        await foreach (var item in page.Items)
+        {
+            items.Add(item);
+        }
+
+        // assert
+        Assert.Equal(["a", "b"], items);
+    }
+
+    [Fact]
+    public async Task Items_Should_CancelCompletionAndClaimPage_When_DisposedBeforeItStarts()
+    {
+        // arrange
+        var page = new StreamPage<string>(
+            CreateItems("a"),
+            new PagingArguments(first: 1),
+            static item => item);
+        var enumerator = page.Items.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        await enumerator.DisposeAsync();
+        var edgeException = Assert.Throws<InvalidOperationException>(
+            () => page.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        var itemsException = Assert.Throws<InvalidOperationException>(
+            () => page.Items.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal("A streamed page can only be enumerated once.", edgeException.Message);
+        Assert.Equal(edgeException.Message, itemsException.Message);
+        await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
+    }
+
+    [Fact]
+    public async Task Items_Should_Throw_When_PageIsEnumeratedAsEdges()
+    {
+        // arrange
+        var page = new StreamPage<string>(
+            CreateItems("a"),
+            new PagingArguments(first: 1),
+            static item => item);
+
+        // act
+        await foreach (var _ in page)
+        {
+        }
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => page.Items.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        Assert.Equal("A streamed page can only be enumerated once.", exception.Message);
+    }
+    [Fact]
     public async Task Completion_Should_FaultWithSourceException_When_SourceEnumerationFails()
+
     {
         // arrange
         var expectedException = new InvalidOperationException();

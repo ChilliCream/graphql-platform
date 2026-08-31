@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-
 namespace GreenDonut.Data;
 
 /// <summary>
@@ -82,7 +81,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
     /// <summary>
     /// Gets a one-shot stream of the page items.
     /// </summary>
-    public IAsyncEnumerable<T> Items => GetItemsAsync();
+    public IAsyncEnumerable<T> Items => new ItemsEnumerable(this);
 
     /// <summary>
     /// Gets the total count of items in the dataset.
@@ -100,19 +99,10 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
     {
         if (Interlocked.Exchange(ref _enumerationStarted, 1) != 0)
         {
-            throw new InvalidOperationException("A streamed page can only be enumerated once.");
+            throw ThrowHelper.StreamPage_EnumerationCanOnlyOccurOnce();
         }
 
         return new Enumerator(this, cancellationToken);
-    }
-
-    private async IAsyncEnumerable<T> GetItemsAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        await foreach (var edge in this.WithCancellation(cancellationToken).ConfigureAwait(false))
-        {
-            yield return edge.Node;
-        }
     }
 
     private async IAsyncEnumerable<StreamPageEdge<T>> EnumerateAsync(
@@ -200,11 +190,14 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
     }
 
-    private async ValueTask<bool> MoveNextAsync(IAsyncEnumerator<T> enumerator)
+    private ValueTask<bool> MoveNextAsync(IAsyncEnumerator<T> enumerator)
     {
         try
         {
-            return await enumerator.MoveNextAsync();
+            var operation = enumerator.MoveNextAsync();
+            return operation.IsCompletedSuccessfully
+                ? operation
+                : AwaitMoveNextAsync(operation);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -213,11 +206,40 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         }
     }
 
-    private async ValueTask DisposeAsync(IAsyncEnumerator<T> enumerator)
+    private async ValueTask<bool> AwaitMoveNextAsync(ValueTask<bool> operation)
     {
         try
         {
-            await enumerator.DisposeAsync();
+            return await operation.ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _completionException = exception;
+            throw;
+        }
+    }
+
+    private ValueTask DisposeAsync(IAsyncEnumerator<T> enumerator)
+    {
+        try
+        {
+            var operation = enumerator.DisposeAsync();
+            return operation.IsCompletedSuccessfully
+                ? operation
+                : AwaitDisposeAsync(operation);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _completionException = exception;
+            throw;
+        }
+    }
+
+    private async ValueTask AwaitDisposeAsync(ValueTask operation)
+    {
+        try
+        {
+            await operation.ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -247,29 +269,46 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
 
         public StreamPageEdge<T> Current => _enumerator!.Current;
 
-        public async ValueTask<bool> MoveNextAsync()
+        public ValueTask<bool> MoveNextAsync()
         {
             if (Interlocked.CompareExchange(ref _state, 1, 0) is 2)
             {
-                return false;
+                return ValueTask.FromResult(false);
             }
 
             _enumerator ??= page.EnumerateAsync(cancellationToken).GetAsyncEnumerator();
-            return await _enumerator.MoveNextAsync();
+            return _enumerator.MoveNextAsync();
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if (Interlocked.CompareExchange(ref _state, 2, 0) is 0)
             {
                 page._completionSource.TrySetCanceled();
-                return;
+                return ValueTask.CompletedTask;
             }
 
-            if (_enumerator is { } enumerator)
-            {
-                await enumerator.DisposeAsync();
-            }
+            return _enumerator is { } enumerator
+                ? enumerator.DisposeAsync()
+                : ValueTask.CompletedTask;
         }
+    }
+
+    private sealed class ItemsEnumerable(StreamPage<T> page) : IAsyncEnumerable<T>
+    {
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            => new ItemsEnumerator(page.GetAsyncEnumerator(cancellationToken));
+    }
+
+    private sealed class ItemsEnumerator(IAsyncEnumerator<StreamPageEdge<T>> enumerator)
+        : IAsyncEnumerator<T>
+    {
+        public T Current => enumerator.Current.Node;
+
+        public ValueTask<bool> MoveNextAsync()
+            => enumerator.MoveNextAsync();
+
+        public ValueTask DisposeAsync()
+            => enumerator.DisposeAsync();
     }
 }
