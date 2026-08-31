@@ -567,6 +567,59 @@ public sealed class OperationToolFactoryTests
     }
 
     [Fact]
+    public void CreateTool_FragmentSpreadSelectsImplementationDeclaredField_NarrowsToTypeCondition()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithInterfaceType {
+                withInterfaceType {
+                    name
+                    ...CatFields
+                }
+            }
+
+            fragment CatFields on Cat {
+                isPurring
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_FragmentSpreadOnParentType_KeepsFieldsRequired()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithInterfaceType {
+                withInterfaceType {
+                    ...PetFields
+                }
+            }
+
+            fragment PetFields on Pet {
+                name
+            }
+            """);
+        var toolDefinition = new OperationToolDefinition(document);
+
+        // act
+        var tool = new OperationToolFactory(schema, new McpToolOptions()).CreateTool(toolDefinition);
+
+        // assert
+        tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
     public void CreateTool_DuplicateFieldSelection_MergesIntoSingleProperty()
     {
         // arrange
