@@ -379,8 +379,8 @@ internal sealed class GraphLayout
             foreach (var other in segmentsByLayer[segment.From.Layer])
             {
                 metrics?.RecordIncidentComparison();
-                if (segment.Sequence == other.Sequence ||
-                    (incidentSequences.Contains(other.Sequence) && other.Sequence < segment.Sequence))
+                if (segment.Sequence == other.Sequence
+                    || (incidentSequences.Contains(other.Sequence) && other.Sequence < segment.Sequence))
                 {
                     continue;
                 }
@@ -461,8 +461,8 @@ internal sealed class GraphLayoutMetrics
 
     public bool CaptureCandidateObservations => _candidateObservations is not null;
 
-    public IReadOnlyList<GraphLayoutCandidateObservation> CandidateObservations
-        => _candidateObservations ?? Array.Empty<GraphLayoutCandidateObservation>();
+    public IReadOnlyList<GraphLayoutCandidateObservation> CandidateObservations => _candidateObservations
+        ?? (IReadOnlyList<GraphLayoutCandidateObservation>)Array.Empty<GraphLayoutCandidateObservation>();
 
     public void RecordCandidate()
     {
