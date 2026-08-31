@@ -35,14 +35,19 @@ internal sealed record GraphTreeRow
     public int ContainedMatchCount { get; init; }
 
     /// <summary>
-    /// The number of visible tasks that block this task.
+    /// The number of nonterminal tasks in the reduced graph that block this task.
     /// </summary>
     public int BlockedByCount { get; init; }
 
     /// <summary>
-    /// The number of visible tasks this task blocks.
+    /// The number of nonterminal tasks in the reduced graph that this task blocks.
     /// </summary>
     public int BlocksCount { get; init; }
+
+    /// <summary>
+    /// The count of selected-task relationships hidden by a collapsed epic.
+    /// </summary>
+    public int ContainedRelationshipCount { get; init; }
 
     /// <summary>
     /// Whether this row is the current task selection.
@@ -50,7 +55,7 @@ internal sealed record GraphTreeRow
     public bool IsSelected { get; init; }
 
     /// <summary>
-    /// Whether this row has a visible blocking edge to or from the selection.
+    /// Whether this row has a blocking edge to or from the selection.
     /// </summary>
     public bool IsRelatedToSelection { get; init; }
 

@@ -189,15 +189,34 @@ internal sealed class GraphTreeView
             .ToArray();
         var hierarchy = GraphHierarchy.Build(new GraphModel(visibleNodes, visibleEdges));
         var rows = new List<GraphTreeRow>();
-        var descendantsById = BuildDescendantMatchCounts(hierarchy);
+        var descendantsById = BuildDescendantCounts(hierarchy, _matchIds);
+        var blockingEdges = visibleEdges.Where(t => t.Kind == GraphEdgeKind.Blocks).ToArray();
+        var selectedBlockerIds = new HashSet<string>(StringComparer.Ordinal);
+        var selectedDependentIds = new HashSet<string>(StringComparer.Ordinal);
+
+        if (_selectedTaskId is not null)
+        {
+            foreach (var edge in blockingEdges)
+            {
+                if (edge.ToId == _selectedTaskId)
+                {
+                    selectedBlockerIds.Add(edge.FromId);
+                }
+
+                if (edge.FromId == _selectedTaskId)
+                {
+                    selectedDependentIds.Add(edge.ToId);
+                }
+            }
+        }
+
+        var selectedRelationshipIds = new HashSet<string>(selectedBlockerIds, StringComparer.Ordinal);
+        selectedRelationshipIds.UnionWith(selectedDependentIds);
+        var descendantRelationshipCounts = BuildDescendantCounts(hierarchy, selectedRelationshipIds);
 
         Flatten(hierarchy, 0, true, [], rows);
 
-        var rowIds = rows.Where(t => t.TaskId is not null).Select(t => t.TaskId!).ToHashSet(StringComparer.Ordinal);
-        var blockingEdges = visibleEdges
-            .Where(t => t.Kind == GraphEdgeKind.Blocks && rowIds.Contains(t.FromId) && rowIds.Contains(t.ToId))
-            .ToArray();
-        _rows = rows.Select(row => AddDependencyState(row, blockingEdges)).ToArray();
+        _rows = rows.Select(row => AddDependencyState(row, blockingEdges, selectedRelationshipIds)).ToArray();
 
         return;
 
@@ -215,6 +234,9 @@ internal sealed class GraphTreeView
             var containedMatchCount = task is { IsEpic: true } && !isExpanded
                 ? descendantsById.GetValueOrDefault(task.Id)
                 : 0;
+            var containedRelationshipCount = task is { IsEpic: true } && !isExpanded
+                ? descendantRelationshipCounts.GetValueOrDefault(task.Id)
+                : 0;
             var connector = new TreeNodeRow
             {
                 TaskId = task?.Id ?? RootId,
@@ -230,6 +252,7 @@ internal sealed class GraphTreeView
                 HasChildren = hasChildren,
                 IsExpanded = isExpanded,
                 ContainedMatchCount = containedMatchCount,
+                ContainedRelationshipCount = containedRelationshipCount,
                 IsSelected = task?.Id == _selectedTaskId
             });
 
@@ -252,7 +275,9 @@ internal sealed class GraphTreeView
         }
     }
 
-    private Dictionary<string, int> BuildDescendantMatchCounts(GraphHierarchyNode root)
+    private static Dictionary<string, int> BuildDescendantCounts(
+        GraphHierarchyNode root,
+        IReadOnlySet<string> taskIds)
     {
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
         CountMatches(root);
@@ -260,7 +285,7 @@ internal sealed class GraphTreeView
 
         int CountMatches(GraphHierarchyNode node)
         {
-            var count = node.Task is not null && _matchIds.Contains(node.Task.Id) ? 1 : 0;
+            var count = node.Task is not null && taskIds.Contains(node.Task.Id) ? 1 : 0;
 
             foreach (var child in node.Children)
             {
@@ -269,14 +294,17 @@ internal sealed class GraphTreeView
 
             if (node.Task is not null)
             {
-                counts[node.Task.Id] = count - (_matchIds.Contains(node.Task.Id) ? 1 : 0);
+                counts[node.Task.Id] = count - (taskIds.Contains(node.Task.Id) ? 1 : 0);
             }
 
             return count;
         }
     }
 
-    private GraphTreeRow AddDependencyState(GraphTreeRow row, IReadOnlyList<GraphEdge> blockingEdges)
+    private GraphTreeRow AddDependencyState(
+        GraphTreeRow row,
+        IReadOnlyList<GraphEdge> blockingEdges,
+        IReadOnlySet<string> selectedRelationshipIds)
     {
         if (row.TaskId is not { } taskId)
         {
@@ -285,11 +313,7 @@ internal sealed class GraphTreeView
 
         var blockedByCount = blockingEdges.Count(t => t.ToId == taskId);
         var blocksCount = blockingEdges.Count(t => t.FromId == taskId);
-        var related = _selectedTaskId is not null
-            && taskId != _selectedTaskId
-            && blockingEdges.Any(t =>
-                (t.FromId == _selectedTaskId && t.ToId == taskId)
-                || (t.ToId == _selectedTaskId && t.FromId == taskId));
+        var related = selectedRelationshipIds.Contains(taskId) || row.ContainedRelationshipCount > 0;
 
         return row with
         {
@@ -348,6 +372,11 @@ internal sealed class GraphTreeView
         if (row.ContainedMatchCount > 0)
         {
             badges += $"  {row.ContainedMatchCount} hits";
+        }
+
+        if (row.ContainedRelationshipCount > 0)
+        {
+            badges += $"  {row.ContainedRelationshipCount} related";
         }
 
         var prefix = $"{fold}{TaskGlyphs.Status(task.Status)} [{TaskGlyphs.TypeCode(task.Type)}] ";

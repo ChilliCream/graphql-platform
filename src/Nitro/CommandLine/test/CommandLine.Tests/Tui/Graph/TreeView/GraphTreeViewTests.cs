@@ -105,6 +105,113 @@ public sealed class GraphTreeViewTests
     }
 
     [Fact]
+    public void Create_Should_KeepTaskBlockingBadgesWhenParentEpicIsCollapsed()
+    {
+        // arrange
+        var model = Model(
+            [Node("epic", type: TaskTypes.Epic, priority: 0), Node("blocker"), Node("child")],
+            [
+                Edge("epic", "child", GraphEdgeKind.ParentChild),
+                Edge("child", "blocker")
+            ]);
+        var view = new GraphTreeView(model, Set());
+        var expandedState = view.Rows
+            .Select(t => (t.TaskId, t.BlockedByCount, t.BlocksCount))
+            .ToArray();
+
+        // act
+        view.SelectTask("epic");
+        view.CollapseSelected();
+
+        // assert
+        Assert.Equal(
+            [
+                ((string?)null, 0, 0),
+                ("epic", 0, 0),
+                ("child", 0, 1),
+                ("blocker", 1, 0)
+            ],
+            expandedState);
+        Assert.Equal(
+            [
+                ((string?)null, 0, 0),
+                ("epic", 0, 0),
+                ("blocker", 1, 0)
+            ],
+            view.Rows.Select(t => (t.TaskId, t.BlockedByCount, t.BlocksCount)));
+    }
+
+    [Fact]
+    public void Create_Should_AggregateHiddenBlockerRelationshipsOnCollapsedEpic()
+    {
+        // arrange
+        var model = Model(
+            [Node("epic", type: TaskTypes.Epic), Node("hidden"), Node("selected")],
+            [
+                Edge("epic", "hidden", GraphEdgeKind.ParentChild),
+                Edge("hidden", "selected")
+            ]);
+        var view = new GraphTreeView(model, Set("epic"));
+
+        // act
+        view.SelectTask("selected");
+
+        // assert
+        Assert.Equal(
+            [
+                ((string?)null, 0, 0, 0, false, false),
+                ("epic", 0, 0, 1, false, true),
+                ("selected", 1, 0, 0, true, false)
+            ],
+            view.Rows.Select(t =>
+                (t.TaskId,
+                    t.BlockedByCount,
+                    t.BlocksCount,
+                    t.ContainedRelationshipCount,
+                    t.IsSelected,
+                    t.IsRelatedToSelection)));
+        Assert.Equal(
+            "Root\n├─ ▸ ○ [E] epic epic  blocked by 0 / blocks 0  1 related\n"
+            + "└─   ○ [T] selected selected  blocked by 1 / blocks 0\n",
+            Render(view));
+    }
+
+    [Fact]
+    public void Create_Should_AggregateHiddenDependentRelationshipsOnCollapsedEpic()
+    {
+        // arrange
+        var model = Model(
+            [Node("epic", type: TaskTypes.Epic), Node("hidden"), Node("selected")],
+            [
+                Edge("epic", "hidden", GraphEdgeKind.ParentChild),
+                Edge("selected", "hidden")
+            ]);
+        var view = new GraphTreeView(model, Set("epic"));
+
+        // act
+        view.SelectTask("selected");
+
+        // assert
+        Assert.Equal(
+            [
+                ((string?)null, 0, 0, 0, false, false),
+                ("epic", 0, 0, 1, false, true),
+                ("selected", 0, 1, 0, true, false)
+            ],
+            view.Rows.Select(t =>
+                (t.TaskId,
+                    t.BlockedByCount,
+                    t.BlocksCount,
+                    t.ContainedRelationshipCount,
+                    t.IsSelected,
+                    t.IsRelatedToSelection)));
+        Assert.Equal(
+            "Root\n├─ ▸ ○ [E] epic epic  blocked by 0 / blocks 0  1 related\n"
+            + "└─   ○ [T] selected selected  blocked by 0 / blocks 1\n",
+            Render(view));
+    }
+
+    [Fact]
     public void Create_Should_MarkCollapsedEpicWithContainedMatchesWithoutExpandingIt()
     {
         // arrange
@@ -265,6 +372,13 @@ public sealed class GraphTreeViewTests
 
     private static IReadOnlySet<string> Set(params string[] ids)
         => ids.ToHashSet(StringComparer.Ordinal);
+
+    private static string Render(GraphTreeView view)
+    {
+        var console = new TestConsole().Width(120).Height(10);
+        console.Write(view.Render(120, 10));
+        return console.Output;
+    }
 
     private static void AssertSelectedTokenPrefixesText(string output, string token, string text)
     {
