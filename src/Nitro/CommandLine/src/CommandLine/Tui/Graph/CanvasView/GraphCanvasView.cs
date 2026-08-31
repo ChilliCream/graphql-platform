@@ -120,7 +120,7 @@ internal sealed class GraphCanvasView
                 StyleOverride = edge => selectedTaskId is not null
                     && (edge.FromId == selectedTaskId || edge.ToId == selectedTaskId)
                         ? ThemeTokens.GetStyle("selection.highlight")
-                        : null
+                        : (Style?)null
             });
         var nodesById = _model.Nodes.ToDictionary(t => t.Id, StringComparer.Ordinal);
 
