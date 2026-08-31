@@ -230,6 +230,45 @@ public sealed class GraphEdgeRouterTests
     }
 
     [Fact]
+    public void Route_Should_RejectEndpointPortAliases_When_CompactReversedLayoutUsesOpposingAnchors()
+    {
+        // arrange
+        var edge = Edge("other", "target");
+        var overrideStyle = new Style(Color.Red);
+        var layout = Frame(
+            [Node("target", 0, 0, 2, 1, 0, 0), Node("other", 4, 0, 2, 1, 1, 0)],
+            [Span(edge, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(4, 0), reversed: true)]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(
+            layout,
+            new GraphEdgeRenderOptions { StyleOverride = current => current == edge ? overrideStyle : (Style?)null });
+        var route = result.Routes.Single();
+        var arrow = ArrowCells(result.Buffer).Single();
+        var startPort = route.Points[0];
+        var endPort = route.Points[^1];
+        var snapshot = $"""
+            endpoint ports unique: {route.Points.Count(point => point == startPort) == 1 && route.Points.Count(point => point == endPort) == 1}
+            outward anchors: {route.Points[1] == new GraphLayoutPoint(startPort.X + 1, startPort.Y) && route.Points[^2] == new GraphLayoutPoint(endPort.X + 1, endPort.Y)}
+            manhattan adjacent: {route.Points.Zip(route.Points.Skip(1)).All(pair => Math.Abs(pair.First.X - pair.Second.X) + Math.Abs(pair.First.Y - pair.Second.Y) == 1)}
+            outside nodes: {route.Points.All(point => layout.Nodes.All(node => !Contains(node, point)))}
+            true target arrow: {arrow.Point == new GraphLayoutPoint(2, 0) && arrow.Glyph == '◀'}
+            reversed override: {result.Buffer.Get(arrow.Point.X, arrow.Point.Y).Style == new Style(Color.Red, null, Decoration.Dim)}
+            """;
+
+        // assert
+        snapshot.MatchInlineSnapshot(
+            """
+            endpoint ports unique: True
+            outward anchors: True
+            manhattan adjacent: True
+            outside nodes: True
+            true target arrow: True
+            reversed override: True
+            """);
+    }
+
+    [Fact]
     public void Route_Should_DeduplicateEqualSpansForOneSemanticEdge()
     {
         // arrange

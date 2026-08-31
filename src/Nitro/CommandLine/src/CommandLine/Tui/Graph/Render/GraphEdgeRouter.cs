@@ -368,7 +368,9 @@ internal sealed class GraphEdgeRouter
         if (IsReserved(start.Point, reservedArrowCells, pendingArrowPoint)
             || IsReserved(end.Point, reservedArrowCells, pendingArrowPoint)
             || !TryGetAnchor(start, allNodes, reservedArrowCells, pendingArrowPoint, out var startAnchor)
-            || !TryGetAnchor(end, allNodes, reservedArrowCells, pendingArrowPoint, out var endAnchor))
+            || !TryGetAnchor(end, allNodes, reservedArrowCells, pendingArrowPoint, out var endAnchor)
+            || startAnchor == end.Point
+            || endAnchor == start.Point)
         {
             route = [];
             return false;
