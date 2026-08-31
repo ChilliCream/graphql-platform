@@ -8,23 +8,6 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed record FieldSelectionNode
 {
-    private readonly ConditionFlags _pathConditionFlags;
-
-    /// <summary>
-    /// Gets the syntax node that represents the field selection.
-    /// </summary>
-    public FieldNode Node { get; }
-
-    /// <summary>
-    /// Gets the flags that must be all set for this selection to be included.
-    /// </summary>
-    public ulong PathIncludeFlags { get; }
-
-    /// <summary>
-    /// Gets the delivery group context this field was collected under.
-    /// </summary>
-    public DeliveryGroup? DeliveryGroup { get; }
-
     [Obsolete("Use the ConditionFlags constructor instead. This constructor cannot express more than 64 conditions.")]
     public FieldSelectionNode(
         FieldNode node,
@@ -34,7 +17,7 @@ public sealed record FieldSelectionNode
         Node = node;
         PathIncludeFlags = pathIncludeFlags;
         DeliveryGroup = deliveryGroup;
-        _pathConditionFlags = new ConditionFlags(pathIncludeFlags);
+        PathConditionFlags = new ConditionFlags(pathIncludeFlags);
     }
 
     /// <summary>
@@ -51,13 +34,28 @@ public sealed record FieldSelectionNode
         Node = node;
         PathIncludeFlags = pathIncludeFlags.Word0;
         DeliveryGroup = deliveryGroup;
-        _pathConditionFlags = pathIncludeFlags;
+        PathConditionFlags = pathIncludeFlags;
     }
+
+    /// <summary>
+    /// Gets the syntax node that represents the field selection.
+    /// </summary>
+    public FieldNode Node { get; }
 
     /// <summary>
     /// Gets the flags that must be all set for this selection to be included.
     /// </summary>
-    public ConditionFlags PathConditionFlags => _pathConditionFlags;
+    public ulong PathIncludeFlags { get; }
+
+    /// <summary>
+    /// Gets the delivery group context this field was collected under.
+    /// </summary>
+    public DeliveryGroup? DeliveryGroup { get; }
+
+    /// <summary>
+    /// Gets the flags that must be all set for this selection to be included.
+    /// </summary>
+    public ConditionFlags PathConditionFlags { get; }
 
     /// <summary>
     /// Deconstructs this field selection node.
