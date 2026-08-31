@@ -299,11 +299,18 @@ public sealed class OperationCompiler
             deliveryGroups.Clear();
 
             var alwaysIncluded = false;
+            var hasOverflowIncludeFlags = false;
             var first = nodes[0];
             var isInternal = IsInternal(nodes);
             var hasImmediateNode = first.DeliveryGroup is null;
 
-            AddIncludeFlags(first, isInternal, includeFlags, wideIncludeFlags, ref alwaysIncluded);
+            AddIncludeFlags(
+                first,
+                isInternal,
+                includeFlags,
+                wideIncludeFlags,
+                ref alwaysIncluded,
+                ref hasOverflowIncludeFlags);
 
             if (first.DeliveryGroup is not null)
             {
@@ -322,7 +329,13 @@ public sealed class OperationCompiler
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
 
-                    AddIncludeFlags(next, isInternal, includeFlags, wideIncludeFlags, ref alwaysIncluded);
+                    AddIncludeFlags(
+                        next,
+                        isInternal,
+                        includeFlags,
+                        wideIncludeFlags,
+                        ref alwaysIncluded,
+                        ref hasOverflowIncludeFlags);
 
                     if (next.DeliveryGroup is null)
                     {
@@ -343,7 +356,7 @@ public sealed class OperationCompiler
             }
 
             ulong[]? flatWideIncludeFlags = null;
-            if (wideIncludeFlags is { Count: > 0 })
+            if (hasOverflowIncludeFlags && wideIncludeFlags is { Count: > 0 })
             {
                 flatWideIncludeFlags = new ulong[wideIncludeFlags.Count * wideIncludeFlagsStride];
 
@@ -503,7 +516,8 @@ public sealed class OperationCompiler
         bool isInternalSelection,
         List<ulong> includeFlags,
         List<ulong[]>? wideIncludeFlags,
-        ref bool alwaysIncluded)
+        ref bool alwaysIncluded,
+        ref bool hasOverflowIncludeFlags)
     {
         if (!isInternalSelection && IsInternal(node.Node))
         {
@@ -517,12 +531,18 @@ public sealed class OperationCompiler
             {
                 includeFlags.Clear();
                 wideIncludeFlags?.Clear();
+                hasOverflowIncludeFlags = false;
             }
         }
         else if (!alwaysIncluded)
         {
             includeFlags.Add(node.PathIncludeFlags);
-            wideIncludeFlags?.Add(node.PathConditionFlags.Overflow ?? []);
+            if (wideIncludeFlags is not null)
+            {
+                var overflow = node.PathConditionFlags.Overflow;
+                wideIncludeFlags.Add(overflow ?? []);
+                hasOverflowIncludeFlags |= !IsOverflowEmpty(overflow);
+            }
         }
     }
 

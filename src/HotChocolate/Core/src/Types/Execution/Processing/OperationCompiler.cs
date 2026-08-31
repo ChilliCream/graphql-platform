@@ -342,6 +342,7 @@ public sealed partial class OperationCompiler
             deferUsages.Clear();
 
             var alwaysIncluded = false;
+            var hasOverflowIncludeFlags = false;
             var first = nodes[0];
             // A selection nested inside an internal selection is itself internal: the
             // whole subtree exists only for engine-internal purposes (for example the
@@ -357,7 +358,12 @@ public sealed partial class OperationCompiler
             else
             {
                 includeFlags.Add(first.PathIncludeFlags);
-                wideIncludeFlags?.Add(first.PathConditionFlags.Overflow ?? []);
+                if (wideIncludeFlags is not null)
+                {
+                    var overflow = first.PathConditionFlags.Overflow;
+                    wideIncludeFlags.Add(overflow ?? []);
+                    hasOverflowIncludeFlags = !IsOverflowEmpty(overflow);
+                }
             }
 
             if (first.DeferUsage is not null)
@@ -384,12 +390,18 @@ public sealed partial class OperationCompiler
                         {
                             includeFlags.Clear();
                             wideIncludeFlags?.Clear();
+                            hasOverflowIncludeFlags = false;
                         }
                     }
                     else if (!alwaysIncluded)
                     {
                         includeFlags.Add(next.PathIncludeFlags);
-                        wideIncludeFlags?.Add(next.PathConditionFlags.Overflow ?? []);
+                        if (wideIncludeFlags is not null)
+                        {
+                            var overflow = next.PathConditionFlags.Overflow;
+                            wideIncludeFlags.Add(overflow ?? []);
+                            hasOverflowIncludeFlags |= !IsOverflowEmpty(overflow);
+                        }
                     }
 
                     if (next.DeferUsage is null)
@@ -416,7 +428,7 @@ public sealed partial class OperationCompiler
             }
 
             ulong[]? flatWideIncludeFlags = null;
-            if (wideIncludeFlags is { Count: > 0 })
+            if (hasOverflowIncludeFlags && wideIncludeFlags is { Count: > 0 })
             {
                 flatWideIncludeFlags = new ulong[wideIncludeFlags.Count * wideIncludeFlagsStride];
 

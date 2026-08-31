@@ -218,6 +218,43 @@ public class WideConditionMaskTests : FusionTestBase
     }
 
     [Theory]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    public void IsIncluded_Should_Evaluate_Word0_Only_Path_When_Operation_Is_Wide(
+        bool isSkip,
+        bool conditionValue,
+        bool expected)
+    {
+        // arrange
+        const int conditionCount = 65;
+        var schema = CreateSchema();
+        var sourceText = CreateIncludeDocument(conditionCount);
+        if (isSkip)
+        {
+            sourceText = sourceText.Replace(
+                "@include(if: $v0)",
+                "@skip(if: $v0)",
+                StringComparison.Ordinal);
+        }
+
+        var operationDefinition = ParseOperation(sourceText);
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+
+        Assert.True(operation.RootSelectionSet.TryGetSelection("f0", out var selection));
+
+        // act
+        var flags = operation.CreateIncludeConditionFlags(
+            CreateVariables(schema, "v", conditionCount, _ => conditionValue));
+        var included = selection!.IsIncluded(flags);
+
+        // assert
+        Assert.Equal(expected, included);
+    }
+
+    [Theory]
     [InlineData(63)]
     [InlineData(64)]
     [InlineData(65)]

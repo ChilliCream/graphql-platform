@@ -214,6 +214,44 @@ public class WideConditionMaskTests
     }
 
     [Theory]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    public void IsIncluded_Should_Evaluate_Word0_Only_Path_When_Operation_Is_Wide(
+        bool isSkip,
+        bool conditionValue,
+        bool expected)
+    {
+        // arrange
+        var schema = CreateSchema();
+        var sourceText = CreateIncludeDocument(conditionCount: 65);
+        if (isSkip)
+        {
+            sourceText = sourceText.Replace(
+                "@include(if: $v0)",
+                "@skip(if: $v0)",
+                StringComparison.Ordinal);
+        }
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var variables = new Moq.Mock<IVariableValueCollection>();
+        var value = conditionValue ? BooleanValueNode.True : BooleanValueNode.False;
+        variables
+            .Setup(t => t.TryGetValue<BooleanValueNode>(Moq.It.IsAny<string>(), out value))
+            .Returns(true);
+
+        Assert.True(operation.RootSelectionSet.TryGetSelection("f0", out var selection));
+
+        // act
+        var included = selection!.IsIncluded(operation.CreateIncludeConditionFlags(variables.Object));
+
+        // assert
+        Assert.Equal(expected, included);
+    }
+
+    [Theory]
     [InlineData(63)]
     [InlineData(64)]
     [InlineData(65)]
