@@ -55,8 +55,18 @@ internal sealed class GraphLayout
         Order(layers, previousLayout);
         MinimizeCrossings(layers, segments, _metrics);
 
-        var nodes = _coordinates.Assign(layers, layerSpacing, nodeSpacing)
-            .Values
+        var positions = _coordinates.Assign(layers, layerSpacing, nodeSpacing);
+        var nodes = layers
+            .SelectMany(t => t)
+            .Where(t => t.NodeId is not null)
+            .Select(t => new GraphLayoutNode(
+                t.NodeId!,
+                positions[t].X,
+                positions[t].Y,
+                t.Size.Width,
+                t.Size.Height,
+                t.Layer,
+                t.Order))
             .OrderBy(t => t.Id, StringComparer.Ordinal)
             .ToArray();
         var spans = segments
@@ -70,6 +80,8 @@ internal sealed class GraphLayout
                 t.To.Layer,
                 t.From.Order,
                 t.To.Order,
+                positions[t.From],
+                positions[t.To],
                 t.Arc.IsReversed))
             .ToArray();
 

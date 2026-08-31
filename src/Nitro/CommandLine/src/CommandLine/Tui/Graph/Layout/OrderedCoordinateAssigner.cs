@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
 /// </summary>
 internal sealed class OrderedCoordinateAssigner : IGraphCoordinateAssigner
 {
-    public IReadOnlyDictionary<string, GraphLayoutNode> Assign(
+    public IReadOnlyDictionary<LayoutVertex, GraphLayoutPoint> Assign(
         IReadOnlyList<List<LayoutVertex>> layers,
         int layerSpacing,
         int nodeSpacing)
@@ -39,23 +39,13 @@ internal sealed class OrderedCoordinateAssigner : IGraphCoordinateAssigner
             }
         }
 
-        var result = new Dictionary<string, GraphLayoutNode>(StringComparer.Ordinal);
+        var result = new Dictionary<LayoutVertex, GraphLayoutPoint>();
         for (var layerIndex = 0; layerIndex < layers.Count; layerIndex++)
         {
             var layer = layers[layerIndex];
             foreach (var vertex in layer)
             {
-                if (vertex.NodeId is not null)
-                {
-                    result[vertex.NodeId] = new GraphLayoutNode(
-                        vertex.NodeId,
-                        layerX,
-                        positions[vertex],
-                        vertex.Size.Width,
-                        vertex.Size.Height,
-                        layerIndex,
-                        vertex.Order);
-                }
+                result[vertex] = new GraphLayoutPoint(layerX, positions[vertex]);
             }
 
             layerX += widths[layerIndex] + layerSpacing;

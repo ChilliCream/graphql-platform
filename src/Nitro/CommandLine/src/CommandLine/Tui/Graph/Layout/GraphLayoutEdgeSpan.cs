@@ -11,4 +11,6 @@ internal sealed record GraphLayoutEdgeSpan(
     int ToLayer,
     int FromOrder,
     int ToOrder,
+    GraphLayoutPoint FromPosition,
+    GraphLayoutPoint ToPosition,
     bool IsReversed);

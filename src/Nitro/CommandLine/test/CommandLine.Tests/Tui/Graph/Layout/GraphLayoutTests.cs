@@ -218,6 +218,30 @@ public sealed class GraphLayoutTests
         Assert.Equal(9, result.FindNode("b")!.X);
     }
 
+    [Fact]
+    public void Layout_Should_PreserveAssignedDummyCoordinates_When_CoordinateStrategyIsReplaced()
+    {
+        // arrange
+        var model = Model(
+            [Node("a"), Node("b"), Node("c"), Node("d")],
+            [Edge("a", "b"), Edge("b", "c"), Edge("c", "d"), Edge("a", "d")]);
+        var layout = new GraphLayout(coordinates: new SentinelCoordinateAssigner());
+
+        // act
+        var result = layout.Layout(model, Sizes(model));
+        var longEdgeSpans = result.EdgeSpans
+            .Where(t => t.Edge.FromId == "a" && t.Edge.ToId == "d")
+            .Select(t => $"{t.FromPosition.X},{t.FromPosition.Y} -> {t.ToPosition.X},{t.ToPosition.Y}");
+
+        // assert
+        longEdgeSpans.MatchInlineSnapshots(
+            [
+                "11,13 -> 101,503",
+                "101,503 -> 907,211",
+                "907,211 -> 71,73"
+            ]);
+    }
+
     private static GraphModel Model(IReadOnlyList<GraphNode> nodes, IReadOnlyList<GraphEdge> edges)
         => new(nodes, edges);
 
@@ -258,5 +282,34 @@ public sealed class GraphLayoutTests
         }
 
         return count;
+    }
+
+    private sealed class SentinelCoordinateAssigner : IGraphCoordinateAssigner
+    {
+        public IReadOnlyDictionary<LayoutVertex, GraphLayoutPoint> Assign(
+            IReadOnlyList<List<LayoutVertex>> layers,
+            int layerSpacing,
+            int nodeSpacing)
+        {
+            var positions = new Dictionary<LayoutVertex, GraphLayoutPoint>();
+            foreach (var layer in layers)
+            {
+                foreach (var vertex in layer)
+                {
+                    positions[vertex] = vertex.NodeId switch
+                    {
+                        "a" => new GraphLayoutPoint(11, 13),
+                        "b" => new GraphLayoutPoint(29, 31),
+                        "c" => new GraphLayoutPoint(47, 53),
+                        "d" => new GraphLayoutPoint(71, 73),
+                        null when vertex.Layer == 1 => new GraphLayoutPoint(101, 503),
+                        null when vertex.Layer == 2 => new GraphLayoutPoint(907, 211),
+                        _ => new GraphLayoutPoint(-1, -1)
+                    };
+                }
+            }
+
+            return positions;
+        }
     }
 }

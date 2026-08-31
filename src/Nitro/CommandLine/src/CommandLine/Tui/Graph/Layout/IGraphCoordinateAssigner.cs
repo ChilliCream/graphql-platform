@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
 /// </summary>
 internal interface IGraphCoordinateAssigner
 {
-    IReadOnlyDictionary<string, GraphLayoutNode> Assign(
+    IReadOnlyDictionary<LayoutVertex, GraphLayoutPoint> Assign(
         IReadOnlyList<List<LayoutVertex>> layers,
         int layerSpacing,
         int nodeSpacing);
