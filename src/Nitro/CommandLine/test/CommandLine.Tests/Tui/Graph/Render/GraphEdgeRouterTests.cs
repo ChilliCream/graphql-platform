@@ -454,5 +454,4 @@ public sealed class GraphEdgeRouterTests
     private sealed record RenderedCell(char Glyph, Style Style, string Owners);
 
     private sealed record ArrowCell(GraphLayoutPoint Point, char Glyph);
-
 }
