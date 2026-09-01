@@ -1,25 +1,29 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Fragment } from "react";
+import type { CSSProperties, ReactNode } from "react";
+
+import { PageSection } from "@/src/components/PageSection";
+import { SectionHeading } from "@/src/components/SectionHeading";
 
 import { CANON, GatewayChip, GlowNode, INK_DIM } from "./visuals/stage";
 
 const W = 1024;
-const H = 7520;
+const H = 4900;
 
 const MARKERS = [
-  { s: 0, x: 150, y: 120 },
-  { s: 1, x: 320, y: 1190 },
-  { s: 3, x: 704, y: 1950 },
-  { s: 4, x: 874, y: 2750 },
-  { s: 2, x: 512, y: 3550 },
+  { s: 0, x: 150, y: 100 },
+  { s: 1, x: 320, y: 140 },
+  { s: 2, x: 512, y: 180 },
+  { s: 3, x: 704, y: 220 },
+  { s: 4, x: 874, y: 260 },
 ] as const;
 
-const BEND_START = 5250;
-const HUB = { x: 512, y: 5710 } as const;
+const BEND_START = 3050;
+const HUB = { x: 512, y: 3480 } as const;
 
-const HORIZON_Y = 6520;
-const CHIP = { x: 512, y: 6600 } as const;
+const HORIZON_Y = 4300;
+const CHIP = { x: 512, y: 4380 } as const;
 
 function streamPath(x: number, y0: number): string {
   const c1y = BEND_START + (HUB.y - BEND_START) * 0.5;
@@ -28,433 +32,202 @@ function streamPath(x: number, y0: number): string {
 }
 
 const GAPS = [
-  { x: 220, w: 584, y: 2200, h: 300 },
-  { x: 470, w: 460, y: 2980, h: 340 },
-  { x: 100, w: 460, y: 3800, h: 300 },
-  { x: 470, w: 460, y: 4400, h: 300 },
-  { x: 220, w: 584, y: 4900, h: 300 },
-  { x: 220, w: 584, y: 5790, h: 360 },
-  { x: 220, w: 584, y: 6670, h: 300 },
-  { x: 220, w: 584, y: 7130, h: 300 },
+  { x: 470, w: 460, y: 400, h: 320 },
+  { x: 100, w: 460, y: 900, h: 320 },
+  { x: 220, w: 584, y: 1390, h: 300 },
+  { x: 470, w: 460, y: 1860, h: 320 },
+  { x: 220, w: 584, y: 2350, h: 300 },
+  { x: 220, w: 584, y: 3560, h: 360 },
+  { x: 220, w: 584, y: 4450, h: 300 },
 ] as const;
 
 const pct = (v: number, total: number) => `${(v / total) * 100}%`;
 
+/** Desktop placement: the block's center in the 1024 x H map, as CSS variables. */
+function placement(top: number, left: number): CSSProperties {
+  return { "--top": pct(top, H), "--left": `${left}%` } as CSSProperties;
+}
+
 const SCRIM =
   "radial-gradient(ellipse 62% 58% at 50% 50%, rgba(11,15,26,0.98) 0%, rgba(11,15,26,0.94) 50%, rgba(11,15,26,0.6) 76%, rgba(11,15,26,0) 93%)";
 
-interface CopyContentProps {
-  readonly title: string;
-  readonly children: ReactNode;
-  readonly side?: boolean;
-}
-
-function CopyContent({ title, children, side }: CopyContentProps) {
-  return (
-    <div className={`relative ${side ? "text-left" : "text-center"}`}>
-      <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
-        {title}
-      </h2>
-      <div className="text-cc-ink mt-4 space-y-3 text-sm sm:text-base">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-interface CopyBlockProps extends CopyContentProps {
+interface CopyBlockProps {
   readonly top: number;
   readonly left: number;
+  readonly side?: boolean;
+  readonly title: string;
+  readonly children: ReactNode;
 }
 
-function CopyBlock({ top, left, ...content }: CopyBlockProps) {
+function CopyBlock({ top, left, side, title, children }: CopyBlockProps) {
   return (
     <div
-      className={`absolute z-20 -translate-x-1/2 -translate-y-1/2 ${
-        content.side ? "w-[min(44%,26rem)]" : "w-[min(92%,34rem)]"
+      className={`relative w-full text-center sm:absolute sm:top-(--top) sm:left-(--left) sm:z-20 sm:-translate-x-1/2 sm:-translate-y-1/2 ${
+        side ? "sm:w-[min(44%,26rem)] sm:text-left" : "sm:w-[min(92%,34rem)]"
       }`}
-      style={{ top: pct(top, H), left: `${left}%` }}
+      style={placement(top, left)}
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-x-32 -inset-y-20"
+        className="pointer-events-none absolute -inset-x-32 -inset-y-20 hidden sm:block"
         style={{ background: SCRIM }}
       />
-      <CopyContent {...content} />
+      <div className="relative">
+        <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
+          {title}
+        </h3>
+        <div className="text-cc-ink mt-4 space-y-3 text-sm sm:text-base">
+          {children}
+        </div>
+      </div>
     </div>
   );
-}
-
-function DiagramNote({ children }: { readonly children: ReactNode }) {
-  return <p className="text-cc-ink-dim text-xs sm:text-sm">{children}</p>;
 }
 
 interface CodeLine {
   readonly text: string;
   readonly dots?: readonly string[];
-  readonly tone?: "error" | "ok";
-  readonly prefix?: { readonly label: string; readonly color: string };
+  readonly accent?: string;
 }
 
-interface CodeContentProps {
-  readonly label: string;
-  readonly color?: string;
-  readonly lines: readonly CodeLine[];
-  readonly footer?: ReactNode;
-}
-
-function CodeContent({ label, color, lines, footer }: CodeContentProps) {
+function CodeText({ line }: { readonly line: CodeLine }) {
+  if (!line.accent || !line.text.includes(line.accent)) {
+    return <span className="whitespace-pre text-[#c9d4e8]">{line.text}</span>;
+  }
+  const [before, after] = line.text.split(line.accent);
   return (
-    <div className="border-cc-card-border rounded-xl border bg-[#0d1424] p-4">
-      <div className="flex items-center gap-2">
-        {color && (
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-[3px]"
-            style={{ background: color }}
-          />
-        )}
-        <span className="text-cc-nav-label font-mono text-[10px] tracking-[0.2em] uppercase">
-          {label}
-        </span>
-      </div>
-      <div className="border-cc-card-border mt-2 border-t pt-2 font-mono text-[12px] leading-6">
-        {lines.map((l, i) => (
-          <div key={i} className="flex items-center gap-2">
-            {l.prefix && (
-              <span
-                className="w-16 shrink-0 text-[10px]"
-                style={{ color: l.prefix.color }}
-              >
-                {l.prefix.label}
-              </span>
-            )}
-            <span
-              className={
-                "whitespace-pre " +
-                (l.tone === "error"
-                  ? "text-[#f27765]"
-                  : l.tone === "ok"
-                    ? "text-[#8fd6a0]"
-                    : "text-[#c9d4e8]")
-              }
-            >
-              {l.text}
-            </span>
-            {l.dots && l.dots.length > 0 && (
-              <span className="ml-auto flex items-center gap-1">
-                {l.dots.map((d, k) => (
-                  <span
-                    key={k}
-                    className="inline-block h-2 w-2 rounded-full"
-                    style={{ background: d }}
-                  />
-                ))}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-      {footer && (
-        <div className="border-cc-card-border text-cc-ink-dim mt-2 border-t pt-2 font-mono text-[10.5px]">
-          {footer}
-        </div>
-      )}
-    </div>
+    <span className="whitespace-pre text-[#c9d4e8]">
+      {before}
+      <span className="text-[#5eead4]">{line.accent}</span>
+      {after}
+    </span>
   );
 }
 
-interface PlacedBox extends CodeContentProps {
+interface CodeBoxProps {
   readonly top: number;
   readonly left: number;
   readonly paired?: boolean;
+  readonly label: string;
+  readonly color?: string;
+  readonly lines: readonly CodeLine[];
 }
 
-function CodeBox({ top, left, paired, ...content }: PlacedBox) {
+function CodeBox({ top, left, paired, label, color, lines }: CodeBoxProps) {
   return (
     <div
-      className={`absolute z-30 -translate-x-1/2 -translate-y-1/2 ${
-        paired ? "w-[min(43%,21rem)]" : "w-[min(88%,21rem)]"
+      className={`mx-auto w-[min(100%,21rem)] sm:absolute sm:top-(--top) sm:left-(--left) sm:z-30 sm:mx-0 sm:-translate-x-1/2 sm:-translate-y-1/2 ${
+        paired ? "sm:w-[min(43%,21rem)]" : "sm:w-[min(88%,21rem)]"
       }`}
-      style={{ top: pct(top, H), left: `${left}%` }}
+      style={placement(top, left)}
     >
-      <CodeContent {...content} />
-    </div>
-  );
-}
-
-interface TermSeg {
-  readonly t: string;
-  readonly c: string;
-  readonly arrow?: boolean;
-}
-
-function ArrowIcon({ color }: { readonly color: string }) {
-  return (
-    <svg
-      viewBox="0 0 12 12"
-      aria-hidden="true"
-      className="mr-1 inline-block h-3 w-3 align-[-1px]"
-      fill="none"
-      stroke={color}
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M1.5 6h8M6.5 3l3 3-3 3" />
-    </svg>
-  );
-}
-
-const TERM_CMD = "#c9d1d9";
-const TERM_DIM = "#8b949e";
-
-const COMPOSE_TERMINAL: readonly (readonly TermSeg[])[] = [
-  [
-    { t: "$ ", c: TERM_DIM },
-    { t: "nitro fusion compose", c: TERM_CMD },
-  ],
-  [{ t: "✕ OUTPUT_FIELD_TYPES_NOT_MERGEABLE", c: "#f27765" }],
-  [{ t: "  Product.price: Money! ≠ Float!", c: TERM_DIM }],
-  [{ t: "✕ exit 1 · nothing deployed", c: "rgba(242,119,101,0.75)" }],
-  [{ t: " ", c: TERM_DIM }],
-  [
-    { t: "$ ", c: TERM_DIM },
-    { t: "nitro fusion compose", c: TERM_CMD },
-    { t: "  # catalog aligned", c: TERM_DIM },
-  ],
-  [{ t: "✓ composed 5 source schemas · 0 errors", c: "#66be77" }],
-  [
-    { t: "gateway.far", c: "#a5d6ff", arrow: true },
-    { t: " · loaded by the gateway", c: TERM_CMD },
-  ],
-];
-
-function TerminalCard() {
-  return (
-    <div className="border-cc-card-border overflow-hidden rounded-xl border bg-[#0b101c]">
-      <div className="border-cc-card-border flex items-center gap-2 border-b px-4 py-2.5">
-        <span aria-hidden="true" className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-[#f27765]" />
-          <span className="h-2 w-2 rounded-full bg-[#eabd21]" />
-          <span className="h-2 w-2 rounded-full bg-[#66be77]" />
-        </span>
-        <span className="text-cc-nav-label font-mono text-[10px] tracking-[0.2em] uppercase">
-          ci · fusion compose
-        </span>
-      </div>
-      <div className="px-4 py-3 font-mono text-[11.5px] leading-6">
-        {COMPOSE_TERMINAL.map((line, i) => (
-          <div key={i} className="whitespace-pre">
-            {line.map((seg, j) => (
-              <span key={j} style={{ color: seg.c }}>
-                {seg.arrow && <ArrowIcon color={seg.c} />}
-                {seg.t}
-              </span>
-            ))}
-          </div>
-        ))}
+      <div className="border-cc-card-border rounded-xl border bg-[#0d1424] p-4">
+        <div className="flex items-center gap-2">
+          {color && (
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-[3px]"
+              style={{ background: color }}
+            />
+          )}
+          <span className="text-cc-nav-label font-mono text-[10px] tracking-[0.2em] uppercase">
+            {label}
+          </span>
+        </div>
+        <div className="border-cc-card-border mt-2 border-t pt-2 font-mono text-[12px] leading-6">
+          {lines.map((l, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <CodeText line={l} />
+              {l.dots && l.dots.length > 0 && (
+                <span className="ml-auto flex items-center gap-1">
+                  {l.dots.map((d, k) => (
+                    <span
+                      key={k}
+                      className="inline-block h-2 w-2 rounded-full"
+                      style={{ background: d }}
+                    />
+                  ))}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 interface Chapter {
-  readonly copy: {
-    readonly top: number;
-    readonly left: number;
-    readonly side?: boolean;
-  } & CopyContentProps;
-  readonly boxes: readonly PlacedBox[];
-  readonly terminal?: { readonly top: number; readonly left: number };
+  readonly copy: Omit<CopyBlockProps, "children">;
+  readonly body: ReactNode;
+  readonly boxes: readonly CodeBoxProps[];
 }
+
+const KEY = '@key(fields: "id")';
 
 const STORY: readonly Chapter[] = [
   {
     copy: {
-      top: 380,
-      left: 50,
-      title: "A service owns its data.",
-      children: (
-        <>
-          <p>
-            A service is a program that owns one area of data. It stores that
-            data in its own database. Other programs do not read that database
-            directly. They go through the service&apos;s API.
-          </p>
-          <p>The database stays private. The API is the only way in.</p>
-        </>
-      ),
-    },
-    boxes: [],
-  },
-  {
-    copy: {
-      top: 900,
+      top: 560,
       left: 68,
       side: true,
-      title: "The schema states what the service provides.",
-      children: (
-        <>
-          <p>
-            Every API needs a contract. The schema is that contract, written
-            down. It lists each piece of data the service provides. It gives
-            each piece a name and a type.
-          </p>
-          <p>
-            Anyone can read the schema and know what the service offers. People
-            read it to build against the API. Tools read it to check every
-            request.
-          </p>
-        </>
-      ),
+      title: "Clients want one API. Teams want to ship alone.",
     },
+    body: (
+      <>
+        <p>
+          A product page shows a name, a price, past orders, a delivery
+          estimate, and who is signed in. Inside the company those five fields
+          come from five services, each owned by a different team. The split is
+          deliberate: a team that owns its service can change it and deploy it
+          without asking anyone.
+        </p>
+        <p>
+          The screen does not care about the split. It wants one place to ask
+          for everything it shows. That is the tension every growing system
+          meets: clients want one API, teams want independence, and the usual
+          answers give up one to get the other.
+        </p>
+      </>
+    ),
     boxes: [
       {
-        top: 900,
-        left: 26,
-        label: "Catalog · schema.graphql",
-        color: CANON[0].color,
-        lines: [
-          { text: "type Product {" },
-          { text: "  id: ID!" },
-          { text: "  name: String!" },
-          { text: "  price: Float!" },
-          { text: "}" },
-        ],
-      },
-    ],
-  },
-  {
-    copy: {
-      top: 1500,
-      left: 68,
-      side: true,
-      title: "Most systems grow into many services.",
-      children: (
-        <>
-          <p>
-            Companies grow, and new use cases emerge. Payments, logistics,
-            customer accounts: each becomes its own area. Often, a different
-            team owns each area. Eventually, no single team owns the whole.
-          </p>
-          <p>
-            Each team builds a service for its area. Every service brings its
-            own database, its own API, and its own schema. A large company runs
-            many services, owned by many teams.
-          </p>
-        </>
-      ),
-    },
-    boxes: [
-      {
-        top: 1500,
+        top: 560,
         left: 30,
-        label: "Billing · schema.graphql",
-        color: CANON[1].color,
+        label: "Product page · five teams",
         lines: [
-          { text: "type Product {" },
-          { text: "  id: ID!" },
-          { text: "  price: Money!" },
-          { text: "}" },
+          { text: "name", dots: [CANON[0].color] },
+          { text: "price", dots: [CANON[1].color] },
+          { text: "orders", dots: [CANON[2].color] },
+          { text: "delivery", dots: [CANON[3].color] },
+          { text: "account", dots: [CANON[4].color] },
         ],
       },
     ],
   },
   {
     copy: {
-      top: 2350,
-      left: 50,
-      title: "Each service belongs to one team.",
-      children: (
-        <>
-          <p>
-            This split is on purpose. One team owns each service. The team
-            writes the code, runs the database, and handles the incidents. It
-            can change its service without asking another team.
-          </p>
-          <p>
-            It deploys on its own schedule. Nobody waits for a shared release
-            date. This independence is why companies accept the extra
-            complexity.
-          </p>
-        </>
-      ),
-    },
-    boxes: [],
-  },
-  {
-    copy: {
-      top: 3150,
-      left: 68,
-      side: true,
-      title: "Different services store the same data.",
-      children: (
-        <>
-          <p>
-            Services split a system by area. The data does not split as cleanly.
-            The same thing shows up in several areas. So each service stores its
-            own view of it, shaped for its own job. That is normal. But the
-            single source of truth is gone.
-          </p>
-          <p>
-            No service holds the whole truth, and the views do not have to
-            agree. Different teams wrote them at different times, for different
-            needs. They use different names, different types, different rules.
-            Nothing compares the definitions. The mismatch stays hidden until
-            something breaks.
-          </p>
-          <DiagramNote>
-            In the diagram: two services store a price, one as Float, one as
-            Money.
-          </DiagramNote>
-        </>
-      ),
-    },
-    boxes: [
-      {
-        top: 3150,
-        left: 30,
-        label: "The same field, twice",
-        lines: [
-          {
-            text: "price: Float!",
-            tone: "error",
-            prefix: { label: "catalog", color: CANON[0].color },
-          },
-          {
-            text: "price: Money!",
-            tone: "error",
-            prefix: { label: "billing", color: CANON[1].color },
-          },
-        ],
-      },
-    ],
-  },
-  {
-    copy: {
-      top: 3950,
+      top: 1060,
       left: 32,
       side: true,
-      title: "Every app merges data from many services.",
-      children: (
-        <>
-          <p>
-            One screen rarely shows data from a single service. It shows several
-            areas of data at once. So the app calls each service, one request
-            per service. Then it merges the answers into one view.
-          </p>
-          <p>
-            This merging code is not small. It handles slow services, failed
-            calls, and mismatched formats. Every app writes its own version of
-            it. And when a service renames a field, every copy of that code
-            breaks.
-          </p>
-        </>
-      ),
+      title: "Answer one: every app merges the data itself.",
     },
+    body: (
+      <>
+        <p>
+          The app calls each service, one request per service, and merges the
+          answers itself. Five services, five calls, five formats, five ways to
+          fail. Every app that shows this screen writes the same merging code,
+          and when one service renames a field, every copy of that code breaks.
+        </p>
+        <p>
+          The teams keep their independence. The clients pay for it, in every
+          app, on every change.
+        </p>
+      </>
+    ),
     boxes: [
       {
-        top: 3950,
+        top: 1060,
         left: 70,
         label: "One screen · five calls",
         lines: [
@@ -469,33 +242,57 @@ const STORY: readonly Chapter[] = [
   },
   {
     copy: {
-      top: 4550,
+      top: 1540,
+      left: 50,
+      title: "Answer two: one big API, one team, one queue.",
+    },
+    body: (
+      <>
+        <p>
+          So the company builds one API in front of everything and gives it to
+          one team. Now every field any client needs passes through that team:
+          their review, their deploy, their backlog. Catalog wants to add a
+          field. Billing wants to rename one. Both wait.
+        </p>
+        <p>
+          The clients get one API. The teams give up their independence, and the
+          queue in front of that API becomes the bottleneck the services were
+          split to avoid.
+        </p>
+      </>
+    ),
+    boxes: [],
+  },
+  {
+    copy: {
+      top: 2020,
       left: 68,
       side: true,
-      title: "GraphQL lets clients ask for exact fields.",
-      children: (
-        <>
-          <p>
-            GraphQL is a query language for APIs. A GraphQL API publishes one
-            schema. The schema is a typed list of every field you can request.
-          </p>
-          <p>
-            A client sends one query. The query names the exact fields the
-            client needs. The API returns one response with exactly those
-            fields. The response contains nothing else. One request describes
-            the whole screen.
-          </p>
-        </>
-      ),
+      title: "GraphQL gives clients one schema and one query.",
     },
+    body: (
+      <>
+        <p>
+          GraphQL is a query language for APIs. A GraphQL API publishes a
+          schema: a typed document that lists every field a client can ask for.
+          A client sends one query naming exactly the fields it needs and gets
+          exactly those fields back, in one response.
+        </p>
+        <p>
+          One query can ask for any of the page&apos;s fields. This one names
+          three: name, price, delivery. The response contains those three fields
+          and nothing else.
+        </p>
+      </>
+    ),
     boxes: [
       {
-        top: 4550,
+        top: 2020,
         left: 30,
         label: "One query",
         lines: [
           { text: "{" },
-          { text: '  product(id: "P-42") {' },
+          { text: '  productById(id: "P-42") {' },
           { text: "    name", dots: [CANON[0].color] },
           { text: "    price", dots: [CANON[1].color] },
           { text: "    delivery", dots: [CANON[3].color] },
@@ -507,60 +304,87 @@ const STORY: readonly Chapter[] = [
   },
   {
     copy: {
-      top: 5050,
+      top: 2500,
       left: 50,
-      title: "One GraphQL API needs one schema.",
-      children: (
-        <>
-          <p>
-            One schema for everything is the power of GraphQL. Clients see all
-            the data in one place, with one set of types. They do not care which
-            service owns what. That is exactly what you want.
-          </p>
-          <p>
-            But your data now spans many services. Each service can describe
-            only its own part. No single service can write the whole schema. You
-            could build one big server in front of everything. Then one team
-            owns that server, and every change queues behind it. That is the
-            bottleneck you split services to avoid.
-          </p>
-        </>
-      ),
+      title: "One schema for clients. No single team to write it.",
     },
-    boxes: [],
+    body: (
+      <>
+        <p>
+          That makes the problem sharper, not easier. One GraphQL API needs one
+          schema, and no single team can write it, because each team knows only
+          its own part. Catalog can describe a product&apos;s name and weight.
+          Billing can describe its price. Neither can describe the other&apos;s
+          fields.
+        </p>
+        <p>
+          Write the whole schema in one place and one team owns it again, with
+          every other team in its queue. The schema is the thing that has to be
+          shared. The services do not.
+        </p>
+      </>
+    ),
+    boxes: [
+      {
+        top: 2900,
+        left: 27,
+        paired: true,
+        label: "Catalog · schema.graphql",
+        color: CANON[0].color,
+        lines: [
+          { text: `type Product ${KEY} {`, accent: KEY },
+          { text: "  id: ID!" },
+          { text: "  name: String!" },
+          { text: "  weight: Float!" },
+          { text: "}" },
+        ],
+      },
+      {
+        top: 2900,
+        left: 73,
+        paired: true,
+        label: "Billing · schema.graphql",
+        color: CANON[1].color,
+        lines: [
+          { text: `type Product ${KEY} {`, accent: KEY },
+          { text: "  id: ID!" },
+          { text: "  price: Money!" },
+          { text: "}" },
+        ],
+      },
+    ],
   },
   {
     copy: {
-      top: 5970,
+      top: 3740,
       left: 50,
       title: "Federation merges the schemas, not the services.",
-      children: (
-        <>
-          <p>
-            This is federation. Each service keeps its own schema and publishes
-            it. A build step called composition collects the schemas. It merges
-            them into one combined schema. Types that describe the same thing
-            match by a shared id. Each field in the result keeps exactly one
-            owning service.
-          </p>
-          <p>
-            When two definitions conflict, composition fails the build. The
-            error names the exact conflict. Nothing broken reaches production.
-            The services themselves stay separate: separate code, separate
-            databases, separate deploys.
-          </p>
-          <DiagramNote>
-            In the diagram: Float versus Money stops the build.
-          </DiagramNote>
-        </>
-      ),
     },
-    terminal: { top: 6320, left: 27 },
+    body: (
+      <>
+        <p>
+          Each team keeps its service and gives it a GraphQL API: a GraphQL
+          server in any language, or one placed in front of the REST service it
+          already runs. The service is now called a subgraph, and the schema it
+          publishes is called a source schema. A build step called composition
+          reads the source schemas and merges them into one composite schema.
+          Types with the same name, like Product, merge into one. A key, a field
+          such as id marked @key, identifies the same product in every schema,
+          so the executor can fetch it from any subgraph. Composition records
+          which subgraph answers each field.
+        </p>
+        <p>
+          Composition never sees the services, only their schemas. When two
+          source schemas disagree, the build fails and names the field. Nothing
+          else about the services changes: separate code, separate databases,
+          separate deploys.
+        </p>
+      </>
+    ),
     boxes: [
       {
-        top: 6320,
-        left: 73,
-        paired: true,
+        top: 4100,
+        left: 50,
         label: "Composite schema",
         lines: [
           { text: "type Product {" },
@@ -569,7 +393,7 @@ const STORY: readonly Chapter[] = [
             dots: [CANON[0].color, CANON[1].color, CANON[3].color],
           },
           { text: "  name: String!", dots: [CANON[0].color] },
-          { text: "  description: String", dots: [CANON[0].color] },
+          { text: "  weight: Float!", dots: [CANON[0].color] },
           { text: "  price: Money!", dots: [CANON[1].color] },
           { text: "  delivery: String!", dots: [CANON[3].color] },
           { text: "}" },
@@ -579,254 +403,210 @@ const STORY: readonly Chapter[] = [
   },
   {
     copy: {
-      top: 6820,
+      top: 4600,
       left: 50,
-      title: "A gateway serves the merged schema.",
-      children: (
-        <>
-          <p>
-            The merged schema needs a server. That server is the gateway. It
-            offers one endpoint and one schema to all clients. When a query
-            arrives, the gateway reads which fields it asks for. It calls only
-            the services that own those fields. It combines their answers into
-            one response.
-          </p>
-          <p>
-            The merging code from every app now runs in one place. Apps stop
-            writing it. The gateway is infrastructure, not another integration
-            to maintain.
-          </p>
-        </>
-      ),
+      title: "A gateway serves the composite schema.",
     },
-    boxes: [],
-  },
-  {
-    copy: {
-      top: 7280,
-      left: 50,
-      title: "Clients get one API, and teams stay independent.",
-      children: (
-        <>
-          <p>
-            Clients see one endpoint and one schema. They write queries, not
-            merging code. Teams keep their own services, databases, and release
-            schedules. A team can change its part of the schema alone.
-            Composition checks every change against the whole.
-          </p>
-          <p>
-            Conflicts fail the build, not production. That is the trade
-            federation offers: one API for clients, independence for teams, and
-            a build step that guards both. The next section shows how one
-            request runs.
-          </p>
-        </>
-      ),
-    },
+    body: (
+      <>
+        <p>
+          Everything so far happened at build time. At runtime a gateway serves
+          the composite schema: one endpoint and one schema for every client.
+          Inside it, a distributed executor reads each query, works out which
+          subgraph answers each field, calls only those with ordinary GraphQL
+          queries, and assembles one response. The merging code every app used
+          to write now runs in one place.
+        </p>
+        <p>
+          Clients get one API. Teams keep their own services and release
+          schedules, and each changes its part of the schema alone, with
+          composition checking every change against the whole. You run one
+          gateway and own one build step instead of merging code in every app.
+        </p>
+      </>
+    ),
     boxes: [],
   },
 ];
 
+const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
+
+function TransitMap() {
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      aria-hidden="true"
+      className="absolute inset-0 z-0 hidden h-full w-full sm:block"
+    >
+      <defs>
+        <linearGradient
+          id="fw-out"
+          x1="0"
+          y1={HUB.y}
+          x2="0"
+          y2={H}
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#f27765" />
+          <stop offset="0.55" stopColor="#eabd21" />
+          <stop offset="0.8" stopColor="#66be77" />
+          <stop offset="1" stopColor="#66be77" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="fw-gap" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff" />
+          <stop offset="0.18" stopColor="#333" />
+          <stop offset="0.82" stopColor="#333" />
+          <stop offset="1" stopColor="#fff" />
+        </linearGradient>
+        <mask
+          id="fw-mask"
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width={W}
+          height={H}
+        >
+          <rect x="0" y="0" width={W} height={H} fill="#fff" />
+          {GAPS.map((g, i) => (
+            <rect
+              key={i}
+              x={g.x}
+              y={g.y}
+              width={g.w}
+              height={g.h}
+              fill="url(#fw-gap)"
+            />
+          ))}
+        </mask>
+      </defs>
+
+      <g mask="url(#fw-mask)">
+        {MARKERS.map((m) => (
+          <path
+            key={m.s}
+            d={streamPath(m.x, m.y + 12)}
+            fill="none"
+            stroke={CANON[m.s].color}
+            strokeWidth={2.5}
+            strokeOpacity={0.9}
+            strokeLinecap="round"
+          />
+        ))}
+
+        <rect
+          x={HUB.x - 1.25}
+          y={HUB.y + 12}
+          width={2.5}
+          height={H - HUB.y - 12}
+          fill="url(#fw-out)"
+        />
+      </g>
+
+      {MARKERS.map((m) => (
+        <g key={m.s}>
+          <rect
+            x={m.x - 8}
+            y={m.y - 8}
+            width={16}
+            height={16}
+            rx={4}
+            fill={CANON[m.s].color}
+          />
+          <text
+            x={m.x + 20}
+            y={m.y + 5}
+            textAnchor="start"
+            fontFamily={MONO}
+            fontSize={13}
+            letterSpacing="0.18em"
+            fill={INK_DIM}
+          >
+            {CANON[m.s].name.toUpperCase()}
+          </text>
+        </g>
+      ))}
+
+      <GlowNode x={HUB.x} y={HUB.y} id="fw-hub" r={10} />
+      <text
+        x={HUB.x - 122}
+        y={HUB.y + 4}
+        textAnchor="end"
+        fontFamily={MONO}
+        fontSize={11}
+        letterSpacing="0.2em"
+        fill={INK_DIM}
+      >
+        SCHEMA COMPOSITION
+      </text>
+      <line
+        x1={HUB.x - 112}
+        x2={HUB.x - 38}
+        y1={HUB.y}
+        y2={HUB.y}
+        stroke="rgba(245,241,234,0.3)"
+        strokeDasharray="4 5"
+      />
+
+      <line
+        x1={120}
+        x2={904}
+        y1={HORIZON_Y}
+        y2={HORIZON_Y}
+        stroke="rgba(245,241,234,0.22)"
+        strokeDasharray="5 7"
+      />
+      <text
+        x={140}
+        y={HORIZON_Y - 16}
+        fontFamily={MONO}
+        fontSize={11}
+        letterSpacing="0.2em"
+        fill={INK_DIM}
+      >
+        BUILD TIME
+      </text>
+      <text
+        x={140}
+        y={HORIZON_Y + 26}
+        fontFamily={MONO}
+        fontSize={11}
+        letterSpacing="0.2em"
+        fill={INK_DIM}
+        opacity={0.7}
+      >
+        RUNTIME
+      </text>
+
+      <GatewayChip x={CHIP.x} y={CHIP.y} />
+    </svg>
+  );
+}
+
 export function TransitStory() {
   return (
-    <section className="border-cc-card-border overflow-hidden border-t">
-      <div className="space-y-10 px-5 py-16 sm:hidden">
-        {STORY.map((chapter, i) => (
-          <div key={i} className="space-y-10">
-            <CopyContent title={chapter.copy.title}>
-              {chapter.copy.children}
-            </CopyContent>
-            {chapter.terminal && (
-              <div className="mx-auto w-[min(100%,21rem)]">
-                <TerminalCard />
-              </div>
-            )}
-            {chapter.boxes.map((box, j) => (
-              <div key={j} className="mx-auto w-[min(100%,21rem)]">
-                <CodeContent {...box} />
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+    <section
+      id="problem"
+      className="border-cc-card-border scroll-mt-24 overflow-hidden border-t"
+    >
+      <PageSection maxWidth="6xl" className="pt-16 sm:pt-24">
+        <SectionHeading
+          align="center"
+          title="What problem does GraphQL Federation solve?"
+        />
+      </PageSection>
 
-      <div
-        className="relative mx-auto hidden w-full max-w-5xl sm:block"
-        style={{ aspectRatio: `${W} / ${H}` }}
-      >
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          aria-hidden="true"
-          className="absolute inset-0 z-0 h-full w-full"
-        >
-          <defs>
-            <linearGradient
-              id="fw-out"
-              x1="0"
-              y1={HUB.y}
-              x2="0"
-              y2={H}
-              gradientUnits="userSpaceOnUse"
-            >
-              <stop offset="0" stopColor="#f27765" />
-              <stop offset="0.55" stopColor="#eabd21" />
-              <stop offset="0.8" stopColor="#66be77" />
-              <stop offset="1" stopColor="#66be77" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="fw-gap" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#fff" />
-              <stop offset="0.18" stopColor="#333" />
-              <stop offset="0.82" stopColor="#333" />
-              <stop offset="1" stopColor="#fff" />
-            </linearGradient>
-            <mask
-              id="fw-mask"
-              maskUnits="userSpaceOnUse"
-              x="0"
-              y="0"
-              width={W}
-              height={H}
-            >
-              <rect x="0" y="0" width={W} height={H} fill="#fff" />
-              {GAPS.map((g, i) => (
-                <rect
-                  key={i}
-                  x={g.x}
-                  y={g.y}
-                  width={g.w}
-                  height={g.h}
-                  fill="url(#fw-gap)"
-                />
+      <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/4900]">
+        <TransitMap />
+        <div className="flex flex-col gap-10 px-5 py-16 sm:contents">
+          {STORY.map((chapter, i) => (
+            <Fragment key={i}>
+              <CopyBlock {...chapter.copy}>{chapter.body}</CopyBlock>
+              {chapter.boxes.map((box, j) => (
+                <CodeBox key={j} {...box} />
               ))}
-            </mask>
-          </defs>
-
-          <g mask="url(#fw-mask)">
-            {MARKERS.map((m) => (
-              <path
-                key={m.s}
-                d={streamPath(m.x, m.y + 12)}
-                fill="none"
-                stroke={CANON[m.s].color}
-                strokeWidth={2.5}
-                strokeOpacity={0.9}
-                strokeLinecap="round"
-              />
-            ))}
-
-            <rect
-              x={HUB.x - 1.25}
-              y={HUB.y + 12}
-              width={2.5}
-              height={H - HUB.y - 12}
-              fill="url(#fw-out)"
-            />
-          </g>
-
-          {MARKERS.map((m) => (
-            <g key={m.s}>
-              <rect
-                x={m.x - 8}
-                y={m.y - 8}
-                width={16}
-                height={16}
-                rx={4}
-                fill={CANON[m.s].color}
-              />
-              <text
-                x={m.x + 20}
-                y={m.y + 5}
-                textAnchor="start"
-                fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-                fontSize={13}
-                letterSpacing="0.18em"
-                fill={INK_DIM}
-              >
-                {CANON[m.s].name.toUpperCase()}
-              </text>
-            </g>
+            </Fragment>
           ))}
-
-          <GlowNode x={HUB.x} y={HUB.y} id="fw-hub" r={10} />
-          <text
-            x={HUB.x - 122}
-            y={HUB.y + 4}
-            textAnchor="end"
-            fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-            fontSize={11}
-            letterSpacing="0.2em"
-            fill={INK_DIM}
-          >
-            SCHEMA COMPOSITION
-          </text>
-          <line
-            x1={HUB.x - 112}
-            x2={HUB.x - 38}
-            y1={HUB.y}
-            y2={HUB.y}
-            stroke="rgba(245,241,234,0.3)"
-            strokeDasharray="4 5"
-          />
-
-          <line
-            x1={120}
-            x2={904}
-            y1={HORIZON_Y}
-            y2={HORIZON_Y}
-            stroke="rgba(245,241,234,0.22)"
-            strokeDasharray="5 7"
-          />
-          <text
-            x={140}
-            y={HORIZON_Y - 16}
-            fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-            fontSize={11}
-            letterSpacing="0.2em"
-            fill={INK_DIM}
-          >
-            BUILD TIME
-          </text>
-          <text
-            x={140}
-            y={HORIZON_Y + 26}
-            fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-            fontSize={11}
-            letterSpacing="0.2em"
-            fill={INK_DIM}
-            opacity={0.7}
-          >
-            RUNTIME
-          </text>
-
-          <GatewayChip x={CHIP.x} y={CHIP.y} />
-        </svg>
-
-        {STORY.map((chapter, i) => (
-          <div key={i} className="contents">
-            <CopyBlock
-              top={chapter.copy.top}
-              left={chapter.copy.left}
-              side={chapter.copy.side}
-              title={chapter.copy.title}
-            >
-              {chapter.copy.children}
-            </CopyBlock>
-            {chapter.terminal && (
-              <div
-                className="absolute z-30 w-[min(43%,21rem)] -translate-x-1/2 -translate-y-1/2"
-                style={{
-                  top: pct(chapter.terminal.top, H),
-                  left: `${chapter.terminal.left}%`,
-                }}
-              >
-                <TerminalCard />
-              </div>
-            )}
-            {chapter.boxes.map((box, j) => (
-              <CodeBox key={j} {...box} />
-            ))}
-          </div>
-        ))}
+        </div>
       </div>
     </section>
   );

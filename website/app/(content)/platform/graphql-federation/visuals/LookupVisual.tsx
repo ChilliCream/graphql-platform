@@ -8,13 +8,29 @@ import { CANON, GatewayChip, INK_DIM, StreamMarker } from "./stage";
 
 const T = 8000;
 
-const CHIP: readonly [number, number] = [450, 250];
+const CHIP: readonly [number, number] = [450, 330];
 
 const COL_X = 450;
-const DOOR = { x: 320, y: 72, w: 310, h: 95 } as const;
+const DOOR = { x: 320, y: 60, w: 310, h: 178 } as const;
 
-const REQ = { x: 40, y: 184, w: 270, h: 132 } as const;
-const RESP = { x: 620, y: 192, w: 260, h: 116 } as const;
+const REQ = { x: 40, y: 264, w: 270, h: 132 } as const;
+const RESP = { x: 620, y: 262, w: 260, h: 136 } as const;
+
+const KEY = '@key(fields: "id")';
+const LOOKUP = "@lookup";
+
+const SCHEMA_ROWS = [
+  "type Query {",
+  `  productById(id: ID!): Product ${LOOKUP}`,
+  "}",
+  "",
+  `type Product ${KEY} {`,
+  "  id: ID!",
+  "  price: Money!",
+  "}",
+] as const;
+
+const SCHEMA_MARKS = [KEY, LOOKUP] as const;
 
 const QUERY_ROWS = [
   "query ($id: ID!) {",
@@ -25,11 +41,13 @@ const QUERY_ROWS = [
 ] as const;
 
 const RESP_ROWS = [
-  "[",
-  '  { "price": "24.90 EUR" },',
-  '  { "price": "12.50 EUR" }',
-  "]",
+  "{",
+  '  "productById": {',
+  '    "price": "24.90 EUR"',
+  "  }",
+  "}",
 ] as const;
+const RESP_DOT_ROW = 2;
 
 const LANE_IN = measure([
   [REQ.x + REQ.w, CHIP[1]],
@@ -146,18 +164,22 @@ export function LookupVisual() {
         <MobileCard
           label="Billing · schema.graphql"
           color={CANON[1].color}
-          lines={[
-            { text: "type Query {" },
-            {
+          lines={SCHEMA_ROWS.map((code) => {
+            const mark = SCHEMA_MARKS.find((m) => code.includes(m));
+            if (!mark) {
+              return { text: code };
+            }
+            const [before, after] = code.split(mark);
+            return {
               text: (
                 <>
-                  {"  productById(id: ID!): Product "}
-                  <span className="text-[#5eead4]">@lookup</span>
+                  {before}
+                  <span className="text-[#5eead4]">{mark}</span>
+                  {after}
                 </>
               ),
-            },
-            { text: "}" },
-          ]}
+            };
+          })}
         />
         <MobileCard
           label="The lookup call"
@@ -171,13 +193,11 @@ export function LookupVisual() {
         />
         <MobileCard
           accent
-          label="One response per id"
-          lines={[
-            { text: "[" },
-            { text: '  { "price": "24.90 EUR" },', dot: CANON[1].color },
-            { text: '  { "price": "12.50 EUR" }', dot: CANON[1].color },
-            { text: "]" },
-          ]}
+          label="The lookup response"
+          lines={RESP_ROWS.map((code, i) => ({
+            text: code,
+            dot: i === RESP_DOT_ROW ? CANON[1].color : undefined,
+          }))}
         />
       </div>
 
@@ -187,7 +207,7 @@ export function LookupVisual() {
         className="hidden w-full overflow-x-auto sm:block"
       >
         <svg
-          viewBox="0 0 900 336"
+          viewBox="0 0 900 420"
           width="100%"
           className="block min-w-[640px] sm:min-w-0"
         >
@@ -273,7 +293,7 @@ export function LookupVisual() {
             letterSpacing="0.16em"
             fill={INK_DIM}
           >
-            THE LOOKUP FIELD
+            KEY AND LOOKUP
           </text>
           <text
             x={DOOR.x + DOOR.w - 14}
@@ -303,37 +323,31 @@ export function LookupVisual() {
             fill="#5eead4"
             opacity={0}
           />
-          <text
-            x={DOOR.x + 16}
-            y={DOOR.y + 48}
-            xmlSpace="preserve"
-            fontFamily={MONO_FONT}
-            fontSize={11}
-            fill="#c9d4e8"
-          >
-            {"type Query {"}
-          </text>
-          <text
-            x={DOOR.x + 16}
-            y={DOOR.y + 65}
-            xmlSpace="preserve"
-            fontFamily={MONO_FONT}
-            fontSize={11}
-            fill="#c9d4e8"
-          >
-            {"  productById(id: ID!): Product "}
-            <tspan fill="#5eead4">@lookup</tspan>
-          </text>
-          <text
-            x={DOOR.x + 16}
-            y={DOOR.y + 82}
-            xmlSpace="preserve"
-            fontFamily={MONO_FONT}
-            fontSize={11}
-            fill="#c9d4e8"
-          >
-            {"}"}
-          </text>
+          {SCHEMA_ROWS.map((code, i) => {
+            const mark = SCHEMA_MARKS.find((m) => code.includes(m));
+            const [before, after] = mark ? code.split(mark) : [code];
+            return (
+              <text
+                key={i}
+                x={DOOR.x + 16}
+                y={DOOR.y + 48 + i * 17}
+                xmlSpace="preserve"
+                fontFamily={MONO_FONT}
+                fontSize={11}
+                fill="#c9d4e8"
+              >
+                {mark ? (
+                  <>
+                    {before}
+                    <tspan fill="#5eead4">{mark}</tspan>
+                    {after}
+                  </>
+                ) : (
+                  code
+                )}
+              </text>
+            );
+          })}
 
           <rect
             x={REQ.x}
@@ -391,7 +405,7 @@ export function LookupVisual() {
             letterSpacing="0.16em"
             fill="#5eead4"
           >
-            ONE RESPONSE PER ID
+            THE LOOKUP RESPONSE
           </text>
           <line
             x1={RESP.x}
@@ -413,7 +427,7 @@ export function LookupVisual() {
                 >
                   {code}
                 </text>
-                {(i === 1 || i === 2) && (
+                {i === RESP_DOT_ROW && (
                   <circle
                     cx={RESP.x + RESP.w - 22}
                     cy={RESP.y + 46 + i * 17}

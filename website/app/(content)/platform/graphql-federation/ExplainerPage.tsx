@@ -8,16 +8,32 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
+import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { GatewayScene } from "./hero/GatewayScene";
+import { FEDERATION_DEFINITION, FEDERATION_TERMS } from "./terms";
 import { TransitStory } from "./TransitStory";
 import { BuildCheckVisual } from "./visuals/BuildCheckVisual";
 import { EvolutionVisual } from "./visuals/EvolutionVisual";
 import { LookupVisual } from "./visuals/LookupVisual";
 import { RequireVisual } from "./visuals/RequireVisual";
 
-function Section({ children }: { readonly children: ReactNode }) {
+const SPEC_URL = "https://graphql.github.io/composite-schemas-spec/draft/";
+const WORKING_GROUP_ANNOUNCEMENT_URL =
+  "https://graphql.org/blog/2024-05-16-composite-schemas-announcement/";
+const GRAPHQL_ORG_FEDERATION_URL = "https://graphql.org/learn/federation/";
+
+const GRADIENT = "linear-gradient(90deg, #5eead4, #16b9e4)";
+
+const DEVELOPER_EYEBROW = "For GraphQL developers";
+
+interface SectionProps {
+  readonly id: string;
+  readonly children: ReactNode;
+}
+
+function Section({ id, children }: SectionProps) {
   return (
-    <section className="border-cc-card-border border-t">
+    <section id={id} className="border-cc-card-border scroll-mt-24 border-t">
       <PageSection maxWidth="6xl" className="py-16 sm:py-24">
         {children}
       </PageSection>
@@ -26,18 +42,36 @@ function Section({ children }: { readonly children: ReactNode }) {
 }
 
 interface IntroProps {
+  readonly eyebrow?: string;
   readonly title: ReactNode;
   readonly children?: ReactNode;
 }
 
-function Intro({ title, children }: IntroProps) {
+function Intro({ eyebrow, title, children }: IntroProps) {
   return (
     <div className="max-w-2xl">
-      <SectionHeading title={title} />
+      <SectionHeading eyebrow={eyebrow} title={title} />
       {children && (
         <div className="text-cc-ink mt-5 space-y-4 text-base">{children}</div>
       )}
     </div>
+  );
+}
+
+function SubHeading({
+  id,
+  children,
+}: {
+  readonly id: string;
+  readonly children: ReactNode;
+}) {
+  return (
+    <h3
+      id={id}
+      className="font-heading text-cc-heading text-h5 scroll-mt-24 font-semibold text-balance"
+    >
+      {children}
+    </h3>
   );
 }
 
@@ -46,6 +80,106 @@ function SceneReveal({ children }: { readonly children: ReactNode }) {
     <RevealOnScroll className="mt-12" hiddenClassName="translate-y-8 opacity-0">
       {children}
     </RevealOnScroll>
+  );
+}
+
+function Code({ children }: { readonly children: string }) {
+  return (
+    <code className="text-cc-heading rounded bg-[rgba(245,241,234,0.06)] px-1 py-0.5 font-mono text-[0.85em] whitespace-nowrap">
+      {children}
+    </code>
+  );
+}
+
+const LINK_CLASS =
+  "text-cc-accent hover:text-cc-accent-hover underline underline-offset-4";
+
+function ExternalLink({
+  href,
+  children,
+}: {
+  readonly href: string;
+  readonly children: ReactNode;
+}) {
+  return (
+    <a className={LINK_CLASS} href={href} rel="noopener" target="_blank">
+      {children}
+    </a>
+  );
+}
+
+function InPractice({
+  href,
+  children,
+}: {
+  readonly href: string;
+  readonly children: ReactNode;
+}) {
+  return (
+    <p className="text-cc-ink-dim text-sm">
+      In practice:{" "}
+      <Link className={LINK_CLASS} href={href}>
+        {children}
+      </Link>
+      .
+    </p>
+  );
+}
+
+interface TableColumn {
+  readonly header: string;
+  readonly mono?: boolean;
+}
+
+interface TableProps {
+  readonly caption: string;
+  readonly columns: readonly TableColumn[];
+  readonly rows: readonly (readonly string[])[];
+  readonly minWidth: string;
+}
+
+function Table({ caption, columns, rows, minWidth }: TableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <table className={`w-full border-collapse text-left ${minWidth}`}>
+        <caption className="sr-only">{caption}</caption>
+        <thead>
+          <tr className="text-cc-nav-label font-mono text-xs tracking-[0.16em] uppercase">
+            {columns.map((column, i) => (
+              <th
+                key={column.header}
+                scope="col"
+                className={`border-cc-card-border border-b py-3 font-semibold ${
+                  i < columns.length - 1 ? "pr-6" : ""
+                }`}
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="text-cc-ink text-sm">
+          {rows.map((row) => (
+            <tr key={row[0]}>
+              {row.map((cell, i) => (
+                <td
+                  key={columns[i].header}
+                  className={`border-cc-card-border border-b py-4 align-top ${
+                    i < columns.length - 1 ? "pr-6" : ""
+                  } ${
+                    columns[i].mono
+                      ? "text-cc-heading font-mono text-[13px]"
+                      : ""
+                  }`}
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -120,30 +254,17 @@ function HeroFan() {
   );
 }
 
-function HeroMonolithChip() {
+function HeroServices({ sub }: { readonly sub: string }) {
   return (
-    <div className="border-cc-card-border rounded-lg border bg-[rgba(12,19,34,0.72)] px-4 py-2.5 text-left">
-      <div className="text-cc-heading font-mono text-[11px] tracking-[0.14em] uppercase">
-        One shared API
-      </div>
-      <div className="mt-1.5 flex flex-col gap-1">
-        {HERO_SERVICES.map((svc) => (
-          <div
-            key={svc.name}
-            className="text-cc-ink-dim flex items-center gap-2 font-mono text-[10.5px]"
-          >
-            <span
-              aria-hidden="true"
-              className="inline-block size-2 rounded-[3px]"
-              style={{ backgroundColor: svc.color }}
-            />
-            {svc.name} team
-          </div>
-        ))}
-      </div>
-      <div className="border-cc-card-border text-cc-ink-dim mt-1.5 border-t pt-1.5 font-mono text-[10.5px]">
-        one schema · one deploy · one queue
-      </div>
+    <div className="flex flex-col items-stretch gap-2 sm:gap-1.5">
+      {HERO_SERVICES.map((svc) => (
+        <HeroChip
+          key={svc.name}
+          label={svc.name}
+          sub={sub}
+          dotColor={svc.color}
+        />
+      ))}
     </div>
   );
 }
@@ -168,191 +289,187 @@ function HeroPanel({
 function HeroDiagram() {
   return (
     <div className="mt-10 flex flex-col items-center gap-10 lg:flex-row lg:items-start lg:gap-14">
-      <HeroPanel label="Before · every team in one deploy">
+      <HeroPanel label="Before · every app merges by hand">
         <div className="flex flex-col items-center gap-0 sm:flex-row sm:items-center">
-          <HeroChip label="Client" sub="one query" />
-          <HeroLink />
-          <HeroMonolithChip />
+          <HeroChip label="Client" sub="three calls · merged by hand" />
+          <HeroFan />
+          <HeroServices sub="own API · own team" />
         </div>
       </HeroPanel>
-      <HeroPanel label="Federated · every team in its own service">
+      <HeroPanel label="Federated · one gateway, one query">
         <div className="flex flex-col items-center gap-0 sm:flex-row sm:items-center">
           <HeroChip label="Client" sub="one query" />
           <HeroLink />
           <HeroChip label="Gateway" sub="one schema · one endpoint" />
           <HeroFan />
-          <div className="flex flex-col items-stretch gap-2 sm:gap-1.5">
-            {HERO_SERVICES.map((svc) => (
-              <HeroChip
-                key={svc.name}
-                label={svc.name}
-                sub="own schema · own team"
-                dotColor={svc.color}
-              />
-            ))}
-          </div>
+          <HeroServices sub="own schema · own team" />
         </div>
       </HeroPanel>
     </div>
   );
 }
 
-const GLOSSARY: readonly {
-  readonly concept: string;
-  readonly apollo: string;
-  readonly spec: string;
-}[] = [
+const TERM_ROWS: readonly (readonly string[])[] = FEDERATION_TERMS.map(
+  ({ term, meaning }) => [term, meaning],
+);
+
+const BENEFITS: readonly { readonly title: string; readonly body: string }[] = [
   {
-    concept: "The merged schema clients query",
-    apollo: "Supergraph",
-    spec: "Composite schema",
+    title: "Team autonomy",
+    body: "Each team changes and deploys its subgraph on its own schedule.",
   },
   {
-    concept: "A team's independent service",
-    apollo: "Subgraph",
-    spec: "Source schema",
+    title: "One endpoint, one schema",
+    body: "Clients query the composite schema and never see the subgraphs behind it.",
   },
   {
-    concept: "The runtime in front of it all",
-    apollo: "Router",
-    spec: "Gateway",
+    title: "Safe evolution",
+    body: "Composition checks every schema change against the whole composite schema before it deploys.",
   },
   {
-    concept: "A type assembled across services",
-    apollo: "Entity (@key)",
-    spec: "Entity (@key + @lookup)",
-  },
-  {
-    concept: "Merging and validating schemas",
-    apollo: "Composition",
-    spec: "Composition",
-  },
-  {
-    concept: "Fetching an entity by its key",
-    apollo: "_entities query field",
-    spec: "@lookup query field",
-  },
-  {
-    concept: "A field that needs another service's data",
-    apollo: "@requires (on the field)",
-    spec: "@require (on the argument)",
-  },
-  {
-    concept: "Moving a field between teams",
-    apollo: "@override(from:)",
-    spec: "@override(from:)",
+    title: "Any language, any server",
+    body: "A subgraph is any GraphQL server; the executor talks to it with plain GraphQL queries.",
   },
 ];
 
-const ALTERNATIVES: readonly {
-  readonly name: string;
-  readonly how: string;
-  readonly when: string;
-  readonly cost: string;
-}[] = [
-  {
-    name: "Single GraphQL server",
-    how: "One server exposes one schema; one codebase, one deploy.",
-    when: "One team and one API. Where almost everyone starts.",
-    cost: "Coordination happens in code review and scales only as far as one codebase.",
-  },
-  {
-    name: "Federation",
-    how: "Schemas compose ahead of time; a gateway plans each operation across services. Conflicts fail the build.",
-    when: "Several teams need to ship one coherent API independently.",
-    cost: "A gateway to run and a composition pipeline to own; entities must be modeled deliberately.",
-  },
-  {
-    name: "Schema stitching",
-    how: "A gateway merges schemas at runtime with hand-written resolvers gluing types together.",
-    when: "Quick aggregation of a few services you control.",
-    cost: "Glue resolvers drift silently as the underlying schemas change.",
-  },
-  {
-    name: "BFF per client",
-    how: "Each frontend team builds its own backend that hand-aggregates the services it needs.",
-    when: "One or two clients with very different needs.",
-    cost: "N backends to build, secure, and monitor.",
-  },
-  {
-    name: "Modular monolith",
-    how: "One deployable exposes one schema; modules keep code ownership internal.",
-    when: "One team, or several teams that genuinely ship together. Often the right start.",
-    cost: "One deploy train; coupling creeps back as teams multiply.",
-  },
+const DIRECTIVE_GROUPS: readonly (readonly string[])[] = [
+  [
+    "Identity and recall",
+    "@key, @lookup, @is",
+    "Declare what identifies an entity and how to fetch it again.",
+  ],
+  [
+    "Data dependencies",
+    "@require, @provides",
+    "Declare what a field needs from elsewhere, and what a subgraph can supply along the way.",
+  ],
+  [
+    "Ownership",
+    "@shareable, @external, @override",
+    "Decide which subgraph resolves a field when more than one could.",
+  ],
+  [
+    "Visibility",
+    "@inaccessible, @internal",
+    "Keep parts of a source schema out of the composite schema.",
+  ],
+  [
+    "Interfaces",
+    "@interfaceObject, @implement",
+    "Contribute fields to an interface without owning its implementing types.",
+  ],
 ];
 
-const FAQ: readonly { readonly q: string; readonly a: string }[] = [
-  {
-    q: "What problem does GraphQL federation solve?",
-    a: "It lets multiple teams own parts of one API without a central team in the critical path of every change. Each team publishes its own schema; composition merges them into one graph that clients query at a single endpoint.",
-  },
-  {
-    q: "Who invented GraphQL Federation?",
-    a: "Apollo introduced its Federation specification in 2019. Since then the idea has outgrown a single vendor: the GraphQL Foundation now develops the open GraphQL Federation specification, and multiple gateways implement one or both.",
-  },
-  {
-    q: "How is federation different from schema stitching?",
-    a: "Stitching merges schemas at runtime with hand-written glue code in the gateway. Federation moves the relationships into the schemas themselves and validates the merged graph ahead of time, so conflicts surface as build failures instead of runtime surprises.",
-  },
-  {
-    q: "Is federation overkill for a small team?",
-    a: "Usually, yes. One team on one service is better served by a single GraphQL server. You can start with a single Hot Chocolate server and federate later without changing your clients. Federation earns its keep once coordinating schema changes across teams starts to slow every team down.",
-  },
-  {
-    q: "What is a supergraph or composite schema?",
-    a: "Both terms name the same thing: the one merged schema clients see. Supergraph is the common word in the Apollo ecosystem; the GraphQL Federation spec calls it the composite schema.",
-  },
-  {
-    q: "What is an entity?",
-    a: "A type with a stable key, like an id, that the gateway can resolve across services. That identity is what lets several teams own different fields of the same Product: Catalog its name, Billing its price, Shipping its delivery window.",
-  },
-  {
-    q: "Does the gateway add latency?",
-    a: "A little, yes: one extra hop, plus planning time the first time it sees an operation shape. Plans are cached and services are called in parallel, and for clients, one round trip to one endpoint typically replaces several to separate APIs.",
-  },
-  {
-    q: "Can Apollo Federation and GraphQL Federation be mixed?",
-    a: "The specs are distinct, but one gateway can support both. Fusion reads services written to either specification and merges them into a single graph, so a migration can happen type by type, at whatever pace you choose, or not at all.",
-  },
+const ALTERNATIVES: readonly (readonly string[])[] = [
+  [
+    "Single GraphQL server",
+    "One server exposes one schema; one codebase, one deploy.",
+    "One team and one API. Where almost everyone starts.",
+    "Coordination happens in code review and scales only as far as one codebase.",
+  ],
+  [
+    "Federation",
+    "Each team publishes a source schema; composition merges them into one composite schema before deploy; the gateway's distributed executor plans each request across subgraphs. Conflicts fail the build.",
+    "Several teams need to ship one coherent API on their own schedules.",
+    "A gateway to run, a composition pipeline to own, one extra hop per request; entities need deliberate keys.",
+  ],
+  [
+    "Schema stitching",
+    "A gateway merges schemas at runtime with hand-written resolvers (the functions that produce each field's value) gluing types together.",
+    "Quick aggregation of a few services you control.",
+    "Glue resolvers drift silently as the underlying schemas change.",
+  ],
+  [
+    "BFF (backend for frontend) per client",
+    "Each frontend team builds its own backend that hand-aggregates the services it needs.",
+    "One or two clients with very different needs.",
+    "One backend per client to build, secure, and monitor.",
+  ],
+  [
+    "Modular monolith",
+    "One deployable exposes one schema; modules keep code ownership internal.",
+    "One team, or several teams that ship together. Often the right start.",
+    "One deploy train; coupling creeps back as teams multiply.",
+  ],
+];
+
+const GLOSSARY: readonly (readonly string[])[] = [
+  ["The service behind the gateway", "Subgraph", "Subgraph"],
+  [
+    "The schema document a subgraph publishes",
+    "Subgraph schema",
+    "Source schema",
+  ],
+  [
+    "The build step that validates and merges the schemas",
+    "Composition",
+    "Composition",
+  ],
+  ["The single client-facing schema", "Supergraph", "Composite schema"],
+  ["The public entry point that receives queries", "Router", "Gateway"],
+  [
+    "The part that plans a query and assembles one response",
+    "Router (query planner and executor)",
+    "Distributed executor",
+  ],
+  ["A type with a stable key, referenced across subgraphs", "Entity", "Entity"],
+  ["The fields that identify an entity", "@key", "@key"],
+  [
+    "Fetching an entity by one of its keys",
+    "_entities(representations:) with a reference resolver",
+    "An ordinary query field marked @lookup",
+  ],
+  [
+    "A field that needs data from another subgraph",
+    "@requires (on the field)",
+    "@require (on an argument)",
+  ],
+  [
+    "Moving a field to another subgraph",
+    "@override(from:)",
+    "@override(from:)",
+  ],
+  [
+    "What a server implements to join",
+    "The Apollo subgraph specification: _entities, _service, reference resolvers",
+    "Nothing beyond its schema; any GraphQL server",
+  ],
+  [
+    "Fetching many entities at once",
+    "A list of representations passed to _entities",
+    "Variable batching, being added to GraphQL over HTTP",
+  ],
 ];
 
 export function ExplainerPage() {
   return (
-    <div className="bg-cc-bg relative left-1/2 -mt-8 min-h-screen w-screen -translate-x-1/2">
-      <section className="border-cc-card-border relative flex flex-col items-center overflow-hidden border-b px-5 pt-20 pb-16 text-center sm:px-12 sm:pt-28 sm:pb-20">
+    <div className="bg-cc-bg relative left-1/2 -mt-8 w-screen -translate-x-1/2">
+      <section className="border-cc-card-border relative flex flex-col items-center overflow-hidden border-b px-5 pt-6 pb-16 text-center sm:px-12 sm:pt-10 sm:pb-20">
         <h1 className="font-heading text-cc-heading text-h3 sm:text-h2 mx-auto w-full max-w-3xl text-balance">
           What is{" "}
           <span
             className="bg-clip-text text-transparent sm:whitespace-nowrap"
-            style={{
-              backgroundImage: "linear-gradient(90deg, #5eead4, #16b9e4)",
-            }}
+            style={{ backgroundImage: GRADIENT }}
           >
             GraphQL Federation?
           </span>
         </h1>
         <p className="text-cc-ink mx-auto mt-7 max-w-2xl text-lg">
-          As a GraphQL API grows, one schema ends up shared by many teams. Every
-          change queues behind the same review, the same deploy, the same
-          central team, and shipping slows for everyone. The bottleneck is
-          organizational, not technical.
+          {FEDERATION_DEFINITION} A GraphQL API describes the data it offers in
+          a schema, a typed document, and answers one query with exactly the
+          fields the client asked for.
         </p>
         <p className="text-cc-ink mx-auto mt-4 max-w-2xl text-lg">
-          Federation removes the queue. Each team owns its own service and
-          publishes its own schema. A build step called composition merges the
-          schemas into one, and fails if they conflict. A gateway serves the
-          merged schema at a single endpoint. Clients see one API; teams ship
-          independently.
+          Clients want one API for a screen that many teams build. Teams want to
+          ship without waiting on anyone. Federation gives both, with any
+          GraphQL server, in any language.
         </p>
         <HeroDiagram />
         <p className="font-heading text-cc-heading mx-auto mt-10 text-xl text-balance">
           Federation merges the{" "}
           <span
             className="bg-clip-text text-transparent"
-            style={{
-              backgroundImage: "linear-gradient(90deg, #5eead4, #16b9e4)",
-            }}
+            style={{ backgroundImage: GRADIENT }}
           >
             schemas
           </span>
@@ -362,15 +479,65 @@ export function ExplainerPage() {
 
       <TransitStory />
 
-      <section className="border-cc-card-border overflow-hidden border-t">
+      <Section id="how-it-works">
+        <Intro title="How GraphQL Federation works: subgraphs, composition, and the gateway.">
+          <p>
+            Each team&apos;s service is a subgraph that publishes a source
+            schema. Composition, a build step, validates the source schemas,
+            merges them into one composite schema, and fails the build on
+            conflicts. At runtime a gateway serves the composite schema at one
+            endpoint, and its distributed executor plans each query across the
+            subgraphs. The composite schema is also called the graph: its types
+            link to each other, and a query walks those links. The vocabulary,
+            as the GraphQL Federation specification (an open standard developed
+            at the GraphQL Foundation) defines it:
+          </p>
+        </Intro>
+        <div className="mt-10">
+          <Table
+            caption="GraphQL Federation terminology"
+            columns={[{ header: "Term", mono: true }, { header: "Meaning" }]}
+            rows={TERM_ROWS}
+            minWidth="min-w-[560px]"
+          />
+        </div>
+        <div className="mt-14">
+          <SubHeading id="benefits">Benefits of GraphQL Federation</SubHeading>
+        </div>
+        <ul className="mt-6 grid gap-6 sm:grid-cols-2">
+          {BENEFITS.map((benefit) => (
+            <li
+              key={benefit.title}
+              className="border-cc-card-border rounded-xl border bg-[rgba(12,19,34,0.5)] p-5"
+            >
+              <h4 className="text-cc-heading font-heading text-base font-semibold">
+                {benefit.title}
+              </h4>
+              <p className="text-cc-ink mt-2 text-sm">{benefit.body}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <section
+        id="request"
+        className="border-cc-card-border scroll-mt-24 overflow-hidden border-t"
+      >
         <PageSection maxWidth="6xl" className="pt-16 sm:pt-24">
-          <Intro title="How one request runs.">
+          <Intro title="How a GraphQL Federation gateway runs one request.">
             <p>
-              From the composed schema the gateway computes an operation plan:
-              which service owns each field, and which calls can run in
-              parallel. Plans are cached, so the client pays for one round trip
-              while the gateway calls Catalog, Billing, and Shipping
-              concurrently and waits only for the slowest.
+              The gateway is the public entry point. Behind it, a distributed
+              executor turns each query into a plan from the composite schema:
+              which subgraph answers each field, which calls can run at once,
+              and which must wait for data another subgraph holds. Take the
+              product page query: name, price, delivery. Billing and Catalog
+              answer in parallel, and the executor asks Catalog for the
+              product&apos;s weight as well, a field the client never requested,
+              because Shipping&apos;s delivery estimate needs it. Shipping runs
+              second with the weight passed in as an ordinary argument. The
+              executor merges the three answers into exactly the shape the
+              client asked for and sends one response. Subgraphs never call each
+              other. Every call is an ordinary GraphQL query.
             </p>
           </Intro>
         </PageSection>
@@ -379,222 +546,331 @@ export function ExplainerPage() {
         </div>
       </section>
 
-      <Section>
-        <Intro title="Lookups let the gateway fetch an entity by id.">
+      <Section id="entities-keys-lookups">
+        <Intro
+          eyebrow={`${DEVELOPER_EYEBROW} · @key and @lookup`}
+          title="Entities: a key gives identity, a lookup gives recall."
+        >
           <p>
-            Partway through a plan the gateway often holds only a product&apos;s
-            id and needs a way to fetch the rest. A lookup is an ordinary query
-            field, marked @lookup, that returns an entity by its key. Authors
-            mark the lookups; composition maps each lookup&apos;s argument to
-            the entity&apos;s key. The argument&apos;s name, id, tells
-            composition which key the lookup accepts. No extra directive is
-            needed.
+            Catalog, Billing, and Shipping each define a Product. What makes
+            them the same product is a key, declared with{" "}
+            <Code>{'@key(fields: "id")'}</Code>, a directive: an annotation
+            inside the schema. A type with a stable key that other subgraphs can
+            refer to is called an entity, and the key gives it identity. What
+            lets the executor fetch that product again inside another subgraph
+            is a lookup: a plain query field such as{" "}
+            <Code>productById(id: ID!): Product</Code>, marked{" "}
+            <Code>@lookup</Code>. A lookup gives recall.
           </p>
+          <p>
+            Once the executor holds a product&apos;s id, here straight from the
+            client&apos;s query, it calls Billing&apos;s lookup to get the
+            price, with the same query Billing would answer for any client.
+            Composition pairs the lookup&apos;s argument with the key field by
+            name; when the names differ, <Code>@is</Code> maps them. An entity
+            can have several lookups, in one subgraph or across subgraphs, each
+            fetching it by one of its keys, and a key with no lookup still
+            identifies the entity, for caching or comparison, without being able
+            to fetch it.
+          </p>
+          <InPractice href="/docs/fusion/entities-and-lookups">
+            declaring entities and lookups
+          </InPractice>
         </Intro>
         <SceneReveal>
           <LookupVisual />
         </SceneReveal>
       </Section>
 
-      <Section>
-        <Intro title="Fields can require data from other services.">
+      <Section id="require">
+        <Intro
+          eyebrow={`${DEVELOPER_EYEBROW} · @require`}
+          title="Requirements: a dependency is an ordinary argument."
+        >
           <p>
-            Shipping computes a product&apos;s delivery window from its weight,
-            but Catalog owns weight. With @require, Shipping declares that
-            dependency on an argument of its own delivery field. The gateway
-            fetches the weight first and passes it in. The argument never
-            appears in the composite schema, and services never call each other.
+            Shipping estimates delivery time by weight, but Catalog provides
+            weight. Shipping declares the dependency on an argument of its own
+            field:{" "}
+            <Code>{'delivery(weight: Float! @require(field: "weight"))'}</Code>.
+            Composition removes that argument from the composite schema, so
+            clients see <Code>delivery</Code> with no argument at all. At
+            runtime the executor fetches weight from Catalog first, then calls
+            Shipping and passes it as a plain argument.
           </p>
+          <p>
+            <Code>@require</Code> can also reshape what it pulls in, mapping
+            several fields from other subgraphs into one input object, so a
+            subgraph asks for exactly the shape it wants.
+          </p>
+          <InPractice href="/docs/fusion/data-requirements-and-mapping">
+            declaring data requirements
+          </InPractice>
         </Intro>
         <SceneReveal>
           <RequireVisual />
         </SceneReveal>
       </Section>
 
-      <Section>
-        <Intro title="Broken graphs fail the build, not the client.">
+      <Section id="composition">
+        <Intro
+          eyebrow="Composition"
+          title="Composition fails the build, not the client."
+        >
           <p>
-            Because composition happens ahead of time, conflicts between teams
-            surface as build errors with exact diagnostics, not as runtime
-            surprises for clients. Schema checks run at pull-request time, so a
-            breaking change is a failed check on a branch, not an incident.
+            Composition runs in CI on every pull request, before anything
+            deploys. When two source schemas disagree, the build stops with the
+            field and the mismatch spelled out. In the example, Billing changes
+            the type of id, the key every subgraph shares, and composition
+            reports that <Code>Product.id</Code> is <Code>Int!</Code> in Billing
+            and <Code>ID!</Code> in Catalog. Nothing ships. Once Billing
+            restores the type, composition emits the composite schema as one
+            artifact that the gateway loads. A breaking change is a failed check
+            on a branch, seen by the team that made it, not an incident
+            discovered by a client.
           </p>
+          <InPractice href="/docs/fusion/composition">
+            running composition in CI
+          </InPractice>
         </Intro>
         <SceneReveal>
           <BuildCheckVisual />
         </SceneReveal>
       </Section>
 
-      <Section>
-        <Intro title="The graph evolves. Clients never notice.">
+      <Section id="evolution">
+        <Intro
+          eyebrow={`${DEVELOPER_EYEBROW} · @override`}
+          title="The graph evolves. Clients never notice."
+        >
           <p>
-            Ownership of a field can move to a different team through @override
-            while clients keep querying the same schema. The composed graph is
-            the stable surface; everything behind it stays in motion.
+            The composite schema is the stable contract. Behind it, ownership
+            moves. Suppose price began in Catalog, back when Catalog was the
+            only service. When Billing takes it over, it declares price in its
+            own source schema with <Code>{'@override(from: "catalog")'}</Code>.
+            On the next build, composition routes price to Billing, and Catalog
+            can delete its copy of the field on its own schedule. The
+            client&apos;s query does not change and neither does its response.
+            Teams split subgraphs, merge them, or rewrite one in another
+            language, and none of that is a migration on the client side.
           </p>
+          <InPractice href="/docs/fusion/schema-exposure-and-evolution">
+            evolving a composite schema
+          </InPractice>
         </Intro>
         <SceneReveal>
           <EvolutionVisual />
         </SceneReveal>
       </Section>
 
-      <Section>
-        <Intro title="Federation next to the alternatives.">
-          <p>
-            Federation is not the only way to put one API in front of many
-            services, and it is not always the best one. Here is how they
-            compare:
-          </p>
-        </Intro>
-        <RevealOnScroll
-          className="mt-10"
-          hiddenClassName="translate-y-8 opacity-0"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[840px] border-collapse text-left">
-              <thead>
-                <tr className="text-cc-nav-label font-mono text-xs tracking-[0.16em] uppercase">
-                  <th className="border-cc-card-border border-b py-3 pr-6 font-semibold">
-                    Approach
-                  </th>
-                  <th className="border-cc-card-border border-b py-3 pr-6 font-semibold">
-                    How it works
-                  </th>
-                  <th className="border-cc-card-border border-b py-3 pr-6 font-semibold">
-                    When it fits
-                  </th>
-                  <th className="border-cc-card-border border-b py-3 font-semibold">
-                    The cost
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-cc-ink text-sm">
-                {ALTERNATIVES.map((row) => (
-                  <tr key={row.name}>
-                    <td className="border-cc-card-border text-cc-heading border-b py-4 pr-6 align-top font-mono text-[13px]">
-                      {row.name}
-                    </td>
-                    <td className="border-cc-card-border border-b py-4 pr-6 align-top">
-                      {row.how}
-                    </td>
-                    <td className="border-cc-card-border border-b py-4 pr-6 align-top">
-                      {row.when}
-                    </td>
-                    <td className="border-cc-card-border border-b py-4 align-top">
-                      {row.cost}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </RevealOnScroll>
-      </Section>
-
-      <Section>
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-heading text-cc-heading text-h4 text-balance">
-            You might not need federation.
-          </h2>
-          <p className="text-cc-ink-dim mt-5 text-base">
-            One team on one service, a small or early API, or domains without
-            clear boundaries are better served by a single GraphQL server.
-            Federation is for the moment when coordination becomes the
-            bottleneck. It will be waiting when you get there.
-          </p>
-          <p className="text-cc-ink-dim mt-4 text-sm">
-            Just getting started?{" "}
-            <Link
-              className="text-cc-accent hover:text-cc-accent-hover underline underline-offset-4"
-              href="/docs/hotchocolate/get-started-with-graphql-in-net-core"
-            >
-              Stand up a single Hot Chocolate server
-            </Link>{" "}
-            and federate later.
-          </p>
-        </div>
-      </Section>
-
-      <Section>
-        <Intro title="Two specs. One idea.">
-          <p>
-            Apollo invented federation in 2019, and its directive-based spec is
-            widely deployed. The GraphQL Federation specification is the same
-            idea as an open, vendor-neutral standard, developed in the open at
-            the GraphQL Foundation. Both describe the same architecture, and you
-            will meet both vocabularies in the wild:
-          </p>
-        </Intro>
-        <RevealOnScroll
-          className="mt-10"
-          hiddenClassName="translate-y-8 opacity-0"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-left">
-              <thead>
-                <tr className="text-cc-nav-label font-mono text-xs tracking-[0.16em] uppercase">
-                  <th className="border-cc-card-border border-b py-3 pr-6 font-semibold">
-                    Concept
-                  </th>
-                  <th className="border-cc-card-border border-b py-3 pr-6 font-semibold">
-                    Apollo Federation
-                  </th>
-                  <th className="border-cc-card-border border-b py-3 font-semibold">
-                    GraphQL Federation
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-cc-ink text-sm">
-                {GLOSSARY.map((row) => (
-                  <tr key={row.concept}>
-                    <td className="border-cc-card-border border-b py-4 pr-6 align-top">
-                      {row.concept}
-                    </td>
-                    <td className="border-cc-card-border border-b py-4 pr-6 align-top font-mono text-[13px]">
-                      {row.apollo}
-                    </td>
-                    <td className="border-cc-card-border border-b py-4 align-top font-mono text-[13px]">
-                      {row.spec}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </RevealOnScroll>
-      </Section>
-
-      <Section>
+      <Section id="any-language">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
-            One gateway that speaks both.
+            Every GraphQL server, in any language, is already a subgraph.
           </h2>
           <div className="text-cc-ink mt-5 space-y-4 text-base">
             <p>
-              Fusion is ChilliCream&apos;s federation gateway. It composes
-              Apollo Federation subgraphs and GraphQL Federation source schemas
-              in the same graph, so you can adopt either spec, or move between
-              them, one service at a time.
+              A key is a directive on a type. A lookup is a query field the
+              subgraph would expose anyway, marked <Code>@lookup</Code>. A
+              requirement is an argument. Every call the executor makes is an
+              ordinary GraphQL query. Apollo Federation, the older design, asks
+              a subgraph to implement a hidden <Code>_entities</Code> field,
+              write reference resolvers, and reason about the representations
+              they carry. Here there is nothing of that kind and no subgraph
+              specification to implement. You declare what your schema means,
+              and the server stays as it is. That is the design rule of the
+              GraphQL Federation specification.
+            </p>
+            <p>
+              It holds for a server in any language. Spring for GraphQL in Java
+              or Kotlin, NestJS or GraphQL Yoga in Node.js, gqlgen in Go,
+              Strawberry in Python, async-graphql in Rust, graphql-ruby, Hot
+              Chocolate in .NET: each publishes a schema and answers a query,
+              and that is all the executor needs.
+            </p>
+          </div>
+          <div className="mt-10">
+            <SubHeading id="batching">
+              Does GraphQL Federation cause N+1 requests? Batching is a
+              transport concern.
+            </SubHeading>
+          </div>
+          <div className="text-cc-ink mt-4 space-y-4 text-base">
+            <p>
+              The rule that the server stays as it is also covers batching: it
+              is solved in the transport, not in the schema. Ask for a hundred
+              products and the executor would send a hundred lookups into
+              Shipping, each the same query with different arguments. So the
+              specification&apos;s working group at the GraphQL Foundation is
+              adding variable batching to the GraphQL over HTTP specification:
+              one query sent with a list of variable sets, which a server can
+              fold into a single execution. The source schema does not change to
+              get it.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <Section id="directives">
+        <Intro title="GraphQL Federation directives, grouped by what they do.">
+          <p>
+            <Code>@key</Code>, <Code>@lookup</Code>, <Code>@require</Code>, and{" "}
+            <Code>@override</Code> are four of the directives the specification
+            defines. Identity and recall, and data dependencies, are the core of
+            every federated graph; the ownership, visibility, and interface
+            directives are refinements for a graph that has grown.
+          </p>
+        </Intro>
+        <div className="mt-10">
+          <Table
+            caption="GraphQL Federation directives by group"
+            columns={[
+              { header: "Group" },
+              { header: "Directives", mono: true },
+              { header: "What they are for" },
+            ]}
+            rows={DIRECTIVE_GROUPS}
+            minWidth="min-w-[640px]"
+          />
+        </div>
+      </Section>
+
+      <Section id="alternatives">
+        <Intro title="GraphQL Federation vs schema stitching, BFFs, and a single server.">
+          <p>
+            Federation adds a gateway to run, a composition pipeline to own, and
+            one extra network hop on every request. That is a fair price when
+            several teams must ship one coherent API on their own schedules.
+          </p>
+        </Intro>
+        <div className="mt-10 max-w-2xl">
+          <SubHeading id="when-not">
+            When you do not need GraphQL Federation
+          </SubHeading>
+          <div className="text-cc-ink mt-4 space-y-4 text-base">
+            <p>
+              It is a poor price for one team, one service, or an early product
+              whose domain boundaries are still moving. Those cases are better
+              served by a single GraphQL server, and because every GraphQL
+              server is already a valid subgraph, that server can join a
+              composite schema later by declaring keys and lookups in its
+              schema, without changing its clients.
+            </p>
+            <InPractice href="/docs/fusion/migration/migrating-from-schema-stitching">
+              moving from schema stitching to federation
+            </InPractice>
+          </div>
+        </div>
+        <div className="mt-10">
+          <Table
+            caption="Federation compared with the alternatives"
+            columns={[
+              { header: "Approach", mono: true },
+              { header: "How it works" },
+              { header: "When it fits" },
+              { header: "The cost" },
+            ]}
+            rows={ALTERNATIVES}
+            minWidth="min-w-[840px]"
+          />
+        </div>
+      </Section>
+
+      <Section id="specification">
+        <Intro title="The GraphQL Federation specification: one idea, one open standard.">
+          <p>
+            Apollo Federation has solved this for years, and so have other
+            gateways and many in-house systems, each in its own way, so a
+            subgraph built for one could not move to another. In 2023 Apollo,
+            ChilliCream, and The Guild formed a working group at the GraphQL
+            Foundation to write one vendor-neutral specification for defining
+            and composing GraphQL schemas across services; engineers from
+            Graphile, Hasura, Netflix, WunderGraph, and others take part. The
+            Composite Schemas Specification that came out of it is becoming the
+            GraphQL Federation Specification.
+          </p>
+          <p>
+            The specification keeps the GraphQL type system as it is and adds
+            batching to the GraphQL over HTTP specification, the transport
+            between gateway and subgraph, so that every GraphQL server can be a
+            subgraph without changing its schema. Read{" "}
+            <ExternalLink href={SPEC_URL}>the specification</ExternalLink>,{" "}
+            <ExternalLink href={WORKING_GROUP_ANNOUNCEMENT_URL}>
+              the working group&apos;s announcement
+            </ExternalLink>
+            , and{" "}
+            <ExternalLink href={GRAPHQL_ORG_FEDERATION_URL}>
+              the federation chapter on graphql.org
+            </ExternalLink>
+            .
+          </p>
+        </Intro>
+      </Section>
+
+      <Section id="apollo-federation-vs-graphql-federation">
+        <Intro title="Apollo Federation vs GraphQL Federation: two vocabularies, one architecture.">
+          <p>
+            Apollo Federation is widely deployed, so you will meet its words as
+            often as the specification&apos;s. Both describe the same
+            architecture; they differ in what a server has to implement to join.
+          </p>
+          <InPractice href="/docs/fusion/migration/coming-from-apollo-federation">
+            composing Apollo Federation subgraphs alongside GraphQL Federation
+            subgraphs
+          </InPractice>
+        </Intro>
+        <div className="mt-10">
+          <Table
+            caption="Apollo Federation terms next to GraphQL Federation terms"
+            columns={[
+              { header: "Concept" },
+              { header: "Apollo Federation", mono: true },
+              { header: "GraphQL Federation", mono: true },
+            ]}
+            rows={GLOSSARY}
+            minWidth="min-w-[720px]"
+          />
+        </div>
+      </Section>
+
+      <Section id="fusion">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
+            Fusion: one gateway that speaks both.
+          </h2>
+          <div className="text-cc-ink mt-5 space-y-4 text-base">
+            <p>
+              Fusion is ChilliCream&apos;s GraphQL Federation gateway and,
+              today, the only gateway that implements the GraphQL Federation
+              specification. It also composes Apollo Federation subgraphs, so
+              source schemas written to either specification compose into the
+              same composite schema, and a team can adopt either, mix the two,
+              or move between them one subgraph at a time.
+            </p>
+            <p>
+              Subgraphs can be written in any language. The gateway talks to
+              them with ordinary GraphQL queries, there is no plugin to install,
+              and services that only speak REST (OpenAPI) or gRPC can join as
+              well. What you take on is a gateway to run and a composition step
+              in CI that fails the build on conflicts.
             </p>
           </div>
           <ButtonRow className="mt-9">
             <SolidButton href="/docs/fusion/getting-started">
               Start with Fusion
             </SolidButton>
-            <OutlineButton href="/docs/fusion">Read the Docs</OutlineButton>
+            <OutlineButton href="/docs/fusion">
+              Fusion documentation
+            </OutlineButton>
           </ButtonRow>
         </div>
       </Section>
 
-      <Section>
+      <Section id="faq">
         <FaqSection
           id="federation-faq"
           align="left"
-          heading="Common questions."
-          items={FAQ.map(({ q: question, a: answer }) => ({
-            question,
-            answer,
-          }))}
+          heading="Common questions about GraphQL Federation."
+          items={FEDERATION_FAQ_ITEMS}
         />
       </Section>
     </div>

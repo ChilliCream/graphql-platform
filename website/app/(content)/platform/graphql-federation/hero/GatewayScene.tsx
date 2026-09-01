@@ -58,7 +58,7 @@ interface DocLine {
 
 const REQ_LINES: readonly DocLine[] = [
   { t: "query GetProduct {", ind: 0 },
-  { t: 'product(id: "P-42") {', ind: 1 },
+  { t: 'productById(id: "P-42") {', ind: 1 },
   { t: "price", ind: 2, o: 0 },
   { t: "name", ind: 2, o: 0 },
   { t: "delivery", ind: 2, o: 0 },
@@ -71,7 +71,7 @@ const REQ_FIELD_COLOR = [BIL.color, CAT.color, SHP.color] as const;
 const OUT_LINES: readonly DocLine[] = [
   { t: "{", ind: 0, c: DIM },
   { t: '"data": {', ind: 1 },
-  { t: '"product": {', ind: 2 },
+  { t: '"productById": {', ind: 2 },
   { t: '"price": "24.90 EUR",', ind: 3, c: BIL.color },
   { t: '"name": "Aero Mug",', ind: 3, c: CAT.color },
   { t: '"delivery": "2 days"', ind: 3, c: SHP.color },
@@ -198,7 +198,7 @@ const BEATS: readonly Beat[] = [
     lead: "340,133 340,156",
     lines: [
       "One query goes to one endpoint.",
-      "The client doesn't see the services.",
+      "The client does not see the subgraphs.",
     ],
   },
   {
@@ -209,8 +209,8 @@ const BEATS: readonly Beat[] = [
     note: [710, 108],
     lead: "710,133 710,140",
     lines: [
-      "The gateway writes an operation plan:",
-      "every field belongs to one service.",
+      "The executor plans the query:",
+      "one subgraph answers each field.",
     ],
   },
   {
@@ -260,8 +260,8 @@ const BEATS: readonly Beat[] = [
     note: [920, 108],
     lead: "920,133 920,290 882,302",
     lines: [
-      "Services never talk to each other:",
-      "the gateway carries the weight over.",
+      "Subgraphs never talk to each other:",
+      "the executor carries the weight over.",
     ],
   },
   {
@@ -283,7 +283,7 @@ const BEATS: readonly Beat[] = [
     target: [1150, 157],
     note: [1150, 108],
     lead: "1150,133 1150,148",
-    lines: ["Every field is in. The gateway", "merges one response: 200 OK."],
+    lines: ["Every field is in. The executor", "merges one response: 200 OK."],
   },
   {
     from: 36600,
@@ -292,10 +292,7 @@ const BEATS: readonly Beat[] = [
     target: [1300, 280],
     note: [1254, 395],
     lead: "1254,385 1294,290",
-    lines: [
-      "One response goes back.",
-      "Many services, one graph: that's federation.",
-    ],
+    lines: ["One response goes back.", "Many subgraphs, one composite schema."],
   },
 ];
 
@@ -834,7 +831,7 @@ export function GatewayScene() {
                 fill={INK_DIM}
                 opacity={1}
               >
-                OPERATION PLAN
+                QUERY PLAN
               </text>
               <text
                 ref={set("planMeta")}
@@ -1446,7 +1443,7 @@ function SubQuery({ i }: SubQueryProps) {
         {"{"}
       </text>
       <text x={x + 13} y={y0 + lh} {...common} fill={CODE}>
-        {'product(id: "P-42") {'}
+        {'productById(id: "P-42") {'}
       </text>
       {i === 0 && (
         <text x={x + 26} y={y0 + 2 * lh} {...common} fill={sub.svc.color}>

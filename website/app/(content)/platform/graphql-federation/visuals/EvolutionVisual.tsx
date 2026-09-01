@@ -10,7 +10,7 @@ const BEAD_CYCLE = 2400;
 const C = { x: 40, y: 88, w: 240 } as const;
 const QUERY_LINES = [
   "{",
-  '  product(id: "P-42") {',
+  '  productById(id: "P-42") {',
   "    name",
   "    price",
   "    delivery",
@@ -184,7 +184,7 @@ export function EvolutionVisual() {
             <div className="whitespace-pre">{"  price: Money!"}</div>
             <div className="whitespace-pre">
               <span className="text-[#5eead4]">
-                {'    @override(from: "Catalog")'}
+                {'    @override(from: "catalog")'}
               </span>
             </div>
             <div className="whitespace-pre">{"}"}</div>
@@ -596,7 +596,7 @@ export function EvolutionVisual() {
               fontSize={10.5}
               fill="#5eead4"
             >
-              {'    @override(from: "Catalog")'}
+              {'    @override(from: "catalog")'}
             </text>
           </g>
           <circle
