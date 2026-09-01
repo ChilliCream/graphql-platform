@@ -342,7 +342,7 @@ export function FiveLamps() {
                 <div
                   className={
                     chapter.boxes.length > 1
-                      ? "grid gap-4 sm:grid-cols-2"
+                      ? "grid items-start gap-4 sm:grid-cols-2"
                       : "grid gap-4"
                   }
                 >
