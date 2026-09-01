@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
@@ -264,6 +265,83 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         Assert.Equal(["processor-stop-processing", "heartbeat-dispose"], order);
         Assert.False(processorClosedWhenHeartbeatDisposed);
         Assert.True(processor.IsClosed);
+    }
+
+    [Fact]
+    public async Task OnStopAsync_Should_CompleteStopAndLogWarning_When_ProcessorDisposeFails()
+    {
+        // arrange
+        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        services.AddLogging(b => b.AddProvider(loggerProvider));
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("dispose-failure-ep").Consumer<NoOpConsumer>().Queue("dispose-failure");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var endpoint = transport.ReceiveEndpoints.Single(e => e != transport.ReplyReceiveEndpoint);
+        var failure = new TimeoutException("link drain timed out");
+        var created = client.CreatedProcessors.Single(p => p.QueueName == "dispose-failure");
+        created.Processor.CloseFailure = failure;
+
+        // act - releasing the processor is best-effort cleanup; a failure while closing the
+        // underlying AMQP link must not fail the stop
+        await endpoint.StopAsync(runtime, Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(endpoint.IsStarted);
+        var entry = Assert.Single(loggerProvider.Entries, e => e.Exception is not null);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Same(failure, entry.Exception);
+    }
+
+    [Fact]
+    public async Task OnStopAsync_Should_DisposeProcessor_When_HeartbeatDisposeFails()
+    {
+        // arrange
+        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        services.AddLogging(b => b.AddProvider(loggerProvider));
+        var builder = services
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddAzureServiceBus(t => t.AutoProvision(false));
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var replyEndpoint = (AzureServiceBusReceiveEndpoint)(transport.ReplyReceiveEndpoint
+            ?? throw new InvalidOperationException("Expected a reply receive endpoint to be configured."));
+
+        // the request-handler endpoint also creates a processor, so the reply endpoint under
+        // test is singled out by its own queue name
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == replyEndpoint.Queue.Name).Processor;
+        var receiver = client.CreatedReceivers.Single();
+        var failure = new TimeoutException("receiver close timed out");
+        receiver.OnDisposing = () => throw failure;
+
+        // act
+        await replyEndpoint.StopAsync(runtime, Xunit.TestContext.Current.CancellationToken);
+
+        // assert - the heartbeat's failure is logged and the processor is still disposed
+        Assert.False(replyEndpoint.IsStarted);
+        Assert.True(processor.IsClosed);
+        var entry = Assert.Single(loggerProvider.Entries, e => e.Exception is not null);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Same(failure, entry.Exception);
     }
 
     [Fact]

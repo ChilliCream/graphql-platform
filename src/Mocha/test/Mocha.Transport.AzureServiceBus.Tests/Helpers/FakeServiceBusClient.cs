@@ -97,11 +97,27 @@ internal sealed record CreatedSessionProcessor(
 /// </summary>
 internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
 {
+    /// <summary>
+    /// When set, <see cref="CloseAsync"/> throws this exception instead of closing, simulating
+    /// a failure while tearing down the underlying AMQP link.
+    /// </summary>
+    public Exception? CloseFailure { get; set; }
+
     public Action? OnStopProcessing { get; set; }
 
     public int StartProcessingCallCount { get; private set; }
 
     public int StopProcessingCallCount { get; private set; }
+
+    public override Task CloseAsync(CancellationToken cancellationToken = default)
+    {
+        if (CloseFailure is { } failure)
+        {
+            throw failure;
+        }
+
+        return base.CloseAsync(cancellationToken);
+    }
 
     public override Task StartProcessingAsync(CancellationToken cancellationToken = default)
     {

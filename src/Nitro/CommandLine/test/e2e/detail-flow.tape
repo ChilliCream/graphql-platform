@@ -100,17 +100,20 @@ Type "t"
 Type "d"
 Wait+Screen@30s /acme-epic1 · blocking · depended on by/
 
-# Down selects the first child (acme-epic1.1); Enter refocuses the tree on
-# it (DependencyTreeView.Refocus), pushing acme-epic1 onto the breadcrumb
-# stack. Its own Down tree (still Blocking/Down) shows acme-epic1.2, which
-# blocks-depends-on acme-epic1.1 per fixtures/seed.sql, and transitively
-# acme-a1b beneath it. The panel header carries the breadcrumb, but at this
-# fixed geometry the two-id breadcrumb text overflows the header and gets
-# ellipsis-truncated by Spectre's PanelHeader before it reaches " by", so the
-# wait anchors on the unwrapped, untruncated root row instead.
+# Down selects the first child (acme-epic1.1) in the still-rooted tree; the
+# selection cursor moving off the root row is the sync.
 Down
-Enter
 Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
+
+# Enter refocuses the tree on the selected child (DependencyTreeView.Refocus),
+# pushing acme-epic1 onto the breadcrumb stack. Its own Down tree (still
+# Blocking/Down) shows acme-epic1.2, which blocks-depends-on acme-epic1.1
+# per fixtures/seed.sql, and transitively acme-a1b beneath it. The sync is
+# the breadcrumb header (DependencyTreeView.BuildTitle): its trail now ends
+# in acme-epic1.1 right before the edge-mode suffix, text the tree rooted on
+# acme-epic1 never shows.
+Enter
+Wait+Screen@30s /epic1\.1 · blocking/
 
 # 'u' pops the breadcrumb stack (DependencyTreeView.NavigateBack), back to
 # the tree rooted on acme-epic1 with its two children again -- the tree
