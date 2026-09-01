@@ -11,7 +11,7 @@ public sealed class DefaultSourceSchemaClientScopeTests
     public async Task GetClient_Should_ReuseWebSocketClient_When_OperationTypesDiffer()
     {
         // arrange
-        var factory = new TrackingClientFactory();
+        using var factory = new WebSocketSourceSchemaClientFactory();
         await using var scope = CreateScope(
             factory,
             new WebSocketSourceSchemaClientConfiguration("A", new Uri("ws://localhost/graphql")));
@@ -42,34 +42,69 @@ public sealed class DefaultSourceSchemaClientScopeTests
     }
 
     [Fact]
-    public async Task DisposeAsync_Should_DisposeWebSocketClientOnce_When_UsedForMultipleOperationTypes()
+    public async Task GetClient_Should_CreateDistinctCustomClients_When_WebSocketConfigurationIsUsed()
     {
         // arrange
         var factory = new TrackingClientFactory();
-        var scope = CreateScope(
+        await using var scope = CreateScope(
             factory,
             new WebSocketSourceSchemaClientConfiguration("A", new Uri("ws://localhost/graphql")));
 
-        _ = scope.GetClient("A", OperationType.Query);
-        _ = scope.GetClient("A", OperationType.Subscription);
-
         // act
-        await scope.DisposeAsync();
+        var queryClient = scope.GetClient("A", OperationType.Query);
+        var subscriptionClient = scope.GetClient("A", OperationType.Subscription);
 
         // assert
-        var client = Assert.Single(factory.Clients);
-        Assert.Equal(1, client.DisposeCount);
+        Assert.NotSame(queryClient, subscriptionClient);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetClient_Should_CreateDistinctWebSocketClients_When_ConfigurationsDiffer(
+        bool subscriptionRequestedFirst)
+    {
+        // arrange
+        using var factory = new WebSocketSourceSchemaClientFactory();
+        await using var scope = CreateScope(
+            factory,
+            new WebSocketSourceSchemaClientConfiguration(
+                "A",
+                new Uri("ws://localhost/query"),
+                SupportedOperationType.Query),
+            new WebSocketSourceSchemaClientConfiguration(
+                "A",
+                new Uri("ws://localhost/subscription"),
+                SupportedOperationType.Subscription));
+
+        ISourceSchemaClient queryClient;
+        ISourceSchemaClient subscriptionClient;
+
+        // act
+        if (subscriptionRequestedFirst)
+        {
+            subscriptionClient = scope.GetClient("A", OperationType.Subscription);
+            queryClient = scope.GetClient("A", OperationType.Query);
+        }
+        else
+        {
+            queryClient = scope.GetClient("A", OperationType.Query);
+            subscriptionClient = scope.GetClient("A", OperationType.Subscription);
+        }
+
+        // assert
+        Assert.NotSame(queryClient, subscriptionClient);
     }
 
     private static DefaultSourceSchemaClientScope CreateScope(
         ISourceSchemaClientFactory factory,
-        ISourceSchemaClientConfiguration configuration)
+        params ISourceSchemaClientConfiguration[] configurations)
     {
         var features = new FeatureCollection();
-        features.Set(new SourceSchemaClientConfigurations([configuration]));
+        features.Set(new SourceSchemaClientConfigurations(configurations));
 
         var schema = FusionSchemaDefinition.Create(
-            Utf8GraphQLParser.Parse("type Query { foo: String }"),
+            Utf8GraphQLParser.Parse("enum fusion__Schema { A } type Query { foo: String }"),
             features: features);
 
         return new DefaultSourceSchemaClientScope(schema, [factory]);
