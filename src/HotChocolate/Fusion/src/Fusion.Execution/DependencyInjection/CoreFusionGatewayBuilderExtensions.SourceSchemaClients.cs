@@ -223,4 +223,57 @@ public static partial class CoreFusionGatewayBuilderExtensions
             builder,
             setup => setup.ClientConfigurationModifiers.Add(create));
     }
+
+    /// <summary>
+    /// Adds a WebSocket client configuration to the Fusion gateway.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketClientConfiguration(
+        this IFusionGatewayBuilder builder,
+        string name,
+        Uri url,
+        SupportedOperationType supportedOperations = SupportedOperationType.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
+        TimeSpan? keepAliveInterval = null,
+        int maxOperationQueueBytes = WebSocketSourceSchemaClientConfiguration.DefaultMaxOperationQueueBytes)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return AddWebSocketClientConfiguration(
+            builder,
+            new WebSocketSourceSchemaClientConfiguration(
+                name,
+                url,
+                supportedOperations,
+                capabilities,
+                keepAliveInterval,
+                maxOperationQueueBytes));
+    }
+
+    /// <summary>
+    /// Adds a WebSocket client configuration to the Fusion gateway.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketClientConfiguration(
+        this IFusionGatewayBuilder builder,
+        WebSocketSourceSchemaClientConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        return AddWebSocketClientConfiguration(builder, _ => configuration);
+    }
+
+    /// <summary>
+    /// Adds a WebSocket client configuration to the Fusion gateway.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketClientConfiguration(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, WebSocketSourceSchemaClientConfiguration> create)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(create);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(create));
+    }
 }
