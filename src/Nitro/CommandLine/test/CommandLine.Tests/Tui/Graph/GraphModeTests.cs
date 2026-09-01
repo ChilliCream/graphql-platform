@@ -793,7 +793,7 @@ public sealed class GraphModeTests
         mode.HandleRawKey(EnterKey());
 
         // assert
-        Assert.Equal<string?>([null, "open"], tree);
+        Assert.Equal("<root>,open", RowsText(tree));
         Assert.Equal(["open"], canvas);
         Assert.Equal("open", mode.SelectedTaskId);
         Assert.Equal("Search: find (1 hits)", mode.FooterStatus);
