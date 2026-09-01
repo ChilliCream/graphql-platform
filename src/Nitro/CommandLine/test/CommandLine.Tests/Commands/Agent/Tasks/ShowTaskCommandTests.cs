@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System.Text.Json;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
@@ -263,6 +264,24 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         Assert.Equal(baseId, root.GetProperty("blockers")[0].GetString()!.Split(':')[0]);
         Assert.Equal("blocks", root.GetProperty("dependencies")[0].GetProperty("type").GetString());
         Assert.Equal(baseId, root.GetProperty("dependencies")[0].GetProperty("dependsOnId").GetString());
+    }
+
+    [Fact]
+    public async Task JsonOutput_LongDescription_ReturnsParseableDocument()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var description = new string('a', 3000);
+        var id = await CreateTaskAsync("Fix the parser", "--description", description);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
+
+        // assert
+        using var document = JsonDocument.Parse(result.StdOut);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(description, document.RootElement.GetProperty("description").GetString());
     }
 
     /// <summary>
