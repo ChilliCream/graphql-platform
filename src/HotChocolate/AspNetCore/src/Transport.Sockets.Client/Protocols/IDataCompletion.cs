@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 /// <summary>
 /// Represents an abstraction for marking a data stream as completed and sending a data complete

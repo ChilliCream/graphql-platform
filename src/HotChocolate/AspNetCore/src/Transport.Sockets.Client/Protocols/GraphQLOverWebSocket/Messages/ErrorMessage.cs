@@ -1,11 +1,39 @@
+#if FUSION
+using System.Buffers;
+using HotChocolate.Fusion.Text.Json;
+#else
 using System.Buffers;
 using System.Text.Json;
 using HotChocolate.Buffers;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#endif
 
 internal sealed class ErrorMessage : IDataMessage
 {
+#if FUSION
+    private ErrorMessage(string id, SourceResultDocument payload)
+    {
+        Id = id;
+        Payload = payload;
+    }
+
+    public string Id { get; }
+
+    public string Type => Messages.Error;
+
+    public SourceResultDocument Payload { get; }
+
+    public void Dispose()
+        => Payload.Dispose();
+
+    public static ErrorMessage From(ReadOnlySequence<byte> _)
+        => throw ThrowHelper.FusionPayloadMaterializationNotSupported();
+#else
     private ErrorMessage(string id, OperationResult payload)
     {
         Id = id;
@@ -47,4 +75,5 @@ internal sealed class ErrorMessage : IDataMessage
 
         return new ErrorMessage(id, result);
     }
+#endif
 }

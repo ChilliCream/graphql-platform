@@ -1,12 +1,24 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
+#if FUSION
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+using static HotChocolate.Fusion.Transport.Sockets.SocketDefaults;
+#else
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Utilities;
+#endif
+#if !FUSION
 using static HotChocolate.Transport.Sockets.SocketDefaults;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client;
+#else
 namespace HotChocolate.Transport.Sockets.Client;
+#endif
 
 public sealed class SocketClient : ISocket
 {
@@ -93,7 +105,11 @@ public sealed class SocketClient : ISocket
         var protocolHandler =
             Array.Find(
                 s_protocolHandlers,
+#if FUSION
+                t => string.Equals(t.Name, socket.SubProtocol, StringComparison.Ordinal));
+#else
                 t => t.Name.EqualsOrdinal(socket.SubProtocol));
+#endif
 
         if (protocolHandler is null)
         {
@@ -126,7 +142,11 @@ public sealed class SocketClient : ISocket
     }
 
     private void BeginRunPipeline()
+#if FUSION
+        => _ = _pipeline.RunAsync(_ct);
+#else
         => _pipeline.RunAsync(_ct).FireAndForget();
+#endif
 
     public ValueTask<SocketResult> ExecuteAsync(
         IOperationRequest request,

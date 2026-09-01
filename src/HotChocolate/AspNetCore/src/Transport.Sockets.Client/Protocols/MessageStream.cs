@@ -1,6 +1,10 @@
 using System.Collections.Immutable;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<IOperationMessage>
 {

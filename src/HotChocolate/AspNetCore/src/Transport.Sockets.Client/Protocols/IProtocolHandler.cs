@@ -1,7 +1,11 @@
 using System.Buffers;
 using System.Text.Json;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 /// <summary>
 /// Represents an abstraction for GraphQL over WebSocket protocols.

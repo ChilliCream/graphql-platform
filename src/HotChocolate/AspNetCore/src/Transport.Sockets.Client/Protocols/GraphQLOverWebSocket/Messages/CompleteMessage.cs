@@ -1,7 +1,11 @@
 using System.Buffers;
 using System.Text.Json;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#endif
 
 internal sealed class CompleteMessage : IDataMessage
 {

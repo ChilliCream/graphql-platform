@@ -1,7 +1,18 @@
+#if FUSION
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+using ResultDocument = HotChocolate.Fusion.Text.Json.SourceResultDocument;
+#else
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+using ResultDocument = HotChocolate.Transport.OperationResult;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client;
+#else
 namespace HotChocolate.Transport.Sockets.Client;
+#endif
 
 /// <summary>
 /// Represents the result of a WebSocket operation that returns a stream of data.
@@ -24,11 +35,10 @@ public sealed class SocketResult : IDisposable
     }
 
     /// <summary>
-    /// Returns an asynchronous stream of <see cref="OperationResult"/> objects
-    /// representing the data returned by the WebSocket operation.
+    /// Returns an asynchronous stream of result documents representing the data returned by the WebSocket operation.
     /// </summary>
-    /// <returns>An asynchronous stream of <see cref="OperationResult"/> objects.</returns>
-    public IAsyncEnumerable<OperationResult> ReadResultsAsync() => _enumerable;
+    /// <returns>An asynchronous stream of result documents.</returns>
+    public IAsyncEnumerable<ResultDocument> ReadResultsAsync() => _enumerable;
 
     /// <summary>
     /// Releases the resources used by this <see cref="SocketResult"/> object.
@@ -47,11 +57,11 @@ public sealed class SocketResult : IDisposable
         IDisposable subscription,
         IDataCompletion completion,
         CancellationTokenRegistration cancellationRegistration)
-        : IAsyncEnumerable<OperationResult>, IDisposable
+        : IAsyncEnumerable<ResultDocument>, IDisposable
     {
         private bool _started;
 
-        public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
+        public async IAsyncEnumerator<ResultDocument> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             if (_started)

@@ -1,6 +1,10 @@
 using System.Net.WebSockets;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 /// <summary>
 /// Represents the context for a WebSocket client.

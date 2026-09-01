@@ -1,9 +1,17 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
+#if FUSION
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#else
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#endif
 
 internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 {

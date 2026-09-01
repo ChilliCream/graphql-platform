@@ -1,7 +1,13 @@
 using System.Threading.Channels;
+#if !FUSION
 using HotChocolate.Utilities;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 internal sealed class DataMessageObserver(string id) : IObserver<IOperationMessage>, IDisposable
 {
@@ -25,7 +31,11 @@ internal sealed class DataMessageObserver(string id) : IObserver<IOperationMessa
 
     public void OnNext(IOperationMessage value)
     {
+#if FUSION
+        if (value is IDataMessage message && string.Equals(message.Id, id, StringComparison.Ordinal))
+#else
         if (value is IDataMessage message && message.Id.EqualsOrdinal(id))
+#endif
         {
             // the channel may already be completed (for example after the result was disposed),
             // in which case the message is dropped and must release its pooled buffers here.

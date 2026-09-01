@@ -1,9 +1,17 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
+#if FUSION
+using static HotChocolate.Fusion.Transport.Sockets.Delimiter;
+#else
 using static HotChocolate.Transport.Sockets.Delimiter;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets;
+#else
 namespace HotChocolate.Transport.Sockets;
+#endif
 
 internal sealed class MessageProcessor
 {
