@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -1434,7 +1435,7 @@ public sealed class TuiShellTests
     public void Render_Should_EscapeMarkupAndPreserveTextElements_When_FooterStatusIsUnicode()
     {
         // arrange
-        var status = "[漢🙂e\u0301]";
+        const string status = "[漢🙂e\u0301]";
         var shell = CreateShell(new FakeTuiMode { FooterStatus = status }, width: 8, actor: null);
 
         // act
