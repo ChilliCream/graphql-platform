@@ -177,5 +177,4 @@ public sealed class TabSwitchKeysTests
         // assert
         Assert.Null(index);
     }
-
 }
