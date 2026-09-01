@@ -837,7 +837,7 @@ public sealed class TuiShellTabsTests
         Assert.True(handled);
         Assert.True(graph.IsInputCapturing);
         Assert.Contains("Search: f", output, StringComparison.Ordinal);
-        Assert.DoesNotContain("Results", output, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, search.QueryText);
     }
 
     [Fact]

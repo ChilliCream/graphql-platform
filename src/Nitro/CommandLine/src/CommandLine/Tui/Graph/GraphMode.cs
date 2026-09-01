@@ -30,6 +30,9 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private readonly HashSet<string> _labels = new(StringComparer.Ordinal);
     private readonly HashSet<string> _epicIds = new(StringComparer.Ordinal);
     private readonly HashSet<string> _matchIds = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _directMatchIds = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _containedMatchCounts = new(StringComparer.Ordinal);
+    private readonly List<string> _cycleMatchIds = [];
     private LineEditor? _searchEditor;
     private GraphFilterForm? _filterForm;
     private int _searchMatchIndex = -1;
@@ -37,6 +40,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private bool _treeInitialized;
     private bool _showCanvas;
     private bool _hideClosed = true;
+    private GraphSearchProjectionContext _searchContext = new(s_emptyModel, s_emptyModel);
 
     public GraphMode(GraphDataLoader loader)
     {
@@ -75,6 +79,11 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     internal IReadOnlySet<string> CollapsedEpicIds => _collapsedEpicIds;
 
+    /// <summary>
+    /// The number of projection contexts created for the current mode lifetime.
+    /// </summary>
+    internal int SearchContextBuildCount { get; private set; }
+
     /// <inheritdoc />
     public bool IsInputCapturing => _searchEditor is not null || _filterForm is not null;
 
@@ -84,6 +93,22 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         : _searchEditor is not null
             ? [new KeyHint("enter", "next hit"), new KeyHint("esc", "close")]
             : [];
+
+    /// <inheritdoc />
+    public string? FooterStatus
+    {
+        get
+        {
+            if (_searchEditor is null && _labels.Count == 0 && _epicIds.Count == 0)
+            {
+                return null;
+            }
+
+            var search = _searchEditor is null ? null : $"Search: {_searchEditor.Text} ({_matchIds.Count} hits)";
+            var filters = _labels.Count == 0 && _epicIds.Count == 0 ? null : FilterNotice();
+            return string.Join("; ", new[] { search, filters }.Where(t => t is not null));
+        }
+    }
 
     /// <inheritdoc />
     public void OnEnter() => RefreshBlocking();
@@ -199,29 +224,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
             return _filterForm.Render(width, height);
         }
 
-        var hasFilterNotice = _labels.Count > 0 || _epicIds.Count > 0;
-        var headerHeight = (_searchEditor is null ? 0 : 1) + (hasFilterNotice ? 1 : 0);
-        var projection = RenderProjection(width, Math.Max(0, height - headerHeight));
-
-        if (headerHeight == 0)
-        {
-            return projection;
-        }
-
-        var rows = new List<IRenderable>(headerHeight + 1);
-
-        if (_searchEditor is not null)
-        {
-            rows.Add(new Markup(Markup.Escape($"Search: {_searchEditor.Text}  ({_matchIds.Count} hits)")));
-        }
-
-        if (hasFilterNotice)
-        {
-            rows.Add(new Markup(Markup.Escape(FilterNotice())));
-        }
-
-        rows.Add(projection);
-        return new Rows(rows);
+        return RenderProjection(width, height);
     }
 
     /// <inheritdoc />
@@ -269,6 +272,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         var reduced = Reduce();
         _canvasModel = reduced;
         _canvasView.SetModel(reduced);
+        RebuildSearchContext();
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
         UpdateMatches();
     }
@@ -296,6 +300,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         var reduced = Reduce();
         _canvasModel = reduced;
         _canvasView.SetModel(reduced);
+        RebuildSearchContext();
         SelectVisibleTask(ResolveVisibleSelection(_selectedTaskId, reduced));
         ApplyMatchIds();
     }
@@ -374,7 +379,6 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
     private void CollapseAll()
     {
-        _collapsedEpicIds.Clear();
         _collapsedEpicIds.UnionWith(_filteredTreeModel.Nodes.Where(t => t.IsEpic).Select(t => t.Id));
         RecreateTree();
         UpdateCanvasModel(_selectedTaskId);
@@ -409,6 +413,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         var reduced = Reduce();
         _canvasModel = reduced;
         _canvasView.SetModel(reduced);
+        RebuildSearchContext();
         ApplyMatchIds();
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
     }
@@ -456,6 +461,11 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
     private string FindCollapsedRepresentative(string id, GraphModel reduced)
     {
+        if (ReferenceEquals(reduced, _canvasModel))
+        {
+            return _searchContext.ResolveRepresentative(id);
+        }
+
         var parentByChild = GraphParentMap.Build(VisibleModel());
         var reducedIds = reduced.Nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
         var current = id;
@@ -570,6 +580,12 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
             _sourceModel,
             new GraphReductionOptions { HideClosed = _hideClosed, Labels = _labels, EpicIds = _epicIds });
 
+    private void RebuildSearchContext()
+    {
+        _searchContext = new GraphSearchProjectionContext(_filteredTreeModel, _canvasModel);
+        SearchContextBuildCount++;
+    }
+
     private IRenderable RenderProjection(int width, int height)
         => _showCanvas ? _canvasView.Render(width, height) : _treeView.Render(width, height);
 
@@ -582,14 +598,34 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private void UpdateMatches()
     {
         _matchIds.Clear();
+        _directMatchIds.Clear();
+        _containedMatchCounts.Clear();
+        _cycleMatchIds.Clear();
+        var seenCycleIds = new HashSet<string>(StringComparer.Ordinal);
 
         if (_searchEditor is { Text.Length: > 0 } editor)
         {
-            foreach (var node in VisibleModel().Nodes)
+            foreach (var node in _searchContext.VisibleNodes)
             {
                 if (node.Title.Contains(editor.Text, StringComparison.OrdinalIgnoreCase))
                 {
                     _matchIds.Add(node.Id);
+                    var representativeId = _searchContext.ResolveRepresentative(node.Id);
+
+                    if (representativeId == node.Id)
+                    {
+                        _directMatchIds.Add(node.Id);
+                    }
+                    else if (_searchContext.ContainsReducedId(representativeId))
+                    {
+                        _containedMatchCounts[representativeId] =
+                            _containedMatchCounts.GetValueOrDefault(representativeId) + 1;
+                    }
+
+                    if (_searchContext.ContainsReducedId(representativeId) && seenCycleIds.Add(representativeId))
+                    {
+                        _cycleMatchIds.Add(representativeId);
+                    }
                 }
             }
         }
@@ -601,42 +637,18 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private void ApplyMatchIds()
     {
         _treeView.SetMatchIds(_matchIds);
-        var directMatchIds = new HashSet<string>(StringComparer.Ordinal);
-        var containedMatchCounts = new Dictionary<string, int>(StringComparer.Ordinal);
-
-        foreach (var matchId in _matchIds)
-        {
-            var representativeId = FindCollapsedRepresentative(matchId, _canvasModel);
-
-            if (representativeId == matchId)
-            {
-                directMatchIds.Add(matchId);
-            }
-            else if (_canvasModel.Nodes.Any(t => t.Id == representativeId))
-            {
-                containedMatchCounts[representativeId] = containedMatchCounts.GetValueOrDefault(representativeId) + 1;
-            }
-        }
-
-        _canvasView.SetMatchIds(directMatchIds, containedMatchCounts);
+        _canvasView.SetMatchIds(_directMatchIds, _containedMatchCounts);
     }
 
     private void JumpToNextMatch()
     {
-        var matchIds = VisibleModel().Nodes
-            .Where(t => _matchIds.Contains(t.Id))
-            .Select(t => FindCollapsedRepresentative(t.Id, _canvasModel))
-            .Where(id => _canvasModel.Nodes.Any(t => t.Id == id))
-            .Distinct(StringComparer.Ordinal)
-            .ToArray();
-
-        if (matchIds.Length == 0)
+        if (_cycleMatchIds.Count == 0)
         {
             return;
         }
 
-        _searchMatchIndex = (_searchMatchIndex + 1) % matchIds.Length;
-        SelectVisibleTask(ResolveVisibleSelection(matchIds[_searchMatchIndex]));
+        _searchMatchIndex = (_searchMatchIndex + 1) % _cycleMatchIds.Count;
+        SelectVisibleTask(_cycleMatchIds[_searchMatchIndex]);
     }
 
     private void OpenFilterForm() => _filterForm = new GraphFilterForm(_labels, _epicIds);

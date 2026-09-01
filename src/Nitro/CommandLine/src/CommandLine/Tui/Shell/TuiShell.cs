@@ -240,7 +240,13 @@ internal sealed class TuiShell
                                 : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
-            ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
+            ?? (IRenderable)new Markup(
+                FormatFooter(
+                    BuildFooterHints(),
+                    _width,
+                    _actor,
+                    _mailWakeDaemonState?.Invoke(),
+                    ActiveMode.FooterStatus));
 
         if (_tabs.Count <= 1)
         {
@@ -1200,8 +1206,28 @@ internal sealed class TuiShell
     /// narrow for even that) rather than shrinking the hints further.
     /// </summary>
     private static string FormatFooter(
-        IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)
+        IReadOnlyList<KeyHint> hints,
+        int width,
+        string? actor,
+        MailWakeDaemonState? mailWakeDaemonState,
+        string? inlineStatus)
     {
+        if (!string.IsNullOrEmpty(inlineStatus))
+        {
+            var statusWidth = Math.Max(1, width / 2);
+            var statusText = inlineStatus.Length <= statusWidth
+                ? inlineStatus
+                : statusWidth == 1
+                    ? FooterEllipsis
+                    : inlineStatus[..(statusWidth - FooterEllipsis.Length)] + FooterEllipsis;
+            var statusStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
+            var statusMarkup = $"[{statusStyle}]{Markup.Escape(statusText)}[/]";
+            var remaining = Math.Max(0, width - statusText.Length - FooterSeparator.Length);
+            var hintsMarkup = FormatFooterHints(hints, remaining, out _);
+
+            return hintsMarkup.Length == 0 ? statusMarkup : statusMarkup + FooterSeparator + hintsMarkup;
+        }
+
         var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
         var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
 
