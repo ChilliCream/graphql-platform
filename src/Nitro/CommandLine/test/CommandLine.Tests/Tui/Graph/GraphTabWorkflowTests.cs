@@ -18,11 +18,11 @@ public sealed class GraphTabWorkflowTests
         // arrange
         var store = CreateLargeGraphWorkspace();
         var graph = new GraphMode(new GraphDataLoader(store));
-        var shell = CreateGraphShell(store, graph);
+        var shell = CreateGraphShell(store, graph, height: 8);
 
         // act
         var switched = EnterGraphTab(shell);
-        var output = RenderToText(shell);
+        var output = RenderToText(shell, height: 8);
 
         // assert
         Assert.True(switched);
@@ -31,8 +31,16 @@ public sealed class GraphTabWorkflowTests
             [null, "epic-root", "cycle-a", "cycle-b", "top-level-open", "orphan-selected"],
             graph.TreeView.Rows.Select(row => row.TaskId));
         Assert.Equal(["epic-nested", "epic-root"], graph.CollapsedEpicIds.Order(StringComparer.Ordinal));
-        DescribeTreeOutput(graph, output).MatchInlineSnapshot(
-            "tree\n<root>\nepic-root\ncycle-a\ncycle-b\ntop-level-open\norphan-selected\nactive-tab: [G]raph");
+        NormalizeFrame(output).MatchInlineSnapshot(
+            """
+             [T]asks   [G]raph
+            Root
+            ├─ ▸ ○ [E] Root epic epic-root  blocked by 0 / blocks 0
+            ├─   ○ [T] Cycle A cycle-a  blocked by 1 / blocks 1
+            ├─   ○ [T] Cycle B cycle-b  blocked by 1 / blocks 1
+            ├─   ○ [T] Top-level open task top-level-open  blocked by 0 / blocks 0
+            └─   ○ [T] Selected orphan task orphan-selected  blocked by 0 / blocks 0
+            """);
     }
 
     [Fact]
@@ -46,7 +54,7 @@ public sealed class GraphTabWorkflowTests
 
         // act
         shell.Handle(Key('v', ConsoleKey.V));
-        var output = RenderToText(shell);
+        var output = RenderToText(shell, height: 8);
         var footer = GraphRenderFooter.CreateText(graph.CanvasView.CreateRenderResult());
 
         // assert
@@ -54,8 +62,63 @@ public sealed class GraphTabWorkflowTests
             ["cycle-a", "cycle-b", "epic-root", "orphan-selected", "top-level-open"],
             graph.CanvasView.Layout.Nodes.Select(node => node.Id).Order(StringComparer.Ordinal));
         Assert.Equal(1, graph.CanvasView.Layout.ReversedEdgeCount);
-        DescribeCanvasOutput(graph, output, footer).MatchInlineSnapshot(
-            "canvas\ncycle-a\ncycle-b\nepic-root\norphan-selected\ntop-level-open\nnodes: 5  edges: 2  reversed: 1\ncanvas-footer: reversed: 1");
+        footer.MatchInlineSnapshot("nodes: 5  edges: 2  grid: 64 x 19  crossings: 0  reversed: 1");
+        NormalizeFrame(output).MatchInlineSnapshot(
+            """
+             [T]asks   [G]raph
+            ┌────────────────────────────┐◀┄┄─┌────────────────────────────┐
+            │○ [T] cycle-a               │───▶│○ [T] cycle-b               │
+            │Cycle A                     │    │Cycle B                     │
+            └────────────────────────────┘    └────────────────────────────┘
+
+            ┌────────────────────────────┐
+            │○ [E] epic-root             │
+            """);
+    }
+
+    [Fact]
+    public void GraphTab_Should_PreserveSelection_When_ProjectionIsFlippedRoundTrip()
+    {
+        // arrange
+        var store = CreateLargeGraphWorkspace();
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = CreateGraphShell(store, graph, height: 8);
+        EnterGraphTab(shell);
+        graph.SelectTask("orphan-selected");
+
+        // act
+        var flippedToCanvas = shell.Handle(Key('v', ConsoleKey.V));
+        var canvas = RenderToText(shell, height: 8);
+        var canvasState = (graph.SelectedTaskId, graph.IsCanvasActive);
+        var flippedToTree = shell.Handle(Key('v', ConsoleKey.V));
+        var tree = RenderToText(shell, height: 8);
+        var treeState = (graph.SelectedTaskId, graph.IsCanvasActive);
+
+        // assert
+        Assert.True(flippedToCanvas && flippedToTree);
+        Assert.Equal(("orphan-selected", true), canvasState);
+        Assert.Equal(("orphan-selected", false), treeState);
+        new[] { NormalizeFrame(canvas), NormalizeFrame(tree) }.MatchInlineSnapshots(
+            [
+                """
+                 [T]asks   [G]raph
+                ┌────────────────────────────┐
+                │○ [T] orphan-selected       │
+                │Selected orphan task        │
+                └────────────────────────────┘
+
+                nodes: 5  edges: 2  grid: 64 x 19  crossings: 0  reversed: 1
+                """,
+                """
+                 [T]asks   [G]raph
+                Root
+                ├─ ▸ ○ [E] Root epic epic-root  blocked by 0 / blocks 0
+                ├─   ○ [T] Cycle A cycle-a  blocked by 1 / blocks 1
+                ├─   ○ [T] Cycle B cycle-b  blocked by 1 / blocks 1
+                ├─   ○ [T] Top-level open task top-level-open  blocked by 0 / blocks 0
+                └─   ○ [T] Selected orphan task orphan-selected  blocked by 0 / blocks 0
+                """
+            ]);
     }
 
     [Fact]
@@ -98,19 +161,36 @@ public sealed class GraphTabWorkflowTests
 
         // act
         var opened = shell.Handle(Key('\r', ConsoleKey.Enter));
-        var detail = RenderToText(shell, width: 40);
-        shell.Handle(Key('\x1b', ConsoleKey.Escape));
-        var resumed = RenderToText(shell, width: 40);
+        var detail = RenderToText(shell, width: 40, height: 8);
+        var closed = shell.Handle(Key('\x1b', ConsoleKey.Escape));
+        var resumed = RenderToText(shell, width: 40, height: 8);
         var after = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
 
         // assert
         Assert.True(opened);
+        Assert.True(closed);
         Assert.True(before.Viewport.X > 0 || before.Viewport.Y > 0);
         Assert.Equal(before, after);
-        new[] { DescribeDetailOutput(detail), DescribeCanvasResume(graph, resumed) }.MatchInlineSnapshots(
+        new[] { NormalizeFrame(detail), NormalizeFrame(resumed) }.MatchInlineSnapshots(
             [
-                "detail\nSelected orphan task",
-                "canvas-resumed\norphan-selected\nnodes:"
+                """
+                 [T]asks   [G]raph
+                ╭─orphan-selected Selected orphan task─╮
+                │             No details.              │
+                ╰──────────────────────────────────────╯
+                ╭─Details──────────────────────────────╮
+                │ ○ open                               │
+                ╰──────────────────────────────────────╯
+                """,
+                """
+                 [T]asks   [G]raph
+                ┌────────────────────────────┐
+                │○ [T] orphan-selected       │
+                │Selected orphan task        │
+                └────────────────────────────┘
+
+                nodes: 15  edges: 1  grid: 64 x 69  cro…
+                """
             ]);
     }
 
@@ -130,24 +210,41 @@ public sealed class GraphTabWorkflowTests
         var shell = new TuiShell(
             [CreateTab("Tasks", 'T', board), CreateTab("Graph", 'G', graph)],
             80,
-            24,
+            8,
             store: store,
             actor: "tester");
         board.SelectTask("board-selected");
 
         // act
         var opened = shell.Handle(Key('\r', ConsoleKey.Enter));
-        var detail = RenderToText(shell);
-        shell.Handle(Key('\x1b', ConsoleKey.Escape));
-        var boardOutput = RenderToText(shell);
+        var detail = RenderToText(shell, height: 8);
+        var closed = shell.Handle(Key('\x1b', ConsoleKey.Escape));
+        var boardOutput = RenderToText(shell, height: 8);
 
         // assert
         Assert.True(opened);
+        Assert.True(closed);
         Assert.Equal("board-selected", board.SelectedTaskId);
-        new[] { DescribeBoardDetailOutput(detail), DescribeBoardOutput(boardOutput) }.MatchInlineSnapshots(
+        new[] { NormalizeFrame(detail), NormalizeFrame(boardOutput) }.MatchInlineSnapshots(
             [
-                "detail\nBoard selected task",
-                "board\nOpen\nBoard selected task\nBoard-only companion"
+                """
+                 [T]asks   [G]raph
+                ╭─board-selected Board selected task───────────────────────────────────────────╮
+                │                                 No details.                                  │
+                ╰──────────────────────────────────────────────────────────────────────────────╯
+                ╭─Details──────────────────────────────────────────────────────────────────────╮
+                │ ○ open                                                                       │
+                ╰──────────────────────────────────────────────────────────────────────────────╯
+                """,
+                """
+                 [T]asks   [G]raph
+                ╭─Open (2)─────────────────────────────────────────────────────────────────────╮
+                │ > ○ [T] P0 board-selected Board selected task                                │
+                │   ○ [T] P1 board-companion Board-only companion                              │
+                │                                                                              │
+                │                                                                              │
+                ╰──────────────────────────────────────────────────────────────────────────────╯
+                """
             ]);
     }
 
@@ -193,39 +290,15 @@ public sealed class GraphTabWorkflowTests
     private static bool EnterGraphTab(TuiShell shell)
         => shell.Handle(new TuiEvent.KeyEvent(new ConsoleKeyInfo('G', ConsoleKey.G, true, false, false)));
 
-    private static string RenderToText(TuiShell shell, int width = 80)
+    private static string RenderToText(TuiShell shell, int width = 80, int height = 24)
     {
-        var console = new TestConsole().Width(width);
+        var console = new TestConsole().Width(width).Height(height);
         console.Write(shell.Render());
         return console.Output;
     }
 
-    private static string DescribeTreeOutput(GraphMode graph, string output)
-        => $"tree\n{string.Join('\n', graph.TreeView.Rows.Select(row => row.TaskId ?? "<root>"))}\nactive-tab: {RenderedEvidence(output, "[G]raph")}";
-
-    private static string DescribeCanvasOutput(GraphMode graph, string output, string footer)
-        => $"canvas\n{string.Join('\n', graph.CanvasView.Layout.Nodes.Select(node => node.Id).Order(StringComparer.Ordinal))}\n{DescribeFooter(footer)}\ncanvas-footer: {RenderedEvidence(output, "reversed: 1")}";
-
-    private static string DescribeDetailOutput(string output)
-        => $"detail\n{RenderedEvidence(output, "Selected orphan task")}";
-
-    private static string DescribeCanvasResume(GraphMode graph, string output)
-        => $"canvas-resumed\n{graph.SelectedTaskId}\n{RenderedEvidence(output, "nodes:")}";
-
-    private static string DescribeBoardDetailOutput(string output)
-        => $"detail\n{RenderedEvidence(output, "Board selected task")}";
-
-    private static string DescribeBoardOutput(string output)
-        => $"board\n{RenderedEvidence(output, "Open")}\n{RenderedEvidence(output, "Board selected task")}\n{RenderedEvidence(output, "Board-only companion")}";
-
-    private static string RenderedEvidence(string output, string marker)
-        => output.Contains(marker, StringComparison.Ordinal) ? marker : $"missing: {marker}";
-
-    private static string DescribeFooter(string footer)
-    {
-        var reversed = footer[(footer.LastIndexOf("reversed:", StringComparison.Ordinal))..];
-        return $"nodes: 5  edges: 2  {reversed}";
-    }
+    private static string NormalizeFrame(string frame)
+        => string.Join('\n', frame.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n').Select(line => line.TrimEnd())).TrimEnd();
 
     private static FakeTaskStore CreateLargeGraphWorkspace()
     {
