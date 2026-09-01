@@ -65,6 +65,12 @@ internal static class GraphReducer
     {
         var nodes = model.Nodes.AsEnumerable();
 
+        if (options.EpicIds is { Count: > 0 } epicIds)
+        {
+            var scopedIds = FindEpicDescendantIds(model, epicIds);
+            nodes = nodes.Where(t => scopedIds.Contains(t.Id));
+        }
+
         if (options.HideClosed)
         {
             nodes = nodes.Where(t => !TaskStates.IsTerminal(t.Status));
@@ -77,11 +83,6 @@ internal static class GraphReducer
 
         var filteredNodes = nodes.ToArray();
 
-        if (options.EpicIds is { Count: > 0 } epicIds)
-        {
-            filteredNodes = FilterToEpics(filteredNodes, model.Edges, epicIds);
-        }
-
         var nodeIds = filteredNodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
         var edges = model.Edges
             .Where(t => nodeIds.Contains(t.FromId) && nodeIds.Contains(t.ToId))
@@ -90,22 +91,21 @@ internal static class GraphReducer
         return Order(new GraphModel(filteredNodes, edges));
     }
 
-    private static GraphNode[] FilterToEpics(
-        IReadOnlyList<GraphNode> nodes,
-        IReadOnlyList<GraphEdge> allEdges,
+    private static HashSet<string> FindEpicDescendantIds(
+        GraphModel model,
         IReadOnlySet<string> epicIds)
     {
-        var nodeIds = nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
-        var children = allEdges
+        var nodeIds = model.Nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
+        var children = model.Edges
             .Where(t => t.Kind == GraphEdgeKind.ParentChild && nodeIds.Contains(t.FromId) && nodeIds.Contains(t.ToId))
             .GroupBy(t => t.FromId, StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.Select(t => t.ToId).Order(StringComparer.Ordinal).ToArray(), StringComparer.Ordinal);
-        var visibleIds = new HashSet<string>(StringComparer.Ordinal);
+        var scopedIds = new HashSet<string>(StringComparer.Ordinal);
         var pending = new Stack<string>(epicIds.Where(nodeIds.Contains).OrderDescending(StringComparer.Ordinal));
 
         while (pending.TryPop(out var id))
         {
-            if (!visibleIds.Add(id) || !children.TryGetValue(id, out var childIds))
+            if (!scopedIds.Add(id) || !children.TryGetValue(id, out var childIds))
             {
                 continue;
             }
@@ -116,7 +116,7 @@ internal static class GraphReducer
             }
         }
 
-        return nodes.Where(t => visibleIds.Contains(t.Id)).ToArray();
+        return scopedIds;
     }
 
     private static GraphModel CollapseEpics(GraphModel model, IReadOnlySet<string> collapsedEpicIds)

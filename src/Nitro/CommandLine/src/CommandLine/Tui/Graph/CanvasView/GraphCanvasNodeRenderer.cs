@@ -30,14 +30,15 @@ internal static class GraphCanvasNodeRenderer
         GraphNode node,
         bool compact,
         bool selected,
-        bool matched)
+        bool matched,
+        int containedMatchCount)
     {
         ArgumentNullException.ThrowIfNull(buffer);
         ArgumentNullException.ThrowIfNull(node);
 
         if (compact)
         {
-            RenderCompact(buffer, layoutNode, node, selected, matched);
+            RenderCompact(buffer, layoutNode, node, selected, matched, containedMatchCount);
             return;
         }
 
@@ -50,10 +51,19 @@ internal static class GraphCanvasNodeRenderer
         WriteSpan(buffer, layoutNode.X, layoutNode.Y + 2, "│", baseStyle, 1);
         WriteSpan(buffer, layoutNode.X + layoutNode.Width - 1, layoutNode.Y + 2, "│", baseStyle, 1);
 
-        RenderMetadata(buffer, layoutNode.X + 1, layoutNode.Y + 1, layoutNode.Width - 2, node, selected, matched, appendTitle: false);
+        RenderMetadata(
+            buffer,
+            layoutNode.X + 1,
+            layoutNode.Y + 1,
+            layoutNode.Width - 2,
+            node,
+            selected,
+            matched,
+            containedMatchCount,
+            appendTitle: false);
         var contentWidth = Math.Max(0, layoutNode.Width - 2);
         var title = GraphCanvasText.PadRight(
-            GraphCanvasText.Truncate(GetTitle(node), Math.Min(TitleWidth, contentWidth)),
+            GraphCanvasText.Truncate(GetTitle(node, containedMatchCount), Math.Min(TitleWidth, contentWidth)),
             contentWidth);
         WriteSpan(
             buffer,
@@ -64,10 +74,25 @@ internal static class GraphCanvasNodeRenderer
             contentWidth);
     }
 
-    private static void RenderCompact(CellBuffer buffer, GraphLayoutNode layoutNode, GraphNode node, bool selected, bool matched)
+    private static void RenderCompact(
+        CellBuffer buffer,
+        GraphLayoutNode layoutNode,
+        GraphNode node,
+        bool selected,
+        bool matched,
+        int containedMatchCount)
     {
         var width = layoutNode.Width;
-        RenderMetadata(buffer, layoutNode.X, layoutNode.Y, width, node, selected, matched, appendTitle: true);
+        RenderMetadata(
+            buffer,
+            layoutNode.X,
+            layoutNode.Y,
+            width,
+            node,
+            selected,
+            matched,
+            containedMatchCount,
+            appendTitle: true);
     }
 
     private static void RenderMetadata(
@@ -78,6 +103,7 @@ internal static class GraphCanvasNodeRenderer
         GraphNode node,
         bool selected,
         bool matched,
+        int containedMatchCount,
         bool appendTitle)
     {
         width = Math.Max(0, width);
@@ -118,12 +144,21 @@ internal static class GraphCanvasNodeRenderer
         if (appendTitle && cursor < end)
         {
             cursor = WriteSpan(buffer, cursor, y, " ", baseStyle, end - cursor);
-            _ = WriteSpan(buffer, cursor, y, GetTitle(node), baseStyle, end - cursor);
+            _ = WriteSpan(buffer, cursor, y, GetTitle(node, containedMatchCount), baseStyle, end - cursor);
         }
     }
 
-    private static string GetTitle(GraphNode node)
-        => node.HiddenChildCount > 0 ? $"[epic +{node.HiddenChildCount}]" : node.Title;
+    private static string GetTitle(GraphNode node, int containedMatchCount)
+    {
+        if (node.HiddenChildCount > 0)
+        {
+            return containedMatchCount > 0
+                ? $"[epic +{node.HiddenChildCount}, hits {containedMatchCount}]"
+                : $"[epic +{node.HiddenChildCount}]";
+        }
+
+        return containedMatchCount > 0 ? $"{node.Title} [hits {containedMatchCount}]" : node.Title;
+    }
 
     private static Style GetBaseStyle(GraphNode node, bool selected, bool matched)
         => Compose(Style.Plain, node, selected, matched);

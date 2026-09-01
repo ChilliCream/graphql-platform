@@ -56,6 +56,55 @@ public sealed class GraphReducerTests
     }
 
     [Fact]
+    public void Reduce_Should_ApplyLabelsAfterSelectingEpicDescendants()
+    {
+        // arrange
+        var model = Model(
+            [
+                Node("epic", type: TaskTypes.Epic),
+                Node("child", labels: ["alpha", "beta"]),
+                Node("sibling", labels: ["alpha"]),
+                Node("outside", labels: ["alpha", "beta"])
+            ],
+            [
+                Edge("epic", "child", GraphEdgeKind.ParentChild),
+                Edge("epic", "sibling", GraphEdgeKind.ParentChild)
+            ]);
+
+        // act
+        var reduced = GraphReducer.Reduce(
+            model,
+            new GraphReductionOptions { EpicIds = Set("epic"), Labels = Set("alpha", "beta") });
+
+        // assert
+        Assert.Equal(["child"], reduced.Nodes.Select(t => t.Id));
+        Assert.Empty(reduced.Edges);
+    }
+
+    [Fact]
+    public void Reduce_Should_KeepOpenDescendantsBehindClosedIntermediates_When_HidingClosedTasks()
+    {
+        // arrange
+        var model = Model(
+            [
+                Node("epic", type: TaskTypes.Epic),
+                Node("middle", status: TaskStates.Closed),
+                Node("descendant")
+            ],
+            [
+                Edge("epic", "middle", GraphEdgeKind.ParentChild),
+                Edge("middle", "descendant", GraphEdgeKind.ParentChild)
+            ]);
+
+        // act
+        var reduced = GraphReducer.Reduce(model, new GraphReductionOptions { EpicIds = Set("epic") });
+
+        // assert
+        Assert.Equal(["descendant", "epic"], reduced.Nodes.Select(t => t.Id));
+        Assert.Empty(reduced.Edges);
+    }
+
+    [Fact]
     public void Reduce_Should_CollapseEpicChildrenAndReattachCrossBoundaryEdges_When_EpicIsCollapsed()
     {
         // arrange

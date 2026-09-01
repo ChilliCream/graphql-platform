@@ -14,6 +14,7 @@ internal sealed class GraphCanvasView
     private readonly GraphLayout _layoutEngine = new();
     private readonly GraphEdgeRouter _edgeRouter = new();
     private IReadOnlySet<string> _matchIds = new HashSet<string>(StringComparer.Ordinal);
+    private IReadOnlyDictionary<string, int> _containedMatchCounts = new Dictionary<string, int>(StringComparer.Ordinal);
     private GraphModel _model;
     private GraphLayoutResult _layout = new([], [], 0, 0);
     private string? _selectedTaskId;
@@ -76,10 +77,15 @@ internal sealed class GraphCanvasView
     /// <summary>
     /// Marks matching nodes without rebuilding the canvas layout or viewport state.
     /// </summary>
-    public void SetMatchIds(IEnumerable<string>? taskIds)
-        => _matchIds = taskIds is null
+    public void SetMatchIds(
+        IEnumerable<string>? taskIds,
+        IReadOnlyDictionary<string, int>? containedMatchCounts = null)
+    {
+        _matchIds = taskIds is null
             ? new HashSet<string>(StringComparer.Ordinal)
             : taskIds.ToHashSet(StringComparer.Ordinal);
+        _containedMatchCounts = containedMatchCounts ?? new Dictionary<string, int>(StringComparer.Ordinal);
+    }
 
     /// <summary>
     /// Switches between boxed and compact node rendering.
@@ -137,13 +143,15 @@ internal sealed class GraphCanvasView
         {
             if (nodesById.TryGetValue(layoutNode.Id, out var node))
             {
+                var containedMatchCount = _containedMatchCounts.GetValueOrDefault(layoutNode.Id);
                 GraphCanvasNodeRenderer.Render(
                     result.Buffer,
                     layoutNode,
                     node,
                     IsCompact,
                     layoutNode.Id == selectedTaskId,
-                    _matchIds.Contains(layoutNode.Id));
+                    _matchIds.Contains(layoutNode.Id) || containedMatchCount > 0,
+                    containedMatchCount);
             }
         }
 

@@ -442,6 +442,37 @@ public sealed class GraphModeTests
     }
 
     [Fact]
+    public void Search_Should_CycleUniqueCollapsedRepresentativesAcrossProjectionChanges()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("epic", priority: 0, type: TaskTypes.Epic),
+                Task("child", priority: 1, title: "find child"),
+                Task("other", priority: 2, title: "find other")
+            ],
+            [Parent("epic", "child")]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("epic");
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+
+        // act
+        mode.HandleRawKey(EnterKey());
+        var first = mode.SelectedTaskId;
+        mode.HandleRawKey(EnterKey());
+        var second = mode.SelectedTaskId;
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        mode.HandleRawKey(EnterKey());
+        var third = mode.SelectedTaskId;
+
+        // assert
+        Assert.Equal(("epic", "other", "epic"), (first, second, third));
+        Assert.True(mode.IsInputCapturing);
+    }
+
+    [Fact]
     public void FilterForm_Should_ApplyAndClearGraphFiltersWithoutChangingTheSource()
     {
         // arrange
@@ -494,6 +525,8 @@ public sealed class GraphModeTests
             mode.HandleRawKey(new ConsoleKeyInfo(character, ConsoleKey.A, false, false, false));
         }
     }
+
+    private static ConsoleKeyInfo EnterKey() => new('\r', ConsoleKey.Enter, false, false, false);
 
     private static TaskItem Task(
         string id,

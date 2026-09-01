@@ -23,6 +23,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
     private GraphModel _sourceModel = s_emptyModel;
     private GraphModel _filteredTreeModel = s_emptyModel;
+    private GraphModel _canvasModel = s_emptyModel;
     private GraphTreeView _treeView = new(s_emptyModel, s_emptySet);
     private readonly GraphCanvasView _canvasView = new(s_emptyModel);
     private string? _selectedTaskId;
@@ -266,6 +267,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
         RecreateTree();
         var reduced = Reduce();
+        _canvasModel = reduced;
         _canvasView.SetModel(reduced);
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
         UpdateMatches();
@@ -278,7 +280,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
         if (_showCanvas)
         {
-            _selectedTaskId = ResolveVisibleSelection(_selectedTaskId, Reduce());
+            _selectedTaskId = ResolveVisibleSelection(_selectedTaskId, _canvasModel);
             _canvasView.SelectTask(_selectedTaskId);
         }
         else
@@ -292,8 +294,10 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         _hideClosed = !_hideClosed;
         RecreateTree();
         var reduced = Reduce();
+        _canvasModel = reduced;
         _canvasView.SetModel(reduced);
         SelectVisibleTask(ResolveVisibleSelection(_selectedTaskId, reduced));
+        ApplyMatchIds();
     }
 
     private void Move(CursorDirection direction)
@@ -371,7 +375,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private void CollapseAll()
     {
         _collapsedEpicIds.Clear();
-        _collapsedEpicIds.UnionWith(_filteredTreeModel.Nodes.Where(IsVisible).Where(t => t.IsEpic).Select(t => t.Id));
+        _collapsedEpicIds.UnionWith(_filteredTreeModel.Nodes.Where(t => t.IsEpic).Select(t => t.Id));
         RecreateTree();
         UpdateCanvasModel(_selectedTaskId);
     }
@@ -396,15 +400,16 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
             _treeInitialized = true;
         }
 
-        _treeView.SetHideClosed(_hideClosed);
+        _treeView.SetHideClosed(false);
         _treeView.SetMatchIds(_matchIds);
     }
 
     private void UpdateCanvasModel(string? requestedSelection)
     {
         var reduced = Reduce();
+        _canvasModel = reduced;
         _canvasView.SetModel(reduced);
-        _canvasView.SetMatchIds(_matchIds);
+        ApplyMatchIds();
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
     }
 
@@ -422,13 +427,13 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private GraphModel FilterTreeModel()
         => GraphReducer.Filter(
             _sourceModel,
-            new GraphReductionOptions { Labels = _labels, EpicIds = _epicIds, HideClosed = false });
+            new GraphReductionOptions { Labels = _labels, EpicIds = _epicIds, HideClosed = _hideClosed });
 
     private bool IsVisible(GraphNode node)
         => !_hideClosed || !TaskStates.IsTerminal(node.Status);
 
     private string? ResolveVisibleSelection(string? requestedSelection)
-        => ResolveVisibleSelection(requestedSelection, Reduce());
+        => ResolveVisibleSelection(requestedSelection, _canvasModel);
 
     private string? ResolveVisibleSelection(string? requestedSelection, GraphModel reduced)
     {
@@ -596,14 +601,33 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private void ApplyMatchIds()
     {
         _treeView.SetMatchIds(_matchIds);
-        _canvasView.SetMatchIds(_matchIds);
+        var directMatchIds = new HashSet<string>(StringComparer.Ordinal);
+        var containedMatchCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        foreach (var matchId in _matchIds)
+        {
+            var representativeId = FindCollapsedRepresentative(matchId, _canvasModel);
+
+            if (representativeId == matchId)
+            {
+                directMatchIds.Add(matchId);
+            }
+            else if (_canvasModel.Nodes.Any(t => t.Id == representativeId))
+            {
+                containedMatchCounts[representativeId] = containedMatchCounts.GetValueOrDefault(representativeId) + 1;
+            }
+        }
+
+        _canvasView.SetMatchIds(directMatchIds, containedMatchCounts);
     }
 
     private void JumpToNextMatch()
     {
         var matchIds = VisibleModel().Nodes
             .Where(t => _matchIds.Contains(t.Id))
-            .Select(t => t.Id)
+            .Select(t => FindCollapsedRepresentative(t.Id, _canvasModel))
+            .Where(id => _canvasModel.Nodes.Any(t => t.Id == id))
+            .Distinct(StringComparer.Ordinal)
             .ToArray();
 
         if (matchIds.Length == 0)
