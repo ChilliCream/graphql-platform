@@ -1390,7 +1390,7 @@ public sealed class TuiShellTests
         Assert.True(footer.IndexOf("Search: find", StringComparison.Ordinal) < footer.IndexOf("move", StringComparison.Ordinal));
         Assert.True(footer.IndexOf("move", StringComparison.Ordinal) < footer.IndexOf("mail-wake:ready", StringComparison.Ordinal));
         Assert.True(footer.IndexOf("mail-wake:ready", StringComparison.Ordinal) < footer.IndexOf("lucy", StringComparison.Ordinal));
-        Assert.Equal("saved", toast.Trim());
+        Assert.Equal("✔ saved", toast);
     }
 
     [Fact]
@@ -1442,7 +1442,7 @@ public sealed class TuiShellTests
         var text = RenderFooterText(shell, 8);
 
         // assert
-        Assert.Equal("[漢🙂e\u0301]", text);
+        Assert.Equal("[漢🙂e\u0301] ", text);
         Assert.False(ContainsLoneSurrogate(text));
         Assert.True(MeasureCellWidth(text) <= 8);
     }
