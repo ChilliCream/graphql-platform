@@ -10,6 +10,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 {
     private readonly Operation _operation;
     private readonly IMemoryArena _arena;
+    private readonly ulong _includeFlags;
     private readonly ulong[]? _wideIncludeFlags;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -23,50 +24,33 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
     public SourceResultDocumentBuilder(
         IMemoryArena arena,
         Operation operation,
-        ulong includeFlags,
-        ulong[]? wideIncludeFlags = null,
-        SelectionSet? selectionSet = null)
-        : this(arena, operation, new ConditionFlags(includeFlags, wideIncludeFlags), selectionSet)
-    {
-    }
-
-    public SourceResultDocumentBuilder(
-        IMemoryArena arena,
-        Operation operation,
         ConditionFlags includeFlags,
         SelectionSet? selectionSet = null)
     {
         _arena = arena ?? throw new ArgumentNullException(nameof(arena));
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _includeFlags = includeFlags.Word0;
         _wideIncludeFlags = includeFlags.Overflow;
         _metaDb = new MetaDb();
 
         selectionSet ??= operation.RootSelectionSet;
-        var rootIndex = CreateObjectValue(selectionSet.Selections, includeFlags.Word0);
+        var rootIndex = CreateObjectValue(selectionSet.Selections);
         Root = new SourceResultElementBuilder(this, rootIndex);
     }
 
     public SourceResultDocumentBuilder(
         IMemoryArena arena,
         Operation operation,
-        ulong includeFlags,
-        ReadOnlySpan<Selection> rootSelections)
-        : this(arena, operation, new ConditionFlags(includeFlags), rootSelections)
-    {
-    }
-
-    public SourceResultDocumentBuilder(
-        IMemoryArena arena,
-        Operation operation,
         ConditionFlags includeFlags,
         ReadOnlySpan<Selection> rootSelections)
     {
         _arena = arena ?? throw new ArgumentNullException(nameof(arena));
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _includeFlags = includeFlags.Word0;
         _wideIncludeFlags = includeFlags.Overflow;
         _metaDb = new MetaDb();
 
-        var rootIndex = CreateObjectValue(rootSelections, includeFlags.Word0);
+        var rootIndex = CreateObjectValue(rootSelections);
         Root = new SourceResultElementBuilder(this, rootIndex);
     }
 
@@ -105,7 +89,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         return _operation.GetSelectionById(_metaDb.GetLocation(propertyIndex));
     }
 
-    internal int CreateObjectValue(ReadOnlySpan<Selection> selections, ulong includeFlags)
+    internal int CreateObjectValue(ReadOnlySpan<Selection> selections)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -116,7 +100,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         {
             foreach (var selection in selections)
             {
-                if (!selection.IsIncludedUnchecked(includeFlags))
+                if (!selection.IsIncludedUnchecked(_includeFlags))
                 {
                     continue;
                 }
@@ -130,7 +114,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         {
             foreach (var selection in selections)
             {
-                if (!selection.IsIncludedWide(includeFlags, _wideIncludeFlags))
+                if (!selection.IsIncludedWide(_includeFlags, _wideIncludeFlags))
                 {
                     continue;
                 }
