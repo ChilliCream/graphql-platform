@@ -1,5 +1,3 @@
-"use client";
-
 import { Fragment } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -16,9 +14,10 @@ import {
   schemaRowY,
 } from "../Primitives";
 import { CHAPTERS, ProtoCodeBox } from "../story";
+import { schemaCardHeight } from "../../visuals/stage";
 
 const W = 1024;
-const H = 4900;
+const H = 5120;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 /** Lane x per CANON index, matching the production TransitStory map. */
@@ -65,8 +64,7 @@ const ROW_OWNERS: Record<number, readonly number[]> = {
 
 const HORIZON_Y = 4280;
 const CHIP = { x: 512, y: 4360 } as const;
-const CARD_BOTTOM_Y =
-  CARD.y + 40 + CARD_LINES.length * 18 + 12; /* schemaCardHeight */
+const CARD_BOTTOM_Y = CARD.y + schemaCardHeight(CARD_LINES.length);
 
 /** Fan-out targets on return: three lanes the chapter-4 query actually needs. */
 const FAN_OUT = [
@@ -217,10 +215,10 @@ const PLACEMENTS: readonly Placement[] = [
     ],
   },
   {
-    copy: { top: 3820, left: 50 },
+    copy: { top: 3725, left: 50 },
     boxes: [{ top: 4115, left: 50, desktopHidden: true }],
   },
-  { copy: { top: 4600, left: 50 }, boxes: [] },
+  { copy: { top: 4880, left: 50 }, boxes: [] },
 ];
 
 function AssemblingMap() {
@@ -369,8 +367,8 @@ function AssemblingMap() {
         return owners.map((lane, k) => (
           <rect
             key={`${row}-${lane}`}
-            x={CARD.x + 10 + k * 8}
-            y={rowY}
+            x={CARD.x + 10}
+            y={rowY + (k - (owners.length - 1) / 2) * 7}
             width={6}
             height={6}
             rx={1.5}
@@ -457,7 +455,7 @@ function AssemblingMap() {
  */
 export function AssemblingTheDocument() {
   return (
-    <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/4900]">
+    <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/5120]">
       <AssemblingMap />
       <div className="flex flex-col gap-14 px-5 py-16 sm:contents">
         {CHAPTERS.map((chapter, i) => (
