@@ -90,7 +90,7 @@ const LAYOUT: readonly ChapterLayout[] = [
     boxes: [{ top: 2020, left: 28 }],
   },
   {
-    copy: { top: 2500, left: 50 },
+    copy: { top: 2550, left: 70, side: true },
     boxes: [
       { top: 2900, left: 27, paired: true },
       { top: 2900, left: 73, paired: true },
@@ -294,9 +294,10 @@ function CallSheet() {
 
 /**
  * Desktop-only decorative layer: the five margin file chips, the parallel
- * dashed hairlines running from each into the composite box's gutter, the
- * build/runtime horizon, and the gateway chip. No merging lines - the
- * document itself is the artifact everything points at.
+ * dashed hairlines running from each chip down to a shared crossing band,
+ * left along a rail clear of the Catalog card, then into the composite box's
+ * gutter, the build/runtime horizon, and the gateway chip. No merging lines -
+ * the document itself is the artifact everything points at.
  */
 function AuthorshipMap() {
   return (
@@ -341,12 +342,14 @@ function AuthorshipMap() {
 
       {FILES.map((service, i) => {
         const chipY = FILE_CHIP_START_Y + i * FILE_CHIP_GAP + FILE_CHIP_H / 2;
-        const midX = 300 + i * 12;
+        const dropX = 320 - i * 10;
+        const crossY = 2766 - i * 12;
+        const railX = 68 - i * 8;
         const entryY = HAIRLINE_ENTRY_Y[i];
         return (
           <polyline
             key={service.name}
-            points={`${CHIP_RIGHT_X},${chipY} ${midX},${chipY} ${midX},${entryY} ${BOX_LEFT_X},${entryY}`}
+            points={`${CHIP_RIGHT_X},${chipY} ${dropX},${chipY} ${dropX},${crossY} ${railX},${crossY} ${railX},${entryY} ${BOX_LEFT_X},${entryY}`}
             fill="none"
             stroke={service.color}
             strokeWidth={1}
