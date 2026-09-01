@@ -600,7 +600,7 @@ internal sealed partial class DeferExecutionCoordinator
 
     private OperationResult GetPayloadUnsafe(OperationResult? streamResult, out bool isNewPayload)
     {
-        if (_results.Count > 0)
+        if (_results.Count > 0 && _results[^1].Data is null)
         {
             isNewPayload = false;
             return _results[^1];

@@ -5,34 +5,30 @@ namespace HotChocolate.Execution.Processing;
 public sealed class DeferExecutionCoordinatorTests
 {
     [Fact]
-    public void StreamBranch_Should_RemainPendingUntilItCompletes()
+    public async Task StreamBranch_Should_RemainPendingUntilItCompletes()
     {
         // arrange
         var coordinator = CreateCoordinator(out var mainBranchId);
         var streamBranchId = coordinator.RegisterStreamBranch(mainBranchId, Path.Root.Append("items"), "items");
-        var initialResult = CreateResult();
 
         // act
-        coordinator.EnqueueResult(initialResult);
-        coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
-        coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
-
-        // assert
-        Assert.Equal([streamBranchId], initialResult.Pending.Select(t => t.Id));
-        Assert.True(initialResult.HasNext);
-        Assert.Equal(2, initialResult.Incremental.Count);
-        Assert.Empty(initialResult.Completed);
-
-        // act
+        coordinator.EnqueueResult(CreateResult());
+        await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
+        await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
         coordinator.CompleteStream(streamBranchId);
+        var results = await ReadResultsAsync(coordinator);
 
         // assert
-        Assert.Equal([streamBranchId], initialResult.Completed.Select(t => t.Id));
-        Assert.False(initialResult.HasNext);
+        Assert.Equal(
+            [
+                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
+                (Pending: 0, Incremental: 2, Completed: 1, HasNext: false)
+            ],
+            DescribePayloads(results));
     }
 
     [Fact]
-    public void HasNext_Should_RemainTrueUntilDeferredAndStreamBranchesComplete()
+    public async Task HasNext_Should_RemainTrueUntilDeferredAndStreamBranchesComplete()
     {
         // arrange
         var coordinator = CreateCoordinator(out var mainBranchId);
@@ -46,15 +42,16 @@ public sealed class DeferExecutionCoordinatorTests
         // act
         coordinator.EnqueueResult(initialResult);
         coordinator.CompleteStream(streamBranchId);
+        await coordinator.EnqueueResult(CreateResult(), deferBranchId);
+        var results = await ReadResultsAsync(coordinator);
 
         // assert
-        Assert.True(initialResult.HasNext);
-
-        // act
-        coordinator.EnqueueResult(CreateResult(), deferBranchId);
-
-        // assert
-        Assert.False(initialResult.HasNext);
+        Assert.Equal(
+            [
+                (Pending: 2, Incremental: 0, Completed: 0, HasNext: true),
+                (Pending: 0, Incremental: 1, Completed: 2, HasNext: false)
+            ],
+            DescribePayloads(results));
     }
 
     [Fact]
@@ -101,7 +98,7 @@ public sealed class DeferExecutionCoordinatorTests
     }
 
     [Fact]
-    public void NestedDeferredBranch_Should_BeAnnouncedWithTheRevealingStreamItem()
+    public async Task NestedDeferredBranch_Should_BeAnnouncedWithTheRevealingStreamItem()
     {
         // arrange
         var coordinator = CreateCoordinator(out var mainBranchId);
@@ -114,22 +111,27 @@ public sealed class DeferExecutionCoordinatorTests
             new DeferUsage(null, null, 0));
 
         // act
-        coordinator.EnqueueResult(CreateResult(), deferredBranchId);
+        await coordinator.EnqueueResult(CreateResult(), deferredBranchId);
 
         // assert
         Assert.Equal([streamBranchId], initialResult.Pending.Select(t => t.Id));
 
         // act
-        _ = coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
+        await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
+        coordinator.CompleteStream(streamBranchId);
+        var results = await ReadResultsAsync(coordinator);
 
         // assert
-        Assert.Equal([streamBranchId, deferredBranchId], initialResult.Pending.Select(t => t.Id).Order());
-        Assert.Equal([deferredBranchId], initialResult.Completed.Select(t => t.Id));
-        Assert.Equal([streamBranchId, deferredBranchId], initialResult.Incremental.Select(t => t.Id));
+        Assert.Equal(
+            [
+                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
+                (Pending: 1, Incremental: 2, Completed: 2, HasNext: false)
+            ],
+            DescribePayloads(results));
     }
 
     [Fact]
-    public async Task ReadyStreamItems_Should_CoalesceIntoOnePayload()
+    public async Task ReadyStreamItems_Should_CoalesceIntoSeparateIncrementalPayload()
     {
         // arrange
         var coordinator = CreateCoordinator(out var mainBranchId);
@@ -140,18 +142,15 @@ public sealed class DeferExecutionCoordinatorTests
         await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
         await coordinator.EnqueueStreamItem(CreateResult(), streamBranchId);
         coordinator.CompleteStream(streamBranchId);
-        var results = new List<OperationResult>();
-
-        await foreach (var payload in coordinator.ReadResultsAsync(TestContext.Current.CancellationToken))
-        {
-            results.Add(payload);
-        }
+        var results = await ReadResultsAsync(coordinator);
 
         // assert
-        var result = Assert.Single(results);
-        Assert.Equal(2, result.Incremental.Count);
-        Assert.Equal([streamBranchId], result.Completed.Select(t => t.Id));
-        Assert.False(result.HasNext);
+        Assert.Equal(
+            [
+                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
+                (Pending: 0, Incremental: 2, Completed: 1, HasNext: false)
+            ],
+            DescribePayloads(results));
     }
 
     [Fact]
@@ -167,12 +166,18 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         await coordinator.AbortBranchesAsync(Path.Root, [error]);
+        var results = await ReadResultsAsync(coordinator);
 
         // assert
-        var completed = Assert.Single(initialResult.Completed);
+        Assert.Equal(
+            [
+                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
+                (Pending: 0, Incremental: 0, Completed: 1, HasNext: false)
+            ],
+            DescribePayloads(results));
+        var completed = Assert.Single(results[1].Completed);
         Assert.Equal(streamBranchId, completed.Id);
         Assert.Same(error, Assert.Single(completed.Errors!));
-        Assert.False(initialResult.HasNext);
     }
 
     [Fact]
@@ -192,12 +197,17 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         coordinator.CompleteStream(streamBranchId);
+        var results = await ReadResultsAsync(coordinator);
         await initialResult.DisposeAsync();
+        await results[1].DisposeAsync();
 
         // assert
-        Assert.Equal([streamBranchId], initialResult.Pending.Select(t => t.Id));
-        Assert.Equal([streamBranchId], initialResult.Completed.Select(t => t.Id));
-        Assert.False(initialResult.HasNext);
+        Assert.Equal(
+            [
+                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
+                (Pending: 0, Incremental: 0, Completed: 1, HasNext: false)
+            ],
+            DescribePayloads(results));
     }
 
     [Fact]
@@ -243,6 +253,7 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         await coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
+        var results = await ReadResultsAsync(coordinator);
         await coordinator.EnqueueResult(lateResult, deferBranchId);
         await initialResult.DisposeAsync();
         await coordinator.ResetAsync();
@@ -250,8 +261,8 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal([deferBranchId], initialResult.Pending.Select(t => t.Id));
         Assert.Empty(initialResult.Incremental);
-        Assert.Equal([deferBranchId], initialResult.Completed.Select(t => t.Id));
-        Assert.False(initialResult.HasNext);
+        Assert.Equal([deferBranchId], results[1].Completed.Select(t => t.Id));
+        Assert.False(results[1].HasNext);
         Assert.Equal(1, lateHolder.DisposeCount);
     }
 
@@ -272,6 +283,7 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         await coordinator.AbortBranchesAsync(Path.Root.Append("details"), [ErrorBuilder.New().SetMessage("boom").Build()]);
+        var results = await ReadResultsAsync(coordinator);
         await coordinator.EnqueueResult(lateResult, deferBranchId);
         await initialResult.DisposeAsync();
         await coordinator.ResetAsync();
@@ -279,8 +291,8 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal([parentBranchId], initialResult.Pending.Select(t => t.Id));
         Assert.Empty(initialResult.Incremental);
-        Assert.Equal([parentBranchId], initialResult.Completed.Select(t => t.Id));
-        Assert.False(initialResult.HasNext);
+        Assert.Equal([parentBranchId], results[1].Completed.Select(t => t.Id));
+        Assert.False(results[1].HasNext);
         Assert.Equal(1, lateHolder.DisposeCount);
     }
 
@@ -350,6 +362,22 @@ public sealed class DeferExecutionCoordinatorTests
         coordinator.Initialize(branchTracker, mainBranchId);
         return coordinator;
     }
+
+    private static async Task<List<OperationResult>> ReadResultsAsync(DeferExecutionCoordinator coordinator)
+    {
+        var results = new List<OperationResult>();
+
+        await foreach (var payload in coordinator.ReadResultsAsync(TestContext.Current.CancellationToken))
+        {
+            results.Add(payload);
+        }
+
+        return results;
+    }
+
+    private static IEnumerable<(int Pending, int Incremental, int Completed, bool? HasNext)> DescribePayloads(
+        IEnumerable<OperationResult> results)
+        => results.Select(t => (t.Pending.Count, t.Incremental.Count, t.Completed.Count, t.HasNext));
 
     private static OperationResult CreateResult(IDisposable? memoryHolder = null)
         => new(
