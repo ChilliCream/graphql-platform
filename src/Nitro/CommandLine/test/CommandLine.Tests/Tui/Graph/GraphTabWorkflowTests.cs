@@ -136,8 +136,8 @@ public sealed class GraphTabWorkflowTests
     private static TuiTab CreateTab(string title, char mnemonic, ITuiMode mode)
         => new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-    private static ConsoleKeyInfo Key(char keyChar, ConsoleKey key)
-        => new(keyChar, key, false, false, false);
+    private static TuiEvent.KeyEvent Key(char keyChar, ConsoleKey key)
+        => new(new ConsoleKeyInfo(keyChar, key, false, false, false));
 
     private static void EnterGraphTab(TuiShell shell)
         => shell.Handle(new TuiEvent.KeyEvent(new ConsoleKeyInfo('G', ConsoleKey.G, true, false, false)));
@@ -155,7 +155,7 @@ public sealed class GraphTabWorkflowTests
         store.Tasks["epic-root"] = Task("epic-root", 0, TaskTypes.Epic, "Root epic");
         store.Tasks["epic-nested"] = Task("epic-nested", 1, TaskTypes.Epic, "Nested epic");
         store.Tasks["nested-child"] = Task("nested-child", 2, title: "Nested child");
-        store.Tasks["closed-child"] = Task("closed-child", 3, status: TaskStates.Closed, title: "Closed child");
+        store.Tasks["closed-child"] = Task("closed-child", 3, title: "Closed child", status: TaskStates.Closed);
         store.Tasks["cycle-a"] = Task("cycle-a", 4, title: "Cycle A");
         store.Tasks["cycle-b"] = Task("cycle-b", 5, title: "Cycle B");
         store.Tasks["orphan-selected"] = Task("orphan-selected", 6, title: "Selected orphan task");
