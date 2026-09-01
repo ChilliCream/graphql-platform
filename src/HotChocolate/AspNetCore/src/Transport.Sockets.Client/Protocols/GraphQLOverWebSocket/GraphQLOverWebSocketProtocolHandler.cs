@@ -39,7 +39,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             context.Socket,
             cancellationToken);
         using var subscription = context.Messages.Subscribe(observer);
+#if FUSION
+        await context.Sender.SendConnectionInitMessageAsync(payload, cancellationToken);
+#else
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
+#endif
         await observer.Accepted;
     }
 
@@ -59,7 +63,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
     {
         var id = Guid.NewGuid().ToString("N");
 #if FUSION
-        var completion = new DataCompletion(context.Socket, id);
+        var completion = new DataCompletion(context.Sender, id);
         var observer = new DataMessageObserver(
             id,
             arenaSource,
@@ -74,7 +78,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         try
         {
+#if FUSION
+            await context.Sender.SendSubscribeMessageAsync(id, request, cancellationToken);
+#else
             await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+#endif
 
             // if the user cancels this stream, we send the server a complete request so that we
             // no longer receive new result messages, and we complete the local observer so that a
@@ -114,7 +122,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
     {
         var id = Guid.NewGuid().ToString("N");
 #if FUSION
-        var completion = new DataCompletion(context.Socket, id);
+        var completion = new DataCompletion(context.Sender, id);
         var observer = new DataMessageObserver(
             id,
             arenaSource,
@@ -129,7 +137,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         try
         {
+#if FUSION
+            await context.Sender.SendSubscribeMessageAsync(id, request, cancellationToken);
+#else
             await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+#endif
 
             // if the user cancels this stream, we send the server a complete request so that we
             // no longer receive new result messages, and we complete the local observer so that a
@@ -170,7 +182,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             switch (location.Type)
             {
                 case SocketMessageType.Ping:
-                    return context.Socket.SendPongMessageAsync(cancellationToken);
+                    return context.Sender.SendPongMessageAsync(cancellationToken);
 
                 case SocketMessageType.Pong:
                     return default;
@@ -316,7 +328,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
     }
 #endif
 
+#if FUSION
+    private sealed class DataCompletion(SocketMessageSender sender, string id) : IDataCompletion
+#else
     private sealed class DataCompletion(WebSocket socket, string id) : IDataCompletion
+#endif
     {
         private int _completed;
 
@@ -327,11 +343,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
             {
+#if FUSION
+                _ = sender.TrySendCompleteMessageAsync(id);
+#else
                 _ = TrySendCompleteMessageInternalAsync(socket, id);
+#endif
             }
         }
     }
 
+#if !FUSION
     private static async Task TrySendCompleteMessageInternalAsync(WebSocket socket, string id)
     {
         using var cts = new CancellationTokenSource(2000);
@@ -356,6 +377,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             }
         }
     }
+#endif
 
 #if !FUSION
     private enum MessageType

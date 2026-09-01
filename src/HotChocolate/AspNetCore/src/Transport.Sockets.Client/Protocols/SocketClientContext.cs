@@ -1,4 +1,8 @@
 using System.Net.WebSockets;
+#if FUSION
+using System.Text.Json;
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#endif
 
 #if FUSION
 namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
@@ -33,6 +37,7 @@ internal sealed class SocketClientContext
         Messages = new MessageStream();
 #if FUSION
         Options = options;
+        Sender = new SocketMessageSender(socket);
 #endif
     }
 
@@ -49,5 +54,108 @@ internal sealed class SocketClientContext
 
 #if FUSION
     public SocketClientOptions Options { get; }
+
+    public SocketMessageSender Sender { get; }
 #endif
 }
+
+#if FUSION
+internal sealed class SocketMessageSender(WebSocket socket)
+{
+    private readonly SemaphoreSlim _sendGate = new(1, 1);
+
+    public async ValueTask SendConnectionInitMessageAsync(
+        JsonElement payload,
+        CancellationToken cancellationToken)
+    {
+        await _sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await socket.SendConnectionInitMessage(payload, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
+    }
+
+    public async ValueTask SendSubscribeMessageAsync(
+        string id,
+        IOperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        await _sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await socket.SendSubscribeMessageAsync(id, request, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
+    }
+
+    public async ValueTask SendSubscribeMessageAsync(
+        string id,
+        OperationBatchRequest request,
+        CancellationToken cancellationToken)
+    {
+        await _sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await socket.SendSubscribeMessageAsync(id, request, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
+    }
+
+    public async ValueTask SendPongMessageAsync(CancellationToken cancellationToken)
+    {
+        await _sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await socket.SendPongMessageAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
+    }
+
+    public async Task TrySendCompleteMessageAsync(string id)
+    {
+        await _sendGate.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            using var cts = new CancellationTokenSource(2000);
+
+            if (socket.IsOpen())
+            {
+                await socket.SendCompleteMessageAsync(id, cts.Token).ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            try
+            {
+                socket.Abort();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
+    }
+}
+#endif
