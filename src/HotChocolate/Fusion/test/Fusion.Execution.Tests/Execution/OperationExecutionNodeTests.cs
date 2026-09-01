@@ -340,22 +340,19 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
         var stream = result.ExpectResponseStream();
         var enumerator = stream.ReadResultsAsync().GetAsyncEnumerator(TestContext.Current.CancellationToken);
-        try
-        {
-            Assert.True(await enumerator.MoveNextAsync());
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await enumerator.DisposeAsync());
+        var hasResult = await enumerator.MoveNextAsync();
+        var exception = await Record.ExceptionAsync(async () => await enumerator.DisposeAsync());
 
-            // assert
-            Assert.Equal("The event enumerator cleanup failed.", exception.Message);
-            Assert.Equal(1, client.DisposeCount);
-            Assert.Equal(1, diagnosticListener.SubscriptionScope.DisposeCount);
-            Assert.Equal(1, clientScopeFactory.Scopes[1].DisposeCount);
-        }
-        finally
-        {
-            await enumerator.DisposeAsync();
-        }
+        // assert
+        Assert.True(hasResult);
+        Assert.Equal("The event enumerator cleanup failed.", Assert.IsType<InvalidOperationException>(exception).Message);
+        Assert.Equal(
+            [1, 1, 1],
+            [
+                client.DisposeCount,
+                diagnosticListener.SubscriptionScope.DisposeCount,
+                clientScopeFactory.Scopes[1].DisposeCount
+            ]);
     }
 
     [Fact]
@@ -373,20 +370,55 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             TestContext.Current.CancellationToken);
         var stream = result.ExpectResponseStream();
         var enumerator = stream.ReadResultsAsync().GetAsyncEnumerator(TestContext.Current.CancellationToken);
-        try
-        {
-            Assert.True(await enumerator.MoveNextAsync());
+        var hasResult = await enumerator.MoveNextAsync();
+        var disposeCountBefore = diagnosticListener.SubscriptionNodeScope.DisposeCount;
+        await enumerator.DisposeAsync();
+        var disposeCountAfter = diagnosticListener.SubscriptionNodeScope.DisposeCount;
 
-            // assert
-            Assert.Equal(1, diagnosticListener.SubscriptionNodeScope.DisposeCount);
+        // assert
+        Assert.True(hasResult);
+        Assert.Equal([1, 1], [disposeCountBefore, disposeCountAfter]);
+    }
 
-            await enumerator.DisposeAsync();
-            Assert.Equal(1, diagnosticListener.SubscriptionNodeScope.DisposeCount);
-        }
-        finally
-        {
-            await enumerator.DisposeAsync();
-        }
+    [Fact]
+    public async Task Subscription_Should_PreserveMergeError_When_EventCleanupFails()
+    {
+        // arrange
+        var client = new InvalidPathSubscriptionClient();
+        var diagnosticListener = new CleanupDiagnosticListener();
+        var clientScopeFactory = new TestClientScopeFactory(
+            () => client,
+            disposeException: new InvalidOperationException("The client scope cleanup failed."));
+        var executor = await CreateExecutorAsync(
+            new EmptyQueryClient(),
+            clientScopeFactory: clientScopeFactory,
+            diagnosticListener: diagnosticListener);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            CreateSubscriptionRequest(),
+            TestContext.Current.CancellationToken);
+        var stream = result.ExpectResponseStream();
+        await using var enumerator = stream
+            .ReadResultsAsync()
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        var hasResult = await enumerator.MoveNextAsync();
+        var exception = enumerator.Current.Errors!.Single().Exception;
+        var eventResult = client.EventResult!;
+
+        // assert
+        Assert.True(hasResult);
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal(
+            [1, 1, 1, 1, 1],
+            [
+                client.CurrentReadCount,
+                client.DisposeCount,
+                diagnosticListener.SubscriptionNodeScope.DisposeCount,
+                diagnosticListener.SubscriptionScope.DisposeCount,
+                clientScopeFactory.Scopes[1].DisposeCount
+            ]);
+        Assert.Throws<ObjectDisposedException>(() => _ = eventResult.Data);
     }
 
     private static async Task<IRequestExecutor> CreateExecutorAsync(
@@ -711,6 +743,69 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class InvalidPathSubscriptionClient : TestSubscriptionClient
+    {
+        private static readonly byte[] s_payload = """{"data":{"onMessage":"first"}}"""u8.ToArray();
+
+        public int CurrentReadCount { get; private set; }
+
+        public int DisposeCount { get; private set; }
+
+        public SourceSchemaResult? EventResult { get; private set; }
+
+        public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+        {
+            var arena = context.MemorySource.GetNextArena();
+            var document = SourceResultDocument.Parse(arena, s_payload, s_payload.Length);
+            EventResult = new SourceSchemaResult(Path(~0), document);
+            return new InvalidPathAsyncEnumerable(this);
+        }
+
+        private sealed class InvalidPathAsyncEnumerable(InvalidPathSubscriptionClient owner)
+            : IAsyncEnumerable<SourceSchemaResult>
+        {
+            public IAsyncEnumerator<SourceSchemaResult> GetAsyncEnumerator(
+                CancellationToken cancellationToken = default)
+                => new InvalidPathAsyncEnumerator(owner);
+        }
+
+        private sealed class InvalidPathAsyncEnumerator(InvalidPathSubscriptionClient owner)
+            : IAsyncEnumerator<SourceSchemaResult>
+        {
+            private bool _hasYielded;
+
+            public SourceSchemaResult Current
+            {
+                get
+                {
+                    owner.CurrentReadCount++;
+                    return owner.EventResult!;
+                }
+            }
+
+            public ValueTask<bool> MoveNextAsync()
+            {
+                if (_hasYielded)
+                {
+                    return ValueTask.FromResult(false);
+                }
+
+                _hasYielded = true;
+                return ValueTask.FromResult(true);
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                owner.DisposeCount++;
+                return ValueTask.FromException(
+                    new InvalidOperationException("The event enumerator cleanup failed."));
+            }
+        }
+    }
+
     private sealed class TestSubscriptionClientFactory(ISourceSchemaClient client)
         : ISourceSchemaClientFactory
     {
@@ -778,8 +873,18 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         public TrackingScope SubscriptionScope { get; } =
             new(new InvalidOperationException("The subscription scope cleanup failed."));
 
+        public TrackingScope SubscriptionNodeScope { get; } =
+            new(new InvalidOperationException("The subscription node scope cleanup failed."));
+
         public override IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId)
             => SubscriptionScope;
+
+        public override IDisposable ExecuteSubscriptionNode(
+            OperationPlanContext context,
+            ExecutionNode node,
+            string schemaName,
+            ulong subscriptionId)
+            => SubscriptionNodeScope;
     }
 
     private sealed class SubscriptionNodeDiagnosticListener : FusionExecutionDiagnosticEventListener
@@ -817,5 +922,13 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         public string Name { get; } = name;
 
         public SupportedOperationType SupportedOperations { get; } = supportedOperations;
+    }
+
+    private static CompactPath Path(params int[] segments)
+    {
+        var buffer = new int[segments.Length + 1];
+        buffer[0] = segments.Length;
+        segments.CopyTo(buffer.AsSpan(1));
+        return new CompactPath(buffer);
     }
 }
