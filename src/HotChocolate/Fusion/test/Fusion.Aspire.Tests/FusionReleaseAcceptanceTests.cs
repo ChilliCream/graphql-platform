@@ -16,6 +16,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
+// File based source schemas are retired, but they still take part in publishing and
+// in the resource model, so the tests keep using them.
+#pragma warning disable CS0618
+
 namespace HotChocolate.Fusion.Aspire;
 
 #pragma warning disable ASPIREPIPELINES001
@@ -389,11 +393,11 @@ public sealed class FusionReleaseAcceptanceTests
         var products = builder
             .AddProject("products-api", sourceProjectPath)
             .WithHttpEndpoint(port: 54321, targetPort: 8080, name: "http")
-            .WithGraphQLSchemaEndpoint(sourceSchemaName: "products");
+            .WithGraphQLHttpEndpoint(sourceSchemaName: "products");
         builder
             .AddProject("gateway", gatewayProjectPath)
             .WithReference(products)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         builder
             .AddNitro()
             .WithNitroCloudUrl("https://api.chillicream.com")
@@ -894,7 +898,7 @@ public sealed class FusionReleaseAcceptanceTests
             .AddProject("gateway", gatewayProjectPath)
             .WithReference(products)
             .WithReference(reviews)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var api = builder
             .AddNitro()
             .WithNitroCloudUrl("https://api.chillicream.com")

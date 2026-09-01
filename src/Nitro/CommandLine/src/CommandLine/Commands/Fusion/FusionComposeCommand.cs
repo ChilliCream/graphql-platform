@@ -10,6 +10,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionComposeCommand : Command
 {
+    private const int MaxArchiveOpenAttempts = 50;
+    private static readonly TimeSpan s_archiveOpenRetryDelay = TimeSpan.FromMilliseconds(100);
+
     public FusionComposeCommand() : base("compose")
     {
         Description = "Compose multiple source schemas into a single composite schema.";
@@ -21,6 +24,7 @@ internal sealed class FusionComposeCommand : Command
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<CacheControlMergeBehaviorOption>.Instance);
         Options.Add(Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        Options.Add(Opt<EnumValuesMergeBehaviorOption>.Instance);
         Options.Add(Opt<NodeResolutionOption>.Instance);
         Options.Add(Opt<TagMergeBehaviorOption>.Instance);
         Options.Add(Opt<ShareableFieldRuntimeTypeRoutingOption>.Instance);
@@ -90,6 +94,11 @@ internal sealed class FusionComposeCommand : Command
             : null;
         var enableGlobalObjectIdentification = parseResult.GetValue(
             Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        var enumValuesMergeBehaviorOption = Opt<EnumValuesMergeBehaviorOption>.Instance;
+        var enumValuesMergeBehavior = parseResult.Tokens.Any(
+            static token => token.Value == EnumValuesMergeBehaviorOption.OptionName)
+            ? parseResult.GetValue(enumValuesMergeBehaviorOption)
+            : null;
         var nodeResolutionOption = Opt<NodeResolutionOption>.Instance;
         var nodeResolution = parseResult.Tokens.Any(
             static token => token.Value == NodeResolutionOption.OptionName)
@@ -149,6 +158,7 @@ internal sealed class FusionComposeCommand : Command
             {
                 CacheControlMergeBehavior = cacheControlMergeBehavior,
                 EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                EnumValuesMergeBehavior = enumValuesMergeBehavior,
                 NodeResolution = nodeResolution,
                 TagMergeBehavior = tagMergeBehavior
             },
@@ -540,7 +550,7 @@ internal sealed class FusionComposeCommand : Command
                 workingDirectory,
                 sourceSchemaFiles,
                 cancellationToken);
-            ownedSettings.AddRange(sourceSchemas.Values.Select(value => value.Item2));
+            ownedSettings.AddRange(sourceSchemas.Values.Select(value => value.Settings));
 
             if (watchedSourceSchemaNames is { Count: > 0 })
             {
@@ -568,7 +578,7 @@ internal sealed class FusionComposeCommand : Command
                         httpClient!,
                         cancellationToken);
                 ownedSettings.AddRange(
-                    remoteSourceSchemas.Values.Select(value => value.Item2));
+                    remoteSourceSchemas.Values.Select(value => value.Settings));
 
                 foreach (var (sourceSchemaName, sourceSchema) in remoteSourceSchemas)
                 {
@@ -592,14 +602,15 @@ internal sealed class FusionComposeCommand : Command
                 }
             }
 
-            using var archive = fileSystem.FileExists(archiveFile) || File.Exists(archiveFile)
-                ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-                : FusionArchive.Create(archiveFile);
+            using var archive = await OpenOrCreateArchiveAsync(
+                fileSystem,
+                archiveFile,
+                cancellationToken);
 
             if (removeSourceSchemas.Count > 0)
             {
-                var existing = (await archive.GetSourceSchemaNamesAsync(cancellationToken))
-                    .ToHashSet(StringComparer.Ordinal);
+                var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync(cancellationToken);
+                var existing = sourceSchemaNames.ToHashSet(StringComparer.Ordinal);
 
                 var missingSourceSchema =
                     removeSourceSchemas.FirstOrDefault(name => !existing.Contains(name));
@@ -624,7 +635,7 @@ internal sealed class FusionComposeCommand : Command
                 sourceSchemas,
                 archive,
                 environment,
-                SettingsComposerOptions.Default,
+                preferDevUrls: false,
                 compositionSettings,
                 legacyArchive: null,
                 cancellationToken);
@@ -668,6 +679,34 @@ internal sealed class FusionComposeCommand : Command
             {
                 settings.Dispose();
             }
+        }
+    }
+
+    /// <summary>
+    /// Opens the archive for update, or creates it when it does not exist. An attempt
+    /// that fails with an <see cref="IOException"/>, such as a sharing violation from a
+    /// concurrent reader, is retried at a fixed delay; after
+    /// <see cref="MaxArchiveOpenAttempts"/> attempts the exception propagates.
+    /// </summary>
+    private static async Task<FusionArchive> OpenOrCreateArchiveAsync(
+        IFileSystem fileSystem,
+        string archiveFile,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return fileSystem.FileExists(archiveFile) || File.Exists(archiveFile)
+                    ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+                    : FusionArchive.Create(archiveFile);
+            }
+            catch (IOException) when (attempt < MaxArchiveOpenAttempts)
+            {
+                // Retry: the archive is briefly locked by a concurrent reader.
+            }
+
+            await Task.Delay(s_archiveOpenRetryDelay, cancellationToken);
         }
     }
 

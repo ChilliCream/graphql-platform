@@ -93,6 +93,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string DeferredMutationLookupRequiredException_NoLookupAvailable {
+            get {
+                return ResourceManager.GetString("DeferredMutationLookupRequiredException_NoLookupAvailable", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup", resourceCulture);
@@ -114,6 +120,12 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SourceSchemaClient_SubscriptionsNotSupported {
             get {
                 return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupported", resourceCulture);
+            }
+        }
+
+        internal static string HttpSourceSchemaClient_InvalidAliasBatchResponse {
+            get {
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidAliasBatchResponse", resourceCulture);
             }
         }
 
@@ -222,6 +234,30 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FetchResultStore_InvalidTargetValueKind {
             get {
                 return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnInlineFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnInlineFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FragmentDoesNotExist", resourceCulture);
             }
         }
     }

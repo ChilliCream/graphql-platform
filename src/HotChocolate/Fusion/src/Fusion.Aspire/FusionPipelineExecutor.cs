@@ -29,6 +29,10 @@ internal sealed class FusionPipelineExecutor
     };
 
     private readonly FusionPipelineMemoryLimits _memoryLimits;
+    // The token refresh is a short request against the Nitro API that every pipeline step can
+    // make, so the steps share one client instead of creating one per invocation.
+    private static readonly HttpClient s_tokenRefreshHttpClient = new();
+
     private readonly Func<HttpClient> _schemaHttpClientFactory;
 
     internal FusionPipelineExecutor(FusionPipelineMemoryLimits memoryLimits)
@@ -927,8 +931,20 @@ internal sealed class FusionPipelineExecutor
                         source.Name,
                         publishingSourceName,
                         endpointSettings);
+                    if (!SchemaComposition.TryGetSchemaFetchPath(
+                        source.Name,
+                        declaration,
+                        schemaEndpointConfiguration,
+                        logger,
+                        out var schemaFetchPath))
+                    {
+                        throw new InvalidOperationException(
+                            $"GraphQL source '{source.Name}' does not declare the path of its "
+                            + "GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.");
+                    }
+
                     var schemaUrl = source.GetGraphQLSchemaUrl(
-                        schemaEndpointConfiguration.DefaultPath,
+                        schemaFetchPath,
                         declaration.EndpointName);
                     if (schemaUrl is null)
                     {
@@ -1420,13 +1436,15 @@ internal sealed class FusionPipelineExecutor
         var timeProvider = context.Services.GetService<TimeProvider>()
             ?? TimeProvider.System;
         var connectionResolver = new NitroConnectionResolver(
-            new NitroSessionReader(
-                NitroDefaults.GetSessionFilePath(),
-                NitroDefaults.SessionRereadDelay),
+            new NitroSessionManager(
+                new NitroSessionReader(
+                    NitroDefaults.GetSessionFilePath(),
+                    NitroDefaults.SessionRereadDelay),
+                new NitroTokenRefreshClient(s_tokenRefreshHttpClient),
+                timeProvider,
+                NitroDefaults.AccessTokenExpiryGrace),
             SystemNitroEnvironment.Instance,
-            cloudUrl,
-            timeProvider,
-            NitroDefaults.AccessTokenExpiryGrace);
+            cloudUrl);
 
         return await ResolveTargetAsync(
             api,

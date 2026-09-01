@@ -622,8 +622,42 @@ public sealed class GraphQLHttpResponse : IDisposable
     public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync(
         IMemoryArenaSource arenaSource,
         bool requireStreaming = false)
+        => ReadAsResultStreamAsync(arenaSource, requireStreaming, Timeout.InfiniteTimeSpan);
+
+    /// <summary>
+    /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/>.
+    /// </summary>
+    /// <param name="arenaSource">The source of arenas that back the produced documents.</param>
+    /// <param name="requireStreaming">
+    /// When <c>true</c>, a response that is not delivered over a streaming transport (Server-Sent Events
+    /// or JSON Lines) is rejected. A subscription requires a streaming response.
+    /// </param>
+    /// <param name="readTimeout">
+    /// The maximum time between two reads of data from a streaming response (Server-Sent Events or
+    /// JSON Lines). Keep-alive messages count as data. <see cref="Timeout.InfiniteTimeSpan"/> disables
+    /// the timeout. A finite value must be between one millisecond and <c>uint.MaxValue - 1</c>
+    /// milliseconds. Non-streaming responses are not affected.
+    /// </param>
+    /// <returns>
+    /// A <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/> that represents the asynchronous
+    /// read operation to read the stream of <see cref="SourceResultDocument"/>s from the underlying
+    /// <see cref="HttpResponseMessage"/>.
+    /// </returns>
+    public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync(
+        IMemoryArenaSource arenaSource,
+        bool requireStreaming,
+        TimeSpan readTimeout)
     {
         ArgumentNullException.ThrowIfNull(arenaSource);
+
+        if (readTimeout != Timeout.InfiniteTimeSpan && !ReadTimeoutStream.IsValidTimeout(readTimeout))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(readTimeout),
+                readTimeout,
+                "The read timeout must be Timeout.InfiniteTimeSpan or between 1 millisecond "
+                + "and uint.MaxValue - 1 milliseconds.");
+        }
 
         if (!TryGetRawMediaTypeAndCharSet(out var mediaType, out var charSet))
         {
@@ -633,13 +667,13 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (mediaType.Equals(ContentType.EventStream, StringComparison.OrdinalIgnoreCase))
         {
-            return new SseReader(_message, arenaSource);
+            return new SseReader(_message, arenaSource, readTimeout);
         }
 
         if (mediaType.Equals(ContentType.GraphQLJsonLine, StringComparison.OrdinalIgnoreCase)
             || mediaType.Equals(ContentType.JsonLine, StringComparison.OrdinalIgnoreCase))
         {
-            return new JsonLinesReader(_message, arenaSource);
+            return new JsonLinesReader(_message, arenaSource, readTimeout);
         }
 
         if (requireStreaming)

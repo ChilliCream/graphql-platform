@@ -55,7 +55,7 @@ internal static class IntrospectionQueryBuilder
                         })));
         }
 
-        selections.Add(CreateTypesField());
+        selections.Add(CreateTypesField(features));
 
         selections.Add(CreateDirectivesField(features));
 
@@ -79,24 +79,27 @@ internal static class IntrospectionQueryBuilder
                                 Array.Empty<ArgumentNode>(),
                                 new SelectionSetNode(selections))
                         })),
-                BuildFullTypeFragment(features.HasArgumentDeprecation),
+                BuildFullTypeFragment(features),
                 BuildInputValueFragment(),
                 BuildTypeRefFragment(options.TypeDepth)
             });
     }
 
-    private static FieldNode CreateTypesField()
+    private static FieldNode CreateTypesField(ServerCapabilities features)
         => new FieldNode(
             new NameNode("types"),
             null,
             Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            features.HasObjectDeprecation
+                ? [new ArgumentNode("includeDeprecated", true)]
+                : Array.Empty<ArgumentNode>(),
             new SelectionSetNode(
                 new ISelectionNode[]
                 {
                     new FragmentSpreadNode(
                         null,
                         new NameNode("FullType"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 
@@ -141,26 +144,35 @@ internal static class IntrospectionQueryBuilder
             new SelectionSetNode(selections));
     }
 
-    private static FragmentDefinitionNode BuildFullTypeFragment(bool includeDeprecatedArgs)
-        => new FragmentDefinitionNode(
+    private static FragmentDefinitionNode BuildFullTypeFragment(ServerCapabilities features)
+    {
+        var selections = new List<ISelectionNode>
+        {
+            new FieldNode("kind"),
+            new FieldNode("name"),
+            new FieldNode("description"),
+            CreateFields(features.HasArgumentDeprecation),
+            CreateInputFields(features.HasArgumentDeprecation),
+            CreateInterfacesField(),
+            CreateEnumValuesField(),
+            CreatePossibleTypesField(features)
+        };
+
+        if (features.HasObjectDeprecation)
+        {
+            selections.Add(new FieldNode("isDeprecated"));
+            selections.Add(new FieldNode("deprecationReason"));
+        }
+
+        return new FragmentDefinitionNode(
             null,
             new NameNode("FullType"),
             description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("__Type"),
             Array.Empty<DirectiveNode>(),
-            new SelectionSetNode(
-                new ISelectionNode[]
-                {
-                    new FieldNode("kind"),
-                    new FieldNode("name"),
-                    new FieldNode("description"),
-                    CreateFields(includeDeprecatedArgs),
-                    CreateInputFields(includeDeprecatedArgs),
-                    CreateInterfacesField(),
-                    CreateEnumValuesField(),
-                    CreatePossibleTypesField()
-                }));
+            new SelectionSetNode(selections));
+    }
 
     private static FieldNode CreateFields(bool includeDeprecatedArgs)
         => new FieldNode(
@@ -198,6 +210,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>()),
                         new FieldNode("isDeprecated"),
                         new FieldNode("deprecationReason")
@@ -213,6 +226,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>())
                     }));
 
@@ -228,6 +242,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 
@@ -247,6 +262,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>()),
                         new FieldNode("isDeprecated"),
                         new FieldNode("deprecationReason")
@@ -262,6 +278,7 @@ internal static class IntrospectionQueryBuilder
                         new FragmentSpreadNode(
                             null,
                             new NameNode("InputValue"),
+                            Array.Empty<ArgumentNode>(),
                             Array.Empty<DirectiveNode>())
                     }));
 
@@ -277,6 +294,7 @@ internal static class IntrospectionQueryBuilder
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 
@@ -298,18 +316,21 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode("deprecationReason")
                 }));
 
-    private static FieldNode CreatePossibleTypesField()
+    private static FieldNode CreatePossibleTypesField(ServerCapabilities features)
         => new FieldNode(
             new NameNode("possibleTypes"),
             null,
             Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            features.HasObjectDeprecation
+                ? [new ArgumentNode("includeDeprecated", true)]
+                : Array.Empty<ArgumentNode>(),
             new SelectionSetNode(
                 new ISelectionNode[]
                 {
                     new FragmentSpreadNode(
                         null,
                         new NameNode("TypeRef"),
+                        Array.Empty<ArgumentNode>(),
                         Array.Empty<DirectiveNode>())
                 }));
 

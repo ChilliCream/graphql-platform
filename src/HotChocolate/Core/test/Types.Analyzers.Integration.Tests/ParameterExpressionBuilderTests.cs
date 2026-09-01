@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -111,6 +112,35 @@ public class ParameterExpressionBuilderTests
             {
               "data": {
                 "createExport": "alice:sales"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyParameterFieldConfiguration_When_ResolverIsSourceGenerated()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IParameterExpressionBuilder, LocalStateParameterExpressionBuilder>();
+
+        var executor = await services
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ configuredLocalState }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "configuredLocalState": "configured:1"
               }
             }
             """);

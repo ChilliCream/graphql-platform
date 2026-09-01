@@ -9,21 +9,19 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// The API URL precedence is the <c>NITRO_CLOUD_URL</c> environment variable, then the
 /// <c>api_url</c> claim of the selected session access token, then the configured default. The
 /// credential precedence is the <c>NITRO_API_KEY</c> environment variable, then the access token
-/// of the session file while it has not expired.
+/// of the session file. Access tokens are refreshed before they expire.
 /// </remarks>
 internal sealed class NitroConnectionResolver
 {
-    private readonly NitroSessionReader _sessionReader;
+    private readonly NitroSessionManager _sessionManager;
     private readonly INitroEnvironment _environment;
     private readonly Uri _defaultApiUrl;
-    private readonly TimeProvider _timeProvider;
-    private readonly TimeSpan _accessTokenExpiryGrace;
 
     /// <summary>
     /// Initializes a new instance of <see cref="NitroConnectionResolver"/>.
     /// </summary>
-    /// <param name="sessionReader">
-    /// The reader for the Nitro CLI session file.
+    /// <param name="sessionManager">
+    /// The manager for the Nitro CLI session.
     /// </param>
     /// <param name="environment">
     /// The accessor for the environment variables that configure the integration.
@@ -32,23 +30,14 @@ internal sealed class NitroConnectionResolver
     /// The Nitro API URL that is used when neither the environment nor the selected access
     /// token configures one.
     /// </param>
-    /// <param name="timeProvider">
-    /// The time source that decides whether an access token has expired.
-    /// </param>
-    /// <param name="accessTokenExpiryGrace">
-    /// The window before the token expiry in which the token is already treated as expired.
-    /// </param>
     public NitroConnectionResolver(
-        NitroSessionReader sessionReader,
+        NitroSessionManager sessionManager,
         INitroEnvironment environment,
-        Uri defaultApiUrl,
-        TimeProvider timeProvider,
-        TimeSpan accessTokenExpiryGrace)
+        Uri defaultApiUrl)
     {
-        ArgumentNullException.ThrowIfNull(sessionReader);
+        ArgumentNullException.ThrowIfNull(sessionManager);
         ArgumentNullException.ThrowIfNull(environment);
         ArgumentNullException.ThrowIfNull(defaultApiUrl);
-        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (!defaultApiUrl.IsAbsoluteUri)
         {
@@ -57,19 +46,9 @@ internal sealed class NitroConnectionResolver
                 nameof(defaultApiUrl));
         }
 
-        if (accessTokenExpiryGrace < TimeSpan.Zero)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(accessTokenExpiryGrace),
-                accessTokenExpiryGrace,
-                "The access token expiry grace must not be negative.");
-        }
-
-        _sessionReader = sessionReader;
+        _sessionManager = sessionManager;
         _environment = environment;
         _defaultApiUrl = defaultApiUrl;
-        _timeProvider = timeProvider;
-        _accessTokenExpiryGrace = accessTokenExpiryGrace;
     }
 
     /// <summary>
@@ -88,8 +67,23 @@ internal sealed class NitroConnectionResolver
     {
         ArgumentNullException.ThrowIfNull(logger);
 
-        var session = await _sessionReader.ReadAsync(cancellationToken);
-        var credential = ResolveCredential(session);
+        NitroSessionReadResult session;
+        NitroCredential credential;
+        var apiKey = _environment.GetVariable(NitroEnvironmentVariables.ApiKey);
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            session = new NitroSessionReadResult(
+                NitroSessionStatus.Missing,
+                Session: null,
+                Message: null);
+            credential = NitroCredential.FromApiKey(apiKey);
+        }
+        else
+        {
+            session = await _sessionManager.GetSessionAsync(logger, cancellationToken);
+            credential = ResolveCredential(session);
+        }
+
         var apiUrl = ResolveApiUrl(session, credential, logger);
 
         logger.LogInformation(
@@ -141,17 +135,10 @@ internal sealed class NitroConnectionResolver
 
     private NitroCredential ResolveCredential(NitroSessionReadResult session)
     {
-        var apiKey = _environment.GetVariable(NitroEnvironmentVariables.ApiKey);
-
-        if (!string.IsNullOrWhiteSpace(apiKey))
-        {
-            return NitroCredential.FromApiKey(apiKey);
-        }
-
-        if (session.Session?.Tokens is not { AccessToken: { } accessToken, ExpiresAt: { } expiresAt })
+        if (session.Session?.Tokens is not { AccessToken: { } accessToken, ExpiresAt: not null })
         {
             var reason = session.Message
-                ?? $"The Nitro session file '{_sessionReader.SessionFilePath}' carries no usable "
+                ?? $"The Nitro session file '{_sessionManager.SessionFilePath}' carries no usable "
                 + "access token.";
 
             return NitroCredential.Unavailable(
@@ -162,13 +149,11 @@ internal sealed class NitroConnectionResolver
                 + $"{NitroEnvironmentVariables.ApiKey} environment variable.");
         }
 
-        if (expiresAt - _accessTokenExpiryGrace <= _timeProvider.GetUtcNow())
+        if (session.Status is NitroSessionStatus.Expired)
         {
             return NitroCredential.Unavailable(
                 NitroCredentialUnavailableReason.SessionExpired,
-                $"The Nitro session stored at '{_sessionReader.SessionFilePath}' expired at "
-                + $"{expiresAt.ToUniversalTime():yyyy-MM-dd HH:mm:ss}Z. Run 'nitro login' to "
-                + "sign in again.");
+                session.Message!);
         }
 
         return NitroCredential.FromAccessToken(accessToken);
@@ -178,7 +163,7 @@ internal sealed class NitroConnectionResolver
         => credential.Kind switch
         {
             NitroCredentialKind.ApiKey => NitroEnvironmentVariables.ApiKey,
-            NitroCredentialKind.AccessToken => _sessionReader.SessionFilePath,
+            NitroCredentialKind.AccessToken => _sessionManager.SessionFilePath,
             _ => "none"
         };
 }

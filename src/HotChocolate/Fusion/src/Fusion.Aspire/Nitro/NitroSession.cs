@@ -1,12 +1,31 @@
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
-/// A read-only view of the session file that the Nitro CLI writes when a user signs in with
-/// <c>nitro login</c>. Only the members that the Aspire integration needs are modeled, all other
-/// members of the file are ignored. The integration never writes this file.
+/// The session file that the Nitro CLI writes when a user signs in with <c>nitro login</c>.
+/// Only the members that the Aspire integration needs are modeled.
 /// </summary>
 internal sealed class NitroSession
 {
+    /// <summary>
+    /// Gets the id of the session.
+    /// </summary>
+    public string? SessionId { get; init; }
+
+    /// <summary>
+    /// Gets the id of the signed-in subject.
+    /// </summary>
+    public string? SubjectId { get; init; }
+
+    /// <summary>
+    /// Gets the tenant of the signed-in user.
+    /// </summary>
+    public string? Tenant { get; init; }
+
+    /// <summary>
+    /// Gets the OpenID Connect authority that issued the session.
+    /// </summary>
+    public string? IdentityServer { get; init; }
+
     /// <summary>
     /// Gets the Nitro API URL that the session was created for. The CLI stores this value
     /// without a scheme, so it has to be normalized before it is used.
@@ -21,7 +40,7 @@ internal sealed class NitroSession
     /// <summary>
     /// Gets the tokens of the session.
     /// </summary>
-    public NitroSessionTokens? Tokens { get; init; }
+    public NitroSessionTokens? Tokens { get; set; }
 
     /// <summary>
     /// Gets the workspace that the signed-in user selected.
@@ -38,6 +57,16 @@ internal sealed class NitroSessionTokens
     /// Gets the access token that authorizes requests against the Nitro API.
     /// </summary>
     public string? AccessToken { get; init; }
+
+    /// <summary>
+    /// Gets the identity token that identifies the OpenID Connect client and user session.
+    /// </summary>
+    public string? IdToken { get; init; }
+
+    /// <summary>
+    /// Gets the token that renews the access token when it expires.
+    /// </summary>
+    public string? RefreshToken { get; init; }
 
     /// <summary>
     /// Gets the point in time at which <see cref="AccessToken"/> stops being accepted.

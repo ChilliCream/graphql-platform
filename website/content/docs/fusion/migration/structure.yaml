@@ -1,5 +1,9 @@
 title: Migration
 items:
+  - path: migrate-from-16-6-to-16-7
+    title: Migrating from v16.6 to v16.7
+  - path: migrate-from-16-5-to-16-6
+    title: Migrating from v16.5 to v16.6
   - path: migrate-from-15-to-16
     title: Migrating from v15 to v16
   - path: coming-from-apollo-federation

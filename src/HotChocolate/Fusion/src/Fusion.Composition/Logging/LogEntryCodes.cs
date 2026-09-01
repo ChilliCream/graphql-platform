@@ -44,6 +44,7 @@ public static class LogEntryCodes
     public const string InterfaceObjectKeyMismatch = "INTERFACE_OBJECT_KEY_MISMATCH";
     public const string InterfaceObjectKeyMissing = "INTERFACE_OBJECT_KEY_MISSING";
     public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
+    public const string InvalidEnumValuesMergeBehavior = "INVALID_ENUM_VALUES_MERGE_BEHAVIOR";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidApolloFederationSupportSettings =
@@ -83,6 +84,7 @@ public static class LogEntryCodes
     public const string ProvidesInvalidSyntax = "PROVIDES_INVALID_SYNTAX";
     public const string ProvidesOnNonCompositeField = "PROVIDES_ON_NON_COMPOSITE_FIELD";
     public const string QueryRootTypeInaccessible = "QUERY_ROOT_TYPE_INACCESSIBLE";
+    public const string ReferenceToDeprecatedType = "REFERENCE_TO_DEPRECATED_TYPE";
     public const string ReferenceToInaccessibleType = "REFERENCE_TO_INACCESSIBLE_TYPE";
     public const string ReferenceToInternalType = "REFERENCE_TO_INTERNAL_TYPE";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";

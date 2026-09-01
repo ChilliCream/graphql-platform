@@ -2,16 +2,7 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import { getText, slugify } from "@/src/helpers/slugify";
 
 export type TypographyVariant =
-  | "h1"
-  | "h2"
-  | "h3"
-  | "h4"
-  | "h5"
-  | "h6"
-  | "body"
-  | "strong"
-  | "em"
-  | "del";
+  "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "body" | "strong" | "em" | "del";
 
 const variantConfig: Record<
   TypographyVariant,

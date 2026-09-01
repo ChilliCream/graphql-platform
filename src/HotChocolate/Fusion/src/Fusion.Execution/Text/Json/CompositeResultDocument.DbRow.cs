@@ -18,14 +18,21 @@ public sealed partial class CompositeResultDocument
         internal const int SizeOffset = 8;
         internal const int LocationOrRowsOffset = 12;
         internal const int SourceAndTypeOffset = 16;
-        internal const int FlagsShift = 17;
+
+        // Bit layout of _selectionAndFlags, low to high: OperationReferenceId,
+        // OperationReferenceType, Flags. The layout fills the int exactly.
+        internal const int OperationReferenceIdBitCount = 22;
+        internal const int OperationReferenceIdMask = (1 << OperationReferenceIdBitCount) - 1;
+        internal const int OperationReferenceTypeShift = OperationReferenceIdBitCount;
+        internal const int OperationReferenceTypeMask = 0x03;
+        internal const int FlagsShift = OperationReferenceTypeShift + 2;
         internal const int FlagsBitCount = 8;
         internal const int FlagsMask = 0xFF;
 
         // 29 bits parent cursor value + 3 reserved
         private readonly int _parent;
 
-        // 15 bits OperationReferenceId + 2 bits OperationReferenceType + 8 bits Flags + 7 reserved
+        // 22 bits OperationReferenceId + 2 bits OperationReferenceType + 8 bits Flags
         private readonly int _selectionAndFlags;
 
         // 1 bit HasComplexChildren (sign) + 31 bits SizeOrLength
@@ -53,9 +60,9 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(sizeOrLength >= UnknownSize);
             Debug.Assert(sourceDocumentId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits (cursor value)
-            Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
+            Debug.Assert(operationReferenceId is >= 0 and <= OperationReferenceIdMask); // 22 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x1FFFFFFF); // 29 bits
-            Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
+            Debug.Assert((byte)operationReferenceType <= OperationReferenceTypeMask); // 2 bits
             Debug.Assert((int)flags is >= 0 and <= FlagsMask);
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
@@ -63,7 +70,7 @@ public sealed partial class CompositeResultDocument
 
             _parent = parentRow & 0x1FFFFFFF;
             _selectionAndFlags = operationReferenceId
-                | ((int)operationReferenceType << 15)
+                | ((int)operationReferenceType << OperationReferenceTypeShift)
                 | (((int)flags & FlagsMask) << FlagsShift);
             _sizeOrLengthUnion = sizeOrLength;
             _locationOrRows = locationOrRows & 0x1FFFFFFF;
@@ -85,7 +92,8 @@ public sealed partial class CompositeResultDocument
         /// 2 bits = 4 possible values
         /// </remarks>
         public OperationReferenceType OperationReferenceType
-            => (OperationReferenceType)((_selectionAndFlags >> 15) & 0x03);
+            => (OperationReferenceType)(
+                (_selectionAndFlags >>> OperationReferenceTypeShift) & OperationReferenceTypeMask);
 
         /// <summary>
         /// Byte offset in source data, or the packed cursor value of the target row for references.
@@ -141,9 +149,9 @@ public sealed partial class CompositeResultDocument
         /// Reference to GraphQL selection set or selection metadata.
         /// </summary>
         /// <remarks>
-        /// 15 bits = 32K selections
+        /// 22 bits = 4M selections
         /// </remarks>
-        public int OperationReferenceId => _selectionAndFlags & 0x7FFF;
+        public int OperationReferenceId => _selectionAndFlags & OperationReferenceIdMask;
 
         /// <summary>
         /// Element metadata flags.
@@ -159,11 +167,11 @@ public sealed partial class CompositeResultDocument
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int ReadOperationReferenceId(int selectionAndFlags)
-            => selectionAndFlags & 0x7FFF;
+            => selectionAndFlags & OperationReferenceIdMask;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ElementFlags ReadFlags(int selectionAndFlags)
-            => (ElementFlags)((selectionAndFlags >> 17) & 0x7F);
+            => (ElementFlags)((selectionAndFlags >>> FlagsShift) & FlagsMask);
 
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).

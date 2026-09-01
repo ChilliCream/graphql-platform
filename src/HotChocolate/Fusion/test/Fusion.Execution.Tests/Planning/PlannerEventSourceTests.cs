@@ -16,7 +16,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         // arrange
         using var listener = new PlannerEventListener();
         var schema = CreateCompositeSchema();
-        const string operationId = "planner-etw-start-stop";
+        const string operationId = "planner_etw_start_stop";
 
         // act
         var plan = CreatePlan(
@@ -81,7 +81,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
               doesNotExist
             }
             """);
-        const string operationId = "planner-etw-error";
+        const string operationId = "planner_etw_error";
 
         // act
         Assert.ThrowsAny<Exception>(
@@ -112,8 +112,8 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         // arrange
         using var listener = new PlannerEventListener();
         var schema = CreateCompositeSchema();
-        const string operationId1 = "planner-etw-aggregate-1";
-        const string operationId2 = "planner-etw-aggregate-2";
+        const string operationId1 = "planner_etw_aggregate_1";
+        const string operationId2 = "planner_etw_aggregate_2";
 
         // act
         CreatePlan(
@@ -162,7 +162,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         // arrange
         using var listener = new PlannerEventListener();
         var schema = CreateCompositeSchema();
-        const string operationId = "planner-etw-guardrail";
+        const string operationId = "planner_etw_guardrail";
         var planner = CreatePlanner(
             schema,
             new OperationPlannerOptions

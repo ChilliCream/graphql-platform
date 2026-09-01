@@ -148,14 +148,28 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         => _executionState.IsNodeSkipped(nodeId);
 
     /// <summary>
-    /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
+    /// Gets the include condition flags for the current request.
     /// </summary>
-    public ulong IncludeFlags { get; private set; }
+    public ConditionFlags IncludeConditionFlags { get; private set; }
 
     /// <summary>
-    /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
+    /// Gets the defer condition flags for the current request.
     /// </summary>
-    public ulong DeferFlags { get; private set; }
+    public ConditionFlags DeferConditionFlags { get; private set; }
+
+    /// <summary>
+    /// Gets include condition flags word 0 for the current request.
+    /// This property exposes conditions 0-63 only.
+    /// </summary>
+    [Obsolete("Use IncludeConditionFlags instead. This property only exposes conditions 0-63.")]
+    public ulong IncludeFlags => IncludeConditionFlags.Word0;
+
+    /// <summary>
+    /// Gets defer condition flags word 0 for the current request.
+    /// This property exposes conditions 0-63 only.
+    /// </summary>
+    [Obsolete("Use DeferConditionFlags instead. This property only exposes conditions 0-63.")]
+    public ulong DeferFlags => DeferConditionFlags.Word0;
 
     /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.
@@ -304,7 +318,23 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             return;
         }
 
-        _variableValueSets[node.Id] = variableValueSets;
+        // The paths of these variable value sets wrap pooled segment arrays that the
+        // result store reclaims once the node's results are merged, after which a later
+        // node rents and overwrites them. The trace outlives that merge, so it must own
+        // detached copies of the paths.
+        var detached = new VariableValues[variableValueSets.Length];
+
+        for (var i = 0; i < variableValueSets.Length; i++)
+        {
+            var variableValueSet = variableValueSets[i];
+            detached[i] = variableValueSet with
+            {
+                Path = variableValueSet.Path.Detach(),
+                AdditionalPaths = variableValueSet.AdditionalPaths.Detach()
+            };
+        }
+
+        _variableValueSets[node.Id] = ImmutableCollectionsMarshal.AsImmutableArray(detached);
     }
 
     internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)
@@ -452,8 +482,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requirements,
-        string entityTypeName,
-        List<RepresentationShapeNode> shape)
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -469,8 +499,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 selectionSet,
                 variableValues,
                 requirements,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
 
         var importedMatchCount = CountImportedRequirementKeys(requirements);
@@ -482,8 +512,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 selectionSet,
                 variableValues,
                 requirements,
-                entityTypeName,
-                shape);
+                requiredShape,
+                entityTypeName);
         }
 
         if (importedMatchCount != requirements.Length)
@@ -501,8 +531,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             _requirementKeys!,
             variableValuesFromSnapshot,
             requirements,
-            entityTypeName,
-            shape);
+            requiredShape,
+            entityTypeName);
     }
 
     private InvalidOperationException CreateMixedScopeException(

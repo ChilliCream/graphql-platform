@@ -103,22 +103,25 @@ public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeS
             }
         }
 
+        var fieldName = fieldNode.Name.Value;
+        ITypeDefinition? fieldType = null;
+
+        if (fieldNode.SelectionSet is not null && context.Type is IComplexTypeDefinition complexType)
+        {
+            if (!complexType.Fields.TryGetField(fieldName, out var field))
+            {
+                throw ThrowHelper.FieldDoesNotExistOnType(fieldNode, complexType.Name);
+            }
+
+            fieldType = field.Type.AsTypeDefinition();
+        }
+
         fieldNode = new FieldNode(
             fieldNode.Name,
             fieldNode.Alias,
             directives ?? [],
             RewriteArguments(fieldNode.Arguments),
             fieldNode.SelectionSet);
-
-        var fieldName = fieldNode.Name.Value;
-        ITypeDefinition? fieldType = null;
-
-        if (fieldNode.SelectionSet is not null && context.Type is IComplexTypeDefinition complexType)
-        {
-            var field = complexType.Fields[fieldName];
-
-            fieldType = field.Type.AsTypeDefinition();
-        }
 
         var fieldContext = GetOrAddContextForField(context, fieldNode, fieldType);
 
@@ -130,11 +133,26 @@ public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeS
 
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        var typeCondition = inlineFragment.TypeCondition is not null
-            ? schema.Types.GetType(
-                inlineFragment.TypeCondition.Name.Value,
-                allowInaccessibleFields: true)
-            : context.Type;
+        ITypeDefinition? typeCondition;
+
+        if (inlineFragment.TypeCondition is null)
+        {
+            typeCondition = context.Type;
+        }
+        else
+        {
+            var typeConditionName = inlineFragment.TypeCondition.Name.Value;
+
+            if (!schema.Types.TryGetType(
+                typeConditionName,
+                allowInaccessibleFields: true,
+                out typeCondition))
+            {
+                throw ThrowHelper.InvalidTypeConditionOnInlineFragment(
+                    inlineFragment,
+                    context.Type.Name);
+            }
+        }
 
         var (conditional, defer, directives) = DivideDirectives(
             inlineFragment,
@@ -151,10 +169,18 @@ public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeS
 
     private void CollectFragmentSpread(FragmentSpreadNode fragmentSpread, Context context)
     {
-        var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
-        var typeCondition = schema.Types.GetType(
-            fragmentDefinition.TypeCondition.Name.Value,
-            allowInaccessibleFields: true);
+        var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread);
+        var typeConditionName = fragmentDefinition.TypeCondition.Name.Value;
+
+        if (!schema.Types.TryGetType(
+            typeConditionName,
+            allowInaccessibleFields: true,
+            out var typeCondition))
+        {
+            throw ThrowHelper.InvalidTypeConditionOnFragment(
+                fragmentSpread,
+                typeConditionName);
+        }
 
         var (conditional, defer, directives) = DivideDirectives(
             fragmentSpread,
@@ -1133,8 +1159,15 @@ public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeS
         /// </summary>
         public Dictionary<string, Dictionary<InlineFragmentNode, Context>>? Fragments { get; private set; }
 
-        public FragmentDefinitionNode GetFragmentDefinition(string name)
-            => fragmentLookup[name];
+        public FragmentDefinitionNode GetFragmentDefinition(FragmentSpreadNode fragmentSpread)
+        {
+            if (!fragmentLookup.TryGetValue(fragmentSpread.Name.Value, out var fragmentDefinition))
+            {
+                throw ThrowHelper.FragmentDoesNotExist(fragmentSpread);
+            }
+
+            return fragmentDefinition;
+        }
 
         public Context GetOrAddConditionalContext(Conditional conditional)
         {

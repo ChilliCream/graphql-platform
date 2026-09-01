@@ -63,6 +63,9 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
     /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Temporary();
+
+    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,

@@ -192,7 +192,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.product
       - $.products.nodes.reviews.nodes.product
-    batchingGroupId: 3
+    batchingGroupId: 21
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
@@ -212,7 +212,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.b
       - $.products.nodes.reviews.nodes.b
-    batchingGroupId: 3
+    batchingGroupId: 21
     requirements:
       - name: __fusion_11_id
         selectionMap: >-
@@ -237,7 +237,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.product
       - $.products.nodes.reviews.nodes.product
-    batchingGroupId: 4
+    batchingGroupId: 22
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -250,7 +250,7 @@ nodes:
     operation: |
       query Op_123456789101112_5(
         $__fusion_4_id: ID!
-          $__fusion_5_dimension: ProductDimensionInput!
+        $__fusion_5_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_4_id) {
           deliveryEstimate(zip: "Foo", dimension: $__fusion_5_dimension)
@@ -262,7 +262,7 @@ nodes:
       - $.products.nodes.b.nodes.product.item.product
       - $.products.nodes.reviews.nodes.product
       - $.products.nodes.reviews.nodes.product.item.product
-    batchingGroupId: 5
+    batchingGroupId: 23
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
@@ -301,7 +301,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.product.item.product
       - $.products.nodes.reviews.nodes.product.item.product
-    batchingGroupId: 6
+    batchingGroupId: 24
     requirements:
       - name: __fusion_6_id
         selectionMap: >-
@@ -327,7 +327,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.product.item.product
       - $.products.nodes.reviews.nodes.product.item.product
-    batchingGroupId: 7
+    batchingGroupId: 25
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -347,7 +347,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.product.item.product.reviews.edges.node.author
       - $.products.nodes.reviews.nodes.product.item.product.reviews.edges.node.author
-    batchingGroupId: 9
+    batchingGroupId: 26
     requirements:
       - name: __fusion_10_id
         selectionMap: >-
@@ -368,7 +368,7 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.author
       - $.products.nodes.reviews.nodes.author
-    batchingGroupId: 11
+    batchingGroupId: 27
     requirements:
       - name: __fusion_12_id
         selectionMap: >-

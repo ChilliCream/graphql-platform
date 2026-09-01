@@ -26,6 +26,9 @@
 # build-time image optimization output
 /public/_optimized/
 
+# build-time agent skills discovery output (fetched from chillicream/agent-skills)
+/public/.well-known/agent-skills/
+
 # generated git metadata (produced by the release workflow)
 /git-metadata.generated.json
 

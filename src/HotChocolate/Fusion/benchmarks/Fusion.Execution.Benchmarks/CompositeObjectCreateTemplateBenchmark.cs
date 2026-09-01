@@ -9,6 +9,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Text.Json;
@@ -75,8 +76,8 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
 
     // The document under test is created with neither @include/@skip variables
     // nor @defer, matching CompositeResultDocument._includeFlags/_deferFlags = 0.
-    private const ulong IncludeFlags = 0;
-    private const ulong DeferFlags = 0;
+    private static readonly ConditionFlags IncludeFlags = default;
+    private static readonly ConditionFlags DeferFlags = default;
 
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     private FusionOperation _operation = null!;
@@ -123,6 +124,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
                     OrderedDictionary<string, List<FieldSelectionNode>>>());
         var operationCompiler = new OperationCompiler(schema, fieldMapPool);
         _operation = operationCompiler.Compile(
+            OperationId,
             OperationId,
             OperationId,
             operationDefinition);
@@ -514,7 +516,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
                 selectionId
-                | ((int)OperationReferenceType.Selection << 15)
+                | ((int)OperationReferenceType.Selection << DbRow.OperationReferenceTypeShift)
                 | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // ints 2..3 must be zero (int 4 is written directly below)
@@ -554,7 +556,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
                 Unsafe.WriteUnaligned(
                     ref Unsafe.Add(ref row0, 4),
                     selectionId
-                    | ((int)OperationReferenceType.Selection << 15)
+                    | ((int)OperationReferenceType.Selection << DbRow.OperationReferenceTypeShift)
                     | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 8);
                 Unsafe.WriteUnaligned(
@@ -596,7 +598,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 4),
                 selectionSetId
-                | ((int)OperationReferenceType.SelectionSet << 15)
+                | ((int)OperationReferenceType.SelectionSet << DbRow.OperationReferenceTypeShift)
                 | (((int)flags & DbRow.FlagsMask) << DbRow.FlagsShift));
 
             // int 2: sizeOrLength = property count

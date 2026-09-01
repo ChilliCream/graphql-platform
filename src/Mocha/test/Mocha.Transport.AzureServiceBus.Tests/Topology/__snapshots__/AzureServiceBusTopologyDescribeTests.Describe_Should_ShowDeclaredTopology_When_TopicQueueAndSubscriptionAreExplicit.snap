@@ -1,0 +1,28 @@
+{
+  "Schema": "azuresb",
+  "TransportType": "AzureServiceBusMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "accounting",
+      "AutoProvision": true,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "topic",
+      "Name": "orders",
+      "AutoProvision": true,
+      "Origin": "declared"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "subscription",
+      "From": "azuresb://localhost/t/orders",
+      "To": "azuresb://localhost/q/accounting",
+      "Name": "fwd-accounting",
+      "AutoProvision": true,
+      "Origin": "declared"
+    }
+  ]
+}

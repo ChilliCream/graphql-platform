@@ -1,7 +1,8 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
-    <TargetFrameworks>net11.0</TargetFrameworks>
+    <TargetFramework>$(BenchmarkTargetFramework)</TargetFramework>
+    <TargetFrameworks>$(BenchmarkTargetFramework)</TargetFrameworks>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>

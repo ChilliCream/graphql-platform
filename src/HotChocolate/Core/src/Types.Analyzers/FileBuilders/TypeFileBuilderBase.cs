@@ -496,6 +496,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
+        var canApplyParameterFieldConfiguration = CanApplyParameterFieldConfiguration(resolver);
+
         if (resolver.DescriptorAttributes.Length > 0
             || resolver.IsNodeResolver
             || resolver.Kind is ResolverKind.ConnectionResolver)
@@ -550,12 +552,18 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             && !resolver.DescriptorAttributes.Any(a =>
                 a.AttributeClass?.ToDisplayString() == WellKnownAttributes.UseConnectionAttribute);
 
-        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
+        if (resolver.DescriptorAttributes.Length > 0
+            || needsUseConnection
+            || canApplyParameterFieldConfiguration)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine(
                 "var fieldDescriptor = global::{0}.From(field.Context, configuration);",
                 OutputFieldDescriptorType);
+        }
+
+        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
+        {
             Writer.WriteIndentedLine(
                 "{0}.ApplyConfiguration(",
                 WellKnownTypes.ConfigurationHelper);
@@ -587,6 +595,36 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 }
 
                 Writer.WriteLine([')', ';']);
+            }
+        }
+
+        if (canApplyParameterFieldConfiguration)
+        {
+            foreach (var parameter in resolver.Parameters)
+            {
+                if (!CanApplyParameterFieldConfiguration(parameter))
+                {
+                    continue;
+                }
+
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("bindingResolver.ApplyConfiguration(");
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine(
+                        "context.Resolvers.CreateParameterDescriptor_{0}_{1}(),",
+                        resolver.Member.Name,
+                        parameter.Name);
+                    Writer.WriteIndentedLine("fieldDescriptor);");
+                }
+            }
+        }
+
+        if (resolver.DescriptorAttributes.Length > 0 || needsUseConnection)
+        {
+            if (canApplyParameterFieldConfiguration)
+            {
+                Writer.WriteLine();
             }
 
             Writer.WriteIndentedLine("configuration.ConfigurationsAreApplied = true;");
@@ -857,11 +895,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected void WriteResolver(Resolver resolver, ILocalTypeLookup typeLookup)
     {
-        if (resolver.RequiresParameterBindings)
+        var canApplyParameterFieldConfiguration =
+            CanApplyParameterFieldConfiguration(resolver);
+        var hasParameterDescriptors = resolver.RequiresParameterBindings
+            || canApplyParameterFieldConfiguration;
+
+        if (hasParameterDescriptors)
         {
             foreach (var parameter in resolver.Parameters)
             {
-                if (parameter.RequiresBinding)
+                if (parameter.RequiresBinding
+                    || CanApplyParameterFieldConfiguration(parameter))
                 {
                     Writer.WriteIndentedLine(
                         "public global::{0} CreateParameterDescriptor_{1}_{2}()",
@@ -948,6 +992,17 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 break;
         }
     }
+
+    private bool CanApplyParameterFieldConfiguration(Resolver resolver)
+        => OutputFieldDescriptorType == WellKnownTypes.ObjectFieldDescriptor
+            && resolver.Kind is not ResolverKind.NodeResolver
+            && resolver.Parameters.Any(CanApplyParameterFieldConfiguration);
+
+    private static bool CanApplyParameterFieldConfiguration(ResolverParameter parameter)
+        => parameter.Type.TypeKind is not TypeKind.Error
+            && (parameter.RequiresBinding
+                || (parameter.Kind is ResolverParameterKind.IsSelected
+                    && GetIsSelectedInfo(parameter).Variant is IsSelectedVariant.Pattern));
 
     private void WriteResolver(
         Resolver resolver,
@@ -1300,7 +1355,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "global::{0}.AsSelector<{1}>(args{2}_selection, contexts[0].IncludeFlags),",
+                                "global::{0}.AsSelector<{1}>(args{2}_selection, contexts[0].IncludeConditionFlags),",
                                 WellKnownTypes.HotChocolateExecutionSelectionExtensions,
                                 entityType,
                                 i);
@@ -1761,7 +1816,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     else
                     {
                         Writer.WriteIndentedLine(
-                            "var args{0} = context.Service<{1}>(\"{2}\");",
+                            "var args{0} = context.Service<{1}>({2});",
                             i,
                             ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup),
                             parameter.Key);
@@ -1794,7 +1849,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     using (Writer.IncreaseIndent())
                     {
                         Writer.WriteIndentedLine(
-                            "global::{0}.AsSelector<{1}>(args{2}_selection, context.IncludeFlags),",
+                            "global::{0}.AsSelector<{1}>(args{2}_selection, context.IncludeConditionFlags),",
                             WellKnownTypes.HotChocolateExecutionSelectionExtensions,
                             entityType,
                             i);
@@ -2114,7 +2169,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 sb.Append(", ");
             }
 
-            sb.Append(FormatTypedConstant(arg));
+            sb.Append(CSharpLiteralFormatter.FormatTypedConstant(arg));
             first = false;
         }
 
@@ -2135,7 +2190,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 sb.Append(namedArg.Key);
                 sb.Append(" = ");
-                sb.Append(FormatTypedConstant(namedArg.Value));
+                sb.Append(CSharpLiteralFormatter.FormatTypedConstant(namedArg.Value));
                 first = false;
             }
 
@@ -2143,109 +2198,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         return sb.ToString();
-    }
-
-    private static string FormatTypedConstant(TypedConstant constant)
-    {
-        if (constant.IsNull)
-        {
-            return "null";
-        }
-
-        switch (constant.Kind)
-        {
-            case TypedConstantKind.Primitive:
-                return FormatPrimitive(constant.Value);
-
-            case TypedConstantKind.Enum:
-                return FormatEnumConstant(constant);
-
-            case TypedConstantKind.Type:
-                var typeArg = ((ITypeSymbol)constant.Value!).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                return $"typeof({typeArg})";
-
-            case TypedConstantKind.Array:
-                var elements = constant.Values;
-                if (elements.IsDefaultOrEmpty)
-                {
-                    var elementType = ((IArrayTypeSymbol?)constant.Type)?.ElementType
-                        .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    return $"new {elementType}[] {{ }}";
-                }
-
-                var elementStrings = string.Join(", ", elements.Select(FormatTypedConstant));
-                return $"new[] {{ {elementStrings} }}";
-
-            default:
-                return constant.Value?.ToString() ?? "null";
-        }
-    }
-
-    private static string FormatPrimitive(object? value)
-    {
-        if (value == null)
-        {
-            return "null";
-        }
-
-        return value switch
-        {
-            string s => $"\"{EscapeString(s)}\"",
-            char c => $"'{EscapeChar(c)}'",
-            bool b => b ? "true" : "false",
-            float f => $"{f}f",
-            double d => $"{d}d",
-            decimal m => $"{m}m",
-            long l => $"{l}L",
-            ulong ul => $"{ul}UL",
-            _ => value.ToString() ?? "null"
-        };
-    }
-
-    private static string FormatEnumConstant(TypedConstant constant)
-    {
-        if (constant.Type is not INamedTypeSymbol enumSymbol)
-        {
-            return FormatPrimitive(constant.Value);
-        }
-
-        var enumType = enumSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-        if (constant.Value is not null)
-        {
-            foreach (var member in enumSymbol.GetMembers())
-            {
-                if (member is IFieldSymbol { HasConstantValue: true } field
-                    && Equals(field.ConstantValue, constant.Value))
-                {
-                    return $"{enumType}.{field.Name}";
-                }
-            }
-        }
-
-        return $"({enumType}){constant.Value}";
-    }
-
-    private static string EscapeString(string s)
-    {
-        return s.Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\n", "\\n")
-            .Replace("\r", "\\r")
-            .Replace("\t", "\\t");
-    }
-
-    private static string EscapeChar(char c)
-    {
-        return c switch
-        {
-            '\\' => "\\\\",
-            '\'' => "\\'",
-            '\n' => "\\n",
-            '\r' => "\\r",
-            '\t' => "\\t",
-            _ => c.ToString()
-        };
     }
 
     protected void WriteIsSelectedFields(Resolver resolver)

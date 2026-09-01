@@ -111,6 +111,16 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductAsync_productService(),
+                        fieldDescriptor);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductAsync_nodeId(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetProductAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -155,7 +165,7 @@ namespace TestNamespace
                 var args2_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args2_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args2 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Product>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args2_selection, context.IncludeFlags),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args2_selection, context.IncludeConditionFlags),
                     args2_filter?.AsPredicate<global::TestNamespace.Product>(),
                     args2_sorting?.AsSortDefinition<global::TestNamespace.Product>());
                 var args3 = context.RequestAborted;

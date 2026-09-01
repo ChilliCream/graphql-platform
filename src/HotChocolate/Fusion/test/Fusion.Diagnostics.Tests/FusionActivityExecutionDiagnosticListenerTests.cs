@@ -1,11 +1,19 @@
+using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
@@ -14,6 +22,8 @@ namespace HotChocolate.Fusion.Diagnostics;
 [Collection("Instrumentation")]
 public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 {
+    private const string BatchOperationCountTag = "graphql.source_schema.batch.operation_count";
+
     [Fact]
     public async Task Track_Events_Of_A_Simple_Query_Default()
     {
@@ -222,6 +232,124 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
         }
+    }
+
+    [Fact]
+    public async Task StepSpan_Should_ReportTheOperationCount_When_TheStepBatchesOperations()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<BatchSourceSchemaA.Query>());
+
+            using var server2 = CreateSourceSchema(
+                "b",
+                b => b.AddQueryType<BatchSourceSchemaB.Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .ModifyPlannerOptions(o => o.EnableRequestGrouping = true));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            // Both root selections read from the same source schema, so their two operations are
+            // sent by one step.
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ first { rating } second { deliveryEstimate } }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            var batchStep = Assert.Single(
+                activities.Exported,
+                a => a.GetTagItem(BatchOperationCountTag) is not null);
+            Assert.Equal(2, batchStep.GetTagItem(BatchOperationCountTag));
+        }
+    }
+
+    [Fact]
+    public async Task StepSpan_Should_TagStandaloneApolloOperation()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<Query>());
+        using var gateway = await CreateCompositeSchemaAsync([("a", server)]);
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var schema = (FusionSchemaDefinition)executor.Schema;
+        var planned = PlanOperationForDiagnostics(schema, "{ sayHello }");
+        var operationNode = Assert.Single(planned.AllNodes.OfType<OperationExecutionNode>());
+        var operationDocument =
+            """
+            query ApolloProducts($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """u8.ToArray();
+        var operation = new OperationSourceText(
+            "ApolloProducts",
+            OperationType.Query,
+            operationDocument,
+            OperationSourceTextHash.Compute(operationDocument));
+        var apolloNode = ApolloOperationExecutionNode.CreateFromParser(
+            operationNode.Id,
+            operation,
+            "Product",
+            "a",
+            operationNode.Target,
+            [],
+            [],
+            operationNode.ResultSelectionSet,
+            [],
+            requiresFileUpload: false,
+            schema);
+        using var activity = new Activity("ApolloOperationSpanTest");
+        activity.Start();
+
+        // act
+        ExecutePlanNodeSpan.SetSourceSchemaTags(activity, apolloNode, "a");
+
+        // assert
+        Assert.Equal("a", activity.GetTagItem("graphql.source_schema.name"));
+        Assert.Equal(
+            operation.Name,
+            activity.GetTagItem("graphql.source_schema.operation.name"));
+        Assert.Equal(
+            $"sha256:{operation.Hash.Sha256}",
+            activity.GetTagItem("graphql.source_schema.operation.hash"));
+    }
+
+    [Fact]
+    public void StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue()
+    {
+        // The subscription event path routes EventStream nodes through the step span,
+        // so every execution node type must resolve to a kind value instead of
+        // failing the node's execution with a missing dictionary entry.
+        foreach (var nodeType in Enum.GetValues<ExecutionNodeType>())
+        {
+            Assert.True(
+                ExecutePlanNodeSpan.KindValues.TryGetValue(nodeType, out var kind),
+                $"Missing step kind value for execution node type '{nodeType}'.");
+            Assert.False(string.IsNullOrEmpty(kind));
+        }
+
+        Assert.Equal(
+            "event_stream",
+            ExecutePlanNodeSpan.KindValues[ExecutionNodeType.EventStream]);
     }
 
     [Fact]
@@ -768,7 +896,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     [Fact]
     public async Task SubscriptionEvent_Records_Subscription_Event_Span()
     {
-        using var cts = new CancellationTokenSource(5000);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         using (CaptureActivities(out var activities))
         {
@@ -901,6 +1029,37 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
 
             // assert
             activities.MatchSnapshot();
+        }
+    }
+
+    public static class BatchSourceSchemaA
+    {
+        [EntityKey("id")]
+        public record Product(int Id);
+
+        public sealed class Query
+        {
+            public Product GetFirst() => new(1);
+
+            public Product GetSecond() => new(2);
+        }
+    }
+
+    public static class BatchSourceSchemaB
+    {
+        [EntityKey("id")]
+        public record Product(int Id)
+        {
+            public int Rating => Id + 4;
+
+            public int DeliveryEstimate => Id + 1;
+        }
+
+        public sealed class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product GetProductById(int id) => new(id);
         }
     }
 
@@ -1088,5 +1247,21 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             _cache[documentId.Value] = Utf8GraphQLParser.Parse(document.AsSpan());
             return default;
         }
+    }
+
+    private static OperationPlan PlanOperationForDiagnostics(
+        FusionSchemaDefinition schema,
+        string operationText)
+    {
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var operationDocument = Utf8GraphQLParser.Parse(operationText);
+        var rewriter = new DocumentRewriter(schema);
+        var rewritten = rewriter.RewriteDocument(operationDocument, operationName: null);
+        var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+        var compiler = new OperationCompiler(schema, pool);
+        var planner = new OperationPlanner(schema, compiler);
+
+        return planner.CreatePlan("123456789101112", "123456789101112", "123456789101112", operation);
     }
 }

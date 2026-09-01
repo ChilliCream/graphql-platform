@@ -42,9 +42,26 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net11.0; net10.0; net9.0; net8.0</TargetFrameworks>
-    <ExtendedTargetFrameworks>net11.0; net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
-    <OpenApiTargetFrameworks>net11.0; net10.0; net9.0</OpenApiTargetFrameworks>
+    <AnalyzerTargetFramework>netstandard2.0</AnalyzerTargetFramework>
+    <TargetFrameworks>net11.0;net10.0;net9.0;net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net11.0;net10.0;net9.0;net8.0;$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>net11.0;net10.0;net9.0</OpenApiTargetFrameworks>
+    <AspireTargetFrameworks>net11.0;net10.0;net9.0</AspireTargetFrameworks>
+    <DemoTargetFramework>net11.0</DemoTargetFramework>
+    <BenchmarkTargetFramework>net11.0</BenchmarkTargetFramework>
+  </PropertyGroup>
+
+  <!--
+    Local dev only builds the single target framework that local runs and tests use.
+    Analyzers and source generators keep netstandard2.0 so they still load into Roslyn.
+  -->
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+    <LocalDevTargetFramework>net10.0</LocalDevTargetFramework>
+    <TargetFrameworks>$(LocalDevTargetFramework)</TargetFrameworks>
+    <ExtendedTargetFrameworks>$(LocalDevTargetFramework);$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>$(LocalDevTargetFramework)</OpenApiTargetFrameworks>
+    <AspireTargetFrameworks>$(LocalDevTargetFramework)</AspireTargetFrameworks>
+    <DemoTargetFramework>$(LocalDevTargetFramework)</DemoTargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -67,7 +84,7 @@
 
   <ItemGroup Condition="'$(PackageIcon)' != ''">
     <None
-      Include="$(MSBuildThisFileDirectory)..\website\static\resources\$(PackageIcon)"
+      Include="$(MSBuildThisFileDirectory)..\website\public\resources\$(PackageIcon)"
       Pack="true"
       PackagePath="$(PackageIcon)"
       Visible="false"
@@ -76,6 +93,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
+    <PackageReference Include="ChilliCream.AnalyzerConfig.Libraries">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Roslynator.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

@@ -73,11 +73,10 @@ internal static class OpenApiEndpointFactory
         var documentValidator = schema.Services.GetRequiredService<DocumentValidator>();
 
         var validationResult = documentValidator.Validate(schema, document);
-        var hasValidDocument = !validationResult.HasErrors;
 
         return new OpenApiEndpointDescriptor(
             document,
-            hasValidDocument,
+            validationResult.Errors,
             endpointDefinition.HttpMethod,
             route,
             parameterTrie,

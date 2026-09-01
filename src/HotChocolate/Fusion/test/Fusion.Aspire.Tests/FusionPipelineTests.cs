@@ -10,6 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
+// File based source schemas are retired, but they still take part in publishing and
+// in the resource model, so the tests keep using them.
+#pragma warning disable CS0618
+
 namespace HotChocolate.Fusion.Aspire;
 
 #pragma warning disable ASPIREPIPELINES001
@@ -238,11 +242,13 @@ public sealed class FusionPipelineTests
             }
             """);
         var resolver = new NitroConnectionResolver(
-            new NitroSessionReader(sessionPath, TimeSpan.Zero),
+            new NitroSessionManager(
+                new NitroSessionReader(sessionPath, TimeSpan.Zero),
+                new NitroTokenRefreshClient(new HttpClient()),
+                TimeProvider.System,
+                NitroDefaults.AccessTokenExpiryGrace),
             new TestNitroEnvironment(),
-            new Uri("https://api.chillicream.com"),
-            TimeProvider.System,
-            NitroDefaults.AccessTokenExpiryGrace);
+            new Uri("https://api.chillicream.com"));
         var builder = DistributedApplication.CreateBuilder();
         var resource = builder
             .AddNitro()
@@ -317,7 +323,7 @@ public sealed class FusionPipelineTests
             .AddProject("gateway", gatewayProject)
             .WithReference(products)
             .WithReference(reviews)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var model = new DistributedApplicationModel(builder.Resources);
 
         var exception = Assert.Throws<InvalidOperationException>(
@@ -339,11 +345,11 @@ public sealed class FusionPipelineTests
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
             .AddProject("products-api", sourceProject)
-            .WithGraphQLSchemaEndpoint();
+            .WithGraphQLHttpEndpoint();
         builder
             .AddProject("gateway", gatewayProject)
             .WithReference(products)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var model = new DistributedApplicationModel(builder.Resources);
 
         var exception = Assert.Throws<InvalidOperationException>(
@@ -428,7 +434,7 @@ public sealed class FusionPipelineTests
         var gateway = builder
             .AddProject("gateway", projectFile)
             .WithReference(products)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         builder
             .AddNitro()
             .WithNitroCloudUrl("https://api.chillicream.com")

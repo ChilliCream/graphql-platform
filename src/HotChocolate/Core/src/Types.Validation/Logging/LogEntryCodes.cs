@@ -34,4 +34,7 @@ internal static class LogEntryCodes
     public const string DirectiveDefinitionSelfApplication = "HCV0027";
     public const string IncompatibleArgumentDefaultValue = "HCV0028";
     public const string IncompatibleInputFieldDefaultValue = "HCV0029";
+    public const string InvalidObjectDeprecation = "HCV0030";
+    public const string DirectiveNotUnique = "HCV0031";
+    public const string DirectiveInInvalidLocation = "HCV0032";
 }

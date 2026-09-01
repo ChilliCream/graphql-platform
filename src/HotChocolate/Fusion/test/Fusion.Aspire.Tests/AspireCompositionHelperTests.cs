@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Aspire.Nitro;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.SourceSchema.Packaging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
@@ -230,11 +231,11 @@ public sealed class AspireCompositionHelperTests
             AllowNonResolvableInterfaceObjects = true,
             CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
             EnableGlobalObjectIdentification = true,
+            EnumValuesMergeBehavior = EnumValuesMergeBehavior.Union,
             ExcludeByTag = new HashSet<string> { "internal" },
             IncludeSatisfiabilityPaths = false,
             NodeResolution = NodeResolution.SourceSchema,
-            ShareableFieldRuntimeTypeRouting =
-                ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            ShareableFieldRuntimeTypeRouting = ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
             TagMergeBehavior = DirectiveMergeBehavior.Include
         };
         var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(
@@ -259,6 +260,7 @@ public sealed class AspireCompositionHelperTests
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "IncludePrivate",
                 "enableGlobalObjectIdentification": true,
+                "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "SourceSchema",
                 "removeUnreferencedDefinitions": null,
                 "tagMergeBehavior": "Include"
@@ -317,6 +319,7 @@ public sealed class AspireCompositionHelperTests
                     "addFusionDefinitions": null,
                     "cacheControlMergeBehavior": "IncludePrivate",
                     "enableGlobalObjectIdentification": true,
+                    "enumValuesMergeBehavior": null,
                     "nodeResolution": "SourceSchema",
                     "removeUnreferencedDefinitions": true,
                     "tagMergeBehavior": "Include"
@@ -376,6 +379,7 @@ public sealed class AspireCompositionHelperTests
                     "addFusionDefinitions": null,
                     "cacheControlMergeBehavior": "Ignore",
                     "enableGlobalObjectIdentification": false,
+                    "enumValuesMergeBehavior": null,
                     "nodeResolution": "Gateway",
                     "removeUnreferencedDefinitions": null,
                     "tagMergeBehavior": null
@@ -392,9 +396,34 @@ public sealed class AspireCompositionHelperTests
     }
 
     [Fact]
-    public void BuildLocalUrlOverrides_Should_UseConfiguredPath_When_SettingsDefineHttpUrl()
+    public void TryBuildLocalSourceSchemas_Should_TrimSlash_When_TheAllocatedEndpointEndsWithOne()
     {
         // arrange
+        using var settings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchema = CreateSourceSchema(
+            "Products",
+            "http://localhost:5001/",
+            settings,
+            ProductsSchemaText) with { GraphQLPath = "/api/graphql" };
+
+        // act
+        var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
+            [sourceSchema],
+            NullLogger<SchemaComposition>.Instance,
+            out var localSourceSchemas);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(
+            new Uri("http://localhost:5001/api/graphql"),
+            localSourceSchemas["Products"].UrlOverride);
+    }
+
+    [Fact]
+    public void TryBuildLocalSourceSchemas_Should_UseDeclaredPath_When_SourceSchemaDeclaresGraphQLPath()
+    {
+        // arrange
+        // the path of the configured HTTP transport URL does not contribute to the override.
         using var settings = JsonDocument.Parse(
             """
             {
@@ -410,127 +439,52 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText);
+            ProductsSchemaText) with { GraphQLPath = "/declared/graphql" };
 
         // act
-        var localUrlOverrides = AspireCompositionHelper.BuildLocalUrlOverrides(
+        var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
             [sourceSchema],
-            "Aspire",
-            NullLogger<SchemaComposition>.Instance);
+            NullLogger<SchemaComposition>.Instance,
+            out var localSourceSchemas);
 
         // assert
+        Assert.True(success);
         Assert.Equal(
-            new Dictionary<string, string>
-            {
-                ["Products"] = "http://localhost:5001/api/graphql"
-            },
-            localUrlOverrides);
+            new Uri("http://localhost:5001/declared/graphql"),
+            localSourceSchemas["Products"].UrlOverride);
     }
 
     [Fact]
-    public void BuildLocalUrlOverrides_Should_UseDefaultPath_When_SettingsDefineNoHttpUrl()
+    public void TryBuildLocalSourceSchemas_Should_Throw_When_SourceSchemaNamesAreDuplicated()
     {
         // arrange
         using var settings = JsonDocument.Parse("""{ "name": "Products" }""");
-        var sourceSchema = CreateSourceSchema(
-            "Products",
-            "http://localhost:5001/",
-            settings,
-            ProductsSchemaText);
-
-        // act
-        var localUrlOverrides = AspireCompositionHelper.BuildLocalUrlOverrides(
-            [sourceSchema],
-            "Aspire",
-            NullLogger<SchemaComposition>.Instance);
-
-        // assert
-        Assert.Equal(
-            new Dictionary<string, string> { ["Products"] = "http://localhost:5001/graphql" },
-            localUrlOverrides);
-    }
-
-    [Fact]
-    public void BuildLocalUrlOverrides_Should_ResolvePath_When_ConfiguredUrlContainsVariables()
-    {
-        // arrange
-        using var settings = JsonDocument.Parse(
-            """
-            {
-              "name": "Products",
-              "transports": {
-                "http": {
-                  "url": "{{API_URL}}"
-                }
-              },
-              "environments": {
-                "Aspire": {
-                  "API_URL": "https://products.internal.example.com/api/graphql"
-                }
-              }
-            }
-            """);
-        var sourceSchema = CreateSourceSchema(
+        var first = CreateSourceSchema(
             "Products",
             "http://localhost:5001",
             settings,
             ProductsSchemaText);
-
-        // act
-        var localUrlOverrides = AspireCompositionHelper.BuildLocalUrlOverrides(
-            [sourceSchema],
-            "Aspire",
-            NullLogger<SchemaComposition>.Instance);
-
-        // assert
-        Assert.Equal(
-            new Dictionary<string, string>
-            {
-                ["Products"] = "http://localhost:5001/api/graphql"
-            },
-            localUrlOverrides);
-    }
-
-    [Fact]
-    public void BuildLocalUrlOverrides_Should_UseDefaultPath_When_UrlVariableIsUnresolvable()
-    {
-        // arrange
-        using var settings = JsonDocument.Parse(
-            """
-            {
-              "name": "Products",
-              "transports": {
-                "http": {
-                  "url": "{{API_URL}}"
-                }
-              },
-              "environments": {
-                "Production": {
-                  "API_URL": "https://products.internal.example.com/api/graphql"
-                }
-              }
-            }
-            """);
-        var sourceSchema = CreateSourceSchema(
+        var second = CreateSourceSchema(
             "Products",
-            "http://localhost:5001",
+            "http://localhost:5002",
             settings,
             ProductsSchemaText);
 
         // act
-        var localUrlOverrides = AspireCompositionHelper.BuildLocalUrlOverrides(
-            [sourceSchema],
-            "Aspire",
-            NullLogger<SchemaComposition>.Instance);
+        void Act() => AspireCompositionHelper.TryBuildLocalSourceSchemas(
+            [first, second],
+            NullLogger<SchemaComposition>.Instance,
+            out _);
 
         // assert
+        var exception = Assert.Throws<ArgumentException>(Act);
         Assert.Equal(
-            new Dictionary<string, string> { ["Products"] = "http://localhost:5001/graphql" },
-            localUrlOverrides);
+            "An item with the same key has already been added. Key: Products",
+            exception.Message);
     }
 
     [Fact]
-    public void BuildLocalUrlOverrides_Should_SkipSchema_When_ResourceHasNoAllocatedEndpoint()
+    public void TryBuildLocalSourceSchemas_Should_LeaveUrlOverrideNull_When_ResourceHasNoAllocatedEndpoint()
     {
         // arrange
         using var settings = JsonDocument.Parse(
@@ -551,13 +505,137 @@ public sealed class AspireCompositionHelperTests
             ProductsSchemaText);
 
         // act
-        var localUrlOverrides = AspireCompositionHelper.BuildLocalUrlOverrides(
+        var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
             [sourceSchema],
-            "Aspire",
-            NullLogger<SchemaComposition>.Instance);
+            NullLogger<SchemaComposition>.Instance,
+            out var localSourceSchemas);
 
         // assert
-        Assert.Empty(localUrlOverrides);
+        Assert.True(success);
+        Assert.Null(localSourceSchemas["Products"].UrlOverride);
+    }
+
+    [Fact]
+    public void TryBuildLocalSourceSchemas_Should_Fail_When_ASourceSchemaDeclaresNoGraphQLPath()
+    {
+        // arrange
+        // a resource that is registered with the retired WithGraphQLSchemaFile or
+        // WithGraphQLSchemaEndpoint API declares no GraphQL path.
+        using var settings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchema = CreateSourceSchema(
+            "Products",
+            "http://localhost:5001",
+            settings,
+            ProductsSchemaText) with { ResourceName = "products", GraphQLPath = null };
+        var logger = new RecordingLogger<SchemaComposition>();
+
+        // act
+        var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
+            [sourceSchema],
+            logger,
+            out _);
+
+        // assert
+        Assert.False(success);
+        Assert.Equal(
+            "The source schema Products of the resource products does not declare the path of "
+            + "its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.",
+            Assert.Single(logger.Entries, entry => entry.Level is LogLevel.Error).Message);
+    }
+
+    [Fact]
+    public void TryBuildLocalSourceSchemas_Should_ReportEverySchemaWithoutAPath_When_SchemasAreMixed()
+    {
+        // arrange
+        using var settings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var migrated = CreateSourceSchema(
+            "Products",
+            "http://localhost:5001",
+            settings,
+            ProductsSchemaText) with { ResourceName = "products" };
+        var legacy = CreateSourceSchema(
+            "Reviews",
+            "http://localhost:5002",
+            settings,
+            "type Query { review: String }") with { ResourceName = "reviews", GraphQLPath = null };
+        var alsoLegacy = CreateSourceSchema(
+            "Orders",
+            allocatedHttpEndpointUrl: null,
+            settings,
+            "type Query { order: String }") with { GraphQLPath = null };
+        var logger = new RecordingLogger<SchemaComposition>();
+
+        // act
+        var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
+            [migrated, legacy, alsoLegacy],
+            logger,
+            out _);
+
+        // assert
+        Assert.False(success);
+        string.Join(
+            Environment.NewLine,
+            logger.Entries
+                .Where(entry => entry.Level is LogLevel.Error)
+                .Select(entry => entry.Message)).MatchInlineSnapshot(
+            """
+            The source schema Reviews of the resource reviews does not declare the path of its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.
+            The source schema Orders does not declare the path of its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource that serves it.
+            """);
+    }
+
+    [Fact]
+    public async Task TryComposeAsync_Should_Fail_When_ASourceSchemaDeclaresNoGraphQLPath()
+    {
+        // arrange
+        var archivePath = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            System.IO.Path.GetRandomFileName());
+        using var settings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var products = CreateSourceSchema(
+            "Products",
+            "http://localhost:5001",
+            settings,
+            ProductsSchemaText) with { ResourceName = "products", GraphQLPath = null };
+        var logger = new RecordingLogger<SchemaComposition>();
+
+        try
+        {
+            // act
+            var success = await AspireCompositionHelper.TryComposeAsync(
+                archivePath,
+                seedArchivePath: null,
+                [products],
+                default,
+                environment: null,
+                logger,
+                TestContext.Current.CancellationToken);
+
+            // assert
+            $"""
+            Success: {success}
+            Archive written: {File.Exists(archivePath)}
+            Errors:
+            {string.Join(
+                Environment.NewLine,
+                logger.Entries
+                    .Where(entry => entry.Level is LogLevel.Error)
+                    .Select(entry => entry.Message))}
+            """.MatchInlineSnapshot(
+                """
+                Success: False
+                Archive written: False
+                Errors:
+                The source schema Products of the resource products does not declare the path of its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.
+                """);
+        }
+        finally
+        {
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+        }
     }
 
     [Fact]
@@ -611,7 +689,7 @@ public sealed class AspireCompositionHelperTests
                 seedArchivePath: null,
                 [products, reviews],
                 default,
-                externalEnvironment: null,
+                environment: null,
                 NullLogger<SchemaComposition>.Instance,
                 TestContext.Current.CancellationToken);
 
@@ -704,6 +782,7 @@ public sealed class AspireCompositionHelperTests
                     new SourceSchemaInfo
                     {
                         Name = endpointConfiguration.SourceSchemaName,
+                        GraphQLPath = "/graphql",
                         Schema = new SourceSchemaText(
                             endpointConfiguration.SourceSchemaName,
                             """
@@ -731,7 +810,7 @@ public sealed class AspireCompositionHelperTests
                     }
                 ],
                 default,
-                externalEnvironment: null,
+                environment: null,
                 NullLogger<SchemaComposition>.Instance,
                 TestContext.Current.CancellationToken);
 
@@ -933,7 +1012,7 @@ public sealed class AspireCompositionHelperTests
                 seedArchivePath: null,
                 [products],
                 default,
-                externalEnvironment: null,
+                environment: null,
                 NullLogger<SchemaComposition>.Instance,
                 TestContext.Current.CancellationToken);
 
@@ -1004,7 +1083,7 @@ public sealed class AspireCompositionHelperTests
                 seedArchivePath: null,
                 [legacy],
                 default,
-                externalEnvironment: null,
+                environment: null,
                 NullLogger<SchemaComposition>.Instance,
                 TestContext.Current.CancellationToken);
             using (var seedArchive = FusionArchive.Create(seedArchivePath))
@@ -1025,7 +1104,7 @@ public sealed class AspireCompositionHelperTests
                 seedArchivePath,
                 [products],
                 default,
-                externalEnvironment: null,
+                environment: null,
                 NullLogger<SchemaComposition>.Instance,
                 TestContext.Current.CancellationToken);
 
@@ -1049,6 +1128,88 @@ public sealed class AspireCompositionHelperTests
         }
     }
 
+    [Theory]
+    [InlineData("stage", "custom", "https://stage.example.com/graphql")]
+    [InlineData(null, "custom", "https://custom.example.com/graphql")]
+    [InlineData(null, null, "https://aspire.example.com/graphql")]
+    public async Task TryComposeAsync_Should_ResolveAgainstStageThenEnvironmentNameThenAspire_When_EnvironmentInputsVary(
+        string? environment,
+        string? environmentName,
+        string expectedUrl)
+    {
+        // arrange
+        var archivePath = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            System.IO.Path.GetRandomFileName());
+        using var settingsDocument = JsonDocument.Parse(
+            """
+            {
+              "name": "Products",
+              "transports": {
+                "http": {
+                  "url": "https://fallback.example.com/graphql",
+                  "devUrl": "{{API_URL}}"
+                }
+              },
+              "environments": {
+                "stage": { "API_URL": "https://stage.example.com/graphql" },
+                "custom": { "API_URL": "https://custom.example.com/graphql" },
+                "Aspire": { "API_URL": "https://aspire.example.com/graphql" }
+              }
+            }
+            """);
+        var products = CreateSourceSchema(
+            "Products",
+            allocatedHttpEndpointUrl: null,
+            settingsDocument,
+            ProductsSchemaText);
+        var compositionSettings = new GraphQLCompositionSettings();
+        // The obsolete EnvironmentName setting is honored during the deprecation window.
+#pragma warning disable CS0618
+        compositionSettings.EnvironmentName = environmentName;
+#pragma warning restore CS0618
+
+        try
+        {
+            // act
+            var success = await AspireCompositionHelper.TryComposeAsync(
+                archivePath,
+                seedArchivePath: null,
+                [products],
+                compositionSettings,
+                environment,
+                NullLogger<SchemaComposition>.Instance,
+                TestContext.Current.CancellationToken);
+
+            // assert
+            Assert.True(success);
+            using var archive = FusionArchive.Open(archivePath);
+            using var gatewayConfiguration = await archive.TryGetGatewayConfigurationAsync(
+                WellKnownVersions.LatestGatewayFormatVersion,
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(gatewayConfiguration);
+            var composedUrl = gatewayConfiguration.Settings.RootElement
+                .GetProperty("sourceSchemas")
+                .GetProperty("Products")
+                .GetProperty("transports")
+                .GetProperty("http")
+                .GetProperty("url")
+                .GetString();
+            Assert.Equal(expectedUrl, composedUrl);
+        }
+        finally
+        {
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a source schema of a resource that is registered with WithGraphQLHttpEndpoint,
+    /// which declares the default GraphQL path.
+    /// </summary>
     private static SourceSchemaInfo CreateSourceSchema(
         string name,
         string? allocatedHttpEndpointUrl,
@@ -1058,6 +1219,7 @@ public sealed class AspireCompositionHelperTests
         {
             Name = name,
             AllocatedHttpEndpointUrl = allocatedHttpEndpointUrl,
+            GraphQLPath = "/graphql",
             Schema = new SourceSchemaText(name, schemaText),
             SchemaSettings = schemaSettings
         };

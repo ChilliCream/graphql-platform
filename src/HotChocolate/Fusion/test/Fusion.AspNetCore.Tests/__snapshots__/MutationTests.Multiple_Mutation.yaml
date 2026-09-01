@@ -196,6 +196,18 @@ operationPlan:
             }
           }
         }
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_192dc5f8_3 {
+          b: createBook(input: { title: "Book2" }) {
+            book {
+              id
+              title
+            }
+          }
+        }
     - id: 2
       type: OperationBatch
       schema: B
@@ -209,7 +221,7 @@ operationPlan:
       targets:
         - $.a.book
         - $.b.book
-      batchingGroupId: 2
+      batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -217,15 +229,3 @@ operationPlan:
       dependencies:
         - id: 1
         - id: 3
-    - id: 3
-      type: Operation
-      schema: A
-      operation: |
-        mutation Op_192dc5f8_3 {
-          b: createBook(input: { title: "Book2" }) {
-            book {
-              id
-              title
-            }
-          }
-        }

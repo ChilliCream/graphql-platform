@@ -77,15 +77,12 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
-        CompositeObjectContext objectContext;
-
-        if (target.ValueKind is JsonValueKind.Undefined)
+        if (!target.TryGetObjectContext(out var objectContext))
         {
             objectContext = InitializeTargetObject(source, target);
         }
-        else
+        else if (TryUpgradeOpaqueTarget(objectContext.SelectionSet, target, source))
         {
-            TryUpgradeOpaqueTarget(target, source);
             objectContext = target.GetObjectContext();
         }
 
@@ -133,7 +130,10 @@ internal sealed class ValueCompletion
                 {
                     if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
                     {
-                        CompleteEnumValue(propertyValueSnapshot, resultField, selection);
+                        CompleteEnumValue(
+                            propertyValueSnapshot,
+                            resultField,
+                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
                         continue;
                     }
 
@@ -150,7 +150,6 @@ internal sealed class ValueCompletion
                         resultField,
                         errorTrieForResponseName,
                         selection,
-                        selection.Type,
                         0,
                         childSet)
                     && _errorHandlingMode is ErrorHandlingMode.Propagate)
@@ -184,7 +183,10 @@ internal sealed class ValueCompletion
                 {
                     if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
                     {
-                        CompleteEnumValue(propertyValueSnapshot, resultField, selection);
+                        CompleteEnumValue(
+                            propertyValueSnapshot,
+                            resultField,
+                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
                         continue;
                     }
 
@@ -201,7 +203,6 @@ internal sealed class ValueCompletion
                         resultField,
                         errorTrieForResponseName,
                         selection,
-                        selection.Type,
                         0,
                         childSet))
                 {
@@ -247,18 +248,25 @@ internal sealed class ValueCompletion
     /// that is still interface-typed from an <c>@interfaceObject</c> stand-in, upgrades the element
     /// to its concrete type so the identity-dependent fields have slots to complete into.
     /// </summary>
-    private void TryUpgradeOpaqueTarget(CompositeResultElement target, SourceResultElement source)
+    /// <returns>
+    /// <c>true</c>, if the target was upgraded. Any object context acquired for the
+    /// target before the call is then stale and must be refetched.
+    /// </returns>
+    private bool TryUpgradeOpaqueTarget(
+        SelectionSet? targetSelectionSet,
+        CompositeResultElement target,
+        SourceResultElement source)
     {
-        if (target.SelectionSet is not { Type.Kind: TypeKind.Interface } interfaceSet
+        if (targetSelectionSet is not { Type.Kind: TypeKind.Interface } interfaceSet
             || interfaceSet.DeclaringSelection is not { } parentSelection)
         {
-            return;
+            return false;
         }
 
         if (!source.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeName)
             || typeName.ValueKind is not JsonValueKind.String)
         {
-            return;
+            return false;
         }
 
         var concreteType = _schema.Types.GetType<IObjectTypeDefinition>(typeName.AssertString());
@@ -271,6 +279,7 @@ internal sealed class ValueCompletion
 
         var concreteSelectionSet = parentSelection.GetSelectionSet(concreteType)!;
         _store.Result.UpgradeObject(target, concreteSelectionSet);
+        return true;
     }
 
     /// <summary>
@@ -353,7 +362,7 @@ internal sealed class ValueCompletion
 
             if (!target.TryGetProperty(responseName, out var fieldResult)
                 || fieldResult.IsInternal
-                || fieldResult.Selection is not { Type.Kind: TypeKind.NonNull })
+                || fieldResult.Selection is not { IsNonNull: true })
             {
                 continue;
             }
@@ -573,7 +582,6 @@ internal sealed class ValueCompletion
                     fieldResult,
                     errorTrie: null,
                     selection,
-                    selection.Type,
                     0,
                     childSet))
             {
@@ -747,7 +755,7 @@ internal sealed class ValueCompletion
 
         switch (_errorHandlingMode)
         {
-            case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
+            case ErrorHandlingMode.Propagate when selection.IsNonNull:
                 var didPropagateToRoot = PropagateNullValues(fieldResult);
                 return !didPropagateToRoot;
         }
@@ -784,53 +792,52 @@ internal sealed class ValueCompletion
     // TODO: When extracting an error from a path below the current field,
     //       we should try to use the path of the original error if it's
     //       part of what was selected.
+    /// <summary>
+    /// Completes a source value against the field type of <paramref name="selection"/>.
+    /// The type shape is read from facts precomputed on the selection, so a call
+    /// site completing a value against any other type must not use this method.
+    /// </summary>
     private bool TryCompleteValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
-        IType type,
         int depth,
         ResultSelectionSet? resultSelectionSet)
     {
         var sourceValueKind = source.ValueKind;
         var isNullOrUndefined = sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
 
-        if (type.Kind is TypeKind.NonNull)
+        if (selection.IsNonNull && isNullOrUndefined)
         {
-            if (isNullOrUndefined)
+            IError error;
+            if (errorTrie?.FindFirstError() is { } errorFromPath)
             {
-                IError error;
-                if (errorTrie?.FindFirstError() is { } errorFromPath)
-                {
-                    var path = target.CompactPath.ToPath(target.Operation);
-                    error = ErrorBuilder.FromError(errorFromPath)
-                        .SetPath(path)
-                        .Build();
-                }
-                else
-                {
-                    var path = target.CompactPath.ToPath(target.Operation);
-                    error = ErrorBuilder.New()
-                        .SetMessage("Cannot return null for non-nullable field.")
-                        .SetCode(ErrorCodes.Execution.NonNullViolation)
-                        .SetPath(path)
-                        .Build();
-                }
-
-                error = _errorHandler.Handle(error);
-
-                _store.AddError(error);
-
-                return !_propagateNullValues;
+                var path = target.CompactPath.ToPath(target.Operation);
+                error = ErrorBuilder.FromError(errorFromPath)
+                    .SetPath(path)
+                    .Build();
+            }
+            else
+            {
+                var path = target.CompactPath.ToPath(target.Operation);
+                error = ErrorBuilder.New()
+                    .SetMessage("Cannot return null for non-nullable field.")
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetPath(path)
+                    .Build();
             }
 
-            type = type.InnerType();
+            error = _errorHandler.Handle(error);
+
+            _store.AddError(error);
+
+            return !_propagateNullValues;
         }
 
         if (isNullOrUndefined)
         {
-            if (sourceValueKind is JsonValueKind.Null && IsValueType(type))
+            if (sourceValueKind is JsonValueKind.Null && selection.IsValueTypeNamedType)
             {
                 if (errorTrie?.FindFirstError() is { } error
                     && resultSelectionSet is not null)
@@ -864,22 +871,25 @@ internal sealed class ValueCompletion
             return true;
         }
 
-        switch (type.Kind)
+        switch (selection.UnwrappedKind)
         {
             case TypeKind.List:
+                // The element shape of the first list level is precomputed on the
+                // selection, so it is guaranteed to be present here.
                 return TryCompleteList(
                     source,
                     target,
                     errorTrie,
                     selection,
-                    type,
+                    selection.ListElementType!,
+                    selection.ListElementKind,
+                    selection.IsNonNullListElement,
                     depth,
                     resultSelectionSet);
 
             case TypeKind.Object:
                 return TryCompleteObjectValue(
                     selection,
-                    type,
                     source,
                     errorTrie,
                     depth,
@@ -892,7 +902,6 @@ internal sealed class ValueCompletion
                     target,
                     errorTrie,
                     selection,
-                    type,
                     depth,
                     resultSelectionSet);
 
@@ -905,11 +914,16 @@ internal sealed class ValueCompletion
                 return true;
 
             default:
-                throw new NotSupportedException($"The type {type} is not supported.");
+                throw new NotSupportedException($"The type {selection.UnwrappedType} is not supported.");
         }
     }
 
-    private bool TryCompleteList(
+    /// <summary>
+    /// Completes the elements of a nested list. The element shape of nested list
+    /// levels is not precomputed on the selection, so it is derived from
+    /// <paramref name="type"/> per invocation.
+    /// </summary>
+    private bool TryCompleteNestedList(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
@@ -918,8 +932,6 @@ internal sealed class ValueCompletion
         int depth,
         ResultSelectionSet? resultSelectionSet)
     {
-        AssertDepthAllowed(ref depth);
-
         var elementType = type.ElementType();
         var elementTypeKind = elementType.Kind;
         var isNonNull = elementTypeKind is TypeKind.NonNull;
@@ -928,6 +940,31 @@ internal sealed class ValueCompletion
         {
             elementTypeKind = Unsafe.As<IType, NonNullType>(ref elementType).NullableType.Kind;
         }
+
+        return TryCompleteList(
+            source,
+            target,
+            errorTrie,
+            selection,
+            elementType,
+            elementTypeKind,
+            isNonNull,
+            depth,
+            resultSelectionSet);
+    }
+
+    private bool TryCompleteList(
+        SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
+        Selection selection,
+        IType elementType,
+        TypeKind elementTypeKind,
+        bool isNonNull,
+        int depth,
+        ResultSelectionSet? resultSelectionSet)
+    {
+        AssertDepthAllowed(ref depth);
 
         // A shared list slot may already be populated by a sibling subgraph
         // result. Create the array only on the first write; otherwise reuse it
@@ -992,7 +1029,7 @@ internal sealed class ValueCompletion
             switch (elementTypeKind)
             {
                 case TypeKind.List:
-                    completed = TryCompleteList(
+                    completed = TryCompleteNestedList(
                         elementSnapshot,
                         targetElement,
                         errorTrieForIndex,
@@ -1018,7 +1055,6 @@ internal sealed class ValueCompletion
                         targetElement,
                         errorTrieForIndex,
                         selection,
-                        elementType,
                         depth,
                         resultSelectionSet);
                     break;
@@ -1026,7 +1062,6 @@ internal sealed class ValueCompletion
                 default:
                     completed = TryCompleteObjectValue(
                         selection,
-                        elementType,
                         elementSnapshot,
                         errorTrieForIndex,
                         depth,
@@ -1058,12 +1093,15 @@ TryCompleteList_MoveNext:
         CompositeResultElement target,
         Selection selection)
     {
-        // Reached only for rows flagged as enum values. A string that is an accessible
-        // member of the composite enum is written through; anything else (a value unknown
-        // to or inaccessible from the composite schema, or a non-string kind) is masked to
-        // null so it can never leak past the gateway. The raw UTF-8 payload may contain JSON
-        // escape sequences, but GraphQL enum names are [A-Za-z0-9_] only, so an escaped
-        // payload cannot match any name and correctly falls through to masking.
+        // Reached from dispatch arms guarded only by the type-system enum kind, which
+        // does not guarantee the concrete Fusion CLR type, so the pattern match stays
+        // as a defensive check that masks any other definition to null. A string that
+        // is an accessible member of the composite enum is written through; anything
+        // else (a value unknown to or inaccessible from the composite schema, or a
+        // non-string kind) is masked to null so it can never leak past the gateway.
+        // The raw UTF-8 payload may contain JSON escape sequences, but GraphQL enum
+        // names are [A-Za-z0-9_] only, so an escaped payload cannot match any name
+        // and correctly falls through to masking.
         if (selection.NamedType is FusionEnumTypeDefinition enumType
             && source.TokenType is JsonTokenType.String
             && enumType.Values.ContainsName(source.ValueSpan))
@@ -1076,16 +1114,34 @@ TryCompleteList_MoveNext:
         }
     }
 
+    private static void CompleteEnumValue(
+        SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        FusionEnumTypeDefinition enumType)
+    {
+        // Reached only from call sites guarded by Selection.IsEnumValue, which
+        // guarantees that the selection's named type is a FusionEnumTypeDefinition.
+        // The masking semantics match the selection-based overload above.
+        if (source.TokenType is JsonTokenType.String
+            && enumType.Values.ContainsName(source.ValueSpan))
+        {
+            target.SetLeafValue(source);
+        }
+        else
+        {
+            target.SetNullValue();
+        }
+    }
+
     private bool TryCompleteObjectValue(
         Selection parentSelection,
-        IType type,
         SourceResultElementSnapshot source,
         ErrorTrie? errorTrie,
         int depth,
         CompositeResultElement target,
         ResultSelectionSet? resultSelectionSet)
     {
-        var namedType = type.NamedType();
+        var namedType = parentSelection.NamedType;
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
         return TryCompleteObjectValue(
@@ -1111,18 +1167,12 @@ TryCompleteList_MoveNext:
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
-        CompositeObjectContext objectContext;
-
-        if (target.ValueKind is JsonValueKind.Undefined)
+        if (!target.TryGetObjectContext(out var objectContext))
         {
             var objectSelectionSet = parentSelection.GetSelectionSet(objectType)
                 ?? throw new InvalidOperationException(
                     "Cannot initialize a result object without a selection set.");
             target.SetObjectValue(objectSelectionSet, out objectContext);
-        }
-        else
-        {
-            objectContext = target.GetObjectContext();
         }
 
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
@@ -1169,7 +1219,10 @@ TryCompleteList_MoveNext:
                 {
                     if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
                     {
-                        CompleteEnumValue(propertyValueSnapshot, targetProperty, selection);
+                        CompleteEnumValue(
+                            propertyValueSnapshot,
+                            targetProperty,
+                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
                         continue;
                     }
 
@@ -1186,7 +1239,6 @@ TryCompleteList_MoveNext:
                         targetProperty,
                         errorTrieForResponseName,
                         selection,
-                        selection.Type,
                         depth,
                         childSet))
                 {
@@ -1213,7 +1265,10 @@ TryCompleteList_MoveNext:
                 {
                     if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
                     {
-                        CompleteEnumValue(propertyValueSnapshot, targetProperty, selection);
+                        CompleteEnumValue(
+                            propertyValueSnapshot,
+                            targetProperty,
+                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
                         continue;
                     }
 
@@ -1230,7 +1285,6 @@ TryCompleteList_MoveNext:
                         targetProperty,
                         errorTrieForResponseName,
                         selection,
-                        selection.Type,
                         depth,
                         childSet))
                 {
@@ -1247,12 +1301,11 @@ TryCompleteList_MoveNext:
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
-        IType type,
         int depth,
         ResultSelectionSet? resultSelectionSet)
     {
         var isOpaque = resultSelectionSet?.ProducesOpaqueElements ?? false;
-        var objectType = GetType(type, source.Element, isOpaque);
+        var objectType = GetType(selection.NamedType, source.Element, isOpaque);
 
         if (!selection.IsInternal
             && objectType is IInaccessibleProvider { IsInaccessible: true })
@@ -1270,11 +1323,17 @@ TryCompleteList_MoveNext:
             resultSelectionSet);
     }
 
+    /// <summary>
+    /// Resolves the runtime object type for a value whose type is not selection
+    /// derived, walking the wrappers of <paramref name="type"/> dynamically.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IComplexTypeDefinition GetType(IType type, SourceResultElement data, bool isOpaque)
-    {
-        var namedType = type.NamedType();
+        => GetType(type.NamedType(), data, isOpaque);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private IComplexTypeDefinition GetType(ITypeDefinition namedType, SourceResultElement data, bool isOpaque)
+    {
         if (namedType is IObjectTypeDefinition objectType)
         {
             return objectType;

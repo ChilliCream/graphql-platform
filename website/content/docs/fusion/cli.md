@@ -423,6 +423,7 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 | `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
 | `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
 | `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | How to merge enum values across source schemas                     |
 | `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
 | `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
 
@@ -578,7 +579,7 @@ The URL template for the subgraph's GraphQL endpoint. Use `{{VARIABLE_NAME}}` fo
 
 The URL a local development environment reaches this source schema at. It supports the same `{{VARIABLE_NAME}}` substitution as `url`.
 
-`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./aspire-integration.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
+`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./local-development.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
 
 ```json
 {

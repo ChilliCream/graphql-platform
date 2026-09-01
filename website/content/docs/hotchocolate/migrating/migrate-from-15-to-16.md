@@ -1,5 +1,6 @@
 ---
 title: Migrate Hot Chocolate from 15 to 16
+metaTitle: "Hot Chocolate 16 Migration Guide"
 description: "Walks through upgrading your Hot Chocolate GraphQL server from version 15 to 16, covering eager initialization, service separation, and other breaking changes."
 ---
 
@@ -1480,6 +1481,12 @@ Argument and input field default values are now validated for compatibility with
 Such schemas now fail at build with a schema error. This applies to defaults on object and interface field arguments, input object fields, and directive definition arguments, at any nesting depth (inside lists and input objects).
 
 If your schema fails to build after upgrading, correct the default value to a literal compatible with its type. `[ID]`-typed defaults given as strings remain valid; only genuinely incompatible literals are rejected.
+
+## ProjectionFeature removed
+
+The public `HotChocolate.Data.Projections.ProjectionFeature` record has been removed. The state it carried is now tracked through internal field flags. This change lands in **16.6.2**.
+
+Use the existing `IsProjected()` descriptor extension or the `[IsProjected]` attribute to configure projection behavior; reading the feature from a field's `Features` collection is no longer possible.
 
 # Deprecations
 

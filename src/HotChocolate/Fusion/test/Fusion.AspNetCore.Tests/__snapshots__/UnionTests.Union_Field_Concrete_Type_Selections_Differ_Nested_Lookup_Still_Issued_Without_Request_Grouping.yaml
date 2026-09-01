@@ -1,0 +1,565 @@
+title: Union_Field_Concrete_Type_Selections_Differ_Nested_Lookup_Still_Issued_Without_Request_Grouping
+request:
+  document: |
+    query testQuery {
+      search {
+        ... on ExistingResult {
+          asset {
+            meterType {
+              type
+            }
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+        ... on ConfigMatchesResult {
+          asset {
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+            meterType {
+              type
+            }
+          }
+        }
+        ... on NotSubmissableResult {
+          asset {
+            meterType {
+              type
+            }
+            statusMessage
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+        ... on CustomResult {
+          asset {
+            meterType {
+              type
+            }
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": [
+          {
+            "asset": {
+              "meterType": {
+                "type": "MeterType: TWV0ZXJUeXBlOjE="
+              },
+              "category": {
+                "allowedMeterTypes": [
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjI="
+                  },
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjM="
+                  },
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "asset": {
+              "meterType": {
+                "type": "MeterType: TWV0ZXJUeXBlOjE="
+              },
+              "category": {
+                "allowedMeterTypes": [
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjI="
+                  },
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjM="
+                  },
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "asset": {
+              "meterType": {
+                "type": "MeterType: TWV0ZXJUeXBlOjE="
+              },
+              "category": {
+                "allowedMeterTypes": [
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjI="
+                  },
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjM="
+                  },
+                  {
+                    "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        search: [CandidateResult!]!
+          @returns(types: ["CustomResult", "CustomResult", "CustomResult"])
+        meterTypeById(id: Int!): MeterType @lookup @internal
+        categoryByDbId(dbId: Int!): Category @lookup @internal
+      }
+
+      type Asset @key(fields: "dbId") {
+        dbId: Int!
+      }
+
+      type Category @key(fields: "dbId") {
+        dbId: Int!
+        allowedMeterTypes: [MeterType!]!
+      }
+
+      type ConfigMatchesResult {
+        asset: Asset
+      }
+
+      type CustomResult {
+        asset: Asset
+      }
+
+      type ExistingResult {
+        asset: Asset
+      }
+
+      type MeterType @key(fields: "id") {
+        id: Int!
+        type: String!
+      }
+
+      type NotSubmissableResult {
+        asset: Asset
+      }
+
+      union CandidateResult =
+        | NotSubmissableResult
+        | ExistingResult
+        | ConfigMatchesResult
+        | CustomResult
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_9148209c_1 {
+              search {
+                __typename
+                ... on ExistingResult {
+                  asset {
+                    dbId
+                  }
+                }
+                ... on ConfigMatchesResult {
+                  asset {
+                    dbId
+                  }
+                }
+                ... on NotSubmissableResult {
+                  asset {
+                    dbId
+                  }
+                }
+                ... on CustomResult {
+                  asset {
+                    dbId
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "search": [
+                    {
+                      "__typename": "CustomResult",
+                      "asset": {
+                        "dbId": 123
+                      }
+                    },
+                    {
+                      "__typename": "CustomResult",
+                      "asset": {
+                        "dbId": 123
+                      }
+                    },
+                    {
+                      "__typename": "CustomResult",
+                      "asset": {
+                        "dbId": 123
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_9148209c_3($__fusion_2_dbId: Int!) {
+              categoryByDbId(dbId: $__fusion_2_dbId) {
+                allowedMeterTypes {
+                  type
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_dbId": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "categoryByDbId": {
+                    "allowedMeterTypes": [
+                      {
+                        "type": "MeterType: TWV0ZXJUeXBlOjI="
+                      },
+                      {
+                        "type": "MeterType: TWV0ZXJUeXBlOjM="
+                      },
+                      {
+                        "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                      }
+                    ]
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_9148209c_4($__fusion_3_id: Int!) {
+              meterTypeById(id: $__fusion_3_id) {
+                type
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "meterTypeById": {
+                    "type": "MeterType: TWV0ZXJUeXBlOjE="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        assetByDbId(dbId: Int!): Asset @lookup @internal
+      }
+
+      type Asset @key(fields: "dbId") {
+        dbId: Int!
+        statusMessage: String
+        meterType: MeterType
+        category: Category
+      }
+
+      type Category @key(fields: "dbId") {
+        dbId: Int!
+      }
+
+      type MeterType @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_9148209c_2($__fusion_1_dbId: Int!) {
+              assetByDbId(dbId: $__fusion_1_dbId) {
+                meterType {
+                  id
+                }
+                category {
+                  dbId
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_dbId": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "assetByDbId": {
+                    "meterType": {
+                      "id": 123
+                    },
+                    "category": {
+                      "dbId": 123
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          search {
+            __typename @fusion__requirement
+            ... on ExistingResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  dbId @fusion__requirement
+                }
+                dbId @fusion__requirement
+              }
+            }
+            ... on ConfigMatchesResult {
+              asset {
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  dbId @fusion__requirement
+                }
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                dbId @fusion__requirement
+              }
+            }
+            ... on NotSubmissableResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                statusMessage
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  dbId @fusion__requirement
+                }
+                dbId @fusion__requirement
+              }
+            }
+            ... on CustomResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  dbId @fusion__requirement
+                }
+                dbId @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 9148209ce4b3b5f41f22d04d64130c64
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_9148209c_1 {
+          search {
+            __typename
+            ... on ExistingResult {
+              asset {
+                dbId
+              }
+            }
+            ... on ConfigMatchesResult {
+              asset {
+                dbId
+              }
+            }
+            ... on NotSubmissableResult {
+              asset {
+                dbId
+              }
+            }
+            ... on CustomResult {
+              asset {
+                dbId
+              }
+            }
+          }
+        }
+    - id: 5
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_9148209c_5($__fusion_4_dbId: Int!) {
+          assetByDbId(dbId: $__fusion_4_dbId) {
+            meterType {
+              id
+            }
+            statusMessage
+            category {
+              dbId
+            }
+          }
+        }
+      source: $.assetByDbId
+      target: $.search<NotSubmissableResult>.asset
+      requirements:
+        - name: __fusion_4_dbId
+          selectionMap: >-
+            dbId
+      dependencies:
+        - id: 1
+    - id: 8
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_9148209c_8($__fusion_7_dbId: Int!) {
+          assetByDbId(dbId: $__fusion_7_dbId) {
+            category {
+              dbId
+            }
+            meterType {
+              id
+            }
+          }
+        }
+      source: $.assetByDbId
+      target: $.search<ConfigMatchesResult>.asset
+      requirements:
+        - name: __fusion_7_dbId
+          selectionMap: >-
+            dbId
+      dependencies:
+        - id: 1
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query testQuery_9148209c_2($__fusion_1_dbId: Int!) {
+          assetByDbId(dbId: $__fusion_1_dbId) {
+            meterType {
+              id
+            }
+            category {
+              dbId
+            }
+          }
+        }
+      source: $.assetByDbId
+      targets:
+        - $.search<CustomResult>.asset
+        - $.search<ExistingResult>.asset
+      batchingGroupId: 14
+      requirements:
+        - name: __fusion_1_dbId
+          selectionMap: >-
+            dbId
+      dependencies:
+        - id: 1
+    - id: 3
+      type: OperationBatch
+      schema: A
+      operation: |
+        query testQuery_9148209c_3($__fusion_2_dbId: Int!) {
+          categoryByDbId(dbId: $__fusion_2_dbId) {
+            allowedMeterTypes {
+              type
+            }
+          }
+        }
+      source: $.categoryByDbId
+      targets:
+        - $.search<CustomResult>.asset.category
+        - $.search<NotSubmissableResult>.asset.category
+        - $.search<ConfigMatchesResult>.asset.category
+        - $.search<ExistingResult>.asset.category
+      batchingGroupId: 15
+      requirements:
+        - name: __fusion_2_dbId
+          selectionMap: >-
+            dbId
+      dependencies:
+        - id: 2
+        - id: 5
+        - id: 8
+    - id: 4
+      type: OperationBatch
+      schema: A
+      operation: |
+        query testQuery_9148209c_4($__fusion_3_id: Int!) {
+          meterTypeById(id: $__fusion_3_id) {
+            type
+          }
+        }
+      source: $.meterTypeById
+      targets:
+        - $.search<CustomResult>.asset.meterType
+        - $.search<NotSubmissableResult>.asset.meterType
+        - $.search<ConfigMatchesResult>.asset.meterType
+        - $.search<ExistingResult>.asset.meterType
+      batchingGroupId: 16
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+        - id: 5
+        - id: 8

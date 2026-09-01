@@ -343,8 +343,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = """{"data":{"foos":[{"id":"1","bar":{"y":"v"}}]}}"""u8.ToArray();
@@ -426,8 +426,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = """{"data":{"foos":[{"__fusion_internal_id":"1"}]}}"""u8.ToArray();
@@ -516,6 +516,214 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateBindings_Should_DistinguishInternalAliasesInSeparateTypeBranches()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              noop: String
+              entities: [Entity]
+            }
+
+            interface Entity {
+              id: ID!
+            }
+
+            type A implements Entity {
+              id: ID!
+              aDetails: Details
+            }
+
+            type B implements Entity {
+              id: ID!
+              newDetails: Details
+            }
+
+            type Details {
+              x: String
+            }
+            """);
+        var operationText =
+            """
+            query {
+              _entities {
+                ... on Entity {
+                  ... {
+                    ... on A {
+                      fusion__field_1: aDetails {
+                        x
+                      }
+                    }
+                    ... on B {
+                      fusion__field_2: newDetails {
+                        x
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """u8.ToArray();
+        var operation = new OperationSourceText(
+            "Op",
+            OperationType.Query,
+            operationText,
+            OperationSourceTextHash.Compute(operationText));
+        var target = SelectionPath.Root.AppendField("entities");
+        var requirements = new[]
+        {
+            new OperationRequirement(
+                "__fusion_1_details",
+                new NamedTypeNode("String"),
+                target.AppendFragment("A").AppendField("details"),
+                new FieldSelectionMapParser("x").Parse()),
+            new OperationRequirement(
+                "__fusion_2_details",
+                new NamedTypeNode("String"),
+                target.AppendFragment("B").AppendField("details"),
+                new FieldSelectionMapParser("x").Parse())
+        };
+        var resultSelection = Utf8GraphQLParser.Parse(
+                """
+                {
+                  ... {
+                    ... on A {
+                      fusion__field_1: aDetails
+                        @fusion__responseName(name: "details") {
+                        x
+                      }
+                    }
+                    ... on B {
+                      fusion__field_2: newDetails
+                        @fusion__responseName(name: "details") {
+                        x
+                      }
+                    }
+                  }
+                }
+                """)
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .Single()
+            .SelectionSet;
+        var resultSelectionSet = ResultSelectionSet.CreateFromPlan(resultSelection, schema);
+
+        // act
+        var bindings = RepresentationShapeBuilder.CreateBindings(
+            operation,
+            "Entity",
+            target,
+            requirements,
+            resultSelectionSet);
+
+        // assert
+        Assert.Collection(
+            bindings,
+            binding =>
+            {
+                Assert.Equal("__fusion_1_details", binding.RequirementKey);
+                var segment = Assert.Single(binding.Path);
+                Assert.Equal("aDetails", segment.Name);
+                Assert.Equal("details", segment.ResponseName);
+            },
+            binding =>
+            {
+                Assert.Equal("__fusion_2_details", binding.RequirementKey);
+                var segment = Assert.Single(binding.Path);
+                Assert.Equal("newDetails", segment.Name);
+                Assert.Equal("details", segment.ResponseName);
+            });
+    }
+
+    [Fact]
+    public void CreateBindings_Should_Throw_When_ResultSelectionLacksRequiredTypeFragment()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              entities: [Entity]
+            }
+
+            interface Entity {
+              id: ID!
+            }
+
+            type A implements Entity {
+              id: ID!
+              details: Details
+            }
+
+            type B implements Entity {
+              id: ID!
+              details: Details
+            }
+
+            type Details {
+              x: String
+            }
+            """);
+        var operationText =
+            """
+            query {
+              _entities {
+                ... on Entity {
+                  ... on B {
+                    details {
+                      x
+                    }
+                  }
+                }
+              }
+            }
+            """u8.ToArray();
+        var operation = new OperationSourceText(
+            "Op",
+            OperationType.Query,
+            operationText,
+            OperationSourceTextHash.Compute(operationText));
+        var target = SelectionPath.Root.AppendField("entities");
+        var requirements = new[]
+        {
+            new OperationRequirement(
+                "__fusion_1_details",
+                new NamedTypeNode("String"),
+                target.AppendFragment("B").AppendField("details"),
+                new FieldSelectionMapParser("x").Parse())
+        };
+        var resultSelection = Utf8GraphQLParser.Parse(
+                """
+                {
+                  ... on A {
+                    details {
+                      x
+                    }
+                  }
+                }
+                """)
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .Single()
+            .SelectionSet;
+        var resultSelectionSet = ResultSelectionSet.CreateFromPlan(resultSelection, schema);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => RepresentationShapeBuilder.CreateBindings(
+                operation,
+                "Entity",
+                target,
+                requirements,
+                resultSelectionSet));
+
+        // assert
+        Assert.Equal("The result selection has no fragment for type 'B'.", exception.Message);
+    }
+
+    [Fact]
     public void RepresentationShapeBuilder_Should_SetParentTypeCondition_When_MapIsTypeConditioned()
     {
         // arrange
@@ -529,7 +737,48 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var node = Assert.Single(shape);
         Assert.Equal("id", node.Name);
         Assert.Equal("Bar", node.ParentTypeCondition);
-        Assert.Null(node.Children);
+        Assert.True(node.Nodes.IsDefault);
+    }
+
+    [Fact]
+    public void RepresentationShape_Should_ExposeDeeplyImmutableState()
+    {
+        // arrange
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+        var requirements = new[] { Requirement("__fusion_1_id", "id") };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(
+            lookupField,
+            requirements,
+            s_schema,
+            "Foo");
+
+        // assert
+        var leaf = Assert.Single(shape);
+        Assert.True(leaf.Nodes.IsDefault);
+        Assert.True(leaf.Branches.IsEmpty);
+        Assert.True(leaf.LhsPath.IsEmpty);
+        Assert.True(leaf.NameUtf8.SequenceEqual("id"u8));
+        Assert.True(leaf.ResponseNameUtf8.SequenceEqual("id"u8));
+        Assert.All(
+            typeof(RepresentationShapeNode).GetProperties(),
+            property => Assert.False(property.CanWrite));
+        Assert.All(
+            typeof(RepresentationShapeBranch).GetProperties(),
+            property => Assert.False(property.CanWrite));
+        Assert.Equal(
+            typeof(ImmutableArray<RepresentationShapeNode>),
+            typeof(RepresentationShapeNode).GetProperty(nameof(RepresentationShapeNode.Nodes))!
+                .PropertyType);
+        Assert.Equal(
+            typeof(ImmutableArray<RepresentationShapeBranch>),
+            typeof(RepresentationShapeNode).GetProperty(nameof(RepresentationShapeNode.Branches))!
+                .PropertyType);
+        Assert.Equal(
+            typeof(ImmutableArray<string>),
+            typeof(RepresentationShapeNode).GetProperty(nameof(RepresentationShapeNode.LhsPath))!
+                .PropertyType);
     }
 
     [Fact]
@@ -557,13 +806,13 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                     data
                     """);
                 Assert.Collection(
-                    node.Children!,
-                    child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                    node.Nodes,
+                    child => $"{child.Name}:{child.Nodes.IsDefault}".MatchInlineSnapshot(
                         """
                         foo:True
                         """));
                 Assert.Collection(
-                    node.Branches!,
+                    node.Branches,
                     branch =>
                     {
                         branch.TypeCondition.MatchInlineSnapshot(
@@ -571,8 +820,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                             Bar
                             """);
                         Assert.Collection(
-                            branch.Children,
-                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                            branch.Nodes,
+                            child => $"{child.Name}:{child.Nodes.IsDefault}".MatchInlineSnapshot(
                                 """
                                 bar:True
                                 """));
@@ -584,8 +833,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                             Qux
                             """);
                         Assert.Collection(
-                            branch.Children,
-                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                            branch.Nodes,
+                            child => $"{child.Name}:{child.Nodes.IsDefault}".MatchInlineSnapshot(
                                 """
                                 qux:True
                                 """));
@@ -615,9 +864,10 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                     """
                     data
                     """);
-                Assert.Empty(node.Children!);
+                Assert.False(node.Nodes.IsDefault);
+                Assert.Empty(node.Nodes);
                 Assert.Collection(
-                    node.Branches!,
+                    node.Branches,
                     branch =>
                     {
                         branch.TypeCondition.MatchInlineSnapshot(
@@ -625,12 +875,12 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                             Bar
                             """);
                         Assert.Collection(
-                            branch.Children,
-                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                            branch.Nodes,
+                            child => $"{child.Name}:{child.Nodes.IsDefault}".MatchInlineSnapshot(
                                 """
                                 bar:True
                                 """),
-                            child => $"{child.Name}:{child.Children is null}".MatchInlineSnapshot(
+                            child => $"{child.Name}:{child.Nodes.IsDefault}".MatchInlineSnapshot(
                                 """
                                 baz:True
                                 """));
@@ -1131,7 +1381,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // assert
         var node = Assert.Single(shape);
         Assert.Equal("data", node.Name);
-        Assert.Null(node.Branches);
+        Assert.True(node.Branches.IsEmpty);
         Assert.True(node.RequiresTypeName);
     }
 
@@ -1154,7 +1404,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // assert
         var node = Assert.Single(shape);
         Assert.Equal("data", node.Name);
-        Assert.NotNull(node.Branches);
+        Assert.NotEmpty(node.Branches);
         Assert.False(node.RequiresTypeName);
     }
 
@@ -2804,8 +3054,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             errorHandler,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -2842,7 +3092,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             foreach (var operation in batchNode.Operations)
             {
                 if (operation is SingleOperationDefinition definition
-                    && definition.Operation.SourceText.Contains(lookupFieldName, StringComparison.Ordinal))
+                    && Encoding.UTF8.GetString(definition.SourceText.Value.Span)
+                        .Contains(lookupFieldName, StringComparison.Ordinal))
                 {
                     return definition;
                 }
@@ -2865,7 +3116,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             [],
             definition.Requirements,
             entityTypeName,
-            ParseLookupField(definition.Operation.SourceText));
+            ParseLookupField(Encoding.UTF8.GetString(definition.SourceText.Value.Span)));
 
     // The representation shape is a plan-time constant, so the production code
     // builds it once at node creation. These harness helpers mirror that by
@@ -2882,8 +3133,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             selectionSet,
             requestVariables,
             requirements,
-            entityTypeName,
-            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName));
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName),
+            entityTypeName);
 
     private static RepresentationValue CreateRepresentationFromSnapshot(
         FetchResultStore store,
@@ -2899,8 +3150,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             importedKeys,
             requestVariables,
             requirements,
-            entityTypeName,
-            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName));
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, entityTypeName),
+            entityTypeName);
 
     private static SourceSchemaResult CreateResponse(MemoryArena arena, string payloadJson)
     {
@@ -2933,8 +3184,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -2964,8 +3215,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
         return store;
     }
@@ -3018,7 +3269,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         return JsonSerializer.Serialize(document.RootElement);
     }
 
-    private static SelectionSetNode RenderShape(List<RepresentationShapeNode> level)
+    private static SelectionSetNode RenderShape(ImmutableArray<RepresentationShapeNode> level)
         => new(level.Select(RenderShapeNode).ToList<ISelectionNode>());
 
     private static FieldNode RenderShapeNode(RepresentationShapeNode node)
@@ -3028,5 +3279,5 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             alias: null,
             directives: [],
             arguments: [],
-            node.Children is null ? null : RenderShape(node.Children));
+            node.Nodes.IsDefault ? null : RenderShape(node.Nodes));
 }

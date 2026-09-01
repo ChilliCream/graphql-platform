@@ -83,6 +83,7 @@ public sealed class FusionStageCompositionSettingsTests : IAsyncLifetime
                     "addFusionDefinitions": null,
                     "cacheControlMergeBehavior": "IncludePrivate",
                     "enableGlobalObjectIdentification": true,
+                    "enumValuesMergeBehavior": null,
                     "nodeResolution": "SourceSchema",
                     "removeUnreferencedDefinitions": true,
                     "tagMergeBehavior": "Ignore"

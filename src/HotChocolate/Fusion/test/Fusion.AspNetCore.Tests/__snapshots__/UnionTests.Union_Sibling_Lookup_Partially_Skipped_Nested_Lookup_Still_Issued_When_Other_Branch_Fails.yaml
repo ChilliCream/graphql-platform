@@ -1,0 +1,408 @@
+title: Union_Sibling_Lookup_Partially_Skipped_Nested_Lookup_Still_Issued_When_Other_Branch_Fails
+request:
+  document: |
+    query testQuery {
+      search {
+        ... on ExistingResult {
+          asset {
+            meterType {
+              type
+            }
+          }
+        }
+        ... on ExistingResult2 {
+          asset {
+            meterType {
+              type
+            }
+            statusMessage
+          }
+        }
+        ... on OtherResult {
+          doc {
+            meterType {
+              type
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": [
+          {
+            "asset": {
+              "meterType": {
+                "type": "MeterType: TWV0ZXJUeXBlOjE="
+              }
+            }
+          },
+          {
+            "asset": {
+              "meterType": {
+                "type": "MeterType: TWV0ZXJUeXBlOjE="
+              }
+            }
+          },
+          {
+            "doc": {
+              "meterType": null
+            }
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "search",
+            2,
+            "doc",
+            "meterType"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        search: [CandidateResult!]!
+          @returns(types: ["ExistingResult", "ExistingResult", "OtherResult"])
+        meterTypeById(id: Int!): MeterType @lookup @internal
+      }
+
+      type Asset @key(fields: "dbId") {
+        dbId: Int!
+      }
+
+      type Doc @key(fields: "id") {
+        id: Int!
+      }
+
+      type ExistingResult {
+        asset: Asset
+      }
+
+      type ExistingResult2 {
+        asset: Asset
+      }
+
+      type MeterType @key(fields: "id") {
+        id: Int!
+        type: String!
+      }
+
+      type OtherResult {
+        doc: Doc
+      }
+
+      union CandidateResult = ExistingResult | ExistingResult2 | OtherResult
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8e0a9b3a_1 {
+              search {
+                __typename
+                ... on ExistingResult {
+                  asset {
+                    dbId
+                  }
+                }
+                ... on ExistingResult2 {
+                  asset {
+                    dbId
+                  }
+                }
+                ... on OtherResult {
+                  doc {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "search": [
+                    {
+                      "__typename": "ExistingResult",
+                      "asset": {
+                        "dbId": 123
+                      }
+                    },
+                    {
+                      "__typename": "ExistingResult",
+                      "asset": {
+                        "dbId": 123
+                      }
+                    },
+                    {
+                      "__typename": "OtherResult",
+                      "doc": {
+                        "id": 123
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8e0a9b3a_3($__fusion_2_id: Int!) {
+              meterTypeById(id: $__fusion_2_id) {
+                type
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "meterTypeById": {
+                    "type": "MeterType: TWV0ZXJUeXBlOjE="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        assetByDbId(dbId: Int!): Asset @lookup @internal
+      }
+
+      type Asset @key(fields: "dbId") {
+        dbId: Int!
+        statusMessage: String
+        meterType: MeterType
+      }
+
+      type MeterType @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_8e0a9b3a_6($__fusion_5_dbId: Int!) {
+              assetByDbId(dbId: $__fusion_5_dbId) {
+                meterType {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_5_dbId": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "assetByDbId": {
+                    "meterType": {
+                      "id": 123
+                    }
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        docById(id: Int!): Doc @lookup @internal
+      }
+
+      type Doc @key(fields: "id") {
+        id: Int!
+        meterType: MeterType
+      }
+
+      type MeterType @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8e0a9b3a_2($__fusion_1_id: Int!) {
+              docById(id: $__fusion_1_id) {
+                meterType {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 123
+            }
+        response:
+          statusCode: 500
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          search {
+            __typename @fusion__requirement
+            ... on ExistingResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                dbId @fusion__requirement
+              }
+            }
+            ... on ExistingResult2 {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                statusMessage
+                dbId @fusion__requirement
+              }
+            }
+            ... on OtherResult {
+              doc {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 8e0a9b3ab081c53a84223f18aef33f22
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_8e0a9b3a_1 {
+          search {
+            __typename
+            ... on ExistingResult {
+              asset {
+                dbId
+              }
+            }
+            ... on ExistingResult2 {
+              asset {
+                dbId
+              }
+            }
+            ... on OtherResult {
+              doc {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_8e0a9b3a_2($__fusion_1_id: Int!) {
+          docById(id: $__fusion_1_id) {
+            meterType {
+              id
+            }
+          }
+        }
+      source: $.docById
+      target: $.search<OtherResult>.doc
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_8e0a9b3a_4($__fusion_3_dbId: Int!) {
+          assetByDbId(dbId: $__fusion_3_dbId) {
+            meterType {
+              id
+            }
+            statusMessage
+          }
+        }
+      source: $.assetByDbId
+      target: $.search<ExistingResult2>.asset
+      batchingGroupId: 8
+      requirements:
+        - name: __fusion_3_dbId
+          selectionMap: >-
+            dbId
+      dependencies:
+        - id: 1
+    - id: 6
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_8e0a9b3a_6($__fusion_5_dbId: Int!) {
+          assetByDbId(dbId: $__fusion_5_dbId) {
+            meterType {
+              id
+            }
+          }
+        }
+      source: $.assetByDbId
+      target: $.search<ExistingResult>.asset
+      batchingGroupId: 8
+      requirements:
+        - name: __fusion_5_dbId
+          selectionMap: >-
+            dbId
+      dependencies:
+        - id: 1
+    - id: 3
+      type: OperationBatch
+      schema: A
+      operation: |
+        query testQuery_8e0a9b3a_3($__fusion_2_id: Int!) {
+          meterTypeById(id: $__fusion_2_id) {
+            type
+          }
+        }
+      source: $.meterTypeById
+      targets:
+        - $.search<OtherResult>.doc.meterType
+        - $.search<ExistingResult2>.asset.meterType
+        - $.search<ExistingResult>.asset.meterType
+      batchingGroupId: 9
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+        - id: 4
+        - id: 6

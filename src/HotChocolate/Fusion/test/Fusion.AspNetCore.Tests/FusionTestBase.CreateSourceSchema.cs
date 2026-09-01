@@ -24,8 +24,9 @@ public abstract partial class FusionTestBase
         HttpClient? httpClient = null,
         bool isOffline = false,
         bool isTimingOut = false,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -62,6 +63,7 @@ public abstract partial class FusionTestBase
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
+                    opt.SubscriptionReadTimeout = subscriptionReadTimeout;
                 });
             },
             configureApplication);
@@ -74,8 +76,9 @@ public abstract partial class FusionTestBase
         bool isTimingOut = false,
         Action<HttpClient>? configureHttpClient = null,
         HttpClient? httpClient = null,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -106,6 +109,7 @@ public abstract partial class FusionTestBase
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
+                    opt.SubscriptionReadTimeout = subscriptionReadTimeout;
                 });
             },
             app =>

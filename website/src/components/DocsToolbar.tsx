@@ -5,33 +5,47 @@ import { MenuLinesIcon } from "@/src/icons/MenuLines";
 import { SIDEBAR_OPEN_EVENT } from "./SidebarDrawer";
 import { TOC_OPEN_EVENT } from "./TocDrawer";
 
+interface DocsToolbarProps {
+  readonly menuLabel?: string;
+  readonly menuPillLabel?: string;
+}
+
 export function DocsToolbar({
   menuLabel = "Open documentation menu",
   menuPillLabel = "Menu",
-}: {
-  menuLabel?: string;
-  menuPillLabel?: string;
-} = {}) {
+}: DocsToolbarProps) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-18 z-20 flex items-start justify-between px-4 py-3 2xl:hidden print:hidden">
+    <div className="pointer-events-none fixed inset-x-0 top-18 z-20 flex items-start justify-between px-4 py-3 print:hidden">
       <PillButton
         ariaLabel={menuLabel}
         event={SIDEBAR_OPEN_EVENT}
         label={menuPillLabel}
-        className="lg:invisible"
+        className="lg:invisible 2xl:hidden"
       >
         <MenuLinesIcon className="h-3.5 w-3.5" aria-hidden="true" />
       </PillButton>
-      <PillButton
-        ariaLabel="Open table of contents"
-        event={TOC_OPEN_EVENT}
-        label="On this page"
-        iconPosition="right"
-      >
-        <ListBulletsIcon className="h-3.5 w-3.5" aria-hidden="true" />
-      </PillButton>
+      <div className="pointer-events-auto flex items-center gap-2">
+        <PillButton
+          ariaLabel="Open table of contents"
+          event={TOC_OPEN_EVENT}
+          label="On this page"
+          iconPosition="right"
+          className="2xl:hidden"
+        >
+          <ListBulletsIcon className="h-3.5 w-3.5" aria-hidden="true" />
+        </PillButton>
+      </div>
     </div>
   );
+}
+
+interface PillButtonProps {
+  readonly ariaLabel: string;
+  readonly event: string;
+  readonly label: string;
+  readonly children: React.ReactNode;
+  readonly iconPosition?: "left" | "right";
+  readonly className?: string;
 }
 
 function PillButton({
@@ -41,14 +55,7 @@ function PillButton({
   children,
   iconPosition = "left",
   className = "",
-}: {
-  ariaLabel: string;
-  event: string;
-  label: string;
-  children: React.ReactNode;
-  iconPosition?: "left" | "right";
-  className?: string;
-}) {
+}: PillButtonProps) {
   return (
     <button
       type="button"

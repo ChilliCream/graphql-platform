@@ -115,100 +115,13 @@ nodes:
           id
     dependencies:
       - id: 1
-  - id: 3
-    type: Operation
-    schema: e
-    operation: |
-      query findMe_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          weight
-          pictureFileName
-          price
-          dimension {
-            length
-            width
-            height
-          }
-        }
-      }
-    source: $.productById
-    target: $.users.nodes.reviews.nodes.product
-    batchingGroupId: 3
-    requirements:
-      - name: __fusion_2_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
-  - id: 8
-    type: Operation
-    schema: e
-    operation: |
-      query findMe_123456789101112_8($__fusion_8_id: ID!) {
-        productById(id: $__fusion_8_id) {
-          weight
-        }
-      }
-    source: $.productById
-    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
-    batchingGroupId: 3
-    requirements:
-      - name: __fusion_8_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
-  - id: 4
-    type: Operation
-    schema: b
-    operation: |
-      query findMe_123456789101112_4($__fusion_3_id: ID!) {
-        productByIdAsync(id: $__fusion_3_id) {
-          quantity
-        }
-      }
-    source: $.productByIdAsync
-    target: $.users.nodes.reviews.nodes.product
-    batchingGroupId: 4
-    requirements:
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
-    conditions:
-      - variable: $skip
-        passingValue: false
-    dependencies:
-      - id: 2
-  - id: 7
-    type: Operation
-    schema: b
-    operation: |
-      query findMe_123456789101112_7($__fusion_7_id: ID!) {
-        productByIdAsync(id: $__fusion_7_id) {
-          item {
-            quantity
-            product {
-              id
-            }
-          }
-        }
-      }
-    source: $.productByIdAsync
-    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
-    batchingGroupId: 4
-    requirements:
-      - name: __fusion_7_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
   - id: 5
     type: Operation
     schema: g
     operation: |
       query findMe_123456789101112_5(
         $__fusion_4_id: ID!
-          $__fusion_5_dimension: ProductDimensionInput!
+        $__fusion_5_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_4_id) {
           deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension)
@@ -230,7 +143,7 @@ nodes:
           }
     dependencies:
       - id: 2
-      - id: 3
+      - id: 10
   - id: 6
     type: Operation
     schema: a
@@ -264,4 +177,91 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 4
+      - id: 11
+  - id: 3
+    type: Operation
+    schema: e
+    operation: |
+      query findMe_123456789101112_3($__fusion_2_id: ID!) {
+        productById(id: $__fusion_2_id) {
+          weight
+          pictureFileName
+          price
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product
+    batchingGroupId: 10
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 8
+    type: Operation
+    schema: e
+    operation: |
+      query findMe_123456789101112_8($__fusion_8_id: ID!) {
+        productById(id: $__fusion_8_id) {
+          weight
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
+    batchingGroupId: 10
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query findMe_123456789101112_4($__fusion_3_id: ID!) {
+        productByIdAsync(id: $__fusion_3_id) {
+          quantity
+        }
+      }
+    source: $.productByIdAsync
+    target: $.users.nodes.reviews.nodes.product
+    batchingGroupId: 11
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $skip
+        passingValue: false
+    dependencies:
+      - id: 2
+  - id: 7
+    type: Operation
+    schema: b
+    operation: |
+      query findMe_123456789101112_7($__fusion_7_id: ID!) {
+        productByIdAsync(id: $__fusion_7_id) {
+          item {
+            quantity
+            product {
+              id
+            }
+          }
+        }
+      }
+    source: $.productByIdAsync
+    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
+    batchingGroupId: 11
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

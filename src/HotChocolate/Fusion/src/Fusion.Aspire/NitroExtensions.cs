@@ -18,6 +18,7 @@ public static class NitroExtensions
     /// </summary>
     /// <param name="builder">The distributed application builder.</param>
     /// <returns>The Nitro resource builder.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroResource> AddNitro(
         this IDistributedApplicationBuilder builder)
         => AddNitroCore(builder, portalUrl: null, configureSeedUpdates: null);
@@ -31,6 +32,7 @@ public static class NitroExtensions
     /// API URL.
     /// </param>
     /// <returns>The Nitro resource builder.</returns>
+    [AspireExportIgnore(Reason = "Set the portal URL with WithNitroPortalUrl.")]
     public static IResourceBuilder<NitroResource> AddNitro(
         this IDistributedApplicationBuilder builder,
         Uri? portalUrl)
@@ -48,6 +50,7 @@ public static class NitroExtensions
     /// Configures background stage-change subscriptions and automatic adoption.
     /// </param>
     /// <returns>The Nitro resource builder.</returns>
+    [AspireExportIgnore(Reason = "Seed updates are configured with a callback.")]
     public static IResourceBuilder<NitroResource> AddNitro(
         this IDistributedApplicationBuilder builder,
         Uri? portalUrl,
@@ -108,6 +111,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro resource builder.</param>
     /// <param name="name">The declarative name of the API.</param>
     /// <returns>The Nitro API resource builder.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroApiResource> AddApi(
         this IResourceBuilder<NitroResource> builder,
         string name)
@@ -140,6 +144,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro API resource builder.</param>
     /// <param name="apiId">The ID reported by the Nitro dashboard and CLI.</param>
     /// <returns>The Nitro API resource builder for chaining.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroApiResource> WithNitroApiId(
         this IResourceBuilder<NitroApiResource> builder,
         string apiId)
@@ -157,6 +162,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro API resource builder.</param>
     /// <param name="stageName">The Nitro stage name.</param>
     /// <returns>The Nitro stage resource builder.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroStageResource> AddStage(
         this IResourceBuilder<NitroApiResource> builder,
         string stageName)
@@ -191,6 +197,9 @@ public static class NitroExtensions
     /// <param name="builder">The gateway resource builder.</param>
     /// <param name="stage">The Nitro stage resource builder.</param>
     /// <returns>The gateway resource builder for chaining.</returns>
+    [AspireExport(
+        "withNitroCompositionBaseStage",
+        MethodName = "withNitroCompositionBase")]
     public static IResourceBuilder<T> WithNitroCompositionBase<T>(
         this IResourceBuilder<T> builder,
         IResourceBuilder<NitroStageResource> stage)
@@ -225,6 +234,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro resource builder.</param>
     /// <param name="cloudUrl">An absolute HTTPS origin.</param>
     /// <returns>The Nitro resource builder for chaining.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroResource> WithNitroCloudUrl(
         this IResourceBuilder<NitroResource> builder,
         string cloudUrl)
@@ -240,6 +250,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro resource builder.</param>
     /// <param name="apiKey">A parameter declared as a secret.</param>
     /// <returns>The Nitro resource builder for chaining.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroResource> WithNitroApiKey(
         this IResourceBuilder<NitroResource> builder,
         IResourceBuilder<ParameterResource> apiKey)
@@ -264,6 +275,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro resource builder.</param>
     /// <param name="portalUrl">The absolute Nitro portal URL.</param>
     /// <returns>The Nitro resource builder for chaining.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroResource> WithNitroPortalUrl(
         this IResourceBuilder<NitroResource> builder,
         Uri portalUrl)
@@ -280,6 +292,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro stage resource builder.</param>
     /// <param name="waitForApproval">Whether publication waits for approval.</param>
     /// <returns>The Nitro stage resource builder for chaining.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroStageResource> WithApproval(
         this IResourceBuilder<NitroStageResource> builder,
         bool waitForApproval)
@@ -295,6 +308,7 @@ public static class NitroExtensions
     /// <param name="builder">The Nitro stage resource builder.</param>
     /// <param name="force">Whether validation failures may be forced.</param>
     /// <returns>The Nitro stage resource builder for chaining.</returns>
+    [AspireExport]
     public static IResourceBuilder<NitroStageResource> WithForcePublish(
         this IResourceBuilder<NitroStageResource> builder,
         bool force)

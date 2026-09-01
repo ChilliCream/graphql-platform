@@ -86,6 +86,107 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void TryGetObjectContext_Should_ReturnFalse_When_TargetIsUndefined()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { id name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var productBySlug = document.Data.GetProperty("productBySlug");
+
+        // act
+        var initialized = productBySlug.TryGetObjectContext(out _);
+
+        // assert
+        Assert.False(initialized);
+    }
+
+    [Fact]
+    public void TryGetObjectContext_Should_ReturnContext_When_TargetIsObject()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { id name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var productBySlug = document.Data.GetProperty("productBySlug");
+        var selectionSet = plan.Operation.GetSelectionSet(productBySlug.AssertSelection());
+        productBySlug.SetObjectValue(selectionSet);
+
+        // act
+        var initialized = productBySlug.TryGetObjectContext(out var objectContext);
+
+        // assert
+        Assert.True(initialized);
+        Assert.Same(selectionSet, objectContext.SelectionSet);
+        Assert.True(objectContext.TryGetProperty("id"u8, out var id, out var idSelection));
+        Assert.Equal(productBySlug.GetProperty("id").Cursor, id.Cursor);
+        Assert.Same(productBySlug.GetProperty("id").AssertSelection(), idSelection);
+    }
+
+    [Fact]
+    public void TryGetObjectContext_Should_ThrowLikeGetObjectContext_When_TargetIsNeitherUndefinedNorObject()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { id name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var productBySlug = document.Data.GetProperty("productBySlug");
+        productBySlug.SetNullValue();
+
+        // act
+        var fusedError = Record.Exception(() => productBySlug.TryGetObjectContext(out _));
+        var directError = Record.Exception(() => productBySlug.GetObjectContext());
+
+        // assert
+        Assert.IsType<ArgumentOutOfRangeException>(fusedError);
+        Assert.IsType<ArgumentOutOfRangeException>(directError);
+        Assert.Equal(directError.Message, fusedError.Message);
+    }
+
+    [Fact]
+    public void TryGetObjectContext_Should_ReturnUpgradedContext_When_TargetWasUpgraded()
+    {
+        // arrange
+        // Two aliases of the same field compile to two distinct selection sets that both
+        // select the id field, mirroring the shape of an @interfaceObject upgrade.
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                first: productBySlug(slug: "1") { id name }
+                second: productBySlug(slug: "2") { id }
+            }
+            """);
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = document.Data.Operation;
+
+        var first = document.Data.GetProperty("first");
+        var firstSelectionSet = operation.GetSelectionSet(first.AssertSelection());
+        var secondSelectionSet = operation.GetSelectionSet(
+            document.Data.GetProperty("second").AssertSelection());
+        first.SetObjectValue(firstSelectionSet);
+
+        var payload = """{"id":1}"""u8.ToArray();
+        var source = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            payload,
+            payload.Length);
+        first.GetProperty("id").SetLeafValue(source.Root.GetProperty("id"));
+
+        // act
+        document.UpgradeObject(first, secondSelectionSet);
+        var initialized = first.TryGetObjectContext(out var objectContext);
+
+        // assert
+        Assert.True(initialized);
+        Assert.Same(secondSelectionSet, objectContext.SelectionSet);
+        Assert.True(objectContext.TryGetProperty("id"u8, out var id, out _));
+        Assert.Equal(JsonValueKind.Number, id.ValueKind);
+        Assert.Equal(first.GetProperty("id").Cursor, id.Cursor);
+    }
+
+    [Fact]
     public void Add_SourceResult_Leaf_Value()
     {
         // arrange
@@ -938,7 +1039,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
 
         // act
         // The first document builds the operation-shared template while the deferred selection

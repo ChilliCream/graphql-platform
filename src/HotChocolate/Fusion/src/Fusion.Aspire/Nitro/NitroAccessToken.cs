@@ -5,13 +5,70 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 internal static class NitroAccessToken
 {
     private const string ApiUrlClaim = "api_url";
+    private const string AudienceClaim = "aud";
 
     public static bool TryGetApiUrl(string accessToken, out string? apiUrl)
     {
         ArgumentNullException.ThrowIfNull(accessToken);
 
         apiUrl = null;
-        var firstSeparator = accessToken.IndexOf('.');
+        if (!TryReadPayload(accessToken, out var document))
+        {
+            return false;
+        }
+
+        using (document)
+        {
+            if (!document.RootElement.TryGetProperty(ApiUrlClaim, out var claim)
+                || claim.ValueKind is not JsonValueKind.String)
+            {
+                return false;
+            }
+
+            apiUrl = claim.GetString();
+            return !string.IsNullOrWhiteSpace(apiUrl);
+        }
+    }
+
+    public static bool TryGetAudience(string identityToken, out string? audience)
+    {
+        ArgumentNullException.ThrowIfNull(identityToken);
+
+        audience = null;
+        if (!TryReadPayload(identityToken, out var document))
+        {
+            return false;
+        }
+
+        using (document)
+        {
+            if (!document.RootElement.TryGetProperty(AudienceClaim, out var claim))
+            {
+                return false;
+            }
+
+            if (claim.ValueKind is JsonValueKind.String)
+            {
+                audience = claim.GetString();
+                return !string.IsNullOrWhiteSpace(audience);
+            }
+
+            if (claim.ValueKind is JsonValueKind.Array
+                && claim.GetArrayLength() is 1
+                && claim[0].ValueKind is JsonValueKind.String)
+            {
+                audience = claim[0].GetString();
+                return !string.IsNullOrWhiteSpace(audience);
+            }
+
+            return false;
+        }
+    }
+
+    private static bool TryReadPayload(string token, out JsonDocument document)
+    {
+        document = null!;
+        var firstSeparator = token.IndexOf('.');
 
         if (firstSeparator < 0)
         {
@@ -19,14 +76,14 @@ internal static class NitroAccessToken
         }
 
         var payloadStart = firstSeparator + 1;
-        var secondSeparator = accessToken.IndexOf('.', payloadStart);
+        var secondSeparator = token.IndexOf('.', payloadStart);
 
         if (secondSeparator <= payloadStart)
         {
             return false;
         }
 
-        var payload = accessToken.AsSpan(payloadStart, secondSeparator - payloadStart);
+        var payload = token.AsSpan(payloadStart, secondSeparator - payloadStart);
         var padding = (4 - payload.Length % 4) % 4;
         Span<char> base64 = payload.Length + padding <= 1024
             ? stackalloc char[payload.Length + padding]
@@ -56,17 +113,15 @@ internal static class NitroAccessToken
 
         try
         {
-            using var document = JsonDocument.Parse(decoded[..bytesWritten].ToArray());
-
-            if (document.RootElement.ValueKind is not JsonValueKind.Object
-                || !document.RootElement.TryGetProperty(ApiUrlClaim, out var claim)
-                || claim.ValueKind is not JsonValueKind.String)
+            document = JsonDocument.Parse(decoded[..bytesWritten].ToArray());
+            if (document.RootElement.ValueKind is not JsonValueKind.Object)
             {
+                document.Dispose();
+                document = null!;
                 return false;
             }
 
-            apiUrl = claim.GetString();
-            return !string.IsNullOrWhiteSpace(apiUrl);
+            return true;
         }
         catch (JsonException)
         {

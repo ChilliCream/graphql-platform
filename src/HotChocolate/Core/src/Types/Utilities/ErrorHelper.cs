@@ -247,6 +247,19 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.InputObject, rfc: 805)
             .Build();
 
+    public static ISchemaError InvalidObjectDeprecation(
+        IOutputFieldDefinition field,
+        IObjectTypeDefinition objectType)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_InvalidObjectDeprecation,
+                field.Coordinate.ToString(),
+                objectType.Name)
+            .SetType(field.DeclaringType)
+            .SetField(field)
+            .SetSpecifiedBy(field.DeclaringType.Kind, rfc: 997)
+            .Build();
+
     public static ISchemaError IncompatibleDefaultValueType(
         IInputValueDefinition root,
         IReadOnlyList<object> path,

@@ -120,13 +120,15 @@ internal sealed class NitroSeedCoordinator
         // timeout, so the client that carries it is bounded by the validator instead.
         var streamingHttpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         var connectionResolver = new NitroConnectionResolver(
-            new NitroSessionReader(
-                NitroDefaults.GetSessionFilePath(),
-                NitroDefaults.SessionRereadDelay),
+            new NitroSessionManager(
+                new NitroSessionReader(
+                    NitroDefaults.GetSessionFilePath(),
+                    NitroDefaults.SessionRereadDelay),
+                new NitroTokenRefreshClient(httpClient),
+                timeProvider,
+                NitroDefaults.AccessTokenExpiryGrace),
             environment,
-            defaultApiUrl,
-            timeProvider,
-            NitroDefaults.AccessTokenExpiryGrace);
+            defaultApiUrl);
         var seedProvider = new NitroSeedProvider(
             new NitroFusionConfigurationDownloader(
                 httpClient,

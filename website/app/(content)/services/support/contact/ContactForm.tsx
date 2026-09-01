@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { SolidButton } from "@/src/design-system/Button";
 import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { Input } from "@/src/design-system/Input";
 import { TextArea } from "@/src/design-system/TextArea";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 const SUBJECTS = [
   "Schedule a Demo",
@@ -13,6 +15,18 @@ const SUBJECTS = [
   "Technical Support",
   "Partnership",
   "Other",
+];
+
+const REQUEST_CONTEXTS = [
+  "GraphQL Services",
+  "Private Nitro Deployment",
+  "GraphQL Support",
+  "Startup Support",
+  "Business Support",
+  "Enterprise Support",
+  "GraphQL Advisory",
+  "Dedicated Nitro Deployment",
+  "Self-Hosted Nitro",
 ];
 
 const SUBMIT_ENDPOINT = "https://forms.chillicream.com/api/SupportForm";
@@ -45,12 +59,30 @@ function resolveSubject(subject: string | null): string {
   return match ?? SUBJECTS[0];
 }
 
+function resolveRequestContext(context: string | null): string {
+  if (!context) {
+    return "";
+  }
+
+  const match = REQUEST_CONTEXTS.find(
+    (candidate) => candidate.toLowerCase() === context.trim().toLowerCase(),
+  );
+
+  return match ?? "";
+}
+
 const subscribe = () => () => {};
 const getSubjectFromUrl = () =>
   resolveSubject(new URLSearchParams(window.location.search).get("subject"));
 const getServerSubject = () => "";
+const getRequestContextFromUrl = () =>
+  resolveRequestContext(
+    new URLSearchParams(window.location.search).get("context"),
+  );
+const getServerRequestContext = () => "";
 
 export function ContactForm() {
+  const router = useRouter();
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +94,11 @@ export function ContactForm() {
   );
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const subject = selectedSubject ?? urlSubject;
+  const requestContext = useSyncExternalStore(
+    subscribe,
+    getRequestContextFromUrl,
+    getServerRequestContext,
+  );
 
   function update<K extends keyof FormData>(field: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -107,7 +144,9 @@ export function ContactForm() {
           Email: data.email,
           Company: data.company,
           SupportPlan: subject,
-          Message: data.message,
+          Message: requestContext
+            ? `Request: ${requestContext}\n\n${data.message}`
+            : data.message,
         }),
       });
 
@@ -115,15 +154,30 @@ export function ContactForm() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      window.gtag?.("event", "contact_form_submit", {
-        event_label: subject,
+      let redirected = false;
+      const showThankYou = () => {
+        if (!redirected) {
+          redirected = true;
+          router.push(THANK_YOU_PATH);
+        }
+      };
+
+      const queued = sendAnalyticsEvent("generate_lead", {
+        lead_source: "support_contact_form",
+        lead_subject: subject,
+        ...(requestContext ? { lead_context: requestContext } : {}),
         page_path: window.location.pathname,
+        event_callback: showThankYou,
+        event_timeout: 1000,
       });
 
-      window.location.href = THANK_YOU_PATH;
+      if (queued) {
+        window.setTimeout(showThankYou, 1100);
+      } else {
+        showThankYou();
+      }
     } catch {
       alert("There was an error submitting your request. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -186,13 +240,13 @@ export function ContactForm() {
         label="Message"
         name="message"
         rows={5}
-        placeholder="What are you building?"
+        placeholder="What are you building, what do you need, and what is your timeline?"
         value={data.message}
         disabled={isSubmitting}
         onChange={(e) => update("message", e.target.value)}
       />
       <SolidButton type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Sending..." : "Talk to us"}
+        {isSubmitting ? "Sending..." : "Send request"}
       </SolidButton>
     </form>
   );

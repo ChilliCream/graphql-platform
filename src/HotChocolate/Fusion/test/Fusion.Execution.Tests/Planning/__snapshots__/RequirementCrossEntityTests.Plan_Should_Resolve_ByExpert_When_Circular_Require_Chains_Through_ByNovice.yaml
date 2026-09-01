@@ -44,7 +44,7 @@ nodes:
           id
     dependencies:
       - id: 4
-      - id: 6
+      - id: 8
   - id: 4
     type: Operation
     schema: b
@@ -85,7 +85,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 6
+      - id: 8
   - id: 6
     type: Operation
     schema: b
@@ -99,7 +99,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 6
+    batchingGroupId: 8
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -117,7 +117,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 6
+    batchingGroupId: 8
     requirements:
       - name: __fusion_8_id
         selectionMap: >-

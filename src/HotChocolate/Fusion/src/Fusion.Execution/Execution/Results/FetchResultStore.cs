@@ -54,6 +54,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private ErrorHandlingMode _errorHandlingMode;
     private ulong _includeFlags;
     private ulong _deferFlags;
+    private ulong[]? _wideIncludeFlags;
+    private ulong[]? _wideDeferFlags;
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
@@ -161,7 +163,8 @@ internal sealed partial class FetchResultStore : IDisposable
                     rootErrors.AddRange(rootErrorsFromResult);
                 }
 
-                dataElementsSpan[i] = GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, result.Data);
+                dataElementsSpan[i] =
+                    GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, result);
                 errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
             }
 
@@ -295,7 +298,8 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             for (var i = 0; i < results.Length; i++)
             {
-                dataElementsSpan[i] = GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, results[i].Data);
+                dataElementsSpan[i] =
+                    GetDataElement(sourcePath, utf8FieldNames, utf8FieldNameEnds, results[i]);
             }
 
             lock (_lock)
@@ -394,7 +398,7 @@ internal sealed partial class FetchResultStore : IDisposable
         ResultSelectionSet resultSelectionSet)
     {
         var errors = result.Errors;
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
         var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
         lock (_lock)
@@ -429,7 +433,7 @@ internal sealed partial class FetchResultStore : IDisposable
         SourceSchemaResult result,
         ResultSelectionSet resultSelectionSet)
     {
-        var dataElement = GetDataElement(sourcePath, result.Data);
+        var dataElement = GetDataElement(sourcePath, result);
 
         lock (_lock)
         {
@@ -2033,16 +2037,15 @@ AddErrors_Next:
         return buffer;
     }
 
-    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceResultElement data)
+    private SourceResultElement GetDataElement(SelectionPath sourcePath, SourceSchemaResult result)
     {
-        if (sourcePath.IsRoot)
-        {
-            return data;
-        }
+        // A source schema client can resolve the root field of a response while it reads it. The
+        // element it hands over with the result stands in for the first segment of the source
+        // path, so the walk continues after that segment.
+        var lookupData = result.LookupData;
+        var current = lookupData ?? result.Data;
 
-        var current = data;
-
-        for (var i = 0; i < sourcePath.Length; i++)
+        for (var i = lookupData is null ? 0 : 1; i < sourcePath.Length; i++)
         {
             if (current.ValueKind != JsonValueKind.Object)
             {
@@ -2081,7 +2084,7 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Same as <see cref="GetDataElement(SelectionPath, SourceResultElement)"/>, but uses
+    /// Same as <see cref="GetDataElement(SelectionPath, SourceSchemaResult)"/>, but uses
     /// pre-encoded segment names so a batch merge encodes the path once and every result
     /// reuses it.
     /// </summary>
@@ -2089,17 +2092,16 @@ AddErrors_Next:
         SelectionPath sourcePath,
         ReadOnlySpan<byte> utf8FieldNames,
         ReadOnlySpan<int> utf8FieldNameEnds,
-        SourceResultElement data)
+        SourceSchemaResult result)
     {
-        if (sourcePath.IsRoot)
-        {
-            return data;
-        }
+        var lookupData = result.LookupData;
+        var current = lookupData ?? result.Data;
+        var firstSegment = lookupData is null ? 0 : 1;
+        var start = firstSegment > 0 && sourcePath.Length > 0
+            ? utf8FieldNameEnds[firstSegment - 1]
+            : 0;
 
-        var current = data;
-        var start = 0;
-
-        for (var i = 0; i < sourcePath.Length; i++)
+        for (var i = firstSegment; i < sourcePath.Length; i++)
         {
             if (current.ValueKind != JsonValueKind.Object)
             {

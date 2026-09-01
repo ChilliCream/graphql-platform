@@ -64,7 +64,16 @@ type Query {
   formatAnimalKinds(kinds: AnimalKind!): String!
   formatNullableAnimalKinds(kinds: AnimalKind): String!
   formatAnimalKindList(kinds: [AnimalKind]!): String!
+  serviceKeyedValue: String @cost(weight: "10")
+  derivedServiceKeyedValue: String @cost(weight: "10")
+  enumKeyedValue: String @cost(weight: "10")
+  optionalKeyedValue: String @cost(weight: "10")
+  originalScopeKeyedValue: String @cost(weight: "10")
+  handWrittenKeyedValue: String @cost(weight: "10")
+  resolverEnumKeyedValue: String!
+  escapedResolverKeyedValue: String!
   isSelectedTest: IsSelectedNode!
+  isSelectedPatternTest: IsSelectedNode!
   """
   Gets the product.
   
@@ -153,6 +162,7 @@ type Query {
   listNullableElementArgumentRef(items: [String]!): String!
   nullableListNullableElementArgumentRef(items: [String]): String!
   shapes: [Shape!]!
+  configuredLocalState(state: ConfiguredLocalStateInput!): String!
   issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
 }
 
@@ -426,6 +436,10 @@ interface Node {
 interface Product {
   kind: String!
   id: String!
+}
+
+input ConfiguredLocalStateInput {
+  value: String!
 }
 
 input CurrentUserInput {

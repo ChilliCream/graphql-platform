@@ -129,7 +129,7 @@ public sealed partial class OperationPlanner
                 // Path and IfVariable populated). The rewriter consumes the
                 // same instances so its per-set grouping and the compiler's
                 // later Selection._deliveryGroups entries share object identity.
-                var deferConditions = new DeferConditionCollection();
+                var deferConditions = new DeferConditionCollection(_operationCompiler.MaxAllowedDeferConditions);
                 partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
                 var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
@@ -253,16 +253,45 @@ public sealed partial class OperationPlanner
                 // the execution tree builder consume below.
                 planSteps = deferContextGraph.RootSteps;
                 internalOperationDefinition = deferContextGraph.RootInternalOperation;
+
+                // A descriptor whose deferred output turned out to be fully redundant with
+                // data the enclosing scope already fetches is routed without producing an
+                // incremental plan (see TryAbsorbFullyRedundantDefer); its own delivery
+                // group(s) must not surface as a pending entry with nothing to complete it.
+                if (deferRoutingStates.Length < deferSplit.Value.IncrementalPlanDescriptors.Length)
+                {
+                    var usedDeliveryGroupIds = new HashSet<int>();
+                    foreach (var routingState in deferRoutingStates)
+                    {
+                        foreach (var group in routingState.Descriptor.DeliveryGroupSet)
+                        {
+                            usedDeliveryGroupIds.Add(group.Id);
+                        }
+                    }
+
+                    var filteredDeliveryGroups = ImmutableArray.CreateBuilder<DeliveryGroup>(
+                        usedDeliveryGroupIds.Count);
+                    foreach (var group in deliveryGroups)
+                    {
+                        if (usedDeliveryGroupIds.Contains(group.Id))
+                        {
+                            filteredDeliveryGroups.Add(group);
+                        }
+                    }
+
+                    deliveryGroups = filteredDeliveryGroups.ToImmutable();
+                }
             }
 
             // Use the latest root operation definition after deferred planning.
-            var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+            var operation = _operationCompiler.Compile(id, hash, shortHash, internalOperationDefinition);
 
             if (deferContextGraph is not null)
             {
                 incrementalPlans = BuildIncrementalPlans(
                     id,
                     hash,
+                    shortHash,
                     deferRoutingStates,
                     deferContextGraph,
                     cancellationToken);
@@ -276,6 +305,7 @@ public sealed partial class OperationPlanner
                 incrementalPlans,
                 searchSpace,
                 expandedNodes,
+                planSteps.NextId(),
                 cancellationToken);
 
             if (eventSourceEnabled)
@@ -1095,7 +1125,10 @@ public sealed partial class OperationPlanner
                     workItem.SelectionSet.Node,
                     current.EventStreamDirective!)
                 : null,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            // At a lookup entry root a sourceExternal field can only echo the key the lookup
+            // was entered with; root work items keep today's permissive behavior.
+            EntryKeyCoverage = lookup?.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -1326,7 +1359,11 @@ public sealed partial class OperationPlanner
                 SchemaName = schemaName,
                 SelectionSet = workItemSelectionSet with { Node = selectionSet },
                 SelectionSetIndex = index,
-                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
+                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null,
+                EntryKeyCoverage =
+                    step.Lookup is not null && workItemSelectionSet.Id == step.RootSelectionSetId
+                        ? step.Lookup.Requirements
+                        : null
             };
 
             var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
@@ -2080,7 +2117,8 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            EntryKeyCoverage = lookup.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -2947,7 +2985,13 @@ public sealed partial class OperationPlanner
                 selectionSetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                step.Lookup is not null && targetSelectionSetId == step.RootSelectionSetId
+                    ? step.Lookup.Requirements
+                    : null
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
@@ -3977,7 +4021,8 @@ public sealed partial class OperationPlanner
                         if (steps[s] is OperationPlanStep step
                             && step.SelectionSets.Contains(candidateSelectionSetId)
                             && step.Target.IsParentOfOrSame(targetPath)
-                            && !string.IsNullOrEmpty(step.SchemaName))
+                            && !string.IsNullOrEmpty(step.SchemaName)
+                            && IsConnectorChainResolvable(path, i, currentType, step.SchemaName))
                         {
                             var connectors = new List<AncestorConnector>(path.Count - i);
                             for (var j = i; j < path.Count; j++)
@@ -4068,6 +4113,61 @@ public sealed partial class OperationPlanner
         }
     }
 
+    /// <summary>
+    /// Determines whether the source schema <paramref name="schemaName"/> resolves every
+    /// connector of <paramref name="path"/> from <paramref name="startIndex"/> down to the
+    /// requirement target, whose type is <paramref name="targetType"/>.
+    /// </summary>
+    /// <remarks>
+    /// 1. When the planner wants to fold a requirement (like an entity key) into an already-planned fetch,
+    ///    it has to wrap that requirement in all the intermediate fields and fragments that lead down to it.
+    ///    This method checks that the chosen source schema actually declares every one of those intermediate steps.
+    /// 2. It walks the recorded path entry by entry: for each field connector,
+    ///    the field must exist on its declaring type in that specific schema (and not be @external);
+    ///    for each inline-fragment connector, the type condition must exist in that schema.
+    /// 3. If any link in the chain fails, the whole ancestor step is rejected,
+    ///    so the planner falls back to sourcing the requirement from a step that genuinely owns the path
+    ///    (instead of emitting a document the subgraph would reject).
+    /// </remarks>
+    private static bool IsConnectorChainResolvable(
+        List<(SelectionSetNode SelectionSet, ISelectionNode ConnectingNode, ITypeDefinition Type)> path,
+        int startIndex,
+        ITypeDefinition targetType,
+        string schemaName)
+    {
+        for (var i = startIndex; i < path.Count; i++)
+        {
+            switch (path[i].ConnectingNode)
+            {
+                case FieldNode fieldNode:
+                    if (path[i].Type is not FusionComplexTypeDefinition complexType
+                        || !complexType.Fields.TryGetField(
+                            fieldNode.Name.Value,
+                            allowInaccessibleFields: true,
+                            out var field)
+                        || !field.Sources.TryGetMember(schemaName, out var source)
+                        || source.IsExternal)
+                    {
+                        return false;
+                    }
+                    break;
+
+                case InlineFragmentNode { TypeCondition: not null }:
+                    // a connector's own type is the declaring type of the next connector,
+                    // and for the last connector it is the type of the requirement target.
+                    var typeCondition = i + 1 < path.Count ? path[i + 1].Type : targetType;
+
+                    if (!typeCondition.ExistsInSchema(schemaName))
+                    {
+                        return false;
+                    }
+                    break;
+            }
+        }
+
+        return true;
+    }
+
     private bool TryInlineIntoAncestorStep(
         AncestorStepMatch match,
         SelectionSetNode requirements,
@@ -4089,7 +4189,14 @@ public sealed partial class OperationPlanner
                 match.TargetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                match.Step.Lookup is not null
+                    && match.TargetSelectionSetId == match.Step.RootSelectionSetId
+                    ? match.Step.Lookup.Requirements
+                    : null
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);

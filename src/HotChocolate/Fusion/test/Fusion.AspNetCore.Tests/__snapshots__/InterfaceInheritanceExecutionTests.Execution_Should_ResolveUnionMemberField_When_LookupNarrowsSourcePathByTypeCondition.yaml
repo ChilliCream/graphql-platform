@@ -168,7 +168,7 @@ operationPlan:
         }
       source: $.searchResultById<Movie>
       target: $.search<Movie>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -189,7 +189,7 @@ operationPlan:
         }
       source: $.searchResultById<Book>
       target: $.search<Book>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

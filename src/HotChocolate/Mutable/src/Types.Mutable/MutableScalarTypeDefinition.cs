@@ -9,7 +9,8 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL scalar type definition.
 /// </summary>
-public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
+public class MutableScalarTypeDefinition
+    : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
     , IScalarTypeDefinition
     , IMutableTypeDefinition
 {

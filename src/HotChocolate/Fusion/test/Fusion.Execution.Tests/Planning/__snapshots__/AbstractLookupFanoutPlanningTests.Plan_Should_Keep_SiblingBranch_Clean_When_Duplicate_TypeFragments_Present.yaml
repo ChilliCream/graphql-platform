@@ -33,6 +33,26 @@ nodes:
           sku
         }
       }
+  - id: 4
+    type: Operation
+    schema: books
+    operation: |
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
+        bookById(id: $__fusion_3_id) {
+          title
+        }
+      }
+    source: $.bookById
+    target: $.products<Book><Book>
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $title
+        passingValue: false
+    dependencies:
+      - id: 5
   - id: 2
     type: Operation
     schema: r
@@ -46,7 +66,7 @@ nodes:
       }
     source: $.magazineById
     target: $.products<Magazine>
-    batchingGroupId: 2
+    batchingGroupId: 5
     requirements:
       - name: __fusion_1_id
         selectionMap: >-
@@ -69,30 +89,10 @@ nodes:
       }
     source: $.bookById
     target: $.products<Book>
-    batchingGroupId: 2
+    batchingGroupId: 5
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
           id
     dependencies:
       - id: 1
-  - id: 4
-    type: Operation
-    schema: books
-    operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        bookById(id: $__fusion_3_id) {
-          title
-        }
-      }
-    source: $.bookById
-    target: $.products<Book><Book>
-    requirements:
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
-    conditions:
-      - variable: $title
-        passingValue: false
-    dependencies:
-      - id: 2

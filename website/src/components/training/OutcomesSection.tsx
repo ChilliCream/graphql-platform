@@ -11,39 +11,38 @@ import { WrenchIcon } from "@/src/icons/WrenchIcon";
 const OUTCOMES = [
   {
     title: "Read a schema like a map",
-    copy: "Your team can navigate a large GraphQL schema, recognise the common shapes, and explain why a type is modelled the way it is.",
+    copy: "Navigate a large GraphQL schema, recognize the common shapes, and explain why a type is modeled the way it is.",
     Icon: MapIcon,
   },
   {
     title: "Write resolvers without surprises",
-    copy: "From simple fields to data loaders and pagination, with the patterns that scale instead of the snippets that bite later.",
+    copy: "Move from simple fields to data loaders and pagination with patterns that scale instead of snippets that bite later.",
     Icon: WrenchIcon,
   },
   {
     title: "Plan a client they can live with",
-    copy: "Fragments, variables, error handling, and a Relay or Apollo setup that the next person on the team can actually maintain.",
+    copy: "Use fragments, variables, and error handling to structure a Relay or Apollo client the next person on the team can maintain.",
     Icon: PlugIcon,
   },
   {
     title: "Diagnose the slow query",
-    copy: "Open a trace, read the plan, find the N+1, and know which knobs to turn in Hot Chocolate before reaching for hacks.",
+    copy: "Open a trace, read the plan, find the N+1, and know which Hot Chocolate patterns to reach for before turning to hacks.",
     Icon: GraphIcon,
   },
   {
     title: "Have an opinion on federation",
-    copy: "When to split a schema, when not to, and how Hot Chocolate Fusion fits with the platform they already run.",
+    copy: "Know when to split a schema, when not to, and how Hot Chocolate Fusion fits with the platform you already run.",
     Icon: BranchIcon,
   },
   {
     title: "Speak the same language",
-    copy: "Backend, frontend, and platform engineers leave with one shared vocabulary, so the next design review is faster and friendlier.",
+    copy: "Give backend, frontend, and platform engineers one shared vocabulary, so the next design review is faster and friendlier.",
     Icon: ChatIcon,
   },
 ];
 
 /**
- * The outcomes grid: the concrete things every team should walk away able to
- * do by the end of the week, regardless of where they started.
+ * The outcomes grid: practical skills the curriculum can develop for a team.
  */
 export function OutcomesSection() {
   return (
@@ -51,9 +50,9 @@ export function OutcomesSection() {
       <div className="mb-10">
         <SectionHeading
           align="center"
-          eyebrow="By the end of the week"
+          eyebrow="By the end of the training"
           title="What your team will actually know."
-          description="No certificate-printer outcomes. These are the things we expect every team to walk away able to do, regardless of where they started."
+          description="No certificate-printer outcomes. These are the things your team walks away able to do, wherever they started."
         />
       </div>
       <CardGrid cols={3} step="progressive" gap={4}>

@@ -1,11 +1,7 @@
 import type { ReactNode } from "react";
 
 export type AdmonitionKind =
-  | "note"
-  | "tip"
-  | "warning"
-  | "caution"
-  | "experimental";
+  "note" | "tip" | "warning" | "caution" | "experimental";
 
 const config: Record<
   AdmonitionKind,

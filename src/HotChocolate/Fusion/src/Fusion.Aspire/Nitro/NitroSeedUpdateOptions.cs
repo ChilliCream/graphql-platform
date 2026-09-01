@@ -1,14 +1,16 @@
+using Aspire.Hosting;
+
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
 /// Configures how Fusion Aspire follows changes to a Nitro stage during an AppHost run.
 /// </summary>
+[AspireDto]
 public sealed class NitroSeedUpdateOptions
 {
     /// <summary>
     /// Gets or sets whether Fusion Aspire subscribes to stage changes and downloads newer Fusion
-    /// configurations. Enabling this option adds background subscription, query, and download
-    /// traffic to the configured Nitro API. The default is <see langword="true"/>.
+    /// configurations. The default is <see langword="true"/>.
     /// </summary>
     public bool Enabled { get; set; } = true;
 

@@ -1,6 +1,8 @@
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire.Nitro;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotChocolate.Fusion.Aspire;
@@ -19,7 +21,8 @@ internal sealed record CompositionHarness(
     public static CompositionHarness Create(
         NitroSeedCoordinator? coordinator,
         INitroSchemaValidationNotifier? notifier = null,
-        INitroCompositionNotifier? compositionNotifier = null)
+        INitroCompositionNotifier? compositionNotifier = null,
+        bool waitForRunningState = false)
     {
         var logger = new RecordingLogger<SchemaComposition>();
         var lifetime = new TestHostApplicationLifetime();
@@ -44,19 +47,33 @@ internal sealed record CompositionHarness(
             lifetime,
             NullLoggerFactory.Instance,
             TimeProvider.System);
-        var composition = new SchemaComposition(
-            notifications,
-            resourceLoggerService,
-            lifetime,
-            coordinatorRegistry,
-            compositionNotifier
-                ?? notifier as INitroCompositionNotifier
-                ?? NoopCompositionNotifier.Instance,
-            validationCoordinator,
-            seedUpdateService,
-            new GatewayCompositionCommandCoordinator(),
-            EmptyServiceProvider.Instance,
-            logger);
+        var resolvedCompositionNotifier = compositionNotifier
+            ?? notifier as INitroCompositionNotifier
+            ?? NoopCompositionNotifier.Instance;
+        var commandCoordinator = new GatewayCompositionCommandCoordinator();
+        var composition = waitForRunningState
+            ? new ResourceStateSchemaComposition(
+                notifications,
+                resourceLoggerService,
+                lifetime,
+                coordinatorRegistry,
+                resolvedCompositionNotifier,
+                validationCoordinator,
+                seedUpdateService,
+                commandCoordinator,
+                EmptyServiceProvider.Instance,
+                logger)
+            : new SchemaComposition(
+                notifications,
+                resourceLoggerService,
+                lifetime,
+                coordinatorRegistry,
+                resolvedCompositionNotifier,
+                validationCoordinator,
+                seedUpdateService,
+                commandCoordinator,
+                EmptyServiceProvider.Instance,
+                logger);
 
         return new CompositionHarness(
             composition,
@@ -64,6 +81,58 @@ internal sealed record CompositionHarness(
             notifications,
             logger,
             lifetime);
+    }
+
+    /// <summary>
+    /// A <see cref="SchemaComposition"/> that treats a source schema resource as ready once it
+    /// reports that it runs. Aspire only fires the resource ready event that the health wait waits
+    /// for from its orchestrator, which a harness without an application host cannot run.
+    /// </summary>
+    private sealed class ResourceStateSchemaComposition : SchemaComposition
+    {
+        private readonly ResourceNotificationService _notifications;
+
+        public ResourceStateSchemaComposition(
+            ResourceNotificationService resourceNotificationService,
+            ResourceLoggerService resourceLoggerService,
+            IHostApplicationLifetime lifetime,
+            NitroSeedCoordinatorRegistry coordinatorRegistry,
+            INitroCompositionNotifier nitroCompositionNotifier,
+            NitroSchemaValidationCoordinator validationCoordinator,
+            NitroSeedUpdateService seedUpdateService,
+            GatewayCompositionCommandCoordinator commandCoordinator,
+            IServiceProvider services,
+            ILogger<SchemaComposition> logger)
+            : base(
+                resourceNotificationService,
+                resourceLoggerService,
+                lifetime,
+                coordinatorRegistry,
+                nitroCompositionNotifier,
+                validationCoordinator,
+                seedUpdateService,
+                commandCoordinator,
+                services,
+                logger)
+        {
+            _notifications = resourceNotificationService;
+        }
+
+        protected internal override async Task WaitForResourceHealthyAsync(
+            string resourceName,
+            CancellationToken cancellationToken)
+        {
+            var state = await _notifications.WaitForResourceAsync(
+                resourceName,
+                [KnownResourceStates.Running, .. KnownResourceStates.TerminalStates],
+                cancellationToken);
+
+            if (state != KnownResourceStates.Running)
+            {
+                throw new DistributedApplicationException(
+                    $"The resource '{resourceName}' reached the state '{state}'.");
+            }
+        }
     }
 
     private sealed class NoopSeedUpdateNotifier : INitroSeedUpdateNotifier

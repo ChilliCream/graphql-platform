@@ -596,6 +596,106 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                 Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
 
+    [Fact]
+    public Task Connection_Reject_With_Long_Message_Should_Close_Cleanly()
+        => TryTest(async ct =>
+        {
+            // arrange
+            // a rejection message longer than the 123 UTF-8 byte close-frame limit.
+            var longMessage = new string('a', 140);
+            var interceptor = new RejectInterceptor(longMessage);
+            using var testServer = CreateStarWarsServer(
+                configureServices: s => s
+                    .AddGraphQLServer()
+                    .AddSocketSessionInterceptor(_ => interceptor));
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // act
+            await webSocket.SendConnectionInitializeAsync(ct);
+
+            // assert
+            var error = await WaitForMessage(webSocket, "connection_error", ct);
+            Assert.NotNull(error);
+            Assert.Equal(
+                longMessage,
+                error.RootElement.GetProperty("payload").GetProperty("message").GetString());
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus.Value);
+        });
+
+    [Fact]
+    public Task Connection_Terminate_Should_Invoke_OnClose_Once()
+        => TryTest(async ct =>
+        {
+            // arrange
+            var interceptor = new OnCloseCountingInterceptor();
+            using var testServer = CreateStarWarsServer(
+                configureServices: s => s
+                    .AddGraphQLServer()
+                    .AddSocketSessionInterceptor(_ => interceptor));
+            var client = CreateWebSocketClient(testServer);
+            var webSocket = await ConnectToServerAsync(client, ct);
+
+            // act
+            await webSocket.SendTerminateConnectionAsync(ct);
+
+            // assert
+            var buffer = new byte[1024];
+            await webSocket.ReceiveAsync(buffer, ct);
+            await WaitForConditions(() => interceptor.OnCloseCount >= 1, ct);
+            await Task.Delay(1000, ct);
+            Assert.Equal(1, interceptor.OnCloseCount);
+        });
+
+    [Fact]
+    public Task Client_KeepAlive_Should_Not_Close_Connection()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            var webSocket = await ConnectToServerAsync(client, ct);
+
+            // act
+            await webSocket.SendMessageAsync("{\"type\":\"ka\"}", ct);
+
+            // assert
+            // the connection must stay open and keep processing subsequent messages.
+            var document = Utf8GraphQLParser.Parse(
+                "subscription { onReview(episode: NEW_HOPE) { _stars } }");
+            var request = new GraphQLRequest(document);
+            await webSocket.SendSubscriptionStartAsync("abc", request);
+            var message = await WaitForMessage(webSocket, "error", ct);
+            Assert.NotNull(message);
+            Assert.Equal("error", message.RootElement.GetProperty("type").GetString());
+        });
+
+    private sealed class RejectInterceptor(string message) : DefaultSocketSessionInterceptor
+    {
+        public override ValueTask<ConnectionStatus> OnConnectAsync(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage,
+            CancellationToken cancellationToken = default)
+            => new(ConnectionStatus.Reject(message));
+    }
+
+    private sealed class OnCloseCountingInterceptor : DefaultSocketSessionInterceptor
+    {
+        private int _onCloseCount;
+
+        public int OnCloseCount => _onCloseCount;
+
+        public override ValueTask OnCloseAsync(
+            ISocketSession session,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _onCloseCount);
+            return default;
+        }
+    }
+
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {
         public override ValueTask<ConnectionStatus> OnConnectAsync(

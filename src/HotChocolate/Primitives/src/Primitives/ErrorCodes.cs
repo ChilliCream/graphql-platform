@@ -2,6 +2,55 @@ namespace HotChocolate;
 
 public static class ErrorCodes
 {
+    public static class Analyzers
+    {
+        public const string KeyParameterMissing = "HC0074";
+        public const string MethodAccessModifierInvalid = "HC0075";
+        public const string ObjectTypePartialKeywordMissing = "HC0080";
+        public const string ObjectTypeStaticKeywordMissing = "HC0081";
+        public const string TooManyNodeResolverArguments = "HC0083";
+        public const string InvalidNodeResolverArgumentName = "HC0084";
+        public const string RootTypePartialKeywordMissing = "HC0091";
+        public const string NodeResolverIdAttributeNotAllowed = "HC0092";
+        public const string NodeResolverMustBePublic = "HC0093";
+        public const string BindMemberNotFound = "HC0094";
+        public const string BindMemberTypeMismatch = "HC0095";
+        public const string ExtendObjectTypeShouldBeUpgraded = "HC0096";
+        public const string ParentAttributeTypeMismatch = "HC0097";
+        public const string ParentMethodTypeMismatch = "HC0098";
+        public const string QueryContextWithUseProjection = "HC0099";
+        public const string DataAttributeOrder = "HC0100";
+        public const string QueryContextConnectionMismatch = "HC0101";
+        public const string ShareableOnInterfaceType = "HC0102";
+        public const string ShareableScopedOnMember = "HC0103";
+        public const string NodeResolverIdParameter = "HC0104";
+        public const string IdAttributeOnRecordParameter = "HC0105";
+        public const string WrongAuthorizeAttribute = "HC0106";
+
+        // This legacy analyzer code shares HC0107 with Validation.BudgetExceeded and must not be renumbered.
+        public const string InterfaceTypePartialKeywordMissing = "HC0107";
+
+        public const string ConnectionNameDuplicate = "HC0108";
+        public const string ConnectionNameFormatIsInvalid = "HC0109";
+        public const string ConnectionSingleGenericTypeArgument = "HC0110";
+        public const string DataLoaderCannotBeGeneric = "HC0111";
+        public const string InterfaceTypeStaticKeywordMissing = "HC0112";
+        public const string LookupReturnsNonNullableType = "HC0113";
+        public const string LookupReturnsListType = "HC0114";
+        public const string DataLoaderTypeInvalid = "HC0122";
+        public const string DataLoaderKeyParameterInvalid = "HC0123";
+        public const string DataLoaderReturnTypeInvalid = "HC0124";
+        public const string DataLoaderMultipleAttributes = "HC0125";
+        public const string DataLoaderDuplicateType = "HC0126";
+        public const string DataLoaderMissingInterfaceImplementation = "HC0127";
+        public const string DataLoaderPublicInterfaceAccessModifier = "HC0128";
+        public const string DataLoaderParameterModifierInvalid = "HC0129";
+        public const string DataLoaderKeyedServiceAttributeConflict = "HC0130";
+        public const string DataLoaderKeyedServiceAttributeIgnored = "HC0131";
+        public const string DataLoaderKeyedServiceOnConstructorParameter = "HC0132";
+        public const string DataLoaderKeyedServiceKeyNotDeterminable = "HC0133";
+    }
+
     public static class Authentication
     {
         public const string NotAuthorized = "AUTH_NOT_AUTHORIZED";
@@ -221,7 +270,7 @@ public static class ErrorCodes
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
-        public const string DuplicateFieldNames = "HCXXXX";
+        public const string DuplicateFieldNames = "HC0121";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.
@@ -343,6 +392,21 @@ public static class ErrorCodes
         /// The field merge validation budget was exhausted.
         /// </summary>
         public const string BudgetExceeded = "HC0107";
+
+        /// <summary>
+        /// The selected field does not exist on the type it was selected on.
+        /// </summary>
+        public const string FieldDoesNotExist = "HC0118";
+
+        /// <summary>
+        /// The type condition of a fragment refers to a type that does not exist.
+        /// </summary>
+        public const string FragmentTypeConditionUnknown = "HC0119";
+
+        /// <summary>
+        /// A fragment spread refers to a fragment that is not defined in the document.
+        /// </summary>
+        public const string FragmentDoesNotExist = "HC0120";
     }
 
     /// <summary>

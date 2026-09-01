@@ -29,7 +29,7 @@ internal static class ResolverTaskFactory
             if (selectionSet.HasIncrementalParts)
             {
                 var coordinator = operationContext.DeferExecutionCoordinator;
-                var deferFlags = operationContext.DeferFlags;
+                var deferFlags = operationContext.DeferConditionFlags;
                 var branches = ImmutableDictionary<DeferUsage, int>.Empty;
 
                 foreach (var field in data)
@@ -174,7 +174,7 @@ internal static class ResolverTaskFactory
         if (selectionSet.HasIncrementalParts)
         {
             var coordinator = operationContext.DeferExecutionCoordinator;
-            var deferFlags = operationContext.DeferFlags;
+            var deferFlags = operationContext.DeferConditionFlags;
             var branches = ImmutableDictionary<DeferUsage, int>.Empty;
             Path? currentPath = null;
 

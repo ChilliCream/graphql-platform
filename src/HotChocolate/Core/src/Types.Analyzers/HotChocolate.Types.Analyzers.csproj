@@ -3,8 +3,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(AnalyzerTargetFramework)</TargetFrameworks>
+    <TargetFramework>$(AnalyzerTargetFramework)</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <IncludeSymbols>false</IncludeSymbols>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -17,6 +17,11 @@
     <RootNamespace>HotChocolate.Types.Analyzers</RootNamespace>
     <Description>This package provides source generators for schema building.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\Primitives\src\Primitives\Types\DirectiveNames.cs" Link="Helpers\DirectiveNames.cs" />
+    <Compile Include="..\..\..\Primitives\src\Primitives\ErrorCodes.cs" Link="ErrorCodes.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.11.0" PrivateAssets="all" />

@@ -16,5 +16,7 @@ items:
     title: Performance
   - path: security
     title: Securing Your API
+  - path: adapters
+    title: Adapters
   - path: migrating
     title: Migrating

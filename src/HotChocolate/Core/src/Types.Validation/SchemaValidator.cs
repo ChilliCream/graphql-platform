@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Logging.Contracts;
 using HotChocolate.Rules;
 using HotChocolate.Types;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate;
 
@@ -38,6 +39,11 @@ public sealed class SchemaValidator
     }
 
     /// <summary>
+    /// Gets the rules that this validator will run, in the order they were added.
+    /// </summary>
+    internal IReadOnlyList<object> Rules => _rules;
+
+    /// <summary>
     /// Adds the default validation rules to the schema validator.
     /// </summary>
     public void AddDefaultRules()
@@ -47,6 +53,8 @@ public sealed class SchemaValidator
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
+        _rules.Add(new DirectiveIsInValidLocationRule());
+        _rules.Add(new DirectiveIsUniqueRule());
         _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
@@ -61,6 +69,7 @@ public sealed class SchemaValidator
         _rules.Add(new ValidDeprecationRule());
         _rules.Add(new ValidImplementationsRule());
         _rules.Add(new ValidNameRule());
+        _rules.Add(new ValidObjectDeprecationRule());
         _rules.Add(new ValidOneOfFieldRule());
     }
 
@@ -89,10 +98,12 @@ public sealed class SchemaValidator
 
         PublishEvent(new InputObjectTypesEvent(schema.Types.OfType<IInputObjectTypeDefinition>()), context);
 
+        PublishDirectiveEvents(schema, DirectiveLocation.Schema, context);
+
         foreach (var type in schema.Types)
         {
             PublishEvent(new TypeEvent(type), context);
-            PublishDirectiveEvents(type, context);
+            PublishDirectiveEvents(type, GetTypeDirectiveLocation(type), context);
 
             if (type is INameProvider namedMember)
             {
@@ -127,10 +138,13 @@ public sealed class SchemaValidator
                             PublishEvent(new NamedMemberEvent(argument), context);
 
                             PublishDefaultValueNodeEvents(argument, context);
-                            PublishDirectiveEvents(argument, context);
+                            PublishDirectiveEvents(
+                                argument,
+                                DirectiveLocation.ArgumentDefinition,
+                                context);
                         }
 
-                        PublishDirectiveEvents(field, context);
+                        PublishDirectiveEvents(field, DirectiveLocation.FieldDefinition, context);
                     }
 
                     break;
@@ -143,7 +157,7 @@ public sealed class SchemaValidator
                         PublishEvent(new EnumValueEvent(value), context);
                         PublishEvent(new NamedMemberEvent(value), context);
 
-                        PublishDirectiveEvents(value, context);
+                        PublishDirectiveEvents(value, DirectiveLocation.EnumValue, context);
                     }
 
                     break;
@@ -159,7 +173,10 @@ public sealed class SchemaValidator
                         PublishEvent(new NamedMemberEvent(field), context);
 
                         PublishDefaultValueNodeEvents(field, context);
-                        PublishDirectiveEvents(field, context);
+                        PublishDirectiveEvents(
+                            field,
+                            DirectiveLocation.InputFieldDefinition,
+                            context);
                     }
 
                     break;
@@ -175,7 +192,10 @@ public sealed class SchemaValidator
             PublishEvent(new DirectiveDefinitionEvent(directiveDefinition), context);
             PublishEvent(new NamedMemberEvent(directiveDefinition), context);
 
-            PublishDirectiveEvents(directiveDefinition, context);
+            PublishDirectiveEvents(
+                directiveDefinition,
+                DirectiveLocation.DirectiveDefinition,
+                context);
 
             foreach (var argument in directiveDefinition.Arguments)
             {
@@ -184,18 +204,19 @@ public sealed class SchemaValidator
                 PublishEvent(new NamedMemberEvent(argument), context);
 
                 PublishDefaultValueNodeEvents(argument, context);
-                PublishDirectiveEvents(argument, context);
+                PublishDirectiveEvents(argument, DirectiveLocation.ArgumentDefinition, context);
             }
         }
     }
 
     private void PublishDirectiveEvents(
         IDirectivesProvider member,
+        DirectiveLocation location,
         ValidationContext context)
     {
         foreach (var directive in member.Directives)
         {
-            PublishEvent(new DirectiveEvent(directive, member), context);
+            PublishEvent(new DirectiveEvent(directive, member, location), context);
 
             foreach (var argumentAssignment in directive.Arguments)
             {
@@ -215,6 +236,21 @@ public sealed class SchemaValidator
                     context);
             }
         }
+    }
+
+    private static DirectiveLocation GetTypeDirectiveLocation(ITypeDefinition type)
+    {
+        return type.Kind switch
+        {
+            TypeKind.Enum => DirectiveLocation.Enum,
+            TypeKind.InputObject => DirectiveLocation.InputObject,
+            TypeKind.Interface => DirectiveLocation.Interface,
+            TypeKind.Object => DirectiveLocation.Object,
+            TypeKind.Scalar => DirectiveLocation.Scalar,
+            TypeKind.Union => DirectiveLocation.Union,
+            TypeKind.Directive or TypeKind.List or TypeKind.NonNull or _ =>
+                throw new InvalidOperationException()
+        };
     }
 
     private void PublishDefaultValueNodeEvents(IInputValueDefinition inputValue, ValidationContext context)

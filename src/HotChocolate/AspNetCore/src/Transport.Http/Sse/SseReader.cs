@@ -11,7 +11,7 @@ namespace HotChocolate.Transport.Http;
 #endif
 
 #if FUSION
-internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource)
+internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource, TimeSpan readTimeout)
     : IAsyncEnumerable<SourceResultDocument>
 #else
 internal sealed class SseReader(HttpResponseMessage message)
@@ -42,7 +42,14 @@ internal sealed class SseReader(HttpResponseMessage message)
 #endif
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var responseStream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using var stream = readTimeout == Timeout.InfiniteTimeSpan
+            ? responseStream
+            : new ReadTimeoutStream(responseStream, readTimeout);
+#else
         await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
 #if FUSION
         // Only a "next" event produces a document: its payload bytes are filled exactly once into a

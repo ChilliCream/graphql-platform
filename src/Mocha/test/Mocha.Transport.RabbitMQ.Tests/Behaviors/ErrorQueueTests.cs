@@ -48,10 +48,7 @@ public class ErrorQueueTests
         Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
-        Assert.True(headers.ContainsKey("fault-exception-type"), "Missing fault-exception-type header");
-        Assert.True(headers.ContainsKey("fault-message"), "Missing fault-message header");
-        Assert.True(headers.ContainsKey("fault-stack-trace"), "Missing fault-stack-trace header");
-        Assert.True(headers.ContainsKey("fault-timestamp"), "Missing fault-timestamp header");
+        Assert.Equal(FaultHeaders.ExpectedShape(), FaultHeaders.Shape(headers));
     }
 
     [Fact]

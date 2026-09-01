@@ -60,6 +60,12 @@
   <data name="LogEntryHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
     <value>The directive definition '@{0}' must not reference itself.</value>
   </data>
+  <data name="LogEntryHelper_DirectiveInInvalidLocation" xml:space="preserve">
+    <value>The directive '@{0}' on '{1}' is not allowed on the location '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveNotUnique" xml:space="preserve">
+    <value>The non-repeatable directive '@{0}' on '{1}' is applied more than once.</value>
+  </data>
   <data name="LogEntryHelper_EmptyEnumType" xml:space="preserve">
     <value>The Enum type '{0}' must define one or more values.</value>
   </data>
@@ -137,6 +143,9 @@
   </data>
   <data name="LogEntryHelper_InvalidMemberName" xml:space="preserve">
     <value>The name of the type system member '{0}' must not start with two underscores '__'.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidObjectDeprecation" xml:space="preserve">
+    <value>The type of '{0}' is the deprecated type '{1}'. Either deprecate the field or change its return type.</value>
   </data>
   <data name="LogEntryHelper_InvalidOneOfField" xml:space="preserve">
     <value>The OneOf Input Object field '{0}' must be nullable and must not have a default value.</value>

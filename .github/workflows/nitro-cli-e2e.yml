@@ -1,0 +1,211 @@
+name: nitro-cli-e2e
+
+on:
+  push:
+    branches:
+      - main
+      - main-version-*
+    paths:
+      - 'src/Nitro/CommandLine/**'
+      - 'src/Nitro/Common/**'
+      - '.github/workflows/nitro-cli-e2e.yml'
+      - 'global.json'
+      - 'src/Directory.Packages.props'
+  pull_request:
+    paths:
+      - 'src/Nitro/CommandLine/**'
+      - 'src/Nitro/Common/**'
+      - '.github/workflows/nitro-cli-e2e.yml'
+      - 'global.json'
+      - 'src/Directory.Packages.props'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: nitro-cli-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  aot-publish-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: 11.0.100-preview.6.26359.118
+
+      - name: Publish AOT self-contained binary (linux-x64)
+        run: |
+          dotnet publish src/Nitro/CommandLine/src/CommandLine \
+            -c Release \
+            -r linux-x64 \
+            -f net11.0 \
+            -o publish \
+            --self-contained \
+            -p:PublishAot=true \
+            -p:TargetFrameworks=net11.0 \
+            -p:RuntimeIdentifiers=linux-x64
+
+      - name: Smoke test the published binary
+        run: |
+          set -euo pipefail
+
+          nitro_bin="$(pwd)/publish/nitro"
+          "$nitro_bin" --version
+
+          work_dir="$(mktemp -d)"
+          cd "$work_dir"
+
+          "$nitro_bin" agent init
+
+          # Actor names are allocated, never invented: `agent login` mints one
+          # the way a harness without a session-start hook does. Only the
+          # commands that record an actor take --actor; the read-only ones
+          # below have no such option.
+          actor="$("$nitro_bin" agent login --output json \
+            | tr -d '\n' | sed -n 's/.*"actor"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+          if [ -z "$actor" ]; then
+            echo "::error::Could not parse an actor out of the login output." >&2
+            exit 1
+          fi
+
+          "$nitro_bin" agent tasks list
+
+          create_output="$("$nitro_bin" agent tasks create "AOT smoke test task" --actor "$actor")"
+          echo "$create_output"
+          task_id=$(printf '%s' "$create_output" | sed -n "s/.*'\([^']*\)'.*/\1/p")
+          if [ -z "$task_id" ]; then
+            echo "::error::Could not parse a task ID out of the create output above." >&2
+            exit 1
+          fi
+
+          "$nitro_bin" agent tasks show "$task_id"
+
+  record-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: 11.0.100-preview.6.26359.118
+
+      - name: Record + verify all flows
+        id: record
+        continue-on-error: true
+        run: ./src/Nitro/CommandLine/test/e2e/run.sh
+
+      - name: Upload snapshot artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: nitro-e2e-snapshots
+          path: |
+            src/Nitro/CommandLine/test/e2e/out/*.gif
+            src/Nitro/CommandLine/test/e2e/out/report/**
+          if-no-files-found: warn
+
+      - name: Comment changed snapshots on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          RUN_ID: ${{ github.run_id }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const prNum = pr.number;
+            const baseRef = pr.base.ref;
+            const MARKER = '<!-- nitro-e2e-snapshots -->';
+            const bust = `?run=${process.env.RUN_ID}`;
+
+            const rawBase = `https://raw.githubusercontent.com/${pr.base.repo.full_name}/${pr.base.sha}`;
+            const headFull = pr.head.repo && pr.head.repo.full_name;
+            const rawHead = headFull
+              ? `https://raw.githubusercontent.com/${headFull}/${pr.head.sha}`
+              : null;
+
+            const files = await github.paginate(github.rest.pulls.listFiles,
+              { owner, repo, pull_number: prNum, per_page: 100 });
+            const re = /^src\/Nitro\/CommandLine\/test\/e2e\/([^/]+)-flow\.gif$/;
+            const changed = [];
+            for (const f of files) {
+              const m = f.filename.match(re);
+              if (m) changed.push(
+                { flow: m[1], status: f.status, path: f.filename, prev: f.previous_filename });
+            }
+            changed.sort((a, b) => a.flow.localeCompare(b.flow));
+
+            async function upsertComment(body) {
+              const { data: comments } = await github.rest.issues.listComments(
+                { owner, repo, issue_number: prNum, per_page: 100 });
+              const existing = comments.find(c => c.body && c.body.includes(MARKER));
+              if (existing) {
+                await github.rest.issues.updateComment(
+                  { owner, repo, comment_id: existing.id, body });
+              } else {
+                await github.rest.issues.createComment(
+                  { owner, repo, issue_number: prNum, body });
+              }
+            }
+
+            if (changed.length === 0) {
+              try {
+                await upsertComment(
+                  `${MARKER}\n✅ **Nitro CLI E2E snapshots**: no flow recordings changed vs \`${baseRef}\`.`);
+              } catch (e) {
+                core.warning(`comment failed (expected on forks): ${e}`);
+              }
+              return;
+            }
+
+            const img = url => `<img src="${url}${bust}" width="480" alt="recording">`;
+            const ICON = { added: '🆕', removed: '🗑️' };
+
+            const blocks = [];
+            for (const { flow, status, path, prev } of changed) {
+              const before = `${rawBase}/${prev || path}`;
+              const after = rawHead ? `${rawHead}/${path}` : null;
+              let inner;
+              if (status === 'added') {
+                inner = after ? `\n\n${img(after)}\n` : '\n\n_after unavailable_\n';
+              } else if (status === 'removed') {
+                inner = `\n\n${img(before)}\n`;
+              } else {
+                const afterCell = after ? img(after) : '<em>unavailable</em>';
+                inner =
+                  `\n\n<table><tr><th>Before: <code>${baseRef}</code></th><th>After: this PR</th></tr>`
+                  + `<tr><td>${img(before)}</td><td>${afterCell}</td></tr></table>\n`;
+              }
+              blocks.push(
+                `<details><summary>${ICON[status] || '🔁'} ${flow}: ${status}</summary>${inner}</details>`);
+            }
+
+            const body = [
+              MARKER,
+              '### 🎬 Nitro CLI E2E snapshots changed',
+              '',
+              `These flow recordings differ from \`${baseRef}\` (added, removed, or modified). `
+                + 'Expand each for the before/after.',
+              '',
+              ...blocks,
+              '',
+              `<sub>Run ${process.env.RUN_ID} · full set in the <b>nitro-e2e-snapshots</b> artifact.</sub>`,
+            ].join('\n');
+
+            try { await upsertComment(body); }
+            catch (e) { core.warning(`comment failed (expected on forks): ${e}`); }
+
+      - name: Fail if any flow drifted from its golden
+        if: always() && steps.record.outcome == 'failure'
+        run: |
+          echo "::error::E2E recordings drifted from their committed golden, review the nitro-e2e-snapshots artifact, then run ./src/Nitro/CommandLine/test/e2e/run.sh --update <flow> if intended." >&2
+          exit 1

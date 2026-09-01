@@ -213,6 +213,64 @@ internal sealed class ResultSelectionSet
         return false;
     }
 
+    internal bool TryMapResponseName(
+        string responseName,
+        out SourceResponseNameMapping mapping)
+    {
+        var sourceResponseNameMappings = _sourceResponseNameMappings;
+
+        if (sourceResponseNameMappings is not null)
+        {
+            for (var i = 0; i < sourceResponseNameMappings.Length; i++)
+            {
+                if (string.Equals(
+                    sourceResponseNameMappings[i].ResponseName,
+                    responseName,
+                    StringComparison.Ordinal))
+                {
+                    mapping = sourceResponseNameMappings[i];
+                    return true;
+                }
+            }
+        }
+
+        var fragments = _fragments;
+
+        for (var i = 0; i < fragments.Length; i++)
+        {
+            if (fragments[i].Body.TryMapResponseName(responseName, out mapping))
+            {
+                return true;
+            }
+        }
+
+        mapping = default;
+        return false;
+    }
+
+    internal ResultSelectionSet? TryGetFragment(string typeName)
+    {
+        var fragments = _fragments;
+
+        for (var i = 0; i < fragments.Length; i++)
+        {
+            ref readonly var fragment = ref fragments[i];
+
+            if (string.Equals(fragment.TypeCondition?.Name, typeName, StringComparison.Ordinal))
+            {
+                return fragment.Body;
+            }
+
+            if (fragment.TypeCondition is null
+                && fragment.Body.TryGetFragment(typeName) is { } nestedFragment)
+            {
+                return nestedFragment;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Reconstructs a <see cref="SelectionSetNode"/> from this selection set.
     /// </summary>

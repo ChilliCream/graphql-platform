@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { BlogIndexShell } from "@/src/components/BlogIndexShell";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import {
   listTags,
   paginate,
@@ -7,6 +8,12 @@ import {
   postsForTag,
 } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  createBlogItemListNode,
+  createBlogNode,
+} from "@/src/helpers/blogStructuredData";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { schemaRef } from "@/src/helpers/structuredData";
 
 type Params = { tag: string; page: string };
 type PageProps = { params: Promise<Params> };
@@ -28,8 +35,15 @@ export function generateStaticParams(): Params[] {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { tag } = await params;
-  return { title: `${tag} · Blog` };
+  const { tag, page } = await params;
+  return {
+    ...pageMetadata({
+      title: `#${tag} Blog Posts, Page ${page}`,
+      description: `Posts tagged "${tag}", page ${page}.`,
+      path: `/blog/tags/${tag}/${page}`,
+    }),
+    robots: { index: false, follow: true },
+  };
 }
 
 export default async function TagPageN({ params }: PageProps) {
@@ -47,16 +61,43 @@ export default async function TagPageN({ params }: PageProps) {
     notFound();
   }
 
+  const path = `/blog/tags/${tag}/${pageNum}`;
+  const title = `#${tag} Blog Posts, Page ${pageNum}`;
+  const description = `Posts tagged "${tag}", page ${pageNum}.`;
+  const postList = createBlogItemListNode(
+    path,
+    `ChilliCream blog posts tagged ${tag}, page ${pageNum}`,
+    slice.posts,
+    (pageNum - 1) * POSTS_PER_PAGE + 1,
+  );
+
   return (
-    <BlogIndexShell
-      title={`#${tag}`}
-      posts={slice.posts}
-      pagination={{
-        currentPage: slice.currentPage,
-        totalPages: slice.totalPages,
-        hrefForPage: (p) =>
-          p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`,
-      }}
-    />
+    <>
+      <PageStructuredData
+        title={title}
+        description={description}
+        path={path}
+        pageType="CollectionPage"
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Blog", path: "/blog" },
+          { name: `#${tag}`, path: `/blog/tags/${tag}` },
+          { name: `Page ${pageNum}` },
+        ]}
+        mainEntity={schemaRef(postList["@id"]!)}
+        about={{ "@type": "DefinedTerm", name: tag }}
+        additionalNodes={[createBlogNode(), postList]}
+      />
+      <BlogIndexShell
+        title={`#${tag}`}
+        posts={slice.posts}
+        pagination={{
+          currentPage: slice.currentPage,
+          totalPages: slice.totalPages,
+          hrefForPage: (p) =>
+            p === 1 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${p}`,
+        }}
+      />
+    </>
   );
 }

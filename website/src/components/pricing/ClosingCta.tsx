@@ -14,16 +14,16 @@ export function ClosingCta() {
         align="center"
         size="lg"
         title="Start free. Scale when you do."
-        description="1M operations, 2 GB of ingest, schemas and environments, and the full Nitro control plane, free on the shared cloud. Upgrade only when you outgrow it."
+        description="The Free plan includes 1 million operations, 2 GB of ingest per month, schemas and environments, and 3-day log and trace retention."
       />
       <ButtonRow align="center" className="mt-8">
         <SolidButton href="https://nitro.chillicream.com">
-          Start for free
+          Start Nitro for Free
         </SolidButton>
-        <OutlineButton href="/docs">Read the docs</OutlineButton>
+        <OutlineButton href="/docs/nitro">Explore Nitro docs</OutlineButton>
       </ButtonRow>
       <p className="text-cc-ink-dim mt-6 font-mono text-xs">
-        No credit card. Free on the shared cloud.
+        Need a private deployment? Compare Dedicated and Self-Hosted above.
       </p>
     </Band>
   );

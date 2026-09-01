@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire.Nitro;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
@@ -112,7 +114,7 @@ public sealed class NitroExtensionsTests
 
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroCompositionBase(stage);
 
         Assert.Same(stage.Resource, gateway.Resource.GetNitroCompositionBase());
@@ -160,7 +162,7 @@ public sealed class NitroExtensionsTests
 
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
-            .WithGraphQLSchemaComposition()
+            .WithNitroComposition()
             .WithNitroCompositionBase(stage);
 
         string.Join(
@@ -178,7 +180,7 @@ public sealed class NitroExtensionsTests
     }
 
     [Fact]
-    public void WithGraphQLSchemaComposition_Should_RegisterAutoUpdateCommands_When_CalledLast()
+    public void WithNitroComposition_Should_RegisterAutoUpdateCommands_When_CalledLast()
     {
         var builder = DistributedApplication.CreateBuilder();
         var stage = builder.AddNitro().AddApi("products-api").AddStage("dev");
@@ -186,7 +188,7 @@ public sealed class NitroExtensionsTests
             .AddProject("gateway", GetTestProjectFile())
             .WithNitroCompositionBase(stage);
 
-        gateway.WithGraphQLSchemaComposition();
+        gateway.WithNitroComposition();
 
         Assert.Equal(
             2,
@@ -277,6 +279,240 @@ public sealed class NitroExtensionsTests
             exception.Message);
     }
 
+    [Fact]
+    public void WithNitroComposition_Should_RegisterTheRecomposeCommand()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        // act
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition();
+
+        // assert
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        Assert.Equal("Recompose", command.DisplayName);
+        Assert.Equal("ArrowSync", command.IconName);
+    }
+
+    [Fact]
+    public async Task RecomposeCommand_Should_UseLogicalResourceName_When_ExecutingRuntimeInstance()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        var coordinator = new GatewayCompositionCommandCoordinator();
+        coordinator.Register(
+            gateway.Resource.Name,
+            _ => Task.FromResult(CommandResults.Success("Schema composition completed")));
+        await using var services = new ServiceCollection()
+            .AddSingleton(coordinator)
+            .BuildServiceProvider();
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = "gateway-runtime-instance",
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "True|Schema composition completed",
+            $"{result.Success}|{result.Message}");
+    }
+
+    [Fact]
+    public async Task WithNitroComposition_Should_ReturnControlledFailure_When_CompositionIsNotRegistered()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "recompose");
+        await using var services = new ServiceCollection().BuildServiceProvider();
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = gateway.Resource.Name,
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "False|Schema composition is not ready.",
+            $"{result.Success}|{result.Message}");
+    }
+
+    [Fact]
+    public void SeedUpdateService_Should_NotStartMonitor_WhenDetectionIsDisabled()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder
+            .AddNitro(portalUrl: null, options => options.Enabled = false)
+            .AddApi("gateway")
+            .WithNitroApiId(GatewayApiId)
+            .AddStage("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition()
+            .WithNitroCompositionBase(stage);
+        var lifetime = new TestHostApplicationLifetime();
+        var service = new NitroSeedUpdateService(
+            new ResourceLoggerService(),
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
+        using var gate = new SemaphoreSlim(1, 1);
+
+        // act
+        service.Start(
+            gateway.Resource,
+            GatewayApiId,
+            stage.Resource,
+            NitroSeedCoordinator.CreateProduction("production"),
+            gate,
+            (_, _) => Task.FromResult(true));
+
+        // assert
+        Assert.Equal(0, service.MonitorCount);
+    }
+
+    [Fact]
+    public async Task AutoUpdateCommands_Should_HideUntilMonitorIsReady()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder
+            .AddNitro()
+            .AddApi("gateway")
+            .WithNitroApiId(GatewayApiId)
+            .AddStage("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition()
+            .WithNitroCompositionBase(stage);
+        var lifetime = new TestHostApplicationLifetime();
+        var service = new NitroSeedUpdateService(
+            new ResourceLoggerService(),
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
+        await using var services = new ServiceCollection()
+            .AddSingleton(service)
+            .BuildServiceProvider();
+        var commands = gateway.Resource.Annotations
+            .OfType<ResourceCommandAnnotation>()
+            .Where(command => command.Name.Contains("nitro-auto-update", StringComparison.Ordinal))
+            .OrderBy(command => command.Name, StringComparer.Ordinal)
+            .ToArray();
+        var context = new UpdateCommandStateContext
+        {
+            ResourceSnapshot = new CustomResourceSnapshot
+            {
+                ResourceType = "project",
+                Properties = []
+            },
+            ServiceProvider = services
+        };
+
+        // act
+        var beforeStart = commands.Select(command => command.UpdateState!(context)).ToArray();
+        lifetime.StopApplication();
+        using var gate = new SemaphoreSlim(1, 1);
+        service.Start(
+            gateway.Resource,
+            GatewayApiId,
+            stage.Resource,
+            NitroSeedCoordinator.CreateProduction("production"),
+            gate,
+            (_, _) => Task.FromResult(true));
+        var afterStart = commands.Select(command => command.UpdateState!(context)).ToArray();
+
+        // assert
+        Assert.Equal("Hidden, Hidden", string.Join(", ", beforeStart));
+        Assert.Equal("Enabled, Hidden", string.Join(", ", afterStart));
+    }
+
+    [Fact]
+    public async Task DisableAutoUpdateCommand_Should_UseLogicalResourceName_When_ExecutingRuntimeInstance()
+    {
+        // arrange
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder
+            .AddNitro()
+            .AddApi("gateway")
+            .WithNitroApiId(GatewayApiId)
+            .AddStage("production");
+        var gateway = builder
+            .AddProject("gateway", GetTestProjectFile())
+            .WithNitroComposition()
+            .WithNitroCompositionBase(stage);
+        var lifetime = new TestHostApplicationLifetime();
+        var service = new NitroSeedUpdateService(
+            new ResourceLoggerService(),
+            NoopSeedUpdateNotifier.Instance,
+            lifetime,
+            NullLoggerFactory.Instance,
+            TimeProvider.System);
+        lifetime.StopApplication();
+        using var gate = new SemaphoreSlim(1, 1);
+        service.Start(
+            gateway.Resource,
+            GatewayApiId,
+            stage.Resource,
+            NitroSeedCoordinator.CreateProduction("production"),
+            gate,
+            (_, _) => Task.FromResult(true));
+        await using var services = new ServiceCollection()
+            .AddSingleton(service)
+            .BuildServiceProvider();
+        var command = Assert.Single(
+            gateway.Resource.Annotations.OfType<ResourceCommandAnnotation>(),
+            annotation => annotation.Name == "disable-nitro-auto-update");
+        var context = new ExecuteCommandContext
+        {
+            ServiceProvider = services,
+            ResourceName = "gateway-runtime-instance",
+            CancellationToken = TestContext.Current.CancellationToken,
+            Logger = NullLogger.Instance,
+            Arguments = new InteractionInputCollection([])
+        };
+
+        // act
+        var result = await command.ExecuteCommand(context);
+
+        // assert
+        Assert.Equal(
+            "True|Automatic Nitro updates disabled",
+            $"{result.Success}|{result.Message}");
+    }
+
+    private const string GatewayApiId = "QXBpCmdhdGV3YXk";
+
     private static string DescribeCompositionRegistrations(IDistributedApplicationBuilder builder)
         => string.Join(
             Environment.NewLine,
@@ -290,4 +526,17 @@ public sealed class NitroExtensionsTests
         => IOPath.Combine(
             IOPath.GetDirectoryName(sourceFile)!,
             "HotChocolate.Fusion.Aspire.Tests.csproj");
+
+    private sealed class NoopSeedUpdateNotifier : INitroSeedUpdateNotifier
+    {
+        public static NoopSeedUpdateNotifier Instance { get; } = new();
+
+        public void NotifyAdopted(string message)
+        {
+        }
+
+        public void NotifyStaged(string message)
+        {
+        }
+    }
 }

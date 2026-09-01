@@ -27,7 +27,7 @@ export function ContactBand() {
             eyebrow="Ready when you are"
             title="One call is usually enough to know."
             titleId="contact-heading"
-            description="Tell us what you are building. You walk us through it, we ask the questions, and you leave with a clear next step. If we are not the right fit, we will tell you."
+            description="Tell us what you are building. You walk us through it, we ask the hard questions, and you leave with a clear next step. If we are not the right fit, we will tell you."
           />
           <ContactSpec />
         </div>
@@ -36,10 +36,10 @@ export function ContactBand() {
         <div>
           <ButtonRow align="stacked">
             <SolidButton href={CONTACT_FORM} className="w-full">
-              Talk to us
+              Discuss your project
             </SolidButton>
             <OutlineButton href={CONSULTING_MAILTO} className="w-full">
-              Email us
+              Email the advisory team
             </OutlineButton>
           </ButtonRow>
         </div>
@@ -55,8 +55,8 @@ function ContactSpec() {
   }[] = [
     { label: "Consulting", value: "Packages of hours" },
     { label: "Contracting", value: "Scoped statement of work" },
-    { label: "NDA", value: "Mutual NDA on request" },
-    { label: "Start", value: "Often the same week" },
+    { label: "NDA", value: "Discuss before sharing materials" },
+    { label: "Timing", value: "Confirmed during discovery" },
   ];
   return (
     <ul className="mt-6 grid gap-3 sm:grid-cols-2">

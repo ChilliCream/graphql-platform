@@ -2,13 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net11.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <LangVersion>Preview</LangVersion>
     <AssemblyName>HotChocolate.Language.Benchmarks</AssemblyName>
     <RootNamespace>HotChocolate.Language.Benchmarks</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

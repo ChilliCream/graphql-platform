@@ -1,6 +1,7 @@
 ---
 date: "2024-10-07"
 title: "Introducing Nitro: A New Name, A Unified GraphQL Ecosystem"
+description: "Meet Nitro, the unified name for the former Banana Cake Pop app and services and Barista CLI, with the package and local-data migration details."
 tags: ["graphql", "nitro", "products", "telemetry"]
 featuredImage: "introducing-nitro.png"
 author: Rafael Staib

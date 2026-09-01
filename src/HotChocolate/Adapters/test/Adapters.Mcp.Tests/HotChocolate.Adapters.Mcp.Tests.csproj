@@ -23,11 +23,6 @@
     <PackageReference Include="Moq" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <!-- Dependency of Microsoft.AspNetCore.Authentication.JwtBearer. Pinned to secure version. -->
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" VersionOverride="7.7.1" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

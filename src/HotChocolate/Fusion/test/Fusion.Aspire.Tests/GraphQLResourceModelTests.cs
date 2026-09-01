@@ -2,6 +2,10 @@ using System.Runtime.CompilerServices;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
+// File based source schemas are retired, but they still take part in publishing and
+// in the resource model, so the tests keep using them.
+#pragma warning disable CS0618
+
 namespace HotChocolate.Fusion.Aspire;
 
 public sealed class GraphQLResourceModelTests
@@ -23,7 +27,7 @@ public sealed class GraphQLResourceModelTests
             .AddProject("gateway", GetTestProjectFile())
             .WithReference(products)
             .WithReference(unrelated)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var model = new DistributedApplicationModel(
             [
                 products.Resource,
@@ -69,7 +73,7 @@ public sealed class GraphQLResourceModelTests
         var gateway = builder
             .AddProject("gateway", GetTestProjectFile())
             .WithReference(products)
-            .WithGraphQLSchemaComposition();
+            .WithNitroComposition();
         var model = new DistributedApplicationModel(
             [products.Resource, gateway.Resource]);
 

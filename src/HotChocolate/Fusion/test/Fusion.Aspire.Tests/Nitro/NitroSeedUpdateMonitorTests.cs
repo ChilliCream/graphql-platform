@@ -352,13 +352,15 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
         var timeProvider = TimeProvider.System;
         var httpClient = new HttpClient(handler);
         var connectionResolver = new NitroConnectionResolver(
-            new NitroSessionReader(_directory.GetPath("session.json"), TimeSpan.Zero),
+            new NitroSessionManager(
+                new NitroSessionReader(_directory.GetPath("session.json"), TimeSpan.Zero),
+                new NitroTokenRefreshClient(httpClient),
+                timeProvider,
+                NitroDefaults.AccessTokenExpiryGrace),
             new TestNitroEnvironment(
                 (NitroEnvironmentVariables.CloudUrl, "https://nitro.example.test"),
                 (NitroEnvironmentVariables.ApiKey, "key")),
-            NitroDefaults.ApiUrl,
-            timeProvider,
-            NitroDefaults.AccessTokenExpiryGrace);
+            NitroDefaults.ApiUrl);
         var coordinator = new NitroSeedCoordinator(
             Stage,
             connectionResolver,

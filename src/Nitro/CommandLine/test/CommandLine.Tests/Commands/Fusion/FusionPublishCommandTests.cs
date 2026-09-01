@@ -30,7 +30,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -a, --archive <archive>                        The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
               --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               --force                                        Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
@@ -1338,6 +1338,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
@@ -1428,6 +1429,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"
@@ -4045,6 +4047,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "Include"
@@ -4135,6 +4138,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "enableGlobalObjectIdentification": false,
+                "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"
@@ -5524,7 +5528,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync();
+        var names = sourceSchemaNames.ToArray();
         Assert.Equal(
             new[] { SourceSchemaReviews, SourceSchema }.OrderBy(x => x),
             names.OrderBy(x => x));
@@ -5552,7 +5557,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
         var schema = await GetFusionSchemaAsync(archive);
 
-        var names = (await archive.GetSourceSchemaNamesAsync()).ToArray();
+        var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync();
+        var names = sourceSchemaNames.ToArray();
         Assert.Equal(new[] { SourceSchemaReviews }, names);
 
         var reviews = await archive.TryGetSourceSchemaConfigurationAsync(SourceSchemaReviews);

@@ -90,13 +90,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public void WriteBeginDataLoaderClass(
         string name,
-        string interfaceName,
+        string? interfaceName,
         IMethodSymbol method,
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
-        ITypeSymbol value,
-        bool withInterface)
+        ITypeSymbol value)
     {
         WriteDataLoaderDocumentation(method);
         _writer.WriteIndentedLine(
@@ -112,7 +111,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualifiedWithNullRefQualifier(),
             value.ToFullyQualifiedWithNullRefQualifier());
-        if (withInterface)
+        if (interfaceName is not null)
         {
             _writer.WriteIndentedLine(", {0}", interfaceName);
         }
@@ -340,11 +339,24 @@ public sealed class DataLoaderFileBuilder : IDisposable
             {
                 if (parameter.Kind is DataLoaderParameterKind.Service)
                 {
-                    _writer.WriteIndentedLine(
-                        "var {0} = {1}.GetRequiredService<{2}>();",
-                        parameter.VariableName,
-                        isScoped ? "scope.ServiceProvider" : "_services",
-                        parameter.Type.ToFullyQualifiedWithNullRefQualifier());
+                    if (parameter.Key is { } serviceKey)
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = {1}.{2}<{3}>({4});",
+                            parameter.VariableName,
+                            isScoped ? "scope.ServiceProvider" : "_services",
+                            parameter.IsNullable ? "GetKeyedService" : "GetRequiredKeyedService",
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
+                            serviceKey);
+                    }
+                    else
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = {1}.GetRequiredService<{2}>();",
+                            parameter.VariableName,
+                            isScoped ? "scope.ServiceProvider" : "_services",
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier());
+                    }
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
                 {

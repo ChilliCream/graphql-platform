@@ -4,7 +4,6 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
-import { Eyebrow } from "@/src/design-system/Eyebrow";
 import {
   NitroCompose,
   NitroFusion,
@@ -38,10 +37,9 @@ const SURFACES: readonly Surface[] = [
 
 export function NitroSection() {
   return (
-    <PageSection className="pt-16 sm:pt-24">
+    <PageSection className="pt-16 pb-16 sm:pt-24 sm:pb-24">
       <RevealOnScroll>
-        <div className="flex max-w-3xl flex-col gap-5">
-          <Eyebrow color="ink-dim">Nitro</Eyebrow>
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
           <h2 className="font-heading text-cc-heading text-h3 sm:text-h2 leading-[1.1] font-semibold text-balance">
             The platform, with wheels attached.
           </h2>
@@ -49,7 +47,7 @@ export function NitroSection() {
             A GraphQL IDE, a telemetry dashboard, a schema and client registry,
             and a Fusion query-plan viewer. All of it is the same app.
           </p>
-          <ArrowLink href="/products/nitro">Learn more</ArrowLink>
+          <ArrowLink href="/products/nitro">Explore Nitro</ArrowLink>
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-2">

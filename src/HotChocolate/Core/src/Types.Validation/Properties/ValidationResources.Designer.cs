@@ -186,6 +186,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive &apos;@{0}&apos; on &apos;{1}&apos; is not allowed on the location &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_DirectiveInInvalidLocation {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveInInvalidLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The non-repeatable directive &apos;@{0}&apos; on &apos;{1}&apos; is applied more than once..
+        /// </summary>
+        internal static string LogEntryHelper_DirectiveNotUnique {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Enum type &apos;{0}&apos; must define one or more values..
         /// </summary>
         internal static string LogEntryHelper_EmptyEnumType {
@@ -416,6 +434,15 @@ namespace HotChocolate.Properties {
         internal static string LogEntryHelper_InvalidMemberName {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InvalidMemberName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type of '{0}' is the deprecated type '{1}'. Either deprecate the field or change its return type..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidObjectDeprecation {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidObjectDeprecation", resourceCulture);
             }
         }
         

@@ -12,7 +12,7 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion.Aspire;
 
-internal sealed class SchemaComposition(
+internal class SchemaComposition(
     ResourceNotificationService resourceNotificationService,
     ResourceLoggerService resourceLoggerService,
     IHostApplicationLifetime lifetime,
@@ -412,10 +412,7 @@ internal sealed class SchemaComposition(
 
             try
             {
-                await resourceNotificationService.WaitForResourceHealthyAsync(
-                    referencedResource.Name,
-                    WaitBehavior.StopOnResourceUnavailable,
-                    cancellationToken);
+                await WaitForResourceHealthyAsync(referencedResource.Name, cancellationToken);
             }
             catch (DistributedApplicationException exception)
             {
@@ -426,6 +423,18 @@ internal sealed class SchemaComposition(
             }
         }
     }
+
+    /// <summary>
+    /// Waits until the resource with <paramref name="resourceName"/> is healthy. Throws
+    /// <see cref="DistributedApplicationException"/> when the resource becomes unavailable.
+    /// </summary>
+    protected internal virtual Task WaitForResourceHealthyAsync(
+        string resourceName,
+        CancellationToken cancellationToken)
+        => resourceNotificationService.WaitForResourceHealthyAsync(
+            resourceName,
+            WaitBehavior.StopOnResourceUnavailable,
+            cancellationToken);
 
     private List<GatewayRecompositionWorker> SubscribeToSourceSchemaRestarts(
         IDistributedApplicationEventing eventing,
@@ -1031,7 +1040,7 @@ internal sealed class SchemaComposition(
         "IL2075:\'this\' argument does not satisfy \'DynamicallyAccessedMembersAttribute\' "
         + "in call to target method. The return value of the source method does not have matching annotations.")]
     [SuppressMessage("ReSharper", "UnusedVariable")]
-    private static List<IResourceWithEndpoints> GetReferencedResources(
+    internal static List<IResourceWithEndpoints> GetReferencedResources(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel)
     {
@@ -1194,7 +1203,18 @@ internal sealed class SchemaComposition(
                 resource.Name,
                 annotation.SourceSchemaName,
                 schemaSettings);
-            var schemaUrl = resource.GetGraphQLSchemaUrl(endpointConfiguration.DefaultPath);
+
+            if (!TryGetSchemaFetchPath(
+                resource.Name,
+                annotation,
+                endpointConfiguration,
+                logger,
+                out var schemaFetchPath))
+            {
+                return null;
+            }
+
+            var schemaUrl = resource.GetGraphQLSchemaUrl(schemaFetchPath);
 
             if (schemaUrl is null)
             {
@@ -1223,6 +1243,7 @@ internal sealed class SchemaComposition(
                 ResourceName = resource.Name,
                 HttpEndpointUrl = new Uri(schemaUrl),
                 AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
+                GraphQLPath = annotation.GraphQLPath,
                 Schema = new SourceSchemaText(endpointConfiguration.SourceSchemaName, schemaText),
                 SchemaSettings = schemaSettings
             };
@@ -1237,6 +1258,50 @@ internal sealed class SchemaComposition(
                 schemaSettings.Dispose();
             }
         }
+    }
+
+    /// <summary>
+    /// Determines the path that the source schema document of a resource is downloaded from. An
+    /// Apollo Federation source schema serves its schema through its GraphQL endpoint, every other
+    /// source schema through the declared schema document path.
+    /// </summary>
+    internal static bool TryGetSchemaFetchPath(
+        string resourceName,
+        GraphQLSourceSchemaAnnotation annotation,
+        SchemaEndpointConfiguration endpointConfiguration,
+        ILogger logger,
+        [NotNullWhen(true)] out string? schemaFetchPath)
+    {
+        if (annotation.GraphQLPath is not { } graphQLPath)
+        {
+            AspireCompositionHelper.ReportMissingGraphQLPath(
+                endpointConfiguration.SourceSchemaName,
+                resourceName,
+                logger);
+            schemaFetchPath = null;
+            return false;
+        }
+
+        if (endpointConfiguration.Protocol is SchemaEndpointProtocol.ApolloFederation)
+        {
+            schemaFetchPath = graphQLPath;
+            return true;
+        }
+
+        if (annotation.SchemaPath is not { } schemaPath)
+        {
+            logger.LogError(
+                "The source schema {Name} of the resource {ResourceName} does not use Apollo "
+                + "Federation and declares no schema document path. Pass a schemaPath to "
+                + "WithGraphQLHttpEndpoint.",
+                endpointConfiguration.SourceSchemaName,
+                resourceName);
+            schemaFetchPath = null;
+            return false;
+        }
+
+        schemaFetchPath = schemaPath;
+        return true;
     }
 
     internal static SchemaEndpointConfiguration ReadEndpointConfiguration(
@@ -1349,6 +1414,7 @@ internal sealed class SchemaComposition(
                 // No schema download endpoint for file-based schemas
                 HttpEndpointUrl = null,
                 AllocatedHttpEndpointUrl = resource.GetAllocatedHttpEndpointUrl(),
+                GraphQLPath = annotation.GraphQLPath,
                 Schema = new SourceSchemaText(
                     configuration.SourceSchemaName,
                     schemaFiles.Schema,
@@ -1375,17 +1441,18 @@ internal sealed class SchemaComposition(
     {
         try
         {
-            var projectPath = GetProjectPath(resource);
-            if (projectPath == null)
+            var sourceSchemaDirectory = GetSourceSchemaDirectory(resource);
+            if (sourceSchemaDirectory == null)
             {
-                logger.LogWarning("Could not determine project path for {ResourceName}", resource.Name);
+                logger.LogWarning(
+                    "Could not determine the source schema directory for {ResourceName}",
+                    resource.Name);
                 return null;
             }
 
-            var projectDirectory = IOPath.GetDirectoryName(projectPath);
             var settingsFile = IOPath.IsPathRooted(settingsFileName)
                 ? settingsFileName
-                : IOPath.Combine(projectDirectory!, settingsFileName);
+                : IOPath.Combine(sourceSchemaDirectory, settingsFileName);
 
             if (!File.Exists(settingsFile))
             {
@@ -1461,19 +1528,19 @@ internal sealed class SchemaComposition(
     {
         try
         {
-            // Get the project directory from the resource metadata
-            var projectPath = GetProjectPath(resource);
-            if (projectPath == null)
+            var sourceSchemaDirectory = GetSourceSchemaDirectory(resource);
+            if (sourceSchemaDirectory == null)
             {
-                logger.LogWarning("Could not determine project path for {ResourceName}", resource.Name);
+                logger.LogWarning(
+                    "Could not determine the source schema directory for {ResourceName}",
+                    resource.Name);
                 return null;
             }
 
-            var projectDirectory = IOPath.GetDirectoryName(projectPath);
             var schemaPath = fileName ?? "schema.graphqls";
             var schemaFile = IOPath.IsPathRooted(schemaPath)
                 ? schemaPath
-                : IOPath.Combine(projectDirectory!, schemaPath);
+                : IOPath.Combine(sourceSchemaDirectory, schemaPath);
 
             if (!File.Exists(schemaFile))
             {
@@ -1506,6 +1573,23 @@ internal sealed class SchemaComposition(
             logger.LogError(ex, "Failed to read schema file for {ResourceName}", resource.Name);
             return null;
         }
+    }
+
+    /// <summary>
+    /// Gets the directory that holds the schema settings and schema files of a resource: the
+    /// declared source schema directory, or the project directory of the resource.
+    /// </summary>
+    private string? GetSourceSchemaDirectory(IResourceWithEndpoints resource)
+    {
+        if (resource.Annotations.OfType<GraphQLSourceSchemaDirectoryAnnotation>().FirstOrDefault()
+            is { } directoryAnnotation)
+        {
+            return directoryAnnotation.Directory;
+        }
+
+        return GetProjectPath(resource) is { } projectPath
+            ? IOPath.GetDirectoryName(projectPath)
+            : null;
     }
 
     private string? GetProjectPath(IResourceWithEndpoints resource)

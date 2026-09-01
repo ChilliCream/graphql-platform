@@ -106,6 +106,12 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetTest_test(),
+                        fieldDescriptor);
+
                     configuration.Resolvers = context.Resolvers.GetTest();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
