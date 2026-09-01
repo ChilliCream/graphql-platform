@@ -40,6 +40,7 @@ public sealed class GraphTabWorkflowTests
             ├─   ○ [T] Cycle B cycle-b  blocked by 1 / blocks 1
             ├─   ○ [T] Top-level open task top-level-open  blocked by 0 / blocks 0
             └─   ○ [T] Selected orphan task orphan-selected  blocked by 0 / blocks 0
+            v tree/canvas  b boxed/compact  o parent edges  d closed  u/i collapse/expand  …
             """);
     }
 
@@ -72,7 +73,7 @@ public sealed class GraphTabWorkflowTests
             └────────────────────────────┘    └────────────────────────────┘
 
             ┌────────────────────────────┐
-            │○ [E] epic-root             │
+            v tree/canvas  b boxed/compact  o parent edges  d closed  u/i collapse/expand  …
             """);
     }
 
@@ -108,6 +109,7 @@ public sealed class GraphTabWorkflowTests
                 └────────────────────────────┘
 
                 nodes: 5  edges: 2  grid: 64 x 19  crossings: 0  reversed: 1
+                v tree/canvas  b boxed/compact  o parent edges  d closed  u/i collapse/expand  …
                 """,
                 """
                  [T]asks   [G]raph
@@ -117,6 +119,7 @@ public sealed class GraphTabWorkflowTests
                 ├─   ○ [T] Cycle B cycle-b  blocked by 1 / blocks 1
                 ├─   ○ [T] Top-level open task top-level-open  blocked by 0 / blocks 0
                 └─   ○ [T] Selected orphan task orphan-selected  blocked by 0 / blocks 0
+                v tree/canvas  b boxed/compact  o parent edges  d closed  u/i collapse/expand  …
                 """
             ]);
     }
@@ -181,6 +184,7 @@ public sealed class GraphTabWorkflowTests
                 ╭─Details──────────────────────────────╮
                 │ ○ open                               │
                 ╰──────────────────────────────────────╯
+                esc back  hjkl move  enter open  …  tes…
                 """,
                 """
                  [T]asks   [G]raph
@@ -190,6 +194,7 @@ public sealed class GraphTabWorkflowTests
                 └────────────────────────────┘
 
                 nodes: 15  edges: 1  grid: 64 x 69  cro…
+                v tree/canvas  b boxed/compact  …  test…
                 """
             ]);
     }
@@ -235,6 +240,7 @@ public sealed class GraphTabWorkflowTests
                 ╭─Details──────────────────────────────────────────────────────────────────────╮
                 │ ○ open                                                                       │
                 ╰──────────────────────────────────────────────────────────────────────────────╯
+                esc back  hjkl move  enter open  r refresh  y copy id  z zoom  e edit  q quit  …
                 """,
                 """
                  [T]asks   [G]raph
@@ -244,6 +250,7 @@ public sealed class GraphTabWorkflowTests
                 │                                                                              │
                 │                                                                              │
                 ╰──────────────────────────────────────────────────────────────────────────────╯
+                hjkl move  enter open  r refresh  y copy id  z zoom  e edit  esc back  q quit  …
                 """
             ]);
     }
