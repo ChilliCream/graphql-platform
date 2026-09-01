@@ -67,12 +67,12 @@ public sealed class GraphTabWorkflowTests
         NormalizeFrame(output).MatchInlineSnapshot(
             """
              [T]asks   [G]raph
+                        wave 1              │             wave 2
             ┌────────────────────────────┐◀┄┄─┌────────────────────────────┐
             │○ [T] cycle-a               │───▶│○ [T] cycle-b               │
-            │Cycle A                     │    │Cycle B                     │
-            └────────────────────────────┘    └────────────────────────────┘
-
-            ┌────────────────────────────┐
+            │Cycle A                     │  │ │Cycle B                     │
+            └────────────────────────────┘  │ └────────────────────────────┘
+                                            │
             v tree/canvas  b boxed/compact  o parent edges  d closed  u/i collapse/expand  …
             """);
     }
@@ -103,11 +103,11 @@ public sealed class GraphTabWorkflowTests
             [
                 """
                  [T]asks   [G]raph
-                ┌────────────────────────────┐
-                │○ [T] orphan-selected       │
-                │Selected orphan task        │
-                └────────────────────────────┘
-
+                            wave 1              │             wave 2
+                ┌────────────────────────────┐  │
+                │○ [T] orphan-selected       │  │
+                │Selected orphan task        │  │
+                └────────────────────────────┘  │
                 nodes: 5  edges: 2  grid: 64 x 19  crossings: 0  reversed: 1
                 v tree/canvas  b boxed/compact  o parent edges  d closed  u/i collapse/expand  …
                 """,
@@ -188,11 +188,11 @@ public sealed class GraphTabWorkflowTests
                 """,
                 """
                  [T]asks   [G]raph
-                ┌────────────────────────────┐
-                │○ [T] orphan-selected       │
-                │Selected orphan task        │
-                └────────────────────────────┘
-
+                            wave 1              │
+                ┌────────────────────────────┐  │
+                │○ [T] orphan-selected       │  │
+                │Selected orphan task        │  │
+                └────────────────────────────┘  │
                 nodes: 15  edges: 1  grid: 64 x 69  cro…
                 v tree/canvas  b boxed/compact  …  test…
                 """
