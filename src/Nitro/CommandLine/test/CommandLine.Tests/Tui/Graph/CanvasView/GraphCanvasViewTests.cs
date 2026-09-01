@@ -222,6 +222,88 @@ public sealed class GraphCanvasViewTests
         result.Buffer.ToText(result.Viewport).MatchInlineSnapshot("○ [T] task A title that is in…");
     }
 
+    [Theory]
+    [InlineData(TaskStates.Blocked, "board.column.status.blocked")]
+    [InlineData(TaskStates.Deferred, "board.column.status.deferred")]
+    [InlineData(TaskStates.Open, "board.column.status.ready")]
+    [InlineData(TaskStates.InProgress, "board.column.status.inprogress")]
+    [InlineData(TaskStates.Closed, "board.column.status.closed")]
+    public void CreateRenderResult_Should_UseBoardStatusStyleForBoxBorderAndGlyph_When_StatusVaries(
+        string status,
+        string token)
+    {
+        // arrange
+        var view = new GraphCanvasView(Model([Node("task", title: "Neutral title", status: status)]));
+        view.SelectTask(null);
+        var node = view.Layout.FindNode("task")!;
+        var neutralTitle = status == TaskStates.Closed
+            ? new Style(decoration: Decoration.Dim)
+            : Style.Plain;
+
+        // act
+        var buffer = view.CreateRenderResult().Buffer;
+
+        // assert
+        Assert.Equal(
+            (ThemeTokens.GetStyle(token), ThemeTokens.GetStyle(token), neutralTitle),
+            (buffer.Get(node.X, node.Y).Style,
+                buffer.Get(node.X + 1, node.Y + 1).Style,
+                buffer.Get(node.X + 1, node.Y + 2).Style));
+    }
+
+    [Theory]
+    [InlineData(TaskStates.Blocked, "board.column.status.blocked", "⊘")]
+    [InlineData(TaskStates.Deferred, "board.column.status.deferred", "⏸")]
+    [InlineData(TaskStates.Open, "board.column.status.ready", "○")]
+    [InlineData(TaskStates.InProgress, "board.column.status.inprogress", "●")]
+    [InlineData(TaskStates.Closed, "board.column.status.closed", "✓")]
+    public void Render_Should_EmitBoardStatusAnsiAndKeepGlyph_When_StatusVaries(
+        string status,
+        string token,
+        string glyph)
+    {
+        // arrange
+        var view = new GraphCanvasView(Model([Node("task", status: status)]));
+        view.SelectTask(null);
+
+        // act
+        var output = Render(view, 80, 8, ansi: true);
+
+        // assert
+        AnsiAssertions.AssertAnsiStylePrefixesText(output, token, "┌");
+        Assert.Contains(glyph, output, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(TaskStates.Blocked, "board.column.status.blocked")]
+    [InlineData(TaskStates.Deferred, "board.column.status.deferred")]
+    [InlineData(TaskStates.Open, "board.column.status.ready")]
+    [InlineData(TaskStates.InProgress, "board.column.status.inprogress")]
+    [InlineData(TaskStates.Closed, "board.column.status.closed")]
+    public void CreateRenderResult_Should_UseBoardStatusStyleForCompactGlyphAndId_When_StatusVaries(
+        string status,
+        string token)
+    {
+        // arrange
+        var view = new GraphCanvasView(Model([Node("task", title: "Neutral title", status: status)]));
+        view.ToggleCompact();
+        view.SelectTask(null);
+        var node = view.Layout.FindNode("task")!;
+        var neutralTitle = status == TaskStates.Closed
+            ? new Style(decoration: Decoration.Dim)
+            : Style.Plain;
+
+        // act
+        var buffer = view.CreateRenderResult().Buffer;
+
+        // assert
+        Assert.Equal(
+            (ThemeTokens.GetStyle(token), ThemeTokens.GetStyle(token), neutralTitle),
+            (buffer.Get(node.X, node.Y).Style,
+                buffer.Get(node.X + 6, node.Y).Style,
+                buffer.Get(node.X + 11, node.Y).Style));
+    }
+
     [Fact]
     public void CreateRenderResult_Should_RenderActorAndCollapsedEpicText_InBothNodeModes()
     {
@@ -269,51 +351,61 @@ public sealed class GraphCanvasViewTests
         Assert.Contains("hits 2", boxedText, StringComparison.Ordinal);
         Assert.Contains("hits 2", compactText, StringComparison.Ordinal);
         Assert.Equal(ThemeTokens.GetStyle("selection.highlight").Background, compact.Buffer.Get(node.X, node.Y).Style.Background);
-        Assert.Equal(ThemeTokens.GetStyle("badge.type.question").Foreground, compact.Buffer.Get(node.X, node.Y).Style.Foreground);
+        Assert.Equal(ThemeTokens.GetStyle("selection.highlight").Foreground, compact.Buffer.Get(node.X, node.Y).Style.Foreground);
     }
 
     [Fact]
-    public void CreateRenderResult_Should_ApplySelectionAndTerminalDecoration_ToEveryClosedNodeSpan()
+    public void CreateRenderResult_Should_ApplySelectionBeforeStatusAndKeepTerminalDim_When_ClosedNodeIsSelected()
     {
         // arrange
         var view = new GraphCanvasView(Model([Node("closed", status: TaskStates.Closed)]));
         view.SelectTask("closed");
         var node = view.Layout.FindNode("closed")!;
         var selection = ThemeTokens.GetStyle("selection.highlight");
-        var status = ThemeTokens.GetStyle("status.glyph.closed");
-        var type = ThemeTokens.GetStyle("badge.type.task");
-        var footer = ThemeTokens.GetStyle("footer.key");
-        const Decoration terminal = Decoration.Dim;
+        var expected = new Style(
+            selection.Foreground,
+            selection.Background,
+            selection.Decoration | Decoration.Dim);
 
         // act
-        var buffer = view.CreateRenderResult().Buffer;
+        var boxed = view.CreateRenderResult().Buffer;
         var styles = new[]
         {
-            buffer.Get(node.X + 1, node.Y + 1).Style,
-            buffer.Get(node.X + 3, node.Y + 1).Style,
-            buffer.Get(node.X + 7, node.Y + 1).Style,
-            buffer.Get(node.X + 1, node.Y + 2).Style
+            boxed.Get(node.X, node.Y).Style,
+            boxed.Get(node.X + 1, node.Y + 1).Style,
+            boxed.Get(node.X + 3, node.Y + 1).Style,
+            boxed.Get(node.X + 7, node.Y + 1).Style,
+            boxed.Get(node.X + 1, node.Y + 2).Style
         };
+        view.ToggleCompact();
+        node = view.Layout.FindNode("closed")!;
+        var compact = view.CreateRenderResult().Buffer;
+        styles =
+        [
+            .. styles,
+            compact.Get(node.X, node.Y).Style,
+            compact.Get(node.X + 2, node.Y).Style,
+            compact.Get(node.X + 6, node.Y).Style,
+            compact.Get(node.X + 13, node.Y).Style
+        ];
 
         // assert
-        Assert.Equal(
-            [
-                new Style(status.Foreground, selection.Background, status.Decoration | selection.Decoration | terminal),
-                new Style(type.Foreground, selection.Background, type.Decoration | selection.Decoration | terminal),
-                new Style(footer.Foreground, selection.Background, footer.Decoration | selection.Decoration | terminal),
-                new Style(Style.Plain.Foreground, selection.Background, selection.Decoration | terminal)
-            ],
-            styles);
+        Assert.Equal(Enumerable.Repeat(expected, styles.Length), styles);
     }
 
-    [Fact]
-    public void CreateRenderResult_Should_HighlightOnlyIncidentEdges_When_NodeIsSelected()
+    [Theory]
+    [InlineData(TaskStates.Blocked)]
+    [InlineData(TaskStates.Deferred)]
+    [InlineData(TaskStates.Open)]
+    [InlineData(TaskStates.InProgress)]
+    [InlineData(TaskStates.Closed)]
+    public void CreateRenderResult_Should_DistinguishSelectedEdgesFromStatusBorders_When_StatusVaries(string status)
     {
         // arrange
         var selectedEdge = Edge("a", "b");
         var unrelatedEdge = Edge("c", "d");
         var view = new GraphCanvasView(Model(
-            [Node("a"), Node("b"), Node("c"), Node("d")],
+            [Node("a"), Node("b"), Node("c"), Node("d"), Node("status", status: status)],
             [selectedEdge, unrelatedEdge]));
         view.SelectTask("a");
 
@@ -336,6 +428,9 @@ public sealed class GraphCanvasViewTests
         // assert
         Assert.Equal([selectedStyle], styles[selectedEdge]);
         Assert.Equal([ThemeTokens.GetStyle("board.column.border")], styles[unrelatedEdge]);
+        Assert.NotEqual(
+            result.Buffer.Get(view.Layout.FindNode("status")!.X, view.Layout.FindNode("status")!.Y).Style,
+            styles[selectedEdge][0]);
     }
 
     [Fact]

@@ -43,13 +43,14 @@ internal static class GraphCanvasNodeRenderer
         }
 
         var baseStyle = GetBaseStyle(node, selected, matched);
+        var borderStyle = Compose(GetStatusStyle(node.Status), node, selected, matched);
         var horizontal = new string('─', Math.Max(0, layoutNode.Width - 2));
-        WriteSpan(buffer, layoutNode.X, layoutNode.Y, $"┌{horizontal}┐", baseStyle, layoutNode.Width);
-        WriteSpan(buffer, layoutNode.X, layoutNode.Y + layoutNode.Height - 1, $"└{horizontal}┘", baseStyle, layoutNode.Width);
-        WriteSpan(buffer, layoutNode.X, layoutNode.Y + 1, "│", baseStyle, 1);
-        WriteSpan(buffer, layoutNode.X + layoutNode.Width - 1, layoutNode.Y + 1, "│", baseStyle, 1);
-        WriteSpan(buffer, layoutNode.X, layoutNode.Y + 2, "│", baseStyle, 1);
-        WriteSpan(buffer, layoutNode.X + layoutNode.Width - 1, layoutNode.Y + 2, "│", baseStyle, 1);
+        WriteSpan(buffer, layoutNode.X, layoutNode.Y, $"┌{horizontal}┐", borderStyle, layoutNode.Width);
+        WriteSpan(buffer, layoutNode.X, layoutNode.Y + layoutNode.Height - 1, $"└{horizontal}┘", borderStyle, layoutNode.Width);
+        WriteSpan(buffer, layoutNode.X, layoutNode.Y + 1, "│", borderStyle, 1);
+        WriteSpan(buffer, layoutNode.X + layoutNode.Width - 1, layoutNode.Y + 1, "│", borderStyle, 1);
+        WriteSpan(buffer, layoutNode.X, layoutNode.Y + 2, "│", borderStyle, 1);
+        WriteSpan(buffer, layoutNode.X + layoutNode.Width - 1, layoutNode.Y + 2, "│", borderStyle, 1);
 
         RenderMetadata(
             buffer,
@@ -109,6 +110,7 @@ internal static class GraphCanvasNodeRenderer
         width = Math.Max(0, width);
         var baseStyle = GetBaseStyle(node, selected, matched);
         var status = TaskGlyphs.Status(node.Status);
+        var statusStyle = Compose(GetStatusStyle(node.Status), node, selected, matched);
         var type = $"[{TaskGlyphs.TypeCode(node.Type)}]";
         var identity = node.Status == TaskStates.InProgress && !string.IsNullOrWhiteSpace(node.Assignee)
             ? $"{node.Id} @{node.Assignee}"
@@ -122,7 +124,7 @@ internal static class GraphCanvasNodeRenderer
             cursor,
             y,
             status,
-            Compose(ThemeTokens.GetStyle($"status.glyph.{node.Status}"), node, selected, matched),
+            statusStyle,
             end - cursor);
         cursor = WriteSpan(buffer, cursor, y, " ", baseStyle, end - cursor);
         cursor = WriteSpan(
@@ -138,7 +140,9 @@ internal static class GraphCanvasNodeRenderer
             cursor,
             y,
             identity,
-            Compose(ThemeTokens.GetStyle("footer.key"), node, selected, matched, dim: true),
+            appendTitle
+                ? statusStyle
+                : Compose(ThemeTokens.GetStyle("footer.key"), node, selected, matched, dim: true),
             end - cursor);
 
         if (appendTitle && cursor < end)
@@ -163,6 +167,17 @@ internal static class GraphCanvasNodeRenderer
     private static Style GetBaseStyle(GraphNode node, bool selected, bool matched)
         => Compose(Style.Plain, node, selected, matched);
 
+    private static Style GetStatusStyle(string status)
+        => status switch
+        {
+            TaskStates.Blocked => ThemeTokens.GetStyle("board.column.status.blocked"),
+            TaskStates.Deferred => ThemeTokens.GetStyle("board.column.status.deferred"),
+            TaskStates.InProgress => ThemeTokens.GetStyle("board.column.status.inprogress"),
+            TaskStates.Closed or TaskStates.Archived or TaskStates.Tombstone
+                => ThemeTokens.GetStyle("board.column.status.closed"),
+            _ => ThemeTokens.GetStyle("board.column.status.ready")
+        };
+
     private static Style Compose(Style style, GraphNode node, bool selected, bool matched, bool dim = false)
     {
         var selection = selected ? ThemeTokens.GetStyle("selection.highlight") : Style.Plain;
@@ -174,7 +189,12 @@ internal static class GraphCanvasNodeRenderer
             decoration |= Decoration.Dim;
         }
 
-        return new Style(matched ? match.Foreground : style.Foreground, selection.Background, decoration);
+        var foreground = selected
+            ? selection.Foreground
+            : matched
+                ? match.Foreground
+                : style.Foreground;
+        return new Style(foreground, selection.Background, decoration);
     }
 
     private static int WriteSpan(CellBuffer buffer, int x, int y, string value, Style style, int width)

@@ -468,15 +468,16 @@ public sealed class GraphModeTests
         Assert.Contains("hits 1", matched.Buffer.ToText(matched.Viewport), StringComparison.Ordinal);
         Assert.Contains("hits 1", compactMatched.Buffer.ToText(compactMatched.Viewport), StringComparison.Ordinal);
         Assert.Equal(ThemeTokens.GetStyle("selection.highlight").Background, cleared.Buffer.Get(epic.X, epic.Y).Style.Background);
-        Assert.Equal(ThemeTokens.GetStyle("status.glyph.open").Foreground, cleared.Buffer.Get(epic.X, epic.Y).Style.Foreground);
+        Assert.Equal(ThemeTokens.GetStyle("selection.highlight").Foreground, cleared.Buffer.Get(epic.X, epic.Y).Style.Foreground);
     }
 
     [Fact]
     public void Search_Should_ClearDirectBoxedAndCompactCanvasPresentation_When_EscapeIsPressed()
     {
         // arrange
-        var mode = CreateMode([Task("match", title: "find direct")]).Mode;
+        var mode = CreateMode([Task("selected"), Task("match", title: "find direct")]).Mode;
         mode.OnEnter();
+        mode.SelectTask("selected");
         mode.Handle(new TuiMessage.ToggleGraphProjection());
         mode.Handle(new TuiMessage.FocusSearchRequested());
         Type(mode, "find");
@@ -492,7 +493,7 @@ public sealed class GraphModeTests
         // assert
         Assert.Equal(ThemeTokens.GetStyle("badge.type.question").Foreground, boxed.Buffer.Get(node.X, node.Y).Style.Foreground);
         Assert.Equal(ThemeTokens.GetStyle("badge.type.question").Foreground, compact.Buffer.Get(node.X, node.Y).Style.Foreground);
-        Assert.Equal(ThemeTokens.GetStyle("status.glyph.open").Foreground, cleared.Buffer.Get(node.X, node.Y).Style.Foreground);
+        Assert.Equal(ThemeTokens.GetStyle("board.column.status.ready").Foreground, cleared.Buffer.Get(node.X, node.Y).Style.Foreground);
     }
 
     [Fact]
