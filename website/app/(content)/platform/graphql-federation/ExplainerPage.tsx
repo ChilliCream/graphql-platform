@@ -443,8 +443,8 @@ const GLOSSARY: readonly (readonly string[])[] = [
 
 export function ExplainerPage() {
   return (
-    <div className="bg-cc-bg relative left-1/2 -mt-8 w-screen -translate-x-1/2">
-      <section className="border-cc-card-border relative flex flex-col items-center overflow-hidden border-b px-5 pt-6 pb-16 text-center sm:px-12 sm:pt-10 sm:pb-20">
+    <div className="bg-cc-bg relative left-1/2 -mt-26 w-screen -translate-x-1/2">
+      <section className="border-cc-card-border relative flex flex-col items-center overflow-hidden border-b px-5 pt-24 pb-16 text-center sm:px-12 sm:pt-28 sm:pb-20">
         <h1 className="font-heading text-cc-heading text-h3 sm:text-h2 mx-auto w-full max-w-3xl text-balance">
           What is{" "}
           <span
