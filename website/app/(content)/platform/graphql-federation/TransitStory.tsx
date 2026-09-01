@@ -33,11 +33,11 @@ function streamPath(x: number, y0: number): string {
 
 const GAPS = [
   { x: 470, w: 460, y: 400, h: 320 },
-  { x: 100, w: 460, y: 900, h: 320 },
+  { x: 95, w: 460, y: 900, h: 320 },
   { x: 220, w: 584, y: 1390, h: 300 },
   { x: 470, w: 460, y: 1860, h: 320 },
   { x: 220, w: 584, y: 2350, h: 300 },
-  { x: 220, w: 584, y: 3560, h: 360 },
+  { x: 220, w: 584, y: 3545, h: 360 },
   { x: 220, w: 584, y: 4450, h: 300 },
 ] as const;
 
@@ -168,7 +168,7 @@ const STORY: readonly Chapter[] = [
   {
     copy: {
       top: 560,
-      left: 68,
+      left: 70,
       side: true,
       title: "Clients want one API. Teams want to ship alone.",
     },
@@ -192,7 +192,7 @@ const STORY: readonly Chapter[] = [
     boxes: [
       {
         top: 560,
-        left: 30,
+        left: 28,
         label: "Product page · five teams",
         lines: [
           { text: "name", dots: [CANON[0].color] },
@@ -207,7 +207,7 @@ const STORY: readonly Chapter[] = [
   {
     copy: {
       top: 1060,
-      left: 32,
+      left: 30,
       side: true,
       title: "Answer one: every app merges the data itself.",
     },
@@ -228,7 +228,7 @@ const STORY: readonly Chapter[] = [
     boxes: [
       {
         top: 1060,
-        left: 70,
+        left: 72,
         label: "One screen · five calls",
         lines: [
           { text: "GET /products/P-42", dots: [CANON[0].color] },
@@ -266,7 +266,7 @@ const STORY: readonly Chapter[] = [
   {
     copy: {
       top: 2020,
-      left: 68,
+      left: 70,
       side: true,
       title: "GraphQL gives clients one schema and one query.",
     },
@@ -288,7 +288,7 @@ const STORY: readonly Chapter[] = [
     boxes: [
       {
         top: 2020,
-        left: 30,
+        left: 28,
         label: "One query",
         lines: [
           { text: "{" },
@@ -356,7 +356,7 @@ const STORY: readonly Chapter[] = [
   },
   {
     copy: {
-      top: 3740,
+      top: 3725,
       left: 50,
       title: "Federation merges the schemas, not the services.",
     },
@@ -383,7 +383,7 @@ const STORY: readonly Chapter[] = [
     ),
     boxes: [
       {
-        top: 4100,
+        top: 4115,
         left: 50,
         label: "Composite schema",
         lines: [
@@ -597,7 +597,7 @@ export function TransitStory() {
 
       <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/4900]">
         <TransitMap />
-        <div className="flex flex-col gap-10 px-5 py-16 sm:contents">
+        <div className="flex flex-col gap-14 px-5 py-16 sm:contents">
           {STORY.map((chapter, i) => (
             <Fragment key={i}>
               <CopyBlock {...chapter.copy}>{chapter.body}</CopyBlock>
