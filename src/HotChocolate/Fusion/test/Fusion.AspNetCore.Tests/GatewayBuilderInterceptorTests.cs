@@ -130,6 +130,33 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
     }
 
     [Fact]
+    public async Task AddGraphQLGatewayServer_Should_Persist_Connection_Init_Payload_In_Connection_Features()
+    {
+        // arrange
+        JsonElement capturedPayload = default;
+        using var server = CreateSourceSchema("A", SimpleSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.UseRequest(
+                (_, _) => context =>
+                {
+                    var session = (ISocketSession)context.ContextData[nameof(ISocketSession)]!;
+                    capturedPayload = session.Connection.Features.Get<JsonElement>();
+                    return default;
+                },
+                key: "CaptureConnectionInitPayload"));
+
+        // act
+        await ExecuteOverWebSocketAsync(
+            gateway,
+            JsonSerializer.SerializeToElement(new Dictionary<string, string> { ["token"] = "abc" }));
+
+        // assert
+        capturedPayload.GetRawText().MatchInlineSnapshot("""{"token":"abc"}""");
+    }
+
+    [Fact]
     public async Task AddHttpResponseFormatter_Indented_Should_Indent_Response_Body()
     {
         // arrange
@@ -259,6 +286,30 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
             {
                 return operationResult.Extensions.Clone();
             }
+        }
+
+        throw new InvalidOperationException("No result received over the WebSocket.");
+    }
+
+    private static async Task ExecuteOverWebSocketAsync(Gateway gateway, JsonElement connectionInitPayload)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var ct = cts.Token;
+
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+
+        using var webSocket = await webSocketClient.ConnectAsync(
+            new Uri("ws://localhost:5000/graphql"),
+            ct);
+
+        await using var client = await SocketClient.ConnectAsync(webSocket, connectionInitPayload, ct);
+        using var result = await client.ExecuteAsync(new TransportOperationRequest("{ field }"), ct);
+
+        await foreach (var operationResult in result.ReadResultsAsync().WithCancellation(ct))
+        {
+            operationResult.Dispose();
+            return;
         }
 
         throw new InvalidOperationException("No result received over the WebSocket.");

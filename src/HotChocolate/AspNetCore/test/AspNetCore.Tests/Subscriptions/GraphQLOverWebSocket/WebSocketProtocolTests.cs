@@ -45,8 +45,11 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             });
 
     [Fact]
-    public Task Send_Connect_With_Payload_Should_Persist_Payload_In_Connection_Features()
-        => TryTest(
+    public async Task Send_Connect_With_Payload_Should_Persist_Payload_In_Connection_Features()
+    {
+        JsonElement payload = default;
+
+        await TryTest(
             async ct =>
             {
                 // arrange
@@ -61,11 +64,15 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // act
                 await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc" }, ct);
                 await WaitForMessage(webSocket, Messages.ConnectionAccept, ct);
+                await webSocket.SendPingAsync(ct);
+                await WaitForMessage(webSocket, Messages.Pong, ct);
 
                 // assert
-                var payload = interceptor.Session!.Connection.Features.Get<JsonElement>();
-                payload.GetRawText().MatchInlineSnapshot("""{"token":"abc"}""");
+                payload = interceptor.Session!.Connection.Features.Get<JsonElement>();
             });
+
+        payload.GetRawText().MatchInlineSnapshot("""{"token":"abc"}""");
+    }
 
     [Fact]
     public Task Send_Multiple_Connect_Messages_Close_Connection()
