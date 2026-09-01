@@ -472,6 +472,30 @@ public sealed class GraphModeTests
     }
 
     [Fact]
+    public void Search_Should_ClearDirectBoxedAndCompactCanvasPresentation_When_EscapeIsPressed()
+    {
+        // arrange
+        var mode = CreateMode([Task("match", title: "find direct")]).Mode;
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        var boxed = mode.CanvasView.CreateRenderResult();
+        mode.CanvasView.ToggleCompact();
+        var compact = mode.CanvasView.CreateRenderResult();
+        var node = mode.CanvasView.Layout.FindNode("match")!;
+
+        // act
+        mode.HandleRawKey(new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
+        var cleared = mode.CanvasView.CreateRenderResult();
+
+        // assert
+        Assert.Equal(ThemeTokens.GetStyle("badge.type.question").Foreground, boxed.Buffer.Get(node.X, node.Y).Style.Foreground);
+        Assert.Equal(ThemeTokens.GetStyle("badge.type.question").Foreground, compact.Buffer.Get(node.X, node.Y).Style.Foreground);
+        Assert.Equal(ThemeTokens.GetStyle("status.glyph.open").Foreground, cleared.Buffer.Get(node.X, node.Y).Style.Foreground);
+    }
+
+    [Fact]
     public void Search_Should_CycleUniqueCollapsedRepresentativesAcrossProjectionChanges()
     {
         // arrange
@@ -745,6 +769,86 @@ public sealed class GraphModeTests
         // assert
         Assert.Empty(mode.CollapsedEpicIds);
         Assert.Equal([null, "a", "a-child", "b", "b-child"], mode.TreeView.Rows.Select(t => t.TaskId));
+    }
+
+    [Fact]
+    public void Search_Should_RemoveHiddenClosedMatchFromBothProjectionsAndCycle()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("open", priority: 0, title: "find open"),
+                Task("closed", priority: 1, status: TaskStates.Closed, title: "find closed")
+            ]).Mode;
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleGraphClosed());
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        mode.HandleRawKey(EnterKey());
+
+        // act
+        mode.Handle(new TuiMessage.ToggleGraphClosed());
+        var tree = mode.TreeView.Rows.Select(t => t.TaskId).ToArray();
+        var canvas = mode.CanvasView.Layout.Nodes.Select(t => t.Id).ToArray();
+        mode.HandleRawKey(EnterKey());
+
+        // assert
+        Assert.Equal([null, "open"], tree);
+        Assert.Equal(["open"], canvas);
+        Assert.Equal("open", mode.SelectedTaskId);
+        Assert.Equal("Search: find (1 hits)", mode.FooterStatus);
+    }
+
+    [Fact]
+    public void Search_Should_RemapCollapsedMatchesAcrossCollapseExpandFilterAndRefresh()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("epic", priority: 0, type: TaskTypes.Epic),
+                Task("child", priority: 1, title: "find child"),
+                Task("other", priority: 2, title: "find other")
+            ],
+            [Parent("epic", "child")],
+            [new TaskLabels("child", ["alpha"])]).Mode;
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        mode.SelectTask("epic");
+
+        // act
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+        var collapsedCount = mode.TreeView.Rows.Single(t => t.TaskId == "epic").ContainedMatchCount;
+        mode.HandleRawKey(EnterKey());
+        var collapsedTarget = mode.SelectedTaskId;
+        mode.Handle(new TuiMessage.ExpandSelectedGraphEpic());
+        var expandedCount = mode.TreeView.Rows.Single(t => t.TaskId == "epic").ContainedMatchCount;
+        mode.Handle(new TuiMessage.CollapseAllGraphEpics());
+        mode.Handle(new TuiMessage.ExpandAllGraphEpics());
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        Type(mode, "alpha");
+        mode.HandleRawKey(SaveKey());
+        mode.Handle(new TuiMessage.RefreshRequested());
+        mode.HandleRawKey(EnterKey());
+        var filteredTarget = mode.SelectedTaskId;
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        mode.HandleRawKey(TabKey());
+        mode.HandleRawKey(TabKey());
+        mode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.RightArrow, false, false, false));
+        mode.HandleRawKey(EnterKey());
+        mode.HandleRawKey(EnterKey());
+
+        // assert
+        Assert.Equal((1, 0), (collapsedCount, expandedCount));
+        Assert.Equal("epic", collapsedTarget);
+        Assert.Equal("child", filteredTarget);
+        Assert.Equal(
+            ("child", true, 0),
+            (
+                mode.SelectedTaskId,
+                mode.TreeView.Rows.Single(t => t.TaskId == "child").IsMatch,
+                mode.TreeView.Rows.Single(t => t.TaskId == "epic").ContainedMatchCount));
+        Assert.Equal("Search: find (2 hits)", mode.FooterStatus);
     }
 
     private static (GraphMode Mode, Mock<ITaskStore> Store) CreateMode(

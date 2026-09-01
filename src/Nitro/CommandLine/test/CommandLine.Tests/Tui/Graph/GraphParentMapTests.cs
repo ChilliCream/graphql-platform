@@ -35,6 +35,27 @@ public sealed class GraphParentMapTests
             second.OrderBy(t => t.Key, StringComparer.Ordinal).Select(t => $"{t.Key}:{t.Value}"));
     }
 
+    [Fact]
+    public void Build_Should_CreateAnOrderStableParentChainWithoutRecursion_When_TheGraphIsDeep()
+    {
+        // arrange
+        const int count = 2_000;
+        var nodes = Enumerable.Range(0, count).Select(index => Node($"n{index:D4}", 1)).ToArray();
+        var edges = Enumerable.Range(1, count - 1)
+            .Select(index => Edge($"n{index - 1:D4}", $"n{index:D4}"))
+            .ToArray();
+
+        // act
+        var first = GraphParentMap.Build(new GraphModel(nodes, edges));
+        var second = GraphParentMap.Build(new GraphModel(nodes.Reverse().ToArray(), edges.Reverse().ToArray()));
+
+        // assert
+        Assert.Equal(count - 1, first.Count);
+        Assert.Equal("n0000", first["n0001"]);
+        Assert.Equal($"n{count - 2:D4}", first[$"n{count - 1:D4}"]);
+        Assert.Equal(first.OrderBy(t => t.Key), second.OrderBy(t => t.Key));
+    }
+
     private static GraphNode Node(string id, int priority)
         => new()
         {

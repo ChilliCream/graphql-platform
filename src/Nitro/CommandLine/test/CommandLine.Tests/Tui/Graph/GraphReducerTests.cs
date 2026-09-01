@@ -299,6 +299,32 @@ public sealed class GraphReducerTests
         Assert.Equal([Edge("a", "z"), Edge("b", "z"), Edge("z", "a", isReversed: true)], reduced.Edges);
     }
 
+    [Fact]
+    public void Reduce_Should_UseTheOuterCollapsedEpicForEveryDeepDescendantWithoutRecursion()
+    {
+        // arrange
+        const int count = 2_000;
+        var nodes = new List<GraphNode>(count) { Node("outer", type: TaskTypes.Epic) };
+        var edges = new List<GraphEdge>(count - 1);
+
+        for (var index = 1; index < count; index++)
+        {
+            var id = $"n{index:D4}";
+            nodes.Add(Node(id, type: index == 1 ? TaskTypes.Epic : TaskTypes.Task));
+            edges.Add(Edge(index == 1 ? "outer" : $"n{index - 1:D4}", id, GraphEdgeKind.ParentChild));
+        }
+
+        // act
+        var reduced = GraphReducer.Reduce(
+            Model(nodes, edges),
+            new GraphReductionOptions { HideClosed = false, CollapsedEpicIds = Set("outer", "n0001") });
+
+        // assert
+        var outer = Assert.Single(reduced.Nodes);
+        Assert.Equal(("outer", count - 1), (outer.Id, outer.HiddenChildCount));
+        Assert.Empty(reduced.Edges);
+    }
+
     private static GraphModel EpicWithChildren(int childCount, bool includeClosedChild = false)
     {
         var nodes = new List<GraphNode> { Node("epic", type: TaskTypes.Epic) };

@@ -56,6 +56,42 @@ public sealed class TuiShellTests
         return console.Output;
     }
 
+    private static string RenderFooterText(TuiShell shell, int width)
+        => RenderToText(shell, width)
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .LastOrDefault()?
+            .TrimEnd('\r')
+            ?? string.Empty;
+
+    private static int MeasureCellWidth(string value)
+        => value.EnumerateRunes().Sum(rune => rune.Value switch
+        {
+            >= 0x0300 and <= 0x036F => 0,
+            >= 0x4E00 and <= 0x9FFF => 2,
+            >= 0x1F300 and <= 0x1FAFF => 2,
+            _ => 1
+        });
+
+    private static bool ContainsLoneSurrogate(string value)
+    {
+        for (var index = 0; index < value.Length; index++)
+        {
+            if (char.IsHighSurrogate(value[index])
+                && (index + 1 == value.Length || !char.IsLowSurrogate(value[index + 1])))
+            {
+                return true;
+            }
+
+            if (char.IsLowSurrogate(value[index])
+                && (index == 0 || !char.IsHighSurrogate(value[index - 1])))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     [Fact]
     public void Constructor_Should_CallOnEnter_OnActiveMode()
     {
@@ -1328,5 +1364,85 @@ public sealed class TuiShellTests
         // assert
         Assert.Contains("move", text);
         Assert.DoesNotContain("someone", text);
+    }
+
+    [Fact]
+    public void Render_Should_OrderGraphStatusHintsDaemonAndActor_AndReplaceThemWithToast()
+    {
+        // arrange
+        var mode = new FakeTuiMode { FooterStatus = "Search: find (2 hits); Filters active" };
+        var shell = new TuiShell(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            160,
+            24,
+            actor: "lucy",
+            mailWakeDaemonState: () => MailWakeDaemonState.Ready);
+
+        // act
+        var footer = RenderFooterText(shell, 160);
+        mode.HandleResult = _ => [new TuiMessage.ShowToast("saved", ToastStyle.Success)];
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+        var toast = RenderFooterText(shell, 160);
+
+        // assert
+        Assert.True(footer.IndexOf("Search: find", StringComparison.Ordinal) < footer.IndexOf("move", StringComparison.Ordinal));
+        Assert.True(footer.IndexOf("move", StringComparison.Ordinal) < footer.IndexOf("mail-wake:ready", StringComparison.Ordinal));
+        Assert.True(footer.IndexOf("mail-wake:ready", StringComparison.Ordinal) < footer.IndexOf("lucy", StringComparison.Ordinal));
+        Assert.Equal("saved", toast.Trim());
+    }
+
+    [Fact]
+    public void Render_Should_ShowDaemonBadgeWithoutAnActor()
+    {
+        // arrange
+        var shell = new TuiShell(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            new FakeTuiMode(),
+            120,
+            24,
+            mailWakeDaemonState: () => MailWakeDaemonState.Degraded);
+
+        // act
+        var footer = RenderFooterText(shell, 120);
+
+        // assert
+        Assert.Contains("mail-wake:degraded", footer, StringComparison.Ordinal);
+        Assert.Contains("quit", footer, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(15)]
+    [InlineData(16)]
+    public void Render_Should_KeepFooterWithinTerminalCellWidth_When_TheWidthIsNarrow(int width)
+    {
+        // arrange
+        var shell = CreateShell(new FakeTuiMode { FooterStatus = "[漢🙂e\u0301]" }, width, actor: "🙂actor");
+
+        // act
+        var text = width == 0 ? string.Empty : RenderFooterText(shell, width);
+
+        // assert
+        Assert.True(MeasureCellWidth(text) <= width);
+        Assert.False(ContainsLoneSurrogate(text));
+    }
+
+    [Fact]
+    public void Render_Should_EscapeMarkupAndPreserveTextElements_When_FooterStatusIsUnicode()
+    {
+        // arrange
+        var status = "[漢🙂e\u0301]";
+        var shell = CreateShell(new FakeTuiMode { FooterStatus = status }, width: 8, actor: null);
+
+        // act
+        var text = RenderFooterText(shell, 8);
+
+        // assert
+        Assert.Equal("[漢🙂e\u0301]", text);
+        Assert.False(ContainsLoneSurrogate(text));
+        Assert.True(MeasureCellWidth(text) <= 8);
     }
 }

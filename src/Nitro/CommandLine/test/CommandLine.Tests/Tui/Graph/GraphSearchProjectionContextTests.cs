@@ -36,6 +36,30 @@ public sealed class GraphSearchProjectionContextTests
         Assert.Equal(visits, context.RepresentativeBuildVisitCount);
     }
 
+    [Fact]
+    public void Constructor_Should_KeepRepresentativesStable_When_ParentEdgesAreReversedAndCyclic()
+    {
+        // arrange
+        var nodes = new[] { Node("a"), Node("b"), Node("c"), Node("root") with { Priority = 0 } };
+        var edges = new[]
+        {
+            new GraphEdge("a", "b", GraphEdgeKind.ParentChild),
+            new GraphEdge("b", "c", GraphEdgeKind.ParentChild),
+            new GraphEdge("c", "a", GraphEdgeKind.ParentChild),
+            new GraphEdge("root", "a", GraphEdgeKind.ParentChild)
+        };
+        var reduced = new GraphModel([Node("root")], []);
+
+        // act
+        var first = new GraphSearchProjectionContext(new GraphModel(nodes, edges), reduced);
+        var second = new GraphSearchProjectionContext(new GraphModel(nodes.Reverse().ToArray(), edges.Reverse().ToArray()), reduced);
+
+        // assert
+        Assert.Equal(["root", "root", "root", "root"], nodes.Select(t => first.ResolveRepresentative(t.Id)));
+        Assert.Equal(nodes.Select(t => first.ResolveRepresentative(t.Id)), nodes.Select(t => second.ResolveRepresentative(t.Id)));
+        Assert.Equal(4, first.RepresentativeBuildVisitCount);
+    }
+
     private static GraphNode Node(string id)
         => new()
         {

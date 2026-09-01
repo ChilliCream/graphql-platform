@@ -1219,7 +1219,7 @@ internal sealed class TuiShell
         }
 
         var statusText = string.IsNullOrEmpty(inlineStatus) ? null : TruncateFooterText(inlineStatus, width);
-        var statusWidth = statusText?.Length ?? 0;
+        var statusWidth = statusText is null ? 0 : GetFooterDisplayWidth(statusText);
         var hintWidth = Math.Max(0, width - statusWidth - (statusWidth > 0 ? FooterSeparator.Length : 0));
         var hintMarkup = FormatFooterHints(hints, hintWidth, out var hintPlainWidth);
         var leadingWidth = statusWidth + hintPlainWidth + (statusWidth > 0 && hintPlainWidth > 0 ? FooterSeparator.Length : 0);
@@ -1234,7 +1234,7 @@ internal sealed class TuiShell
 
         if (available <= 0)
         {
-            return hintMarkup;
+            return leadingMarkup;
         }
 
         var trailingMarkup = string.Empty;
@@ -1244,12 +1244,12 @@ internal sealed class TuiShell
         {
             var badgeText = FormatMailWakeDaemonBadge(state);
 
-            if (badgeText.Length <= available)
+            if (GetFooterDisplayWidth(badgeText) <= available)
             {
                 var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(state)).ToMarkup();
                 trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
-                trailingPlainWidth = badgeText.Length;
-                available -= badgeText.Length;
+                trailingPlainWidth = GetFooterDisplayWidth(badgeText);
+                available -= trailingPlainWidth;
             }
         }
 
@@ -1260,13 +1260,13 @@ internal sealed class TuiShell
 
             string? identityText = null;
 
-            if (actor.Length <= identityAvailable)
+            if (GetFooterDisplayWidth(actor) <= identityAvailable)
             {
                 identityText = actor;
             }
-            else if (identityAvailable > FooterEllipsis.Length)
+            else if (identityAvailable > GetFooterDisplayWidth(FooterEllipsis))
             {
-                identityText = actor[..(identityAvailable - FooterEllipsis.Length)] + FooterEllipsis;
+                identityText = TruncateFooterText(actor, identityAvailable);
             }
 
             if (identityText is not null)
@@ -1277,7 +1277,7 @@ internal sealed class TuiShell
                 trailingMarkup = trailingPlainWidth > 0
                     ? trailingMarkup + FooterSeparator + identityMarkup
                     : identityMarkup;
-                trailingPlainWidth += separatorNeeded + identityText.Length;
+                trailingPlainWidth += separatorNeeded + GetFooterDisplayWidth(identityText);
             }
         }
 
@@ -1293,33 +1293,76 @@ internal sealed class TuiShell
 
     private static string TruncateFooterText(string value, int width)
     {
-        if (value.Length <= width)
+        if (GetFooterDisplayWidth(value) <= width)
         {
             return value;
         }
 
-        if (width <= FooterEllipsis.Length)
+        var ellipsisWidth = GetFooterDisplayWidth(FooterEllipsis);
+
+        if (width <= ellipsisWidth)
         {
             return FooterEllipsis;
         }
 
         var builder = new StringBuilder(width);
         var enumerator = StringInfo.GetTextElementEnumerator(value);
-        var remaining = width - FooterEllipsis.Length;
+        var remaining = width - ellipsisWidth;
 
-        while (enumerator.MoveNext() && builder.Length < remaining)
+        while (enumerator.MoveNext())
         {
             var element = enumerator.GetTextElement();
 
-            if (builder.Length + element.Length > remaining)
+            var elementWidth = GetFooterDisplayWidth(element);
+
+            if (elementWidth > remaining)
             {
                 break;
             }
 
             builder.Append(element);
+            remaining -= elementWidth;
         }
 
         return builder.Append(FooterEllipsis).ToString();
+    }
+
+    private static int GetFooterDisplayWidth(string value)
+    {
+        var width = 0;
+        var enumerator = StringInfo.GetTextElementEnumerator(value);
+
+        while (enumerator.MoveNext())
+        {
+            width += GetFooterTextElementWidth(enumerator.GetTextElement());
+        }
+
+        return width;
+    }
+
+    private static int GetFooterTextElementWidth(string element)
+    {
+        var width = 0;
+
+        foreach (var rune in element.EnumerateRunes())
+        {
+            var category = Rune.GetUnicodeCategory(rune);
+
+            if (category is UnicodeCategory.NonSpacingMark or UnicodeCategory.EnclosingMark or UnicodeCategory.Format
+                || rune.Value is < 0x20 or (>= 0x7F and <= 0x9F))
+            {
+                continue;
+            }
+
+            width = Math.Max(width, rune.Value switch
+            {
+                >= 0x4E00 and <= 0x9FFF => 2,
+                >= 0x1F300 and <= 0x1FAFF => 2,
+                _ => 1
+            });
+        }
+
+        return width;
     }
 
     /// <summary>
@@ -1375,7 +1418,8 @@ internal sealed class TuiShell
                 $"[{keyStyle}]{Markup.Escape(hints[i].Key)}[/] [{actionStyle}]{Markup.Escape(hints[i].Action)}[/]";
         }
 
-        var fullPlainWidth = plainItems.Sum(item => item.Length) + FooterSeparator.Length * (hints.Count - 1);
+        var separatorWidth = GetFooterDisplayWidth(FooterSeparator);
+        var fullPlainWidth = plainItems.Sum(GetFooterDisplayWidth) + separatorWidth * (hints.Count - 1);
 
         if (fullPlainWidth <= width)
         {
@@ -1385,11 +1429,11 @@ internal sealed class TuiShell
 
         var included = 0;
         var usedWidth = 0;
-        var trailerWidth = FooterSeparator.Length + FooterEllipsis.Length;
+        var trailerWidth = separatorWidth + GetFooterDisplayWidth(FooterEllipsis);
 
         for (var i = 0; i < hints.Count; i++)
         {
-            var itemWidth = (i == 0 ? 0 : FooterSeparator.Length) + plainItems[i].Length;
+            var itemWidth = (i == 0 ? 0 : separatorWidth) + GetFooterDisplayWidth(plainItems[i]);
 
             if (usedWidth + itemWidth + trailerWidth > width)
             {
@@ -1402,8 +1446,9 @@ internal sealed class TuiShell
 
         if (included == 0)
         {
-            plainWidth = width >= FooterEllipsis.Length ? FooterEllipsis.Length : 0;
-            return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
+            var ellipsisWidth = GetFooterDisplayWidth(FooterEllipsis);
+            plainWidth = width >= ellipsisWidth ? ellipsisWidth : 0;
+            return width >= ellipsisWidth ? FooterEllipsis : string.Empty;
         }
 
         plainWidth = usedWidth + trailerWidth;
