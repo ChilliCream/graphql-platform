@@ -83,7 +83,7 @@ function TickRow({
 }
 
 function ChipCaption({
-  x = CHIP_X,
+  x = CHIP_X + ROW_WIDTH,
   y,
   children,
 }: {
@@ -95,6 +95,7 @@ function ChipCaption({
     <text
       x={x}
       y={y}
+      textAnchor="end"
       fontFamily={MONO}
       fontSize={10}
       letterSpacing="0.2em"
@@ -177,6 +178,7 @@ function StateChip({ beat, y }: { readonly beat: number; readonly y: number }) {
           >
             {"{ }"}
           </text>
+          <ChipCaption y={capY + 20}>{MOBILE_CAPTIONS[3]}</ChipCaption>
         </g>
       );
     case 4: {
@@ -222,7 +224,8 @@ function StateChip({ beat, y }: { readonly beat: number; readonly y: number }) {
             stroke="rgba(94,234,212,0.45)"
           />
           <TickRow y={topY} />
-          <ChipCaption y={capY}>{MOBILE_CAPTIONS[5]}</ChipCaption>
+          <ChipCaption y={capY}>composite</ChipCaption>
+          <ChipCaption y={capY + 13}>schema</ChipCaption>
         </g>
       );
     default:
@@ -336,7 +339,7 @@ function RouteRail() {
         />
       ))}
       <TickRow x={fanXs[0]} y={FAN_Y} />
-      <ChipCaption x={fanXs[0]} y={FAN_Y + TICK_H + 20}>
+      <ChipCaption x={fanXs[0] + ROW_WIDTH} y={FAN_Y + TICK_H + 20}>
         {MOBILE_CAPTIONS[6]}
       </ChipCaption>
     </svg>
@@ -360,6 +363,7 @@ function MobileTicks({ beat }: { readonly beat: number }) {
     case 1:
       return (
         <div className="flex flex-col gap-0.5">
+          {row(0.4)}
           {row(0.4)}
           {row(0.4)}
         </div>
