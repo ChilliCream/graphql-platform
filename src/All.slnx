@@ -6,6 +6,7 @@
     <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Resources/CookieCrumble.Resources.csproj" />
+    <Project Path="CookieCrumble/src/CookieCrumble.Resources.Mongo/CookieCrumble.Resources.Mongo.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Resources.PostgreSql/CookieCrumble.Resources.PostgreSql.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Resources.Redis/CookieCrumble.Resources.Redis.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
