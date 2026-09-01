@@ -21,6 +21,11 @@ internal sealed class GraphSearchProjectionContext
     public IReadOnlyList<GraphNode> VisibleNodes { get; }
 
     /// <summary>
+    /// Number of nodes visited while constructing the representative table.
+    /// </summary>
+    internal int RepresentativeBuildVisitCount { get; private set; }
+
+    /// <summary>
     /// Resolves a visible task to its reduced canvas representative.
     /// </summary>
     public string ResolveRepresentative(string id)
@@ -52,6 +57,7 @@ internal sealed class GraphSearchProjectionContext
 
         while (pending.TryDequeue(out var current))
         {
+            RepresentativeBuildVisitCount++;
             var nearestReducedId = _reducedIds.Contains(current.Id)
                 ? current.Id
                 : current.NearestReducedId;

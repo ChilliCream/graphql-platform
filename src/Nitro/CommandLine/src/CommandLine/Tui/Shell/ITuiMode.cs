@@ -65,7 +65,7 @@ internal interface ITuiMode
     IReadOnlyCollection<KeyHint> SuppressedGlobalHints => [];
 
     /// <summary>
-    /// A short status owned by the mode and rendered in the shell footer.
+    /// A plain-text single-line status owned by the mode and rendered in the shell footer.
     /// </summary>
     string? FooterStatus => null;
 }

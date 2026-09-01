@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Moq;
 using Spectre.Console.Testing;
 
@@ -439,6 +440,35 @@ public sealed class GraphModeTests
         Assert.Equal("epic", mode.SelectedTaskId);
         Assert.Empty(first);
         Assert.Equal(before, after);
+    }
+
+    [Fact]
+    public void Search_Should_ClearDirectAndContainedCanvasPresentation_When_EscapeIsPressed()
+    {
+        // arrange
+        var mode = CreateMode(
+            [Task("epic", type: TaskTypes.Epic), Task("child", title: "find child")],
+            [Parent("epic", "child")]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("epic");
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        var matched = mode.CanvasView.CreateRenderResult();
+        mode.CanvasView.ToggleCompact();
+        var compactMatched = mode.CanvasView.CreateRenderResult();
+
+        // act
+        mode.HandleRawKey(new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
+        var cleared = mode.CanvasView.CreateRenderResult();
+        var epic = mode.CanvasView.Layout.FindNode("epic")!;
+
+        // assert
+        Assert.Contains("hits 1", matched.Buffer.ToText(matched.Viewport), StringComparison.Ordinal);
+        Assert.Contains("hits 1", compactMatched.Buffer.ToText(compactMatched.Viewport), StringComparison.Ordinal);
+        Assert.Equal(ThemeTokens.GetStyle("selection.highlight").Background, cleared.Buffer.Get(epic.X, epic.Y).Style.Background);
+        Assert.Equal(ThemeTokens.GetStyle("status.glyph.open").Foreground, cleared.Buffer.Get(epic.X, epic.Y).Style.Foreground);
     }
 
     [Fact]
