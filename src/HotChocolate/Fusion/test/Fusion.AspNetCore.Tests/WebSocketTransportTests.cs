@@ -360,6 +360,14 @@ public sealed class WebSocketTransportTests : FusionTestBase
             await ReadNextResponseAsync(results),
             await ReadNextResponseAsync(results)
         };
+        var thirdMoveNext = await results.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
+
+        if (thirdMoveNext)
+        {
+            results.Current.Dispose();
+        }
 
         // assert
         responses.Select(static response => response.GetRawText()).MatchInlineSnapshots(
@@ -370,6 +378,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
         JsonSerializer.Serialize(
             new
             {
+                ClientSubscriptionCompleted = !thirdMoveNext,
                 ExceptionMessages = exceptions.Items.Select(exception =>
                     exception.Message.Replace(
                         subscription.OperationId,
@@ -383,6 +392,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
             .MatchInlineSnapshot(
                 """
                 {
+                  "ClientSubscriptionCompleted": true,
                   "ExceptionMessages": [
                     "The WebSocket operation \u0060\u003Csubscription\u003E\u0060 exceeded its queued payload limit of 64 bytes."
                   ],
