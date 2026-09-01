@@ -15,6 +15,7 @@
     "DOTNET_LOCAL_DEV": "1"
   },
   "postCreateCommand": "dotnet build src/All.slnx",
+  "postStartCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/setup-git-signing.sh",
   "customizations": {
     "vscode": {
       "extensions": [
