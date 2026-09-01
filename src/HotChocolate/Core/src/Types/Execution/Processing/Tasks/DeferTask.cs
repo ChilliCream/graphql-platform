@@ -59,7 +59,9 @@ internal sealed class DeferTask : ExecutionTask
 
         // once the execution branch has completed we enqueue the completed
         // result with the defer coordinator so it can be delivered.
-        deferContext.DeferExecutionCoordinator.EnqueueResult(deferContext.BuildResult(), _executionBranchId);
+        await deferContext.DeferExecutionCoordinator
+            .EnqueueResult(deferContext.BuildResult(), _executionBranchId)
+            .ConfigureAwait(false);
     }
 
     protected override ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)

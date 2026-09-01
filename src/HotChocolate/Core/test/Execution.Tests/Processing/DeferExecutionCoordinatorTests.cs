@@ -188,7 +188,7 @@ public sealed class DeferExecutionCoordinatorTests
             Path.Root.Append("items").Append(0).Append("details"),
             new DeferUsage(null, null, 0));
         var nestedResult = CreateResult(new CountingMemoryHolder());
-        coordinator.EnqueueResult(nestedResult, deferredBranchId);
+        await coordinator.EnqueueResult(nestedResult, deferredBranchId);
 
         // act
         coordinator.CompleteStream(streamBranchId);
@@ -211,7 +211,7 @@ public sealed class DeferExecutionCoordinatorTests
         var deferBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
         var deferredHolder = new CountingMemoryHolder();
         var streamHolder = new CountingMemoryHolder();
-        coordinator.EnqueueResult(CreateResult(deferredHolder), deferBranchId);
+        await coordinator.EnqueueResult(CreateResult(deferredHolder), deferBranchId);
         await coordinator.EnqueueStreamItem(CreateResult(streamHolder), streamBranchId);
 
         // act
@@ -243,8 +243,7 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         await coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
-        coordinator.EnqueueResult(lateResult, deferBranchId);
-        await lateResult.DisposeAsync();
+        await coordinator.EnqueueResult(lateResult, deferBranchId);
         await initialResult.DisposeAsync();
         await coordinator.ResetAsync();
 
@@ -273,8 +272,7 @@ public sealed class DeferExecutionCoordinatorTests
 
         // act
         await coordinator.AbortBranchesAsync(Path.Root.Append("details"), [ErrorBuilder.New().SetMessage("boom").Build()]);
-        coordinator.EnqueueResult(lateResult, deferBranchId);
-        await lateResult.DisposeAsync();
+        await coordinator.EnqueueResult(lateResult, deferBranchId);
         await initialResult.DisposeAsync();
         await coordinator.ResetAsync();
 
@@ -284,6 +282,64 @@ public sealed class DeferExecutionCoordinatorTests
         Assert.Equal([parentBranchId], initialResult.Completed.Select(t => t.Id));
         Assert.False(initialResult.HasNext);
         Assert.Equal(1, lateHolder.DisposeCount);
+    }
+
+    [Fact]
+    public async Task EnqueueResult_Should_AwaitRejectedCleanupWithoutHoldingCoordinatorLock()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var deferBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
+        var initialResult = CreateResult();
+        var lateCleanup = new BlockingAsyncCleanup();
+        var lateResult = CreateResult();
+        lateResult.RegisterForCleanup(lateCleanup);
+        coordinator.EnqueueResult(initialResult);
+        await coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
+
+        // act
+        var enqueueResult = coordinator.EnqueueResult(lateResult, deferBranchId).AsTask();
+        await lateCleanup.WaitForStartAsync(TestContext.Current.CancellationToken);
+        var overlappingEnqueueResult = coordinator.EnqueueResult(lateResult, deferBranchId).AsTask();
+        var abortTask = coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
+
+        // assert
+        Assert.True(abortTask.IsCompletedSuccessfully);
+
+        // act
+        lateCleanup.Release();
+        await Task.WhenAll(enqueueResult, overlappingEnqueueResult);
+        await initialResult.DisposeAsync();
+        await coordinator.ResetAsync();
+
+        // assert
+        Assert.Equal(1, lateCleanup.DisposeCount);
+    }
+
+    [Fact]
+    public async Task EnqueueResult_Should_SurfaceRejectedCleanupFailure()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var deferBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
+        var initialResult = CreateResult();
+        var lateCleanup = new BlockingAsyncCleanup(throwOnDispose: true);
+        var lateResult = CreateResult();
+        lateResult.RegisterForCleanup(lateCleanup);
+        coordinator.EnqueueResult(initialResult);
+        await coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
+
+        // act
+        var enqueueResult = coordinator.EnqueueResult(lateResult, deferBranchId).AsTask();
+        await lateCleanup.WaitForStartAsync(TestContext.Current.CancellationToken);
+        lateCleanup.Release();
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => enqueueResult);
+        await initialResult.DisposeAsync();
+        await coordinator.ResetAsync();
+
+        // assert
+        Assert.Equal("cleanup failed", exception.Message);
+        Assert.Equal(1, lateCleanup.DisposeCount);
     }
 
     private static DeferExecutionCoordinator CreateCoordinator(out int mainBranchId)
@@ -308,6 +364,31 @@ public sealed class DeferExecutionCoordinatorTests
         public int DisposeCount { get; private set; }
 
         public void Dispose() => DisposeCount++;
+    }
+
+    private sealed class BlockingAsyncCleanup(bool throwOnDispose = false) : IAsyncDisposable
+    {
+        private readonly TaskCompletionSource<bool> _started = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public int DisposeCount { get; private set; }
+
+        public async ValueTask DisposeAsync()
+        {
+            DisposeCount++;
+            _started.TrySetResult(true);
+            await _release.Task.ConfigureAwait(false);
+
+            if (throwOnDispose)
+            {
+                throw new InvalidOperationException("cleanup failed");
+            }
+        }
+
+        public Task WaitForStartAsync(CancellationToken cancellationToken)
+            => _started.Task.WaitAsync(cancellationToken);
+
+        public void Release() => _release.TrySetResult(true);
     }
 
     private sealed class EmptyFormatter : IRawJsonFormatter

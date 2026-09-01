@@ -20,6 +20,7 @@ internal sealed partial class DeferExecutionCoordinator
     private readonly HashSet<int> _completedBranches = [];
     private readonly List<OperationResult> _results = [];
     private readonly AsyncAutoResetEvent _signal = new();
+    private Dictionary<OperationResult, TaskCompletionSource<bool>>? _rejectedResultCleanups;
     private HashSet<int>? _mainBranchChildren;
     private BranchTracker _branchTracker = null!;
     private int _mainBranchId;
@@ -116,13 +117,14 @@ internal sealed partial class DeferExecutionCoordinator
     /// <summary>
     /// Enqueues a deferred result for the specified branch.
     /// If the branch has already been announced, the result is composed and delivered
-    /// immediately; otherwise it is stored until the branch data is revealed.
+    /// immediately; otherwise it is stored until the branch data is revealed. A rejected result
+    /// returns an awaitable that completes after its cleanup has finished.
     /// </summary>
-    public void EnqueueResult(OperationResult result, int branchId)
+    public ValueTask EnqueueResult(OperationResult result, int branchId)
     {
         AssertInitialized();
 
-        var shouldDiscard = false;
+        TaskCompletionSource<bool>? rejectedResultCleanup = null;
 
         lock (_sync)
         {
@@ -132,7 +134,13 @@ internal sealed partial class DeferExecutionCoordinator
                 || branch.Kind != BranchKind.Defer
                 || _completedBranches.Contains(branchId))
             {
-                shouldDiscard = true;
+                if (_rejectedResultCleanups?.TryGetValue(result, out rejectedResultCleanup) is true)
+                {
+                    return new ValueTask(rejectedResultCleanup.Task);
+                }
+
+                rejectedResultCleanup = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                (_rejectedResultCleanups ??= []).Add(result, rejectedResultCleanup);
             }
             else
             {
@@ -153,9 +161,50 @@ internal sealed partial class DeferExecutionCoordinator
             }
         }
 
-        if (shouldDiscard)
+        if (rejectedResultCleanup is not null)
         {
-            _ = result.DisposeAsync();
+            StartRejectedResultCleanup(result, rejectedResultCleanup);
+            return new ValueTask(rejectedResultCleanup.Task);
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    private static void StartRejectedResultCleanup(
+        OperationResult result,
+        TaskCompletionSource<bool> completion)
+    {
+        try
+        {
+            var cleanup = result.DisposeAsync();
+
+            if (cleanup.IsCompletedSuccessfully)
+            {
+                completion.SetResult(true);
+            }
+            else
+            {
+                _ = CompleteRejectedResultCleanupAsync(cleanup, completion);
+            }
+        }
+        catch (Exception exception)
+        {
+            completion.SetException(exception);
+        }
+    }
+
+    private static async Task CompleteRejectedResultCleanupAsync(
+        ValueTask cleanup,
+        TaskCompletionSource<bool> completion)
+    {
+        try
+        {
+            await cleanup.ConfigureAwait(false);
+            completion.SetResult(true);
+        }
+        catch (Exception exception)
+        {
+            completion.SetException(exception);
         }
     }
 
