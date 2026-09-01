@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public sealed class WebSocketContextForwardingTests : FusionTestBase
 {
     [Fact]
-    public async Task Forwarding_Should_ForwardHeadersAndClientInitProperties_ToAllTargets()
+    public async Task Forwarding_Should_ForwardClientInitProperties_When_SocketSessionIsNotInContextData()
     {
         // arrange
         await using var fixture = await WebSocketSourceSchemaClientTests.WebSocketClientTestFixture.CreateAsync();
@@ -271,19 +271,8 @@ public sealed class WebSocketContextForwardingTests : FusionTestBase
     private static void SetClientInitPayload(OperationPlanContext context, string payload)
     {
         using var document = JsonDocument.Parse(payload);
-        var connection = new TestConnection();
-        connection.Features.Set(document.RootElement.Clone());
-        context.RequestContext.ContextData["ISocketSession"] = new TestSocketSession(connection);
-    }
-
-    private sealed class TestSocketSession(TestConnection connection)
-    {
-        public TestConnection Connection { get; } = connection;
-    }
-
-    private sealed class TestConnection : IFeatureProvider
-    {
-        public IFeatureCollection Features { get; } = new FeatureCollection();
+        context.RequestContext.Features.Set(
+            new ClientConnectionInitPayload(document.RootElement.Clone()));
     }
 
     private sealed class StubHttpMessageHandler : HttpMessageHandler

@@ -232,9 +232,7 @@ internal sealed class WebSocketContextForwardingConfiguration(
             return false;
         }
 
-        if (context.RequestContext.ContextData.TryGetValue("ISocketSession", out var session)
-            && session?.GetType().GetProperty("Connection")?.GetValue(session) is IFeatureProvider connection
-            && connection.Features[typeof(JsonElement)] is JsonElement payload
+        if (context.RequestContext.Features.Get<ClientConnectionInitPayload>() is { Payload: var payload }
             && payload.ValueKind is JsonValueKind.Object
             && payload.TryGetProperty(rule.SourceName, out var property))
         {

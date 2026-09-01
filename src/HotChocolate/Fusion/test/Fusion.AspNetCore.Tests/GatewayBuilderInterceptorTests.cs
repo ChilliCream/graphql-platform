@@ -6,6 +6,8 @@ using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport.Http;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Transport.Sockets.Client;
@@ -130,7 +132,7 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task AddGraphQLGatewayServer_Should_Persist_Connection_Init_Payload_In_Connection_Features()
+    public async Task AddGraphQLGatewayServer_Should_Copy_Connection_Init_Payload_To_Request_Features()
     {
         // arrange
         JsonElement capturedPayload = default;
@@ -141,8 +143,9 @@ public class GatewayBuilderInterceptorTests : FusionTestBase
             configureGatewayBuilder: b => b.UseRequest(
                 (_, _) => context =>
                 {
-                    var session = (ISocketSession)context.ContextData[nameof(ISocketSession)]!;
-                    capturedPayload = session.Connection.Features.Get<JsonElement>();
+                    capturedPayload = context.Features
+                        .GetRequired<ClientConnectionInitPayload>()
+                        .Payload;
                     return default;
                 },
                 key: "CaptureConnectionInitPayload"));
