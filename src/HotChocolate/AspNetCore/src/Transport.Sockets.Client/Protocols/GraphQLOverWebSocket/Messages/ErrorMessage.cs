@@ -1,6 +1,5 @@
 #if FUSION
 using System.Buffers;
-using HotChocolate.Fusion.Text.Json;
 #else
 using System.Buffers;
 using System.Text.Json;
@@ -13,27 +12,30 @@ namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebS
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 #endif
 
+#if FUSION
+internal sealed class ErrorMessage(
+    string id,
+    PooledSocketPayload payload) : FusionDataMessage(id, payload)
+{
+    public override string Type => Messages.Error;
+
+    public static ErrorMessage From(
+        WebSocketMessageLocation location,
+        ArrayPool<byte> pool)
+    {
+        var id = location.Id ?? throw ThrowHelper.MessageHasNoId();
+        return new ErrorMessage(
+            id,
+            WebSocketMessageParser.CopyPayload(
+                location,
+                pool,
+                "{\"errors\":"u8,
+                "}"u8));
+    }
+}
+#else
 internal sealed class ErrorMessage : IDataMessage
 {
-#if FUSION
-    private ErrorMessage(string id, SourceResultDocument payload)
-    {
-        Id = id;
-        Payload = payload;
-    }
-
-    public string Id { get; }
-
-    public string Type => Messages.Error;
-
-    public SourceResultDocument Payload { get; }
-
-    public void Dispose()
-        => Payload.Dispose();
-
-    public static ErrorMessage From(ReadOnlySequence<byte> _)
-        => throw ThrowHelper.FusionPayloadMaterializationNotSupported();
-#else
     private ErrorMessage(string id, OperationResult payload)
     {
         Id = id;
@@ -75,5 +77,5 @@ internal sealed class ErrorMessage : IDataMessage
 
         return new ErrorMessage(id, result);
     }
-#endif
 }
+#endif

@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 #if FUSION
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
 using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 using static HotChocolate.Fusion.Transport.Sockets.SocketDefaults;
@@ -40,11 +41,22 @@ public sealed class SocketClient : ISocket
     private readonly SocketClientContext _context;
     private bool _disposed;
 
+#if FUSION
+    private SocketClient(
+        WebSocket socket,
+        IProtocolHandler protocol,
+        SocketClientOptions options)
+#else
     private SocketClient(WebSocket socket, IProtocolHandler protocol)
+#endif
     {
         _socket = socket;
         _protocol = protocol;
+#if FUSION
+        _context = new SocketClientContext(socket, options);
+#else
         _context = new SocketClientContext(socket);
+#endif
         _pipeline = new MessagePipeline(this, new MessageHandler(_context, protocol));
         _ct = _cts.Token;
         var ct = _ct;
@@ -77,6 +89,22 @@ public sealed class SocketClient : ISocket
 
     public bool IsClosed => _socket.IsClosed();
 
+#if FUSION
+    public static ValueTask<SocketClient> ConnectAsync(
+        WebSocket socket,
+        SocketClientOptions options,
+        CancellationToken cancellationToken = default)
+        => ConnectAsync(socket, options, default, cancellationToken);
+
+    public static async ValueTask<SocketClient> ConnectAsync(
+        WebSocket socket,
+        SocketClientOptions options,
+        JsonElement payload,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(socket);
+        ArgumentNullException.ThrowIfNull(options);
+#else
     public static ValueTask<SocketClient> ConnectAsync(
         WebSocket socket,
         CancellationToken cancellationToken = default)
@@ -88,6 +116,7 @@ public sealed class SocketClient : ISocket
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(socket);
+#endif
 
         if (payload.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
@@ -117,7 +146,11 @@ public sealed class SocketClient : ISocket
                 $"The sub-protocol `{socket.SubProtocol}` is not supported.");
         }
 
+#if FUSION
+        var client = new SocketClient(socket, protocolHandler, options);
+#else
         var client = new SocketClient(socket, protocolHandler);
+#endif
 
         try
         {
@@ -148,6 +181,39 @@ public sealed class SocketClient : ISocket
         => _pipeline.RunAsync(_ct).FireAndForget();
 #endif
 
+#if FUSION
+    public ValueTask<SocketResult> ExecuteAsync(
+        IOperationRequest request,
+        IMemoryArenaSource arenaSource,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(arenaSource);
+
+        return _protocol.ExecuteAsync(
+            _context,
+            request,
+            arenaSource,
+            deferPayloadParsing: false,
+            cancellationToken);
+    }
+
+    public ValueTask<SocketResult> SubscribeAsync(
+        IOperationRequest request,
+        IMemoryArenaSource arenaSource,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(arenaSource);
+
+        return _protocol.ExecuteAsync(
+            _context,
+            request,
+            arenaSource,
+            deferPayloadParsing: true,
+            cancellationToken);
+    }
+#else
     public ValueTask<SocketResult> ExecuteAsync(
         IOperationRequest request,
         CancellationToken cancellationToken = default)
@@ -156,7 +222,30 @@ public sealed class SocketClient : ISocket
 
         return _protocol.ExecuteAsync(_context, request, cancellationToken);
     }
+#endif
 
+#if FUSION
+    public ValueTask<SocketResult> ExecuteBatchAsync(
+        OperationBatchRequest request,
+        IMemoryArenaSource arenaSource,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Requests.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException(
+                "The batch request must contain at least one operation.",
+                nameof(request));
+        }
+
+        ArgumentNullException.ThrowIfNull(arenaSource);
+
+        return _protocol.ExecuteBatchAsync(
+            _context,
+            request,
+            arenaSource,
+            cancellationToken);
+    }
+#else
     public ValueTask<SocketResult> ExecuteBatchAsync(
         OperationBatchRequest request,
         CancellationToken cancellationToken = default)
@@ -170,6 +259,7 @@ public sealed class SocketClient : ISocket
 
         return _protocol.ExecuteBatchAsync(_context, request, cancellationToken);
     }
+#endif
 
     async Task<bool> ISocket.ReadMessageAsync(
         IBufferWriter<byte> writer,

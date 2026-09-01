@@ -11,6 +11,14 @@ namespace HotChocolate.Transport.Sockets.Client.Protocols;
 /// </summary>
 internal sealed class SocketClientContext
 {
+#if FUSION
+    /// <summary>
+    /// Initializes a WebSocket client context with its connection options.
+    /// </summary>
+    /// <param name="socket">The WebSocket connection.</param>
+    /// <param name="options">The options that configure the client.</param>
+    public SocketClientContext(WebSocket socket, SocketClientOptions options)
+#else
     /// <summary>
     /// Initializes a new instance of the <see cref="SocketClientContext"/> class with
     /// the specified WebSocket object.
@@ -19,9 +27,13 @@ internal sealed class SocketClientContext
     /// The <see cref="WebSocket"/> object representing the WebSocket connection.
     /// </param>
     public SocketClientContext(WebSocket socket)
+#endif
     {
         Socket = socket;
         Messages = new MessageStream();
+#if FUSION
+        Options = options;
+#endif
     }
 
     /// <summary>
@@ -34,4 +46,8 @@ internal sealed class SocketClientContext
     /// for the WebSocket connection.
     /// </summary>
     public MessageStream Messages { get; }
+
+#if FUSION
+    public SocketClientOptions Options { get; }
+#endif
 }

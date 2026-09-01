@@ -1,6 +1,5 @@
 #if FUSION
 using System.Buffers;
-using HotChocolate.Fusion.Text.Json;
 #else
 using System.Buffers;
 using System.Text.Json;
@@ -13,27 +12,26 @@ namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebS
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 #endif
 
+#if FUSION
+internal sealed class NextMessage(
+    string id,
+    PooledSocketPayload payload) : FusionDataMessage(id, payload)
+{
+    public override string Type => Messages.Next;
+
+    public static NextMessage From(
+        WebSocketMessageLocation location,
+        ArrayPool<byte> pool)
+    {
+        var id = location.Id ?? throw ThrowHelper.MessageHasNoId();
+        return new NextMessage(
+            id,
+            WebSocketMessageParser.CopyPayload(location, pool));
+    }
+}
+#else
 internal sealed class NextMessage : IDataMessage
 {
-#if FUSION
-    private NextMessage(string id, SourceResultDocument payload)
-    {
-        Id = id;
-        Payload = payload;
-    }
-
-    public string Id { get; }
-
-    public string Type => Messages.Next;
-
-    public SourceResultDocument Payload { get; }
-
-    public void Dispose()
-        => Payload.Dispose();
-
-    public static NextMessage From(ReadOnlySequence<byte> _)
-        => throw ThrowHelper.FusionPayloadMaterializationNotSupported();
-#else
     private NextMessage(string id, OperationResult payload)
     {
         Id = id;
@@ -87,5 +85,5 @@ internal sealed class NextMessage : IDataMessage
         => element.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.Number
             ? property.GetInt32()
             : null;
-#endif
 }
+#endif

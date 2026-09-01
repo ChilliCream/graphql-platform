@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 #if FUSION
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 #else
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
@@ -42,14 +43,33 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         await observer.Accepted;
     }
 
+#if FUSION
+    public async ValueTask<SocketResult> ExecuteAsync(
+        SocketClientContext context,
+        IOperationRequest request,
+        IMemoryArenaSource arenaSource,
+        bool deferPayloadParsing,
+        CancellationToken cancellationToken)
+#else
     public async ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
         IOperationRequest request,
         CancellationToken cancellationToken)
+#endif
     {
         var id = Guid.NewGuid().ToString("N");
+#if FUSION
+        var completion = new DataCompletion(context.Socket, id);
+        var observer = new DataMessageObserver(
+            id,
+            arenaSource,
+            deferPayloadParsing,
+            context.Options.MaxOperationQueueBytes,
+            completion);
+#else
         var observer = new DataMessageObserver(id);
         var completion = new DataCompletion(context.Socket, id);
+#endif
         var subscription = context.Messages.Subscribe(observer);
 
         try
@@ -79,14 +99,32 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
+#if FUSION
+    public async ValueTask<SocketResult> ExecuteBatchAsync(
+        SocketClientContext context,
+        OperationBatchRequest request,
+        IMemoryArenaSource arenaSource,
+        CancellationToken cancellationToken)
+#else
     public async ValueTask<SocketResult> ExecuteBatchAsync(
         SocketClientContext context,
         OperationBatchRequest request,
         CancellationToken cancellationToken)
+#endif
     {
         var id = Guid.NewGuid().ToString("N");
+#if FUSION
+        var completion = new DataCompletion(context.Socket, id);
+        var observer = new DataMessageObserver(
+            id,
+            arenaSource,
+            deferPayloadParsing: false,
+            context.Options.MaxOperationQueueBytes,
+            completion);
+#else
         var observer = new DataMessageObserver(id);
         var completion = new DataCompletion(context.Socket, id);
+#endif
         var subscription = context.Messages.Subscribe(observer);
 
         try
@@ -126,6 +164,41 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         // protocol violation and closes the socket with code 4400 instead of propagating.
         try
         {
+#if FUSION
+            var location = WebSocketMessageParser.Locate(message);
+
+            switch (location.Type)
+            {
+                case SocketMessageType.Ping:
+                    return context.Socket.SendPongMessageAsync(cancellationToken);
+
+                case SocketMessageType.Pong:
+                    return default;
+
+                case SocketMessageType.Next:
+                    Dispatch(
+                        context,
+                        NextMessage.From(location, context.Options.PayloadBufferPool));
+                    return default;
+
+                case SocketMessageType.Error:
+                    Dispatch(
+                        context,
+                        ErrorMessage.From(location, context.Options.PayloadBufferPool));
+                    return default;
+
+                case SocketMessageType.Complete:
+                    context.Messages.OnNext(CompleteMessage.From(location.Id));
+                    return default;
+
+                case SocketMessageType.ConnectionAccept:
+                    context.Messages.OnNext(ConnectionAcceptMessage.Default);
+                    return default;
+
+                default:
+                    return FatalError(context, cancellationToken);
+            }
+#else
             switch (ParseMessageType(message))
             {
                 case MessageType.Ping:
@@ -154,6 +227,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 default:
                     return FatalError(context, cancellationToken);
             }
+#endif
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -174,6 +248,19 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
+#if FUSION
+    private static void Dispatch(
+        SocketClientContext context,
+        FusionDataMessage message)
+    {
+        context.Messages.OnNext(message);
+
+        if (!message.IsClaimed)
+        {
+            message.Dispose();
+        }
+    }
+#else
     private static MessageType ParseMessageType(ReadOnlySequence<byte> message)
     {
         var reader = new Utf8JsonReader(message);
@@ -227,6 +314,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         return MessageType.None;
     }
+#endif
 
     private sealed class DataCompletion(WebSocket socket, string id) : IDataCompletion
     {
@@ -269,6 +357,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
+#if !FUSION
     private enum MessageType
     {
         None,
@@ -279,4 +368,5 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         Complete,
         ConnectionAccept
     }
+#endif
 }

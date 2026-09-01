@@ -81,11 +81,33 @@ public sealed class SocketResult : IDisposable
                     switch (message)
                     {
                         case NextMessage next:
+#if FUSION
+                            try
+                            {
+                                yield return next.TakePayload();
+                            }
+                            finally
+                            {
+                                next.Dispose();
+                            }
+#else
                             yield return next.Payload;
+#endif
                             break;
 
                         case ErrorMessage error:
+#if FUSION
+                            try
+                            {
+                                yield return error.TakePayload();
+                            }
+                            finally
+                            {
+                                error.Dispose();
+                            }
+#else
                             yield return error.Payload;
+#endif
                             message = null;
                             completion.MarkDataStreamCompleted();
                             break;
