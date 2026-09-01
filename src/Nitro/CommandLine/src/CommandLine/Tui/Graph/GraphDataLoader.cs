@@ -19,11 +19,14 @@ internal sealed class GraphDataLoader(ITaskStore store)
             },
             cancellationToken);
         var dependencies = await store.GetDependencyEdgesAsync(cancellationToken);
+        var taskLabels = await store.GetTaskLabelsAsync(cancellationToken) ?? [];
+        var labelsByTaskId = taskLabels
+            .ToDictionary(t => t.TaskId, t => t.Labels, StringComparer.Ordinal);
         var nodes = new List<GraphNode>(tasks.Count);
 
         foreach (var task in tasks)
         {
-            var labels = await store.GetLabelsAsync(task.Id, cancellationToken);
+            var labels = labelsByTaskId.GetValueOrDefault(task.Id, []);
             nodes.Add(GraphNode.FromTask(task, labels));
         }
 

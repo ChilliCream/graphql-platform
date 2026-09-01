@@ -55,6 +55,11 @@ internal sealed record GraphTreeRow
     public bool IsSelected { get; init; }
 
     /// <summary>
+    /// Whether the task title directly matches the active graph search.
+    /// </summary>
+    public bool IsMatch { get; init; }
+
+    /// <summary>
     /// Whether this row has a blocking edge to or from the selection.
     /// </summary>
     public bool IsRelatedToSelection { get; init; }

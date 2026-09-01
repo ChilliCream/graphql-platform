@@ -31,7 +31,8 @@ public sealed class GraphKeyMapTests
                 nameof(TuiMessage.CollapseSelectedGraphEpic),
                 nameof(TuiMessage.ExpandSelectedGraphEpic),
                 nameof(TuiMessage.CollapseAllGraphEpics),
-                nameof(TuiMessage.ExpandAllGraphEpics)
+                nameof(TuiMessage.ExpandAllGraphEpics),
+                nameof(TuiMessage.FilterGraphRequested)
             ],
             messages);
     }

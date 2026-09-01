@@ -75,6 +75,25 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task GetTaskLabelsAsync_Should_GroupLabelsAndOrderEachGroup()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 1);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 1);
+        await InsertLabelAsync(connection, "acme-2", "zeta");
+        await InsertLabelAsync(connection, "acme-1", "beta");
+        await InsertLabelAsync(connection, "acme-1", "alpha");
+
+        // act
+        var labels = await _store.GetTaskLabelsAsync(cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1:alpha,beta", "acme-2:zeta"], labels.Select(t => $"{t.TaskId}:{string.Join(',', t.Labels)}"));
+    }
+
+    [Fact]
     public async Task QueryTasksAsync_DefaultFilter_ExcludesArchived()
     {
         // arrange

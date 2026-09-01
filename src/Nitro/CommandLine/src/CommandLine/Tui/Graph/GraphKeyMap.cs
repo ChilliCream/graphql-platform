@@ -39,7 +39,11 @@ internal static class GraphKeyMap
             new KeyHint(",/.", "collapse/expand all")),
         new KeyBinding(
             new KeyChord(ConsoleKey.OemPeriod, ConsoleModifiers.None, '.'),
-            () => new TuiMessage.ExpandAllGraphEpics())
+            () => new TuiMessage.ExpandAllGraphEpics()),
+        new KeyBinding(
+            new KeyChord(ConsoleKey.F, ConsoleModifiers.None, 'f'),
+            () => new TuiMessage.FilterGraphRequested(),
+            new KeyHint("f", "filter"))
     ];
 
     /// <summary>

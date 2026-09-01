@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.TreeView;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Rendering;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -12,7 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Graph;
 /// Hosts the tree and canvas projections of the workspace task graph with a
 /// shared selection, visibility state, and epic collapse state.
 /// </summary>
-internal sealed class GraphMode : ITuiMode
+internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 {
     private static readonly GraphModel s_emptyModel = new([], []);
     private static readonly HashSet<string> s_emptySet = new(StringComparer.Ordinal);
@@ -21,10 +22,18 @@ internal sealed class GraphMode : ITuiMode
     private readonly HashSet<string> _collapsedEpicIds = new(StringComparer.Ordinal);
 
     private GraphModel _sourceModel = s_emptyModel;
+    private GraphModel _filteredTreeModel = s_emptyModel;
     private GraphTreeView _treeView = new(s_emptyModel, s_emptySet);
     private readonly GraphCanvasView _canvasView = new(s_emptyModel);
     private string? _selectedTaskId;
+    private readonly HashSet<string> _labels = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _epicIds = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _matchIds = new(StringComparer.Ordinal);
+    private LineEditor? _searchEditor;
+    private GraphFilterForm? _filterForm;
+    private int _searchMatchIndex = -1;
     private bool _hasLoaded;
+    private bool _treeInitialized;
     private bool _showCanvas;
     private bool _hideClosed = true;
 
@@ -66,6 +75,16 @@ internal sealed class GraphMode : ITuiMode
     internal IReadOnlySet<string> CollapsedEpicIds => _collapsedEpicIds;
 
     /// <inheritdoc />
+    public bool IsInputCapturing => _searchEditor is not null || _filterForm is not null;
+
+    /// <inheritdoc />
+    public IReadOnlyList<KeyHint> CapturingHints => _filterForm is not null
+        ? GraphFilterForm.Hints
+        : _searchEditor is not null
+            ? [new KeyHint("enter", "next hit"), new KeyHint("esc", "close")]
+            : [];
+
+    /// <inheritdoc />
     public void OnEnter() => RefreshBlocking();
 
     /// <inheritdoc />
@@ -80,6 +99,14 @@ internal sealed class GraphMode : ITuiMode
         {
             case TuiMessage.RefreshRequested:
                 RefreshBlocking();
+                break;
+
+            case TuiMessage.FocusSearchRequested:
+                OpenSearch();
+                break;
+
+            case TuiMessage.FilterGraphRequested:
+                OpenFilterForm();
                 break;
 
             case TuiMessage.MoveCursor(var direction):
@@ -128,10 +155,73 @@ internal sealed class GraphMode : ITuiMode
     }
 
     /// <inheritdoc />
+    public IReadOnlyList<TuiMessage> HandleRawKey(ConsoleKeyInfo info)
+    {
+        if (_filterForm is not null)
+        {
+            return HandleFilterKey(info);
+        }
+
+        if (_searchEditor is null)
+        {
+            return [];
+        }
+
+        if (info.Key == ConsoleKey.Escape)
+        {
+            _searchEditor = null;
+            _matchIds.Clear();
+            _searchMatchIndex = -1;
+            ApplyMatchIds();
+            return [];
+        }
+
+        if (info.Key == ConsoleKey.Enter)
+        {
+            JumpToNextMatch();
+            return [];
+        }
+
+        if (_searchEditor.HandleKey(info))
+        {
+            UpdateMatches();
+        }
+
+        return [];
+    }
+
+    /// <inheritdoc />
     public IRenderable Render(int width, int height)
-        => _showCanvas
-            ? _canvasView.Render(width, height)
-            : _treeView.Render(width, height);
+    {
+        if (_filterForm is not null)
+        {
+            return _filterForm.Render(width, height);
+        }
+
+        var hasFilterNotice = _labels.Count > 0 || _epicIds.Count > 0;
+        var headerHeight = (_searchEditor is null ? 0 : 1) + (hasFilterNotice ? 1 : 0);
+        var projection = RenderProjection(width, Math.Max(0, height - headerHeight));
+
+        if (headerHeight == 0)
+        {
+            return projection;
+        }
+
+        var rows = new List<IRenderable>(headerHeight + 1);
+
+        if (_searchEditor is not null)
+        {
+            rows.Add(new Markup(Markup.Escape($"Search: {_searchEditor.Text}  ({_matchIds.Count} hits)")));
+        }
+
+        if (hasFilterNotice)
+        {
+            rows.Add(new Markup(Markup.Escape(FilterNotice())));
+        }
+
+        rows.Add(projection);
+        return new Rows(rows);
+    }
 
     /// <inheritdoc />
     public void SelectTask(string id)
@@ -154,8 +244,7 @@ internal sealed class GraphMode : ITuiMode
         var requestedSelection = _selectedTaskId;
         _sourceModel = _loader.LoadAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-        var visibleEpicIds = _sourceModel.Nodes
-            .Where(IsVisible)
+        var sourceEpicIds = _sourceModel.Nodes
             .Where(t => t.IsEpic)
             .Select(t => t.Id)
             .ToHashSet(StringComparer.Ordinal);
@@ -165,22 +254,21 @@ internal sealed class GraphMode : ITuiMode
             var visibleNodeCount = _sourceModel.Nodes.Count(IsVisible);
             if (visibleNodeCount > GraphReductionOptions.AdaptiveCollapseThreshold)
             {
-                _collapsedEpicIds.UnionWith(visibleEpicIds);
+                _collapsedEpicIds.UnionWith(sourceEpicIds);
             }
 
-            _treeView = new GraphTreeView(_sourceModel, _collapsedEpicIds);
-            _treeView.SetHideClosed(_hideClosed);
             _hasLoaded = true;
         }
         else
         {
-            _collapsedEpicIds.IntersectWith(visibleEpicIds);
-            _treeView.SetModel(_sourceModel);
+            _collapsedEpicIds.IntersectWith(sourceEpicIds);
         }
 
+        RecreateTree();
         var reduced = Reduce();
         _canvasView.SetModel(reduced);
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
+        UpdateMatches();
     }
 
     private void ToggleProjection()
@@ -202,7 +290,7 @@ internal sealed class GraphMode : ITuiMode
     private void ToggleClosed()
     {
         _hideClosed = !_hideClosed;
-        _treeView.SetHideClosed(_hideClosed);
+        RecreateTree();
         var reduced = Reduce();
         _canvasView.SetModel(reduced);
         SelectVisibleTask(ResolveVisibleSelection(_selectedTaskId, reduced));
@@ -283,7 +371,7 @@ internal sealed class GraphMode : ITuiMode
     private void CollapseAll()
     {
         _collapsedEpicIds.Clear();
-        _collapsedEpicIds.UnionWith(_sourceModel.Nodes.Where(IsVisible).Where(t => t.IsEpic).Select(t => t.Id));
+        _collapsedEpicIds.UnionWith(_filteredTreeModel.Nodes.Where(IsVisible).Where(t => t.IsEpic).Select(t => t.Id));
         RecreateTree();
         UpdateCanvasModel(_selectedTaskId);
     }
@@ -297,14 +385,26 @@ internal sealed class GraphMode : ITuiMode
 
     private void RecreateTree()
     {
-        _treeView = new GraphTreeView(_sourceModel, _collapsedEpicIds);
+        _filteredTreeModel = FilterTreeModel();
+        if (_treeInitialized)
+        {
+            _treeView.SetModel(_filteredTreeModel, _collapsedEpicIds);
+        }
+        else
+        {
+            _treeView = new GraphTreeView(_filteredTreeModel, _collapsedEpicIds);
+            _treeInitialized = true;
+        }
+
         _treeView.SetHideClosed(_hideClosed);
+        _treeView.SetMatchIds(_matchIds);
     }
 
     private void UpdateCanvasModel(string? requestedSelection)
     {
         var reduced = Reduce();
         _canvasView.SetModel(reduced);
+        _canvasView.SetMatchIds(_matchIds);
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
     }
 
@@ -314,8 +414,15 @@ internal sealed class GraphMode : ITuiMode
             new GraphReductionOptions
             {
                 HideClosed = _hideClosed,
+                Labels = _labels,
+                EpicIds = _epicIds,
                 CollapsedEpicIds = _collapsedEpicIds
             });
+
+    private GraphModel FilterTreeModel()
+        => GraphReducer.Filter(
+            _sourceModel,
+            new GraphReductionOptions { Labels = _labels, EpicIds = _epicIds, HideClosed = false });
 
     private bool IsVisible(GraphNode node)
         => !_hideClosed || !TaskStates.IsTerminal(node.Status);
@@ -454,12 +561,110 @@ internal sealed class GraphMode : ITuiMode
     }
 
     private GraphModel VisibleModel()
+        => GraphReducer.Filter(
+            _sourceModel,
+            new GraphReductionOptions { HideClosed = _hideClosed, Labels = _labels, EpicIds = _epicIds });
+
+    private IRenderable RenderProjection(int width, int height)
+        => _showCanvas ? _canvasView.Render(width, height) : _treeView.Render(width, height);
+
+    private void OpenSearch()
     {
-        var nodes = _sourceModel.Nodes.Where(IsVisible).ToArray();
-        var ids = nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
-        var edges = _sourceModel.Edges
-            .Where(t => ids.Contains(t.FromId) && ids.Contains(t.ToId))
+        _searchEditor ??= new LineEditor();
+        UpdateMatches();
+    }
+
+    private void UpdateMatches()
+    {
+        _matchIds.Clear();
+
+        if (_searchEditor is { Text.Length: > 0 } editor)
+        {
+            foreach (var node in VisibleModel().Nodes)
+            {
+                if (node.Title.Contains(editor.Text, StringComparison.OrdinalIgnoreCase))
+                {
+                    _matchIds.Add(node.Id);
+                }
+            }
+        }
+
+        _searchMatchIndex = -1;
+        ApplyMatchIds();
+    }
+
+    private void ApplyMatchIds()
+    {
+        _treeView.SetMatchIds(_matchIds);
+        _canvasView.SetMatchIds(_matchIds);
+    }
+
+    private void JumpToNextMatch()
+    {
+        var matchIds = VisibleModel().Nodes
+            .Where(t => _matchIds.Contains(t.Id))
+            .Select(t => t.Id)
             .ToArray();
-        return new GraphModel(nodes, edges);
+
+        if (matchIds.Length == 0)
+        {
+            return;
+        }
+
+        _searchMatchIndex = (_searchMatchIndex + 1) % matchIds.Length;
+        SelectVisibleTask(ResolveVisibleSelection(matchIds[_searchMatchIndex]));
+    }
+
+    private void OpenFilterForm() => _filterForm = new GraphFilterForm(_labels, _epicIds);
+
+    private IReadOnlyList<TuiMessage> HandleFilterKey(ConsoleKeyInfo info)
+    {
+        var result = _filterForm!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return [];
+
+            case FormResult.Cancelled:
+            case FormResult.ButtonActivated { ButtonId: GraphFilterForm.CancelButtonId }:
+                _filterForm = null;
+                return [];
+
+            case FormResult.ButtonActivated { ButtonId: GraphFilterForm.ClearButtonId }:
+                _filterForm = null;
+                ApplyFilters([], []);
+                return [];
+
+            case FormResult.Submitted:
+            case FormResult.ButtonActivated { ButtonId: GraphFilterForm.ApplyButtonId }:
+                var labels = _filterForm.Labels;
+                var epicIds = _filterForm.EpicIds;
+                _filterForm = null;
+                ApplyFilters(labels, epicIds);
+                return [];
+
+            default:
+                return [];
+        }
+    }
+
+    private void ApplyFilters(IReadOnlySet<string> labels, IReadOnlySet<string> epicIds)
+    {
+        var requestedSelection = _selectedTaskId;
+        _labels.Clear();
+        _labels.UnionWith(labels);
+        _epicIds.Clear();
+        _epicIds.UnionWith(epicIds);
+        RecreateTree();
+        UpdateCanvasModel(requestedSelection);
+        UpdateMatches();
+    }
+
+    private string FilterNotice()
+    {
+        var labels = _labels.Count == 0 ? null : $"labels: {string.Join(", ", _labels.Order(StringComparer.Ordinal))}";
+        var epics = _epicIds.Count == 0 ? null : $"epics: {string.Join(", ", _epicIds.Order(StringComparer.Ordinal))}";
+        return $"Filters active ({string.Join("; ", new[] { labels, epics }.Where(t => t is not null))})";
     }
 }

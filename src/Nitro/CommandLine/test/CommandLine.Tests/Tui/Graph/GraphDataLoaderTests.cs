@@ -25,6 +25,25 @@ public sealed class GraphDataLoaderTests
         Assert.Equal(["archived", "open"], visibleReduced.Nodes.Select(t => t.Id));
     }
 
+    [Fact]
+    public async Task LoadAsync_Should_ReadAllLabelsInOneBulkOperation()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(CreateTask("one", TaskStates.Open));
+        store.Tasks.Add(CreateTask("two", TaskStates.Open));
+        store.TaskLabels.Add(new TaskLabels("one", ["alpha"]));
+        var loader = new GraphDataLoader(store);
+
+        // act
+        var model = await loader.LoadAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, store.BulkLabelReadCount);
+        Assert.Equal(0, store.SingleLabelReadCount);
+        Assert.Equal(["alpha"], model.Nodes.Single(t => t.Id == "one").Labels);
+    }
+
     private static TaskItem CreateTask(string id, string status)
         => new()
         {
@@ -38,6 +57,9 @@ public sealed class GraphDataLoaderTests
     private sealed class FakeTaskStore : ITaskStore
     {
         public List<TaskItem> Tasks { get; } = [];
+        public List<TaskLabels> TaskLabels { get; } = [];
+        public int BulkLabelReadCount { get; private set; }
+        public int SingleLabelReadCount { get; private set; }
 
         public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(
             TaskFilter filter,
@@ -55,7 +77,16 @@ public sealed class GraphDataLoaderTests
             => Task.FromResult<IReadOnlyList<TaskDependency>>([]);
 
         public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
-            => Task.FromResult<IReadOnlyList<string>>([]);
+        {
+            SingleLabelReadCount++;
+            return Task.FromResult<IReadOnlyList<string>>([]);
+        }
+
+        public Task<IReadOnlyList<TaskLabels>> GetTaskLabelsAsync(CancellationToken cancellationToken)
+        {
+            BulkLabelReadCount++;
+            return Task.FromResult<IReadOnlyList<TaskLabels>>(TaskLabels);
+        }
 
         public string? FindWorkspaceDirectory() => throw new NotSupportedException();
         public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken) => throw new NotSupportedException();

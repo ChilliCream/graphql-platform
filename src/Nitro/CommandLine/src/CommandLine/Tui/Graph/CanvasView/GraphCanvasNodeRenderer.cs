@@ -29,18 +29,19 @@ internal static class GraphCanvasNodeRenderer
         GraphLayoutNode layoutNode,
         GraphNode node,
         bool compact,
-        bool selected)
+        bool selected,
+        bool matched)
     {
         ArgumentNullException.ThrowIfNull(buffer);
         ArgumentNullException.ThrowIfNull(node);
 
         if (compact)
         {
-            RenderCompact(buffer, layoutNode, node, selected);
+            RenderCompact(buffer, layoutNode, node, selected, matched);
             return;
         }
 
-        var baseStyle = GetBaseStyle(node, selected);
+        var baseStyle = GetBaseStyle(node, selected, matched);
         var horizontal = new string('─', Math.Max(0, layoutNode.Width - 2));
         WriteSpan(buffer, layoutNode.X, layoutNode.Y, $"┌{horizontal}┐", baseStyle, layoutNode.Width);
         WriteSpan(buffer, layoutNode.X, layoutNode.Y + layoutNode.Height - 1, $"└{horizontal}┘", baseStyle, layoutNode.Width);
@@ -49,7 +50,7 @@ internal static class GraphCanvasNodeRenderer
         WriteSpan(buffer, layoutNode.X, layoutNode.Y + 2, "│", baseStyle, 1);
         WriteSpan(buffer, layoutNode.X + layoutNode.Width - 1, layoutNode.Y + 2, "│", baseStyle, 1);
 
-        RenderMetadata(buffer, layoutNode.X + 1, layoutNode.Y + 1, layoutNode.Width - 2, node, selected, appendTitle: false);
+        RenderMetadata(buffer, layoutNode.X + 1, layoutNode.Y + 1, layoutNode.Width - 2, node, selected, matched, appendTitle: false);
         var contentWidth = Math.Max(0, layoutNode.Width - 2);
         var title = GraphCanvasText.PadRight(
             GraphCanvasText.Truncate(GetTitle(node), Math.Min(TitleWidth, contentWidth)),
@@ -63,10 +64,10 @@ internal static class GraphCanvasNodeRenderer
             contentWidth);
     }
 
-    private static void RenderCompact(CellBuffer buffer, GraphLayoutNode layoutNode, GraphNode node, bool selected)
+    private static void RenderCompact(CellBuffer buffer, GraphLayoutNode layoutNode, GraphNode node, bool selected, bool matched)
     {
         var width = layoutNode.Width;
-        RenderMetadata(buffer, layoutNode.X, layoutNode.Y, width, node, selected, appendTitle: true);
+        RenderMetadata(buffer, layoutNode.X, layoutNode.Y, width, node, selected, matched, appendTitle: true);
     }
 
     private static void RenderMetadata(
@@ -76,10 +77,11 @@ internal static class GraphCanvasNodeRenderer
         int width,
         GraphNode node,
         bool selected,
+        bool matched,
         bool appendTitle)
     {
         width = Math.Max(0, width);
-        var baseStyle = GetBaseStyle(node, selected);
+        var baseStyle = GetBaseStyle(node, selected, matched);
         var status = TaskGlyphs.Status(node.Status);
         var type = $"[{TaskGlyphs.TypeCode(node.Type)}]";
         var identity = node.Status == TaskStates.InProgress && !string.IsNullOrWhiteSpace(node.Assignee)
@@ -94,7 +96,7 @@ internal static class GraphCanvasNodeRenderer
             cursor,
             y,
             status,
-            Compose(ThemeTokens.GetStyle($"status.glyph.{node.Status}"), node, selected),
+            Compose(ThemeTokens.GetStyle($"status.glyph.{node.Status}"), node, selected, matched),
             end - cursor);
         cursor = WriteSpan(buffer, cursor, y, " ", baseStyle, end - cursor);
         cursor = WriteSpan(
@@ -102,7 +104,7 @@ internal static class GraphCanvasNodeRenderer
             cursor,
             y,
             type,
-            Compose(ThemeTokens.GetStyle($"badge.type.{node.Type}"), node, selected),
+            Compose(ThemeTokens.GetStyle($"badge.type.{node.Type}"), node, selected, matched),
             end - cursor);
         cursor = WriteSpan(buffer, cursor, y, " ", baseStyle, end - cursor);
         cursor = WriteSpan(
@@ -110,7 +112,7 @@ internal static class GraphCanvasNodeRenderer
             cursor,
             y,
             identity,
-            Compose(ThemeTokens.GetStyle("footer.key"), node, selected, dim: true),
+            Compose(ThemeTokens.GetStyle("footer.key"), node, selected, matched, dim: true),
             end - cursor);
 
         if (appendTitle && cursor < end)
@@ -123,20 +125,21 @@ internal static class GraphCanvasNodeRenderer
     private static string GetTitle(GraphNode node)
         => node.HiddenChildCount > 0 ? $"[epic +{node.HiddenChildCount}]" : node.Title;
 
-    private static Style GetBaseStyle(GraphNode node, bool selected)
-        => Compose(Style.Plain, node, selected);
+    private static Style GetBaseStyle(GraphNode node, bool selected, bool matched)
+        => Compose(Style.Plain, node, selected, matched);
 
-    private static Style Compose(Style style, GraphNode node, bool selected, bool dim = false)
+    private static Style Compose(Style style, GraphNode node, bool selected, bool matched, bool dim = false)
     {
         var selection = selected ? ThemeTokens.GetStyle("selection.highlight") : Style.Plain;
-        var decoration = style.Decoration | selection.Decoration;
+        var match = matched ? ThemeTokens.GetStyle("badge.type.question") : Style.Plain;
+        var decoration = style.Decoration | selection.Decoration | match.Decoration;
 
         if (dim || TaskStates.IsTerminal(node.Status))
         {
             decoration |= Decoration.Dim;
         }
 
-        return new Style(style.Foreground, selection.Background, decoration);
+        return new Style(matched ? match.Foreground : style.Foreground, selection.Background, decoration);
     }
 
     private static int WriteSpan(CellBuffer buffer, int x, int y, string value, Style style, int width)

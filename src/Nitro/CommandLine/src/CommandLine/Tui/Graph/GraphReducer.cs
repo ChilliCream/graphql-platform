@@ -58,7 +58,10 @@ internal static class GraphReducer
         return model with { Nodes = nodes, Edges = edges };
     }
 
-    private static GraphModel Filter(GraphModel model, GraphReductionOptions options)
+    /// <summary>
+    /// Applies visibility and graph filters without collapsing epics or laying out nodes.
+    /// </summary>
+    internal static GraphModel Filter(GraphModel model, GraphReductionOptions options)
     {
         var nodes = model.Nodes.AsEnumerable();
 

@@ -13,6 +13,7 @@ internal sealed class GraphCanvasView
 {
     private readonly GraphLayout _layoutEngine = new();
     private readonly GraphEdgeRouter _edgeRouter = new();
+    private IReadOnlySet<string> _matchIds = new HashSet<string>(StringComparer.Ordinal);
     private GraphModel _model;
     private GraphLayoutResult _layout = new([], [], 0, 0);
     private string? _selectedTaskId;
@@ -71,6 +72,14 @@ internal sealed class GraphCanvasView
         _selectedTaskId = taskId;
         ClearCycle();
     }
+
+    /// <summary>
+    /// Marks matching nodes without rebuilding the canvas layout or viewport state.
+    /// </summary>
+    public void SetMatchIds(IEnumerable<string>? taskIds)
+        => _matchIds = taskIds is null
+            ? new HashSet<string>(StringComparer.Ordinal)
+            : taskIds.ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
     /// Switches between boxed and compact node rendering.
@@ -133,7 +142,8 @@ internal sealed class GraphCanvasView
                     layoutNode,
                     node,
                     IsCompact,
-                    layoutNode.Id == selectedTaskId);
+                    layoutNode.Id == selectedTaskId,
+                    _matchIds.Contains(layoutNode.Id));
             }
         }
 

@@ -72,6 +72,26 @@ internal sealed class GraphTreeView
     }
 
     /// <summary>
+    /// Replaces the graph and restores the supplied session collapse choices.
+    /// </summary>
+    public void SetModel(GraphModel model, IReadOnlySet<string> collapsedEpicIds)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(collapsedEpicIds);
+
+        _model = model;
+        _collapsedEpicIds.Clear();
+        _collapsedEpicIds.UnionWith(collapsedEpicIds);
+        RebuildRows();
+
+        if (_selectedTaskId is not null && !_model.Nodes.Any(t => t.Id == _selectedTaskId))
+        {
+            _selectedTaskId = _rows.FirstOrDefault(t => !t.IsRoot)?.TaskId;
+            RebuildRows();
+        }
+    }
+
+    /// <summary>
     /// Sets whether terminal tasks are excluded from this projection.
     /// </summary>
     public void SetHideClosed(bool hideClosed)
@@ -276,7 +296,8 @@ internal sealed class GraphTreeView
                 IsExpanded = isExpanded,
                 ContainedMatchCount = containedMatchCount,
                 ContainedRelationshipCount = containedRelationshipCount,
-                IsSelected = task?.Id == _selectedTaskId
+                IsSelected = task?.Id == _selectedTaskId,
+                IsMatch = task is not null && _matchIds.Contains(task.Id)
             });
 
             if (!isExpanded)
@@ -406,8 +427,12 @@ internal sealed class GraphTreeView
         var suffix = $" {task.Id}{badges}";
         var title = Truncate(task.Title, width - MeasureWidth(prefix) - MeasureWidth(suffix));
 
+        var renderedTitle = row.IsMatch
+            ? Stylize(ThemeTokens.GetStyle("badge.type.question").ToMarkup(), Markup.Escape(title))
+            : Markup.Escape(title);
+
         return $"{Markup.Escape(fold)}{TaskGlyphs.StatusMarkup(task.Status)} {TaskGlyphs.TypeCodeMarkup(task.Type)} "
-            + $"{Markup.Escape(title)} {Stylize(ThemeTokens.GetStyle("footer.key").ToMarkup(), Markup.Escape(task.Id))}"
+            + $"{renderedTitle} {Stylize(ThemeTokens.GetStyle("footer.key").ToMarkup(), Markup.Escape(task.Id))}"
             + Markup.Escape(badges);
     }
 

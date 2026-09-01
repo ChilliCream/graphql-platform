@@ -763,6 +763,16 @@ internal sealed class TuiShell
                 return TryOpenDetail();
 
             case TuiMessage.FocusSearchRequested:
+                if (ActiveMode is GraphMode graph)
+                {
+                    foreach (var followUp in graph.Handle(message))
+                    {
+                        HandleMessage(followUp);
+                    }
+
+                    return true;
+                }
+
                 if (!IsTasksTabActive || _searchMode is not { } search)
                 {
                     return false;

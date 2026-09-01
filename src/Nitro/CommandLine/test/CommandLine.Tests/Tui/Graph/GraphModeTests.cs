@@ -411,9 +411,69 @@ public sealed class GraphModeTests
         Assert.Equal("epic", mode.CanvasView.SelectedTaskId);
     }
 
+    [Fact]
+    public void Search_Should_HighlightMatchesWithoutExpandingCollapsedEpicsOrRelayingOutCanvas()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("epic", priority: 0, type: TaskTypes.Epic),
+                Task("child", priority: 1, title: "Find this task")
+            ],
+            [Parent("epic", "child")]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("epic");
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        var before = mode.CanvasView.Layout.Nodes.Select(t => (t.Id, t.X, t.Y)).ToArray();
+
+        // act
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        var first = mode.HandleRawKey(new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false));
+        var after = mode.CanvasView.Layout.Nodes.Select(t => (t.Id, t.X, t.Y)).ToArray();
+
+        // assert
+        Assert.True(mode.IsInputCapturing);
+        Assert.Equal(1, mode.TreeView.Rows.Single(t => t.TaskId == "epic").ContainedMatchCount);
+        Assert.Equal("epic", mode.SelectedTaskId);
+        Assert.Empty(first);
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
+    public void FilterForm_Should_ApplyAndClearGraphFiltersWithoutChangingTheSource()
+    {
+        // arrange
+        var labels = new[]
+        {
+            new TaskLabels("one", ["alpha"]),
+            new TaskLabels("two", ["beta"])
+        };
+        var mode = CreateMode([Task("one"), Task("two")], taskLabels: labels).Mode;
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        Type(mode, "alpha");
+        mode.HandleRawKey(new ConsoleKeyInfo('s', ConsoleKey.S, false, true, false));
+        var filtered = mode.CanvasView.Layout.Nodes.Select(t => t.Id).ToArray();
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        mode.HandleRawKey(new ConsoleKeyInfo('\t', ConsoleKey.Tab, false, false, false));
+        mode.HandleRawKey(new ConsoleKeyInfo('\t', ConsoleKey.Tab, false, false, false));
+        mode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.RightArrow, false, false, false));
+        mode.HandleRawKey(new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false));
+
+        // assert
+        Assert.Equal(["one"], filtered);
+        Assert.Equal(["one", "two"], mode.CanvasView.Layout.Nodes.Select(t => t.Id).Order(StringComparer.Ordinal));
+        Assert.False(mode.IsInputCapturing);
+    }
+
     private static (GraphMode Mode, Mock<ITaskStore> Store) CreateMode(
         List<TaskItem> tasks,
-        List<TaskDependency>? dependencies = null)
+        List<TaskDependency>? dependencies = null,
+        IReadOnlyList<TaskLabels>? taskLabels = null)
     {
         var store = new Mock<ITaskStore>();
         store.Setup(t => t.QueryTasksAsync(It.IsAny<TaskFilter>(), It.IsAny<CancellationToken>()))
@@ -422,18 +482,29 @@ public sealed class GraphModeTests
             .ReturnsAsync(() => dependencies?.ToArray() ?? []);
         store.Setup(t => t.GetLabelsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
+        store.Setup(t => t.GetTaskLabelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => taskLabels ?? []);
         return (new GraphMode(new GraphDataLoader(store.Object)), store);
+    }
+
+    private static void Type(GraphMode mode, string value)
+    {
+        foreach (var character in value)
+        {
+            mode.HandleRawKey(new ConsoleKeyInfo(character, ConsoleKey.A, false, false, false));
+        }
     }
 
     private static TaskItem Task(
         string id,
         int priority = TaskPriorities.Medium,
         string type = TaskTypes.Task,
-        string status = TaskStates.Open)
+        string status = TaskStates.Open,
+        string? title = null)
         => new()
         {
             Id = id,
-            Title = id,
+            Title = title ?? id,
             Priority = priority,
             Type = type,
             Status = status,
