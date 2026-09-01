@@ -122,22 +122,40 @@ internal sealed partial class DeferExecutionCoordinator
     {
         AssertInitialized();
 
+        var shouldDiscard = false;
+
         lock (_sync)
         {
-            if (_completedResults.TryGetValue(branchId, out var previousResult))
+            ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+            if (Unsafe.IsNullRef(ref branch)
+                || branch.Kind != BranchKind.Defer
+                || _completedBranches.Contains(branchId))
             {
-                result.RegisterForCleanup(previousResult);
+                shouldDiscard = true;
             }
-
-            _completedResults[branchId] = result;
-
-            if (_announced.Contains(branchId))
+            else
             {
-                if (_completedResults.Remove(branchId, out var readyResult))
+                if (_completedResults.TryGetValue(branchId, out var previousResult))
                 {
-                    ComposeAndDeliverUnsafe(branchId, readyResult);
+                    result.RegisterForCleanup(previousResult);
+                }
+
+                _completedResults[branchId] = result;
+
+                if (_announced.Contains(branchId))
+                {
+                    if (_completedResults.Remove(branchId, out var readyResult))
+                    {
+                        ComposeAndDeliverUnsafe(branchId, readyResult);
+                    }
                 }
             }
+        }
+
+        if (shouldDiscard)
+        {
+            _ = result.DisposeAsync();
         }
     }
 

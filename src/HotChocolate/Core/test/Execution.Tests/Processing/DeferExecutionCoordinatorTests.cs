@@ -230,6 +230,62 @@ public sealed class DeferExecutionCoordinatorTests
         Assert.Equal(1, streamHolder.DisposeCount);
     }
 
+    [Fact]
+    public async Task EnqueueResult_Should_DiscardLateResultWhenAnnouncedBranchWasAborted()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var deferBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
+        var initialResult = CreateResult();
+        var lateHolder = new CountingMemoryHolder();
+        var lateResult = CreateResult(lateHolder);
+        coordinator.EnqueueResult(initialResult);
+
+        // act
+        await coordinator.AbortBranchesAsync(Path.Root, [ErrorBuilder.New().SetMessage("boom").Build()]);
+        coordinator.EnqueueResult(lateResult, deferBranchId);
+        await lateResult.DisposeAsync();
+        await initialResult.DisposeAsync();
+        await coordinator.ResetAsync();
+
+        // assert
+        Assert.Equal([deferBranchId], initialResult.Pending.Select(t => t.Id));
+        Assert.Empty(initialResult.Incremental);
+        Assert.Equal([deferBranchId], initialResult.Completed.Select(t => t.Id));
+        Assert.False(initialResult.HasNext);
+        Assert.Equal(1, lateHolder.DisposeCount);
+    }
+
+    [Fact]
+    public async Task EnqueueResult_Should_DiscardLateResultWhenUnannouncedBranchWasAborted()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var parentBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
+        var initialResult = CreateResult();
+        coordinator.EnqueueResult(initialResult);
+        var deferBranchId = coordinator.Branch(
+            parentBranchId,
+            Path.Root.Append("details").Append("more"),
+            new DeferUsage(null, null, 0));
+        var lateHolder = new CountingMemoryHolder();
+        var lateResult = CreateResult(lateHolder);
+
+        // act
+        await coordinator.AbortBranchesAsync(Path.Root.Append("details"), [ErrorBuilder.New().SetMessage("boom").Build()]);
+        coordinator.EnqueueResult(lateResult, deferBranchId);
+        await lateResult.DisposeAsync();
+        await initialResult.DisposeAsync();
+        await coordinator.ResetAsync();
+
+        // assert
+        Assert.Equal([parentBranchId], initialResult.Pending.Select(t => t.Id));
+        Assert.Empty(initialResult.Incremental);
+        Assert.Equal([parentBranchId], initialResult.Completed.Select(t => t.Id));
+        Assert.False(initialResult.HasNext);
+        Assert.Equal(1, lateHolder.DisposeCount);
+    }
+
     private static DeferExecutionCoordinator CreateCoordinator(out int mainBranchId)
     {
         var branchTracker = new BranchTracker();
