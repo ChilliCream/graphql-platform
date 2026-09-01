@@ -44,6 +44,17 @@ internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDispo
     {
         _id = id;
     }
+
+    public bool TryHandle(IDataMessage message)
+    {
+        if (!message.Id.EqualsOrdinal(_id))
+        {
+            return false;
+        }
+
+        OnNext(message);
+        return true;
+    }
 #endif
 
     public async ValueTask<IDataMessage?> TryReadNextAsync(CancellationToken ct)
