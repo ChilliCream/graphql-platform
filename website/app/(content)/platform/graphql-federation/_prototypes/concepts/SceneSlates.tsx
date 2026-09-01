@@ -229,7 +229,7 @@ function FiveCallsCard({ box }: { readonly box: Chapter["boxes"][number] }) {
           <div key={i} className="flex items-center gap-2">
             <span
               aria-hidden="true"
-              className="block h-px w-6 shrink-0 border-t border-dashed"
+              className="block h-px w-3 shrink-0 border-t border-dashed md:w-6"
               style={{ borderColor: line.dots?.[0] ?? "rgba(245,241,234,0.3)" }}
             />
             <span className="whitespace-pre text-[#c9d4e8]">{line.text}</span>
@@ -357,10 +357,10 @@ function Beat3Mobile() {
 function Beat3Body() {
   return (
     <>
-      <div className="hidden sm:block">
+      <div className="hidden lg:block">
         <Beat3Art />
       </div>
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <Beat3Mobile />
       </div>
     </>
@@ -402,7 +402,7 @@ function Beat4Body() {
   const box = CHAPTERS[3].boxes[0];
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
       <div className="flex-1">
         <ProtoCodeBox label={box.label} lines={box.lines} />
       </div>
@@ -419,7 +419,7 @@ function Beat4Body() {
 
 function DashedSchemaCard() {
   return (
-    <div className="flex min-h-[7rem] flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-[rgba(245,241,234,0.3)] p-4 text-center">
+    <div className="flex min-h-[7rem] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-[rgba(245,241,234,0.3)] p-4 text-center">
       <span className="text-cc-nav-label font-mono text-[10px] tracking-[0.2em] uppercase opacity-70">
         The whole schema
       </span>
@@ -434,7 +434,7 @@ function Beat5Body() {
   const [catalog, billing] = CHAPTERS[4].boxes;
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-4">
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-4">
       <div className="flex-1">
         <ProtoCodeBox
           label={catalog.label}
@@ -639,10 +639,10 @@ function Beat6Mobile() {
 function Beat6Body() {
   return (
     <>
-      <div className="hidden sm:block">
+      <div className="hidden lg:block">
         <Beat6Art />
       </div>
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <Beat6Mobile />
       </div>
     </>
@@ -765,10 +765,10 @@ function Beat7Mobile() {
 function Beat7Body() {
   return (
     <>
-      <div className="hidden sm:block">
+      <div className="hidden lg:block">
         <Beat7Art />
       </div>
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <Beat7Mobile />
       </div>
     </>
