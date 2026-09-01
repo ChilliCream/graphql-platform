@@ -43,7 +43,7 @@ internal static class GraphKeyMap
     ];
 
     /// <summary>
-    /// The graph-specific chords, exposed for the tab collision guard.
+    /// The graph-specific chords, exposed for key map tests.
     /// </summary>
     internal static IReadOnlyList<KeyChord> Chords { get; } =
         s_bindings.Select(t => t.Chord).ToArray();

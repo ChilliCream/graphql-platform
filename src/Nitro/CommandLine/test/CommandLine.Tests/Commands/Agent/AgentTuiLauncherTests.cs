@@ -29,6 +29,16 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 public sealed class AgentTuiLauncherTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly KeyChord[] s_shellOwnedChords =
+    [
+        new(ConsoleKey.Oem4, ConsoleModifiers.None, '['),
+        new(ConsoleKey.Oem6, ConsoleModifiers.None, ']'),
+        new(ConsoleKey.T, ConsoleModifiers.Shift, 'T'),
+        new(ConsoleKey.M, ConsoleModifiers.Shift, 'M'),
+        new(ConsoleKey.A, ConsoleModifiers.Shift, 'A'),
+        new(ConsoleKey.E, ConsoleModifiers.Shift, 'E'),
+        new(ConsoleKey.G, ConsoleModifiers.Shift, 'G')
+    ];
 
     private static Mock<IEnvironmentVariableProvider> CreateEnvironment() => new();
 
@@ -149,6 +159,60 @@ public sealed class AgentTuiLauncherTests
             Assert.Equal(("Graph", 'G'), (tabs[4].Title, tabs[4].Mnemonic));
             Assert.IsType<GraphMode>(tabs[4].RootMode);
             Assert.NotSame(tabs[0].Dispatcher, tabs[4].Dispatcher);
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void BuildTabs_Should_KeepShellOwnedChordsUnboundInEveryTabKeyMap()
+    {
+        // arrange
+        var taskStore = new FakeTaskStore();
+        var mailStore = new FakeMailStore();
+        var agentRegistry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
+        var timeProvider = new FakeTimeProvider(Now);
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
+
+        try
+        {
+            var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
+            Directory.CreateDirectory(workingDirectory);
+            var memoryStore = new MemoryStore(
+                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
+                timeProvider,
+                new AgentDatabase());
+            var tabs = AgentTuiLauncher.BuildTabs(
+                taskStore,
+                mailStore,
+                memoryStore,
+                agentRegistry,
+                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
+                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
+                timeProvider,
+                TestContext.Current.CancellationToken);
+
+            // act
+            var mnemonicCount = tabs.Select(t => char.ToUpperInvariant(t.Mnemonic)).Distinct().Count();
+
+            // assert
+            Assert.Equal(5, tabs.Length);
+            Assert.Equal(tabs.Length, mnemonicCount);
+            Assert.All(
+                tabs,
+                tab =>
+                {
+                    foreach (var chord in s_shellOwnedChords)
+                    {
+                        var globalBound = tab.Dispatcher.GlobalKeyMap.TryResolve(chord, out _);
+                        var modeBound = tab.RootMode.KeyMap?.TryResolve(chord, out _) ?? false;
+
+                        Assert.False(globalBound);
+                        Assert.False(modeBound);
+                    }
+                });
         }
         finally
         {

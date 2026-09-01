@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <summary>
 /// Builds the memory tab's key table, for the memory command's own
 /// <see cref="KeyDispatcher"/> in place of <see cref="KeyMap.CreateDefaultGlobal"/>:
-/// vim-style navigation (j/k/h/l and arrow keys, g/G for edges), Enter to
+/// vim-style navigation (j/k/h/l and arrow keys, g and End for edges), Enter to
 /// focus the detail pane, Tab to switch panes, f to cycle between the
 /// curated and journal collections, s to cycle the scope filter, / to focus
 /// the search box, p to promote the selected journal entry, d to forget the
@@ -57,7 +57,7 @@ internal static class MemoryKeyMap
             new KeyChord(ConsoleKey.G, ConsoleModifiers.None, 'g'),
             () => new TuiMessage.MoveToEdge(EdgeTarget.Top)),
         new KeyBinding(
-            new KeyChord(ConsoleKey.G, ConsoleModifiers.Shift, 'G'),
+            new KeyChord(ConsoleKey.End, ConsoleModifiers.None, '\0'),
             () => new TuiMessage.MoveToEdge(EdgeTarget.Bottom)),
         new KeyBinding(
             new KeyChord(ConsoleKey.Enter, ConsoleModifiers.None, '\r'),

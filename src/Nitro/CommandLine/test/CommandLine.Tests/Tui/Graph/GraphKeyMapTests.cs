@@ -37,19 +37,17 @@ public sealed class GraphKeyMapTests
     }
 
     [Fact]
-    public void CreateDefault_Should_NotCollideWithGlobalTabSwitchOrMnemonicChords()
+    public void CreateDefault_Should_NotCollideWithGlobalOrTabSwitchChords()
     {
         // arrange
         var global = KeyMap.CreateDefaultGlobal();
-        const string tabMnemonics = "TMAEG";
 
         // act
         var collisions = GraphKeyMap.Chords
             .Where(chord =>
                 chord.Modifiers != ConsoleModifiers.None
                 || global.TryResolve(chord, out _)
-                || TabSwitchKeys.Resolve(chord) is not null
-                || tabMnemonics.Contains(char.ToUpperInvariant(chord.KeyChar)))
+                || TabSwitchKeys.Resolve(chord) is not null)
             .ToArray();
 
         // assert

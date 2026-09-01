@@ -69,7 +69,7 @@ internal sealed class KeyMap
 
     /// <summary>
     /// The hardcoded global key bindings: vim-style navigation (j/k/h/l and arrow
-    /// keys, g/G for edges), Enter to open, r to refresh, y to copy the selected id,
+    /// keys, g and End for edges), Enter to open, r to refresh, y to copy the selected id,
     /// q and Ctrl+C to request quit, Ctrl+N/Ctrl+P to cycle views, z to toggle the
     /// maximized layout, / to jump into search, t to open the dependency tree on
     /// the current selection, e to edit it, x to close or reopen it, X to delete
@@ -83,7 +83,7 @@ internal sealed class KeyMap
     /// footer stays a short-help bar rather than a full binding dump: the four
     /// direction keys collapse into one <c>hjkl move</c> hint (their arrow-key
     /// equivalents stay unhinted), and the rarer or currently inert gestures
-    /// (g/G, /, t, x, X, s, p, c, C, Ctrl+C, and Ctrl+N/P, which cycles
+    /// (g, End, /, t, x, X, s, p, c, C, Ctrl+C, and Ctrl+N/P, which cycles
     /// between views but has nothing to cycle to until a second board view
     /// exists) stay hidden from the footer while remaining fully bound. Quit's
     /// binding is declared last so it is also the last global hint, per the
@@ -120,7 +120,7 @@ internal sealed class KeyMap
             new KeyChord(ConsoleKey.G, ConsoleModifiers.None, 'g'),
             () => new TuiMessage.MoveToEdge(EdgeTarget.Top)),
         new KeyBinding(
-            new KeyChord(ConsoleKey.G, ConsoleModifiers.Shift, 'G'),
+            new KeyChord(ConsoleKey.End, ConsoleModifiers.None, '\0'),
             () => new TuiMessage.MoveToEdge(EdgeTarget.Bottom)),
         new KeyBinding(
             new KeyChord(ConsoleKey.Enter, ConsoleModifiers.None, '\r'),

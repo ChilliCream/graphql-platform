@@ -151,6 +151,31 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public void Handle_Should_SwitchToGraphWithShiftG_AndDispatchEndToTheActiveTab()
+    {
+        // arrange
+        var tasksMode = new FakeTuiMode();
+        var graphMode = new FakeTuiMode();
+        var shell = new TuiShell(
+            [
+                CreateTasksTab("Tasks", tasksMode),
+                CreateTasksTab("Graph", graphMode, mnemonic: 'G')
+            ],
+            80,
+            24);
+
+        // act
+        var switched = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        var movedToBottom = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\0', ConsoleKey.End)));
+
+        // assert
+        Assert.True(switched && movedToBottom);
+        Assert.Empty(tasksMode.HandledMessages);
+        var message = Assert.Single(graphMode.HandledMessages);
+        Assert.Equal(EdgeTarget.Bottom, Assert.IsType<TuiMessage.MoveToEdge>(message).Edge);
+    }
+
+    [Fact]
     public void Handle_Should_DoNothing_When_ShiftPlusLetterMatchesTheAlreadyActiveTab()
     {
         // arrange
