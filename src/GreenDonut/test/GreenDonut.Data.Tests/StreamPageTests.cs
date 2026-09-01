@@ -153,6 +153,41 @@ public class StreamPageTests
     }
 
     [Fact]
+    public async Task EnumerateAsync_Should_PropagateSourceException_When_SourceCurrentThrows()
+    {
+        // arrange
+        var expectedException = new InvalidOperationException();
+        var page = new StreamPage<string>(
+            new ThrowingAsyncEnumerable(currentException: expectedException),
+            new PagingArguments(first: 1),
+            static item => item);
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => EnumerateAsync(page));
+
+        // assert
+        Assert.Same(expectedException, exception);
+    }
+
+    [Fact]
+    public async Task Completion_Should_FaultWithSourceException_When_SourceCurrentThrows()
+    {
+        // arrange
+        var expectedException = new InvalidOperationException();
+        var page = new StreamPage<string>(
+            new ThrowingAsyncEnumerable(currentException: expectedException),
+            new PagingArguments(first: 1),
+            static item => item);
+
+        // act
+        await Assert.ThrowsAsync<InvalidOperationException>(() => EnumerateAsync(page));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => page.Completion);
+
+        // assert
+        Assert.Same(expectedException, exception);
+    }
+
+    [Fact]
     public async Task Completion_Should_FaultWithCursorException_When_CursorCreationFails()
     {
         // arrange
@@ -197,11 +232,10 @@ public class StreamPageTests
         using var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
         var page = new StreamPage<string>(
-            new ThrowingAsyncEnumerable(
-                moveNextException: new OperationCanceledException(cancellationTokenSource.Token)),
+            new CancellableAsyncEnumerable(),
             new PagingArguments(first: 1),
             static item => item);
-        await using var enumerator = page.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        await using var enumerator = page.GetAsyncEnumerator(cancellationTokenSource.Token);
 
         // act
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await enumerator.MoveNextAsync());
@@ -328,17 +362,19 @@ public class StreamPageTests
 
     private sealed class ThrowingAsyncEnumerable(
         Exception? moveNextException = null,
-        Exception? disposeException = null) : IAsyncEnumerable<string>
+        Exception? disposeException = null,
+        Exception? currentException = null) : IAsyncEnumerable<string>
     {
         public IAsyncEnumerator<string> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-            => new ThrowingAsyncEnumerator(moveNextException, disposeException);
+            => new ThrowingAsyncEnumerator(moveNextException, disposeException, currentException);
     }
 
     private sealed class ThrowingAsyncEnumerator(
         Exception? moveNextException,
-        Exception? disposeException) : IAsyncEnumerator<string>
+        Exception? disposeException,
+        Exception? currentException) : IAsyncEnumerator<string>
     {
-        public string Current => string.Empty;
+        public string Current => currentException is null ? string.Empty : throw currentException;
 
         public ValueTask DisposeAsync()
             => disposeException is null
@@ -346,8 +382,28 @@ public class StreamPageTests
                 : ValueTask.FromException(disposeException);
 
         public ValueTask<bool> MoveNextAsync()
-            => moveNextException is null
-                ? ValueTask.FromResult(false)
-                : ValueTask.FromException<bool>(moveNextException);
+            => currentException is not null
+                ? ValueTask.FromResult(true)
+                : moveNextException is null
+                    ? ValueTask.FromResult(false)
+                    : ValueTask.FromException<bool>(moveNextException);
+    }
+
+    private sealed class CancellableAsyncEnumerable : IAsyncEnumerable<string>
+    {
+        public IAsyncEnumerator<string> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            => new CancellableAsyncEnumerator(cancellationToken);
+    }
+
+    private sealed class CancellableAsyncEnumerator(CancellationToken cancellationToken)
+        : IAsyncEnumerator<string>
+    {
+        public string Current => string.Empty;
+
+        public ValueTask DisposeAsync()
+            => ValueTask.CompletedTask;
+
+        public ValueTask<bool> MoveNextAsync()
+            => ValueTask.FromCanceled<bool>(cancellationToken);
     }
 }

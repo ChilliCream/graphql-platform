@@ -130,12 +130,12 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
                     }
 
                     fetchCount++;
-                    var cursor = CreateCursor(new EdgeEntry<T>(enumerator.Current, 0, 0, 0));
+                    var cursor = CreateCursor(new EdgeEntry<T>(GetCurrent(enumerator), 0, 0, 0));
                     startCursor ??= cursor;
                     endCursor = cursor;
                     itemIndex++;
 
-                    yield return new StreamPageEdge<T>(enumerator.Current, cursor);
+                    yield return new StreamPageEdge<T>(GetCurrent(enumerator), cursor);
                 }
 
                 if (requestedSize is not null)
@@ -211,6 +211,19 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         try
         {
             return await operation.ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _completionException = exception;
+            throw;
+        }
+    }
+
+    private T GetCurrent(IAsyncEnumerator<T> enumerator)
+    {
+        try
+        {
+            return enumerator.Current;
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
