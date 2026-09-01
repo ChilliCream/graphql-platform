@@ -437,7 +437,7 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOpti
 
             var parentType =
                 context.PendingFields.Count == 0
-                    ? null
+                    ? context.Schema.GetOperationType(context.OperationType)
                     : context.PendingFields.Peek().Field.Type.NamedType();
 
             var declaringNode = context.Nodes.ElementAtOrDefault(2);
