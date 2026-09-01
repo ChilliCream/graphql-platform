@@ -2,7 +2,9 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -429,9 +431,10 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             bool hasResult;
-            var received = false;
             var arenaBound = false;
+            SourceSchemaResult? eventResult = null;
             IDisposable? scope = null;
+            var scopeTransferred = false;
             long? start = null;
             var arenaBefore = _eventArenaSource.Arena;
 
@@ -445,13 +448,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                 // transferred and it finally will no longer dispose it. If anything between here and
                 // the event arena being bound and registered as the active arena throws, the arena
                 // must be disposed on the failure path below.
-                received = hasResult;
-
                 if (hasResult)
                 {
                     scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
                     start = Stopwatch.GetTimestamp();
-                    _resultBuffer[0] = _eventEnumerator.Current;
+                    eventResult = _eventEnumerator.Current;
+                    _resultBuffer[0] = eventResult;
 
                     // Bind the event arena as the active arena before adding the event's result, so the
                     // event document and the result built for it share one arena and that arena travels
@@ -472,6 +474,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                         Stopwatch.GetTimestamp(),
                         Exception: null,
                         VariableValueSets: _context.GetVariableValueSets(_node));
+                    scopeTransferred = true;
                     return true;
                 }
             }
@@ -481,10 +484,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 {
                     // An event was received but its result was never delivered, so dispose the parsed
                     // result document to return its pooled tracking arrays.
-                    if (received)
-                    {
-                        _eventEnumerator!.Current.Dispose();
-                    }
+                    eventResult?.Dispose();
 
                     // An arena minted during this failed iteration is owned by this enumerator until it
                     // is bound as the active event arena. An arena carried over from a prior delivered
@@ -500,10 +500,9 @@ public sealed class OperationExecutionNode : ExecutionNode
                     {
                         if (arenaMinted)
                         {
-                            ((IDisposable)arena).Dispose();
+                            DisposeArena(arena);
                         }
 
-                        scope?.Dispose();
                         _completed = true;
                         Current = null!;
                         return false;
@@ -519,7 +518,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     {
                         if (arenaMinted)
                         {
-                            ((IDisposable)arena).Dispose();
+                            DisposeArena(arena);
                         }
 
                         _context.SetActiveEventArena(_eventArenaSource.GetNextArena());
@@ -545,23 +544,34 @@ public sealed class OperationExecutionNode : ExecutionNode
                         Stopwatch.GetTimestamp(),
                         Exception: exception,
                         VariableValueSets: _context.GetVariableValueSets(_node));
+                    scopeTransferred = true;
                     return true;
                 }
                 finally
                 {
+                    DisposeUntransferredScope(scope, scopeTransferred);
                     await DisposeResourcesAsync();
                 }
             }
 
             _completed = true;
             Current = null!;
-            await DisposeResourcesAsync();
+            var cleanupException = await DisposeResourcesAsync();
+            if (cleanupException is not null)
+            {
+                ExceptionDispatchInfo.Capture(cleanupException).Throw();
+            }
+
             return false;
         }
 
         public async ValueTask DisposeAsync()
         {
-            await DisposeResourcesAsync();
+            var cleanupException = await DisposeResourcesAsync();
+            if (cleanupException is not null)
+            {
+                ExceptionDispatchInfo.Capture(cleanupException).Throw();
+            }
         }
 
         private async ValueTask EnsureInitializedAsync()
@@ -582,18 +592,48 @@ public sealed class OperationExecutionNode : ExecutionNode
                     .SubscribeAsync(_context, Request, _cancellationToken)
                     .GetAsyncEnumerator(_cancellationToken);
             }
-            catch
+            catch (Exception exception)
             {
                 await DisposeResourcesAsync();
+                ExceptionDispatchInfo.Capture(exception).Throw();
                 throw;
             }
         }
 
-        private async ValueTask DisposeResourcesAsync()
+        private static void DisposeUntransferredScope(IDisposable? scope, bool scopeTransferred)
+        {
+            if (scope is null || scopeTransferred)
+            {
+                return;
+            }
+
+            try
+            {
+                scope.Dispose();
+            }
+            catch
+            {
+                // The event failure is the terminal error reported to the caller.
+            }
+        }
+
+        private static void DisposeArena(IMemoryArena arena)
+        {
+            try
+            {
+                ((IDisposable)arena).Dispose();
+            }
+            catch
+            {
+                // The event failure is the terminal error reported to the caller.
+            }
+        }
+
+        private async ValueTask<Exception?> DisposeResourcesAsync()
         {
             if (_disposed)
             {
-                return;
+                return null;
             }
 
             _disposed = true;
@@ -659,10 +699,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 }
             }
 
-            if (exception is not null)
-            {
-                throw exception;
-            }
+            return exception;
         }
     }
 }
