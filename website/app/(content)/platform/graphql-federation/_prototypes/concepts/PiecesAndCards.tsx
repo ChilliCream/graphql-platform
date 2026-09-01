@@ -116,6 +116,7 @@ function Card({
   title,
   rotate = 0,
   opacity = 1,
+  labelOnly = false,
 }: {
   readonly x: number;
   readonly y: number;
@@ -124,6 +125,7 @@ function Card({
   readonly title?: string;
   readonly rotate?: number;
   readonly opacity?: number;
+  readonly labelOnly?: boolean;
 }) {
   return (
     <g
@@ -132,15 +134,17 @@ function Card({
         rotate ? `rotate(${rotate} ${x + w / 2} ${y + h / 2})` : undefined
       }
     >
-      <rect
-        x={x}
-        y={y}
-        width={w}
-        height={h}
-        rx={6}
-        fill={CARD_FILL}
-        stroke={CARD_STROKE}
-      />
+      {!labelOnly && (
+        <rect
+          x={x}
+          y={y}
+          width={w}
+          height={h}
+          rx={6}
+          fill={CARD_FILL}
+          stroke={CARD_STROKE}
+        />
+      )}
       {title && (
         <text
           x={x + w / 2}
@@ -249,11 +253,11 @@ const REQUESTS = [
 
 /** Beat 2 pieces: a radial pile around P=(340,150). */
 const BEAT2_PIECES: readonly { readonly x: number; readonly y: number }[] = [
-  { x: 219, y: 80 },
-  { x: 200, y: 150 },
-  { x: 219, y: 220 },
-  { x: 461, y: 80 },
-  { x: 461, y: 220 },
+  { x: 199, y: 80 },
+  { x: 180, y: 150 },
+  { x: 199, y: 220 },
+  { x: 500, y: 80 },
+  { x: 500, y: 220 },
 ];
 
 /** Beat 2 slips: five fanned request slips, far ends touching their piece rims. */
@@ -262,27 +266,31 @@ const BEAT2_SLIPS: readonly {
   readonly y: number;
   readonly rot: number;
 }[] = [
-  { x: 219, y: 111, rot: 30 },
-  { x: 211, y: 138, rot: 0 },
-  { x: 219, y: 165, rot: -30 },
-  { x: 312, y: 111, rot: -30 },
-  { x: 312, y: 165, rot: 30 },
+  { x: 203, y: 102, rot: 22 },
+  { x: 191, y: 138, rot: 0 },
+  { x: 203, y: 174, rot: -22 },
+  { x: 336, y: 102, rot: -22 },
+  { x: 336, y: 174, rot: 22 },
 ];
 
 /** Beat 2 — a hand-assembled pile: five slips fanned toward each piece. */
 function Beat2() {
   return (
     <Vignette label="A screen card buried under five fanned request slips">
-      <Card x={280} y={128} w={120} h={44} opacity={0.5} />
+      <Card x={290} y={128} w={120} h={44} opacity={0.5} />
+      {BEAT2_SLIPS.map((s, i) => (
+        <Card key={REQUESTS[i]} x={s.x} y={s.y} w={160} h={24} rotate={s.rot} />
+      ))}
       {BEAT2_SLIPS.map((s, i) => (
         <Card
-          key={REQUESTS[i]}
+          key={`${REQUESTS[i]} label`}
           x={s.x}
           y={s.y}
-          w={150}
+          w={160}
           h={24}
           title={REQUESTS[i]}
           rotate={s.rot}
+          labelOnly
         />
       ))}
       {BEAT2_PIECES.map((p, i) => (
@@ -349,14 +357,14 @@ const KEY_LINE = '@key(fields: "id")';
  * into the neighboring card.
  */
 const CATALOG_LINES = [
+  { code: "type Product" },
   { code: "" },
-  { code: `  ${KEY_LINE} {` },
   { code: "  name: String!" },
   { code: "}" },
 ];
 const BILLING_LINES = [
+  { code: "type Product" },
   { code: "" },
-  { code: `  ${KEY_LINE} {` },
   { code: "  price: Money!" },
   { code: "}" },
 ];
@@ -381,17 +389,15 @@ function KeyRow({ x }: { readonly x: number }) {
 
 /** Beat 5 — each piece with its own schema card; a dashed empty card at center. */
 function Beat5() {
-  const ch5 = CHAPTERS[4];
-  const [catalogBox, billingBox] = ch5.boxes;
   return (
     <Vignette label="Five pieces each with their own schema card, one dashed and empty at center">
       <SchemaCard
         x={CARD_SLOTS[0].x}
         y={CARD_ROW_Y}
         w={CARD_SLOTS[0].w}
-        label={catalogBox.label}
+        label="Catalog"
         color={CANON[0].color}
-        file=""
+        file="schema.graphql"
         lines={CATALOG_LINES}
       />
       <KeyRow x={CARD_SLOTS[0].x} />
@@ -399,9 +405,9 @@ function Beat5() {
         x={CARD_SLOTS[1].x}
         y={CARD_ROW_Y}
         w={CARD_SLOTS[1].w}
-        label={billingBox.label}
+        label="Billing"
         color={CANON[1].color}
-        file=""
+        file="schema.graphql"
         lines={BILLING_LINES}
       />
       <KeyRow x={CARD_SLOTS[1].x} />
