@@ -379,22 +379,53 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
 
             try
             {
-                var socket = await _connect(
-                    _configuration.Url,
-                    _invoker,
-                    _configuration.KeepAliveInterval,
-                    cancellationToken).ConfigureAwait(false);
-                var options = new SocketClientOptions
-                {
-                    MaxOperationQueueBytes = _configuration.MaxOperationQueueBytes
-                };
-                var client = await SocketClient.ConnectAsync(
-                    socket,
-                    options,
-                    cancellationToken).ConfigureAwait(false);
+                WebSocket? socket = null;
+                var ownsSocket = false;
 
-                _socketClient = client;
-                return client;
+                try
+                {
+                    socket = await _connect(
+                        _configuration.Url,
+                        _invoker,
+                        _configuration.KeepAliveInterval,
+                        cancellationToken).ConfigureAwait(false);
+                    ownsSocket = true;
+
+                    if (socket.State != WebSocketState.Open)
+                    {
+                        throw new InvalidOperationException(
+                            "The WebSocket must be in the open state to connect.");
+                    }
+
+                    if (!string.Equals(
+                            socket.SubProtocol,
+                            WellKnownProtocols.GraphQL_Transport_WS,
+                            StringComparison.Ordinal))
+                    {
+                        throw new NotSupportedException(
+                            $"The sub-protocol `{socket.SubProtocol}` is not supported.");
+                    }
+
+                    var options = new SocketClientOptions
+                    {
+                        MaxOperationQueueBytes = _configuration.MaxOperationQueueBytes
+                    };
+                    ownsSocket = false;
+                    var client = await SocketClient.ConnectAsync(
+                        socket,
+                        options,
+                        cancellationToken).ConfigureAwait(false);
+
+                    _socketClient = client;
+                    return client;
+                }
+                finally
+                {
+                    if (ownsSocket)
+                    {
+                        socket!.Dispose();
+                    }
+                }
             }
             catch (Exception exception)
             {

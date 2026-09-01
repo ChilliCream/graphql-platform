@@ -26,7 +26,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
         var socket = new ScriptedWebSocket(SocketBehavior.Respond);
         var connectCount = 0;
-        await using var client = CreateClient(invoker, socket, () => connectCount++);
+        var client = CreateClient(invoker, socket, () => connectCount++);
         var context = fixture.CreateContext();
         var first = client.ExecuteAsync(
             context,
@@ -41,13 +41,60 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
                 context,
                 CreateRequest(fixture.RootNode),
                 TestContext.Current.CancellationToken));
+        await client.DisposeAsync();
 
         // assert
         Assert.Equal(0, countBeforeEnumeration);
-        Assert.Equal(1, connectCount);
-        Assert.Equal("value", firstValue);
-        Assert.Equal("value", secondValue);
-        Assert.Equal(2, socket.SubscribeCount);
+        Assert.Equal(
+            (1, "value", "value", 2, 1),
+            (connectCount, firstValue, secondValue, socket.SubscribeCount, socket.DisposeCount));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_DisposeSocket_When_ConnectorReturnsNonOpenSocket()
+    {
+        // arrange
+        await using var fixture = await WebSocketClientTestFixture.CreateAsync();
+        using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
+        var socket = new ScriptedWebSocket(SocketBehavior.Respond, state: WebSocketState.Closed);
+        await using var client = CreateClient(invoker, socket);
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await ReadValueAsync(
+                client.ExecuteAsync(
+                    fixture.CreateContext(),
+                    CreateRequest(fixture.RootNode),
+                    TestContext.Current.CancellationToken)));
+
+        // assert
+        Assert.Equal("The WebSocket must be in the open state to connect.", exception.Message);
+        Assert.Equal(1, socket.DisposeCount);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("graphql-ws")]
+    public async Task ExecuteAsync_Should_DisposeSocket_When_ConnectorReturnsUnsupportedSubProtocol(
+        string? subProtocol)
+    {
+        // arrange
+        await using var fixture = await WebSocketClientTestFixture.CreateAsync();
+        using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
+        var socket = new ScriptedWebSocket(SocketBehavior.Respond, subProtocol: subProtocol);
+        await using var client = CreateClient(invoker, socket);
+
+        // act
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(
+            async () => await ReadValueAsync(
+                client.ExecuteAsync(
+                    fixture.CreateContext(),
+                    CreateRequest(fixture.RootNode),
+                    TestContext.Current.CancellationToken)));
+
+        // assert
+        Assert.Equal($"The sub-protocol `{subProtocol}` is not supported.", exception.Message);
+        Assert.Equal(1, socket.DisposeCount);
     }
 
     [Fact]
@@ -451,13 +498,17 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         Terminate
     }
 
-    private sealed class ScriptedWebSocket(SocketBehavior behavior) : WebSocket
+    private sealed class ScriptedWebSocket(
+        SocketBehavior behavior,
+        WebSocketState state = WebSocketState.Open,
+        string? subProtocol = WellKnownProtocols.GraphQL_Transport_WS) : WebSocket
     {
         private readonly Channel<byte[]?> _receivedMessages = Channel.CreateUnbounded<byte[]?>();
-        private WebSocketState _state = WebSocketState.Open;
+        private WebSocketState _state = state;
         private WebSocketCloseStatus? _closeStatus;
         private string? _closeStatusDescription;
         private int _completeCount;
+        private int _disposeCount;
         private int _subscribeCount;
         private string? _operationId;
         private readonly List<string> _events = [];
@@ -468,6 +519,8 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         public WebSocketCloseStatus? ClientCloseStatus { get; private set; }
 
         public int CompleteCount => Volatile.Read(ref _completeCount);
+
+        public int DisposeCount => Volatile.Read(ref _disposeCount);
 
         public int SubscribeCount => Volatile.Read(ref _subscribeCount);
 
@@ -486,7 +539,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
 
         public override string? CloseStatusDescription => _closeStatusDescription;
 
-        public override string SubProtocol => WellKnownProtocols.GraphQL_Transport_WS;
+        public override string? SubProtocol => subProtocol;
 
         public override WebSocketState State => _state;
 
@@ -521,6 +574,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
 
         public override void Dispose()
         {
+            Interlocked.Increment(ref _disposeCount);
             _state = WebSocketState.Closed;
             _receivedMessages.Writer.TryComplete();
         }
