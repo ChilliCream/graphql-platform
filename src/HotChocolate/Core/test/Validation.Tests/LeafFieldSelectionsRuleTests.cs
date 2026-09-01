@@ -247,6 +247,61 @@ public class LeafFieldSelectionsRuleTests()
     }
 
     [Fact]
+    public void Validate_Should_ReportError_When_TypedInlineFragmentIsEmpty()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                ... on Human { }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_UntypedInlineFragmentIsEmpty()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                ... { }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_NamedFragmentIsEmpty()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                ...f
+              }
+            }
+
+            fragment f on Human { }
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_InlineFragmentIsEmptyInsideValidSelection()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                name
+                ... on Human { }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void ScalarSelectionNotAllowedOnBoolean()
     {
         ExpectErrors(

@@ -1,0 +1,13 @@
+{
+  "message": "The fragment on type \"Human\" has an empty selection set. Fragments without selections are disallowed.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 9
+    }
+  ],
+  "extensions": {
+    "type": "Human",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
+}

@@ -40,6 +40,12 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         SelectionSetNode selectionSet,
         IType type)
     {
+        if (selectionSet.Selections.Count == 0)
+        {
+            context.ReportError(context.NoSelectionOnFragment(selectionSet, type));
+            return;
+        }
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode field)
