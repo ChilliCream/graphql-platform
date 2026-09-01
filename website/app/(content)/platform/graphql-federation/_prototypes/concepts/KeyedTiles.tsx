@@ -30,7 +30,7 @@ const FRAME = { x: 512, y: 2560, w: 340, h: 220 } as const;
 const PANEL_LINE_TOP_Y = 4130;
 const HORIZON_Y = 4300;
 const CHIP = { x: 512, y: 4380 } as const;
-const FANOUT_END_Y = 4520;
+const FANOUT_END_Y = 4500;
 
 const GAPS = [
   { x: 470, w: 460, y: 400, h: 320 },
@@ -39,7 +39,7 @@ const GAPS = [
   { x: 470, w: 460, y: 1860, h: 320 },
   { x: 172, w: 680, y: 2760, h: 620 },
   { x: 130, w: 764, y: 3400, h: 780 },
-  { x: 220, w: 584, y: 4450, h: 300 },
+  { x: 220, w: 584, y: 4520, h: 330 },
 ] as const;
 
 const pct = (v: number, total: number) => `${(v / total) * 100}%`;
@@ -67,7 +67,7 @@ const COPY_PLACEMENT: readonly Placement[] = [
   { top: 2020, left: 70, side: true },
   { top: 2900, left: 50 },
   { top: 3550, left: 50 },
-  { top: 4600, left: 50 },
+  { top: 4700, left: 50 },
 ];
 
 interface CopyBlockProps extends Placement {
@@ -167,6 +167,7 @@ function TileCard({
   const labelX = notchSide === "right" ? 176 : 34;
   const labelAnchor = notchSide === "right" ? "end" : "start";
   const keyX = notchSide === "right" ? 182 : 12;
+  const fieldX = notchSide === "left" ? 48 : 12;
 
   return (
     <svg
@@ -201,7 +202,7 @@ function TileCard({
       {fields.map((f, i) => (
         <text
           key={i}
-          x={12}
+          x={fieldX}
           y={46 + i * 16}
           fontFamily={MONO}
           fontSize={10.5}
@@ -233,11 +234,23 @@ interface TileSubProps {
   readonly color: string;
   readonly label: string;
   readonly fields: readonly string[];
+  readonly fs?: { readonly header: number; readonly field: number };
+  readonly pitch?: number;
 }
 
 /** One tile as it sits inside the composed panel: smaller, no notch of its
  * own to draw (the seams carry that job), just its border, dot and fields. */
-function PanelTile({ x, y, w, h, color, label, fields }: TileSubProps) {
+function PanelTile({
+  x,
+  y,
+  w,
+  h,
+  color,
+  label,
+  fields,
+  fs = { header: 7.5, field: 8.5 },
+  pitch = 13,
+}: TileSubProps) {
   return (
     <g>
       <rect
@@ -255,7 +268,7 @@ function PanelTile({ x, y, w, h, color, label, fields }: TileSubProps) {
         x={x + 19}
         y={y + 15}
         fontFamily={MONO}
-        fontSize={7.5}
+        fontSize={fs.header}
         letterSpacing="0.1em"
         fill={INK_DIM}
       >
@@ -263,12 +276,12 @@ function PanelTile({ x, y, w, h, color, label, fields }: TileSubProps) {
       </text>
       {fields.map((f, i) => (
         <g key={i}>
-          <circle cx={x + 11} cy={y + 30 + i * 13} r={2} fill={color} />
+          <circle cx={x + 11} cy={y + 30 + i * pitch} r={2} fill={color} />
           <text
             x={x + 18}
-            y={y + 33 + i * 13}
+            y={y + 33 + i * pitch}
             fontFamily={MONO}
-            fontSize={8.5}
+            fontSize={fs.field}
             fill="#c9d4e8"
           >
             {f}
@@ -289,17 +302,22 @@ const ORDERING_W = 180;
 const SHIPPING_W = 190;
 const USER_W = 170;
 const TOP_H = 140;
-const BOTTOM_H = 140;
 const PANEL_PAD_X = 10;
 const PANEL_HEADER_H = 20;
+
+interface CompositionPanelProps {
+  readonly variant?: "desktop" | "mobile";
+}
 
 /**
  * The five source schemas clicked into one composite panel. The panel stays
  * visibly plural: every tile keeps its own border color, every seam between
  * tiles is drawn twice (once per owner), and the seam where Catalog and
- * Billing meet opens into a glowing keyhole labeled `@key id`.
+ * Billing meet opens into a glowing keyhole labeled `@key id`. The `mobile`
+ * variant packs the same tessellation into a near-square canvas so it can
+ * carry the idea alone on narrow viewports.
  */
-function CompositionPanel() {
+function CompositionPanel({ variant = "desktop" }: CompositionPanelProps) {
   const catalogFields = fieldLines(CHAPTERS[5].boxes[0]).filter((f) =>
     ["id", "name", "weight"].some((k) => f.startsWith(k)),
   );
@@ -312,29 +330,56 @@ function CompositionPanel() {
   const orderingFields = [CHAPTERS[0].boxes[0].lines[2].text];
   const userFields = [CHAPTERS[0].boxes[0].lines[4].text];
 
-  const catalogX = PANEL_PAD_X;
-  const billingX = catalogX + CATALOG_W;
-  const orderingX = PANEL_PAD_X;
-  const shippingX = orderingX + ORDERING_W;
-  const userX = shippingX + SHIPPING_W;
-  const topY = PANEL_HEADER_H;
-  const bottomY = topY + TOP_H;
+  const isMobile = variant === "mobile";
+  const panelW = isMobile ? 340 : PANEL_W;
+  const panelH = isMobile ? 300 : PANEL_H;
+  const padX = isMobile ? 10 : PANEL_PAD_X;
+  const headerH = isMobile ? 20 : PANEL_HEADER_H;
+  const rowH = isMobile ? 133 : TOP_H;
+  const catalogW = isMobile ? 155 : CATALOG_W;
+  const billingW = isMobile ? 165 : BILLING_W;
+  const orderingW = isMobile ? 96 : ORDERING_W;
+  const shippingW = isMobile ? 118 : SHIPPING_W;
+  const userW = isMobile ? 106 : USER_W;
+  const titleFs = isMobile ? 8.5 : 10;
+  const tileFs = isMobile
+    ? { header: 8, field: 9 }
+    : { header: 7.5, field: 8.5 };
+  const tilePitch = isMobile ? 12 : 13;
+  const keyIdFs = isMobile ? 9.5 : 9;
+
+  const catalogX = padX;
+  const billingX = catalogX + catalogW;
+  const orderingX = padX;
+  const shippingX = orderingX + orderingW;
+  const userX = shippingX + shippingW;
+  const topY = headerH;
+  const bottomY = topY + rowH;
   const keyholeX = billingX;
-  const keyholeY = topY + TOP_H / 2;
+  const keyholeY = topY + rowH / 2;
+
+  /* Row seam between the top and bottom tiles: each x-segment is colored by
+   * the pair of owners it actually separates, not one neutral tone. */
+  const ROW_SEAM = [
+    { x1: padX, x2: shippingX, top: 0, bottom: 2 },
+    { x1: shippingX, x2: billingX, top: 0, bottom: 3 },
+    { x1: billingX, x2: userX, top: 1, bottom: 3 },
+    { x1: userX, x2: panelW - padX, top: 1, bottom: 4 },
+  ] as const;
 
   return (
     <svg
-      viewBox={`0 0 ${PANEL_W} ${PANEL_H}`}
+      viewBox={`0 0 ${panelW} ${panelH}`}
       className="w-full max-w-[36rem] overflow-visible"
       role="img"
       aria-label="Composite schema, seams between the five teams' tiles still visible"
     >
       <text
-        x={PANEL_W / 2}
+        x={panelW / 2}
         y={12}
         textAnchor="middle"
         fontFamily={MONO}
-        fontSize={10}
+        fontSize={titleFs}
         letterSpacing="0.16em"
         fill={INK_DIM}
       >
@@ -344,47 +389,57 @@ function CompositionPanel() {
       <PanelTile
         x={catalogX}
         y={topY}
-        w={CATALOG_W}
-        h={TOP_H}
+        w={catalogW}
+        h={rowH}
         color={CANON[0].color}
         label={CANON[0].name}
         fields={catalogFields}
+        fs={tileFs}
+        pitch={tilePitch}
       />
       <PanelTile
         x={billingX}
         y={topY}
-        w={BILLING_W}
-        h={TOP_H}
+        w={billingW}
+        h={rowH}
         color={CANON[1].color}
         label={CANON[1].name}
         fields={billingFields}
+        fs={tileFs}
+        pitch={tilePitch}
       />
       <PanelTile
         x={orderingX}
         y={bottomY}
-        w={ORDERING_W}
-        h={BOTTOM_H}
+        w={orderingW}
+        h={rowH}
         color={CANON[2].color}
         label={CANON[2].name}
         fields={orderingFields}
+        fs={tileFs}
+        pitch={tilePitch}
       />
       <PanelTile
         x={shippingX}
         y={bottomY}
-        w={SHIPPING_W}
-        h={BOTTOM_H}
+        w={shippingW}
+        h={rowH}
         color={CANON[3].color}
         label={CANON[3].name}
         fields={shippingFields}
+        fs={tileFs}
+        pitch={tilePitch}
       />
       <PanelTile
         x={userX}
         y={bottomY}
-        w={USER_W}
-        h={BOTTOM_H}
+        w={userW}
+        h={rowH}
         color={CANON[4].color}
         label={CANON[4].name}
         fields={userFields}
+        fs={tileFs}
+        pitch={tilePitch}
       />
 
       {/* Every shared edge drawn twice, 2px apart, one stroke per owner. */}
@@ -408,7 +463,7 @@ function CompositionPanel() {
         x1={shippingX - 1}
         x2={shippingX - 1}
         y1={bottomY}
-        y2={bottomY + BOTTOM_H}
+        y2={bottomY + rowH}
         stroke={CANON[2].color}
         strokeWidth={1.5}
       />
@@ -416,7 +471,7 @@ function CompositionPanel() {
         x1={shippingX + 1}
         x2={shippingX + 1}
         y1={bottomY}
-        y2={bottomY + BOTTOM_H}
+        y2={bottomY + rowH}
         stroke={CANON[3].color}
         strokeWidth={1.5}
       />
@@ -424,7 +479,7 @@ function CompositionPanel() {
         x1={userX - 1}
         x2={userX - 1}
         y1={bottomY}
-        y2={bottomY + BOTTOM_H}
+        y2={bottomY + rowH}
         stroke={CANON[3].color}
         strokeWidth={1.5}
       />
@@ -432,34 +487,45 @@ function CompositionPanel() {
         x1={userX + 1}
         x2={userX + 1}
         y1={bottomY}
-        y2={bottomY + BOTTOM_H}
+        y2={bottomY + rowH}
         stroke={CANON[4].color}
         strokeWidth={1.5}
       />
-      <line
-        x1={PANEL_PAD_X}
-        x2={PANEL_W - PANEL_PAD_X}
-        y1={bottomY - 0.75}
-        y2={bottomY - 0.75}
-        stroke="rgba(245,241,234,0.28)"
-        strokeWidth={1}
-      />
-      <line
-        x1={PANEL_PAD_X}
-        x2={PANEL_W - PANEL_PAD_X}
-        y1={bottomY + 0.75}
-        y2={bottomY + 0.75}
-        stroke="rgba(245,241,234,0.28)"
-        strokeWidth={1}
-      />
+      {ROW_SEAM.map((seg, i) => (
+        <Fragment key={i}>
+          <line
+            x1={seg.x1}
+            x2={seg.x2}
+            y1={bottomY - 1}
+            y2={bottomY - 1}
+            stroke={CANON[seg.top].color}
+            strokeWidth={1.5}
+          />
+          <line
+            x1={seg.x1}
+            x2={seg.x2}
+            y1={bottomY + 1}
+            y2={bottomY + 1}
+            stroke={CANON[seg.bottom].color}
+            strokeWidth={1.5}
+          />
+        </Fragment>
+      ))}
 
       {/* Catalog and Billing's half-notches align into one keyhole. */}
+      <rect
+        x={keyholeX - 26}
+        y={keyholeY - 24}
+        width={52}
+        height={14}
+        fill={TILE_BG}
+      />
       <text
         x={keyholeX}
         y={keyholeY - 14}
         textAnchor="middle"
         fontFamily={MONO}
-        fontSize={9}
+        fontSize={keyIdFs}
         fill="#5eead4"
       >
         @key id
@@ -484,8 +550,8 @@ function CompositionPanel() {
  */
 function MobileTessellation() {
   return (
-    <div className="mx-auto w-full max-w-[21rem] sm:hidden">
-      <CompositionPanel />
+    <div className="mx-auto w-full max-w-[22rem] sm:hidden">
+      <CompositionPanel variant="mobile" />
       <p className="text-cc-nav-label mt-2 text-center font-mono text-[10px] tracking-[0.2em] uppercase">
         Five teams, one panel, seams still visible
       </p>
@@ -505,7 +571,7 @@ function TilesRow({ top }: TilesRowProps) {
 
   return (
     <div
-      className="mx-auto flex w-[min(100%,26rem)] items-center justify-center gap-3 sm:absolute sm:top-(--top) sm:left-(--left) sm:z-30 sm:mx-0 sm:w-[min(90%,30rem)] sm:-translate-x-1/2 sm:-translate-y-1/2"
+      className="mx-auto flex w-[min(100%,26rem)] flex-col items-center justify-center gap-3 sm:absolute sm:top-(--top) sm:left-(--left) sm:z-30 sm:mx-0 sm:w-[min(90%,30rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:flex-row"
       style={placement(top, 50)}
     >
       <TileCard
