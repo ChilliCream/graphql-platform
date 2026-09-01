@@ -28,11 +28,11 @@ const FADE_START_Y = 4700;
 
 /** Tap nodes where each lane's contribution peels off toward the document. */
 const TAPS = [
-  { i: 0, y: 3360, dim: false },
-  { i: 1, y: 3440, dim: false },
-  { i: 2, y: 3520, dim: true },
-  { i: 3, y: 3600, dim: false },
-  { i: 4, y: 3680, dim: true },
+  { i: 0, y: 3180, dim: false },
+  { i: 1, y: 3230, dim: false },
+  { i: 2, y: 3280, dim: true },
+  { i: 3, y: 3330, dim: false },
+  { i: 4, y: 3380, dim: true },
 ] as const;
 
 const CARD = { x: 352, y: 4000, w: 320 } as const;
@@ -357,7 +357,7 @@ function AssemblingMap() {
         y={CARD.y}
         w={CARD.w}
         label="Composite schema"
-        color={CANON[0].color}
+        color="#5eead4"
         file="composite.graphql"
         lines={CARD_LINES}
       />
@@ -440,6 +440,9 @@ function AssemblingMap() {
         fontSize={10.5}
         letterSpacing="0.18em"
         fill={INK_DIM}
+        stroke="#0b0f1a"
+        strokeWidth={8}
+        paintOrder="stroke"
       >
         CALLS ONLY WHAT THE QUERY NEEDS
       </text>
