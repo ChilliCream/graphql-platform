@@ -7,6 +7,7 @@ using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
@@ -28,6 +29,38 @@ namespace HotChocolate.Fusion;
 [Collection("WebSocketTransportTests")]
 public sealed class WebSocketTransportTests : FusionTestBase
 {
+    [Fact]
+    public async Task SendAsync_Should_CaptureSubscribe_When_TextMessageIsFragmentedAcrossOverloads()
+    {
+        // arrange
+        var operations = new SourceWebSocketOperationCapture();
+        var inner = new StubWebSocket();
+        using var socket = new TestServerWebSocket(inner, operations, connectionId: 42);
+        var message =
+            """{"id":"operation-1","type":"subscribe","payload":{"query":"subscription { onBookCreated { id } }"}}"""u8
+                .ToArray();
+        var split = message.Length / 2;
+
+        // act
+        await socket.SendAsync(
+            new ArraySegment<byte>(message, 0, split),
+            WebSocketMessageType.Text,
+            endOfMessage: false,
+            TestContext.Current.CancellationToken);
+        await socket.SendAsync(
+            message.AsMemory(split),
+            WebSocketMessageType.Text,
+            WebSocketMessageFlags.EndOfMessage,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        operations.Subscribes
+            .Select(static operation =>
+                $"{operation.ConnectionId}:{operation.OperationId}:{operation.OperationType}")
+            .MatchInlineSnapshots(["42:operation-1:Subscription"]);
+        Assert.Equal(2, inner.SendCount);
+    }
+
     [Fact]
     public async Task WebSocketsOnly_Should_RouteQueryMutationAndSubscription_OverWebSocket()
     {
@@ -334,11 +367,30 @@ public sealed class WebSocketTransportTests : FusionTestBase
                 """{"data":{"onBookCreated":{"id":1,"title":"Foo","sequel":{"title":"Bar"}}}}""",
                 """{"data":null,"errors":[{"message":"The source WebSocket operation exceeded its queued payload limit of 64 bytes.","path":["onBookCreated"]}]}"""
             ]);
-        var exception = Assert.Single(exceptions.Items);
-        Assert.Equal($"The WebSocket operation `{subscription.OperationId}` exceeded its queued payload limit of 64 bytes.", exception.Message);
-        Assert.Equal(lookup.OperationId, Assert.Single(operations.ResultOperationIds, id => id == lookup.OperationId));
-        Assert.Equal(subscription.ConnectionId, lookup.ConnectionId);
-        Assert.Equal(1, connections.Count);
+        JsonSerializer.Serialize(
+            new
+            {
+                ExceptionMessages = exceptions.Items.Select(exception =>
+                    exception.Message.Replace(
+                        subscription.OperationId,
+                        "<subscription>",
+                        StringComparison.Ordinal)),
+                LookupResultCount = operations.ResultOperationIds.Count(id => id == lookup.OperationId),
+                SourceOperationsShareConnection = subscription.ConnectionId == lookup.ConnectionId,
+                SourceConnectionCount = connections.Count
+            },
+            new JsonSerializerOptions { WriteIndented = true })
+            .MatchInlineSnapshot(
+                """
+                {
+                  "ExceptionMessages": [
+                    "The WebSocket operation \u0060\u003Csubscription\u003E\u0060 exceeded its queued payload limit of 64 bytes."
+                  ],
+                  "LookupResultCount": 1,
+                  "SourceOperationsShareConnection": true,
+                  "SourceConnectionCount": 1
+                }
+                """);
     }
 
     [Fact]
@@ -909,19 +961,40 @@ public sealed class WebSocketTransportTests : FusionTestBase
         }
     }
 
-    private sealed class TestServerWebSocket(WebSocket inner) : WebSocket
+    private sealed class TestServerWebSocket : WebSocket
     {
         private const string TestHostWebSocketObjectName = "Microsoft.AspNetCore.TestHost.TestWebSocket";
 
-        public override WebSocketCloseStatus? CloseStatus => inner.CloseStatus;
+        private readonly object _captureSync = new();
+        private readonly WebSocket _inner;
+        private readonly SourceWebSocketOperationCapture? _operations;
+        private readonly PooledArrayWriter? _captureBuffer;
+        private readonly int _connectionId;
 
-        public override string? CloseStatusDescription => inner.CloseStatusDescription;
+        public TestServerWebSocket(
+            WebSocket inner,
+            SourceWebSocketOperationCapture? operations,
+            int connectionId)
+        {
+            _inner = inner;
+            _operations = operations;
+            _connectionId = connectionId;
+            _captureBuffer = operations is null ? null : new PooledArrayWriter();
+        }
 
-        public override string? SubProtocol => inner.SubProtocol;
+        public override WebSocketCloseStatus? CloseStatus => _inner.CloseStatus;
 
-        public override WebSocketState State => inner.State;
+        public override string? CloseStatusDescription => _inner.CloseStatusDescription;
 
-        public override void Abort() => inner.Abort();
+        public override string? SubProtocol => _inner.SubProtocol;
+
+        public override WebSocketState State => _inner.State;
+
+        public override void Abort()
+        {
+            ResetCapture();
+            _inner.Abort();
+        }
 
         public override Task CloseAsync(
             WebSocketCloseStatus closeStatus,
@@ -933,51 +1006,65 @@ public sealed class WebSocketTransportTests : FusionTestBase
             WebSocketCloseStatus closeStatus,
             string? statusDescription,
             CancellationToken cancellationToken)
-            => inner.CloseOutputAsync(closeStatus, statusDescription, cancellationToken);
+            => _inner.CloseOutputAsync(closeStatus, statusDescription, cancellationToken);
 
-        public override void Dispose() => inner.Dispose();
+        public override void Dispose()
+        {
+            lock (_captureSync)
+            {
+                _captureBuffer?.Dispose();
+            }
+
+            _inner.Dispose();
+        }
 
         public override Task<WebSocketReceiveResult> ReceiveAsync(
             ArraySegment<byte> buffer,
             CancellationToken cancellationToken)
-            => inner.ReceiveAsync(buffer, cancellationToken);
+            => _inner.ReceiveAsync(buffer, cancellationToken);
 
         public override ValueTask<ValueWebSocketReceiveResult> ReceiveAsync(
             Memory<byte> buffer,
             CancellationToken cancellationToken)
-            => inner.ReceiveAsync(buffer, cancellationToken);
+            => _inner.ReceiveAsync(buffer, cancellationToken);
 
-        public TestServerWebSocket(
-            WebSocket inner,
-            SourceWebSocketOperationCapture? operations,
-            int connectionId)
-            : this(inner)
-        {
-            _operations = operations;
-            _connectionId = connectionId;
-        }
-
-        private readonly SourceWebSocketOperationCapture? _operations;
-        private readonly int _connectionId;
-
-        public override Task SendAsync(
+        public override async Task SendAsync(
             ArraySegment<byte> buffer,
             WebSocketMessageType messageType,
             bool endOfMessage,
             CancellationToken cancellationToken)
         {
-            CaptureMessage(buffer, messageType, endOfMessage);
-            return inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+            try
+            {
+                await _inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+                CaptureMessage(buffer, messageType, endOfMessage);
+            }
+            catch
+            {
+                ResetCapture();
+                throw;
+            }
         }
 
-        public override ValueTask SendAsync(
+        public override async ValueTask SendAsync(
             ReadOnlyMemory<byte> buffer,
             WebSocketMessageType messageType,
-            WebSocketMessageFlags endOfMessage,
+            WebSocketMessageFlags messageFlags,
             CancellationToken cancellationToken)
         {
-            CaptureMessage(buffer, messageType, endOfMessage.HasFlag(WebSocketMessageFlags.EndOfMessage));
-            return inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+            try
+            {
+                await _inner.SendAsync(buffer, messageType, messageFlags, cancellationToken);
+                CaptureMessage(
+                    buffer,
+                    messageType,
+                    messageFlags.HasFlag(WebSocketMessageFlags.EndOfMessage));
+            }
+            catch
+            {
+                ResetCapture();
+                throw;
+            }
         }
 
         private void CaptureMessage(
@@ -985,9 +1072,40 @@ public sealed class WebSocketTransportTests : FusionTestBase
             WebSocketMessageType messageType,
             bool endOfMessage)
         {
-            if (messageType is WebSocketMessageType.Text && endOfMessage)
+            if (_captureBuffer is null)
             {
-                _operations?.CaptureMessage(_connectionId, payload.Span);
+                return;
+            }
+
+            lock (_captureSync)
+            {
+                if (messageType is not WebSocketMessageType.Text)
+                {
+                    _captureBuffer.Reset();
+                    return;
+                }
+
+                _captureBuffer.Write(payload.Span);
+
+                if (endOfMessage)
+                {
+                    try
+                    {
+                        _operations!.CaptureMessage(_connectionId, _captureBuffer.WrittenSpan);
+                    }
+                    finally
+                    {
+                        _captureBuffer.Reset();
+                    }
+                }
+            }
+        }
+
+        private void ResetCapture()
+        {
+            lock (_captureSync)
+            {
+                _captureBuffer?.Reset();
             }
         }
 
@@ -998,7 +1116,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
         {
             try
             {
-                await inner.CloseAsync(closeStatus, statusDescription, cancellationToken);
+                await _inner.CloseAsync(closeStatus, statusDescription, cancellationToken);
             }
             catch (Exception exception) when (IsKnownTestHostDisposalRace(exception))
             {
@@ -1007,12 +1125,72 @@ public sealed class WebSocketTransportTests : FusionTestBase
 
         private bool IsKnownTestHostDisposalRace(Exception exception)
             => exception is ObjectDisposedException { ObjectName: TestHostWebSocketObjectName }
-                && inner.State is WebSocketState.Closed or WebSocketState.Aborted
+                && _inner.State is WebSocketState.Closed or WebSocketState.Aborted
                 || exception is IOException
                 {
                     Message: "The remote end closed the connection.",
                     InnerException: ObjectDisposedException { ObjectName: TestHostWebSocketObjectName }
                 };
+    }
+
+    private sealed class StubWebSocket : WebSocket
+    {
+        private int _sendCount;
+
+        public override WebSocketCloseStatus? CloseStatus => null;
+
+        public override string? CloseStatusDescription => null;
+
+        public override string SubProtocol => WellKnownProtocols.GraphQL_Transport_WS;
+
+        public override WebSocketState State => WebSocketState.Open;
+
+        public int SendCount => Volatile.Read(ref _sendCount);
+
+        public override void Abort()
+        {
+        }
+
+        public override Task CloseAsync(
+            WebSocketCloseStatus closeStatus,
+            string? statusDescription,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public override Task CloseOutputAsync(
+            WebSocketCloseStatus closeStatus,
+            string? statusDescription,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public override void Dispose()
+        {
+        }
+
+        public override Task<WebSocketReceiveResult> ReceiveAsync(
+            ArraySegment<byte> buffer,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public override Task SendAsync(
+            ArraySegment<byte> buffer,
+            WebSocketMessageType messageType,
+            bool endOfMessage,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _sendCount);
+            return Task.CompletedTask;
+        }
+
+        public override ValueTask SendAsync(
+            ReadOnlyMemory<byte> buffer,
+            WebSocketMessageType messageType,
+            WebSocketMessageFlags messageFlags,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _sendCount);
+            return ValueTask.CompletedTask;
+        }
     }
 
     private sealed class ConnectionCaptureInterceptor(ConnectionCapture capture) : DefaultSocketSessionInterceptor
