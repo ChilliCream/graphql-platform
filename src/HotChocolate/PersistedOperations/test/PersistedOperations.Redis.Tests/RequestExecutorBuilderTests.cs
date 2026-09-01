@@ -1,5 +1,5 @@
+using CookieCrumble.Resources;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.PersistedOperations.Redis;

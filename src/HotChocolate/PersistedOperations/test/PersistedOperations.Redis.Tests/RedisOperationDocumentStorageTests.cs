@@ -1,7 +1,7 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.PersistedOperations.Redis;
