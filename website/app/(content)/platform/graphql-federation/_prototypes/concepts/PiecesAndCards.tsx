@@ -9,6 +9,7 @@ import {
   INK_DIM,
   MicroLabel,
   SchemaCard,
+  schemaRowY,
 } from "../Primitives";
 import { CHAPTERS } from "../story";
 
@@ -163,11 +164,13 @@ function GhostCard({
   y,
   w,
   h,
+  pulse = false,
 }: {
   readonly x: number;
   readonly y: number;
   readonly w: number;
   readonly h: number;
+  readonly pulse?: boolean;
 }) {
   return (
     <rect
@@ -179,7 +182,11 @@ function GhostCard({
       fill="none"
       stroke={GHOST_STROKE}
       strokeDasharray="4 5"
-      className="motion-safe:animate-[pulse_4s_ease-in-out_infinite] motion-reduce:animate-none"
+      className={
+        pulse
+          ? "motion-safe:animate-[pulse_4s_ease-in-out_infinite] motion-reduce:animate-none"
+          : undefined
+      }
     />
   );
 }
@@ -204,7 +211,7 @@ function Vignette({
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         role="img"
         aria-label={label}
-        className="h-auto w-full min-w-[560px]"
+        className="h-auto w-full min-w-[560px] lg:min-w-0"
       >
         {children}
       </svg>
@@ -240,30 +247,45 @@ const REQUESTS = [
   "GET /account",
 ];
 
+/** Beat 2 pieces: a radial pile around P=(340,150). */
+const BEAT2_PIECES: readonly { readonly x: number; readonly y: number }[] = [
+  { x: 219, y: 80 },
+  { x: 200, y: 150 },
+  { x: 219, y: 220 },
+  { x: 461, y: 80 },
+  { x: 461, y: 220 },
+];
+
+/** Beat 2 slips: five fanned request slips, far ends touching their piece rims. */
+const BEAT2_SLIPS: readonly {
+  readonly x: number;
+  readonly y: number;
+  readonly rot: number;
+}[] = [
+  { x: 219, y: 111, rot: 30 },
+  { x: 211, y: 138, rot: 0 },
+  { x: 219, y: 165, rot: -30 },
+  { x: 312, y: 111, rot: -30 },
+  { x: 312, y: 165, rot: 30 },
+];
+
 /** Beat 2 — a hand-assembled pile: five slips fanned toward each piece. */
 function Beat2() {
-  const cx = VB_W / 2;
-  const cy = 70;
   return (
     <Vignette label="A screen card buried under five fanned request slips">
-      <Card x={cx - 60} y={cy - 22} w={120} h={44} opacity={0.5} />
-      {HOME.map((p, i) => {
-        const midX = (cx + p.x) / 2;
-        const midY = (cy + p.y) / 2 - 10;
-        const rotate = (i - 2) * 6;
-        return (
-          <Card
-            key={REQUESTS[i]}
-            x={midX - 62}
-            y={midY - 12}
-            w={124}
-            h={24}
-            title={REQUESTS[i]}
-            rotate={rotate}
-          />
-        );
-      })}
-      {HOME.map((p, i) => (
+      <Card x={280} y={128} w={120} h={44} opacity={0.5} />
+      {BEAT2_SLIPS.map((s, i) => (
+        <Card
+          key={REQUESTS[i]}
+          x={s.x}
+          y={s.y}
+          w={150}
+          h={24}
+          title={REQUESTS[i]}
+          rotate={s.rot}
+        />
+      ))}
+      {BEAT2_PIECES.map((p, i) => (
         <Piece key={CANON[i].name} x={p.x} y={p.y} i={i} />
       ))}
     </Vignette>
@@ -291,12 +313,12 @@ function Beat3() {
         x1={qx}
         x2={qx}
         y1={80}
-        y2={240}
+        y2={264}
         stroke={GHOST_STROKE}
         strokeDasharray="2 4"
       />
       {CANON.map((_, i) => (
-        <Piece key={CANON[i].name} x={qx} y={100 + i * 34} i={i} />
+        <Piece key={CANON[i].name} x={qx} y={92 + i * 40} i={i} />
       ))}
     </Vignette>
   );
@@ -327,17 +349,35 @@ const KEY_LINE = '@key(fields: "id")';
  * into the neighboring card.
  */
 const CATALOG_LINES = [
-  { code: "type Product" },
+  { code: "" },
   { code: `  ${KEY_LINE} {` },
   { code: "  name: String!" },
   { code: "}" },
 ];
 const BILLING_LINES = [
-  { code: "type Product" },
+  { code: "" },
   { code: `  ${KEY_LINE} {` },
   { code: "  price: Money!" },
   { code: "}" },
 ];
+
+/** Overlays the teal `@key` line onto a Beat 5 schema card at the given slot x. */
+function KeyRow({ x }: { readonly x: number }) {
+  return (
+    <text
+      x={x + 16}
+      y={schemaRowY(CARD_ROW_Y, 1)}
+      xmlSpace="preserve"
+      fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+      fontSize={12}
+      fill="#c9d4e8"
+    >
+      {"  "}
+      <tspan fill={TEAL}>{KEY_LINE}</tspan>
+      {" {"}
+    </text>
+  );
+}
 
 /** Beat 5 — each piece with its own schema card; a dashed empty card at center. */
 function Beat5() {
@@ -351,16 +391,20 @@ function Beat5() {
         w={CARD_SLOTS[0].w}
         label={catalogBox.label}
         color={CANON[0].color}
+        file=""
         lines={CATALOG_LINES}
       />
+      <KeyRow x={CARD_SLOTS[0].x} />
       <SchemaCard
         x={CARD_SLOTS[1].x}
         y={CARD_ROW_Y}
         w={CARD_SLOTS[1].w}
         label={billingBox.label}
         color={CANON[1].color}
+        file=""
         lines={BILLING_LINES}
       />
+      <KeyRow x={CARD_SLOTS[1].x} />
       {[2, 3, 4].map((i) => (
         <GhostCard
           key={CANON[i].name}
@@ -394,7 +438,12 @@ function Beat6() {
   const stackY = 148;
   const stackW = 170;
   const idLine = composite.lines[1];
-  const stackLines = [{ code: composite.lines[0].text }, { code: idLine.text }];
+  const closeLine = composite.lines[6];
+  const stackLines = [
+    { code: composite.lines[0].text },
+    { code: idLine.text },
+    { code: closeLine.text },
+  ];
   const stackH = 52 + 18 * stackLines.length;
   return (
     <Vignette label="Five schema cards stacked into one composite card, pieces unmoved beside dashed ghost outlines">
@@ -405,8 +454,11 @@ function Beat6() {
           y={CARD_ROW_Y}
           w={slot.w}
           h={i < 2 ? 124 : 108}
+          pulse
         />
       ))}
+      <path d="M291 6 h-6 v14 h6" fill="none" stroke={TEAL} />
+      <path d="M389 6 h6 v14 h-6" fill="none" stroke={TEAL} />
       <text
         x={VB_W / 2}
         y={16}
@@ -472,10 +524,11 @@ const GATEWAY_TARGETS: readonly {
   readonly i: number;
   readonly x: number;
   readonly y: number;
+  readonly ox: number;
 }[] = [
-  { i: 1, x: 260, y: 100 },
-  { i: 2, x: 340, y: 100 },
-  { i: 3, x: 420, y: 100 },
+  { i: 1, x: 260, y: 100, ox: 270 },
+  { i: 2, x: 340, y: 100, ox: 340 },
+  { i: 3, x: 420, y: 100, ox: 410 },
 ];
 const GATEWAY_BYSTANDERS: readonly {
   readonly i: number;
@@ -492,11 +545,11 @@ function Beat7() {
   return (
     <Vignette label="The composite card in a gateway chip, short feelers touching three pieces">
       <GatewayChip x={gx} y={gy} w={150} label="COMPOSITE · GATEWAY" />
-      {GATEWAY_TARGETS.map(({ i, x, y }) => (
+      {GATEWAY_TARGETS.map(({ i, x, y, ox }) => (
         <line
           key={CANON[i].name}
-          x1={gx}
-          y1={gy + 14}
+          x1={ox}
+          y1={gy + 13}
           x2={x}
           y2={y - 9}
           stroke={CANON[i].soft}
@@ -539,7 +592,7 @@ function MobileCardFallback({
     <div className="flex flex-col gap-3 sm:hidden">
       {cards.map((c) => (
         <div
-          key={c.label}
+          key={`${c.label}:${c.lines.join(" ")}`}
           className="border-cc-card-border rounded-lg border bg-[#0d1424] p-3"
         >
           <MicroLabel>{c.label}</MicroLabel>
@@ -573,7 +626,7 @@ function MobileCardFallback({
 }
 
 const band = "py-14 sm:py-20";
-const grid = "grid grid-cols-1 gap-8 sm:grid-cols-12 sm:gap-10";
+const grid = "grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10";
 
 export function PiecesAndCards() {
   return (
@@ -592,7 +645,7 @@ export function PiecesAndCards() {
             >
               <div className={grid}>
                 <div
-                  className={`sm:col-span-5 sm:self-center ${vignetteOnLeft ? "sm:order-2" : "sm:order-1"}`}
+                  className={`lg:col-span-5 lg:self-center ${vignetteOnLeft ? "lg:order-2" : "lg:order-1"}`}
                 >
                   <h3 className="font-heading text-cc-heading text-sm sm:text-base">
                     {chapter.title}
@@ -602,7 +655,7 @@ export function PiecesAndCards() {
                   </div>
                 </div>
                 <div
-                  className={`sm:col-span-7 ${vignetteOnLeft ? "sm:order-1" : "sm:order-2"}`}
+                  className={`lg:col-span-7 ${vignetteOnLeft ? "lg:order-1" : "lg:order-2"}`}
                 >
                   <div className="hidden sm:block">
                     <Beat />
