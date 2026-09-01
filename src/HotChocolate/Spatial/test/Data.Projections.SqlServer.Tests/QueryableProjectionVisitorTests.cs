@@ -1,12 +1,11 @@
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
-using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
-public class QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> resource)
+public class QueryableProjectionVisitorTests(PostgisResource resource)
     : SchemaCache(resource)
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
+    , IClassFixture<PostgisResource>
 {
     private static readonly Polygon s_truePolygon =
         new(new LinearRing(
