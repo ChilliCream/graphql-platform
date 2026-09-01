@@ -155,9 +155,9 @@ function Beat({ index, title, body, children }: BeatProps) {
 
   return (
     <RevealOnScroll>
-      <div className="grid gap-8 py-14 sm:grid-cols-12 sm:items-center sm:gap-10 sm:py-20">
+      <div className="grid gap-8 py-14 sm:py-20 md:grid-cols-12 md:items-center md:gap-10">
         <div
-          className={`max-w-xl sm:col-span-5 ${isRight ? "sm:order-last" : ""}`}
+          className={`max-w-xl md:col-span-5 ${isRight ? "md:order-last" : ""}`}
         >
           <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
             {title}
@@ -166,7 +166,7 @@ function Beat({ index, title, body, children }: BeatProps) {
             {body}
           </div>
         </div>
-        <div className="sm:col-span-7">
+        <div className="md:col-span-7">
           <SceneCard index={index}>{children}</SceneCard>
         </div>
       </div>
@@ -402,7 +402,7 @@ function Beat4Body() {
   const box = CHAPTERS[3].boxes[0];
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:gap-6">
       <div className="flex-1">
         <ProtoCodeBox label={box.label} lines={box.lines} />
       </div>
@@ -434,7 +434,7 @@ function Beat5Body() {
   const [catalog, billing] = CHAPTERS[4].boxes;
 
   return (
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex-1">
         <ProtoCodeBox
           label={catalog.label}
