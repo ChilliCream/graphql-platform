@@ -182,6 +182,27 @@ public sealed class SocketClient : ISocket
 #endif
 
 #if FUSION
+    /// <summary>
+    /// Closes the socket after all previously queued operation messages have been sent.
+    /// </summary>
+    /// <param name="closeStatus">The close status to send to the server.</param>
+    /// <param name="statusDescription">The optional description to send with the close status.</param>
+    /// <param name="cancellationToken">The cancellation token for the close handshake.</param>
+    public async ValueTask CloseAsync(
+        WebSocketCloseStatus closeStatus,
+        string? statusDescription,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _context.Sender.CloseAsync(closeStatus, statusDescription, cancellationToken);
+        }
+        finally
+        {
+            await DisposeAsync();
+        }
+    }
+
     public ValueTask<SocketResult> ExecuteAsync(
         IOperationRequest request,
         IMemoryArenaSource arenaSource,

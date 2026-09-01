@@ -157,5 +157,25 @@ internal sealed class SocketMessageSender(WebSocket socket)
             _sendGate.Release();
         }
     }
+
+    public async ValueTask CloseAsync(
+        WebSocketCloseStatus closeStatus,
+        string? statusDescription,
+        CancellationToken cancellationToken)
+    {
+        await _sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (socket.IsOpen())
+            {
+                await socket.CloseAsync(closeStatus, statusDescription, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
+    }
 }
 #endif

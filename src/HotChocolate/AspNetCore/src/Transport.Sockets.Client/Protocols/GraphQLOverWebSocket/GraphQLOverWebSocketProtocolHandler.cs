@@ -89,7 +89,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             // pending read terminates gracefully instead of blocking forever.
             void OnCancelled()
             {
+#if FUSION
+                _ = completion.TrySendCompleteMessageAsync();
+#else
                 completion.TrySendCompleteMessage();
+#endif
                 observer.OnCompleted();
             }
 
@@ -148,7 +152,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             // pending read terminates gracefully instead of blocking forever.
             void OnCancelled()
             {
+#if FUSION
+                _ = completion.TrySendCompleteMessageAsync();
+#else
                 completion.TrySendCompleteMessage();
+#endif
                 observer.OnCompleted();
             }
 
@@ -256,7 +264,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             // immediately, then close the socket. Channel completion is idempotent, so a
             // later close-triggered SocketClosedException is a harmless no-op.
             context.Messages.OnError(new SocketClosedException(reason, InvalidMessage));
+#if FUSION
+            await context.Sender.CloseAsync(InvalidMessage, reason, cancellationToken);
+#else
             await context.Socket.CloseAsync(InvalidMessage, reason, cancellationToken);
+#endif
         }
     }
 
@@ -336,20 +348,55 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
     {
         private int _completed;
 
-        public void MarkDataStreamCompleted()
-            => Interlocked.Exchange(ref _completed, 1);
+#if FUSION
+        private readonly TaskCompletionSource<bool> _completionSource = new();
+#endif
 
-        public void TrySendCompleteMessage()
+        public void MarkDataStreamCompleted()
         {
             if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
             {
 #if FUSION
-                _ = sender.TrySendCompleteMessageAsync(id);
-#else
-                _ = TrySendCompleteMessageInternalAsync(socket, id);
+                _completionSource.TrySetResult(true);
 #endif
             }
         }
+
+#if FUSION
+        public void TrySendCompleteMessage()
+            => _ = TrySendCompleteMessageAsync();
+
+        public ValueTask TrySendCompleteMessageAsync()
+        {
+            if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
+            {
+                _ = SendCompleteMessageAsync();
+            }
+
+            return new ValueTask(_completionSource.Task);
+        }
+
+        private async Task SendCompleteMessageAsync()
+        {
+            try
+            {
+                await sender.TrySendCompleteMessageAsync(id).ConfigureAwait(false);
+                _completionSource.TrySetResult(true);
+            }
+            catch (Exception ex)
+            {
+                _completionSource.TrySetException(ex);
+            }
+        }
+#else
+        public void TrySendCompleteMessage()
+        {
+            if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
+            {
+                _ = TrySendCompleteMessageInternalAsync(socket, id);
+            }
+        }
+#endif
     }
 
 #if !FUSION

@@ -79,7 +79,7 @@ public class FusionSocketReaderTests
         var handler = new GraphQLOverWebSocketProtocolHandler();
         var overflowArenaSource = new SubscriptionArenaSource();
         var siblingArenaSource = new SubscriptionArenaSource();
-        using var overflowResult = await handler.ExecuteAsync(
+        await using var overflowResult = await handler.ExecuteAsync(
             context,
             CreateOperationRequest(),
             overflowArenaSource,
@@ -107,7 +107,7 @@ public class FusionSocketReaderTests
         var error = await Assert.ThrowsAsync<SocketOperationException>(
             async () => await ReadFirstResultAsync(overflowResult));
         socket.ReleaseHeldSend();
-        using var siblingResult = await siblingResultTask;
+        await using var siblingResult = await siblingResultTask;
         await socket.WaitForSendCountAsync(3, TestContext.Current.CancellationToken);
         var siblingId = GetMessageIds(socket.SentMessages, "subscribe")
             .Single(id => !string.Equals(id, overflowId, StringComparison.Ordinal));
@@ -214,7 +214,7 @@ public class FusionSocketReaderTests
             completion);
         observer.OnNext(CreateNextMessage("operation-1", "{\"data\":{\"value\":1}}", pool));
         observer.OnNext(CreateNextMessage("operation-1", "{\"data\":{\"value\":2}}", pool));
-        using var result = new SocketResult(
+        await using var result = new SocketResult(
             observer,
             new StubSubscription(),
             completion,
@@ -370,6 +370,12 @@ public class FusionSocketReaderTests
 
         public void TrySendCompleteMessage()
             => SendCount++;
+
+        public ValueTask TrySendCompleteMessageAsync()
+        {
+            SendCount++;
+            return default;
+        }
     }
 
     private sealed class StubSubscription : IDisposable

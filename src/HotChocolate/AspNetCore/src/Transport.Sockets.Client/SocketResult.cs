@@ -18,6 +18,9 @@ namespace HotChocolate.Transport.Sockets.Client;
 /// Represents the result of a WebSocket operation that returns a stream of data.
 /// </summary>
 public sealed class SocketResult : IDisposable
+#if FUSION
+    , IAsyncDisposable
+#endif
 {
     private readonly ResultEnumerable _enumerable;
     private bool _disposed;
@@ -52,6 +55,24 @@ public sealed class SocketResult : IDisposable
         }
     }
 
+#if FUSION
+    /// <summary>
+    /// Completes the operation and waits until its complete message has been sent.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token for waiting for completion.</param>
+    public async ValueTask CompleteAsync(CancellationToken cancellationToken)
+    {
+        await _enumerable.CompleteAsync(cancellationToken);
+        _disposed = true;
+    }
+
+    /// <summary>
+    /// Asynchronously releases the resources used by this <see cref="SocketResult"/> object.
+    /// </summary>
+    public ValueTask DisposeAsync()
+        => CompleteAsync(default);
+#endif
+
     private sealed class ResultEnumerable(
         DataMessageObserver observer,
         IDisposable subscription,
@@ -60,6 +81,7 @@ public sealed class SocketResult : IDisposable
         : IAsyncEnumerable<ResultDocument>, IDisposable
     {
         private bool _started;
+        private int _disposed;
 
         public async IAsyncEnumerator<ResultDocument> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
@@ -121,13 +143,34 @@ public sealed class SocketResult : IDisposable
             }
             finally
             {
+#if FUSION
+                _ = completion.TrySendCompleteMessageAsync();
+#else
                 completion.TrySendCompleteMessage();
+#endif
             }
         }
 
+#if FUSION
+        public async ValueTask CompleteAsync(CancellationToken cancellationToken)
+        {
+            await completion.TrySendCompleteMessageAsync().AsTask().WaitAsync(cancellationToken);
+            Dispose();
+        }
+#endif
+
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+#if FUSION
+            _ = completion.TrySendCompleteMessageAsync();
+#else
             completion.TrySendCompleteMessage();
+#endif
             cancellationRegistration.Dispose();
             subscription.Dispose();
             observer.Dispose();
