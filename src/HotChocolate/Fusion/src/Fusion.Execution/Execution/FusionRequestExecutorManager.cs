@@ -373,7 +373,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
-        AddDocumentValidator(setup, schemaServices);
+        AddDocumentValidator(setup, schemaServices, options);
         AddDiagnosticEvents(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
@@ -478,12 +478,14 @@ internal sealed class FusionRequestExecutorManager
 
     private void AddDocumentValidator(
         FusionGatewaySetup setup,
-        IServiceCollection services)
+        IServiceCollection services,
+        FusionOptions options)
     {
         var builder =
             DocumentValidatorBuilder.New()
                 .SetServices(_applicationServices)
-                .AddDefaultRules();
+                .AddDefaultRules()
+                .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
         foreach (var modifier in setup.DocumentValidatorBuilderModifiers)
         {
