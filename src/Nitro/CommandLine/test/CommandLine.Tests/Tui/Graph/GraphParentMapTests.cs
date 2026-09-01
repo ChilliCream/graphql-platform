@@ -24,7 +24,8 @@ public sealed class GraphParentMapTests
 
         // act
         var first = GraphParentMap.Build(new GraphModel(nodes, edges));
-        var second = GraphParentMap.Build(new GraphModel(nodes.Reverse().ToArray(), edges.Reverse().ToArray()));
+        var second = GraphParentMap.Build(
+            new GraphModel(Enumerable.Reverse(nodes).ToArray(), Enumerable.Reverse(edges).ToArray()));
 
         // assert
         Assert.Equal(
@@ -47,7 +48,8 @@ public sealed class GraphParentMapTests
 
         // act
         var first = GraphParentMap.Build(new GraphModel(nodes, edges));
-        var second = GraphParentMap.Build(new GraphModel(nodes.Reverse().ToArray(), edges.Reverse().ToArray()));
+        var second = GraphParentMap.Build(
+            new GraphModel(Enumerable.Reverse(nodes).ToArray(), Enumerable.Reverse(edges).ToArray()));
 
         // assert
         Assert.Equal(count - 1, first.Count);

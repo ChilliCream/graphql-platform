@@ -52,7 +52,9 @@ public sealed class GraphSearchProjectionContextTests
 
         // act
         var first = new GraphSearchProjectionContext(new GraphModel(nodes, edges), reduced);
-        var second = new GraphSearchProjectionContext(new GraphModel(nodes.Reverse().ToArray(), edges.Reverse().ToArray()), reduced);
+        var second = new GraphSearchProjectionContext(
+            new GraphModel(Enumerable.Reverse(nodes).ToArray(), Enumerable.Reverse(edges).ToArray()),
+            reduced);
 
         // assert
         Assert.Equal(["root", "root", "root", "root"], nodes.Select(t => first.ResolveRepresentative(t.Id)));

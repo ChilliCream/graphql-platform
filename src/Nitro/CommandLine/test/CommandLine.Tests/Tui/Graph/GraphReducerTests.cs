@@ -338,7 +338,9 @@ public sealed class GraphReducerTests
 
         // act
         var forward = GraphReducer.Reduce(Model(nodes, edges), options);
-        var reversed = GraphReducer.Reduce(Model(nodes.Reverse().ToArray(), edges.Reverse().ToArray()), options);
+        var reversed = GraphReducer.Reduce(
+            Model(Enumerable.Reverse(nodes).ToArray(), Enumerable.Reverse(edges).ToArray()),
+            options);
 
         // assert
         Assert.Equal(forward.Nodes, reversed.Nodes);

@@ -111,7 +111,7 @@ public sealed class CellBufferTests
         };
 
         // act
-        foreach (var contribution in reverse ? contributions.Reverse() : contributions)
+        foreach (var contribution in reverse ? Enumerable.Reverse(contributions) : contributions)
         {
             buffer.Connect(
                 0,

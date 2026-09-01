@@ -142,7 +142,7 @@ public sealed class GraphEdgeRouterTests
         var first = new GraphEdgeRouter().Route(Frame(nodes, spans), options);
 
         // act
-        var second = new GraphEdgeRouter().Route(Frame(nodes, spans.Reverse().ToArray()), options);
+        var second = new GraphEdgeRouter().Route(Frame(nodes, Enumerable.Reverse(spans).ToArray()), options);
         var arrows = ArrowCells(first.Buffer).OrderBy(t => t.Point.Y).ThenBy(t => t.Point.X).ToArray();
 
         // assert
