@@ -157,13 +157,19 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// </summary>
     public ConditionFlags DeferConditionFlags { get; private set; }
 
+    /// <summary>
+    /// Gets include condition flags word 0 for the current request.
+    /// This property exposes conditions 0-63 only.
+    /// </summary>
+    [Obsolete("Use IncludeConditionFlags instead. This property only exposes conditions 0-63.")]
     public ulong IncludeFlags => IncludeConditionFlags.Word0;
 
-    internal ulong[]? WideIncludeFlags => IncludeConditionFlags.Overflow;
-
+    /// <summary>
+    /// Gets defer condition flags word 0 for the current request.
+    /// This property exposes conditions 0-63 only.
+    /// </summary>
+    [Obsolete("Use DeferConditionFlags instead. This property only exposes conditions 0-63.")]
     public ulong DeferFlags => DeferConditionFlags.Word0;
-
-    internal ulong[]? WideDeferFlags => DeferConditionFlags.Overflow;
 
     /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.
