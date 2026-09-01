@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -28,7 +26,7 @@ public abstract class StreamConnection<TNode, TEdge, TPageInfo>
     /// A stream of nodes derived from the edges.
     /// </summary>
     [GraphQLDescription("A flattened list of the nodes")]
-    public virtual IAsyncEnumerable<TNode>? Nodes => GetNodesAsync(Edges);
+    public virtual IAsyncEnumerable<TNode>? Nodes => new NodesEnumerable(Edges);
 
     /// <summary>
     /// Information to aid in pagination after the stream completes.
@@ -36,18 +34,35 @@ public abstract class StreamConnection<TNode, TEdge, TPageInfo>
     [GraphQLDescription("Information to aid in pagination.")]
     public abstract Task<TPageInfo> PageInfo { get; }
 
-    private static async IAsyncEnumerable<TNode> GetNodesAsync(
-        IAsyncEnumerable<TEdge>? edges,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    private sealed class NodesEnumerable(IAsyncEnumerable<TEdge>? edges) : IAsyncEnumerable<TNode>
     {
-        if (edges is null)
-        {
-            yield break;
-        }
+        public IAsyncEnumerator<TNode> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            => edges is { } source
+                ? new NodesEnumerator(source.GetAsyncEnumerator(cancellationToken))
+                : EmptyNodesEnumerator.Instance;
+    }
 
-        await foreach (var edge in edges.WithCancellation(cancellationToken).ConfigureAwait(false))
-        {
-            yield return edge.Node;
-        }
+    private sealed class NodesEnumerator(IAsyncEnumerator<TEdge> enumerator) : IAsyncEnumerator<TNode>
+    {
+        public TNode Current => enumerator.Current.Node;
+
+        public ValueTask<bool> MoveNextAsync()
+            => enumerator.MoveNextAsync();
+
+        public ValueTask DisposeAsync()
+            => enumerator.DisposeAsync();
+    }
+
+    private sealed class EmptyNodesEnumerator : IAsyncEnumerator<TNode>
+    {
+        public static readonly EmptyNodesEnumerator Instance = new();
+
+        public TNode Current => default!;
+
+        public ValueTask<bool> MoveNextAsync()
+            => ValueTask.FromResult(false);
+
+        public ValueTask DisposeAsync()
+            => ValueTask.CompletedTask;
     }
 }

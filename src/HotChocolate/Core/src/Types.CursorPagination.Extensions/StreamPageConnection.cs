@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using GreenDonut.Data;
 
 namespace HotChocolate.Types.Pagination;
@@ -29,7 +28,7 @@ public class StreamPageConnection<TNode>
         ArgumentNullException.ThrowIfNull(page);
 
         _page = page;
-        _edges = GetEdgesAsync(page);
+        _edges = new EdgesEnumerable(page);
     }
 
     /// <summary>
@@ -66,14 +65,23 @@ public class StreamPageConnection<TNode>
     public static implicit operator StreamPageConnection<TNode>(StreamPage<TNode> page)
         => new(page);
 
-    private static async IAsyncEnumerable<StreamEdge<TNode>> GetEdgesAsync(
-        StreamPage<TNode> page,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    private sealed class EdgesEnumerable(StreamPage<TNode> page) : IAsyncEnumerable<StreamEdge<TNode>>
     {
-        await foreach (var edge in page.WithCancellation(cancellationToken).ConfigureAwait(false))
-        {
-            yield return new StreamEdge<TNode>(edge.Node, edge.Cursor);
-        }
+        public IAsyncEnumerator<StreamEdge<TNode>> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
+            => new EdgesEnumerator(page.GetAsyncEnumerator(cancellationToken));
+    }
+
+    private sealed class EdgesEnumerator(IAsyncEnumerator<StreamPageEdge<TNode>> enumerator)
+        : IAsyncEnumerator<StreamEdge<TNode>>
+    {
+        public StreamEdge<TNode> Current => new(enumerator.Current.Node, enumerator.Current.Cursor);
+
+        public ValueTask<bool> MoveNextAsync()
+            => enumerator.MoveNextAsync();
+
+        public ValueTask DisposeAsync()
+            => enumerator.DisposeAsync();
     }
 
     private static async Task<PageInfo> GetPageInfoAsync(StreamPage<TNode> page)

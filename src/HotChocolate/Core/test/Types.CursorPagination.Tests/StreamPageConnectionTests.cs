@@ -1,6 +1,7 @@
 using GreenDonut.Data;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -54,6 +55,81 @@ public class StreamPageConnectionTests
 
         // assert
         Assert.Equal(["a", "b"], nodes);
+    }
+
+    [Fact]
+    public async Task Edges_Should_CancelCompletionAndClaimPage_When_DisposedBeforeFirstMove()
+    {
+        // arrange
+        var page = new StreamPage<string>(
+            CreateItems("a"),
+            new PagingArguments(first: 1),
+            static item => item);
+        var connection = new StreamPageConnection<string>(page);
+        var pageInfo = connection.PageInfo;
+        var enumerator = connection.Edges!.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        await enumerator.DisposeAsync();
+
+        // assert
+        Assert.Throws<InvalidOperationException>(
+            () => connection.Edges!.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        Assert.Throws<InvalidOperationException>(
+            () => connection.Nodes!.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        Assert.Throws<InvalidOperationException>(
+            () => page.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
+        await Assert.ThrowsAsync<TaskCanceledException>(() => pageInfo);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_CancelCompletionAndClaimPage_When_DisposedBeforeFirstMove()
+    {
+        // arrange
+        var page = new StreamPage<string>(
+            CreateItems("a"),
+            new PagingArguments(first: 1),
+            static item => item);
+        var connection = new StreamPageConnection<string>(page);
+        var pageInfo = connection.PageInfo;
+        var enumerator = connection.Nodes!.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        await enumerator.DisposeAsync();
+
+        // assert
+        Assert.Throws<InvalidOperationException>(
+            () => connection.Nodes!.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        Assert.Throws<InvalidOperationException>(
+            () => connection.Edges!.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        Assert.Throws<InvalidOperationException>(
+            () => page.GetAsyncEnumerator(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
+        await Assert.ThrowsAsync<TaskCanceledException>(() => pageInfo);
+    }
+
+    [Fact]
+    public async Task Edges_Should_PropagateAlreadyCanceledEnumerationToken()
+    {
+        // arrange
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+        var page = new StreamPage<string>(
+            CreateCancellableItems(),
+            new PagingArguments(first: 1),
+            static item => item);
+        var connection = new StreamPageConnection<string>(page);
+        var enumerator = connection.Edges!.GetAsyncEnumerator(cancellationTokenSource.Token);
+
+        // act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            async () => await enumerator.MoveNextAsync());
+        await enumerator.DisposeAsync();
+
+        // assert
+        await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
+        await Assert.ThrowsAsync<TaskCanceledException>(() => connection.PageInfo);
     }
 
     [Fact]
@@ -136,6 +212,14 @@ public class StreamPageConnectionTests
             yield return item;
             await Task.Yield();
         }
+    }
+
+    private static async IAsyncEnumerable<string> CreateCancellableItems(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return "a";
+        await Task.Yield();
     }
 
     [GraphQLName("Query")]
