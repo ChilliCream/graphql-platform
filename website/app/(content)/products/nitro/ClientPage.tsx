@@ -484,9 +484,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
   return (
     <div
       aria-hidden="true"
-      // -top-18 compensates for the 72px sticky header so the baseY beam
-      // calibration keeps meeting the reel's top edge.
-      className="pointer-events-none absolute inset-x-0 -top-18 bottom-0 z-0 overflow-hidden"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
     >
       <style>{`
         @keyframes v22-breathe {
@@ -1432,10 +1430,10 @@ interface HeroProps {
 
 function Hero({ reduced }: HeroProps) {
   return (
-    <section className="relative left-1/2 isolate -mt-8 w-screen -translate-x-1/2 overflow-hidden">
+    <section className="relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden">
       <HeroAurora reduced={reduced} />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-5 pt-6 pb-16 sm:px-12 sm:pt-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">
         <RevealOnScroll className="relative z-20 flex max-w-2xl flex-col gap-6">
           <div className="flex items-center gap-3">
             <span
