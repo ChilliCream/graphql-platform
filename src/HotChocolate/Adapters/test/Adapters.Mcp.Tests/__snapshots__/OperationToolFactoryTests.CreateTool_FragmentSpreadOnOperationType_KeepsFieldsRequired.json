@@ -7,20 +7,25 @@
         "null"
       ],
       "properties": {
-        "withInterfaceType": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            }
-          },
-          "required": [],
-          "additionalProperties": false
+        "books": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false,
       "required": [
-        "withInterfaceType"
+        "books"
       ]
     },
     "errors": {
