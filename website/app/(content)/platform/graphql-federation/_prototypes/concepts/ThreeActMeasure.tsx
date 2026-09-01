@@ -135,7 +135,12 @@ export function ThreeActMeasure() {
       {/* Beat 1 - wide: copy left, the five-team product page right. */}
       <div className={beat}>
         <div className={grid}>
-          <Copy className="sm:col-span-7 sm:self-center">{ch1.body}</Copy>
+          <Copy className="sm:col-span-7 sm:self-center">
+            <h3 className="font-heading text-cc-heading text-h5 text-balance">
+              {ch1.title}
+            </h3>
+            {ch1.body}
+          </Copy>
           <div className="sm:col-span-5 sm:self-center">
             <ProtoCodeBox {...ch1.boxes[0]} />
           </div>
@@ -150,6 +155,9 @@ export function ThreeActMeasure() {
             <ProtoCodeBox {...ch2.boxes[0]} />
           </div>
           <Copy className="sm:order-2 sm:col-span-7 sm:self-center">
+            <h3 className="font-heading text-cc-heading text-h5 text-balance">
+              {ch2.title}
+            </h3>
             {ch2.body}
           </Copy>
         </div>
@@ -157,20 +165,32 @@ export function ThreeActMeasure() {
 
       {/* Beat 3 - full-measure copy, then the act's one pull-quote. */}
       <div className={beat}>
-        <Copy className="mx-auto max-w-3xl">{ch3.body}</Copy>
+        <Copy className="mx-auto max-w-3xl">
+          <h3 className="font-heading text-cc-heading text-h5 text-balance">
+            {ch3.title}
+          </h3>
+          {ch3.body}
+        </Copy>
         <p className="border-cc-card-border font-heading text-cc-heading text-h4 mx-auto mt-10 max-w-2xl border-y py-8 text-center text-balance">
           The queue becomes the bottleneck the services were split to avoid.
         </p>
       </div>
 
-      <ActSlug eyebrow="Act II" title="ONE SCHEMA" />
+      <RevealOnScroll>
+        <ActSlug eyebrow="Act II" title="ONE SCHEMA" />
+      </RevealOnScroll>
 
       {/* Beat 4 - the narrow measure: copy, then the one query directly
           below, centered. The sudden width change reads as the story
           finding its subject. */}
       <div className={beat}>
         <div className="mx-auto max-w-xl space-y-8">
-          <Copy>{ch4.body}</Copy>
+          <Copy>
+            <h3 className="font-heading text-cc-heading text-h5 text-balance">
+              {ch4.title}
+            </h3>
+            {ch4.body}
+          </Copy>
           <ProtoCodeBox {...ch4.boxes[0]} />
         </div>
       </div>
@@ -178,7 +198,12 @@ export function ThreeActMeasure() {
       {/* Beat 5 - still narrow: copy, then the act's only two-up moment,
           quietly foreshadowing composition. */}
       <div className={beat}>
-        <Copy className="mx-auto max-w-xl text-center">{ch5.body}</Copy>
+        <Copy className="mx-auto max-w-xl text-center">
+          <h3 className="font-heading text-cc-heading text-h5 text-balance">
+            {ch5.title}
+          </h3>
+          {ch5.body}
+        </Copy>
         <div className="mt-8 flex flex-wrap justify-center gap-6">
           <div className="w-[min(100%,19rem)]">
             <ProtoCodeBox {...catalogBox} />
@@ -189,7 +214,9 @@ export function ThreeActMeasure() {
         </div>
       </div>
 
-      <ActSlug eyebrow="Act III" title="COMPOSITION" />
+      <RevealOnScroll>
+        <ActSlug eyebrow="Act III" title="COMPOSITION" />
+      </RevealOnScroll>
 
       {/* Beat 6 - full width again: centered copy, then a wide two-panel
           row. Left, the composite schema at its largest, with per-row
@@ -197,7 +224,12 @@ export function ThreeActMeasure() {
           five services, visibly untouched, each with its own deploy stamp -
           nothing here can be misread as services merging. */}
       <div className={beat}>
-        <Copy className="mx-auto max-w-3xl text-center">{ch6.body}</Copy>
+        <Copy className="mx-auto max-w-3xl text-center">
+          <h3 className="font-heading text-cc-heading text-h5 text-balance">
+            {ch6.title}
+          </h3>
+          {ch6.body}
+        </Copy>
         <div className="mt-10 grid grid-cols-1 items-start gap-8 sm:grid-cols-2">
           <div className="sm:max-w-[26rem]">
             <ProtoCodeBox {...ch6.boxes[0]} />
@@ -233,16 +265,23 @@ export function ThreeActMeasure() {
         </div>
       </div>
 
-      <HorizonSlug
-        left="Everything above this line: build time"
-        right="Everything below: runtime"
-      />
+      <RevealOnScroll>
+        <HorizonSlug
+          left="Everything above this line: build time"
+          right="Everything below: runtime"
+        />
+      </RevealOnScroll>
 
       {/* Beat 7 - runtime: an ordinary gateway, ordinary calls, no merging
           pipes. */}
       <div className={beat}>
         <div className={grid}>
-          <Copy className="sm:col-span-7 sm:self-center">{ch7.body}</Copy>
+          <Copy className="sm:col-span-7 sm:self-center">
+            <h3 className="font-heading text-cc-heading text-h5 text-balance">
+              {ch7.title}
+            </h3>
+            {ch7.body}
+          </Copy>
           <div className="flex flex-col items-start gap-3 sm:col-span-5 sm:self-center">
             <GatewayGlyph />
             <div className="flex flex-col gap-1 font-mono text-[11px] text-[#c9d4e8]">
@@ -254,7 +293,9 @@ export function ThreeActMeasure() {
         </div>
       </div>
 
-      <ActSlug eyebrow="Curtain" title="ONE API · FIVE TEAMS" />
+      <RevealOnScroll>
+        <ActSlug eyebrow="Curtain" title="ONE API · FIVE TEAMS" />
+      </RevealOnScroll>
     </PageSection>
   );
 }
