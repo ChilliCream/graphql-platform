@@ -471,7 +471,13 @@ export async function generateLlmsFiles() {
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
   const products = pagesUnder(pages, "/products");
-  const platform = pagesUnder(pages, "/platform");
+  // Un-indexed prototype routes (compared backbone concepts for the
+  // federation page) never belong in the llms export, even if one ever
+  // slipped past the sitemap's own exclusion.
+  const platform = pagesUnder(pages, "/platform").filter(
+    (page) =>
+      !/\/platform\/graphql-federation\/v\d+$/.test(new URL(page.url).pathname),
+  );
   const services = [
     ...pagesUnder(pages, "/services"),
     ...pagesUnder(pages, "/help"),
