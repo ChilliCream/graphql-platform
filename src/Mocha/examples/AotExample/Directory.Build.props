@@ -1,9 +1,5 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-  <PropertyGroup>
-    <TargetFramework>$(LatestTargetFramework)</TargetFramework>
-    <TargetFrameworks>$(LatestTargetFramework)</TargetFrameworks>
-  </PropertyGroup>
   <ItemGroup>
     <CompilerVisibleProperty Include="PublishAot" />
     <CompilerVisibleProperty Include="IsAotCompatible" />

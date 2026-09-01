@@ -47,7 +47,7 @@
     <ExtendedTargetFrameworks>net11.0;net10.0;net9.0;net8.0;$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>
     <OpenApiTargetFrameworks>net11.0;net10.0;net9.0</OpenApiTargetFrameworks>
     <AspireTargetFrameworks>net11.0;net10.0;net9.0</AspireTargetFrameworks>
-    <LatestTargetFramework>net11.0</LatestTargetFramework>
+    <DemoTargetFramework>net11.0</DemoTargetFramework>
     <BenchmarkTargetFramework>net11.0</BenchmarkTargetFramework>
   </PropertyGroup>
 
@@ -57,6 +57,7 @@
     <ExtendedTargetFrameworks>$(LocalDevTargetFramework);$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>
     <OpenApiTargetFrameworks>$(LocalDevTargetFramework)</OpenApiTargetFrameworks>
     <AspireTargetFrameworks>$(LocalDevTargetFramework)</AspireTargetFrameworks>
+    <DemoTargetFramework>$(LocalDevTargetFramework)</DemoTargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -3,8 +3,6 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <TargetFramework>$(LatestTargetFramework)</TargetFramework>
-    <TargetFrameworks>$(LatestTargetFramework)</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
