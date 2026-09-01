@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
+using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
@@ -41,6 +42,7 @@ internal sealed class TuiShell
     private readonly ITaskStore? _store;
     private readonly IMailStore? _mailStore;
     private readonly string? _actor;
+    private readonly Dictionary<TuiTab, BoardDetailMode> _detailModes = [];
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
     private readonly IReadOnlyList<TuiQuitGate> _quitGates;
@@ -48,7 +50,6 @@ internal sealed class TuiShell
 
     private int _activeTabIndex;
     private bool _quitGateResolved;
-    private BoardDetailMode? _detailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
     private EditingConfirmDialog? _lifecycleDialog;
@@ -758,7 +759,7 @@ internal sealed class TuiShell
                 PopMode();
                 return true;
 
-            case TuiMessage.OpenSelected when ActiveMode is BoardMode:
+            case TuiMessage.OpenSelected when ActiveMode is BoardMode or GraphMode:
                 return TryOpenDetail();
 
             case TuiMessage.FocusSearchRequested:
@@ -884,10 +885,8 @@ internal sealed class TuiShell
         $"Exit with {report.PendingCount} stored-but-pending, {report.OutcomeUnknownCount} outcome-unknown? (y/n)";
 
     /// <summary>
-    /// Switches to the board's task detail mode, rooted on the board's
-    /// currently selected task. Reuses the same mode-stack semantics as
-    /// <see cref="TryOpenTree"/>: Back returns to the board with its
-    /// selection untouched.
+    /// Opens the selected Board or Graph task in the active tab's detail mode.
+    /// Back returns to the prior mode with its retained state.
     /// </summary>
     private bool TryOpenDetail()
     {
@@ -901,9 +900,14 @@ internal sealed class TuiShell
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
 
-        _detailMode ??= new BoardDetailMode(_store);
-        _detailMode.OpenOnTask(id);
-        SwitchTo(_detailMode);
+        if (!_detailModes.TryGetValue(ActiveTab, out var detailMode))
+        {
+            detailMode = new BoardDetailMode(_store);
+            _detailModes.Add(ActiveTab, detailMode);
+        }
+
+        detailMode.OpenOnTask(id);
+        SwitchTo(detailMode);
         return true;
     }
 

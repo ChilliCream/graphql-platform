@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
+using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
@@ -647,6 +648,115 @@ public sealed class TuiShellTabsTests
 
         // assert: no editor opened on the (non-tasks) active tab.
         Assert.DoesNotContain("Edit Task", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_RestoreGraphCanvasSelectionAndViewport_When_DetailClosed()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        for (var index = 0; index < 12; index++)
+        {
+            var id = $"task-{index:D2}";
+            store.Tasks[id] = TaskItemBuilder.Create(
+                id,
+                index == 11 ? "Selected Graph Task" : id);
+        }
+
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
+            24,
+            8,
+            tasksTabIndex: 0,
+            store: store,
+            actor: "tester");
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        graph.Handle(new TuiMessage.ToggleGraphProjection());
+        graph.SelectTask("task-11");
+        _ = RenderToText(shell, width: 24);
+        var expected = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
+
+        // act
+        var opened = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var detail = RenderToText(shell, width: 24);
+        var closed = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
+        _ = RenderToText(shell, width: 24);
+        var actual = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
+
+        // assert
+        Assert.True(expected.Viewport.X > 0 || expected.Viewport.Y > 0);
+        Assert.True(opened && closed);
+        Assert.Contains("Selected Graph Task", detail, StringComparison.Ordinal);
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Handle_Should_KeepGraphDetailReadOnly_When_TaskMutationGesturesPressed()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Graph Detail");
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
+            80,
+            24,
+            tasksTabIndex: 0,
+            store: store,
+            actor: "writer");
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var before = RenderToText(shell);
+
+        // act
+        var editHandled = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
+        var closeHandled = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('x', ConsoleKey.X)));
+        var after = RenderToText(shell);
+
+        // assert
+        Assert.False(editHandled || closeHandled);
+        Assert.Equal(before, after);
+        Assert.Null(store.UpdatedId);
+        Assert.Null(store.ClosedIds);
+    }
+
+    [Fact]
+    public void Handle_Should_KeepEachTabsDetailTaskIndependent_When_SwitchingTabs()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["board-task"] = TaskItemBuilder.Create("board-task", "Board Detail Task");
+        store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Graph Detail Task", TaskStates.Deferred);
+        var board = new BoardMode(
+            new BoardDataLoader(store, TimeProvider.System),
+            [new BoardView
+            {
+                Name = "Test",
+                Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+            }]);
+        var graph = new GraphMode(new GraphDataLoader(store));
+        graph.SelectTask("graph-task");
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", board), CreateTasksTab("Graph", graph, mnemonic: 'G')],
+            80,
+            24,
+            tasksTabIndex: 0,
+            store: store,
+            actor: "tester");
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
+        var boardDetail = RenderToText(shell);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        var graphDetail = RenderToText(shell);
+
+        // assert
+        Assert.Contains("Board Detail Task", boardDetail, StringComparison.Ordinal);
+        Assert.Contains("Graph Detail Task", graphDetail, StringComparison.Ordinal);
     }
 
     [Fact]
