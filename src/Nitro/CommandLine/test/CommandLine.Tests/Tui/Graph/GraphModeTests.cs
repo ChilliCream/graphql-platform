@@ -755,7 +755,6 @@ public sealed class GraphModeTests
         return console.Output;
     }
 
-
     private static TaskItem Task(
         string id,
         int priority = TaskPriorities.Medium,
