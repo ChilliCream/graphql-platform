@@ -110,14 +110,14 @@ function BracePair({
   return (
     <>
       <path
-        d={bracePath(leftX, y, h, reach)}
+        d={bracePath(leftX, y, h, reach, true)}
         fill="none"
         stroke={stroke}
         strokeWidth={strokeWidth}
         strokeDasharray={dashed ? "4 5" : undefined}
       />
       <path
-        d={bracePath(rightX, y, h, reach, true)}
+        d={bracePath(rightX, y, h, reach)}
         fill="none"
         stroke={stroke}
         strokeWidth={strokeWidth}
@@ -268,8 +268,8 @@ function GlyphOneSchema() {
   return (
     <>
       <BracePair
-        leftX={64}
-        rightX={256}
+        leftX={46}
+        rightX={274}
         y={15}
         h={90}
         reach={9}
@@ -290,28 +290,28 @@ function GlyphWhoWritesIt() {
   return (
     <>
       <path
-        d={braceTopHalf(64, 15, midY - gap / 2, 9)}
+        d={braceTopHalf(46, 15, midY - gap / 2, 9, true)}
         fill="none"
         stroke={BRACE_INK}
         strokeWidth={1.5}
         strokeDasharray="4 5"
       />
       <path
-        d={braceBottomHalf(64, 105, midY + gap / 2, 9)}
+        d={braceBottomHalf(46, 105, midY + gap / 2, 9, true)}
         fill="none"
         stroke={BRACE_INK}
         strokeWidth={1.5}
         strokeDasharray="4 5"
       />
       <path
-        d={braceTopHalf(256, 15, midY - gap / 2, 9, true)}
+        d={braceTopHalf(274, 15, midY - gap / 2, 9)}
         fill="none"
         stroke={BRACE_INK}
         strokeWidth={1.5}
         strokeDasharray="4 5"
       />
       <path
-        d={braceBottomHalf(256, 105, midY + gap / 2, 9, true)}
+        d={braceBottomHalf(274, 105, midY + gap / 2, 9)}
         fill="none"
         stroke={BRACE_INK}
         strokeWidth={1.5}
@@ -321,7 +321,7 @@ function GlyphWhoWritesIt() {
         <g key={CANON[i].name}>
           <Square x={x} y={60} color={CANON[i].color} />
           <path
-            d={bracePath(x + 11, 52, 16, 4, false)}
+            d={bracePath(x + 19, 52, 16, 4, true)}
             fill="none"
             stroke={CANON[i].color}
             strokeWidth={1.25}
@@ -355,8 +355,8 @@ function GlyphSchemasCompose() {
         <Square key={CANON[i].name} x={x} y={24} color={CANON[i].color} />
       ))}
       <BracePair
-        leftX={80}
-        rightX={240}
+        leftX={76}
+        rightX={244}
         y={61}
         h={34}
         reach={6}
@@ -376,10 +376,10 @@ function GlyphSchemasCompose() {
       {COMPOSE_XS.map((x, i) => (
         <path
           key={`b-${CANON[i].name}`}
-          d={bracePath(x - 4, 69, 18, 4)}
+          d={bracePath(x + 4, 69, 18, 4, true)}
           fill="none"
           stroke={CANON[i].color}
-          strokeWidth={1.25}
+          strokeWidth={1.5}
         />
       ))}
       <text
