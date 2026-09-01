@@ -24,7 +24,7 @@ public sealed class GraphTabWorkflowTests
         var rows = graph.TreeView.Rows;
 
         // assert
-        Assert.Equal(["epic-root", "epic-nested"], graph.CollapsedEpicIds.Order(StringComparer.Ordinal));
+        Assert.Equal(["epic-nested", "epic-root"], graph.CollapsedEpicIds.Order(StringComparer.Ordinal));
         Assert.Collection(
             rows,
             row => Assert.Null(row.TaskId),
