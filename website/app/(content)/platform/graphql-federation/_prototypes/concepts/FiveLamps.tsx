@@ -47,7 +47,7 @@ interface BeatRecipe {
 const BEATS: readonly BeatRecipe[] = [
   // B1: five lamps at home, dim, named once.
   {
-    alpha: [0.1, 0.1, 0.1, 0.1, 0.1],
+    alpha: [0.08, 0.08, 0.08, 0.08, 0.08],
     drift: false,
     flood: 0,
     gatewayGlow: 0,
@@ -55,17 +55,19 @@ const BEATS: readonly BeatRecipe[] = [
   },
   // B2: every app gathers all five lights onto itself.
   {
-    alpha: [0.16, 0.16, 0.16, 0.16, 0.16],
+    alpha: [0.1, 0.1, 0.1, 0.1, 0.1],
     drift: true,
     flood: 0,
     gatewayGlow: 0,
     labels: false,
   },
-  // B3: one team's harsh white flood washes the others out.
+  // B3: one team's harsh white flood washes the others out. Flood capped at
+  // 0.06 to keep the ambient layer's behind-copy delta within the placement
+  // guard's <=8% cap.
   {
     alpha: [0.04, 0.04, 0.04, 0.04, 0.04],
     drift: false,
-    flood: 0.1,
+    flood: 0.06,
     gatewayGlow: 0,
     labels: false,
   },
@@ -79,7 +81,7 @@ const BEATS: readonly BeatRecipe[] = [
   },
   // B5: only Catalog and Billing brighten - each document lit by its own lamp.
   {
-    alpha: [0.18, 0.18, 0.05, 0.05, 0.05],
+    alpha: [0.14, 0.14, 0.05, 0.05, 0.05],
     drift: false,
     flood: 0,
     gatewayGlow: 0,
@@ -192,8 +194,13 @@ function AmbientLayer({ beat, reducedMotion }: AmbientLayerProps) {
       ))}
 
       <div
-        className="absolute top-1/2 left-1/2 h-[60vmax] w-[60vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
-        style={{ opacity: recipe.flood, mixBlendMode: "screen", transition }}
+        className="absolute top-1/2 left-1/2 h-[60vmax] w-[60vmax] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          background: "#ffffff",
+          opacity: recipe.flood,
+          mixBlendMode: "screen",
+          transition,
+        }}
       />
 
       <div
@@ -222,6 +229,8 @@ const FIVE_RIM_GRADIENT =
 
 interface RimBoxProps {
   readonly rim: "five" | string;
+  readonly active: boolean;
+  readonly reducedMotion: boolean;
   readonly children: ReactNode;
 }
 
@@ -229,33 +238,28 @@ interface RimBoxProps {
  * Wraps a ProtoCodeBox in a 1px gradient ring: the five-color conic rim for
  * a schema lit by all five lamps (B2's client card, B6's composite), or a
  * single service color at 55% alpha for a schema lit only by its own team
- * (B5). Masked to just the ring so the box's own background is untouched.
+ * (B5). The ring is drawn as a `-inset-px` overlay just outside the box's own
+ * border rather than masked into a padding ring, and its visibility is
+ * gated by `active` (only the current beat's card is lit) with a fade
+ * driven by `reducedMotion`.
  */
-function RimBox({ rim, children }: RimBoxProps) {
+function RimBox({ rim, active, reducedMotion, children }: RimBoxProps) {
   const isFive = rim === "five";
   const background = isFive ? FIVE_RIM_GRADIENT : hexWithAlpha(rim, 0.55);
   const shadowColor = isFive ? CANON[0].color : rim;
-  const maskLayers =
-    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)";
 
-  // The ring lives on its own absolutely-positioned, aria-hidden layer so
-  // `mask` (which clips an element's full render, not just its background)
-  // never touches the actual card content - only this empty layer is
-  // masked down to the 1px padding ring.
   const ringStyle: CSSProperties = {
     background,
     boxShadow: `0 0 28px 0 ${hexWithAlpha(shadowColor, 0.12)}`,
-    WebkitMask: maskLayers,
-    mask: maskLayers,
-    WebkitMaskComposite: "xor",
-    maskComposite: "exclude",
+    opacity: active ? 1 : 0,
+    transition: reducedMotion ? "none" : "opacity 700ms ease",
   };
 
   return (
     <div className="relative rounded-xl">
       <div
         aria-hidden="true"
-        className="absolute inset-0 rounded-xl p-px"
+        className="absolute -inset-px rounded-[13px]"
         style={ringStyle}
       />
       <div className="relative">{children}</div>
@@ -353,7 +357,12 @@ export function FiveLamps() {
                       />
                     );
                     return rim ? (
-                      <RimBox key={j} rim={rim}>
+                      <RimBox
+                        key={j}
+                        rim={rim}
+                        active={beat === i}
+                        reducedMotion={reducedMotion}
+                      >
                         {codeBox}
                       </RimBox>
                     ) : (
