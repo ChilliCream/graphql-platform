@@ -213,7 +213,7 @@ function TileCard({
       ))}
       <text
         x={labelX}
-        y={64}
+        y={76}
         textAnchor={labelAnchor}
         fontFamily={MONO}
         fontSize={8.5}
@@ -221,7 +221,7 @@ function TileCard({
       >
         {idPrefix}
       </text>
-      <KeyGlyph x={keyX} y={64} />
+      <KeyGlyph x={keyX} y={76} />
     </svg>
   );
 }
@@ -341,9 +341,9 @@ function CompositionPanel({ variant = "desktop" }: CompositionPanelProps) {
   const orderingW = isMobile ? 96 : ORDERING_W;
   const shippingW = isMobile ? 118 : SHIPPING_W;
   const userW = isMobile ? 106 : USER_W;
-  const titleFs = isMobile ? 8.5 : 10;
+  const titleFs = isMobile ? 9 : 10;
   const tileFs = isMobile
-    ? { header: 8, field: 9 }
+    ? { header: 9, field: 9 }
     : { header: 7.5, field: 8.5 };
   const tilePitch = isMobile ? 12 : 13;
   const keyIdFs = isMobile ? 9.5 : 9;
@@ -514,10 +514,10 @@ function CompositionPanel({ variant = "desktop" }: CompositionPanelProps) {
 
       {/* Catalog and Billing's half-notches align into one keyhole. */}
       <rect
-        x={keyholeX - 26}
-        y={keyholeY - 24}
-        width={52}
-        height={14}
+        x={keyholeX - 8}
+        y={keyholeY - 23}
+        width={16}
+        height={13}
         fill={TILE_BG}
       />
       <text
