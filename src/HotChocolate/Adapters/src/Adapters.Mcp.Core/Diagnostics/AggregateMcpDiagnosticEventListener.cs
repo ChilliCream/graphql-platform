@@ -45,7 +45,7 @@ internal sealed class AggregateMcpDiagnosticEvents(IMcpDiagnosticEventListener[]
 
         for (var i = 0; i < listeners.Length; i++)
         {
-            scopes[i] = listeners[i].InitializeTools();
+            scopes[i] = listeners[i].UpdateTools();
         }
 
         return new AggregateActivityScope(scopes);
