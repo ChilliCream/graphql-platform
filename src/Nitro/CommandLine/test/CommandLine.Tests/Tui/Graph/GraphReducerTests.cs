@@ -111,6 +111,31 @@ public sealed class GraphReducerTests
     }
 
     [Fact]
+    public void Reduce_Should_UseTheCanonicalPriorityParent_When_AChildHasMultipleParents()
+    {
+        // arrange
+        var model = Model(
+            [
+                Node("z", type: TaskTypes.Epic, priority: 0),
+                Node("a", type: TaskTypes.Epic, priority: 4),
+                Node("child", priority: 2)
+            ],
+            [
+                Edge("a", "child", GraphEdgeKind.ParentChild),
+                Edge("z", "child", GraphEdgeKind.ParentChild)
+            ]);
+
+        // act
+        var reduced = GraphReducer.Reduce(
+            model,
+            new GraphReductionOptions { HideClosed = false, CollapsedEpicIds = Set("z") });
+
+        // assert
+        Assert.Equal(["z", "a"], reduced.Nodes.Select(t => t.Id));
+        Assert.Equal([Edge("a", "z", GraphEdgeKind.ParentChild)], reduced.Edges);
+    }
+
+    [Fact]
     public void Reduce_Should_ApplyEveryStage_When_OptionsAreComposed()
     {
         // arrange

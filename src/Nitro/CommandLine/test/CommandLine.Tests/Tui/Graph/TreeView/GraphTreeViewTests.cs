@@ -65,6 +65,28 @@ public sealed class GraphTreeViewTests
     }
 
     [Fact]
+    public void Create_Should_UseTheCanonicalPriorityParent_When_AChildHasMultipleParents()
+    {
+        // arrange
+        var model = Model(
+            [
+                Node("z", type: TaskTypes.Epic, priority: 0),
+                Node("a", type: TaskTypes.Epic, priority: 4),
+                Node("child", priority: 2)
+            ],
+            [
+                Edge("a", "child", GraphEdgeKind.ParentChild),
+                Edge("z", "child", GraphEdgeKind.ParentChild)
+            ]);
+
+        // act
+        var view = new GraphTreeView(model, Set());
+
+        // assert
+        Assert.Equal([null, "z", "child", "a"], view.Rows.Select(t => t.TaskId));
+    }
+
+    [Fact]
     public void Create_Should_HideTerminalTasksAndTheirBlockingEdgesByDefault()
     {
         // arrange

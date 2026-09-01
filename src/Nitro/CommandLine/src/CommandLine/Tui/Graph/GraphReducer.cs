@@ -124,12 +124,7 @@ internal static class GraphReducer
         }
 
         var nodes = model.Nodes.ToDictionary(t => t.Id, StringComparer.Ordinal);
-        var parentByChild = model.Edges
-            .Where(t => t.Kind == GraphEdgeKind.ParentChild)
-            .OrderBy(t => t.FromId, StringComparer.Ordinal)
-            .ThenBy(t => t.ToId, StringComparer.Ordinal)
-            .GroupBy(t => t.ToId, StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.First().FromId, StringComparer.Ordinal);
+        var parentByChild = GraphParentMap.Build(model);
         var activeEpicIds = collapsedEpicIds
             .Where(id => nodes.TryGetValue(id, out var node) && node.IsEpic)
             .ToHashSet(StringComparer.Ordinal);

@@ -128,7 +128,7 @@ internal sealed class GraphTreeView
     /// <summary>
     /// Collapses the selected epic when it has visible hierarchy children.
     /// </summary>
-    public void CollapseSelected()
+    public bool CollapseSelected()
     {
         var selected = _rows.FirstOrDefault(t => t.TaskId == _selectedTaskId);
 
@@ -136,13 +136,16 @@ internal sealed class GraphTreeView
         {
             _collapsedEpicIds.Add(selected.Task.Id);
             RebuildRows();
+            return true;
         }
+
+        return false;
     }
 
     /// <summary>
     /// Expands the selected collapsed epic.
     /// </summary>
-    public void ExpandSelected()
+    public bool ExpandSelected()
     {
         var selected = _rows.FirstOrDefault(t => t.TaskId == _selectedTaskId);
 
@@ -150,7 +153,10 @@ internal sealed class GraphTreeView
         {
             _collapsedEpicIds.Remove(selected.Task.Id);
             RebuildRows();
+            return true;
         }
+
+        return false;
     }
 
     /// <summary>

@@ -275,6 +275,142 @@ public sealed class GraphModeTests
         Assert.Equal(("open", "open"), (mode.TreeView.SelectedTaskId, mode.CanvasView.SelectedTaskId));
     }
 
+    [Fact]
+    public void CollapseSelected_Should_KeepBothViewsExpanded_When_OnlyChildrenAreHidden()
+    {
+        // arrange
+        var tasks = new List<TaskItem>
+        {
+            Task("epic", priority: 0, type: TaskTypes.Epic),
+            Task("closed", priority: 1, status: TaskStates.Closed)
+        };
+        var dependencies = new List<TaskDependency> { Parent("epic", "closed") };
+        var (mode, _) = CreateMode(tasks, dependencies);
+        mode.OnEnter();
+        mode.SelectTask("epic");
+
+        // act
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+        mode.Handle(new TuiMessage.ToggleGraphClosed());
+        tasks.Add(Task("fresh", priority: 2));
+        dependencies.Add(Parent("epic", "fresh"));
+        mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        Assert.Empty(mode.CollapsedEpicIds);
+        Assert.Equal([null, "epic", "closed", "fresh"], mode.TreeView.Rows.Select(t => t.TaskId));
+        Assert.Equal(["closed", "epic", "fresh"], mode.CanvasView.Layout.Nodes.Select(t => t.Id).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void CollapseAll_Should_KeepAnEpicCollapsedUntilAVisibleChildCanBeExpanded()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("epic", priority: 0, type: TaskTypes.Epic),
+                Task("closed", priority: 1, status: TaskStates.Closed)
+            ],
+            [Parent("epic", "closed")]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("epic");
+
+        // act
+        mode.Handle(new TuiMessage.CollapseAllGraphEpics());
+        mode.Handle(new TuiMessage.ExpandSelectedGraphEpic());
+        var hiddenState = mode.CollapsedEpicIds.ToArray();
+        mode.Handle(new TuiMessage.ToggleGraphClosed());
+        var shownRows = mode.TreeView.Rows.Select(t => t.TaskId).ToArray();
+        mode.Handle(new TuiMessage.ExpandSelectedGraphEpic());
+
+        // assert
+        Assert.Equal(["epic"], hiddenState);
+        Assert.Equal([null, "epic"], shownRows);
+        Assert.Empty(mode.CollapsedEpicIds);
+    }
+
+    [Fact]
+    public void MoveCursor_Should_CollapseTheNearestEpicOnCanvasAndIgnoreTreeTaskRows()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("outer", priority: 0, type: TaskTypes.Epic),
+                Task("inner", priority: 1, type: TaskTypes.Epic),
+                Task("child", priority: 2)
+            ],
+            [Parent("outer", "inner"), Parent("inner", "child")]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("child");
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+        var treeState = mode.CollapsedEpicIds.ToArray();
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+        var canvasState = mode.CollapsedEpicIds.ToArray();
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Empty(treeState);
+        Assert.Equal(["inner"], canvasState);
+        Assert.Equal("inner", mode.SelectedTaskId);
+        Assert.Empty(mode.CollapsedEpicIds);
+    }
+
+    [Fact]
+    public void MoveCursor_Should_UseTheCanonicalPriorityParent_When_CollapsingFromCanvas()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("z", priority: 0, type: TaskTypes.Epic),
+                Task("a", priority: 4, type: TaskTypes.Epic),
+                Task("child", priority: 2)
+            ],
+            [Parent("a", "child"), Parent("z", "child")]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("child");
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
+        Assert.Equal(["z"], mode.CollapsedEpicIds);
+        Assert.Equal("z", mode.SelectedTaskId);
+        Assert.Equal(["z", "a"], mode.CanvasView.Layout.Nodes.Select(t => t.Id));
+    }
+
+    [Fact]
+    public void ToggleProjection_Should_SelectTheForcedCanvasRepresentative_When_TheTreeChildExceedsTheCap()
+    {
+        // arrange
+        var tasks = new List<TaskItem> { Task("epic", priority: 0, type: TaskTypes.Epic) };
+        var dependencies = new List<TaskDependency>();
+
+        for (var index = 0; index < GraphReductionOptions.VisibleNodeCap; index++)
+        {
+            var id = $"child-{index:D3}";
+            tasks.Add(Task(id, priority: 1));
+            dependencies.Add(Parent("epic", id));
+        }
+
+        var mode = CreateMode(tasks, dependencies).Mode;
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ExpandAllGraphEpics());
+        mode.SelectTask("child-399");
+
+        // act
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        _ = mode.Render(20, 4);
+
+        // assert
+        Assert.Equal("epic", mode.SelectedTaskId);
+        Assert.Equal("epic", mode.CanvasView.Layout.FindNode(mode.SelectedTaskId!)?.Id);
+        Assert.Equal("epic", mode.CanvasView.SelectedTaskId);
+    }
+
     private static (GraphMode Mode, Mock<ITaskStore> Store) CreateMode(
         List<TaskItem> tasks,
         List<TaskDependency>? dependencies = null)

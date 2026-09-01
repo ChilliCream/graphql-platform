@@ -187,7 +187,16 @@ internal sealed class GraphMode : ITuiMode
     {
         SynchronizeSelectionFromActiveProjection();
         _showCanvas = !_showCanvas;
-        SelectVisibleTask(_selectedTaskId);
+
+        if (_showCanvas)
+        {
+            _selectedTaskId = ResolveVisibleSelection(_selectedTaskId, Reduce());
+            _canvasView.SelectTask(_selectedTaskId);
+        }
+        else
+        {
+            _treeView.SelectTask(_selectedTaskId);
+        }
     }
 
     private void ToggleClosed()
@@ -212,7 +221,6 @@ internal sealed class GraphMode : ITuiMode
                 _ => false
             };
             _selectedTaskId = _canvasView.SelectedTaskId;
-            _treeView.SelectTask(_selectedTaskId);
             return;
         }
 
@@ -220,12 +228,14 @@ internal sealed class GraphMode : ITuiMode
         {
             case CursorDirection.Up:
                 _treeView.MoveSelection(-1);
-                SelectVisibleTask(_treeView.SelectedTaskId);
+                _selectedTaskId = _treeView.SelectedTaskId;
+                _canvasView.SelectTask(_selectedTaskId);
                 break;
 
             case CursorDirection.Down:
                 _treeView.MoveSelection(1);
-                SelectVisibleTask(_treeView.SelectedTaskId);
+                _selectedTaskId = _treeView.SelectedTaskId;
+                _canvasView.SelectTask(_selectedTaskId);
                 break;
 
             case CursorDirection.Left:
@@ -240,28 +250,34 @@ internal sealed class GraphMode : ITuiMode
 
     private void CollapseSelected()
     {
-        if (SelectedEpic() is not { } epic)
+        if (_showCanvas)
         {
+            CollapseCanvasSelected();
             return;
         }
 
-        _collapsedEpicIds.Add(epic.Id);
-        _treeView.SelectTask(epic.Id);
-        _treeView.CollapseSelected();
-        UpdateCanvasModel(epic.Id);
+        if (_treeView.CollapseSelected())
+        {
+            var epicId = _treeView.SelectedTaskId!;
+            _collapsedEpicIds.Add(epicId);
+            UpdateCanvasModel(epicId);
+        }
     }
 
     private void ExpandSelected()
     {
-        if (SelectedEpic() is not { } epic)
+        if (_showCanvas)
         {
+            ExpandCanvasSelected();
             return;
         }
 
-        _collapsedEpicIds.Remove(epic.Id);
-        _treeView.SelectTask(epic.Id);
-        _treeView.ExpandSelected();
-        UpdateCanvasModel(epic.Id);
+        if (_treeView.ExpandSelected())
+        {
+            var epicId = _treeView.SelectedTaskId!;
+            _collapsedEpicIds.Remove(epicId);
+            UpdateCanvasModel(epicId);
+        }
     }
 
     private void CollapseAll()
@@ -301,11 +317,6 @@ internal sealed class GraphMode : ITuiMode
                 CollapsedEpicIds = _collapsedEpicIds
             });
 
-    private GraphNode? SelectedEpic()
-        => _selectedTaskId is null
-            ? null
-            : _sourceModel.Nodes.FirstOrDefault(t => t.Id == _selectedTaskId && t.IsEpic);
-
     private bool IsVisible(GraphNode node)
         => !_hideClosed || !TaskStates.IsTerminal(node.Status);
 
@@ -321,7 +332,7 @@ internal sealed class GraphMode : ITuiMode
 
         if (requestedSelection is not null)
         {
-            var representativeId = FindCollapsedRepresentative(requestedSelection);
+            var representativeId = FindCollapsedRepresentative(requestedSelection, reduced);
             if (reduced.Nodes.Any(t => t.Id == representativeId))
             {
                 return representativeId;
@@ -331,28 +342,29 @@ internal sealed class GraphMode : ITuiMode
         return reduced.Nodes.FirstOrDefault()?.Id;
     }
 
-    private string FindCollapsedRepresentative(string id)
+    private string FindCollapsedRepresentative(string id, GraphModel reduced)
     {
-        var parentByChild = _sourceModel.Edges
-            .Where(t => t.Kind == GraphEdgeKind.ParentChild)
-            .OrderBy(t => t.FromId, StringComparer.Ordinal)
-            .ThenBy(t => t.ToId, StringComparer.Ordinal)
-            .GroupBy(t => t.ToId, StringComparer.Ordinal)
-            .ToDictionary(t => t.Key, t => t.First().FromId, StringComparer.Ordinal);
+        var parentByChild = GraphParentMap.Build(VisibleModel());
+        var reducedIds = reduced.Nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
         var current = id;
-        var representative = id;
         var visited = new HashSet<string>(StringComparer.Ordinal);
 
-        while (visited.Add(current) && parentByChild.TryGetValue(current, out var parentId))
+        while (true)
         {
-            current = parentId;
-            if (_collapsedEpicIds.Contains(current))
+            if (reducedIds.Contains(current))
             {
-                representative = current;
+                return current;
             }
+
+            if (!visited.Add(current) || !parentByChild.TryGetValue(current, out var parentId))
+            {
+                break;
+            }
+
+            current = parentId;
         }
 
-        return representative;
+        return id;
     }
 
     private void SynchronizeSelectionFromActiveProjection()
@@ -367,5 +379,87 @@ internal sealed class GraphMode : ITuiMode
         _selectedTaskId = taskId;
         _treeView.SelectTask(taskId);
         _canvasView.SelectTask(taskId);
+    }
+
+    private void CollapseCanvasSelected()
+    {
+        var epic = FindContainingEpic(_selectedTaskId);
+
+        if (epic is null)
+        {
+            return;
+        }
+
+        _treeView.SelectTask(epic.Id);
+
+        if (_treeView.CollapseSelected())
+        {
+            _collapsedEpicIds.Add(epic.Id);
+            UpdateCanvasModel(epic.Id);
+        }
+    }
+
+    private void ExpandCanvasSelected()
+    {
+        if (_selectedTaskId is not { } epicId
+            || !_collapsedEpicIds.Contains(epicId)
+            || _sourceModel.Nodes.FirstOrDefault(t => t.Id == epicId) is not { IsEpic: true })
+        {
+            return;
+        }
+
+        _treeView.SelectTask(epicId);
+
+        if (_treeView.ExpandSelected())
+        {
+            _collapsedEpicIds.Remove(epicId);
+            UpdateCanvasModel(epicId);
+        }
+    }
+
+    private GraphNode? FindContainingEpic(string? taskId)
+    {
+        if (taskId is null)
+        {
+            return null;
+        }
+
+        var visibleModel = VisibleModel();
+        var nodesById = visibleModel.Nodes.ToDictionary(t => t.Id, StringComparer.Ordinal);
+
+        if (!nodesById.TryGetValue(taskId, out var current))
+        {
+            return null;
+        }
+
+        if (current.IsEpic)
+        {
+            return current;
+        }
+
+        var parentByChild = GraphParentMap.Build(visibleModel);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+
+        while (visited.Add(current.Id) && parentByChild.TryGetValue(current.Id, out var parentId))
+        {
+            current = nodesById[parentId];
+
+            if (current.IsEpic)
+            {
+                return current;
+            }
+        }
+
+        return null;
+    }
+
+    private GraphModel VisibleModel()
+    {
+        var nodes = _sourceModel.Nodes.Where(IsVisible).ToArray();
+        var ids = nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
+        var edges = _sourceModel.Edges
+            .Where(t => ids.Contains(t.FromId) && ids.Contains(t.ToId))
+            .ToArray();
+        return new GraphModel(nodes, edges);
     }
 }

@@ -15,8 +15,7 @@ internal static class GraphHierarchy
         ArgumentNullException.ThrowIfNull(model);
 
         var nodesById = model.Nodes.ToDictionary(t => t.Id, StringComparer.Ordinal);
-        var parentsByChild = BuildParents(model.Edges, nodesById);
-        BreakCycles(parentsByChild, nodesById);
+        var parentsByChild = GraphParentMap.Build(model);
 
         var childrenByParent = new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
@@ -48,80 +47,6 @@ internal static class GraphHierarchy
         {
             var childIds = childrenByParent.GetValueOrDefault(id) ?? [];
             return new GraphHierarchyNode(nodesById[id], childIds.Select(BuildNode).ToArray());
-        }
-    }
-
-    private static Dictionary<string, string> BuildParents(
-        IReadOnlyList<GraphEdge> edges,
-        IReadOnlyDictionary<string, GraphNode> nodesById)
-    {
-        var candidatesByChild = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-
-        foreach (var edge in edges)
-        {
-            if (edge.Kind != GraphEdgeKind.ParentChild
-                || edge.FromId == edge.ToId
-                || !nodesById.ContainsKey(edge.FromId)
-                || !nodesById.ContainsKey(edge.ToId))
-            {
-                continue;
-            }
-
-            if (!candidatesByChild.TryGetValue(edge.ToId, out var parentIds))
-            {
-                parentIds = new HashSet<string>(StringComparer.Ordinal);
-                candidatesByChild[edge.ToId] = parentIds;
-            }
-
-            parentIds.Add(edge.FromId);
-        }
-
-        var parentsByChild = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        foreach (var (childId, parentIds) in candidatesByChild)
-        {
-            parentsByChild[childId] = parentIds
-                .OrderBy(id => nodesById[id].Priority)
-                .ThenBy(id => id, StringComparer.Ordinal)
-                .First();
-        }
-
-        return parentsByChild;
-    }
-
-    private static void BreakCycles(
-        Dictionary<string, string> parentsByChild,
-        IReadOnlyDictionary<string, GraphNode> nodesById)
-    {
-        foreach (var startId in nodesById.Keys.OrderBy(id => nodesById[id].Priority).ThenBy(id => id, StringComparer.Ordinal))
-        {
-            var positions = new Dictionary<string, int>(StringComparer.Ordinal);
-            var path = new List<string>();
-            var currentId = startId;
-
-            while (true)
-            {
-                if (positions.TryGetValue(currentId, out var cycleStart))
-                {
-                    var rootId = path
-                        .Skip(cycleStart)
-                        .OrderBy(id => nodesById[id].Priority)
-                        .ThenBy(id => id, StringComparer.Ordinal)
-                        .First();
-                    parentsByChild.Remove(rootId);
-                    break;
-                }
-
-                positions[currentId] = path.Count;
-                path.Add(currentId);
-
-                if (!parentsByChild.TryGetValue(currentId, out var parentId))
-                {
-                    break;
-                }
-
-                currentId = parentId;
-            }
         }
     }
 
