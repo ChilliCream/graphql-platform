@@ -134,7 +134,7 @@ internal sealed class GraphCanvasView
                 IncludeParentChild = IncludeParentChild,
                 StyleOverride = edge => selectedTaskId is not null
                     && (edge.FromId == selectedTaskId || edge.ToId == selectedTaskId)
-                        ? ThemeTokens.GetStyle("selection.highlight")
+                        ? GraphEdgeStyles.Selected()
                         : (Style?)null
             });
         var nodesById = _model.Nodes.ToDictionary(t => t.Id, StringComparer.Ordinal);

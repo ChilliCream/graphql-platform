@@ -74,6 +74,68 @@ public sealed class GraphEdgeRouterTests
     }
 
     [Fact]
+    public void Route_Should_ApplyThemeStylesToEveryStrokeAndArrowhead_When_EdgesAreRendered()
+    {
+        // arrange
+        var normal = Edge("a", "b");
+        var reversed = Edge("c", "d");
+        var parentChild = Edge("e", "f", GraphEdgeKind.ParentChild);
+        var layout = Frame(
+            [
+                Node("a", 0, 0, 2, 1, 0, 0), Node("c", 0, 3, 2, 1, 0, 1), Node("e", 0, 6, 2, 1, 0, 2),
+                Node("b", 8, 0, 2, 1, 1, 0), Node("d", 8, 3, 2, 1, 1, 1), Node("f", 8, 6, 2, 1, 1, 2)
+            ],
+            [
+                Span(normal, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0)),
+                Span(reversed, 0, 1, 1, 1, new GraphLayoutPoint(0, 3), new GraphLayoutPoint(8, 3), reversed: true),
+                Span(parentChild, 0, 1, 2, 2, new GraphLayoutPoint(0, 6), new GraphLayoutPoint(8, 6))
+            ]);
+        var blocks = GraphEdgeStyles.Line;
+        var reversedBlocks = new Style(blocks.Foreground, blocks.Background, blocks.Decoration | Decoration.Dim);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout, new GraphEdgeRenderOptions { IncludeParentChild = true });
+        var styles = result.Routes
+            .GroupBy(route => route.Span.Edge)
+            .ToDictionary(
+                group => group.Key,
+                group => group.SelectMany(route => route.Points)
+                    .Select(point => result.Buffer.Get(point.X, point.Y).Style)
+                    .Distinct()
+                    .ToArray());
+
+        // assert
+        Assert.Equal([blocks], styles[normal]);
+        Assert.Equal([reversedBlocks], styles[reversed]);
+        Assert.Equal([blocks], styles[parentChild]);
+        Assert.NotEqual(Style.Plain.Foreground, styles[normal][0].Foreground);
+        Assert.NotEqual(styles[normal], styles[reversed]);
+    }
+
+    [Fact]
+    public void Route_Should_ApplyTheThemeLineStyleToSharedJunctions_When_DefaultEdgesOverlap()
+    {
+        // arrange
+        var blocks = Edge("a", "b");
+        var parentChild = Edge("a", "b", GraphEdgeKind.ParentChild);
+        var layout = Frame(
+            [Node("a", 0, 0, 2, 1, 0, 0), Node("b", 8, 0, 2, 3, 1, 0)],
+            [
+                Span(blocks, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0)),
+                Span(parentChild, 0, 1, 0, 0, new GraphLayoutPoint(0, 0), new GraphLayoutPoint(8, 0))
+            ]);
+
+        // act
+        var result = new GraphEdgeRouter().Route(layout, new GraphEdgeRenderOptions { IncludeParentChild = true });
+        var junction = result.Buffer.Get(3, 0);
+
+        // assert
+        Assert.Equal(2, junction.Owners.Count);
+        Assert.Equal(GraphEdgeStyles.Line, junction.Style);
+        Assert.Equal('┬', junction.Glyph);
+    }
+
+    [Fact]
     public void Route_Should_ApplyOverrideOnlyToCellsOwnedByTargetedEdge()
     {
         // arrange

@@ -235,6 +235,11 @@ public sealed class GraphCanvasViewTests
 
         // act
         var result = view.CreateRenderResult();
+        var selectedStyle = new Style(
+            GraphEdgeStyles.Line.Foreground,
+            ThemeTokens.GetStyle("selection.highlight").Background,
+            GraphEdgeStyles.Line.Decoration
+                | ThemeTokens.GetStyle("selection.highlight").Decoration);
         var styles = result.Routes
             .GroupBy(route => route.Span.Edge)
             .ToDictionary(
@@ -245,7 +250,7 @@ public sealed class GraphCanvasViewTests
                     .ToArray());
 
         // assert
-        Assert.Equal([ThemeTokens.GetStyle("selection.highlight")], styles[selectedEdge]);
+        Assert.Equal([selectedStyle], styles[selectedEdge]);
         Assert.Equal([ThemeTokens.GetStyle("board.column.border")], styles[unrelatedEdge]);
     }
 

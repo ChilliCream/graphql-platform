@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
-using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
@@ -11,9 +10,9 @@ internal sealed class GraphEdgeRenderOptions
 {
     public bool IncludeParentChild { get; init; }
 
-    public Style BlocksStyle { get; init; } = ThemeTokens.GetStyle("board.column.border");
+    public Style BlocksStyle { get; init; } = GraphEdgeStyles.Line;
 
-    public Style ParentChildStyle { get; init; } = ThemeTokens.GetStyle("detail.section.border");
+    public Style ParentChildStyle { get; init; } = GraphEdgeStyles.Line;
 
     public Func<GraphEdge, Style?>? StyleOverride { get; init; }
 }
@@ -599,7 +598,7 @@ internal sealed class GraphEdgeRouter
             ?? (span.Edge.Kind == GraphEdgeKind.Blocks ? options.BlocksStyle : options.ParentChildStyle);
         if (span.IsReversed)
         {
-            style = new Style(style.Foreground, style.Background, style.Decoration | Decoration.Dim);
+            style = GraphEdgeStyles.Dim(style);
         }
 
         return new EdgeContribution(
