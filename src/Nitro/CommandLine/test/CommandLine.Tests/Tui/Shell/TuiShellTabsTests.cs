@@ -811,6 +811,36 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public void Handle_Should_OpenInlineGraphSearchWithoutSwitchingToTasksSearchMode()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Find Graph Task");
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var search = new SearchMode(store);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
+            80,
+            24,
+            tasksTabIndex: 0,
+            searchMode: search,
+            store: store,
+            actor: "writer");
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+
+        // act
+        var handled = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('f', ConsoleKey.F)));
+        var output = RenderToText(shell);
+
+        // assert
+        Assert.True(handled);
+        Assert.True(graph.IsInputCapturing);
+        Assert.Contains("Search: f", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Results", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Handle_Should_KeepEachTabsDetailTaskIndependent_When_SwitchingTabs()
     {
         // arrange

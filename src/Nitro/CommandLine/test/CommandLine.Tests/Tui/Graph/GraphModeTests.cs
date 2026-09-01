@@ -449,9 +449,10 @@ public sealed class GraphModeTests
             [
                 Task("epic", priority: 0, type: TaskTypes.Epic),
                 Task("child", priority: 1, title: "find child"),
-                Task("other", priority: 2, title: "find other")
+                Task("child-two", priority: 2, title: "find child two"),
+                Task("other", priority: 3, title: "find other")
             ],
-            [Parent("epic", "child")]).Mode;
+            [Parent("epic", "child"), Parent("epic", "child-two")]).Mode;
         mode.OnEnter();
         mode.SelectTask("epic");
         mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
@@ -470,6 +471,36 @@ public sealed class GraphModeTests
         // assert
         Assert.Equal(("epic", "other", "epic"), (first, second, third));
         Assert.True(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void Search_Should_PreserveCanvasLayoutViewportAndHorizontalCycle_When_QueryChanges()
+    {
+        // arrange
+        var mode = CreateMode(
+            [
+                Task("origin", priority: 0, title: "find origin"),
+                Task("target-a", priority: 1),
+                Task("target-b", priority: 2)
+            ],
+            [Blocks("origin", "target-a"), Blocks("origin", "target-b")]).Mode;
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        mode.SelectTask("origin");
+        _ = mode.Render(12, 3);
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+        var layout = mode.CanvasView.Layout.Nodes.Select(t => (t.Id, t.X, t.Y)).ToArray();
+        var viewport = mode.CanvasView.Viewport;
+
+        // act
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Equal(layout, mode.CanvasView.Layout.Nodes.Select(t => (t.Id, t.X, t.Y)));
+        Assert.Equal(viewport, mode.CanvasView.Viewport);
+        Assert.Equal("target-b", mode.SelectedTaskId);
     }
 
     [Fact]
@@ -501,6 +532,117 @@ public sealed class GraphModeTests
         Assert.False(mode.IsInputCapturing);
     }
 
+    [Fact]
+    public void FilterForm_Should_KeepTreeCanvasSearchAndSelectionConsistentBehindClosedIntermediates()
+    {
+        // arrange
+        var labels = new[] { new TaskLabels("descendant", ["alpha"]) };
+        var mode = CreateMode(
+            [
+                Task("epic", priority: 0, type: TaskTypes.Epic),
+                Task("middle", priority: 1, status: TaskStates.Closed),
+                Task("descendant", priority: 2, title: "find descendant")
+            ],
+            [Parent("epic", "middle"), Parent("middle", "descendant")],
+            labels).Mode;
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        Type(mode, "alpha");
+        mode.HandleRawKey(TabKey());
+        Type(mode, "epic");
+        mode.HandleRawKey(SaveKey());
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        mode.HandleRawKey(EnterKey());
+
+        // assert
+        Assert.Equal([null, "descendant"], mode.TreeView.Rows.Select(t => t.TaskId));
+        Assert.Equal(["descendant"], mode.CanvasView.Layout.Nodes.Select(t => t.Id));
+        Assert.Equal("descendant", mode.SelectedTaskId);
+    }
+
+    [Fact]
+    public void FilterForm_Should_RetainManualCollapseAcrossApplyAndClear()
+    {
+        // arrange
+        var mode = CreateMode(
+            [Task("epic", type: TaskTypes.Epic), Task("child")],
+            [Parent("epic", "child")],
+            [new TaskLabels("child", ["alpha"])]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("epic");
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+
+        // act
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        Type(mode, "alpha");
+        mode.HandleRawKey(SaveKey());
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        mode.HandleRawKey(TabKey());
+        mode.HandleRawKey(TabKey());
+        mode.HandleRawKey(new ConsoleKeyInfo('\0', ConsoleKey.RightArrow, false, false, false));
+        mode.HandleRawKey(EnterKey());
+
+        // assert
+        Assert.Equal(["epic"], mode.CollapsedEpicIds);
+        Assert.Equal([null, "epic"], mode.TreeView.Rows.Select(t => t.TaskId));
+    }
+
+    [Fact]
+    public void FilterForm_Should_PrefillCancelAndShowTheActiveFilterNotice()
+    {
+        // arrange
+        var mode = CreateMode([Task("task")], taskLabels: [new TaskLabels("task", ["alpha"])]).Mode;
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        Type(mode, "alpha");
+        mode.HandleRawKey(SaveKey());
+        var filtered = Render(mode);
+
+        // act
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        var form = Render(mode);
+        mode.HandleRawKey(new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
+
+        // assert
+        Assert.Contains("Filters active", filtered, StringComparison.Ordinal);
+        Assert.Contains("alpha", form, StringComparison.Ordinal);
+        Assert.False(mode.IsInputCapturing);
+    }
+
+    [Fact]
+    public void RefreshRequested_Should_ReapplyActiveGraphSearchFiltersAndManualCollapse()
+    {
+        // arrange
+        var mode = CreateMode(
+            [Task("epic", type: TaskTypes.Epic), Task("child", title: "find child")],
+            [Parent("epic", "child")],
+            [new TaskLabels("child", ["alpha"])]).Mode;
+        mode.OnEnter();
+        mode.SelectTask("epic");
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
+        mode.Handle(new TuiMessage.FilterGraphRequested());
+        Type(mode, "alpha");
+        mode.HandleRawKey(TabKey());
+        Type(mode, "epic");
+        mode.HandleRawKey(SaveKey());
+        mode.Handle(new TuiMessage.ToggleGraphProjection());
+        mode.Handle(new TuiMessage.FocusSearchRequested());
+        Type(mode, "find");
+        mode.HandleRawKey(EnterKey());
+
+        // act
+        mode.Handle(new TuiMessage.RefreshRequested());
+
+        // assert
+        Assert.True(mode.IsCanvasActive && mode.HideClosed);
+        Assert.Equal(["child"], mode.CanvasView.Layout.Nodes.Select(t => t.Id));
+        Assert.Equal("child", mode.SelectedTaskId);
+        Assert.Equal(["epic"], mode.CollapsedEpicIds);
+    }
+
     private static (GraphMode Mode, Mock<ITaskStore> Store) CreateMode(
         List<TaskItem> tasks,
         List<TaskDependency>? dependencies = null,
@@ -527,6 +669,17 @@ public sealed class GraphModeTests
     }
 
     private static ConsoleKeyInfo EnterKey() => new('\r', ConsoleKey.Enter, false, false, false);
+
+    private static ConsoleKeyInfo TabKey() => new('\t', ConsoleKey.Tab, false, false, false);
+
+    private static ConsoleKeyInfo SaveKey() => new('s', ConsoleKey.S, false, false, true);
+
+    private static string Render(GraphMode mode)
+    {
+        var console = new TestConsole().Width(80).Height(20);
+        console.Write(mode.Render(80, 20));
+        return console.Output;
+    }
 
     private static TaskItem Task(
         string id,

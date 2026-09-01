@@ -166,6 +166,29 @@ public sealed class GraphCanvasViewTests
     }
 
     [Fact]
+    public void CreateRenderResult_Should_RenderContainedSearchHitsForSelectedCollapsedEpics_InBothNodeModes()
+    {
+        // arrange
+        var view = new GraphCanvasView(Model([Node("epic", hiddenChildCount: 3)]));
+        view.SelectTask("epic");
+        view.SetMatchIds([], new Dictionary<string, int>(StringComparer.Ordinal) { ["epic"] = 2 });
+
+        // act
+        var boxed = view.CreateRenderResult();
+        var boxedText = boxed.Buffer.ToText(boxed.Viewport);
+        view.ToggleCompact();
+        var compact = view.CreateRenderResult();
+        var compactText = compact.Buffer.ToText(compact.Viewport);
+        var node = view.Layout.FindNode("epic")!;
+
+        // assert
+        Assert.Contains("hits 2", boxedText, StringComparison.Ordinal);
+        Assert.Contains("hits 2", compactText, StringComparison.Ordinal);
+        Assert.Equal(ThemeTokens.GetStyle("selection.highlight").Background, compact.Buffer.Get(node.X, node.Y).Style.Background);
+        Assert.Equal(ThemeTokens.GetStyle("badge.type.question").Foreground, compact.Buffer.Get(node.X, node.Y).Style.Foreground);
+    }
+
+    [Fact]
     public void CreateRenderResult_Should_ApplySelectionAndTerminalDecoration_ToEveryClosedNodeSpan()
     {
         // arrange
