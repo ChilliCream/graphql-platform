@@ -2,7 +2,7 @@
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
   <PropertyGroup>
-    <TargetFrameworks>net11.0</TargetFrameworks>
+    <TargetFrameworks>$(LatestTargetFramework)</TargetFrameworks>
     <AssemblyName>HotChocolate.Demo.Catalog.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Demo.Catalog.Tests</RootNamespace>
   </PropertyGroup>

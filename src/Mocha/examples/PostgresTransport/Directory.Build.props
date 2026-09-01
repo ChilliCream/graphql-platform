@@ -1,8 +1,8 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
-    <TargetFrameworks>net11.0</TargetFrameworks>
+    <TargetFramework>$(LatestTargetFramework)</TargetFramework>
+    <TargetFrameworks>$(LatestTargetFramework)</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
