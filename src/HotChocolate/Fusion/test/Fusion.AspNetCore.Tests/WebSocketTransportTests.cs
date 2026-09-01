@@ -622,6 +622,8 @@ public sealed class WebSocketTransportTests : FusionTestBase
 
     private sealed class TestServerWebSocket(WebSocket inner) : WebSocket
     {
+        private const string TestHostWebSocketObjectName = "Microsoft.AspNetCore.TestHost.TestWebSocket";
+
         public override WebSocketCloseStatus? CloseStatus => inner.CloseStatus;
 
         public override string? CloseStatusDescription => inner.CloseStatusDescription;
@@ -679,13 +681,19 @@ public sealed class WebSocketTransportTests : FusionTestBase
             {
                 await inner.CloseAsync(closeStatus, statusDescription, cancellationToken);
             }
-            catch (Exception exception) when (
-                exception is ObjectDisposedException
-                    or WebSocketException
-                    or IOException { InnerException: ObjectDisposedException })
+            catch (Exception exception) when (IsKnownTestHostDisposalRace(exception))
             {
             }
         }
+
+        private bool IsKnownTestHostDisposalRace(Exception exception)
+            => exception is ObjectDisposedException { ObjectName: TestHostWebSocketObjectName }
+                && inner.State is WebSocketState.Closed or WebSocketState.Aborted
+                || exception is IOException
+                {
+                    Message: "The remote end closed the connection.",
+                    InnerException: ObjectDisposedException { ObjectName: TestHostWebSocketObjectName }
+                };
     }
 
     private sealed class ConnectionCaptureInterceptor(ConnectionCapture capture) : DefaultSocketSessionInterceptor
