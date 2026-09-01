@@ -1324,7 +1324,7 @@ internal sealed class TuiShell
             remaining -= elementWidth;
         }
 
-        return builder.Append(FooterEllipsis).ToString();
+        return builder.Append('…').ToString();
     }
 
     private static int GetFooterDisplayWidth(string value)
