@@ -1,3 +1,4 @@
+---------------
 {
   "message": "Operation \u0060Unnamed\u0060 has an empty selection set. Root types without selections are disallowed.",
   "locations": [
@@ -13,6 +14,8 @@
   }
 }
 ---------------
+
+---------------
 {
   "message": "Subscription operations must have exactly one root field.",
   "locations": [
@@ -25,3 +28,4 @@
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Single-Root-Field"
   }
 }
+---------------
