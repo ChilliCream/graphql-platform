@@ -206,7 +206,7 @@ function RimArc({
   );
 }
 
-const B6_YS = [3750, 3660, 3600, 3660, 3750] as const;
+const B6_YS = [3495, 3415, 3380, 3415, 3495] as const;
 const B7_XS = [70, 300, 512, 724, 954] as const;
 
 /**
@@ -238,7 +238,7 @@ function BeatAtmosphere() {
       {/* B2 - the clouds crowd behind "one screen, five calls"; a slate
           overlay turns their overlap to murk. */}
       <g>
-        {[380, 445, 512, 579, 644].map((x, i) => (
+        {[620, 685, 750, 815, 880].map((x, i) => (
           <Cloud
             key={`b2-${i}`}
             cx={x}
@@ -250,10 +250,10 @@ function BeatAtmosphere() {
           />
         ))}
         <ellipse
-          cx={512}
+          cx={750}
           cy={1060}
-          rx={140}
-          ry={44}
+          rx={160}
+          ry={72}
           fill="#3a3f4d"
           fillOpacity={0.5}
         />
@@ -346,22 +346,15 @@ function BeatAtmosphere() {
           fillOpacity={0.05}
         />
         {XS.map((x, i) => (
-          <Fragment key={`b6-${i}`}>
-            <Cloud
-              cx={x}
-              cy={B6_YS[i]}
-              color={CANON[i].color}
-              opacity={0.13}
-              scale={0.5}
-              drift={i}
-            />
-            <RimArc
-              cx={x}
-              cy={B6_YS[i] + 9 * 0.5}
-              rx={128 * 0.5}
-              ry={37 * 0.5}
-            />
-          </Fragment>
+          <Cloud
+            key={`b6-${i}`}
+            cx={x}
+            cy={B6_YS[i]}
+            color={CANON[i].color}
+            opacity={0.13}
+            scale={0.5}
+            drift={i}
+          />
         ))}
       </g>
 
@@ -419,16 +412,18 @@ function OneNightMap() {
           height={H}
         >
           <rect x="0" y="0" width={W} height={H} fill="#fff" />
-          {GAPS.map((g, i) => (
-            <rect
-              key={i}
-              x={g.x}
-              y={g.y}
-              width={g.w}
-              height={g.h}
-              fill="url(#on-gap)"
-            />
-          ))}
+          <g filter="url(#on-feather)">
+            {GAPS.map((g, i) => (
+              <rect
+                key={i}
+                x={g.x}
+                y={g.y}
+                width={g.w}
+                height={g.h}
+                fill="url(#on-gap)"
+              />
+            ))}
+          </g>
         </mask>
         <filter id="on-blur" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="13" />
@@ -450,6 +445,12 @@ function OneNightMap() {
           <stop offset="0" stopColor="#5eead4" stopOpacity="0.08" />
           <stop offset="1" stopColor="#5eead4" stopOpacity="0" />
         </radialGradient>
+        <filter id="on-rim" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.5" />
+        </filter>
+        <filter id="on-feather" x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="14" />
+        </filter>
       </defs>
 
       <rect x="0" y="0" width={W} height={H} fill="url(#on-sky)" />
@@ -458,8 +459,19 @@ function OneNightMap() {
       <g mask="url(#on-mask)" filter="url(#on-blur)">
         <BeatAtmosphere />
       </g>
+      <g mask="url(#on-mask)" filter="url(#on-rim)">
+        {XS.map((x, i) => (
+          <RimArc
+            key={i}
+            cx={x}
+            cy={B6_YS[i] + 9 * 0.5}
+            rx={128 * 0.5}
+            ry={37 * 0.5}
+          />
+        ))}
+      </g>
 
-      <NodeCaption x={482} y={1250} label="Merged in the client" toX={650} />
+      <NodeCaption x={482} y={1250} label="Merged in the client" toX={740} />
       <NodeCaption
         x={400}
         y={1730}
