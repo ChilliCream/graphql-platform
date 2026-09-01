@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tests.Tui;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;
+using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Spectre.Console;
@@ -119,6 +120,89 @@ public sealed class GraphCanvasViewTests
         // assert
         Assert.InRange(centerX, view.Viewport.X, view.Viewport.X + view.Viewport.Width - 1);
         Assert.InRange(centerY, view.Viewport.Y, view.Viewport.Y + view.Viewport.Height - 1);
+    }
+
+    [Fact]
+    public void Render_Should_AlignWaveCaptionsToLayerSpans_When_NodeModeChanges()
+    {
+        // arrange
+        var view = new GraphCanvasView(Model(
+            [Node("a"), Node("b"), Node("c")],
+            [Edge("a", "b"), Edge("b", "c")]));
+
+        // act
+        var boxedPositions = GetWaveCaptionPositions(Render(view, 120, 7), 3);
+        var boxedExpected = GetExpectedWaveCaptionPositions(view.Layout);
+        view.ToggleCompact();
+        var compactPositions = GetWaveCaptionPositions(Render(view, 120, 7), 3);
+        var compactExpected = GetExpectedWaveCaptionPositions(view.Layout);
+
+        // assert
+        Assert.Equal(boxedExpected, boxedPositions);
+        Assert.Equal(compactExpected, compactPositions);
+    }
+
+    [Fact]
+    public void Render_Should_KeepWaveHeaderPinned_When_SelectedNodeScrollsVertically()
+    {
+        // arrange
+        var view = new GraphCanvasView(Model([Node("a"), Node("b"), Node("c"), Node("d")]));
+        view.SelectTask("d");
+
+        // act
+        var output = Render(view, 40, 4);
+        var captionX = GetWaveCaptionPositions(output, 1)[0];
+        var expectedCaptionX = GetExpectedWaveCaptionPositions(view.Layout)[0];
+
+        // assert
+        Assert.Equal((true, expectedCaptionX), (view.Viewport.Y > 0, captionX));
+    }
+
+    [Fact]
+    public void Render_Should_ScrollWaveHeaderHorizontally_When_ViewportMovesHorizontally()
+    {
+        // arrange
+        var view = new GraphCanvasView(Model(
+            [Node("a"), Node("b"), Node("c")],
+            [Edge("a", "b"), Edge("b", "c")]));
+        view.SelectTask("c");
+
+        // act
+        var output = Render(view, 20, 4);
+        var captionX = GetWaveCaptionPositions(output, 3)[2];
+        var expectedCaptionX = GetExpectedWaveCaptionPositions(view.Layout)[2] - view.Viewport.X;
+
+        // assert
+        Assert.Equal((true, expectedCaptionX), (view.Viewport.X > 0, captionX));
+    }
+
+    [Fact]
+    public void CreateRenderResult_Should_AddLayerSeparatorsOnlyToEmptyChannelCells_When_RouteCrossesSeparator()
+    {
+        // arrange
+        var edge = Edge("source", "target");
+        var view = new GraphCanvasView(Model([Node("source"), Node("target")], [edge]));
+        view.SelectTask(null);
+        var layers = view.Layout.Nodes.GroupBy(node => node.Layer).OrderBy(group => group.Key).ToArray();
+        var leftRight = layers[0].Max(node => node.X + node.Width);
+        var rightX = layers[1].Min(node => node.X);
+        var separatorX = leftRight + ((rightX - leftRight) / 2);
+
+        // act
+        var result = view.CreateRenderResult();
+        var edgePoint = result.Routes.SelectMany(route => route.Points).First(point => point.X == separatorX);
+        var edgeCell = result.Buffer.Get(edgePoint.X, edgePoint.Y);
+        var separatorCell = Enumerable.Range(0, result.Buffer.Height)
+            .Select(y => result.Buffer.Get(separatorX, y))
+            .First(cell => cell.Glyph == '│' && cell.Owners.Count == 0);
+        var node = view.Layout.FindNode("source")!;
+
+        // assert
+        Assert.Equal((GraphEdgeStyles.Line, true), (edgeCell.Style, edgeCell.Owners.Contains(edge)));
+        Assert.Equal(
+            ('│', GraphEdgeStyles.Dim(GraphEdgeStyles.Line)),
+            (separatorCell.Glyph, separatorCell.Style));
+        Assert.Equal('┌', result.Buffer.Get(node.X, node.Y).Glyph);
     }
 
     [Fact]
@@ -383,6 +467,27 @@ public sealed class GraphCanvasViewTests
 
     private static GraphEdge Edge(string fromId, string toId)
         => new(fromId, toId, GraphEdgeKind.Blocks);
+
+    private static int[] GetExpectedWaveCaptionPositions(GraphLayoutResult layout)
+        => layout.Nodes
+            .GroupBy(node => node.Layer)
+            .OrderBy(group => group.Key)
+            .Select(group =>
+            {
+                var x = group.Min(node => node.X);
+                var right = group.Max(node => node.X + node.Width);
+                var captionLength = $"wave {group.Key + 1}".Length;
+                return x + ((right - x - captionLength) / 2);
+            })
+            .ToArray();
+
+    private static int[] GetWaveCaptionPositions(string output, int count)
+    {
+        var header = output.Split(Environment.NewLine, StringSplitOptions.None)[0];
+        return Enumerable.Range(1, count)
+            .Select(wave => header.IndexOf($"wave {wave}", StringComparison.Ordinal))
+            .ToArray();
+    }
 
     private static string Render(GraphCanvasView view, int width, int height, bool ansi = false)
     {

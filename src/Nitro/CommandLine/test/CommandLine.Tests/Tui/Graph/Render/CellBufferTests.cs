@@ -91,6 +91,28 @@ public sealed class CellBufferTests
         Assert.Equal(style, cell.Style);
     }
 
+    [Fact]
+    public void SetIfEmpty_Should_PreserveExplicitAndConnectedCells_When_TargetIsOccupied()
+    {
+        // arrange
+        var buffer = new CellBuffer(3, 1);
+        var explicitStyle = new Style(Color.Red);
+        var edgeStyle = new Style(Color.Blue);
+        buffer.Set(0, 0, ' ', explicitStyle);
+        buffer.Connect(1, 0, CanvasDirections.Left | CanvasDirections.Right, edgeStyle, new object());
+
+        // act
+        var explicitSet = buffer.SetIfEmpty(0, 0, '│');
+        var connectedSet = buffer.SetIfEmpty(1, 0, '│');
+        var emptySet = buffer.SetIfEmpty(2, 0, '│');
+
+        // assert
+        Assert.Equal((false, false, true), (explicitSet, connectedSet, emptySet));
+        Assert.Equal(
+            new[] { (' ', explicitStyle), ('─', edgeStyle), ('│', Style.Plain) },
+            Enumerable.Range(0, 3).Select(x => (buffer.Get(x, 0).Glyph, buffer.Get(x, 0).Style)).ToArray());
+    }
+
     private static void Write(CellBuffer buffer, string text, int y)
     {
         for (var x = 0; x < text.Length; x++)

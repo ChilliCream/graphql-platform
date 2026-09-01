@@ -40,6 +40,32 @@ internal sealed class CellBuffer
     }
 
     /// <summary>
+    /// Sets a cell only when it has no glyph, style, line directions, or owners.
+    /// </summary>
+    public bool SetIfEmpty(int x, int y, char glyph, Style? style = null)
+    {
+        if (!Contains(x, y))
+        {
+            return false;
+        }
+
+        ref var cell = ref GetState(x, y);
+        if (cell.HasExplicitGlyph
+            || cell.HasStyle
+            || cell.Directions != CanvasDirections.None
+            || cell.Owner is not null)
+        {
+            return false;
+        }
+
+        cell.Glyph = glyph;
+        cell.Style = style ?? Style.Plain;
+        cell.HasStyle = true;
+        cell.HasExplicitGlyph = true;
+        return true;
+    }
+
+    /// <summary>
     /// Adds line directions to a cell and associates the cell with an owner.
     /// </summary>
     public void Connect(

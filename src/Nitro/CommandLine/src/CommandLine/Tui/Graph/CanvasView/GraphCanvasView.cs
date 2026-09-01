@@ -155,6 +155,8 @@ internal sealed class GraphCanvasView
             }
         }
 
+        GraphWaveRenderer.ApplySeparators(result.Buffer, _layout);
+
         return result;
     }
 
@@ -172,14 +174,22 @@ internal sealed class GraphCanvasView
         var result = CreateRenderResult();
         var noticeHeight = _model.IsReduced ? 1 : 0;
         var footerHeight = height > noticeHeight ? 1 : 0;
-        var canvasHeight = Math.Max(0, height - noticeHeight - footerHeight);
+        var availableHeight = Math.Max(0, height - noticeHeight - footerHeight);
+        var headerHeight = result.Buffer.Width > 0 && result.Buffer.Height > 0 && availableHeight > 1 ? 1 : 0;
+        var canvasHeight = availableHeight - headerHeight;
         Viewport = CreateViewport(result.Buffer, width, canvasHeight);
-        var rows = new List<IRenderable>(noticeHeight + footerHeight + 1);
+        var rows = new List<IRenderable>(noticeHeight + headerHeight + footerHeight + 1);
 
         if (_model.IsReduced)
         {
             var notice = GraphCanvasText.Truncate($"Graph reduced: {_model.HiddenNodeCount} nodes hidden", width);
             rows.Add(CreateLine(notice, ThemeTokens.GetStyle("toast.warn.border")));
+        }
+
+        if (headerHeight > 0)
+        {
+            var header = GraphWaveRenderer.CreateHeader(_layout, result.Buffer.Width);
+            rows.Add(header.Render(new CanvasViewport(Viewport.X, 0, Viewport.Width, 1)));
         }
 
         if (canvasHeight > 0)
