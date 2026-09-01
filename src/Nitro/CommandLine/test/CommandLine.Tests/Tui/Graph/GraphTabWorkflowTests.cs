@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
+using ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
@@ -12,59 +13,142 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph;
 public sealed class GraphTabWorkflowTests
 {
     [Fact]
-    public void GraphTab_Should_OpenWithCollapsedEpicsAndClosedTasksHidden_When_WorkspaceIsLarge()
+    public void GraphTab_Should_OpenTreeWithCollapsedEpicsAndClosedTasksHidden_When_EnteredFromTasks()
     {
         // arrange
-        var store = CreateWorkspace();
+        var store = CreateLargeGraphWorkspace();
         var graph = new GraphMode(new GraphDataLoader(store));
-        var shell = CreateShell(store, graph);
-        EnterGraphTab(shell);
+        var shell = CreateGraphShell(store, graph);
 
         // act
-        var rows = graph.TreeView.Rows;
+        var switched = EnterGraphTab(shell);
+        var output = RenderToText(shell);
 
         // assert
+        Assert.True(switched);
+        Assert.Equal((false, true), (graph.IsCanvasActive, graph.HideClosed));
+        Assert.Equal(
+            [null, "epic-root", "cycle-a", "cycle-b", "top-level-open", "orphan-selected"],
+            graph.TreeView.Rows.Select(row => row.TaskId));
         Assert.Equal(["epic-nested", "epic-root"], graph.CollapsedEpicIds.Order(StringComparer.Ordinal));
-        Assert.Collection(
-            rows,
-            row => Assert.Null(row.TaskId),
-            row => Assert.Equal("epic-root", row.TaskId),
-            row => Assert.Equal("orphan-selected", row.TaskId));
+        DescribeTreeOutput(graph, output).MatchInlineSnapshot(
+            "tree\n<root>\nepic-root\ncycle-a\ncycle-b\ntop-level-open\norphan-selected\nactive-tab: [G]raph");
     }
 
     [Fact]
-    public void GraphTab_Should_PreserveSelectionAndCanvasViewport_When_ProjectionRefreshAndDetailRoundTrip()
+    public void GraphTab_Should_RenderCycleEdgesWhenEpicsAreCollapsed_InCanvas()
     {
         // arrange
-        var store = CreateWorkspace();
+        var store = CreateLargeGraphWorkspace();
         var graph = new GraphMode(new GraphDataLoader(store));
-        var shell = CreateShell(store, graph);
+        var shell = CreateGraphShell(store, graph);
         EnterGraphTab(shell);
-        graph.SelectTask("orphan-selected");
-        shell.Handle(Key('v', ConsoleKey.V));
-        _ = RenderToText(shell, width: 60);
 
         // act
         shell.Handle(Key('v', ConsoleKey.V));
-        var treeSelection = graph.SelectedTaskId;
-        shell.Handle(Key('v', ConsoleKey.V));
-        store.Tasks["layout-seed"] = Task("layout-seed", -1, title: "Seeded relayout task");
-        shell.Handle(new TuiEvent.DataChangedEvent());
-        var refreshedSelection = graph.SelectedTaskId;
-        _ = RenderToText(shell, width: 60);
-        var expectedDetailResume = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
-        var opened = shell.Handle(Key('\r', ConsoleKey.Enter));
-        var detail = RenderToText(shell, width: 60);
-        var closed = shell.Handle(Key('\x1b', ConsoleKey.Escape));
-        _ = RenderToText(shell, width: 60);
-        var actualDetailResume = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
+        var output = RenderToText(shell);
+        var footer = GraphRenderFooter.CreateText(graph.CanvasView.CreateRenderResult());
 
         // assert
-        Assert.Equal("orphan-selected", treeSelection);
-        Assert.Equal("orphan-selected", refreshedSelection);
-        Assert.True(opened && closed);
-        Assert.Contains("Selected orphan task", detail, StringComparison.Ordinal);
-        Assert.Equal(expectedDetailResume, actualDetailResume);
+        Assert.Equal(
+            ["cycle-a", "cycle-b", "epic-root", "orphan-selected", "top-level-open"],
+            graph.CanvasView.Layout.Nodes.Select(node => node.Id).Order(StringComparer.Ordinal));
+        Assert.Equal(1, graph.CanvasView.Layout.ReversedEdgeCount);
+        DescribeCanvasOutput(graph, output, footer).MatchInlineSnapshot(
+            "canvas\ncycle-a\ncycle-b\nepic-root\norphan-selected\ntop-level-open\nnodes: 5  edges: 2  reversed: 1\ncanvas-footer: reversed: 1");
+    }
+
+    [Fact]
+    public void GraphTab_Should_RetainSelectionAndReloadCanvas_When_RefreshIsPressedAfterStoreChanges()
+    {
+        // arrange
+        var store = CreateRefreshWorkspace();
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = CreateGraphShell(store, graph);
+        EnterGraphTab(shell);
+        shell.Handle(Key('v', ConsoleKey.V));
+        graph.SelectTask("orphan-selected");
+        _ = RenderToText(shell, width: 48);
+        store.Tasks["layout-seed"] = Task("layout-seed", -1, title: "Seeded relayout task");
+
+        // act
+        var refreshed = shell.Handle(Key('r', ConsoleKey.R));
+        _ = RenderToText(shell, width: 48);
+
+        // assert
+        Assert.True(refreshed);
+        Assert.Equal(
+            ["layout-seed", "orphan-selected", "refresh-source", "refresh-target"],
+            graph.CanvasView.Layout.Nodes.Select(node => node.Id).Order(StringComparer.Ordinal));
+        Assert.Equal("orphan-selected", graph.SelectedTaskId);
+    }
+
+    [Fact]
+    public void GraphTab_Should_RestoreCanvasViewport_When_DetailIsClosed()
+    {
+        // arrange
+        var store = CreateDetailWorkspace();
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = CreateGraphShell(store, graph, width: 40, height: 8);
+        EnterGraphTab(shell);
+        shell.Handle(Key('v', ConsoleKey.V));
+        graph.SelectTask("orphan-selected");
+        _ = RenderToText(shell, width: 40);
+        var before = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
+
+        // act
+        var opened = shell.Handle(Key('\r', ConsoleKey.Enter));
+        var detail = RenderToText(shell, width: 40);
+        shell.Handle(Key('\x1b', ConsoleKey.Escape));
+        var resumed = RenderToText(shell, width: 40);
+        var after = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
+
+        // assert
+        Assert.True(opened);
+        Assert.True(before.Viewport.X > 0 || before.Viewport.Y > 0);
+        Assert.Equal(before, after);
+        new[] { DescribeDetailOutput(detail), DescribeCanvasResume(graph, resumed) }.MatchInlineSnapshots(
+            [
+                "detail\nSelected orphan task",
+                "canvas-resumed\norphan-selected\nnodes:"
+            ]);
+    }
+
+    [Fact]
+    public void BoardTab_Should_RestoreBoardOutputAndSelection_When_DetailIsClosed()
+    {
+        // arrange
+        var store = CreateBoardWorkspace();
+        var board = new BoardMode(
+            new BoardDataLoader(store, TimeProvider.System),
+            [new BoardView
+            {
+                Name = "Open",
+                Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
+            }]);
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = new TuiShell(
+            [CreateTab("Tasks", 'T', board), CreateTab("Graph", 'G', graph)],
+            80,
+            24,
+            store: store,
+            actor: "tester");
+        board.SelectTask("board-selected");
+
+        // act
+        var opened = shell.Handle(Key('\r', ConsoleKey.Enter));
+        var detail = RenderToText(shell);
+        shell.Handle(Key('\x1b', ConsoleKey.Escape));
+        var boardOutput = RenderToText(shell);
+
+        // assert
+        Assert.True(opened);
+        Assert.Equal("board-selected", board.SelectedTaskId);
+        new[] { DescribeBoardDetailOutput(detail), DescribeBoardOutput(boardOutput) }.MatchInlineSnapshots(
+            [
+                "detail\nBoard selected task",
+                "board\nOpen\nBoard selected task\nBoard-only companion"
+            ]);
     }
 
     [Fact]
@@ -80,7 +164,7 @@ public sealed class GraphTabWorkflowTests
         }
 
         var graph = new GraphMode(new GraphDataLoader(store));
-        var shell = CreateShell(store, graph);
+        var shell = CreateGraphShell(store, graph);
         EnterGraphTab(shell);
         shell.Handle(Key('v', ConsoleKey.V));
 
@@ -92,44 +176,11 @@ public sealed class GraphTabWorkflowTests
         Assert.True(graph.CanvasView.Layout.Nodes.Count <= GraphReductionOptions.VisibleNodeCap);
     }
 
-    [Fact]
-    public void BoardTab_Should_RestoreBoardDetail_When_GraphTabIsAlsoHosted()
-    {
-        // arrange
-        var store = CreateWorkspace();
-        var board = new BoardMode(
-            new BoardDataLoader(store, TimeProvider.System),
-            [new BoardView
-            {
-                Name = "Open",
-                Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
-            }]);
-        var graph = new GraphMode(new GraphDataLoader(store));
-        var shell = new TuiShell(
-            [CreateTab("Tasks", 'T', board), CreateTab("Graph", 'G', graph)],
-            80,
-            24,
-            store: store,
-            actor: "tester");
-        board.SelectTask("orphan-selected");
-
-        // act
-        var opened = shell.Handle(Key('\r', ConsoleKey.Enter));
-        var detail = RenderToText(shell);
-        var closed = shell.Handle(Key('\x1b', ConsoleKey.Escape));
-        var boardOutput = RenderToText(shell);
-
-        // assert
-        Assert.True(opened && closed);
-        Assert.Contains("Selected orphan task", detail, StringComparison.Ordinal);
-        Assert.Contains("Selected orphan task", boardOutput, StringComparison.Ordinal);
-    }
-
-    private static TuiShell CreateShell(FakeTaskStore store, GraphMode graph)
+    private static TuiShell CreateGraphShell(FakeTaskStore store, GraphMode graph, int width = 80, int height = 24)
         => new(
             [CreateTab("Tasks", 'T', new FakeTuiMode()), CreateTab("Graph", 'G', graph)],
-            80,
-            24,
+            width,
+            height,
             store: store,
             actor: "tester");
 
@@ -139,7 +190,7 @@ public sealed class GraphTabWorkflowTests
     private static TuiEvent.KeyEvent Key(char keyChar, ConsoleKey key)
         => new(new ConsoleKeyInfo(keyChar, key, false, false, false));
 
-    private static void EnterGraphTab(TuiShell shell)
+    private static bool EnterGraphTab(TuiShell shell)
         => shell.Handle(new TuiEvent.KeyEvent(new ConsoleKeyInfo('G', ConsoleKey.G, true, false, false)));
 
     private static string RenderToText(TuiShell shell, int width = 80)
@@ -149,7 +200,34 @@ public sealed class GraphTabWorkflowTests
         return console.Output;
     }
 
-    private static FakeTaskStore CreateWorkspace()
+    private static string DescribeTreeOutput(GraphMode graph, string output)
+        => $"tree\n{string.Join('\n', graph.TreeView.Rows.Select(row => row.TaskId ?? "<root>"))}\nactive-tab: {RenderedEvidence(output, "[G]raph")}";
+
+    private static string DescribeCanvasOutput(GraphMode graph, string output, string footer)
+        => $"canvas\n{string.Join('\n', graph.CanvasView.Layout.Nodes.Select(node => node.Id).Order(StringComparer.Ordinal))}\n{DescribeFooter(footer)}\ncanvas-footer: {RenderedEvidence(output, "reversed: 1")}";
+
+    private static string DescribeDetailOutput(string output)
+        => $"detail\n{RenderedEvidence(output, "Selected orphan task")}";
+
+    private static string DescribeCanvasResume(GraphMode graph, string output)
+        => $"canvas-resumed\n{graph.SelectedTaskId}\n{RenderedEvidence(output, "nodes:")}";
+
+    private static string DescribeBoardDetailOutput(string output)
+        => $"detail\n{RenderedEvidence(output, "Board selected task")}";
+
+    private static string DescribeBoardOutput(string output)
+        => $"board\n{RenderedEvidence(output, "Open")}\n{RenderedEvidence(output, "Board selected task")}\n{RenderedEvidence(output, "Board-only companion")}";
+
+    private static string RenderedEvidence(string output, string marker)
+        => output.Contains(marker, StringComparison.Ordinal) ? marker : $"missing: {marker}";
+
+    private static string DescribeFooter(string footer)
+    {
+        var reversed = footer[(footer.LastIndexOf("reversed:", StringComparison.Ordinal))..];
+        return $"nodes: 5  edges: 2  {reversed}";
+    }
+
+    private static FakeTaskStore CreateLargeGraphWorkspace()
     {
         var store = new FakeTaskStore();
         store.Tasks["epic-root"] = Task("epic-root", 0, TaskTypes.Epic, "Root epic");
@@ -158,12 +236,12 @@ public sealed class GraphTabWorkflowTests
         store.Tasks["closed-child"] = Task("closed-child", 3, title: "Closed child", status: TaskStates.Closed);
         store.Tasks["cycle-a"] = Task("cycle-a", 4, title: "Cycle A");
         store.Tasks["cycle-b"] = Task("cycle-b", 5, title: "Cycle B");
-        store.Tasks["orphan-selected"] = Task("orphan-selected", 6, title: "Selected orphan task");
+        store.Tasks["top-level-open"] = Task("top-level-open", 6, title: "Top-level open task");
+        store.Tasks["top-level-closed"] = Task("top-level-closed", 7, title: "Top-level closed task", status: TaskStates.Closed);
+        store.Tasks["orphan-selected"] = Task("orphan-selected", 8, title: "Selected orphan task");
         store.DependencyEdges.Add(Parent("epic-root", "epic-nested"));
         store.DependencyEdges.Add(Parent("epic-nested", "nested-child"));
         store.DependencyEdges.Add(Parent("epic-root", "closed-child"));
-        store.DependencyEdges.Add(Parent("epic-root", "cycle-a"));
-        store.DependencyEdges.Add(Parent("epic-root", "cycle-b"));
         store.DependencyEdges.Add(Blocks("cycle-a", "cycle-b"));
         store.DependencyEdges.Add(Blocks("cycle-b", "cycle-a"));
 
@@ -174,6 +252,37 @@ public sealed class GraphTabWorkflowTests
             store.DependencyEdges.Add(Parent("epic-root", id));
         }
 
+        return store;
+    }
+
+    private static FakeTaskStore CreateRefreshWorkspace()
+    {
+        var store = new FakeTaskStore();
+        store.Tasks["refresh-source"] = Task("refresh-source", 0, title: "Refresh source");
+        store.Tasks["refresh-target"] = Task("refresh-target", 1, title: "Refresh target");
+        store.Tasks["orphan-selected"] = Task("orphan-selected", 2, title: "Selected orphan task");
+        store.DependencyEdges.Add(Blocks("refresh-source", "refresh-target"));
+        return store;
+    }
+
+    private static FakeTaskStore CreateDetailWorkspace()
+    {
+        var store = CreateRefreshWorkspace();
+
+        for (var index = 0; index < 12; index++)
+        {
+            var id = $"detail-{index:D2}";
+            store.Tasks[id] = Task(id, 10 + index, title: $"Detail task {index:D2}");
+        }
+
+        return store;
+    }
+
+    private static FakeTaskStore CreateBoardWorkspace()
+    {
+        var store = new FakeTaskStore();
+        store.Tasks["board-selected"] = Task("board-selected", 0, title: "Board selected task");
+        store.Tasks["board-companion"] = Task("board-companion", 1, title: "Board-only companion");
         return store;
     }
 
