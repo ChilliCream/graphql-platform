@@ -57,6 +57,14 @@ public sealed class TuiShellTabsTests
         LastSeenAt = DateTimeOffset.UnixEpoch
     };
 
+    private static TaskDependency Blocks(string blockerId, string dependentId) => new()
+    {
+        TaskId = dependentId,
+        DependsOnId = blockerId,
+        Type = TaskDependencyTypes.Blocks,
+        CreatedAt = DateTimeOffset.UnixEpoch
+    };
+
     [Fact]
     public void Constructor_Should_CallOnEnter_OnEveryHostedTab_NotOnlyTheActiveOne()
     {
@@ -691,8 +699,26 @@ public sealed class TuiShellTabsTests
         Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public void Handle_Should_KeepGraphDetailReadOnly_When_TaskMutationGesturesPressed()
+    [Theory]
+    [InlineData('e', ConsoleKey.E, ConsoleModifiers.None, "writer")]
+    [InlineData('x', ConsoleKey.X, ConsoleModifiers.None, "writer")]
+    [InlineData('X', ConsoleKey.X, ConsoleModifiers.Shift, "writer")]
+    [InlineData('s', ConsoleKey.S, ConsoleModifiers.None, "writer")]
+    [InlineData('p', ConsoleKey.P, ConsoleModifiers.None, "writer")]
+    [InlineData('c', ConsoleKey.C, ConsoleModifiers.None, "writer")]
+    [InlineData('C', ConsoleKey.C, ConsoleModifiers.Shift, "writer")]
+    [InlineData('e', ConsoleKey.E, ConsoleModifiers.None, null)]
+    [InlineData('x', ConsoleKey.X, ConsoleModifiers.None, null)]
+    [InlineData('X', ConsoleKey.X, ConsoleModifiers.Shift, null)]
+    [InlineData('s', ConsoleKey.S, ConsoleModifiers.None, null)]
+    [InlineData('p', ConsoleKey.P, ConsoleModifiers.None, null)]
+    [InlineData('c', ConsoleKey.C, ConsoleModifiers.None, null)]
+    [InlineData('C', ConsoleKey.C, ConsoleModifiers.Shift, null)]
+    public void Handle_Should_KeepGraphDetailReadOnly_When_TaskMutationGesturePressed(
+        char keyChar,
+        ConsoleKey key,
+        ConsoleModifiers modifiers,
+        string? actor)
     {
         // arrange
         var store = new FakeTaskStore();
@@ -704,21 +730,84 @@ public sealed class TuiShellTabsTests
             24,
             tasksTabIndex: 0,
             store: store,
-            actor: "writer");
+            actor: actor);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
         var before = RenderToText(shell);
 
         // act
-        var editHandled = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
-        var closeHandled = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('x', ConsoleKey.X)));
+        var handled = shell.Handle(new TuiEvent.KeyEvent(KeyInfo(keyChar, key, modifiers)));
         var after = RenderToText(shell);
 
         // assert
-        Assert.False(editHandled || closeHandled);
+        Assert.False(handled);
         Assert.Equal(before, after);
-        Assert.Null(store.UpdatedId);
-        Assert.Null(store.ClosedIds);
+        Assert.False(store.HasRecordedWrites);
+    }
+
+    [Fact]
+    public void Handle_Should_ResumeGraphCanvasCycleWithoutReload_When_DetailClosed()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["origin"] = TaskItemBuilder.Create("origin");
+        store.Tasks["target-a"] = TaskItemBuilder.Create("target-a");
+        store.Tasks["target-b"] = TaskItemBuilder.Create("target-b");
+        store.DependencyEdges.Add(Blocks("origin", "target-a"));
+        store.DependencyEdges.Add(Blocks("origin", "target-b"));
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
+            80,
+            24,
+            tasksTabIndex: 0,
+            store: store,
+            actor: "writer");
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        graph.Handle(new TuiMessage.ToggleGraphProjection());
+        graph.SelectTask("origin");
+        graph.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+        var firstTarget = graph.SelectedTaskId;
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var queryCount = store.QueryTasksCallCount;
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
+        graph.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Equal("target-a", firstTarget);
+        Assert.Equal(queryCount, store.QueryTasksCallCount);
+        Assert.Equal("target-b", graph.SelectedTaskId);
+    }
+
+    [Fact]
+    public void Handle_Should_RefreshGraph_When_TabReactivatedAfterDetailResume()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["origin"] = TaskItemBuilder.Create("origin");
+        var graph = new GraphMode(new GraphDataLoader(store));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
+            80,
+            24,
+            tasksTabIndex: 0,
+            store: store,
+            actor: "writer");
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
+        var queryCount = store.QueryTasksCallCount;
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
+        store.Tasks["new-task"] = TaskItemBuilder.Create("new-task");
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
+
+        // assert
+        Assert.Equal(queryCount + 1, store.QueryTasksCallCount);
+        Assert.Contains(graph.TreeView.Rows, row => row.TaskId == "new-task");
     }
 
     [Fact]

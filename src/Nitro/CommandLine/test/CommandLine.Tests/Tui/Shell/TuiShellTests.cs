@@ -428,15 +428,16 @@ public sealed class TuiShellTests
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var shell = CreateShellWithModes(board, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
-        Assert.Contains("Board task", RenderToText(shell));
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Refreshed Board task");
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+        var rendered = RenderToText(shell);
 
         // assert
         Assert.True(dirty);
         Assert.Equal("a-1", board.State.Columns[0].SelectedTaskId);
-        Assert.DoesNotContain("Detail view not available yet.", RenderToText(shell));
+        Assert.Contains("Refreshed Board task", rendered, StringComparison.Ordinal);
     }
 
     [Fact]

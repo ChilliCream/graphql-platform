@@ -87,6 +87,16 @@ internal sealed class TuiTab
     /// tab is already at its root).
     /// </summary>
     public bool PopMode(int width, int height)
+        => PopModeCore(width, height, enterMode: true);
+
+    /// <summary>
+    /// Pops and resizes the previously suspended mode without entering it again.
+    /// Returns <see langword="false"/> without effect when the stack is empty.
+    /// </summary>
+    public bool ResumeSuspendedMode(int width, int height)
+        => PopModeCore(width, height, enterMode: false);
+
+    private bool PopModeCore(int width, int height, bool enterMode)
     {
         if (_modeStack.Count == 0)
         {
@@ -95,7 +105,12 @@ internal sealed class TuiTab
 
         ActiveMode = _modeStack.Pop();
         ActiveMode.OnResize(width, height);
-        ActiveMode.OnEnter();
+
+        if (enterMode)
+        {
+            ActiveMode.OnEnter();
+        }
+
         return true;
     }
 

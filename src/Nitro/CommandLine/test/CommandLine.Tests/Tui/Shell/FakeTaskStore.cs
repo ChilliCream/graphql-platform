@@ -22,6 +22,10 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public Dictionary<string, string[]> Labels { get; } = [];
 
+    public List<TaskDependency> DependencyEdges { get; } = [];
+
+    public int QueryTasksCallCount { get; private set; }
+
     public IReadOnlyList<string>? ClosedIds { get; private set; }
 
     public string? ReopenedId { get; private set; }
@@ -36,13 +40,24 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public TaskCreation? CreationReceived { get; private set; }
 
+    public bool HasRecordedWrites =>
+        ClosedIds is not null
+        || ReopenedId is not null
+        || DeletedId is not null
+        || UpdatedId is not null
+        || CreationReceived is not null
+        || Actor is not null;
+
     public TaskCreationResult CreationResult { get; set; } = new() { Id = "a1" };
 
     public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(TaskFilter filter, CancellationToken cancellationToken)
-        => Task.FromResult<IReadOnlyList<TaskItem>>([.. Tasks.Values]);
+    {
+        QueryTasksCallCount++;
+        return Task.FromResult<IReadOnlyList<TaskItem>>([.. Tasks.Values]);
+    }
 
     public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(CancellationToken cancellationToken)
-        => Task.FromResult<IReadOnlyList<TaskDependency>>([]);
+        => Task.FromResult<IReadOnlyList<TaskDependency>>([.. DependencyEdges]);
 
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => Task.FromResult(Tasks.GetValueOrDefault(id));

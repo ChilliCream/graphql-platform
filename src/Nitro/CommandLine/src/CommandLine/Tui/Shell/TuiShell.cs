@@ -1090,7 +1090,18 @@ internal sealed class TuiShell
     /// Pops the active tab's own navigation stack back to its previous mode,
     /// so <see cref="TuiMessage.Back"/> never crosses tabs.
     /// </summary>
-    private void PopMode() => ActiveTab.PopMode(_width, ContentHeight);
+    private void PopMode()
+    {
+        if (ActiveTab.RootMode is GraphMode
+            && _detailModes.TryGetValue(ActiveTab, out var detailMode)
+            && ReferenceEquals(ActiveMode, detailMode))
+        {
+            ActiveTab.ResumeSuspendedMode(_width, ContentHeight);
+            return;
+        }
+
+        ActiveTab.PopMode(_width, ContentHeight);
+    }
 
     /// <summary>
     /// Builds the footer's hint list for whichever context currently owns
