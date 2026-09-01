@@ -35,6 +35,244 @@ public sealed partial class PolicyExecutionNodeTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_SkipDataBearingResidual_When_RequestGroupAllows()
+    {
+        // arrange
+        var requestPolicy = new SwitchableCountingPolicy("CanRequest");
+        var dataPolicy = new CountingRequirementPolicy("CanResource");
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanRequest"], ["CanResource"]], onDenied: ERROR)""",
+            requestPolicy,
+            dataPolicy);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal((1, 0), (requestPolicy.EvaluationCount, dataPolicy.EvaluationCount));
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EvaluateDataBearingResidual_When_RequestGroupDenies()
+    {
+        // arrange
+        var requestPolicy = new SwitchableCountingPolicy("CanRequest") { Deny = true };
+        var dataPolicy = new CountingRequirementPolicy("CanResource");
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanRequest"], ["CanResource"]], onDenied: ERROR)""",
+            requestPolicy,
+            dataPolicy);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ secret }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal((1, 1), (requestPolicy.EvaluationCount, dataPolicy.EvaluationCount));
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PrecreateRequestMemoForResidualOnlyMixedExpressionVariableBatch()
+    {
+        // arrange
+        var requestPolicy = new BlockingPolicy("CanRequest");
+        var dataPolicy = new CountingRequirementPolicy("CanResource");
+        var executor = await CreateExpressionExecutorAsync(
+            """@policy(names: [["CanRequest"], ["CanResource"]], onDenied: ERROR)""",
+            requestPolicy,
+            dataPolicy);
+        const string operation =
+            """
+            query($include: Boolean!) {
+              secret @include(if: $include)
+            }
+            """;
+        var plan = PlanOperation(Assert.IsType<FusionSchemaDefinition>(executor.Schema), operation);
+        using var variableValues = JsonDocument.Parse(
+            """[{"include":true},{"include":true}]""");
+        var request = VariableBatchRequest.FromSourceText(operation, variableValues);
+
+        // act
+        var execution = executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        await requestPolicy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
+        requestPolicy.Release.TrySetResult();
+        await using var result = await execution;
+
+        // assert
+        Assert.Empty(plan.PolicySlots);
+        Assert.Equal(["CanRequest"], plan.RequestPolicyNames);
+        Assert.Equal((1, 2), (requestPolicy.EvaluationCount, dataPolicy.EvaluationCount));
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        batch.Results.Select(current => current.ToJson()).ToArray().MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task EvaluateRequestPolicyAsync_Should_ShareInFlightRequestStateEvaluation()
+    {
+        // arrange
+        var policy = new BlockingPolicy();
+        IServiceProvider? requestServices = null;
+        var executor = await CreateExecutorAsync(
+            PolicyDenialBehavior.Null,
+            policy,
+            captureRequestServices: services => requestServices = services);
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        var plan = PlanOperation(schema, "{ secret }");
+        var requestContextPool = schema.Services.GetRequiredService<ObjectPool<PooledRequestContext>>();
+        var requestContext = requestContextPool.Get();
+        using var executionCts = new CancellationTokenSource();
+        var context = new OperationPlanContext(
+            schema.Services.GetRequiredService<INodeIdParser>(),
+            schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
+            schema.Services.GetRequiredService<IErrorHandler>());
+
+        try
+        {
+            requestContext.Initialize(
+                schema,
+                executor.Version,
+                OperationRequestBuilder.New().SetDocument("{ secret }").Build(),
+                requestIndex: 0,
+                requestServices: requestServices!,
+                requestAborted: CancellationToken.None);
+            requestContext.SetPolicySnapshot(schema.Policies.GetSnapshot());
+            PolicyRequestState.GetOrCreate(
+                requestContext,
+                plan,
+                schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>());
+            context.Initialize(
+                requestContext,
+                VariableValueCollection.Empty,
+                plan,
+                executionCts,
+                new MemoryArena());
+
+            // act
+            var first = context.EvaluateRequestPolicyAsync(
+                "CanReadSecret",
+                new ClaimsPrincipal(),
+                TestContext.Current.CancellationToken).AsTask();
+            await policy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
+            var second = context.EvaluateRequestPolicyAsync(
+                "CanReadSecret",
+                new ClaimsPrincipal(),
+                TestContext.Current.CancellationToken).AsTask();
+            policy.Release.TrySetResult();
+            var decisions = await Task.WhenAll(first, second);
+
+            // assert
+            Assert.Equal(1, policy.EvaluationCount);
+            Assert.Equal((true, true), (decisions[0].IsDenied, decisions[1].IsDenied));
+        }
+        finally
+        {
+            await context.DisposeAsync();
+            context.Destroy();
+            requestContextPool.Return(requestContext);
+        }
+    }
+
+    [Fact]
+    public async Task EvaluateRequestPolicyAsync_Should_CacheFailureInRequestState()
+    {
+        // arrange
+        var policy = new ThrowingPolicy();
+        IServiceProvider? requestServices = null;
+        var executor = await CreateExecutorAsync(
+            PolicyDenialBehavior.Null,
+            policy,
+            captureRequestServices: services => requestServices = services);
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        var plan = PlanOperation(schema, "{ secret }");
+        var requestContextPool = schema.Services.GetRequiredService<ObjectPool<PooledRequestContext>>();
+        var requestContext = requestContextPool.Get();
+        using var executionCts = new CancellationTokenSource();
+        var context = new OperationPlanContext(
+            schema.Services.GetRequiredService<INodeIdParser>(),
+            schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
+            schema.Services.GetRequiredService<IErrorHandler>());
+
+        try
+        {
+            requestContext.Initialize(
+                schema,
+                executor.Version,
+                OperationRequestBuilder.New().SetDocument("{ secret }").Build(),
+                requestIndex: 0,
+                requestServices: requestServices!,
+                requestAborted: CancellationToken.None);
+            requestContext.SetPolicySnapshot(schema.Policies.GetSnapshot());
+            PolicyRequestState.GetOrCreate(
+                requestContext,
+                plan,
+                schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>());
+            context.Initialize(
+                requestContext,
+                VariableValueCollection.Empty,
+                plan,
+                executionCts,
+                new MemoryArena());
+
+            // act
+            var firstError = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.EvaluateRequestPolicyAsync(
+                    "CanReadSecret",
+                    new ClaimsPrincipal(),
+                    TestContext.Current.CancellationToken).AsTask());
+            var secondError = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.EvaluateRequestPolicyAsync(
+                    "CanReadSecret",
+                    new ClaimsPrincipal(),
+                    TestContext.Current.CancellationToken).AsTask());
+
+            // assert
+            Assert.Equal(1, policy.EvaluationCount);
+            Assert.Same(firstError, secondError);
+        }
+        finally
+        {
+            await context.DisposeAsync();
+            context.Destroy();
+            requestContextPool.Return(requestContext);
+        }
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_EvaluateRequirementFreePolicyOnceAcrossVariableBatch()
     {
         // arrange
@@ -1993,8 +2231,8 @@ public sealed partial class PolicyExecutionNodeTests
                 plan,
                 executionCts,
                 new MemoryArena());
-            var first = await context.EvaluatePolicyOnceAsync(
-                context.ResolvePolicy("CanReadSecret"),
+            var first = await context.EvaluateRequestPolicyAsync(
+                "CanReadSecret",
                 new ClaimsPrincipal(),
                 TestContext.Current.CancellationToken);
             provider.Emit(new CountingAllowPolicy("CanReadSecret"));
@@ -2003,15 +2241,15 @@ public sealed partial class PolicyExecutionNodeTests
             // act
             var secondRound = await context.ReevaluatePolicySlotsAsync(
                 TestContext.Current.CancellationToken);
-            var second = await context.EvaluatePolicyOnceAsync(
-                context.ResolvePolicy("CanReadSecret"),
+            var second = await context.EvaluateRequestPolicyAsync(
+                "CanReadSecret",
                 new ClaimsPrincipal(),
                 TestContext.Current.CancellationToken);
             initialPolicy.Deny = true;
             var thirdRound = await context.ReevaluatePolicySlotsAsync(
                 TestContext.Current.CancellationToken);
-            var third = await context.EvaluatePolicyOnceAsync(
-                context.ResolvePolicy("CanReadSecret"),
+            var third = await context.EvaluateRequestPolicyAsync(
+                "CanReadSecret",
                 new ClaimsPrincipal(),
                 TestContext.Current.CancellationToken);
 

@@ -332,10 +332,10 @@ public sealed class PolicyExecutionNode : ExecutionNode
 
         if (resource is null)
         {
-            // A request-cacheable policy is evaluated at most once per request and its decision is
-            // reused across every application.
-            var decision = await context.EvaluatePolicyOnceAsync(
-                policy,
+            // Request-constant decisions are owned by the request memo, which also pins the
+            // policy instance shared by every execution context in the request.
+            var decision = await context.EvaluateRequestPolicyAsync(
+                name,
                 user,
                 cancellationToken)
                 .ConfigureAwait(false);

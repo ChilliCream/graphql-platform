@@ -60,7 +60,7 @@ public sealed record OperationPlan : IOperationPlan
             operation,
             incrementalPlans,
             _policyDenials);
-        _requestPolicyNames = CreateRequestPolicyNames(policyExpressions, policies);
+        _requestPolicyNames = CreateRequestPolicyNames(policies);
     }
 
     /// <summary>
@@ -194,7 +194,6 @@ public sealed record OperationPlan : IOperationPlan
     }
 
     private static ImmutableArray<string> CreateRequestPolicyNames(
-        ImmutableArray<PolicyConditionExpression> expressions,
         ImmutableArray<PolicyPlanEntry> policies)
     {
         var requestRequirementHash = PolicyPlanEntry.ComputeRequirementHash(null);
@@ -207,22 +206,7 @@ public sealed record OperationPlan : IOperationPlan
             }
         }
 
-        var result = ImmutableArray.CreateBuilder<string>();
-        foreach (var expression in expressions)
-        {
-            foreach (var group in expression.Groups)
-            {
-                foreach (var name in group)
-                {
-                    if (names.Contains(name))
-                    {
-                        result.Add(name);
-                    }
-                }
-            }
-        }
-
-        return [.. result.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+        return [.. names.Order(StringComparer.Ordinal)];
     }
 
     private static Dictionary<PolicyOccurrenceLocation, PolicyDenialLookupEntry[]>

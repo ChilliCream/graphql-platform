@@ -336,47 +336,6 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task EvaluatePolicyOnceAsync_Should_ShareInFlightEvaluation()
-    {
-        // arrange
-        var policy = new BlockingPolicy();
-        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
-        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
-        var services = schema.Services;
-        var context = new OperationPlanContext(
-            services.GetRequiredService<INodeIdParser>(),
-            services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
-            services.GetRequiredService<IErrorHandler>());
-        try
-        {
-            // act
-            var first = context.EvaluatePolicyOnceAsync(
-                policy,
-                new ClaimsPrincipal(),
-                TestContext.Current.CancellationToken).AsTask();
-            await policy.Started.Task.WaitAsync(TestContext.Current.CancellationToken);
-            var second = context.EvaluatePolicyOnceAsync(
-                policy,
-                new ClaimsPrincipal(),
-                TestContext.Current.CancellationToken).AsTask();
-
-            policy.Release.TrySetResult();
-            var decisions = await Task.WhenAll(first, second);
-
-            // assert
-            Assert.Equal(1, policy.EvaluationCount);
-            Assert.Collection(
-                decisions,
-                decision => Assert.True(decision.IsDenied),
-                decision => Assert.True(decision.IsDenied));
-        }
-        finally
-        {
-            context.Destroy();
-        }
-    }
-
-    [Fact]
     public async Task ExecuteAsync_Should_UsePinnedPolicy_When_ProviderReplacesItDuringRequest()
     {
         // arrange
@@ -411,42 +370,6 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
               }
             }
             """);
-    }
-
-    [Fact]
-    public async Task EvaluatePolicyOnceAsync_Should_CacheFailure()
-    {
-        // arrange
-        var policy = new ThrowingPolicy();
-        var executor = await CreateExecutorAsync(PolicyDenialBehavior.Null, policy);
-        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
-        var services = schema.Services;
-        var context = new OperationPlanContext(
-            services.GetRequiredService<INodeIdParser>(),
-            services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
-            services.GetRequiredService<IErrorHandler>());
-        try
-        {
-            // act
-            var firstError = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => context.EvaluatePolicyOnceAsync(
-                    policy,
-                    new ClaimsPrincipal(),
-                    TestContext.Current.CancellationToken).AsTask());
-            var secondError = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => context.EvaluatePolicyOnceAsync(
-                    policy,
-                    new ClaimsPrincipal(),
-                    TestContext.Current.CancellationToken).AsTask());
-
-            // assert
-            Assert.Equal(1, policy.EvaluationCount);
-            Assert.Same(firstError, secondError);
-        }
-        finally
-        {
-            context.Destroy();
-        }
     }
 
     [Fact]
@@ -2519,11 +2442,11 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
-    private sealed class BlockingPolicy : IPolicy
+    private sealed class BlockingPolicy(string name = "CanReadSecret") : IPolicy
     {
         private int _evaluationCount;
 
-        public string Name => "CanReadSecret";
+        public string Name => name;
 
         public PolicyRequirements Requirements => PolicyRequirements.Empty;
 

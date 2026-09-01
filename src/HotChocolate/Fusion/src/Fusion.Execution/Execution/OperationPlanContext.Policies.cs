@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Security.Claims;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -10,10 +9,6 @@ public sealed partial class OperationPlanContext
     private readonly object _resolvedPoliciesSync = new();
     private Dictionary<string, IPolicy>? _resolvedPolicies;
     private PolicyRequestState? _policyRequestState;
-
-    private ConcurrentDictionary<
-        IPolicy,
-        Lazy<Task<PolicyDecision>>>? _policyDecisions;
 
     /// <summary>
     /// Returns the policy instance pinned before node execution for this operation.
@@ -90,42 +85,16 @@ public sealed partial class OperationPlanContext
 
     private void ClearResolvedPolicies() => _resolvedPolicies?.Clear();
 
-    /// <summary>
-    /// Evaluates a request-cacheable policy at most once per request and reuses the resulting
-    /// decision for every application reached during the request.
-    /// </summary>
-    internal ValueTask<PolicyDecision> EvaluatePolicyOnceAsync(
-        IPolicy policy,
+    internal ValueTask<PolicyDecision> EvaluateRequestPolicyAsync(
+        string name,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
-        if (_policyRequestState is { } requestState)
-        {
-            return requestState.EvaluatePolicyOnceAsync(policy, user, cancellationToken);
-        }
-
-        var decisions = Volatile.Read(ref _policyDecisions);
-
-        if (decisions is null)
-        {
-            var newDecisions = new ConcurrentDictionary<
-                IPolicy,
-                Lazy<Task<PolicyDecision>>>(ReferenceEqualityComparer.Instance);
-            decisions = Interlocked.CompareExchange(
-                ref _policyDecisions,
-                newDecisions,
-                null) ?? newDecisions;
-        }
-
-        var state = new PolicyEvaluationState(this, user, cancellationToken);
-        var evaluation = decisions.GetOrAdd(
-            policy,
-            static (policy, state) => new Lazy<Task<PolicyDecision>>(
-                () => EvaluatePolicyAsync(policy, state),
-                LazyThreadSafetyMode.ExecutionAndPublication),
-            state);
-
-        return new ValueTask<PolicyDecision>(evaluation.Value);
+        var requestState = GetOrCreatePolicyRequestState();
+        return requestState.EvaluatePolicyOnceAsync(
+            requestState.ResolvePolicy(name),
+            user,
+            cancellationToken);
     }
 
     /// <summary>
@@ -135,7 +104,6 @@ public sealed partial class OperationPlanContext
         CancellationToken cancellationToken)
     {
         _policyRequestState?.ClearDecisions();
-        _policyDecisions?.Clear();
         PolicyDenyFlags = 0;
 
         var operationPlan = OperationPlan as OperationPlan
@@ -194,20 +162,23 @@ public sealed partial class OperationPlanContext
         return evaluation;
     }
 
-    private static async Task<PolicyDecision> EvaluatePolicyAsync(
-        IPolicy policy,
-        PolicyEvaluationState state)
+    private PolicyRequestState GetOrCreatePolicyRequestState()
     {
-        var policyContext = new PolicyContext(state.OperationContext);
-        policyContext.ResetForRequest(state.User);
+        if (_policyRequestState is { } requestState)
+        {
+            return requestState;
+        }
 
-        await policy.EvaluateAsync(policyContext, state.CancellationToken).ConfigureAwait(false);
+        if (OperationPlan is not OperationPlan operationPlan)
+        {
+            throw ThrowHelper.PolicyOperationPlanMissing();
+        }
 
-        return policyContext.GetDecision(0);
+        requestState = PolicyRequestState.GetOrCreate(
+            RequestContext,
+            operationPlan,
+            _diagnosticEvents);
+        _policyRequestState = requestState;
+        return requestState;
     }
-
-    private readonly record struct PolicyEvaluationState(
-        OperationPlanContext OperationContext,
-        ClaimsPrincipal User,
-        CancellationToken CancellationToken);
 }

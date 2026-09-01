@@ -174,7 +174,6 @@ public sealed partial class OperationPlanContext
         _resultStore.Clean(256, 256);
         _executionState.Clean();
         ClearResolvedPolicies();
-        _policyDecisions?.Clear();
         _policyRequestState = null;
 
         RequestContext = default!;
