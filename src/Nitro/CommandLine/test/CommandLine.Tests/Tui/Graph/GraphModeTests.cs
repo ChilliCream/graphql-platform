@@ -330,7 +330,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void MoveCursor_Should_CollapseTheNearestEpicOnCanvasAndIgnoreTreeTaskRows()
+    public void CollapseSelectedGraphEpic_Should_CollapseTheNearestCanvasEpic_When_TreeTaskRowDoesNotCollapse()
     {
         // arrange
         var mode = CreateMode(
@@ -347,9 +347,9 @@ public sealed class GraphModeTests
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
         var treeState = mode.CollapsedEpicIds.ToArray();
         mode.Handle(new TuiMessage.ToggleGraphProjection());
-        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
         var canvasState = mode.CollapsedEpicIds.ToArray();
-        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+        mode.Handle(new TuiMessage.ExpandSelectedGraphEpic());
 
         // assert
         Assert.Empty(treeState);
@@ -359,7 +359,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void MoveCursor_Should_UseTheCanonicalPriorityParent_When_CollapsingFromCanvas()
+    public void CollapseSelectedGraphEpic_Should_UseTheCanonicalPriorityParent_When_CollapsingFromCanvas()
     {
         // arrange
         var mode = CreateMode(
@@ -374,7 +374,7 @@ public sealed class GraphModeTests
         mode.Handle(new TuiMessage.ToggleGraphProjection());
 
         // act
-        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+        mode.Handle(new TuiMessage.CollapseSelectedGraphEpic());
 
         // assert
         Assert.Equal(["z"], mode.CollapsedEpicIds);
