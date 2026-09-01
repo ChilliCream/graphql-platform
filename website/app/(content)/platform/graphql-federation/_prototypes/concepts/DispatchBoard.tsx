@@ -15,7 +15,7 @@ import {
 import { CHAPTERS, ProtoCodeBox } from "../story";
 
 const W = 1024;
-const H = 4900;
+const H = 5320;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const MARKERS = [
@@ -57,8 +57,7 @@ const GAPS = [
   { x: 220, w: 584, y: 1390, h: 300 },
   { x: 470, w: 460, y: 1860, h: 320 },
   { x: 220, w: 584, y: 2350, h: 300 },
-  { x: 220, w: 584, y: 3400, h: 320 },
-  { x: 220, w: 400, y: 4450, h: 270 },
+  { x: 220, w: 584, y: 3160, h: 440 },
 ] as const;
 
 interface PositionedCopy {
@@ -98,10 +97,10 @@ const LAYOUT: readonly ChapterLayout[] = [
     ],
   },
   {
-    copy: { top: 3560, left: 50 },
-    boxes: [{ top: 3890, left: 27, paired: true }],
+    copy: { top: 3380, left: 50 },
+    boxes: [{ top: 4150, left: 27, paired: true }],
   },
-  { copy: { top: 4600, left: 50 }, boxes: [] },
+  { copy: { top: 5040, left: 50 }, boxes: [] },
 ];
 
 const pct = (v: number, total: number) => `${(v / total) * 100}%`;
@@ -175,12 +174,15 @@ function MobileDispatchGrid() {
       >
         <span aria-hidden="true" />
         {CANON.map((service) => (
-          <span
-            key={service.name}
-            className="inline-block h-2.5 w-2.5 justify-self-center rounded-[3px]"
-            style={{ background: service.color }}
-            title={service.name}
-          />
+          <span key={service.name} className="justify-self-center">
+            <span
+              aria-hidden="true"
+              className="inline-block h-2.5 w-2.5 rounded-[3px]"
+              style={{ background: service.color }}
+              title={service.name}
+            />
+            <span className="sr-only">{service.name}</span>
+          </span>
         ))}
         {ROW_LABELS.map((label, i) => (
           <Fragment key={label}>
@@ -550,7 +552,7 @@ function DispatchMap() {
 export function DispatchBoard() {
   return (
     <PageSection maxWidth="6xl">
-      <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/4900]">
+      <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/5320]">
         <DispatchMap />
         <div className="flex flex-col gap-14 px-5 py-16 sm:contents">
           {CHAPTERS.map((chapter, i) => {
