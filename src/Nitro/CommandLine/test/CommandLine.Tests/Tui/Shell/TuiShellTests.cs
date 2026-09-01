@@ -1404,10 +1404,10 @@ public sealed class TuiShellTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    public void Render_Should_KeepNarrowUnicodeFootersWithinTheirExactRowWidth(int width)
+    [InlineData(0, "")]
+    [InlineData(1, "…")]
+    [InlineData(2, "[…")]
+    public void Render_Should_KeepNarrowUnicodeFootersWithinTheirExactRowWidth(int width, string expected)
     {
         // arrange
         var shell = CreateShell(new FakeTuiMode { FooterStatus = "[漢🙂e\u0301]" }, width, actor: "🙂actor");
@@ -1416,7 +1416,7 @@ public sealed class TuiShellTests
         var text = width == 0 ? string.Empty : RenderFooterText(shell, width);
 
         // assert
-        Assert.Equal(width == 0 ? string.Empty : "…", text);
+        Assert.Equal(expected, text);
         Assert.False(ContainsLoneSurrogate(text));
     }
 
@@ -1446,7 +1446,7 @@ public sealed class TuiShellTests
         // assert
         Assert.Equal(value, exactText);
         Assert.Equal(value + "…", retainedText);
-        Assert.Equal("…", replacedText);
+        Assert.Equal(width == 1 ? "…" : "… ", replacedText);
         Assert.False(ContainsLoneSurrogate(retainedText));
     }
 
