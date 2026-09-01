@@ -166,7 +166,7 @@ public sealed class GraphCanvasViewTests
     }
 
     [Fact]
-    public void CreateRenderResult_Should_RenderContainedSearchHitsForSelectedCollapsedEpics_InBothNodeModes()
+    public void CreateRenderResult_Should_RenderContainedSearchHitsForSelectedCollapsedEpics_When_NodeModeChanges()
     {
         // arrange
         var view = new GraphCanvasView(Model([Node("epic", hiddenChildCount: 3)]));

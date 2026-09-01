@@ -75,7 +75,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task GetTaskLabelsAsync_Should_GroupLabelsAndOrderEachGroup()
+    public async Task GetTaskLabelsAsync_Should_GroupLabelsAndOrderEachGroup_When_LabelsExist()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;

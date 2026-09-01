@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph;
 public sealed class GraphSearchProjectionContextTests
 {
     [Fact]
-    public void Constructor_Should_PrecomputeDeepChainRepresentativesWithoutResolveWork()
+    public void Constructor_Should_PrecomputeDeepChainRepresentativesWithoutResolveWork_When_GraphIsDeep()
     {
         // arrange
         const int count = 2_000;

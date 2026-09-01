@@ -26,7 +26,7 @@ public sealed class GraphDataLoaderTests
     }
 
     [Fact]
-    public async Task LoadAsync_Should_ReadAllLabelsInOneBulkOperation()
+    public async Task LoadAsync_Should_ReadAllLabelsInOneBulkOperation_When_GraphLoads()
     {
         // arrange
         var store = new FakeTaskStore();

@@ -413,7 +413,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void Search_Should_HighlightMatchesWithoutExpandingCollapsedEpicsOrRelayingOutCanvas()
+    public void Search_Should_HighlightMatchesWithoutExpandingCollapsedEpicsOrRelayingOutCanvas_When_QueryChanges()
     {
         // arrange
         var mode = CreateMode(
@@ -496,7 +496,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void Search_Should_CycleUniqueCollapsedRepresentativesAcrossProjectionChanges()
+    public void Search_Should_CycleUniqueCollapsedRepresentatives_When_ProjectionChanges()
     {
         // arrange
         var mode = CreateMode(
@@ -570,7 +570,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void FilterForm_Should_ApplyAndClearGraphFiltersWithoutChangingTheSource()
+    public void FilterForm_Should_ApplyAndClearGraphFiltersWithoutChangingTheSource_When_Submitted()
     {
         // arrange
         var labels = new[]
@@ -599,7 +599,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void FilterForm_Should_KeepTreeCanvasSearchAndSelectionConsistentBehindClosedIntermediates()
+    public void FilterForm_Should_KeepTreeCanvasSearchAndSelectionConsistent_When_ClosedIntermediatesExist()
     {
         // arrange
         var labels = new[] { new TaskLabels("descendant", ["alpha"]) };
@@ -630,7 +630,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void FilterForm_Should_RetainManualCollapseAcrossApplyAndClear()
+    public void FilterForm_Should_RetainManualCollapse_When_FiltersApplyAndClear()
     {
         // arrange
         var mode = CreateMode(
@@ -657,7 +657,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void FilterForm_Should_PrefillCancelAndShowTheActiveFilterNotice()
+    public void FilterForm_Should_PrefillCancelAndShowTheActiveFilterNotice_When_FilterIsActive()
     {
         // arrange
         var mode = CreateMode([Task("task")], taskLabels: [new TaskLabels("task", ["alpha"])]).Mode;
@@ -679,7 +679,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void RefreshRequested_Should_ReapplyActiveGraphSearchFiltersAndManualCollapse()
+    public void RefreshRequested_Should_ReapplyActiveGraphSearchFiltersAndManualCollapse_When_GraphRefreshes()
     {
         // arrange
         var mode = CreateMode(
@@ -710,7 +710,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void CollapseAll_Should_AddVisibleFilteredEpicsWithoutDroppingExistingSessionCollapses()
+    public void CollapseAll_Should_AddVisibleFilteredEpicsWithoutDroppingExistingSessionCollapses_When_FiltersAreActive()
     {
         // arrange
         var mode = CreateMode(
@@ -741,7 +741,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void ExpandAll_Should_ClearFilteredOutSessionCollapses()
+    public void ExpandAll_Should_ClearFilteredOutSessionCollapses_When_Invoked()
     {
         // arrange
         var mode = CreateMode(
@@ -772,7 +772,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void Search_Should_RemoveHiddenClosedMatchFromBothProjectionsAndCycle()
+    public void Search_Should_RemoveHiddenClosedMatchFromBothProjectionsAndCycle_When_HideClosedIsEnabled()
     {
         // arrange
         var mode = CreateMode(
@@ -800,7 +800,7 @@ public sealed class GraphModeTests
     }
 
     [Fact]
-    public void Search_Should_RemapCollapsedMatchesAcrossCollapseExpandFilterAndRefresh()
+    public void Search_Should_RemapCollapsedMatches_When_CollapseFilterAndRefreshStateChanges()
     {
         // arrange
         var mode = CreateMode(

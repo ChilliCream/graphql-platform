@@ -56,7 +56,7 @@ public sealed class GraphReducerTests
     }
 
     [Fact]
-    public void Reduce_Should_ApplyLabelsAfterSelectingEpicDescendants()
+    public void Reduce_Should_ApplyLabelsAfterSelectingEpicDescendants_When_EpicFilterIsActive()
     {
         // arrange
         var model = Model(
@@ -300,7 +300,7 @@ public sealed class GraphReducerTests
     }
 
     [Fact]
-    public void Reduce_Should_UseTheOuterCollapsedEpicForEveryDeepDescendantWithoutRecursion()
+    public void Reduce_Should_UseTheOuterCollapsedEpicForEveryDeepDescendantWithoutRecursion_When_GraphIsDeep()
     {
         // arrange
         const int count = 2_000;

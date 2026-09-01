@@ -811,7 +811,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_OpenInlineGraphSearchWithoutSwitchingToTasksSearchMode()
+    public void Handle_Should_OpenInlineGraphSearchWithoutSwitchingToTasksSearchMode_When_SlashIsPressed()
     {
         // arrange
         var store = new FakeTaskStore();

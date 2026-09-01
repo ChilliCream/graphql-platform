@@ -1359,7 +1359,7 @@ public sealed class TuiShellTests
     }
 
     [Fact]
-    public void Render_Should_OrderGraphStatusHintsDaemonAndActor_AndReplaceThemWithToast()
+    public void Render_Should_OrderGraphStatusHintsDaemonAndActorAndReplaceThemWithToast_When_StatusChanges()
     {
         // arrange
         var mode = new FakeTuiMode { FooterStatus = "Search: find (2 hits); Filters active" };
@@ -1385,7 +1385,7 @@ public sealed class TuiShellTests
     }
 
     [Fact]
-    public void Render_Should_ShowDaemonBadgeWithoutAnActor()
+    public void Render_Should_ShowDaemonBadgeWithoutAnActor_When_ActorIsMissing()
     {
         // arrange
         var shell = new TuiShell(
@@ -1407,7 +1407,7 @@ public sealed class TuiShellTests
     [InlineData(0, "")]
     [InlineData(1, "…")]
     [InlineData(2, "[…")]
-    public void Render_Should_KeepNarrowUnicodeFootersWithinTheirExactRowWidth(int width, string expected)
+    public void Render_Should_KeepNarrowUnicodeFootersWithinTheirExactRowWidth_When_WidthIsNarrow(int width, string expected)
     {
         // arrange
         var shell = CreateShell(new FakeTuiMode { FooterStatus = "[漢🙂e\u0301]" }, width, actor: "🙂actor");
