@@ -1,0 +1,56 @@
+operation:
+  - document: |
+      {
+        product {
+          id
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+        }
+      }
+    conditions:
+      - variable: $__fusion_policy_0
+        passingValue: true
+policyExpressions:
+  - ordinal: 0
+    names: [["CanReadQuery"]]
+    expression: CanReadQuery
+  - ordinal: 1
+    names: [["CanAudit"]]
+    expression: CanAudit
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    applications:
+      - expressionOrdinal: 0
+        onDenied: Error
+      - expressionOrdinal: 1
+        onDenied: Null
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Query
+        responseNames: []
+        applications:
+          - expressionOrdinal: 0
+            onDenied: Error
+          - expressionOrdinal: 1
+            onDenied: Null
+        isRoot: true
+        liveGuardMasks: [0]
+        gateGuardMasks: [0]
+policies:
+  - name: CanAudit
+    requirementHash: 17241709254077376921
+  - name: CanReadQuery
+    requirementHash: 17241709254077376921

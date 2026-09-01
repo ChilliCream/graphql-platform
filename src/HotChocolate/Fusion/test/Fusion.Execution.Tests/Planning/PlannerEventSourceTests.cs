@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Planning;
@@ -204,6 +206,85 @@ public sealed class PlannerEventSourceTests : FusionTestBase
 
         Assert.Equal(operationId, plannerError.GetStringPayload(0));
         Assert.Equal("Query", plannerError.GetStringPayload(1));
+    }
+
+    [Fact]
+    public void Plan_Should_EmitOnePolicySlotCapacityDiagnosticPerDistinctFallbackIdentity()
+    {
+        // arrange
+        using var listener = new PlannerEventListener();
+        var schema = CreateCapacityIdentitySchema();
+        const string operationId = "planner_policy_slot_capacity";
+        var operation = "query { "
+            + string.Join(' ', Enumerable.Range(0, 65).Select(i => $"mixed{i}"))
+            + " lateAllocated lateUnallocated }";
+
+        // act
+        var plan = CreatePlan(schema, operation, operationId);
+
+        // assert
+        var diagnostics = listener.ByEventId(
+            PlannerEventSource.PolicySlotCapacityExceededEventId,
+            operationId);
+        var fallbackTargetNames = plan.AllNodes
+            .OfType<PolicyExecutionNode>()
+            .SelectMany(node => node.Targets.ToArray())
+            .Select(target => target.Path.Name!)
+            .Where(name => name is "mixed64" or "lateUnallocated")
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(OperationPlanner.PolicySlotRegistry.MaxPolicySlots, plan.PolicySlots.Length);
+        Assert.Equal(["lateUnallocated", "mixed64"], fallbackTargetNames);
+        Assert.Equal(2, diagnostics.Count);
+        Assert.True(diagnostics.All(diagnostic =>
+            diagnostic.GetStringPayload(0) == operationId
+            && diagnostic.GetInt32Payload(1) == OperationPlanner.PolicySlotRegistry.MaxPolicySlots));
+    }
+
+    private static FusionSchemaDefinition CreateCapacityIdentitySchema()
+    {
+        var fields = new List<string> { "  id: ID! @fusion__field(schema: A)" };
+        var policies = new List<TestPolicy>();
+
+        for (var i = 0; i < 65; i++)
+        {
+            fields.Add(
+                $"  mixed{i}: String @fusion__field(schema: A) "
+                    + $"@fusion__policy(names: [[\"Request{i}\", \"Resource{i}\"]], onDenied: NULL)");
+            policies.Add(new TestPolicy($"Request{i}"));
+            policies.Add(new TestPolicy(
+                $"Resource{i}",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        }
+
+        fields.Add(
+            "  lateAllocated: String @fusion__field(schema: A) "
+                + "@fusion__policy(names: \"Request0\", onDenied: NULL)");
+        fields.Add(
+            "  lateUnallocated: String @fusion__field(schema: A) "
+                + "@fusion__policy(names: \"LateRequest\", onDenied: NULL)");
+        policies.Add(new TestPolicy("LateRequest"));
+
+        var document = Utf8GraphQLParser.Parse($$"""
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+            {{string.Join('\n', fields)}}
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """);
+        var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(
+                _ => new TestPolicyProvider([.. policies]))
+            .BuildServiceProvider();
+
+        return FusionSchemaDefinition.Create(document, services);
     }
 
     private static OperationPlanner CreatePlanner(

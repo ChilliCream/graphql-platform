@@ -43,7 +43,17 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var expandedNodes = 0;
 
         var id = rootElement.GetProperty("id").GetString()!;
-        var operation = ParseOperation(rootElement.GetProperty("operation"));
+        if (!rootElement.TryGetProperty("includeConditions", out var includeConditionsElement))
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                "The operation-wide include-condition table is required.");
+        }
+
+        var includeConditions = ParseIncludeConditions(includeConditionsElement);
+        var compiledIncludeConditions = IncludeConditionCollection.Create(includeConditions);
+        var operation = ParseOperation(
+            rootElement.GetProperty("operation"),
+            compiledIncludeConditions);
 
         if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
         {
@@ -68,7 +78,16 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (rootElement.TryGetProperty("incrementalPlans", out var incrementalPlansElement))
         {
-            incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
+            incrementalPlans = ParseIncrementalPlans(
+                incrementalPlansElement,
+                deliveryGroupMap,
+                compiledIncludeConditions);
+        }
+
+        var policyExpressions = ImmutableArray<PolicyConditionExpression>.Empty;
+        if (rootElement.TryGetProperty("policyExpressions", out var policyExpressionsElement))
+        {
+            policyExpressions = ParsePolicyExpressions(policyExpressionsElement);
         }
 
         var policySlots = ImmutableArray<PolicyConditionSlot>.Empty;
@@ -78,42 +97,310 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             policySlots = ParsePolicySlots(policySlotsElement);
         }
 
+        var policies = ImmutableArray<PolicyPlanEntry>.Empty;
+        if (rootElement.TryGetProperty("policies", out var policiesElement))
+        {
+            policies = ParsePolicies(policiesElement);
+        }
+
         // Root nodes are the entry points of the execution plan. A node is a
         // root when it has no dependencies at all, meaning the executor can
         // start it immediately without waiting for other nodes to finish.
-        return OperationPlan.Create(
+        return OperationPlan.CreateParsed(
             id,
             operation,
             [.. nodes.Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)],
             nodes,
             deliveryGroups,
             incrementalPlans,
+            includeConditions,
+            policyExpressions,
             policySlots,
+            policies,
             searchSpace,
             expandedNodes);
     }
 
+    private static ImmutableArray<OperationIncludeCondition> ParseIncludeConditions(
+        JsonElement includeConditionsElement)
+    {
+        RequireArray(includeConditionsElement, "includeConditions");
+        var builder = ImmutableArray.CreateBuilder<OperationIncludeCondition>();
+
+        foreach (var conditionElement in includeConditionsElement.EnumerateArray())
+        {
+            ValidateProperties(
+                conditionElement,
+                ["skipVariable", "includeVariable"],
+                [],
+                "include condition");
+            var skipVariable = conditionElement.TryGetProperty("skipVariable", out var skipElement)
+                ? skipElement.GetString()
+                : null;
+            var includeVariable = conditionElement.TryGetProperty("includeVariable", out var includeElement)
+                ? includeElement.GetString()
+                : null;
+
+            if ((skipVariable is null && includeVariable is null)
+                || string.IsNullOrWhiteSpace(skipVariable) && skipVariable is not null
+                || string.IsNullOrWhiteSpace(includeVariable) && includeVariable is not null)
+            {
+                throw ThrowHelper.InvalidOperationPlan("A serialized include condition is malformed.");
+            }
+
+            builder.Add(new OperationIncludeCondition
+            {
+                SkipVariable = skipVariable,
+                IncludeVariable = includeVariable
+            });
+        }
+
+        var conditions = builder.ToImmutable();
+        if (conditions.Length > 64
+            || conditions.Distinct().Count() != conditions.Length)
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                "The operation-wide include-condition table must be unique and contain at most 64 entries.");
+        }
+
+        return conditions;
+    }
+
+    private static ImmutableArray<PolicyConditionExpression> ParsePolicyExpressions(
+        JsonElement policyExpressionsElement)
+    {
+        RequireArray(policyExpressionsElement, "policyExpressions");
+        var builder = ImmutableArray.CreateBuilder<PolicyConditionExpression>();
+
+        foreach (var expressionElement in policyExpressionsElement.EnumerateArray())
+        {
+            ValidateProperties(
+                expressionElement,
+                ["ordinal", "names", "expression"],
+                ["ordinal", "names", "expression"],
+                "policy expression");
+
+            var groups = ParsePolicyNameGroups(expressionElement.GetProperty("names"));
+            var expression = new PolicyConditionExpression
+            {
+                Ordinal = expressionElement.GetProperty("ordinal").GetInt32(),
+                Groups = groups,
+                Text = PolicyNameGroups.Format(groups)
+            };
+
+            if (!string.Equals(
+                expressionElement.GetProperty("expression").GetString(),
+                expression.Format(),
+                StringComparison.Ordinal))
+            {
+                throw ThrowHelper.InvalidOperationPlan("A serialized policy expression does not match its policy groups.");
+            }
+
+            builder.Add(expression);
+        }
+
+        return builder.ToImmutable();
+    }
+
     private static ImmutableArray<PolicyConditionSlot> ParsePolicySlots(JsonElement policySlotsElement)
     {
+        RequireArray(policySlotsElement, "policySlots");
         var builder = ImmutableArray.CreateBuilder<PolicyConditionSlot>();
 
         foreach (var slotElement in policySlotsElement.EnumerateArray())
         {
+            ValidateProperties(
+                slotElement,
+                ["ordinal", "variable", "applications", "rmax", "guardMasks", "coordinates"],
+                ["ordinal", "variable", "applications", "rmax", "guardMasks", "coordinates"],
+                "policy gate");
             var ordinal = slotElement.GetProperty("ordinal").GetInt32();
-            var groups = ParsePolicyNameGroups(slotElement.GetProperty("names"));
-            var rmax = Enum.Parse<PolicyDenialBehavior>(
-                slotElement.GetProperty("rmax").GetString()!,
-                ignoreCase: true);
+            if (!string.Equals(
+                slotElement.GetProperty("variable").GetString(),
+                $"$__fusion_policy_{ordinal}",
+                StringComparison.Ordinal))
+            {
+                throw ThrowHelper.InvalidOperationPlan("A serialized policy gate variable does not match its ordinal.");
+            }
+            var applications = ImmutableArray.CreateBuilder<PolicyConditionApplication>();
+            var applicationsElement = slotElement.GetProperty("applications");
+            RequireArray(applicationsElement, "policy gate applications");
+
+            foreach (var applicationElement in applicationsElement.EnumerateArray())
+            {
+                ValidateProperties(
+                    applicationElement,
+                    ["expressionOrdinal", "onDenied"],
+                    ["expressionOrdinal", "onDenied"],
+                    "policy gate application");
+
+                applications.Add(new PolicyConditionApplication
+                {
+                    ExpressionOrdinal = applicationElement.GetProperty("expressionOrdinal").GetInt32(),
+                    OnDenied = ParseDefinedEnum<PolicyDenialBehavior>(
+                        applicationElement.GetProperty("onDenied"),
+                        "policy gate application denial behavior")
+                });
+            }
+
+            var masksElement = slotElement.GetProperty("guardMasks");
+            RequireArray(masksElement, "policy gate guardMasks");
+            var masks = masksElement.EnumerateArray().Select(element => element.GetUInt64()).ToImmutableArray();
+            var rmax = ParseDefinedEnum<PolicyDenialBehavior>(
+                slotElement.GetProperty("rmax"),
+                "policy gate residual denial behavior");
+            var coordinatesElement = slotElement.GetProperty("coordinates");
+            RequireArray(coordinatesElement, "policy gate coordinates");
+            var coordinateBuilder = ImmutableArray.CreateBuilder<PolicyConditionCoordinate>();
+
+            foreach (var coordinateElement in coordinatesElement.EnumerateArray())
+            {
+                ValidateProperties(
+                    coordinateElement,
+                    ["occurrences", "typeName", "fieldName", "responseNames", "applications", "isRoot", "liveGuardMasks", "gateGuardMasks"],
+                    ["occurrences", "typeName", "responseNames", "applications", "isRoot", "liveGuardMasks", "gateGuardMasks"],
+                    "policy gate coordinate");
+                var occurrencesElement = coordinateElement.GetProperty("occurrences");
+                RequireArray(occurrencesElement, "policy gate coordinate occurrences");
+                var liveMasksElement = coordinateElement.GetProperty("liveGuardMasks");
+                RequireArray(liveMasksElement, "policy gate coordinate liveGuardMasks");
+                var gateMasksElement = coordinateElement.GetProperty("gateGuardMasks");
+                RequireArray(gateMasksElement, "policy gate coordinate gateGuardMasks");
+                var responseNamesElement = coordinateElement.GetProperty("responseNames");
+                RequireArray(responseNamesElement, "policy gate coordinate responseNames");
+                var coordinateApplicationsElement = coordinateElement.GetProperty("applications");
+                RequireArray(coordinateApplicationsElement, "policy gate coordinate applications");
+                var coordinateApplications = ImmutableArray.CreateBuilder<PolicyConditionApplication>();
+
+                foreach (var applicationElement in coordinateApplicationsElement.EnumerateArray())
+                {
+                    ValidateProperties(
+                        applicationElement,
+                        ["expressionOrdinal", "onDenied"],
+                        ["expressionOrdinal", "onDenied"],
+                        "policy gate coordinate application");
+                    coordinateApplications.Add(new PolicyConditionApplication
+                    {
+                        ExpressionOrdinal = applicationElement.GetProperty("expressionOrdinal").GetInt32(),
+                        OnDenied = ParseDefinedEnum<PolicyDenialBehavior>(
+                            applicationElement.GetProperty("onDenied"),
+                            "policy gate coordinate application denial behavior")
+                    });
+                }
+
+                coordinateBuilder.Add(new PolicyConditionCoordinate
+                {
+                    Occurrences = occurrencesElement
+                        .EnumerateArray()
+                        .Select(ParsePolicyOccurrence)
+                        .ToImmutableArray(),
+                    TypeName = coordinateElement.GetProperty("typeName").GetString()!,
+                    FieldName = coordinateElement.TryGetProperty("fieldName", out var fieldNameElement)
+                        ? fieldNameElement.GetString()
+                        : null,
+                    ResponseNames = responseNamesElement
+                        .EnumerateArray()
+                        .Select(element => element.GetString()!)
+                        .ToImmutableArray(),
+                    Applications = coordinateApplications.ToImmutable(),
+                    IsRoot = coordinateElement.GetProperty("isRoot").GetBoolean(),
+                    LiveGuardMasks = liveMasksElement
+                        .EnumerateArray()
+                        .Select(element => element.GetUInt64())
+                        .ToImmutableArray(),
+                    GateGuardMasks = gateMasksElement
+                        .EnumerateArray()
+                        .Select(element => element.GetUInt64())
+                        .ToImmutableArray()
+                });
+            }
+
+            var coordinates = coordinateBuilder.ToImmutable();
 
             builder.Add(new PolicyConditionSlot
             {
                 Ordinal = ordinal,
-                Groups = groups,
-                Rmax = rmax
+                Applications = applications.ToImmutable(),
+                Rmax = rmax,
+                GuardMasks = masks,
+                Coordinates = coordinates
             });
         }
 
         return builder.ToImmutable();
+    }
+
+    private static ImmutableArray<PolicyPlanEntry> ParsePolicies(JsonElement policiesElement)
+    {
+        RequireArray(policiesElement, "policies");
+        var builder = ImmutableArray.CreateBuilder<PolicyPlanEntry>();
+
+        foreach (var policyElement in policiesElement.EnumerateArray())
+        {
+            ValidateProperties(
+                policyElement,
+                ["name", "requirementHash"],
+                ["name", "requirementHash"],
+                "policy inventory entry");
+            builder.Add(new PolicyPlanEntry
+            {
+                PolicyName = policyElement.GetProperty("name").GetString()!,
+                RequirementHash = policyElement.GetProperty("requirementHash").GetUInt64()
+            });
+        }
+
+        return builder.ToImmutable();
+    }
+
+    private static T ParseDefinedEnum<T>(JsonElement element, string description)
+        where T : struct, Enum
+    {
+        if (element.ValueKind is not JsonValueKind.String
+            || !Enum.TryParse<T>(element.GetString(), ignoreCase: true, out var value)
+            || !Enum.IsDefined(value))
+        {
+            throw ThrowHelper.InvalidOperationPlan($"The {description} is invalid.");
+        }
+
+        return value;
+    }
+
+    private static void RequireArray(JsonElement element, string description)
+    {
+        if (element.ValueKind is not JsonValueKind.Array)
+        {
+            throw ThrowHelper.InvalidOperationPlan($"The {description} must be an array.");
+        }
+    }
+
+    private static void ValidateProperties(
+        JsonElement element,
+        string[] allowed,
+        string[] required,
+        string description)
+    {
+        if (element.ValueKind is not JsonValueKind.Object)
+        {
+            throw ThrowHelper.InvalidOperationPlan($"The {description} must be an object.");
+        }
+
+        foreach (var property in element.EnumerateObject())
+        {
+            if (!allowed.Contains(property.Name, StringComparer.Ordinal))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    $"The {description} contains the unexpected property '{property.Name}'.");
+            }
+        }
+
+        foreach (var propertyName in required)
+        {
+            if (!element.TryGetProperty(propertyName, out _))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    $"The {description} is missing the required property '{propertyName}'.");
+            }
+        }
     }
 
     private static ImmutableArray<DeliveryGroup> ParseDeliveryGroups(
@@ -182,7 +469,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
     private ImmutableArray<IncrementalPlan> ParseIncrementalPlans(
         JsonElement incrementalPlansElement,
-        Dictionary<int, DeliveryGroup> deliveryGroupMap)
+        Dictionary<int, DeliveryGroup> deliveryGroupMap,
+        IncludeConditionCollection includeConditions)
     {
         var builder = ImmutableArray.CreateBuilder<IncrementalPlan>();
 
@@ -196,7 +484,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 incrementalPlanDeliveryGroupsBuilder.Add(deliveryGroupMap[idElement.GetInt32()]);
             }
 
-            var incrementalPlanOperation = ParseOperation(incrementalPlanElement.GetProperty("operation"));
+            var incrementalPlanOperation = ParseOperation(
+                incrementalPlanElement.GetProperty("operation"),
+                includeConditions);
 
             var incrementalPlanNodes = incrementalPlanElement.TryGetProperty("nodes", out var incrementalPlanNodesElement)
                 ? ParseNodes(incrementalPlanNodesElement, incrementalPlanOperation)
@@ -251,7 +541,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         return builder.ToImmutable();
     }
 
-    private Operation ParseOperation(JsonElement operationElement)
+    private Operation ParseOperation(
+        JsonElement operationElement,
+        IncludeConditionCollection includeConditions)
     {
         var sourceText = operationElement.GetProperty("document").GetString()!;
         var id = operationElement.GetProperty("id").GetString()!;
@@ -259,7 +551,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (!operationElement.TryGetProperty("shortHash", out var shortHashElement))
         {
-            throw new InvalidOperationException(
+            throw ThrowHelper.InvalidOperationPlan(
                 "The shortHash is required on the operation of a valid operation plan.");
         }
 
@@ -273,7 +565,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             throw ThrowHelper.SingleOperationRequired();
         }
 
-        return _operationCompiler.Compile(id, hash, shortHash, operationDefinition);
+        return _operationCompiler.Compile(
+            id,
+            hash,
+            shortHash,
+            operationDefinition,
+            includeConditions);
     }
 
     private ImmutableArray<ExecutionNode> ParseNodes(JsonElement nodesElement, Operation operation)
@@ -282,11 +579,24 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         // object. We do not create real execution nodes yet because we first need
         // to know which operations belong to the same batch group.
         var parsedNodes = new List<ParsedNodeInfo>();
+        var rawNodeIndexes = new Dictionary<int, int>();
 
         foreach (var nodeElement in nodesElement.EnumerateArray())
         {
             var nodeType = nodeElement.GetProperty("type").GetString();
             var id = nodeElement.GetProperty("id").GetInt32();
+            if (!rawNodeIndexes.TryAdd(id, parsedNodes.Count))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "An operation plan cannot contain duplicate node identifiers.");
+            }
+
+            ValidateRawDependencies(nodeElement, id, nodeType);
+
+            if (nodeType is "Policy")
+            {
+                ValidateRawPolicyDependencyOrder(nodeElement, id);
+            }
 
             var schema = _operationCompiler.Schema;
 
@@ -325,6 +635,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     throw new NotSupportedException($"Unsupported node type: {nodeType}");
             }
         }
+
+        ValidateRawPolicyTopology(parsedNodes, rawNodeIndexes);
 
         // Phase 2: Separate operations that share a batching group identifier
         // from those that stand alone. Operations in the same group will be
@@ -599,6 +911,160 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
 
         return [.. nodeMap.Values.OrderBy(t => t.Id)];
+    }
+
+    private static void ValidateRawDependencies(
+        JsonElement nodeElement,
+        int nodeId,
+        string? nodeType)
+    {
+        if (!nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
+        {
+            return;
+        }
+
+        RequireArray(dependenciesElement, "dependencies");
+        var dependencies = new HashSet<int>();
+        var parentDependencies = new HashSet<int>();
+        var previousDependencyId = -1;
+        foreach (var dependency in dependenciesElement.EnumerateArray())
+        {
+            switch (dependency.ValueKind)
+            {
+                case JsonValueKind.Number:
+                    var dependencyId = dependency.GetInt32();
+                    if (!dependencies.Add(dependencyId))
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Node {nodeId} contains a duplicate dependency identifier.");
+                    }
+
+                    if (dependencyId <= previousDependencyId)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Node {nodeId} dependencies must be in canonical order.");
+                    }
+
+                    previousDependencyId = dependencyId;
+                    break;
+
+                case JsonValueKind.Object:
+                    if (nodeType is "Policy")
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Policy execution node {nodeId} cannot contain parent dependencies.");
+                    }
+
+                    var parentNodeId = dependency.GetProperty("parentNodeId").GetInt32();
+                    if (!parentDependencies.Add(parentNodeId))
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Node {nodeId} contains a duplicate parent dependency identifier.");
+                    }
+                    break;
+            }
+        }
+    }
+
+    private static void ValidateRawPolicyDependencyOrder(JsonElement nodeElement, int nodeId)
+    {
+        if (!nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
+        {
+            return;
+        }
+
+        var previousDependencyId = -1;
+        foreach (var dependency in dependenciesElement.EnumerateArray())
+        {
+            if (dependency.ValueKind is not JsonValueKind.Number)
+            {
+                continue;
+            }
+
+            var dependencyId = dependency.GetInt32();
+            if (dependencyId <= previousDependencyId)
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    $"Policy execution node {nodeId} dependencies must be in canonical order.");
+            }
+
+            previousDependencyId = dependencyId;
+        }
+    }
+
+    private static void ValidateRawPolicyTopology(
+        List<ParsedNodeInfo> parsedNodes,
+        IReadOnlyDictionary<int, int> rawNodeIndexes)
+    {
+        PolicyOccurrenceReference? previousOccurrence = null;
+
+        foreach (var policy in parsedNodes.OfType<ParsedPolicyNodeInfo>())
+        {
+            if (policy.Dependencies is not null)
+            {
+                foreach (var dependencyId in policy.Dependencies)
+                {
+                    if (rawNodeIndexes.TryGetValue(dependencyId, out var dependencyIndex)
+                        && dependencyIndex >= rawNodeIndexes[policy.Id])
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A policy execution node must follow its guarded producer and requirement providers.");
+                    }
+                }
+            }
+
+            var firstOccurrence = policy.Targets
+                .SelectMany(target => target.Occurrences)
+                .OrderBy(occurrence => occurrence.PlanPart)
+                .ThenBy(occurrence => occurrence.SelectionSetId)
+                .ThenBy(occurrence => occurrence.SelectionId)
+                .ThenBy(occurrence => occurrence.OccurrenceOrdinal)
+                .FirstOrDefault();
+            if (firstOccurrence == default)
+            {
+                continue;
+            }
+
+            if (previousOccurrence is { } previous
+                && CompareOccurrencePosition(previous, firstOccurrence) >= 0)
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "Policy execution nodes must follow compiled occurrence order.");
+            }
+
+            previousOccurrence = firstOccurrence;
+
+            if (!rawNodeIndexes.ContainsKey(policy.Id - 1))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "A policy execution node must immediately follow its canonical guarded producer.");
+            }
+        }
+    }
+
+    private static int CompareOccurrencePosition(
+        PolicyOccurrenceReference left,
+        PolicyOccurrenceReference right)
+    {
+        var comparison = left.PlanPart.CompareTo(right.PlanPart);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        comparison = left.SelectionSetId.CompareTo(right.SelectionSetId);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        comparison = left.SelectionId.CompareTo(right.SelectionId);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        return left.OccurrenceOrdinal.CompareTo(right.OccurrenceOrdinal);
     }
 
     private static ParsedOperationNodeInfo ParseOperationNodeInfo(
@@ -880,7 +1346,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
-        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
+        var operationType = ParseDefinedEnum<OperationType>(
+            operationElement.GetProperty("kind"),
+            "operation kind");
         // The parsed document string is transient: encode it to UTF-8 once and discard it.
         var document = operationElement.GetProperty("document").GetString()!;
         var documentBytes = Encoding.UTF8.GetBytes(document);
@@ -1062,7 +1530,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             if (!operation.Definition.VariableDefinitions
                 .Any(v => v.Variable.Equals(variableNode, SyntaxComparison.Syntax)))
             {
-                throw new InvalidOperationException(
+                throw ThrowHelper.InvalidOperationPlan(
                     $"'idValue' references non-existent '{variableNode.Name}' variable.");
             }
         }
@@ -1101,7 +1569,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         if (namesElement.ValueKind is not JsonValueKind.Array)
         {
-            throw new InvalidOperationException(
+            throw ThrowHelper.InvalidOperationPlan(
                 "The `names` property of a policy in the operation plan "
                 + "must be a list of policy name groups.");
         }
@@ -1112,7 +1580,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             if (groupElement.ValueKind is not JsonValueKind.Array)
             {
-                throw new InvalidOperationException(
+                throw ThrowHelper.InvalidOperationPlan(
                     "A policy name group in the operation plan must be "
                     + "a list of policy names.");
             }
@@ -1123,7 +1591,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             {
                 if (nameElement.ValueKind is not JsonValueKind.String)
                 {
-                    throw new InvalidOperationException(
+                    throw ThrowHelper.InvalidOperationPlan(
                         "A policy name in the operation plan must be a string.");
                 }
 
@@ -1132,7 +1600,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
             if (names.Count == 0)
             {
-                throw new InvalidOperationException(
+                throw ThrowHelper.InvalidOperationPlan(
                     "A policy name group in the operation plan must contain "
                     + "at least one policy name.");
             }
@@ -1142,7 +1610,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (groups.Count == 0)
         {
-            throw new InvalidOperationException(
+            throw ThrowHelper.InvalidOperationPlan(
                 "A policy in the operation plan must contain at least "
                 + "one policy name group.");
         }
@@ -1153,28 +1621,49 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     private static ParsedNodeInfo ParsePolicyNodeInfo(JsonElement nodeElement, int id)
     {
         var targetsElement = nodeElement.GetProperty("targets");
+        RequireArray(targetsElement, "policy targets");
         var targets = new List<PolicyExecutionTarget>();
 
         foreach (var targetElement in targetsElement.EnumerateArray())
         {
+            ValidateProperties(
+                targetElement,
+                ["occurrences", "kind", "path", "typeName", "policies", "requirements", "conditions"],
+                ["occurrences", "kind", "path", "typeName", "policies"],
+                "policy target");
+            var occurrencesElement = targetElement.GetProperty("occurrences");
+            RequireArray(occurrencesElement, "policy target occurrences");
             var policiesElement = targetElement.GetProperty("policies");
+            RequireArray(policiesElement, "policy target policies");
             var policies = new List<PolicyApplication>();
             var requirements = new List<PolicyRequirement>();
 
             foreach (var policyElement in policiesElement.EnumerateArray())
             {
+                ValidateProperties(
+                    policyElement,
+                    ["names", "onDenied"],
+                    ["names", "onDenied"],
+                    "policy target application");
                 policies.Add(new PolicyApplication
                 {
                     Groups = ParsePolicyNameGroups(policyElement.GetProperty("names")),
-                    OnDenied = Enum.Parse<PolicyDenialBehavior>(
-                        policyElement.GetProperty("onDenied").GetString()!)
+                    OnDenied = ParseDefinedEnum<PolicyDenialBehavior>(
+                        policyElement.GetProperty("onDenied"),
+                        "policy target denial behavior")
                 });
             }
 
             if (targetElement.TryGetProperty("requirements", out var requirementsElement))
             {
+                RequireArray(requirementsElement, "policy target requirements");
                 foreach (var requirementElement in requirementsElement.EnumerateArray())
                 {
+                    ValidateProperties(
+                        requirementElement,
+                        ["name", "selectionSet"],
+                        ["name", "selectionSet"],
+                        "policy target requirement");
                     requirements.Add(new PolicyRequirement
                     {
                         PolicyName = requirementElement.GetProperty("name").GetString()!,
@@ -1186,7 +1675,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
             targets.Add(new PolicyExecutionTarget
             {
-                Kind = Enum.Parse<PolicyTargetKind>(targetElement.GetProperty("kind").GetString()!),
+                Occurrences = occurrencesElement
+                    .EnumerateArray()
+                    .Select(ParsePolicyOccurrence)
+                    .ToImmutableArray(),
+                Kind = ParseDefinedEnum<PolicyTargetKind>(
+                    targetElement.GetProperty("kind"),
+                    "policy target kind"),
                 Path = SelectionPath.Parse(targetElement.GetProperty("path").GetString()!),
                 TypeName = targetElement.GetProperty("typeName").GetString()!,
                 Policies = policies.ToArray(),
@@ -1204,6 +1699,30 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Targets = targets.ToArray(),
             Conditions = conditions,
             Dependencies = dependencies
+        };
+    }
+
+    private static PolicyOccurrenceReference ParsePolicyOccurrence(JsonElement element)
+    {
+        ValidateProperties(
+            element,
+            ["planPart", "selectionSetId", "selectionId", "occurrenceOrdinal", "applicationOrdinal", "facet"],
+            ["planPart", "selectionSetId", "selectionId", "occurrenceOrdinal", "applicationOrdinal", "facet"],
+            "policy occurrence");
+        var facet = element.GetProperty("facet").GetString() switch
+        {
+            "slot-gate" => PolicyOccurrenceFacet.SlotGate,
+            "residual-eval" => PolicyOccurrenceFacet.ResidualEvaluation,
+            _ => throw ThrowHelper.InvalidOperationPlan("The policy occurrence facet is invalid.")
+        };
+        return new PolicyOccurrenceReference
+        {
+            PlanPart = element.GetProperty("planPart").GetInt32(),
+            SelectionSetId = element.GetProperty("selectionSetId").GetInt32(),
+            SelectionId = element.GetProperty("selectionId").GetInt32(),
+            OccurrenceOrdinal = element.GetProperty("occurrenceOrdinal").GetInt32(),
+            ApplicationOrdinal = element.GetProperty("applicationOrdinal").GetInt32(),
+            Facet = facet
         };
     }
 

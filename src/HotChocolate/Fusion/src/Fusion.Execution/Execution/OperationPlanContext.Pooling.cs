@@ -55,6 +55,7 @@ public sealed partial class OperationPlanContext
 
         Variables = variables;
         OperationPlan = operationPlan;
+        _policyRequestState = requestContext.Features.Get<PolicyRequestState>();
 
         switch (operationPlan)
         {
@@ -70,6 +71,9 @@ public sealed partial class OperationPlanContext
         }
 
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+        PolicyDenyFlags = variables is PolicyVariableValueCollection policyVariables
+            ? policyVariables.DenyFlags
+            : 0;
         DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope ??= requestContext.CreateClientScope();
@@ -84,10 +88,17 @@ public sealed partial class OperationPlanContext
             IncludeFlags,
             DeferFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
+        _resultStore.SetPolicyExecutionState(
+            operationPlan as OperationPlan ?? _policyRequestState?.OperationPlan,
+            _policyRequestState,
+            PolicyDenyFlags);
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
-        PinPolicies(requestContext.GetPolicySnapshot(), operationPlan);
+        if (_policyRequestState is null)
+        {
+            PinPolicies(requestContext.GetPolicySnapshot(), operationPlan);
+        }
 
         var maxNodeId = operationPlan.MaxNodeId;
         EnsureNodeArrayCapacity(maxNodeId);
@@ -164,6 +175,7 @@ public sealed partial class OperationPlanContext
         _executionState.Clean();
         ClearResolvedPolicies();
         _policyDecisions?.Clear();
+        _policyRequestState = null;
 
         RequestContext = default!;
         Schema = default!;
@@ -172,6 +184,8 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
+        IncludeFlags = 0;
+        PolicyDenyFlags = 0;
         DeferFlags = 0;
         // if a custom scope is used we cannot reuse it and have to null it.
         if (_clientScope is not DefaultSourceSchemaClientScope)

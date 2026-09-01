@@ -152,6 +152,35 @@ internal sealed partial class FetchResultStore
         }
     }
 
+    internal bool HasRepresentationVariableValue(
+        SelectionPath selectionSet,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        ImmutableArray<RepresentationShapeNode> requiredShape)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        if (requiredData.Length == 0)
+        {
+            return false;
+        }
+
+        lock (_lock)
+        {
+            var elements = CollectTargetElements(selectionSet);
+
+            foreach (var element in elements)
+            {
+                if (TryWriteShapeLevel(element, requiredShape, writer: null))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     internal RepresentationValue CreateRepresentationVariableValueFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
         HashSet<string> importedKeys,
@@ -173,8 +202,7 @@ internal sealed partial class FetchResultStore
         {
             if (!importedKeys.Contains(requirement.Key))
             {
-                throw new InvalidOperationException(
-                    "A deferred incremental plan fetch references a requirement that was not imported.");
+                throw ThrowHelper.DeferredRequirementNotImported();
             }
         }
 
@@ -187,6 +215,55 @@ internal sealed partial class FetchResultStore
                 requiredShape,
                 entityTypeName);
         }
+    }
+
+    internal bool HasRepresentationVariableValueFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        ImmutableArray<RepresentationShapeNode> requiredShape)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(importedKeys);
+
+        if (importedEntries.IsDefaultOrEmpty || requiredData.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var requirement in requiredData)
+        {
+            if (!importedKeys.Contains(requirement.Key))
+            {
+                throw ThrowHelper.DeferredRequirementNotImported();
+            }
+        }
+
+        Span<(long Start, long Length)> requirementSlices = requiredData.Length <= 32
+            ? stackalloc (long, long)[requiredData.Length]
+            : new (long, long)[requiredData.Length];
+
+        foreach (var importedEntry in importedEntries)
+        {
+            if (importedEntry.IsEmpty)
+            {
+                continue;
+            }
+
+            var values = importedEntry.Values.AsSequence();
+
+            if (TryCollectRequirementSlices(values, requiredData, requirementSlices)
+                && TryWriteShapeLevelFromSnapshot(
+                    values,
+                    requirementSlices,
+                    requiredShape,
+                    writer: null))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private RepresentationValue BuildRepresentationValueFromSnapshot(
@@ -580,7 +657,7 @@ internal sealed partial class FetchResultStore
     private bool TryWriteShapeLevel(
         CompositeResultElement element,
         ImmutableArray<RepresentationShapeNode> level,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         for (var i = 0; i < level.Length; i++)
         {
@@ -612,7 +689,7 @@ internal sealed partial class FetchResultStore
                 return false;
             }
 
-            writer.WritePropertyName(node.NameUtf8);
+            writer?.WritePropertyName(node.NameUtf8);
 
             if (valueKind is JsonValueKind.Null)
             {
@@ -623,7 +700,7 @@ internal sealed partial class FetchResultStore
 
                 if (node.Nodes.IsDefault || node.IsList)
                 {
-                    writer.WriteNullValue();
+                    writer?.WriteNullValue();
                     continue;
                 }
 
@@ -654,7 +731,7 @@ internal sealed partial class FetchResultStore
 
             if (valueKind is JsonValueKind.Object)
             {
-                writer.WriteStartObject();
+                writer?.WriteStartObject();
 
                 if (!node.Branches.IsEmpty)
                 {
@@ -672,8 +749,8 @@ internal sealed partial class FetchResultStore
                             return false;
                         }
 
-                        writer.WritePropertyName(TypeNameFieldName);
-                        writer.WriteStringValue(runtimeTypeName);
+                        writer?.WritePropertyName(TypeNameFieldName);
+                        writer?.WriteStringValue(runtimeTypeName);
                     }
 
                     if (!TryWriteShapeLevel(value, node.Nodes, writer))
@@ -682,7 +759,7 @@ internal sealed partial class FetchResultStore
                     }
                 }
 
-                writer.WriteEndObject();
+                writer?.WriteEndObject();
                 continue;
             }
 
@@ -705,15 +782,15 @@ internal sealed partial class FetchResultStore
     private bool TryWriteBranchedComposite(
         CompositeResultElement value,
         RepresentationShapeNode node,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         if (!TryResolveRuntimeType(value, out var runtimeTypeName, out var runtimeType))
         {
             return false;
         }
 
-        writer.WritePropertyName(TypeNameFieldName);
-        writer.WriteStringValue(runtimeTypeName);
+        writer?.WritePropertyName(TypeNameFieldName);
+        writer?.WriteStringValue(runtimeTypeName);
 
         if (!TryWriteShapeLevel(value, node.Nodes, writer))
         {
@@ -741,9 +818,9 @@ internal sealed partial class FetchResultStore
         CompositeResultElement array,
         RepresentationShapeNode node,
         ITypeNode? elementType,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
-        writer.WriteStartArray();
+        writer?.WriteStartArray();
 
         foreach (var item in array.EnumerateArray())
         {
@@ -756,7 +833,7 @@ internal sealed partial class FetchResultStore
                     return false;
                 }
 
-                writer.WriteNullValue();
+                writer?.WriteNullValue();
                 continue;
             }
 
@@ -775,25 +852,25 @@ internal sealed partial class FetchResultStore
                 return false;
             }
 
-            writer.WriteStartObject();
+            writer?.WriteStartObject();
 
             if (!TryWriteShapeLevel(item, node.Nodes, writer))
             {
                 return false;
             }
 
-            writer.WriteEndObject();
+            writer?.WriteEndObject();
         }
 
-        writer.WriteEndArray();
+        writer?.WriteEndArray();
         return true;
     }
 
     private static bool TryWriteNullLeafStructure(
         ImmutableArray<RepresentationShapeNode> level,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
-        writer.WriteStartObject();
+        writer?.WriteStartObject();
 
         for (var i = 0; i < level.Length; i++)
         {
@@ -804,11 +881,11 @@ internal sealed partial class FetchResultStore
                 return false;
             }
 
-            writer.WritePropertyName(node.NameUtf8);
+            writer?.WritePropertyName(node.NameUtf8);
 
             if (node.Nodes.IsDefault || node.IsList)
             {
-                writer.WriteNullValue();
+                writer?.WriteNullValue();
             }
             else if (!TryWriteNullLeafStructure(node.Nodes, writer))
             {
@@ -816,16 +893,16 @@ internal sealed partial class FetchResultStore
             }
         }
 
-        writer.WriteEndObject();
+        writer?.WriteEndObject();
         return true;
     }
 
     private static bool TryWriteLeafArray(
         CompositeResultElement array,
         ITypeNode? elementType,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
-        writer.WriteStartArray();
+        writer?.WriteStartArray();
 
         foreach (var item in array.EnumerateArray())
         {
@@ -838,7 +915,7 @@ internal sealed partial class FetchResultStore
                     return false;
                 }
 
-                writer.WriteNullValue();
+                writer?.WriteNullValue();
             }
             else if (itemKind is JsonValueKind.Array)
             {
@@ -853,15 +930,20 @@ internal sealed partial class FetchResultStore
             }
         }
 
-        writer.WriteEndArray();
+        writer?.WriteEndArray();
         return true;
     }
 
     private static void WriteLeafValue(
         CompositeResultElement value,
         JsonValueKind valueKind,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
+        if (writer is null)
+        {
+            return;
+        }
+
         // A custom scalar can have a JSON object as its runtime value, which
         // only the backing document can serialize.
         if (valueKind is JsonValueKind.Object)
@@ -964,7 +1046,7 @@ internal sealed partial class FetchResultStore
         ReadOnlySequence<byte> values,
         ReadOnlySpan<(long Start, long Length)> slices,
         ImmutableArray<RepresentationShapeNode> level,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         for (var i = 0; i < level.Length; i++)
         {
@@ -972,8 +1054,8 @@ internal sealed partial class FetchResultStore
 
             if (!node.Nodes.IsDefault && !node.IsList)
             {
-                writer.WritePropertyName(node.NameUtf8);
-                writer.WriteStartObject();
+                writer?.WritePropertyName(node.NameUtf8);
+                writer?.WriteStartObject();
 
                 if (!node.Branches.IsEmpty)
                 {
@@ -996,8 +1078,8 @@ internal sealed partial class FetchResultStore
                             return false;
                         }
 
-                        writer.WritePropertyName(TypeNameFieldName);
-                        writer.WriteStringValue(runtimeTypeName);
+                        writer?.WritePropertyName(TypeNameFieldName);
+                        writer?.WriteStringValue(runtimeTypeName);
                     }
 
                     if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Nodes, writer))
@@ -1006,7 +1088,7 @@ internal sealed partial class FetchResultStore
                     }
                 }
 
-                writer.WriteEndObject();
+                writer?.WriteEndObject();
                 continue;
             }
 
@@ -1030,7 +1112,7 @@ internal sealed partial class FetchResultStore
         ReadOnlySequence<byte> values,
         ReadOnlySpan<(long Start, long Length)> slices,
         RepresentationShapeNode node,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         if (!TryResolveRuntimeTypeFromSnapshot(
             values,
@@ -1042,8 +1124,8 @@ internal sealed partial class FetchResultStore
             return false;
         }
 
-        writer.WritePropertyName(TypeNameFieldName);
-        writer.WriteStringValue(runtimeTypeName);
+        writer?.WritePropertyName(TypeNameFieldName);
+        writer?.WriteStringValue(runtimeTypeName);
 
         if (!TryWriteShapeLevelFromSnapshot(values, slices, node.Nodes, writer))
         {
@@ -1070,7 +1152,7 @@ internal sealed partial class FetchResultStore
     private bool TryWriteNodesFromScope(
         ReadOnlySequence<byte> scope,
         ImmutableArray<RepresentationShapeNode> nodes,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         for (var i = 0; i < nodes.Length; i++)
         {
@@ -1078,8 +1160,8 @@ internal sealed partial class FetchResultStore
 
             if (!node.Nodes.IsDefault && !node.IsList)
             {
-                writer.WritePropertyName(node.NameUtf8);
-                writer.WriteStartObject();
+                writer?.WritePropertyName(node.NameUtf8);
+                writer?.WriteStartObject();
 
                 if (!node.Branches.IsEmpty)
                 {
@@ -1100,8 +1182,8 @@ internal sealed partial class FetchResultStore
                             return false;
                         }
 
-                        writer.WritePropertyName(TypeNameFieldName);
-                        writer.WriteStringValue(runtimeTypeName);
+                        writer?.WritePropertyName(TypeNameFieldName);
+                        writer?.WriteStringValue(runtimeTypeName);
                     }
 
                     if (!TryWriteNodesFromScope(scope, node.Nodes, writer))
@@ -1110,7 +1192,7 @@ internal sealed partial class FetchResultStore
                     }
                 }
 
-                writer.WriteEndObject();
+                writer?.WriteEndObject();
                 continue;
             }
 
@@ -1126,7 +1208,7 @@ internal sealed partial class FetchResultStore
     private bool TryWriteBranchedCompositeFromScope(
         ReadOnlySequence<byte> scope,
         RepresentationShapeNode node,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         if (!TryResolveRuntimeTypeFromSnapshotScope(
             scope,
@@ -1136,8 +1218,8 @@ internal sealed partial class FetchResultStore
             return false;
         }
 
-        writer.WritePropertyName(TypeNameFieldName);
-        writer.WriteStringValue(runtimeTypeName);
+        writer?.WritePropertyName(TypeNameFieldName);
+        writer?.WriteStringValue(runtimeTypeName);
 
         if (!TryWriteNodesFromScope(scope, node.Nodes, writer))
         {
@@ -1164,7 +1246,7 @@ internal sealed partial class FetchResultStore
     private bool TryWriteNodeValueFromScope(
         ReadOnlySequence<byte> scope,
         RepresentationShapeNode node,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         var value = scope;
 
@@ -1176,7 +1258,7 @@ internal sealed partial class FetchResultStore
             }
         }
 
-        writer.WritePropertyName(node.NameUtf8);
+        writer?.WritePropertyName(node.NameUtf8);
 
         if (node.IsList)
         {
@@ -1190,7 +1272,7 @@ internal sealed partial class FetchResultStore
     private bool TryWriteListFromScope(
         ReadOnlySequence<byte> value,
         ImmutableArray<RepresentationShapeNode> children,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         var reader = new Utf8JsonReader(value);
 
@@ -1201,7 +1283,7 @@ internal sealed partial class FetchResultStore
 
         if (reader.TokenType is JsonTokenType.Null)
         {
-            writer.WriteNullValue();
+            writer?.WriteNullValue();
             return true;
         }
 
@@ -1210,18 +1292,18 @@ internal sealed partial class FetchResultStore
             return false;
         }
 
-        writer.WriteStartArray();
+        writer?.WriteStartArray();
 
         while (reader.Read())
         {
             switch (reader.TokenType)
             {
                 case JsonTokenType.EndArray:
-                    writer.WriteEndArray();
+                    writer?.WriteEndArray();
                     return true;
 
                 case JsonTokenType.Null:
-                    writer.WriteNullValue();
+                    writer?.WriteNullValue();
                     continue;
 
                 case JsonTokenType.StartObject:
@@ -1229,14 +1311,14 @@ internal sealed partial class FetchResultStore
                     reader.Skip();
                     var length = reader.BytesConsumed - start;
 
-                    writer.WriteStartObject();
+                    writer?.WriteStartObject();
 
                     if (!TryWriteNodesFromScope(value.Slice(start, length), children, writer))
                     {
                         return false;
                     }
 
-                    writer.WriteEndObject();
+                    writer?.WriteEndObject();
                     continue;
 
                 default:
@@ -1419,8 +1501,13 @@ internal sealed partial class FetchResultStore
         return false;
     }
 
-    private static void WriteRawJsonValue(JsonWriter writer, ReadOnlySequence<byte> value)
+    private static void WriteRawJsonValue(JsonWriter? writer, ReadOnlySequence<byte> value)
     {
+        if (writer is null)
+        {
+            return;
+        }
+
         if (value.IsSingleSegment)
         {
             writer.WriteRawValue(value.FirstSpan);

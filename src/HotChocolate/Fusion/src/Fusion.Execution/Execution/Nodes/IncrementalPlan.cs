@@ -42,6 +42,7 @@ public sealed class IncrementalPlan : IOperationPlan
         AllNodes = allNodes;
         DeliveryGroups = deliveryGroups;
         Requirements = requirements.IsDefault ? [] : requirements;
+        DeferredPolicyOperations = DeferredPolicyOperation.Create(allNodes);
         _nodesById = CreateNodeLookup(
             allNodes,
             out var usesDynamicSchemaNames,
@@ -100,6 +101,8 @@ public sealed class IncrementalPlan : IOperationPlan
     internal bool UsesDynamicSchemaNames { get; }
 
     internal bool UsesBatchNodes { get; }
+
+    internal ImmutableArray<DeferredPolicyOperation> DeferredPolicyOperations { get; }
 
     /// <summary>
     /// Gets the child incremental plans for this plan. Incremental plans do not

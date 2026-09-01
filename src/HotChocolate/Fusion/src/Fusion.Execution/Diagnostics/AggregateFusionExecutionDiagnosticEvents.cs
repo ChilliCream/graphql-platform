@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -154,6 +155,56 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].PlanOperationError(context, operationId, error);
+        }
+    }
+
+    public IDisposable EvaluateRequestPolicies(RequestContext context)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].EvaluateRequestPolicies(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        bool denied,
+        TimeSpan duration)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyEvaluated(context, policyName, denied, duration);
+        }
+    }
+
+    public void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicySlotDenied(
+                context,
+                slotVariableName,
+                policyExpression,
+                typeName,
+                fieldName,
+                behavior,
+                reason,
+                reasonId,
+                subjectId);
         }
     }
 

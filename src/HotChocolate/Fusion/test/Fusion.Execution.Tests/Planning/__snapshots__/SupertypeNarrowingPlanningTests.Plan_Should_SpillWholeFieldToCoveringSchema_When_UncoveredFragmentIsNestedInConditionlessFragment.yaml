@@ -32,3 +32,6 @@ nodes:
       }
     forwardedVariables:
       - includeReview
+includeConditions:
+  -
+    includeVariable: includeReview

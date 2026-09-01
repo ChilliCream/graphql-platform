@@ -15,8 +15,8 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class PolicyExecutionNode : ExecutionNode
 {
-    private readonly PolicyExecutionTarget[] _targets;
-    private readonly ExecutionNodeCondition[] _conditions;
+    private PolicyExecutionTarget[] _targets;
+    private ExecutionNodeCondition[] _conditions;
 
     internal PolicyExecutionNode(
         int id,
@@ -43,6 +43,18 @@ public sealed class PolicyExecutionNode : ExecutionNode
     /// Gets the policy targets evaluated by this node.
     /// </summary>
     public ReadOnlySpan<PolicyExecutionTarget> Targets => _targets;
+
+    internal void SetTargets(PolicyExecutionTarget[] targets)
+    {
+        ArgumentNullException.ThrowIfNull(targets);
+        _targets = targets;
+    }
+
+    internal void SetConditions(ExecutionNodeCondition[] conditions)
+    {
+        ArgumentNullException.ThrowIfNull(conditions);
+        _conditions = conditions;
+    }
 
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
@@ -461,17 +473,14 @@ public sealed class PolicyExecutionNode : ExecutionNode
         {
             if (selection is not FieldNode field)
             {
-                throw new InvalidOperationException(
-                    $"Authorization policy '{policyName}' has an unsupported requirement selection.");
+                throw ThrowHelper.UnsupportedPolicyRequirementSelection(policyName);
             }
 
             var responseName = field.Alias?.Value ?? field.Name.Value;
 
             if (!entity.TryGetProperty(responseName, out var value))
             {
-                throw new InvalidOperationException(
-                    $"Authorization policy '{policyName}' requires field '{responseName}', "
-                    + "but the execution plan did not provide it.");
+                throw ThrowHelper.PolicyRequirementFieldMissing(policyName, responseName);
             }
 
             if (field.SelectionSet is { } childRequirements

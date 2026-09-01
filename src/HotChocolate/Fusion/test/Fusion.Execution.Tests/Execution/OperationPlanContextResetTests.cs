@@ -178,7 +178,10 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             nodes,
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
             policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
         var incrementalPlan = new IncrementalPlan(
@@ -282,7 +285,10 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
                 allNodes,
                 deliveryGroups: [],
                 incrementalPlans: [],
+                includeConditions: subscriptionOperation.IncludeConditions.ToImmutableArray(),
+                policyExpressions: [],
                 policySlots: [],
+                policies: [],
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();

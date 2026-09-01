@@ -128,6 +128,8 @@ public sealed class Selection : ISelection
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
 
+    internal ReadOnlySpan<ulong> IncludeFlags => _includeFlags;
+
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 

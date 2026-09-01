@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
@@ -76,6 +77,34 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         RequestContext context,
         string operationId,
         Exception error);
+
+    /// <summary>
+    /// Creates a scope for evaluating request-constant authorization policies.
+    /// </summary>
+    IDisposable EvaluateRequestPolicies(RequestContext context);
+
+    /// <summary>
+    /// Reports one completed policy-engine evaluation.
+    /// </summary>
+    void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        bool denied,
+        TimeSpan duration);
+
+    /// <summary>
+    /// Reports a denied policy condition at one live operation coordinate.
+    /// </summary>
+    void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId);
 
     /// <summary>
     /// Called when executing an operation plan node that handles Relay-style query nodes.

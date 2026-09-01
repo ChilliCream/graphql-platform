@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,14 +11,20 @@ public sealed partial class OperationPlanner
 {
     private const string RequirementDirectiveName = "fusion__requirement";
 
-    private static Dictionary<string, SelectionSetNode> CreatePolicyRequirementMap(
-        IEnumerable<IPolicy> policies)
+    private static PolicyPlanningState CreatePolicyPlanningState(
+        ImmutableArray<IPolicy> policies)
     {
         var requirements = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
+        var cacheability = new Dictionary<string, bool>(StringComparer.Ordinal);
+        var hashes = new Dictionary<string, ulong>(StringComparer.Ordinal);
 
         foreach (var policy in policies)
         {
-            if (policy.Requirements.Resource is not { } selectionSet)
+            var policyRequirements = policy.Requirements;
+            cacheability[policy.Name] = policyRequirements.IsRequestCacheable;
+            hashes[policy.Name] = PolicyPlanEntry.ComputeRequirementHash(policyRequirements.Resource);
+
+            if (policyRequirements.Resource is not { } selectionSet)
             {
                 continue;
             }
@@ -24,40 +32,158 @@ public sealed partial class OperationPlanner
             requirements.Add(policy.Name, selectionSet);
         }
 
-        return requirements;
+        return new PolicyPlanningState(policies, requirements, cacheability, hashes);
     }
 
-    /// <summary>
-    /// Builds a lookup from policy name to <see cref="PolicyRequirements.IsRequestCacheable"/>,
-    /// used to classify a policy application's names into the plan-time condition slot path
-    /// (all names request-cacheable) or the policy execution node path (any name reads
-    /// resource or action data).
-    /// </summary>
-    private static Dictionary<string, bool> CreatePolicyRequestCacheabilityMap(
-        IEnumerable<IPolicy> policies)
+    private ImmutableHashSet<string> CreatePolicyRequirementFeedPaths(
+        OperationDefinitionNode operation,
+        PolicyPlanningState policyState)
     {
-        var cacheability = new Dictionary<string, bool>(StringComparer.Ordinal);
+        var feeds = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        var path = new List<string>();
+        VisitSelectionSet(
+            operation.SelectionSet,
+            _schema.GetOperationType(operation.Operation),
+            path);
+        return feeds.ToImmutable();
 
-        foreach (var policy in policies)
+        void VisitSelectionSet(
+            SelectionSetNode selectionSet,
+            ITypeDefinition type,
+            List<string> currentPath)
         {
-            cacheability[policy.Name] = policy.Requirements.IsRequestCacheable;
+            if (type is not FusionComplexTypeDefinition
+                && type is not FusionUnionTypeDefinition)
+            {
+                return;
+            }
+
+            var complexType = type as FusionComplexTypeDefinition;
+            AddObjectRequirements(type, currentPath);
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode fieldNode:
+                        if (complexType is null
+                            || !complexType.Fields.TryGetField(
+                            fieldNode.Name.Value,
+                            allowInaccessibleFields: true,
+                            out var field))
+                        {
+                            continue;
+                        }
+
+                        AddRequirements(field.PolicyApplications, currentPath);
+                        currentPath.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+
+                        AddObjectRequirements(field.Type.NamedType(), currentPath);
+
+                        if (fieldNode.SelectionSet is { } childSelectionSet)
+                        {
+                            VisitSelectionSet(childSelectionSet, field.Type.NamedType(), currentPath);
+                        }
+
+                        currentPath.RemoveAt(currentPath.Count - 1);
+                        break;
+
+                    case InlineFragmentNode fragment:
+                        var fragmentType = fragment.TypeCondition is null
+                            ? type
+                            : _schema.Types.GetType(
+                                fragment.TypeCondition.Name.Value,
+                                allowInaccessibleFields: true);
+                        VisitSelectionSet(fragment.SelectionSet, fragmentType, currentPath);
+                        break;
+                }
+            }
         }
 
-        return cacheability;
+        void AddObjectRequirements(
+            ITypeDefinition type,
+            IReadOnlyList<string> entityPath)
+        {
+            if (type is FusionObjectTypeDefinition objectType)
+            {
+                AddRequirements(objectType.PolicyApplications, entityPath);
+                return;
+            }
+
+            if (type is not FusionInterfaceTypeDefinition and not FusionUnionTypeDefinition)
+            {
+                return;
+            }
+
+            foreach (var possibleType in _schema.GetPossibleTypes(type, includeInaccessible: true))
+            {
+                AddRequirements(possibleType.PolicyApplications, entityPath);
+            }
+        }
+
+        void AddRequirements(
+            ImmutableArray<PolicyApplication> applications,
+            IReadOnlyList<string> entityPath)
+        {
+            if (applications.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var application in applications)
+            {
+                foreach (var group in application.Groups)
+                {
+                    foreach (var name in group)
+                    {
+                        if (policyState.Requirements.TryGetValue(name, out var requirements))
+                        {
+                            AddRequirementFields(requirements, entityPath);
+                        }
+                    }
+                }
+            }
+        }
+
+        void AddRequirementFields(
+            SelectionSetNode requirements,
+            IReadOnlyList<string> entityPath)
+        {
+            var requirementPath = new List<string>(entityPath);
+            VisitRequirements(requirements, requirementPath);
+        }
+
+        void VisitRequirements(SelectionSetNode requirements, List<string> requirementPath)
+        {
+            foreach (var selection in requirements.Selections)
+            {
+                if (selection is not FieldNode field)
+                {
+                    continue;
+                }
+
+                requirementPath.Add(field.Alias?.Value ?? field.Name.Value);
+                feeds.Add(CreatePolicyPathKey(requirementPath));
+
+                if (field.SelectionSet is { } children)
+                {
+                    VisitRequirements(children, requirementPath);
+                }
+
+                requirementPath.RemoveAt(requirementPath.Count - 1);
+            }
+        }
     }
 
     /// <summary>
-    /// Gets whether the named policy is known and produces a request-constant decision. An
-    /// unknown policy name is treated as not request-cacheable, so classification conservatively
-    /// falls back to the policy execution node path instead of gating on an unresolved policy.
+    /// Gets whether the named policy is known and produces a request-constant decision.
+    /// Unknown policy names return <c>false</c>.
     /// </summary>
     private static bool IsPolicyRequestCacheable(string policyName, PolicyPlanningState policyState)
         => policyState.RequestCacheability.TryGetValue(policyName, out var cacheable) && cacheable;
 
     /// <summary>
-    /// Gets whether every policy name reached by <paramref name="application"/>, across every
-    /// OR group, is request-cacheable. Such an application produces a request-constant decision
-    /// and can be represented entirely as a plan-time condition slot.
+    /// Gets whether every policy name in <paramref name="application"/> is request-cacheable.
     /// </summary>
     private static bool IsApplicationRequestCacheable(
         PolicyApplication application,
@@ -78,9 +204,7 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Classifies a policy application at a coordinate for plan-time condition slot gating
-    /// (repo-xx5): S when every name is request-cacheable, M when the application mixes
-    /// request-cacheable and data-bearing names, and Npure when no name is request-cacheable.
+    /// Classifies an application as request-constant, mixed, or residual-only.
     /// </summary>
     private static PolicyApplicationClass ClassifyApplication(
         PolicyApplication application,
@@ -91,36 +215,43 @@ public sealed partial class OperationPlanner
             return PolicyApplicationClass.S;
         }
 
+        var hasRequestCacheable = false;
         foreach (var group in application.Groups)
         {
+            var groupHasRequestCacheable = false;
             foreach (var name in group)
             {
                 if (IsPolicyRequestCacheable(name, policyState))
                 {
-                    return PolicyApplicationClass.M;
+                    hasRequestCacheable = true;
+                    groupHasRequestCacheable = true;
                 }
+            }
+
+            if (!groupHasRequestCacheable)
+            {
+                return PolicyApplicationClass.ResidualOnly;
             }
         }
 
-        return PolicyApplicationClass.Npure;
+        return hasRequestCacheable
+            ? PolicyApplicationClass.M
+            : PolicyApplicationClass.ResidualOnly;
     }
 
     /// <summary>
-    /// The classification of a policy application at one coordinate, used to split the
-    /// coordinate into its plan-time slot-eligible applications (S union M) and its residual
-    /// applications (M union Npure, the set the static residual denial threshold is computed
-    /// over) per repo-xx5.
+    /// Defines the execution classification of a policy application.
     /// </summary>
     private enum PolicyApplicationClass
     {
         /// <summary>Every policy name in the application is request-cacheable.</summary>
         S,
 
-        /// <summary>The application mixes request-cacheable and data-bearing names.</summary>
+        /// <summary>Every arm mixes request-cacheable and data-bearing names.</summary>
         M,
 
-        /// <summary>No policy name in the application is request-cacheable.</summary>
-        Npure
+        /// <summary>The application has no safe non-tautological request projection.</summary>
+        ResidualOnly
     }
 
     private OperationDefinitionNode InjectPolicyRequirements(
@@ -143,7 +274,8 @@ public sealed partial class OperationPlanner
         ITypeDefinition type,
         PolicyPlanningState policyState)
     {
-        if (type is not FusionComplexTypeDefinition complexType)
+        if (type is not FusionComplexTypeDefinition
+            && type is not FusionUnionTypeDefinition)
         {
             return selectionSet;
         }
@@ -155,7 +287,7 @@ public sealed partial class OperationPlanner
             var selection = selectionSet.Selections[i];
             var updatedSelection = RewriteSelectionWithPolicyRequirements(
                 selection,
-                complexType,
+                type,
                 policyState);
 
             if (!ReferenceEquals(selection, updatedSelection))
@@ -170,7 +302,7 @@ public sealed partial class OperationPlanner
             ? selectionSet
             : selectionSet.WithSelections(rewritten);
 
-        if (complexType is FusionObjectTypeDefinition
+        if (type is FusionObjectTypeDefinition
             {
                 PolicyApplications.IsDefaultOrEmpty: false
             } objectType)
@@ -185,11 +317,23 @@ public sealed partial class OperationPlanner
                             MergePolicyRequirements(
                                 name,
                                 updatedSelectionSet,
-                                complexType,
+                                objectType,
                                 policyState);
                     }
                 }
             }
+        }
+        else if (type is FusionInterfaceTypeDefinition or FusionUnionTypeDefinition)
+        {
+            updatedSelectionSet = MergePossibleTypePolicyRequirements(
+                updatedSelectionSet,
+                type,
+                policyState);
+        }
+
+        if (type is not FusionComplexTypeDefinition complexType)
+        {
+            return updatedSelectionSet;
         }
 
         foreach (var selection in selectionSet.Selections)
@@ -224,16 +368,72 @@ public sealed partial class OperationPlanner
         return updatedSelectionSet;
     }
 
+    private SelectionSetNode MergePossibleTypePolicyRequirements(
+        SelectionSetNode selectionSet,
+        ITypeDefinition abstractType,
+        PolicyPlanningState policyState)
+    {
+        var selections = new List<ISelectionNode>(selectionSet.Selections);
+
+        foreach (var possibleType in _schema.GetPossibleTypes(
+            abstractType,
+            includeInaccessible: true).OrderBy(type => type.Name, StringComparer.Ordinal))
+        {
+            if (possibleType.PolicyApplications.IsDefaultOrEmpty)
+            {
+                continue;
+            }
+
+            var requirements = new SelectionSetNode([]);
+
+            foreach (var application in possibleType.PolicyApplications)
+            {
+                foreach (var group in application.Groups)
+                {
+                    foreach (var name in group)
+                    {
+                        requirements = MergePolicyRequirements(
+                            name,
+                            requirements,
+                            possibleType,
+                            policyState);
+                    }
+                }
+            }
+
+            if (requirements.Selections.Count == 0)
+            {
+                continue;
+            }
+
+            selections.Add(
+                new InlineFragmentNode(
+                    location: null,
+                    new NamedTypeNode(possibleType.Name),
+                    directives: [],
+                    requirements));
+        }
+
+        return selections.Count == selectionSet.Selections.Count
+            ? selectionSet
+            : selectionSet.WithSelections(selections);
+    }
+
     private ISelectionNode RewriteSelectionWithPolicyRequirements(
         ISelectionNode selection,
-        FusionComplexTypeDefinition type,
+        ITypeDefinition type,
         PolicyPlanningState policyState)
     {
         switch (selection)
         {
             case FieldNode { SelectionSet: { } childSelectionSet } fieldNode:
             {
-                var field = type.Fields.GetField(
+                if (type is not FusionComplexTypeDefinition complexType)
+                {
+                    return selection;
+                }
+
+                var field = complexType.Fields.GetField(
                     fieldNode.Name.Value,
                     allowInaccessibleFields: true);
                 var rewritten = RewriteSelectionSetWithPolicyRequirements(
@@ -300,17 +500,19 @@ public sealed partial class OperationPlanner
                     + $"'{type.Name}.{requirementField.Name.Value}'.");
             }
 
-            EnsureRequirementFieldIsNotProtected(
+            EnsureRequirementFieldHasNoDataBearingPolicy(
                 policyName,
                 type,
-                requirementFieldDefinition);
+                requirementFieldDefinition,
+                policyState);
 
             if (requirementField.SelectionSet is { } requirementChildren)
             {
                 ValidateRequirementSelectionSet(
                     policyName,
                     requirementChildren,
-                    requirementFieldDefinition.Type.NamedType());
+                    requirementFieldDefinition.Type.NamedType(),
+                    policyState);
             }
 
             var matchIndex = FindMatchingField(selections, requirementField);
@@ -333,7 +535,8 @@ public sealed partial class OperationPlanner
                 policyName,
                 existingChildren,
                 childRequirements,
-                requirementFieldDefinition.Type.NamedType());
+                requirementFieldDefinition.Type.NamedType(),
+                policyState);
 
             if (!ReferenceEquals(existingChildren, mergedChildren))
             {
@@ -348,7 +551,8 @@ public sealed partial class OperationPlanner
     private void ValidateRequirementSelectionSet(
         string policyName,
         SelectionSetNode requirements,
-        ITypeDefinition type)
+        ITypeDefinition type,
+        PolicyPlanningState policyState)
     {
         if (type is not FusionComplexTypeDefinition complexType)
         {
@@ -374,17 +578,19 @@ public sealed partial class OperationPlanner
                     + $"'{complexType.Name}.{requirementField.Name.Value}'.");
             }
 
-            EnsureRequirementFieldIsNotProtected(
+            EnsureRequirementFieldHasNoDataBearingPolicy(
                 policyName,
                 complexType,
-                requirementFieldDefinition);
+                requirementFieldDefinition,
+                policyState);
 
             if (requirementField.SelectionSet is { } childRequirements)
             {
                 ValidateRequirementSelectionSet(
                     policyName,
                     childRequirements,
-                    requirementFieldDefinition.Type.NamedType());
+                    requirementFieldDefinition.Type.NamedType(),
+                    policyState);
             }
         }
     }
@@ -393,7 +599,8 @@ public sealed partial class OperationPlanner
         string policyName,
         SelectionSetNode selectionSet,
         SelectionSetNode requirements,
-        ITypeDefinition type)
+        ITypeDefinition type,
+        PolicyPlanningState policyState)
     {
         if (type is not FusionComplexTypeDefinition complexType)
         {
@@ -422,10 +629,11 @@ public sealed partial class OperationPlanner
                     + $"'{complexType.Name}.{requirementField.Name.Value}'.");
             }
 
-            EnsureRequirementFieldIsNotProtected(
+            EnsureRequirementFieldHasNoDataBearingPolicy(
                 policyName,
                 complexType,
-                requirementFieldDefinition);
+                requirementFieldDefinition,
+                policyState);
 
             var matchIndex = FindMatchingField(selections, requirementField);
 
@@ -447,7 +655,8 @@ public sealed partial class OperationPlanner
                 policyName,
                 existingChildren,
                 childRequirements,
-                requirementFieldDefinition.Type.NamedType());
+                requirementFieldDefinition.Type.NamedType(),
+                policyState);
 
             if (!ReferenceEquals(existingChildren, mergedChildren))
             {
@@ -517,16 +726,19 @@ public sealed partial class OperationPlanner
         }
     }
 
-    private static void EnsureRequirementFieldIsNotProtected(
+    private static void EnsureRequirementFieldHasNoDataBearingPolicy(
         string policyName,
         ITypeDefinition declaringType,
-        FusionOutputFieldDefinition field)
+        FusionOutputFieldDefinition field,
+        PolicyPlanningState policyState)
     {
-        if (!field.PolicyApplications.IsDefaultOrEmpty)
+        if (!field.PolicyApplications.IsDefaultOrEmpty
+            && field.PolicyApplications.Any(
+                application => !IsApplicationRequestCacheable(application, policyState)))
         {
-            throw new InvalidOperationException(
-                $"Authorization policy '{policyName}' requires protected field "
-                + $"'{declaringType.Name}.{field.Name}', which would create an authorization cycle.");
+            throw Execution.ThrowHelper.PolicyRequirementAuthorizationCycle(
+                policyName,
+                $"{declaringType.Name}.{field.Name}");
         }
     }
 

@@ -9,6 +9,7 @@ public sealed partial class OperationPlanContext
 {
     private readonly object _resolvedPoliciesSync = new();
     private Dictionary<string, IPolicy>? _resolvedPolicies;
+    private PolicyRequestState? _policyRequestState;
 
     private ConcurrentDictionary<
         IPolicy,
@@ -19,6 +20,11 @@ public sealed partial class OperationPlanContext
     /// </summary>
     internal IPolicy ResolvePolicy(string name)
     {
+        if (_policyRequestState is { } requestState)
+        {
+            return requestState.ResolvePolicy(name);
+        }
+
         lock (_resolvedPoliciesSync)
         {
             if (_resolvedPolicies is not null
@@ -40,9 +46,7 @@ public sealed partial class OperationPlanContext
                 continue;
             }
 
-            // Request execution captures this snapshot before cache lookup and planning. The fallback
-            // preserves the contract for direct OperationPlanContext callers that bypass the request
-            // pipeline, primarily focused unit tests.
+            // An empty snapshot uses the schema's current policy snapshot.
             if (policySnapshot.IsDefault)
             {
                 policySnapshot = Schema.Policies.GetSnapshot();
@@ -95,6 +99,11 @@ public sealed partial class OperationPlanContext
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        if (_policyRequestState is { } requestState)
+        {
+            return requestState.EvaluatePolicyOnceAsync(policy, user, cancellationToken);
+        }
+
         var decisions = Volatile.Read(ref _policyDecisions);
 
         if (decisions is null)
@@ -117,6 +126,72 @@ public sealed partial class OperationPlanContext
             state);
 
         return new ValueTask<PolicyDecision>(evaluation.Value);
+    }
+
+    /// <summary>
+    /// Clears request-constant decisions and recomputes policy gates from the pinned policy instances.
+    /// </summary>
+    internal async ValueTask<PolicySlotEvaluationResult> ReevaluatePolicySlotsAsync(
+        CancellationToken cancellationToken)
+    {
+        _policyRequestState?.ClearDecisions();
+        _policyDecisions?.Clear();
+        PolicyDenyFlags = 0;
+
+        var operationPlan = OperationPlan as OperationPlan
+            ?? _policyRequestState?.OperationPlan;
+        if (operationPlan is not { PolicySlots.IsEmpty: false })
+        {
+            if (Variables is PolicyVariableValueCollection emptyPolicyVariables)
+            {
+                emptyPolicyVariables.SetFlags(0, 0, 0);
+            }
+
+            _resultStore.SetPolicyExecutionState(operationPlan, _policyRequestState, 0);
+            return default;
+        }
+
+        var requestState = _policyRequestState
+            ?? PolicyRequestState.GetOrCreate(RequestContext, operationPlan, _diagnosticEvents);
+        _policyRequestState = requestState;
+
+        var variables = Variables is PolicyVariableValueCollection policyVariables
+            ? policyVariables.Inner
+            : Variables;
+        PolicySlotEvaluationResult evaluation;
+
+        using (_diagnosticEvents.EvaluateRequestPolicies(RequestContext))
+        {
+            evaluation = await requestState.EvaluateSlotsAsync(
+                operationPlan,
+                variables,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        if (Variables is PolicyVariableValueCollection currentVariables)
+        {
+            currentVariables.SetFlags(
+                evaluation.LiveFlags,
+                evaluation.DenyFlags,
+                evaluation.FetchGateDenyFlags);
+        }
+        else
+        {
+            Variables = new PolicyVariableValueCollection(
+                Variables,
+                operationPlan.PolicySlots.Length,
+                evaluation.LiveFlags,
+                evaluation.DenyFlags,
+                evaluation.FetchGateDenyFlags);
+        }
+
+        PolicyDenyFlags = evaluation.DenyFlags;
+        _resultStore.SetPolicyExecutionState(
+            operationPlan,
+            requestState,
+            PolicyDenyFlags);
+        return evaluation;
     }
 
     private static async Task<PolicyDecision> EvaluatePolicyAsync(

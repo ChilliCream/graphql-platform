@@ -260,6 +260,29 @@ public sealed class PolicyCollectionTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Apply_Should_EvictIndexedPlan_When_PolicyRequirementChangesFromNonEmptyToEmpty()
+    {
+        // arrange
+        var provider = new TestPolicyProvider(
+            new TestPolicy("A", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            new TestPolicy("B"));
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(CreateTwoSecretsSchemaDocument(), services);
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        schema.Policies.AttachPlanCache(planCache);
+        var plan = PlanOperation(schema, "{ secretA }");
+        planCache.Add(planCache.Capture(), "plan", plan);
+
+        // act
+        provider.Emit(new TestPolicy("A"), new TestPolicy("B"));
+
+        // assert
+        Assert.False(planCache.Current.TryGet("plan", out _));
+    }
+
+    [Fact]
     public void Apply_Should_NotResetPlanCache_When_PolicyRequirementIsUnchanged()
     {
         // arrange

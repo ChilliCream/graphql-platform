@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -63,6 +64,10 @@ internal sealed partial class FetchResultStore : IDisposable
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
     private CompositeResultDocument _result = default!;
     private ValueCompletion _valueCompletion = default!;
+    private OperationPlan? _policyPlan;
+    private PolicyRequestState? _policyRequestState;
+    private ulong _policyDenyFlags;
+    private int _policyPlanPart = -1;
     private List<IError>? _errors;
     private Dictionary<Path, IError>? _pocketedErrors;
     private bool _disposed;
@@ -78,6 +83,532 @@ internal sealed partial class FetchResultStore : IDisposable
     public IReadOnlyList<IError>? Errors => _errors;
 
     public List<IDisposable> MemoryOwners => _memory;
+
+    internal bool HasPolicyDenials => _policyDenyFlags != 0;
+
+    internal Operation CompiledOperation => _operation;
+
+    internal void SeedDeferredPolicyDenials(
+        FetchResultStore parentStore,
+        SelectionPath target,
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements)
+        => SeedDeferredPolicyDenials(
+            parentStore,
+            [target],
+            resultSelectionSet,
+            requirements,
+            requiredShape: default,
+            requireRepresentation: false);
+
+    internal void SeedDeferredPolicyDenials(
+        FetchResultStore parentStore,
+        ReadOnlySpan<SelectionPath> targets,
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements)
+        => SeedDeferredPolicyDenials(
+            parentStore,
+            targets,
+            resultSelectionSet,
+            requirements,
+            requiredShape: default,
+            requireRepresentation: false);
+
+    internal void SeedDeferredPolicyDenials(
+        FetchResultStore parentStore,
+        SelectionPath target,
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape)
+        => SeedDeferredPolicyDenials(
+            parentStore,
+            [target],
+            resultSelectionSet,
+            requirements,
+            requiredShape,
+            requireRepresentation: true);
+
+    private void SeedDeferredPolicyDenials(
+        FetchResultStore parentStore,
+        ReadOnlySpan<SelectionPath> targets,
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        bool requireRepresentation)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(parentStore);
+        if (targets.IsEmpty)
+        {
+            return;
+        }
+
+        var retainedTargets = ArrayPool<DeferredPolicyDenialTarget>.Shared.Rent(targets.Length);
+        var retainedTargetCount = 0;
+        var resultCount = 0;
+
+        try
+        {
+            using var buffer = new ArenaBufferWriter(_arena);
+            var writer = new JsonWriter(
+                buffer,
+                new JsonWriterOptions { SkipValidation = true });
+            using var skeletonBuffer = new ChunkedArrayWriter();
+            var skeletonWriter = new JsonWriter(
+                skeletonBuffer,
+                new JsonWriterOptions { SkipValidation = true });
+            writer.WriteStartArray();
+
+            foreach (var target in targets)
+            {
+                var elements = parentStore.RentResultElements(target, out var count);
+                try
+                {
+                    for (var i = 0; i < count; i++)
+                    {
+                        var element = elements[i];
+
+                        if (!CanSeedDeferredPolicyDenial(
+                            parentStore,
+                            element,
+                            requirements,
+                            requiredShape,
+                            requireRepresentation))
+                        {
+                            continue;
+                        }
+
+                        var targetSelectionSet = ResolveRuntimeSelectionSet(
+                            ResolveTargetSelectionSet(target, element),
+                            element);
+
+                        skeletonBuffer.ResetTo(0);
+                        skeletonWriter.Reset(skeletonBuffer);
+                        skeletonWriter.WriteStartObject();
+                        skeletonWriter.WritePropertyName("data"u8);
+                        var containsDenial = WritePolicySkeleton(
+                            skeletonBuffer,
+                            skeletonWriter,
+                            resultSelectionSet,
+                            targetSelectionSet,
+                            element);
+                        skeletonWriter.WriteEndObject();
+
+                        if (!containsDenial)
+                        {
+                            continue;
+                        }
+
+                        if (retainedTargetCount == retainedTargets.Length)
+                        {
+                            var expanded = ArrayPool<DeferredPolicyDenialTarget>.Shared.Rent(
+                                retainedTargets.Length * 2);
+                            retainedTargets.AsSpan(0, retainedTargetCount).CopyTo(expanded);
+                            ArrayPool<DeferredPolicyDenialTarget>.Shared.Return(
+                                retainedTargets,
+                                clearArray: true);
+                            retainedTargets = expanded;
+                        }
+
+                        retainedTargets[retainedTargetCount++] = new DeferredPolicyDenialTarget(
+                            element.CompactPath);
+                        JsonSegment.Create(
+                            skeletonBuffer,
+                            location: 0,
+                            length: skeletonBuffer.Position).WriteTo(writer);
+                    }
+                }
+                finally
+                {
+                    ArrayPool<CompositeResultElement>.Shared.Return(elements, clearArray: true);
+                }
+            }
+
+            writer.WriteEndArray();
+
+            if (retainedTargetCount == 0)
+            {
+                return;
+            }
+
+            var results = ArrayPool<SourceSchemaResult>.Shared.Rent(retainedTargetCount);
+            try
+            {
+                var reader = SourceResultDocument.CreateFilledReader(
+                    buffer.Segments,
+                    buffer.UsedChunks,
+                    buffer.LastLength);
+                Debug.Assert(reader.Read() && reader.TokenType is JsonTokenType.StartArray);
+
+                for (var i = 0; i < retainedTargetCount; i++)
+                {
+                    Debug.Assert(reader.Read() && reader.TokenType is JsonTokenType.StartObject);
+                    var document = SourceResultDocument.ParseFilledElement(
+                        _arena,
+                        ref reader,
+                        buffer.Segments,
+                        buffer.UsedChunks);
+                    results[resultCount++] = new SourceSchemaResult(
+                        RebasePath(
+                            retainedTargets[i].Path,
+                            parentStore.CompiledOperation,
+                            _operation,
+                            _pathPool),
+                        document);
+                }
+
+                AddPartialResults(
+                    SelectionPath.Root,
+                    results.AsSpan(0, resultCount),
+                    resultSelectionSet,
+                    containsErrors: false);
+            }
+            finally
+            {
+                ArrayPool<SourceSchemaResult>.Shared.Return(results, clearArray: true);
+            }
+        }
+        finally
+        {
+            ArrayPool<DeferredPolicyDenialTarget>.Shared.Return(retainedTargets, clearArray: true);
+        }
+    }
+
+    private readonly record struct DeferredPolicyDenialTarget(CompactPath Path);
+
+    private bool CanSeedDeferredPolicyDenial(
+        FetchResultStore parentStore,
+        CompositeResultElement element,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        bool requireRepresentation)
+    {
+        if (requireRepresentation)
+        {
+            return requirements.Length > 0
+                && parentStore.TryWriteShapeLevel(element, requiredShape, writer: null);
+        }
+
+        foreach (var requirement in requirements)
+        {
+            if (!ResultDataMapper.CanMap(
+                element,
+                requirement.Map,
+                requirement.Type,
+                parentStore._schema,
+                requirement.InternalAlias))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private SelectionSet ResolveTargetSelectionSet(
+        SelectionPath target,
+        CompositeResultElement targetElement)
+    {
+        var selectionSet = _operation.RootSelectionSet;
+        Selection? selection = null;
+
+        for (var i = 0; i < target.Length; i++)
+        {
+            var segment = target[i];
+            if (segment.Kind is SelectionPathSegmentKind.Root)
+            {
+                continue;
+            }
+
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                if (selection is not null)
+                {
+                    var fragmentType = _operation.Schema.Types.GetType<IComplexTypeDefinition>(segment.Name);
+                    selectionSet = _operation.GetSelectionSet(selection, fragmentType);
+                }
+
+                continue;
+            }
+
+            if (!selectionSet.TryGetSelection(segment.Name, out selection))
+            {
+                throw ThrowHelper.DeferredSelectionPathCannotBeRebased(segment.Name);
+            }
+
+            if (selection.IsLeaf)
+            {
+                continue;
+            }
+
+            var typeName = i + 1 == target.Length
+                ? targetElement.SelectionSet?.Type.Name
+                : GetNextTypeContext(target, i + 1);
+            var type = typeName is null
+                ? selection.Type.NamedType<IComplexTypeDefinition>()
+                : _operation.Schema.Types.GetType<IComplexTypeDefinition>(typeName);
+            selectionSet = _operation.GetSelectionSet(selection, type);
+        }
+
+        return selectionSet;
+
+        static string? GetNextTypeContext(SelectionPath path, int start)
+        {
+            for (var i = start; i < path.Length; i++)
+            {
+                if (path[i].Kind is SelectionPathSegmentKind.InlineFragment)
+                {
+                    return path[i].Name;
+                }
+
+                if (path[i].Kind is SelectionPathSegmentKind.Field)
+                {
+                    break;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private SelectionSet ResolveRuntimeSelectionSet(
+        SelectionSet selectionSet,
+        CompositeResultElement element)
+    {
+        var runtimeTypeName = element.SelectionSet?.Type.Name;
+        if (runtimeTypeName is null
+            || runtimeTypeName.Equals(selectionSet.Type.Name, StringComparison.Ordinal)
+            || selectionSet.DeclaringSelection is null)
+        {
+            return selectionSet;
+        }
+
+        var runtimeType = _operation.Schema.Types.GetType<IComplexTypeDefinition>(runtimeTypeName);
+        return _operation.GetSelectionSet(selectionSet.DeclaringSelection, runtimeType);
+    }
+
+    private bool WritePolicySkeleton(
+        ChunkedArrayWriter buffer,
+        JsonWriter writer,
+        ResultSelectionSet? resultSelectionSet,
+        SelectionSet selectionSet,
+        CompositeResultElement element)
+    {
+        var containsDenial = false;
+        writer.WriteStartObject();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (resultSelectionSet?.ContainsResponseName(selection.ResponseName) == false)
+            {
+                continue;
+            }
+
+            if (!HasDeniedPolicySubtree(selectionSet.Id, selection.Id))
+            {
+                continue;
+            }
+
+            if (TryGetPolicyDenial(selectionSet.Id, selection.Id, out _)
+                || selection.IsLeaf)
+            {
+                writer.WritePropertyName(selection.ResponseName);
+                writer.WriteNullValue();
+                containsDenial = true;
+                continue;
+            }
+
+            if (!element.TryGetProperty(selection.ResponseName, out var childElement))
+            {
+                continue;
+            }
+
+            var startPosition = buffer.Position;
+            var writerCheckpoint = writer.CreateCheckpoint();
+            writer.WritePropertyName(selection.ResponseName);
+            if (WritePolicySkeletonValue(
+                buffer,
+                writer,
+                resultSelectionSet?.TryGetChild(selection.ResponseName),
+                selection.GetSelectionSet()!,
+                childElement))
+            {
+                containsDenial = true;
+            }
+            else
+            {
+                buffer.ResetTo(startPosition);
+                writer.Restore(buffer, writerCheckpoint);
+            }
+        }
+
+        writer.WriteEndObject();
+        return containsDenial;
+    }
+
+    private bool WritePolicySkeletonValue(
+        ChunkedArrayWriter buffer,
+        JsonWriter writer,
+        ResultSelectionSet? resultSelectionSet,
+        SelectionSet selectionSet,
+        CompositeResultElement element)
+    {
+        if (element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            writer.WriteNullValue();
+            return false;
+        }
+
+        if (element.ValueKind is JsonValueKind.Array)
+        {
+            var containsDenial = false;
+            writer.WriteStartArray();
+            foreach (var item in element.EnumerateArray())
+            {
+                if (item.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    writer.WriteNullValue();
+                    continue;
+                }
+
+                if (WritePolicySkeletonValue(
+                    buffer,
+                    writer,
+                    resultSelectionSet,
+                    item.SelectionSet ?? selectionSet,
+                    item))
+                {
+                    containsDenial = true;
+                }
+            }
+            writer.WriteEndArray();
+            return containsDenial;
+        }
+
+        var runtimeSelectionSet = ResolveRuntimeSelectionSet(selectionSet, element);
+        if (TryGetPolicyDenial(runtimeSelectionSet.Id, selectionId: -1, out _))
+        {
+            writer.WriteStartObject();
+            writer.WriteEndObject();
+            return true;
+        }
+
+        return WritePolicySkeleton(
+            buffer,
+            writer,
+            resultSelectionSet,
+            runtimeSelectionSet,
+            element);
+    }
+
+    internal void SetPolicyExecutionState(
+        OperationPlan? operationPlan,
+        PolicyRequestState? requestState,
+        ulong denyFlags)
+    {
+        _policyPlan = operationPlan;
+        _policyRequestState = requestState;
+        _policyDenyFlags = denyFlags;
+        _policyPlanPart = operationPlan is not null
+            && operationPlan.TryGetPlanPart(_operation, out var planPart)
+                ? planPart
+                : -1;
+    }
+
+    internal bool TryGetPolicyDenial(
+        int selectionSetId,
+        int selectionId,
+        out PolicySlotDenial denial)
+    {
+        var operationPlan = _policyPlan;
+        var requestState = _policyRequestState;
+        var denyFlags = _policyDenyFlags;
+
+        if (denyFlags == 0 || operationPlan is null || requestState is null)
+        {
+            denial = default;
+            return false;
+        }
+
+        if (_policyPlanPart < 0)
+        {
+            denial = default;
+            return false;
+        }
+
+        return TryGetPolicyDenial(
+            operationPlan.GetPolicyDenials(_policyPlanPart, selectionSetId, selectionId),
+            requestState,
+            denyFlags,
+            out denial);
+    }
+
+    private bool HasDeniedPolicySubtree(int selectionSetId, int selectionId)
+    {
+        var operationPlan = _policyPlan;
+        var requestState = _policyRequestState;
+        var denyFlags = _policyDenyFlags;
+
+        return denyFlags != 0
+            && operationPlan is not null
+            && requestState is not null
+            && _policyPlanPart >= 0
+            && TryGetPolicyDenial(
+                operationPlan.GetPolicySubtreeDenials(
+                    _policyPlanPart,
+                    selectionSetId,
+                    selectionId),
+                requestState,
+                denyFlags,
+                out _);
+    }
+
+    private bool TryGetPolicyDenial(
+        ReadOnlySpan<PolicyDenialLookupEntry> entries,
+        PolicyRequestState requestState,
+        ulong denyFlags,
+        out PolicySlotDenial denial)
+    {
+        var found = false;
+        denial = default;
+        foreach (var entry in entries)
+        {
+            if ((denyFlags & (1UL << entry.SlotOrdinal)) == 0
+                || !IsLive(entry.LiveGuardMasks, _includeFlags))
+            {
+                continue;
+            }
+
+            if (!requestState.TryGetCoordinateDenial(
+                entry.SlotOrdinal,
+                entry.CoordinateOrdinal,
+                out var coordinateDenial))
+            {
+                continue;
+            }
+
+            if (!found || coordinateDenial.Behavior >= denial.Behavior)
+            {
+                found = true;
+                denial = coordinateDenial;
+            }
+        }
+
+        return found;
+    }
+
+    private static bool IsLive(ImmutableArray<ulong> guardMasks, ulong includeFlags)
+    {
+        foreach (var guardMask in guardMasks)
+        {
+            if ((includeFlags & guardMask) == guardMask)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public bool AddPartialResult(
         SelectionPath sourcePath,
@@ -687,6 +1218,11 @@ AddErrors_Next:
 
         lock (_lock)
         {
+            if (_policyDenyFlags != 0)
+            {
+                _valueCompletion.FinalizePolicyDenials(_result.Data);
+            }
+
             _valueCompletion.FinalizePocketedErrors(_result.Data);
             _valueCompletion.FinalizeInaccessibleRuntimeTypes(_result.Data);
         }
@@ -806,6 +1342,24 @@ AddErrors_Next:
         }
     }
 
+    internal bool HasVariableValueSet(
+        SelectionPath selectionSet,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        if (requiredData.Length == 0)
+        {
+            return true;
+        }
+
+        lock (_lock)
+        {
+            return HasVariableValueSet(CollectTargetElements(selectionSet), requiredData);
+        }
+    }
+
     /// <summary>
     /// Creates a deduplicated set of variable values across multiple target selection paths.
     /// Elements from all targets are combined and deduplication is applied globally, so that
@@ -858,6 +1412,31 @@ AddErrors_Next:
         }
     }
 
+    internal bool HasVariableValueSet(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (requiredData.Length == 0)
+        {
+            return true;
+        }
+
+        lock (_lock)
+        {
+            foreach (var selectionSet in selectionSets)
+            {
+                if (HasVariableValueSet(CollectTargetElements(selectionSet), requiredData))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     internal ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
         HashSet<string> importedKeys,
@@ -884,8 +1463,7 @@ AddErrors_Next:
         {
             if (!importedKeys.Contains(requirement.Key))
             {
-                throw new InvalidOperationException(
-                    "A deferred incremental plan fetch references a requirement that was not imported.");
+                throw ThrowHelper.DeferredRequirementNotImported();
             }
         }
 
@@ -893,6 +1471,70 @@ AddErrors_Next:
         {
             return BuildVariableValueSetsFromSnapshot(importedEntries, requestVariables, requiredData);
         }
+    }
+
+    internal bool HasVariableValueSetFromSnapshot(
+        ImmutableArray<VariableValues> importedEntries,
+        HashSet<string> importedKeys,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(importedKeys);
+
+        if (requiredData.Length == 0)
+        {
+            return true;
+        }
+
+        foreach (var requirement in requiredData)
+        {
+            if (!importedKeys.Contains(requirement.Key))
+            {
+                throw ThrowHelper.DeferredRequirementNotImported();
+            }
+        }
+
+        foreach (var importedEntry in importedEntries)
+        {
+            if (!importedEntry.IsEmpty
+                && ContainsRequestedRequirementValues(importedEntry.Values, requiredData))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasVariableValueSet(
+        ReadOnlySpan<CompositeResultElement> elements,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        foreach (var element in elements)
+        {
+            var canMap = true;
+
+            foreach (var requirement in requiredData)
+            {
+                if (!ResultDataMapper.CanMap(
+                    element,
+                    requirement.Map,
+                    requirement.Type,
+                    _schema,
+                    requirement.InternalAlias))
+                {
+                    canMap = false;
+                    break;
+                }
+            }
+
+            if (canMap)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Caller must hold _lock for reading.
@@ -1048,14 +1690,27 @@ AddErrors_Next:
         PolicyDenialBehavior behavior,
         string policyName,
         string? reason)
+        => ApplyPolicyDenial(element, behavior, policyName, reason, Guid.NewGuid());
+
+    internal bool ApplyPolicyDenial(
+        CompositeResultElement element,
+        PolicyDenialBehavior behavior,
+        string policyName,
+        string? reason,
+        Guid reasonId)
     {
         lock (_lock)
         {
-            // PolicyName and reason are not exposed on the client error; ErrorHelper keeps
-            // them only for the correlated operator diagnostics (repo-w1a).
+            // PolicyName and reason are retained for operator diagnostics and are not exposed
+            // on the client error.
             var error = behavior is PolicyDenialBehavior.Null
                 ? null
-                : ErrorHelper.PolicyDenied(element.Path, behavior, policyName, reason).Error;
+                : ErrorHelper.PolicyDenied(
+                    element.Path,
+                    behavior,
+                    policyName,
+                    reason,
+                    reasonId).Error;
 
             if (behavior is PolicyDenialBehavior.Abort)
             {
@@ -1785,6 +2440,67 @@ AddErrors_Next:
         return true;
     }
 
+    private static bool ContainsRequestedRequirementValues(
+        JsonSegment values,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        if (values.IsEmpty)
+        {
+            return false;
+        }
+
+        var sequence = values.AsSequence();
+
+        foreach (var requirement in requiredData)
+        {
+            if (!ContainsRequirementValue(sequence, requirement.Key))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ContainsRequirementValue(ReadOnlySequence<byte> values, string key)
+    {
+        var reader = new Utf8JsonReader(values);
+
+        if (!reader.Read() || reader.TokenType is not JsonTokenType.StartObject)
+        {
+            return false;
+        }
+
+        while (reader.Read())
+        {
+            if (reader.TokenType is JsonTokenType.EndObject)
+            {
+                return false;
+            }
+
+            if (reader.TokenType is not JsonTokenType.PropertyName)
+            {
+                return false;
+            }
+
+            var matches = reader.ValueTextEquals(key);
+
+            if (!reader.Read())
+            {
+                return false;
+            }
+
+            reader.Skip();
+
+            if (matches)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool TryWriteRequirementValue(ReadOnlySequence<byte> values, string key)
     {
         var reader = new Utf8JsonReader(values);
@@ -1926,9 +2642,11 @@ AddErrors_Next:
     /// Imports variable value sets into this store for a child incremental plan.
     /// </summary>
     internal ImmutableArray<VariableValues> ImportVariableValues(
-        ImmutableArray<VariableValues> source)
+        ImmutableArray<VariableValues> source,
+        Operation sourceOperation)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(sourceOperation);
 
         if (source.IsDefaultOrEmpty)
         {
@@ -1943,7 +2661,7 @@ AddErrors_Next:
         {
             foreach (var entry in source)
             {
-                builder.Add(ImportVariableValuesEntry(entry));
+                builder.Add(ImportVariableValuesEntry(entry, sourceOperation));
             }
 
             imported = builder.MoveToImmutable();
@@ -1954,11 +2672,13 @@ AddErrors_Next:
         return imported;
     }
 
-    private VariableValues ImportVariableValuesEntry(VariableValues source)
+    private VariableValues ImportVariableValuesEntry(
+        VariableValues source,
+        Operation sourceOperation)
     {
-        var path = ImportPath(source.Path);
+        var path = RebasePath(source.Path, sourceOperation, _operation, pool: null);
         var values = ImportJsonSegment(source.Values);
-        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths);
+        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths, sourceOperation);
 
         return new VariableValues(path, values)
         {
@@ -1985,21 +2705,72 @@ AddErrors_Next:
         return JsonSegment.Create(_variableWriter, startPosition, length);
     }
 
-    private static CompactPath ImportPath(CompactPath source)
+    private static CompactPath RebasePath(
+        CompactPath source,
+        Operation sourceOperation,
+        Operation destinationOperation,
+        PathSegmentLocalPool? pool)
     {
         if (source.IsRoot)
         {
             return CompactPath.Root;
         }
 
+        Span<int> buffer = stackalloc int[MaxStackAllocPathSegments];
+        var builder = new CompactPathBuilder(buffer, pool);
+        var destinationSelectionSet = destinationOperation.RootSelectionSet;
         var segments = source.Segments;
-        var copy = new int[segments.Length + 1];
-        copy[0] = segments.Length;
-        segments.CopyTo(copy.AsSpan(1));
-        return new CompactPath(copy);
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            if (segment < 0)
+            {
+                builder.Append(segment);
+                continue;
+            }
+
+            var sourceSelection = sourceOperation.GetSelectionById(segment);
+            if (!destinationSelectionSet.TryGetSelection(
+                sourceSelection.ResponseName,
+                out var destinationSelection))
+            {
+                throw ThrowHelper.DeferredSelectionPathCannotBeRebased(
+                    sourceSelection.ResponseName);
+            }
+
+            builder.AppendField(destinationSelection.Id);
+
+            var nextSelectionId = -1;
+            for (var j = i + 1; j < segments.Length; j++)
+            {
+                if (segments[j] >= 0)
+                {
+                    nextSelectionId = segments[j];
+                    break;
+                }
+            }
+
+            if (nextSelectionId < 0 || destinationSelection.IsLeaf)
+            {
+                continue;
+            }
+
+            var sourceChild = sourceOperation.GetSelectionById(nextSelectionId);
+            var typeName = sourceChild.DeclaringSelectionSet.Type.Name;
+            var destinationType = destinationOperation.Schema.Types
+                .GetType<IComplexTypeDefinition>(typeName);
+            destinationSelectionSet = destinationOperation.GetSelectionSet(
+                destinationSelection,
+                destinationType);
+        }
+
+        return builder.ToPath();
     }
 
-    private static CompactPathSegment ImportAdditionalPaths(CompactPathSegment source)
+    private CompactPathSegment ImportAdditionalPaths(
+        CompactPathSegment source,
+        Operation sourceOperation)
     {
         if (source.IsDefaultOrEmpty)
         {
@@ -2010,7 +2781,7 @@ AddErrors_Next:
         var copy = new CompactPath[paths.Length];
         for (var i = 0; i < paths.Length; i++)
         {
-            copy[i] = ImportPath(paths[i]);
+            copy[i] = RebasePath(paths[i], sourceOperation, _operation, pool: null);
         }
 
         return new CompactPathSegment(copy, 0, copy.Length);

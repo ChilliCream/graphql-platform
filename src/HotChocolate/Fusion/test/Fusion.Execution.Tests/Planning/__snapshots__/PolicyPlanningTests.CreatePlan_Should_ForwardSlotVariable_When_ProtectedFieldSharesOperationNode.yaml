@@ -1,0 +1,47 @@
+operation:
+  - document: |
+      {
+        public
+        secret
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1($__fusion_policy_0: Boolean!) {
+        public
+        ... @include(if: $__fusion_policy_0) {
+          secret
+        }
+      }
+    forwardedVariables:
+      - __fusion_policy_0
+policyExpressions:
+  - ordinal: 0
+    names: [["CanReadSecret"]]
+    expression: CanReadSecret
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    applications:
+      - expressionOrdinal: 0
+        onDenied: Error
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Query
+        fieldName: secret
+        responseNames: [secret]
+        applications:
+          - expressionOrdinal: 0
+            onDenied: Error
+        isRoot: false
+        liveGuardMasks: [0]
+        gateGuardMasks: [0]
+policies:
+  - name: CanReadSecret
+    requirementHash: 17241709254077376921

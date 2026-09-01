@@ -1,0 +1,62 @@
+operation:
+  - document: |
+      {
+        product {
+          name
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          name
+          id
+        }
+      }
+  - id: 2
+    type: Policy
+    targets:
+      - kind: Field
+        path: $.product.name
+        typeName: Product
+        policies:
+          - names: [["CanReadName"]]
+            onDenied: Null
+        requirements:
+          - name: CanReadName
+            selectionSet: { id }
+    dependencies:
+      - id: 1
+policyExpressions:
+  - ordinal: 0
+    names: [["CanReadProduct"]]
+    expression: CanReadProduct
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    applications:
+      - expressionOrdinal: 0
+        onDenied: Null
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Product
+        responseNames: []
+        applications:
+          - expressionOrdinal: 0
+            onDenied: Null
+        isRoot: false
+        liveGuardMasks: [0]
+        gateGuardMasks: []
+policies:
+  - name: CanReadName
+    requirementHash: 12603091729714403524
+  - name: CanReadProduct
+    requirementHash: 17241709254077376921

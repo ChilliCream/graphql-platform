@@ -197,9 +197,7 @@ public sealed class PolicyCollection
             {
                 (changedPolicies ??= new Dictionary<string, ulong>(StringComparer.Ordinal)).Add(
                     name,
-                    policy.Requirements.Resource is { } resource
-                        ? PolicyPlanEntry.ComputeRequirementHash(resource)
-                        : 0);
+                    PolicyPlanEntry.ComputeRequirementHash(policy.Requirements.Resource));
             }
         }
 

@@ -310,6 +310,11 @@ nodes:
       - name: __fusion_8_id
         selectionMap: >-
           id
+    conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $includeDetails
+        passingValue: true
     dependencies:
       - id: 13
   - id: 4
@@ -461,3 +466,12 @@ nodes:
       - includeMetadata
     dependencies:
       - id: 2
+includeConditions:
+  -
+    includeVariable: includeDetails
+  -
+    includeVariable: includeExpensive
+  -
+    includeVariable: includeMetadata
+  -
+    includeVariable: includeReviews

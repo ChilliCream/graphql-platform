@@ -216,6 +216,63 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HasRepresentationVariableValueFromSnapshot_Should_MatchListShapeEligibility(
+        bool hasListRequirement)
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var source = new FetchResultStore();
+        using var target = CreateSnapshotStore(arena);
+        var lookupField = ParseLookupField(
+            "{ productById(id: $__fusion_1_id, similar: $__fusion_2_similar) { id } }");
+        var entry = hasListRequirement
+            ? CreateEntry(
+                source,
+                CompactPath.Root,
+                Field("__fusion_1_id", new IntValueNode(1)),
+                Field(
+                    "__fusion_2_similar",
+                    new ListValueNode(
+                        new ObjectValueNode(Field("id", new IntValueNode(2))),
+                        new ObjectValueNode(Field("id", new IntValueNode(3))))))
+            : CreateEntry(
+                source,
+                CompactPath.Root,
+                Field("__fusion_1_id", new IntValueNode(1)));
+        OperationRequirement[] requirements =
+        [
+            Requirement("__fusion_1_id", "id"),
+            Requirement("__fusion_2_similar", "similar[{ id: id }]")
+        ];
+        var importedKeys = ImportedKeys("__fusion_1_id", "__fusion_2_similar");
+        var requiredShape = RepresentationShapeBuilder.Build(
+            lookupField,
+            requirements,
+            s_schema,
+            "Product");
+
+        // act
+        var eligible = target.HasRepresentationVariableValueFromSnapshot(
+            [entry],
+            importedKeys,
+            requirements,
+            requiredShape);
+        var representation = target.CreateRepresentationVariableValueFromSnapshot(
+            [entry],
+            importedKeys,
+            [],
+            requirements,
+            requiredShape,
+            "Product");
+
+        // assert
+        Assert.Equal(hasListRequirement, eligible);
+        Assert.Equal(hasListRequirement, !representation.IsEmpty);
+    }
+
     [Fact]
     public void CreateRepresentationVariableValueFromSnapshot_Should_DeduplicateRepresentations_When_EntriesProduceIdenticalValues()
     {

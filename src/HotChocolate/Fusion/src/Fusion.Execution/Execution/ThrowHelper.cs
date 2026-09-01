@@ -20,6 +20,12 @@ internal static class ThrowHelper
             FusionExecutionResources.PolicyCollection_PolicyNameNotFound,
             policyName));
 
+    public static InvalidOperationException PolicyRequirementsChanged(string policyName)
+        => new($"Authorization policy '{policyName}' requirements changed after planning.");
+
+    public static InvalidOperationException PolicyOperationPlanMissing()
+        => new("There is no operation plan available for policy evaluation.");
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,
@@ -30,10 +36,54 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_NodeNotFound,
             id));
 
+    public static InvalidOperationException InvalidOperationPlan(string message)
+        => new(message);
+
     public static InvalidOperationException IncrementalPlanParentNotFound(SelectionPath path)
         => new(string.Format(
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
+
+    public static InvalidOperationException DeferredPolicyTargetNotSupported(string coordinate)
+        => new(
+            "The deferred incremental plan contains an uncovered policy target at "
+            + $"'{coordinate}'. Data-bearing deferred policy targets require deferred policy planning support.");
+
+    public static InvalidOperationException DeferredSelectionPathCannotBeRebased(string responseName)
+        => new(
+            $"The deferred result path segment '{responseName}' cannot be resolved in the child operation.");
+
+    public static InvalidOperationException DeferredRequirementNotImported()
+        => new(
+            "A deferred incremental plan fetch references a requirement that was not imported.");
+
+    public static InvalidOperationException MixedDeferredRequirementScopes(
+        IEnumerable<string> imported,
+        IEnumerable<string> local)
+        => new(
+            "A deferred incremental plan fetch references a mix of imported parent-sourced and local "
+            + "requirement keys. Imported parent keys: ["
+            + string.Join(", ", imported)
+            + "]. Local requested keys: ["
+            + string.Join(", ", local)
+            + "].");
+
+    public static InvalidOperationException PolicyRequirementAuthorizationCycle(
+        string policyName,
+        string coordinate)
+        => new(
+            $"Authorization policy '{policyName}' requires protected field "
+            + $"'{coordinate}', which would create an authorization cycle.");
+
+    public static InvalidOperationException UnsupportedPolicyRequirementSelection(string policyName)
+        => new($"Authorization policy '{policyName}' has an unsupported requirement selection.");
+
+    public static InvalidOperationException PolicyRequirementFieldMissing(
+        string policyName,
+        string responseName)
+        => new(
+            $"Authorization policy '{policyName}' requires field '{responseName}', "
+            + "but the execution plan did not provide it.");
 
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(

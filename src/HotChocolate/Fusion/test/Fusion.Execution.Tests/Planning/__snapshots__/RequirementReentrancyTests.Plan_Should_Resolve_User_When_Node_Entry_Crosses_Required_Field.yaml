@@ -17,8 +17,8 @@ operation:
       }
     name: GetProduct
     hash: 123456789101112
-    searchSpace: 4
-    expandedNodes: 11
+    searchSpace: 2
+    expandedNodes: 7
 nodes:
   - id: 1
     type: Node
@@ -57,15 +57,15 @@ nodes:
       - id
     dependencies:
       - id: 1
-  - id: 5
+  - id: 4
     type: Operation
     schema: REVIEWS
     operation: |
-      query GetProduct_123456789101112_5(
+      query GetProduct_123456789101112_4(
+        $__fusion_1_id: Int!
         $__fusion_2_audience: String!
-        $__fusion_3_id: Int!
       ) {
-        productById(id: $__fusion_3_id) {
+        productById(id: $__fusion_1_id) {
           reviews(audience: $__fusion_2_audience) {
             author {
               userId
@@ -76,28 +76,28 @@ nodes:
     source: $.productById
     target: $.node<Product>
     requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          productId
       - name: __fusion_2_audience
         selectionMap: >-
           reviewAudience
-      - name: __fusion_3_id
-        selectionMap: >-
-          productId
     dependencies:
       - id: 3
-  - id: 6
+  - id: 5
     type: Operation
     schema: USERS
     operation: |
-      query GetProduct_123456789101112_6($__fusion_4_id: ID!) {
-        userById(id: $__fusion_4_id) {
+      query GetProduct_123456789101112_5($__fusion_3_id: ID!) {
+        userById(id: $__fusion_3_id) {
           name
         }
       }
     source: $.userById
     target: $.node<Product>.reviews.author
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_3_id
         selectionMap: >-
           userId
     dependencies:
-      - id: 5
+      - id: 4

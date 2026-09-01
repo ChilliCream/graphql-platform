@@ -20,7 +20,8 @@ public sealed partial class OperationPlanner
         string id,
         DeferSplitResult splitResult,
         PlanContextGraph contextGraph,
-        PolicyPlanningState policyState,
+        PolicyPlanningSession planningSession,
+        ref PolicySlotRegistry policySlots,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -55,9 +56,12 @@ public sealed partial class OperationPlanner
                 id,
                 descriptor,
                 i,
-                policyState,
+                planningSession,
+                policySlots,
                 emitPlannerEvents,
                 cancellationToken);
+
+            policySlots = incrementalPlanResult.PolicySlots;
 
             var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
                 descriptor,
@@ -125,6 +129,8 @@ public sealed partial class OperationPlanner
         string shortHash,
         ImmutableArray<DeferRoutingState> routingStates,
         PlanContextGraph contextGraph,
+        IncludeConditionCollection includeConditions,
+        ImmutableArray<PolicyConditionSlot> policySlots,
         CancellationToken cancellationToken)
     {
         if (routingStates.IsDefaultOrEmpty)
@@ -148,7 +154,8 @@ public sealed partial class OperationPlanner
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
                 registeredInternalOp,
                 finalSteps,
-                finalSteps.NextId());
+                finalSteps.NextId(),
+                policySlots);
 
             var compiledOp = AddTypeNameToAbstractSelections(
                 registeredInternalOp,
@@ -157,7 +164,8 @@ public sealed partial class OperationPlanner
                 id + "#defer_" + routingState.Index,
                 hash + "#defer_" + routingState.Index,
                 shortHash,
-                compiledOp);
+                compiledOp,
+                includeConditions);
 
             var planScopeRequirements = descriptor.Requirements.Count == 0
                 ? ImmutableArray<OperationRequirement>.Empty
@@ -190,7 +198,8 @@ public sealed partial class OperationPlanner
         string operationId,
         IncrementalPlanDescriptor descriptor,
         int incrementalPlanId,
-        PolicyPlanningState policyState,
+        PolicyPlanningSession planningSession,
+        PolicySlotRegistry policySlots,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -222,10 +231,11 @@ public sealed partial class OperationPlanner
             // it is planned like a normal root-rooted operation.
             SelectionSet selectionSet;
             (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
+            node = node with { PolicySlots = policySlots };
 
             if (node.Backlog.IsEmpty)
             {
-                return new DeferIncrementalPlanResult([], null);
+                return new DeferIncrementalPlanResult([], null, policySlots);
             }
 
             foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
@@ -251,7 +261,7 @@ public sealed partial class OperationPlanner
             var backlog = Backlog.Empty.Push(
                 new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
 
-            node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+            node = CreateIncrementalPlanNode(deferredOperation, index, backlog, policySlots);
             possiblePlans.EnqueueBranches(node);
         }
         else
@@ -277,10 +287,11 @@ public sealed partial class OperationPlanner
                 // later dropped and routed to the parent scope so the mutation runs exactly once.
                 SelectionSet mutationSelectionSet;
                 (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
+                node = node with { PolicySlots = policySlots };
 
                 if (node.Backlog.IsEmpty)
                 {
-                    return new DeferIncrementalPlanResult([], null);
+                    return new DeferIncrementalPlanResult([], null, policySlots);
                 }
 
                 foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(mutationSelectionSet))
@@ -311,7 +322,7 @@ public sealed partial class OperationPlanner
 
                 var backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
 
-                node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+                node = CreateIncrementalPlanNode(deferredOperation, index, backlog, policySlots);
                 possiblePlans.EnqueueBranches(node);
             }
         }
@@ -324,7 +335,7 @@ public sealed partial class OperationPlanner
         var plan = Plan(
             operationId + "#defer_" + incrementalPlanId,
             possiblePlans,
-            policyState,
+            planningSession,
             emitPlannerEvents,
             cancellationToken);
 
@@ -339,12 +350,28 @@ public sealed partial class OperationPlanner
                 throw new DeferredMutationLookupRequiredException(descriptor.Path, mutationAnchorType.Name);
             }
 
-            return new DeferIncrementalPlanResult([], null);
+            return new DeferIncrementalPlanResult([], null, policySlots);
+        }
+
+        foreach (var step in plan.Value.Steps)
+        {
+            if (step is not PolicyPlanStep { Targets.Length: > 0 } policyStep)
+            {
+                continue;
+            }
+
+            var target = policyStep.Targets[0];
+            var coordinate = target.Kind is PolicyTargetKind.Field
+                ? $"{target.TypeName}.{target.Path.Name}"
+                : target.TypeName;
+            throw HotChocolate.Fusion.Execution.ThrowHelper
+                .DeferredPolicyTargetNotSupported(coordinate);
         }
 
         return new DeferIncrementalPlanResult(
             plan.Value.Steps,
-            plan.Value.InternalOperationDefinition);
+            plan.Value.InternalOperationDefinition,
+            plan.Value.PolicySlots);
     }
 
     /// <summary>
@@ -354,7 +381,8 @@ public sealed partial class OperationPlanner
     private PlanNode CreateIncrementalPlanNode(
         OperationDefinitionNode deferredOperation,
         ISelectionSetIndex index,
-        Backlog backlog)
+        Backlog backlog,
+        PolicySlotRegistry policySlots)
     {
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             _options,
@@ -372,7 +400,8 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             RemainingCost = remainingCost,
-            OperationStepCount = 0
+            OperationStepCount = 0,
+            PolicySlots = policySlots
         };
     }
 
@@ -2140,7 +2169,8 @@ public sealed partial class OperationPlanner
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,
         ImmutableList<PlanStep> planSteps,
-        int nextNodeId)
+        int nextNodeId,
+        ImmutableArray<PolicyConditionSlot> policySlots)
     {
         if (planSteps.Count == 0)
         {
@@ -2148,12 +2178,19 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = deferredOperation.VariableDefinitions.Count > 0;
+        var hasVariables = deferredOperation.VariableDefinitions.Count > 0 || !policySlots.IsDefaultOrEmpty;
 
-        planSteps = TransformPlanSteps(planSteps, deferredOperation);
+        planSteps = TransformPlanSteps(
+            planSteps,
+            deferredOperation,
+            policySlots,
+            promoteNestedConditions: true);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
+        var policyRequirementProviders = OperationPlanner.AddPolicyRequirementDependencies(ctx);
+        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        ApplyPolicyGuards(ctx, policyGuards);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps

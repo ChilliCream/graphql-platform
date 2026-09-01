@@ -86,6 +86,16 @@ internal sealed class ValueCompletion
             objectContext = target.GetObjectContext();
         }
 
+        if (!ApplyPolicyDenials(target, objectContext))
+        {
+            return false;
+        }
+
+        if (target.IsNullOrInvalidated)
+        {
+            return ApplyPocketedErrors(target);
+        }
+
         if (resultSelectionSet.HasSourceResponseNameMappings)
         {
             foreach (var property in source.EnumerateObject())
@@ -121,6 +131,11 @@ internal sealed class ValueCompletion
                     }
 
                     sourceResponseName = selection.ResponseName;
+                }
+
+                if (resultField.IsNullOrInvalidated)
+                {
+                    continue;
                 }
 
                 var propertyValueSnapshot = property.Value.CreateSnapshot();
@@ -169,6 +184,11 @@ internal sealed class ValueCompletion
             foreach (var property in source.EnumerateObject())
             {
                 if (!objectContext.TryGetProperty(property.NameSpan, out var resultField, out var selection))
+                {
+                    continue;
+                }
+
+                if (resultField.IsNullOrInvalidated)
                 {
                     continue;
                 }
@@ -425,6 +445,120 @@ internal sealed class ValueCompletion
         }
     }
 
+    public void FinalizePolicyDenials(CompositeResultElement resultData)
+        => ApplyPolicyDenialsRecursively(resultData);
+
+    private bool ApplyPolicyDenialsRecursively(CompositeResultElement current)
+    {
+        if (current.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
+        switch (current.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var objectContext = current.GetObjectContext();
+                if (!ApplyPolicyDenials(current, objectContext)
+                    || current.IsNullOrInvalidated)
+                {
+                    return false;
+                }
+
+                foreach (var property in current.EnumerateObject())
+                {
+                    if (!ApplyPolicyDenialsRecursively(property.Value)
+                        || current.IsNullOrInvalidated)
+                    {
+                        return false;
+                    }
+                }
+                break;
+
+            case JsonValueKind.Array:
+                foreach (var element in current.EnumerateArray())
+                {
+                    if (!ApplyPolicyDenialsRecursively(element)
+                        || current.IsNullOrInvalidated)
+                    {
+                        return false;
+                    }
+                }
+                break;
+        }
+
+        return true;
+    }
+
+    private bool ApplyPolicyDenials(
+        CompositeResultElement target,
+        CompositeObjectContext objectContext)
+    {
+        if (!_store.HasPolicyDenials)
+        {
+            return true;
+        }
+
+        var selectionSet = objectContext.SelectionSet;
+        if (selectionSet is null)
+        {
+            return true;
+        }
+
+        if (!target.CompactPath.IsRoot
+            && TryGetSelectionContext(target, out var parentSelection, out _)
+            && parentSelection.HasPolicy
+            && _store.TryGetPolicyDenial(
+                selectionSet.Id,
+                selectionId: -1,
+                out var objectDenial)
+            && !_store.ApplyPolicyDenial(
+                target,
+                objectDenial.Behavior,
+                objectDenial.Expression,
+                objectDenial.Reason,
+                objectDenial.ReasonId))
+        {
+            return false;
+        }
+
+        if (target.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
+        foreach (var property in target.EnumerateObject())
+        {
+            var selection = property.Selection;
+            if (selection is null
+                || !selection.HasPolicy
+                || !_store.TryGetPolicyDenial(
+                    selection.DeclaringSelectionSet.Id,
+                    selection.Id,
+                    out var fieldDenial))
+            {
+                continue;
+            }
+
+            if (!_store.ApplyPolicyDenial(
+                property.Value,
+                fieldDenial.Behavior,
+                fieldDenial.Expression,
+                fieldDenial.Reason,
+                fieldDenial.ReasonId))
+            {
+                return false;
+            }
+
+            if (target.IsNullOrInvalidated)
+            {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
     public void FinalizeInaccessibleRuntimeTypes(CompositeResultElement resultData)
     {
         if (!_store.Result.RequiresNullMarkerFinalization)
@@ -525,7 +659,13 @@ internal sealed class ValueCompletion
             return false;
         }
 
-        return !PropagateNullValues(result);
+        if (_errorHandlingMode is ErrorHandlingMode.Propagate)
+        {
+            return !PropagateNullValues(result);
+        }
+
+        result.SetNullValue();
+        return true;
     }
 
     private bool BuildResultForInvalidSource(
@@ -1196,6 +1336,16 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(objectSelectionSet, out objectContext);
         }
 
+        if (!ApplyPolicyDenials(target, objectContext))
+        {
+            return false;
+        }
+
+        if (target.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
         {
             foreach (var property in source.EnumerateObject())
@@ -1231,6 +1381,11 @@ TryCompleteList_MoveNext:
                     }
 
                     sourceResponseName = selection.ResponseName;
+                }
+
+                if (targetProperty.IsNullOrInvalidated)
+                {
+                    continue;
                 }
 
                 var propertyValueSnapshot = property.Value.CreateSnapshot();
@@ -1272,6 +1427,11 @@ TryCompleteList_MoveNext:
             foreach (var property in source.EnumerateObject())
             {
                 if (!objectContext.TryGetProperty(property.NameSpan, out var targetProperty, out var selection))
+                {
+                    continue;
+                }
+
+                if (targetProperty.IsNullOrInvalidated)
                 {
                     continue;
                 }

@@ -27,7 +27,10 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> planSteps,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<PolicyConditionExpression> policyExpressions,
         ImmutableArray<PolicyConditionSlot> policySlots,
+        ImmutableArray<PolicyPlanEntry> policies,
+        PolicyArtifactPolicySnapshot policySnapshot,
         int searchSpace,
         int expandedNodes,
         int nextNodeId,
@@ -43,18 +46,39 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, [], [], [], searchSpace, expandedNodes);
+            return OperationPlan.Create(
+                operation,
+                nodes,
+                nodes,
+                [],
+                [],
+                operation.IncludeConditions.ToImmutableArray(),
+                policyExpressions,
+                policySlots,
+                policies,
+                policySnapshot,
+                searchSpace,
+                expandedNodes);
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
+        var hasVariables = operationDefinition.VariableDefinitions.Count > 0 || !policySlots.IsDefaultOrEmpty;
 
-        planSteps = TransformPlanSteps(planSteps, operationDefinition);
+        planSteps = TransformPlanSteps(
+            planSteps,
+            operationDefinition,
+            policySlots,
+            promoteNestedConditions: false);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
+        var policyProducers = CapturePolicyProducers(ctx);
         var policyRequirementProviders = OperationPlanner.AddPolicyRequirementDependencies(ctx);
-        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        policyRequirementProviders = ConsolidatePolicyExecutionNodes(
+            ctx,
+            policyProducers,
+            policyRequirementProviders);
+        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
         ApplyPolicyGuards(ctx, policyGuards);
         WireExecutionDependencies(ctx);
 
@@ -91,7 +115,11 @@ public sealed partial class OperationPlanner
             allNodes,
             deliveryGroups,
             incrementalPlans,
+            operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions,
             policySlots,
+            policies,
+            policySnapshot,
             searchSpace,
             expandedNodes);
 
@@ -287,7 +315,9 @@ public sealed partial class OperationPlanner
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
-        OperationDefinitionNode originalOperation)
+        OperationDefinitionNode originalOperation,
+        ImmutableArray<PolicyConditionSlot> policySlots,
+        bool promoteNestedConditions)
     {
         var updatedPlanSteps = planSteps;
         var forwardVariableContext = new ForwardVariableRewriter.Context();
@@ -295,6 +325,18 @@ public sealed partial class OperationPlanner
         foreach (var variableDef in originalOperation.VariableDefinitions)
         {
             forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
+        }
+
+        foreach (var slot in policySlots)
+        {
+            forwardVariableContext.Variables[slot.VariableName] =
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode(null, new NameNode(slot.VariableName)),
+                    description: null,
+                    new NonNullTypeNode(new NamedTypeNode("Boolean")),
+                    defaultValue: null,
+                    directives: []);
         }
 
         foreach (var step in planSteps)
@@ -326,7 +368,10 @@ public sealed partial class OperationPlanner
             // met, rather than sending a request that returns nothing.
             // Directives that gate only some selections stay in the document and
             // are evaluated by the source schema.
-            if (TryExtractCommonConditionsAndRewrite(operationPlanStep, out var updated))
+            if (TryExtractCommonConditionsAndRewrite(
+                operationPlanStep,
+                promoteNestedConditions,
+                out var updated))
             {
                 updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updated);
                 operationPlanStep = updated;
@@ -750,10 +795,299 @@ public sealed partial class OperationPlanner
     }
 
     private static PolicyExecutionNode CreatePolicyExecutionNode(PolicyPlanStep policyStep)
-        => new(
+    {
+        var targets = new List<PolicyExecutionTarget>(policyStep.Targets.Length);
+        foreach (var target in policyStep.Targets)
+        {
+            AddOrMergePolicyTarget(targets, target);
+        }
+
+        return new PolicyExecutionNode(
             policyStep.Id,
-            policyStep.Targets.ToArray(),
+            targets.ToArray(),
             policyStep.Conditions);
+    }
+
+    private static Dictionary<int, HashSet<int>> CapturePolicyProducers(
+        ExecutionPlanBuildContext context)
+    {
+        var result = new Dictionary<int, HashSet<int>>();
+
+        foreach (var node in context.ExecutionNodes.Values.OfType<PolicyExecutionNode>())
+        {
+            if (context.DependenciesByStepId.TryGetValue(node.Id, out var dependencies))
+            {
+                result.Add(node.Id, [.. dependencies]);
+            }
+        }
+
+        return result;
+    }
+
+    private static Dictionary<int, HashSet<int>> ConsolidatePolicyExecutionNodes(
+        ExecutionPlanBuildContext context,
+        IReadOnlyDictionary<int, HashSet<int>> producersByPolicyNodeId,
+        IReadOnlyDictionary<int, HashSet<int>> providersByPolicyNodeId)
+    {
+        var providerIdsByPolicyNode = providersByPolicyNodeId.ToDictionary(
+            entry => entry.Key,
+            entry => new HashSet<int>(entry.Value));
+        ConsolidateDuplicatePolicyTargets(context, providerIdsByPolicyNode);
+        var ownerByProducerId = new Dictionary<int, PolicyExecutionNode>();
+        var consolidatedProviders = new Dictionary<int, HashSet<int>>();
+
+        foreach (var policyNode in context.ExecutionNodes.Values
+            .OfType<PolicyExecutionNode>()
+            .OrderBy(node => node.Id)
+            .ToArray())
+        {
+            if (!producersByPolicyNodeId.TryGetValue(policyNode.Id, out var originalProducers))
+            {
+                continue;
+            }
+
+            var producers = originalProducers
+                .Select(id => ResolveRedirectedStepId(id, context.RedirectedStepIds))
+                .Distinct()
+                .ToArray();
+            if (producers.Length != 1)
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "A policy execution node must have exactly one guarded producer.");
+            }
+
+            var producerId = producers[0];
+            if (!ownerByProducerId.TryGetValue(producerId, out var owner))
+            {
+                ownerByProducerId.Add(producerId, policyNode);
+                consolidatedProviders[policyNode.Id] = providerIdsByPolicyNode.TryGetValue(
+                    policyNode.Id,
+                    out var providerIds)
+                        ? [.. providerIds.Select(id => ResolveRedirectedStepId(
+                            id,
+                            context.RedirectedStepIds))]
+                        : [];
+                continue;
+            }
+
+            var targets = owner.Targets.ToArray().ToList();
+            foreach (var target in policyNode.Targets)
+            {
+                AddOrMergePolicyTarget(targets, target);
+            }
+
+            owner.SetTargets(targets.ToArray());
+            owner.SetConditions(CreateCommonPolicyConditions(owner.Targets));
+
+            if (providerIdsByPolicyNode.TryGetValue(policyNode.Id, out var mergedProviders))
+            {
+                consolidatedProviders[owner.Id].UnionWith(mergedProviders.Select(id =>
+                    ResolveRedirectedStepId(id, context.RedirectedStepIds)));
+            }
+
+            if (context.DependenciesByStepId.TryGetValue(policyNode.Id, out var dependencies))
+            {
+                if (!context.DependenciesByStepId.TryGetValue(owner.Id, out var ownerDependencies))
+                {
+                    ownerDependencies = [];
+                    context.DependenciesByStepId.Add(owner.Id, ownerDependencies);
+                }
+
+                ownerDependencies.UnionWith(dependencies);
+            }
+
+            foreach (var dependentDependencies in context.DependenciesByStepId.Values)
+            {
+                if (dependentDependencies.Remove(policyNode.Id))
+                {
+                    dependentDependencies.Add(owner.Id);
+                }
+            }
+
+            context.DependenciesByStepId.Remove(policyNode.Id);
+            context.ExecutionNodes.Remove(policyNode.Id);
+        }
+
+        return consolidatedProviders;
+    }
+
+    private static void ConsolidateDuplicatePolicyTargets(
+        ExecutionPlanBuildContext context,
+        Dictionary<int, HashSet<int>> providersByPolicyNodeId)
+    {
+        var owners = new List<(PolicyExecutionTarget Target, PolicyExecutionNode Node)>();
+
+        foreach (var policyNode in context.ExecutionNodes.Values
+            .OfType<PolicyExecutionNode>()
+            .OrderBy(node => node.Id)
+            .ToArray())
+        {
+            var retained = new List<PolicyExecutionTarget>(policyNode.Targets.Length);
+            var duplicateOwners = new HashSet<PolicyExecutionNode>();
+
+            foreach (var target in policyNode.Targets)
+            {
+                var ownerIndex = -1;
+                for (var i = 0; i < owners.Count; i++)
+                {
+                    if (PolicyTargetsMatch(owners[i].Target, target))
+                    {
+                        ownerIndex = i;
+                        break;
+                    }
+                }
+
+                if (ownerIndex < 0)
+                {
+                    retained.Add(target);
+                    owners.Add((target, policyNode));
+                    continue;
+                }
+
+                var owner = owners[ownerIndex];
+                duplicateOwners.Add(owner.Node);
+                var ownerTargets = owner.Node.Targets.ToArray();
+                for (var i = 0; i < ownerTargets.Length; i++)
+                {
+                    if (PolicyTargetsMatch(ownerTargets[i], target))
+                    {
+                        ownerTargets[i] = MergePolicyTargetConditions(ownerTargets[i], target);
+                        owners[ownerIndex] = (ownerTargets[i], owner.Node);
+                        owner.Node.SetTargets(ownerTargets);
+                        break;
+                    }
+                }
+
+                if (providersByPolicyNodeId.TryGetValue(policyNode.Id, out var providers))
+                {
+                    if (!providersByPolicyNodeId.TryGetValue(owner.Node.Id, out var ownerProviders))
+                    {
+                        ownerProviders = [];
+                        providersByPolicyNodeId.Add(owner.Node.Id, ownerProviders);
+                    }
+
+                    ownerProviders.UnionWith(providers);
+                }
+            }
+
+            if (retained.Count > 0)
+            {
+                policyNode.SetTargets(retained.ToArray());
+                policyNode.SetConditions(CreateCommonPolicyConditions(policyNode.Targets));
+                continue;
+            }
+
+            foreach (var dependencies in context.DependenciesByStepId.Values)
+            {
+                if (dependencies.Remove(policyNode.Id))
+                {
+                    foreach (var owner in duplicateOwners)
+                    {
+                        dependencies.Add(owner.Id);
+                    }
+                }
+            }
+
+            context.DependenciesByStepId.Remove(policyNode.Id);
+            context.ExecutionNodes.Remove(policyNode.Id);
+            providersByPolicyNodeId.Remove(policyNode.Id);
+        }
+    }
+
+    private static ExecutionNodeCondition[] CreateCommonPolicyConditions(
+        ReadOnlySpan<PolicyExecutionTarget> targets)
+    {
+        if (targets.IsEmpty)
+        {
+            return [];
+        }
+
+        var common = targets[0].Conditions.ToList();
+        for (var i = common.Count - 1; i >= 0; i--)
+        {
+            for (var j = 1; j < targets.Length; j++)
+            {
+                if (!targets[j].Conditions.Contains(common[i]))
+                {
+                    common.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        return [.. common];
+    }
+
+    private static bool PolicyTargetsMatch(
+        PolicyExecutionTarget left,
+        PolicyExecutionTarget right)
+    {
+        if (left.Kind != right.Kind
+            || !left.TypeName.Equals(right.TypeName, StringComparison.Ordinal)
+            || !CreatePolicyTargetPathKey(left.Path).Equals(
+                CreatePolicyTargetPathKey(right.Path),
+                StringComparison.Ordinal)
+            || left.Policies.Length != right.Policies.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Policies.Length; i++)
+        {
+            if (left.Policies[i].OnDenied != right.Policies[i].OnDenied
+                || !PolicyNameGroups.CreateCanonicalKey(left.Policies[i].Groups).Equals(
+                    PolicyNameGroups.CreateCanonicalKey(right.Policies[i].Groups),
+                    StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void AddOrMergePolicyTarget(
+        List<PolicyExecutionTarget> targets,
+        PolicyExecutionTarget target)
+    {
+        for (var i = 0; i < targets.Count; i++)
+        {
+            if (!PolicyTargetsMatch(targets[i], target))
+            {
+                continue;
+            }
+
+            var commonConditions = targets[i].Conditions
+                .Where(target.Conditions.Contains)
+                .ToArray();
+            targets[i] = targets[i] with { Conditions = commonConditions };
+            return;
+        }
+
+        targets.Add(target);
+    }
+
+    private static PolicyExecutionTarget MergePolicyTargetConditions(
+        PolicyExecutionTarget left,
+        PolicyExecutionTarget right)
+        => left with
+        {
+            Conditions = [.. left.Conditions.Where(right.Conditions.Contains)]
+        };
+
+    private static string CreatePolicyTargetPathKey(SelectionPath path)
+    {
+        var fields = new List<string>(path.Length);
+        for (var i = 0; i < path.Length; i++)
+        {
+            if (path[i].Kind is SelectionPathSegmentKind.Field)
+            {
+                fields.Add(path[i].Name);
+            }
+        }
+
+        return string.Join('\u001f', fields);
+    }
 
     private static EventStreamExecutionNode CreateEventStreamExecutionNode(
         OperationPlanStep operationStep,
@@ -1675,15 +2009,20 @@ public sealed partial class OperationPlanner
 
         foreach (var policyNode in ctx.ExecutionNodes.Values.OfType<PolicyExecutionNode>())
         {
-            if (!ctx.DependenciesByStepId.TryGetValue(policyNode.Id, out var producerIds))
+            if (!ctx.DependenciesByStepId.TryGetValue(policyNode.Id, out var dependencies))
             {
                 continue;
             }
 
+            policyRequirementProviders.TryGetValue(policyNode.Id, out var providers);
+            HashSet<int> producerIds = providers is null
+                ? dependencies
+                : [.. dependencies.Where(id => !providers.Contains(id))];
+
             foreach (var candidate in ctx.ExecutionNodes.Values)
             {
-                if (policyRequirementProviders.TryGetValue(policyNode.Id, out var providers)
-                    && providers.Contains(candidate.Id))
+                if (producerIds.Contains(candidate.Id)
+                    || providers?.Contains(candidate.Id) == true)
                 {
                     continue;
                 }
@@ -1704,9 +2043,7 @@ public sealed partial class OperationPlanner
                         continue;
                 }
 
-                if (!ctx.DependenciesByStepId.TryGetValue(candidate.Id, out var dependencies)
-                    || !dependencies.Overlaps(producerIds)
-                    || !IsGuardedTarget(target, policyNode.Targets))
+                if (!IsGuardedTarget(target, policyNode.Targets))
                 {
                     continue;
                 }
@@ -2883,6 +3220,7 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static bool TryExtractCommonConditionsAndRewrite(
         OperationPlanStep step,
+        bool promoteNestedConditions,
         [NotNullWhen(true)] out OperationPlanStep? updated)
     {
         updated = null;
@@ -2915,7 +3253,11 @@ public sealed partial class OperationPlanner
         }
 
         var leafConditions = new List<HashSet<ExecutionNodeCondition>>();
-        CollectLeafConditions(targetSelectionSet, [], leafConditions);
+        CollectLeafConditions(
+            targetSelectionSet,
+            [],
+            leafConditions,
+            promoteNestedConditions);
 
         if (leafConditions.Count == 0)
         {
@@ -2934,7 +3276,10 @@ public sealed partial class OperationPlanner
             return false;
         }
 
-        var newSelectionSet = RewriteConditionalSelectionSet(targetSelectionSet, commonConditions);
+        var newSelectionSet = RewriteConditionalSelectionSet(
+            targetSelectionSet,
+            commonConditions,
+            promoteNestedConditions);
 
         if (enclosingFields is not null)
         {
@@ -3010,12 +3355,32 @@ public sealed partial class OperationPlanner
     private static void CollectLeafConditions(
         SelectionSetNode selectionSetNode,
         List<ExecutionNodeCondition> ancestorConditions,
-        List<HashSet<ExecutionNodeCondition>> leafConditions)
+        List<HashSet<ExecutionNodeCondition>> leafConditions,
+        bool descendIntoFields)
     {
         foreach (var selection in selectionSetNode.Selections)
         {
             switch (selection)
             {
+                case FieldNode { SelectionSet: { } childSelectionSet } fieldNode
+                    when descendIntoFields:
+                    var fieldConditions = ExtractConditions(fieldNode.Directives);
+                    var fieldRestoreCount = ancestorConditions.Count;
+                    if (fieldConditions is not null)
+                    {
+                        ancestorConditions.AddRange(fieldConditions);
+                    }
+
+                    CollectLeafConditions(
+                        childSelectionSet,
+                        ancestorConditions,
+                        leafConditions,
+                        descendIntoFields);
+                    ancestorConditions.RemoveRange(
+                        fieldRestoreCount,
+                        ancestorConditions.Count - fieldRestoreCount);
+                    break;
+
                 case FieldNode fieldNode:
                     leafConditions.Add(CreateConditionSet(ancestorConditions, fieldNode.Directives));
                     break;
@@ -3032,7 +3397,8 @@ public sealed partial class OperationPlanner
                     CollectLeafConditions(
                         untypedFragment.SelectionSet,
                         ancestorConditions,
-                        leafConditions);
+                        leafConditions,
+                        descendIntoFields);
 
                     ancestorConditions.RemoveRange(
                         restoreCount,
@@ -3070,7 +3436,8 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static SelectionSetNode RewriteConditionalSelectionSet(
         SelectionSetNode selectionSetNode,
-        HashSet<ExecutionNodeCondition> commonConditions)
+        HashSet<ExecutionNodeCondition> commonConditions,
+        bool descendIntoFields)
     {
         var selections = new List<ISelectionNode>();
 
@@ -3085,6 +3452,15 @@ public sealed partial class OperationPlanner
                         fieldNode = fieldNode.WithDirectives(newDirectives);
                     }
 
+                    if (descendIntoFields && fieldNode.SelectionSet is { } childSelectionSet)
+                    {
+                        fieldNode = fieldNode.WithSelectionSet(
+                            RewriteConditionalSelectionSet(
+                                childSelectionSet,
+                                commonConditions,
+                                descendIntoFields));
+                    }
+
                     selections.Add(fieldNode);
                     break;
                 }
@@ -3093,7 +3469,10 @@ public sealed partial class OperationPlanner
                     if (inlineFragmentNode.TypeCondition is null)
                     {
                         var fragmentSelectionSet =
-                            RewriteConditionalSelectionSet(inlineFragmentNode.SelectionSet, commonConditions);
+                            RewriteConditionalSelectionSet(
+                                inlineFragmentNode.SelectionSet,
+                                commonConditions,
+                                descendIntoFields);
 
                         if (fragmentSelectionSet.Selections.Count == 0)
                         {

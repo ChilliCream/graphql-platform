@@ -42,6 +42,11 @@ public interface ISelectionSetIndex
     bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId);
 
     /// <summary>
+    /// Determines whether the identifier represents a concrete branch expanded from an abstract selection set.
+    /// </summary>
+    bool IsConcreteBranch(uint id);
+
+    /// <summary>
     /// Determines whether the specified selection set is registered in this index.
     /// </summary>
     /// <param name="selectionSet">The selection set to check.</param>

@@ -7,13 +7,12 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
-/// The single concrete <see cref="IPolicyContext"/> implementation used for every policy
-/// evaluation. One instance is reset and reused across every policy and target evaluated within
-/// an evaluation round, so no per-evaluation array is allocated on the hot path.
+/// Represents the mutable context used for policy evaluation.
 /// </summary>
 internal sealed class PolicyContext : IPolicyContext
 {
-    private readonly OperationPlanContext _operationContext;
+    private readonly OperationPlanContext? _operationContext;
+    private readonly IFeatureCollection? _features;
     private readonly PolicySelection _selection = new();
     private bool _hasSelection;
     private ClaimsPrincipal _user = null!;
@@ -23,14 +22,21 @@ internal sealed class PolicyContext : IPolicyContext
 
     public PolicyContext(OperationPlanContext operationContext)
     {
+        ArgumentNullException.ThrowIfNull(operationContext);
         _operationContext = operationContext;
+    }
+
+    public PolicyContext(IFeatureCollection features)
+    {
+        ArgumentNullException.ThrowIfNull(features);
+        _features = features;
     }
 
     public ClaimsPrincipal User => _user;
 
     public PolicySelection? Selection => _hasSelection ? _selection : null;
 
-    public IFeatureCollection Features => _operationContext.Features;
+    public IFeatureCollection Features => _features ?? _operationContext!.Features;
 
     public void Deny(int index, string? reason = null)
     {
@@ -44,8 +50,7 @@ internal sealed class PolicyContext : IPolicyContext
     }
 
     /// <summary>
-    /// Resets this context for a request-constant evaluation: <see cref="Selection"/> is
-    /// <c>null</c> and the policy denies, if at all, through <c>Deny(0, …)</c>.
+    /// Resets this context for a request-constant evaluation with <see cref="Selection"/> set to <c>null</c>.
     /// </summary>
     internal void ResetForRequest(ClaimsPrincipal user)
     {
@@ -78,8 +83,7 @@ internal sealed class PolicyContext : IPolicyContext
     }
 
     /// <summary>
-    /// Clears every reference held by this context so it does not keep request data alive
-    /// beyond the evaluation round it was used for.
+    /// Clears references to data from the completed evaluation.
     /// </summary>
     internal void Clear()
     {

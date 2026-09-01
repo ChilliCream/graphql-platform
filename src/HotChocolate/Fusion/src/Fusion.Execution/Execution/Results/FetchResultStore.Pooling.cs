@@ -132,6 +132,10 @@ internal sealed partial class FetchResultStore
         // null out per-request references
         _result = default!;
         _valueCompletion = default!;
+        _policyPlan = null;
+        _policyRequestState = null;
+        _policyDenyFlags = 0;
+        _policyPlanPart = -1;
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;

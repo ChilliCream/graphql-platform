@@ -953,6 +953,133 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_DenyProduct_When_NodeReturnsProtectedConcreteType()
+    {
+        // arrange
+        var executor = await CreateAbstractTypePolicyExecutorAsync(
+            new DenyPolicy(),
+            """
+            type Query {
+              item: Node
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node @policy(names: "CanReadSecret") {
+              id: ID!
+            }
+
+            type Viewer implements Node {
+              id: ID!
+            }
+            """,
+            """{"data":{"item":{"__typename":"Product","id":"1"}}}""");
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ item { __typename id } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "item": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_DenyProduct_When_UnionReturnsProtectedConcreteType()
+    {
+        // arrange
+        var executor = await CreateAbstractTypePolicyExecutorAsync(
+            new DenyPolicy(),
+            """
+            type Query {
+              result: SearchResult
+            }
+
+            union SearchResult = Product | Viewer
+
+            type Product @policy(names: "CanReadSecret") {
+              id: ID!
+            }
+
+            type Viewer {
+              id: ID!
+            }
+            """,
+            """{"data":{"result":{"__typename":"Product","id":"1"}}}""");
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ result { __typename ... on Product { id } ... on Viewer { id } } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "result": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_DenyOnlyConcreteInstances_When_AbstractResultContainsPolicyType()
+    {
+        // arrange
+        var executor = await CreateAbstractTypePolicyExecutorAsync(
+            new DenyPolicy(),
+            """
+            type Query {
+              nodes: [Node]
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node @policy(names: "CanReadSecret") {
+              id: ID!
+            }
+
+            type Viewer implements Node {
+              id: ID!
+            }
+            """,
+            """{"data":{"nodes":[{"__typename":"Product","id":"1"},{"__typename":"Viewer","id":"2"}]}}""");
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ nodes { __typename id } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "nodes": [
+                  null,
+                  {
+                    "__typename": "Viewer",
+                    "id": "2"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task CreateExecutorAsync_Should_Fail_When_PolicyNameIsDuplicated()
     {
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -978,109 +1105,51 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_FailClosed_When_NodeConditionVariableIsMissing()
+    public async Task CreatePlan_Should_RebindUntrustedPolicyConditions()
     {
         // arrange
-        var listener = new ExecutionNodeErrorListener();
-        IServiceProvider? requestServices = null;
         var executor = await CreateExecutorAsync(
             PolicyDenialBehavior.Null,
-            new DenyPolicy(),
-            diagnosticListener: listener,
-            captureRequestServices: services => requestServices = services);
+            new RoleRequirementPolicy());
         var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
         var sourcePlan = PlanOperation(schema, "{ secret }");
-        var sourceNode = sourcePlan.AllNodes.OfType<OperationExecutionNode>().Single();
         var plannedPolicyNode = sourcePlan.AllNodes.OfType<PolicyExecutionNode>().Single();
-        var policyNode = new PolicyExecutionNode(
-            0,
-            plannedPolicyNode.Targets.ToArray(),
-            [
-                new ExecutionNodeCondition
-                {
-                    VariableName = "missing",
-                    PassingValue = true
-                }
-            ]);
-        policyNode.Seal();
-        var conditionPlan = OperationPlan.Create(
+        var missingCondition = new ExecutionNodeCondition
+        {
+            VariableName = "missing",
+            PassingValue = true
+        };
+        plannedPolicyNode.SetTargets(
+            plannedPolicyNode.Targets
+                .ToArray()
+                .Select(target => target with { Conditions = [missingCondition] })
+                .ToArray());
+        plannedPolicyNode.SetConditions([missingCondition]);
+
+        // act
+        _ = OperationPlan.Create(
             "condition-test",
             sourcePlan.Operation,
-            [policyNode],
-            [policyNode],
-            [],
-            [],
-            [],
+            sourcePlan.RootNodes,
+            sourcePlan.AllNodes,
+            sourcePlan.DeliveryGroups,
+            sourcePlan.IncrementalPlans,
+            sourcePlan.IncludeConditions,
+            sourcePlan.PolicyExpressions,
+            sourcePlan.PolicySlots,
+            sourcePlan.Policies,
             searchSpace: 0,
             expandedNodes: 0);
-        var schemaServices = executor.Schema.Services;
-        var requestContextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
-        var context = new OperationPlanContext(
-            schemaServices.GetRequiredService<INodeIdParser>(),
-            schemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
-            schemaServices.GetRequiredService<IErrorHandler>());
-        var requestContext = requestContextPool.Get();
-        using var cts = new CancellationTokenSource();
 
-        try
-        {
-            var request = OperationRequestBuilder.New()
-                .SetDocument("{ secret }")
-                .Build();
-            requestContext.Initialize(
-                executor.Schema,
-                executor.Version,
-                request,
-                requestIndex: 0,
-                requestServices: requestServices!,
-                requestAborted: CancellationToken.None);
-            context.Initialize(
-                requestContext,
-                VariableValueCollection.Empty,
-                conditionPlan,
-                cts,
-                new MemoryArena());
-
-            var payload = """{"data":{"secret":"classified"}}"""u8.ToArray();
-            var arena = context.MemorySource.GetNextArena();
-            var document = SourceResultDocument.Parse(arena, payload, payload.Length);
-            context.AddPartialResult(
-                SelectionPath.Root,
-                new SourceSchemaResult(CompactPath.Root, document),
-                sourceNode.ResultSelectionSet,
-                containsErrors: false);
-
-            // act
-            policyNode.BeginExecute(context, TestContext.Current.CancellationToken);
-            await context.ExecutionState.Signal;
-
-            // assert
-            Assert.True(context.ExecutionState.TryDequeueCompletedResult(out var nodeResult));
-            var exception = Assert.IsType<InvalidOperationException>(nodeResult.Exception);
-            Assert.Same(exception, listener.Error);
-
-            await using var result = context.Complete();
-            result.ToJson().MatchInlineSnapshot(
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "Authorization policy execution failed.",
-                      "extensions": {
-                        "code": "UNAUTHORIZED_FIELD_OR_TYPE"
-                      }
-                    }
-                  ],
-                  "data": null
-                }
-                """);
-        }
-        finally
-        {
-            await context.DisposeAsync();
-            context.Destroy();
-            requestContextPool.Return(requestContext);
-        }
+        // assert
+        Assert.Equal(
+            (Node: string.Empty, Targets: string.Empty),
+            (
+                Node: string.Join(",", plannedPolicyNode.Conditions.ToArray()
+                    .Select(condition => condition.VariableName)),
+                Targets: string.Join(",", plannedPolicyNode.Targets.ToArray()
+                    .SelectMany(target => target.Conditions)
+                    .Select(condition => condition.VariableName))));
     }
 
     [Fact]
@@ -1299,7 +1368,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         downstreamClient.Requests.MatchInlineSnapshot(
             """
             [
-              "query Op_8924044f_3($__fusion_1_id: ID!) {\n  viewerById(id: $__fusion_1_id) {\n    name\n  }\n}\nvariables: {\"__fusion_1_id\":\"v1\"}"
+              "query Op_8924044f_2($__fusion_1_id: ID!) {\n  viewerById(id: $__fusion_1_id) {\n    name\n  }\n}\nvariables: {\"__fusion_1_id\":\"v1\"}"
             ]
             """);
         result.ToJson().MatchInlineSnapshot(
@@ -1443,10 +1512,119 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             """);
     }
 
-    // Policy denial errors carry a fresh GUID correlation id (extensions.reasonId) that
-    // cannot be asserted verbatim in an inline snapshot. This confirms a well-formed GUID
-    // was actually emitted, then collapses it to a fixed placeholder so the remainder of
-    // the error shape can still be asserted byte-for-byte.
+    [Fact]
+    public async Task CreateDeferredPolicyOperations_Should_IncludeRegularBatchDefinitions()
+    {
+        // arrange
+        var downstreamClient = new SelectiveBatchClient();
+        var executor = await CreateSelectiveBatchExecutorAsync(downstreamClient);
+        var plan = PlanOperation(
+            Assert.IsType<FusionSchemaDefinition>(executor.Schema),
+            "{ topProducts { price } viewers { name } }");
+
+        // act
+        var operations = DeferredPolicyOperation.Create(plan.AllNodes);
+
+        // assert
+        Assert.Equal(
+            [
+                DeferredPolicyOperationKind.Regular,
+                DeferredPolicyOperationKind.RegularDefinition,
+                DeferredPolicyOperationKind.RegularDefinition
+            ],
+            operations.Select(operation => operation.Kind));
+    }
+
+    [Fact]
+    public async Task CreateDeferredPolicyOperations_Should_IncludeApolloBatchDefinitions()
+    {
+        // arrange
+        var downstreamClient = new SelectiveApolloBatchClient();
+        var listener = new ExecutionNodeStartListener();
+        var executor = await CreateSelectiveApolloBatchExecutorAsync(downstreamClient, listener);
+        var plan = PlanOperation(
+            Assert.IsType<FusionSchemaDefinition>(executor.Schema),
+            "{ topProducts { price } viewers { name } }");
+
+        // act
+        var operations = DeferredPolicyOperation.Create(plan.AllNodes);
+
+        // assert
+        Assert.Equal(
+            [
+                DeferredPolicyOperationKind.Regular,
+                DeferredPolicyOperationKind.ApolloDefinition,
+                DeferredPolicyOperationKind.ApolloDefinition
+            ],
+            operations.Select(operation => operation.Kind));
+    }
+
+    [Theory]
+    [InlineData("deniedPolicyGate", true)]
+    [InlineData("notSkipped", false)]
+    [InlineData("clientInclude", false)]
+    [InlineData("oneSkippedOneLiveDependency", true)]
+    [InlineData("allDependenciesSkipped", false)]
+    [InlineData("transportFailure", false)]
+    [InlineData("policyAllowed", false)]
+    public void ShouldMaterializeSkippedDeferredPolicyDenial_Should_RequireExclusiveDeniedGate(
+        string scenario,
+        bool expected)
+    {
+        // arrange
+        var booleanType = new NonNullType(new BooleanType());
+        var innerVariables = new VariableValueCollection(
+            new Dictionary<string, VariableValue>
+            {
+                ["include"] = new("include", booleanType, BooleanValueNode.False)
+            });
+        var fetchGateDenyFlags = scenario.Equals("policyAllowed", StringComparison.Ordinal)
+            ? 0UL
+            : 1UL;
+        var variables = new PolicyVariableValueCollection(
+            innerVariables,
+            slotCount: 1,
+            liveFlags: 1,
+            denyFlags: fetchGateDenyFlags,
+            fetchGateDenyFlags);
+        var conditions = scenario.Equals("clientInclude", StringComparison.Ordinal)
+            ? new[]
+            {
+                new ExecutionNodeCondition { VariableName = "include", PassingValue = true }
+            }
+            : new[]
+            {
+                new ExecutionNodeCondition
+                {
+                    VariableName = "__fusion_policy_0",
+                    PassingValue = true
+                }
+            };
+
+        // act
+        var dependencyCount = scenario is "oneSkippedOneLiveDependency"
+            or "allDependenciesSkipped"
+            or "transportFailure"
+                ? 2
+                : 0;
+        var skippedDependencyCount = scenario is "allDependenciesSkipped" or "transportFailure"
+            ? 2
+            : scenario.Equals("oneSkippedOneLiveDependency", StringComparison.Ordinal)
+                ? 1
+                : 0;
+        var actual = OperationPlanContext.ShouldMaterializeSkippedDeferredPolicyDenial(
+            isSkipped: !scenario.Equals("notSkipped", StringComparison.Ordinal),
+            dependencyCount,
+            skippedDependencyCount,
+            suppressOnlyWhenAllDependenciesAreSkipped: true,
+            conditions,
+            variables);
+
+        // assert
+        Assert.Equal(expected, actual);
+    }
+
+    // Replaces each correlation identifier so the remaining error shape is deterministic.
     [GeneratedRegex("""(?<="reasonId": ")[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=")""")]
     private static partial Regex ReasonIdPattern();
 
@@ -1463,7 +1641,9 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         IPolicy? policy = null,
         Func<IReadOnlyList<IPolicy>>? createPolicies = null,
         FusionExecutionDiagnosticEventListener? diagnosticListener = null,
-        Action<IServiceProvider>? captureRequestServices = null)
+        Action<IServiceProvider>? captureRequestServices = null,
+        Func<IError, IError>? errorFilter = null,
+        ISourceSchemaClient? sourceClient = null)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -1481,6 +1661,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
 
                     type Query {
                       secret: String @policy(names: "CanReadSecret", onDenied: {{behavior.ToString().ToUpperInvariant()}})
+                      role: String
                     }
                     """));
 
@@ -1503,8 +1684,13 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             builder.AddDiagnosticEventListener(_ => diagnosticListener);
         }
 
+        if (errorFilter is not null)
+        {
+            builder.AddErrorFilter(errorFilter);
+        }
+
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
-            new TestClientFactory(("a", new StaticResultClient())));
+            new TestClientFactory(("a", sourceClient ?? new StaticResultClient())));
 
         FusionSetupUtilities.Configure(
             builder,
@@ -1875,6 +2061,48 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 
+    private static async Task<IRequestExecutor> CreateAbstractTypePolicyExecutorAsync(
+        IPolicy policy,
+        string typeDefinitions,
+        string response,
+        FusionExecutionDiagnosticEventListener? diagnosticListener = null,
+        ISourceSchemaClient? sourceClient = null)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    $$"""
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
+
+                    {{typeDefinitions}}
+                    """));
+
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
+        if (diagnosticListener is not null)
+        {
+            builder.AddDiagnosticEventListener(_ => diagnosticListener);
+        }
+
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(
+                ("a", sourceClient ?? new RecordingRequirementClient(response))));
+
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
     private static async Task<IRequestExecutor> CreatePartialLookupExecutorAsync(
         RecordingLookupClient downstreamClient,
         PolicyDenialBehavior onDenied,
@@ -2156,6 +2384,32 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class SwitchableCountingPolicy(string name) : IPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
+
+        public bool Deny { get; set; }
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            if (Deny)
+            {
+                context.Deny(0);
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
     private sealed class DenyMatchingIdPolicy(string name, string deniedId) : IPolicy
     {
         private static readonly PolicyRequirements s_requirements =
@@ -2200,6 +2454,32 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _evaluationCount);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class NamedRequirementPolicy(string name, bool deny) : IPolicy
+    {
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }") };
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public PolicyRequirements Requirements => s_requirements;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            if (deny)
+            {
+                context.Deny(0, $"denied by {name}");
+            }
+
             return ValueTask.CompletedTask;
         }
     }
@@ -2287,6 +2567,28 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             Assert.Equal(1, entities.Length);
             Evaluated = true;
             Role = entities.Span[0].GetProperty("role").GetString();
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class DenyRequirementPolicy : IPolicy
+    {
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }") };
+
+        public string Name => "CanReadSecret";
+
+        public PolicyRequirements Requirements => s_requirements;
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            for (var i = 0; i < context.Selection!.Entities.Length; i++)
+            {
+                context.Deny(i, "denied by requirement policy");
+            }
+
             return ValueTask.CompletedTask;
         }
     }
@@ -2443,6 +2745,14 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             Exception error)
         {
             Error = error;
+        }
+
+        public override void RequestError(RequestContext context, Exception error)
+        {
+            if (!context.RequestAborted.IsCancellationRequested)
+            {
+                Error = error;
+            }
         }
     }
 
@@ -2617,6 +2927,8 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
 
         public List<string> Requests { get; } = [];
 
+        public List<string> RequestDetails { get; } = [];
+
         public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
 
         public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
@@ -2624,7 +2936,12 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             SourceSchemaClientRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            Requests.Add(Encoding.UTF8.GetString(request.OperationSourceText.Value.Span));
+            var operationSource = Encoding.UTF8.GetString(request.OperationSourceText.Value.Span);
+            Requests.Add(operationSource);
+            var variables = request.Variables.Length == 0
+                ? "{}"
+                : Encoding.UTF8.GetString(request.Variables[0].Values.AsSequence().ToArray());
+            RequestDetails.Add(operationSource + "\nvariables: " + variables);
             var arena = context.MemorySource.GetNextArena();
             var document = SourceResultDocument.Parse(arena, _payload, _payload.Length);
             await Task.Yield();
@@ -2895,7 +3212,6 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
                 var operationSourceText =
                     Encoding.UTF8.GetString(request.OperationSourceText.Value.Span);
                 Requests.Add(operationSourceText);
-
                 if (!operationSourceText.Contains("... on Viewer", StringComparison.Ordinal)
                     || operationSourceText.Contains("... on Product", StringComparison.Ordinal))
                 {

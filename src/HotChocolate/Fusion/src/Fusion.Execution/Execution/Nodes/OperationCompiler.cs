@@ -41,6 +41,19 @@ public sealed class OperationCompiler
         string hash,
         string shortHash,
         OperationDefinitionNode operationDefinition)
+        => Compile(
+            id,
+            hash,
+            shortHash,
+            operationDefinition,
+            CreateIncludeConditionCollection(operationDefinition));
+
+    internal Operation Compile(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition,
+        IncludeConditionCollection includeConditions)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -49,9 +62,7 @@ public sealed class OperationCompiler
         document = _documentRewriter.RewriteDocument(document);
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
-        var includeConditions = new IncludeConditionCollection();
         var deferConditions = new DeferConditionCollection();
-        IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
 
         // Scans the operation for @defer fragments and creates one
         // DeliveryGroup object for each. Also fills deferConditions with any
@@ -113,6 +124,23 @@ public sealed class OperationCompiler
         {
             _fieldsPool.Return(fields);
         }
+    }
+
+    internal static IncludeConditionCollection CreateIncludeConditionCollection(
+        OperationDefinitionNode operationDefinition)
+    {
+        var discovered = new IncludeConditionCollection();
+        IncludeConditionVisitor.Instance.Visit(operationDefinition, discovered);
+        var includeConditions = new IncludeConditionCollection();
+
+        foreach (var condition in discovered
+            .OrderBy(condition => condition.Skip, StringComparer.Ordinal)
+            .ThenBy(condition => condition.Include, StringComparer.Ordinal))
+        {
+            includeConditions.Add(condition);
+        }
+
+        return includeConditions;
     }
 
     internal SelectionSet CompileSelectionSet(
@@ -196,6 +224,12 @@ public sealed class OperationCompiler
                 if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
                 {
                     var index = includeConditions.IndexOf(includeCondition);
+                    if (index < 0)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A client include condition is missing from the operation-wide condition table.");
+                    }
+
                     pathIncludeFlags |= 1ul << index;
                 }
 
@@ -209,6 +243,12 @@ public sealed class OperationCompiler
                 if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
                 {
                     var index = includeConditions.IndexOf(includeCondition);
+                    if (index < 0)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A client include condition is missing from the operation-wide condition table.");
+                    }
+
                     pathIncludeFlags |= 1ul << index;
                 }
 
@@ -660,6 +700,12 @@ public sealed class OperationCompiler
             if (IncludeCondition.TryCreate(node, out var condition))
             {
                 context.Add(condition);
+            }
+
+            if (DeferCondition.TryCreate(node, out var deferCondition)
+                && deferCondition.IfVariableName is { } ifVariableName)
+            {
+                context.Add(new IncludeCondition(ifVariableName, include: null));
             }
 
             return base.Enter(node, context);

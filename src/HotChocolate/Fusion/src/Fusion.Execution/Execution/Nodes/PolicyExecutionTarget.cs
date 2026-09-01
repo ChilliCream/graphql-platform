@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -9,6 +10,11 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed record PolicyExecutionTarget
 {
+    /// <summary>
+    /// Gets the compiled occurrence evaluated by this target.
+    /// </summary>
+    public ImmutableArray<PolicyOccurrenceReference> Occurrences { get; init; } = [];
+
     /// <summary>
     /// Gets whether the target is an object or field result position.
     /// </summary>

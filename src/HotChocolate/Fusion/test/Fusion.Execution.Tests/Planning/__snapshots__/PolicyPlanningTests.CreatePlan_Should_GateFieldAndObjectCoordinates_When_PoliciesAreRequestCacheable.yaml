@@ -1,0 +1,135 @@
+operation:
+  - document: |
+      query($includeName: Boolean!) {
+        product {
+          id
+          name @include(if: $includeName)
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1(
+        $includeName: Boolean!
+        $__fusion_policy_2: Boolean!
+        $__fusion_policy_3: Boolean!
+      ) {
+        product {
+          ... @include(if: $__fusion_policy_2) {
+            id
+            ... @include(if: $__fusion_policy_3) {
+              name @include(if: $includeName)
+            }
+          }
+        }
+      }
+    conditions:
+      - variable: $__fusion_policy_0
+        passingValue: true
+      - variable: $__fusion_policy_1
+        passingValue: true
+    forwardedVariables:
+      - includeName
+      - __fusion_policy_2
+      - __fusion_policy_3
+includeConditions:
+  -
+    includeVariable: includeName
+policyExpressions:
+  - ordinal: 0
+    names: [["CanReadQuery"]]
+    expression: CanReadQuery
+  - ordinal: 1
+    names: [["CanReadProductField"]]
+    expression: CanReadProductField
+  - ordinal: 2
+    names: [["CanReadProductObject"]]
+    expression: CanReadProductObject
+  - ordinal: 3
+    names: [["CanAdmin"], ["CanAudit", "CanReadName"]]
+    expression: CanAdmin OR (CanAudit AND CanReadName)
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    applications:
+      - expressionOrdinal: 0
+        onDenied: Error
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Query
+        responseNames: []
+        applications:
+          - expressionOrdinal: 0
+            onDenied: Error
+        isRoot: true
+        liveGuardMasks: [0]
+        gateGuardMasks: [0]
+  - ordinal: 1
+    variable: $__fusion_policy_1
+    applications:
+      - expressionOrdinal: 1
+        onDenied: Abort
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Query
+        fieldName: product
+        responseNames: [product]
+        applications:
+          - expressionOrdinal: 1
+            onDenied: Abort
+        isRoot: false
+        liveGuardMasks: [0]
+        gateGuardMasks: [0]
+  - ordinal: 2
+    variable: $__fusion_policy_2
+    applications:
+      - expressionOrdinal: 2
+        onDenied: Null
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Product
+        responseNames: []
+        applications:
+          - expressionOrdinal: 2
+            onDenied: Null
+        isRoot: false
+        liveGuardMasks: [0]
+        gateGuardMasks: [0]
+  - ordinal: 3
+    variable: $__fusion_policy_3
+    applications:
+      - expressionOrdinal: 3
+        onDenied: Error
+    rmax: Null
+    guardMasks: [1]
+    coordinates:
+      - typeName: Product
+        fieldName: name
+        responseNames: [name]
+        applications:
+          - expressionOrdinal: 3
+            onDenied: Error
+        isRoot: false
+        liveGuardMasks: [1]
+        gateGuardMasks: [1]
+policies:
+  - name: CanAdmin
+    requirementHash: 17241709254077376921
+  - name: CanAudit
+    requirementHash: 17241709254077376921
+  - name: CanReadName
+    requirementHash: 17241709254077376921
+  - name: CanReadProductField
+    requirementHash: 17241709254077376921
+  - name: CanReadProductObject
+    requirementHash: 17241709254077376921
+  - name: CanReadQuery
+    requirementHash: 17241709254077376921

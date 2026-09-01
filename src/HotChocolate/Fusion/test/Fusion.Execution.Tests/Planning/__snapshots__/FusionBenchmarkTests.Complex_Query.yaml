@@ -621,6 +621,8 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
       - variable: $level3
         passingValue: false
     forwardedVariables:
@@ -721,12 +723,45 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $level1
+        passingValue: true
+      - variable: $level2
+        passingValue: false
+      - variable: $level3
+        passingValue: true
+      - variable: $level4
+        passingValue: false
+      - variable: $level5
+        passingValue: true
       - variable: $level6
         passingValue: false
       - variable: $includeReviews
         passingValue: true
     dependencies:
       - id: 23
+  - id: 7
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_7($__fusion_4_id: ID!) {
+        productById(id: $__fusion_4_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Article>.author.reviews.nodes.product
+    batchingGroupId: 34
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $level3
+        passingValue: true
+      - variable: $level4
+        passingValue: false
+    dependencies:
+      - id: 6
   - id: 8
     type: Operation
     schema: products
@@ -748,6 +783,10 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $level3
+        passingValue: true
+      - variable: $level4
+        passingValue: false
       - variable: $level5
         passingValue: true
     forwardedVariables:
@@ -771,6 +810,10 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level3
+        passingValue: false
       - variable: $level4
         passingValue: true
     dependencies:
@@ -796,6 +839,10 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level3
+        passingValue: false
       - variable: $level4
         passingValue: true
       - variable: $level5
@@ -823,6 +870,10 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
       - variable: $level2
         passingValue: true
     dependencies:
@@ -866,6 +917,10 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
       - variable: $level2
         passingValue: true
       - variable: $level3
@@ -899,6 +954,10 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
       - variable: $level2
         passingValue: true
       - variable: $level3
@@ -907,27 +966,34 @@ nodes:
       - level4
     dependencies:
       - id: 18
-  - id: 7
+  - id: 14
     type: OperationBatch
     schema: products
     operation: |
-      query Op_123456789101112_7($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
+      query Op_123456789101112_14($__fusion_11_id: ID!) {
+        productById(id: $__fusion_11_id) {
           name
         }
       }
     source: $.productById
     targets:
-      - $.searchContent<Article>.author.reviews.nodes.product
       - $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
       - $.products.edges.node.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_11_id
         selectionMap: >-
           id
+    conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
+      - variable: $level2
+        passingValue: true
+      - variable: $level3
+        passingValue: false
     dependencies:
-      - id: 6
       - id: 13
       - id: 20
   - id: 15
@@ -947,6 +1013,14 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
+      - variable: $level2
+        passingValue: true
+      - variable: $level3
+        passingValue: false
       - variable: $level4
         passingValue: true
     dependencies:
@@ -971,6 +1045,14 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
+      - variable: $level2
+        passingValue: true
+      - variable: $level3
+        passingValue: false
       - variable: $level4
         passingValue: true
       - variable: $level5
@@ -998,9 +1080,46 @@ nodes:
         selectionMap: >-
           id
     conditions:
+      - variable: $includeReviews
+        passingValue: true
+      - variable: $level1
+        passingValue: false
+      - variable: $level2
+        passingValue: true
+      - variable: $level3
+        passingValue: false
       - variable: $level4
         passingValue: true
     forwardedVariables:
       - level5
     dependencies:
       - id: 20
+includeConditions:
+  -
+    includeVariable: includeMetadata
+  -
+    includeVariable: includeReviews
+  -
+    includeVariable: level1
+  -
+    includeVariable: level2
+  -
+    includeVariable: level3
+  -
+    includeVariable: level4
+  -
+    includeVariable: level5
+  -
+    includeVariable: level6
+  -
+    skipVariable: level1
+  -
+    skipVariable: level2
+  -
+    skipVariable: level3
+  -
+    skipVariable: level4
+  -
+    skipVariable: level5
+  -
+    skipVariable: level6

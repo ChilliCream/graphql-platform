@@ -12,10 +12,10 @@ namespace HotChocolate.Fusion.Execution;
 public class OperationPlanCacheTests : FusionTestBase
 {
     [Fact]
-    public void CreatePlan_Should_InventoryRequirementFreePolicyNames_When_TargetContainsGroups()
+    public async Task CreatePlan_Should_InventoryRequirementFreePolicyNames_When_TargetContainsGroups()
     {
         // arrange
-        using var services = new ServiceCollection()
+        await using var services = new ServiceCollection()
             .AddSingleton<IPolicyProvider>(
                 _ => new TestPolicyProvider(new TestPolicy("CanRead"), new TestPolicy("CanAudit")))
             .BuildServiceProvider();
@@ -40,16 +40,25 @@ public class OperationPlanCacheTests : FusionTestBase
         // assert
         Assert.Collection(
             plan.Policies.OrderBy(entry => entry.PolicyName, StringComparer.Ordinal),
-            entry => Assert.Equal(("CanAudit", 0UL), (entry.PolicyName, entry.RequirementHash)),
-            entry => Assert.Equal(("CanRead", 0UL), (entry.PolicyName, entry.RequirementHash)));
+            entry => Assert.Equal(
+                ("CanAudit", PolicyPlanEntry.ComputeRequirementHash(null)),
+                (entry.PolicyName, entry.RequirementHash)),
+            entry => Assert.Equal(
+                ("CanRead", PolicyPlanEntry.ComputeRequirementHash(null)),
+                (entry.PolicyName, entry.RequirementHash)));
     }
 
     [Fact]
-    public void CreatePlan_Should_InventoryPolicyNameOnce_When_NameOccursInSlotsAndTarget()
+    public async Task CreatePlan_Should_InventoryPolicies_When_PlanContainsSlotAndTarget()
     {
         // arrange
-        using var services = new ServiceCollection()
-            .AddSingleton<IPolicyProvider>(_ => new TestPolicyProvider(new TestPolicy("Shared")))
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(
+                _ => new TestPolicyProvider(
+                    new TestPolicy("CanRequest"),
+                    new TestPolicy(
+                        "CanResource",
+                        Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }"))))
             .BuildServiceProvider();
         var schema = FusionSchemaDefinition.Create(
             ComposeSchemaDocument(
@@ -60,8 +69,11 @@ public class OperationPlanCacheTests : FusionTestBase
                 directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
                   repeatable on OBJECT | FIELD_DEFINITION
 
-                type Query @policy(names: "Shared") {
+                type Query {
+                  id: ID!
                   field: String!
+                    @policy(names: [["CanRequest"]])
+                    @policy(names: [["CanResource"]])
                 }
                 """),
             services);
@@ -70,25 +82,24 @@ public class OperationPlanCacheTests : FusionTestBase
         var plan = PlanOperation(schema, "{ field }");
 
         // assert
-        Assert.Contains(
-            plan.PolicySlots,
-            slot => slot.Groups.Any(group => group.Contains("Shared", StringComparer.Ordinal)));
-        Assert.Contains(
-            plan.AllNodes
-                .OfType<PolicyExecutionNode>()
-                .SelectMany(node => node.Targets.ToArray())
-                .SelectMany(target => target.Policies)
-                .SelectMany(application => application.Groups)
-                .SelectMany(group => group),
-            name => name == "Shared");
-        Assert.Single(plan.Policies, entry => entry.PolicyName == "Shared");
+        Assert.Single(plan.PolicySlots);
+        Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>());
+        Assert.Collection(
+            plan.Policies,
+            entry => Assert.Equal(
+                ("CanRequest", PolicyPlanEntry.ComputeRequirementHash(null)),
+                (entry.PolicyName, entry.RequirementHash)),
+            entry => Assert.Equal(
+                ("CanResource", PolicyPlanEntry.ComputeRequirementHash(
+                    Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }"))),
+                (entry.PolicyName, entry.RequirementHash)));
     }
 
     [Fact]
-    public void CreatePlan_Should_UseResourceRequirementHash_When_ApplicationMixesPolicyKinds()
+    public async Task CreatePlan_Should_UseResourceRequirementHash_When_ApplicationMixesPolicyKinds()
     {
         // arrange
-        using var services = new ServiceCollection()
+        await using var services = new ServiceCollection()
             .AddSingleton<IPolicyProvider>(
                 _ => new TestPolicyProvider(
                     new TestPolicy("CanRequest"),
@@ -118,7 +129,9 @@ public class OperationPlanCacheTests : FusionTestBase
         // assert
         Assert.Collection(
             plan.Policies.OrderBy(entry => entry.PolicyName, StringComparer.Ordinal),
-            entry => Assert.Equal(("CanRequest", 0UL), (entry.PolicyName, entry.RequirementHash)),
+            entry => Assert.Equal(
+                ("CanRequest", PolicyPlanEntry.ComputeRequirementHash(null)),
+                (entry.PolicyName, entry.RequirementHash)),
             entry =>
             {
                 Assert.Equal("CanResource", entry.PolicyName);
@@ -127,121 +140,113 @@ public class OperationPlanCacheTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_KeepDistinctRequirementHashes_When_PolicyNameHasMultipleRequirements()
+    public async Task CreatePlan_Should_RejectMultipleRequirementHashesForSamePolicyName()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument("type Query { field: String! }"));
-        var basePlan = PlanOperation(schema, "{ field }");
-        var firstRequirement = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
+        var plan = await CreateDataBearingPolicyPlanAsync("Shared");
         var secondRequirement = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ name }");
-        var target = new PolicyExecutionTarget
-        {
-            Kind = PolicyTargetKind.Object,
-            Path = SelectionPath.Root,
-            TypeName = "Query",
-            Policies = [CreatePolicyApplication("Shared")],
-            Requirements =
-            [
-                new PolicyRequirement { PolicyName = "Shared", SelectionSet = firstRequirement },
-                new PolicyRequirement { PolicyName = "Shared", SelectionSet = secondRequirement }
-            ]
-        };
-        var node = new PolicyExecutionNode(1, [target], []);
-        var plan = OperationPlan.Create(
-            "multiple-policy-requirements",
-            basePlan.Operation,
-            [node],
-            [node],
-            [],
-            [],
-            [],
-            basePlan.SearchSpace,
-            basePlan.ExpandedNodes);
-        var cache = new OperationPlanCache(16, diagnostics: null);
+        var policies = plan.Policies.Add(
+            new PolicyPlanEntry
+            {
+                PolicyName = "Shared",
+                RequirementHash = PolicyPlanEntry.ComputeRequirementHash(secondRequirement)
+            })
+            .OrderBy(entry => entry.PolicyName, StringComparer.Ordinal)
+            .ThenBy(entry => entry.RequirementHash)
+            .ToImmutableArray();
 
         // act
-        cache.Add(cache.Capture(), "plan", plan);
-        cache.EvictPolicies(new Dictionary<string, ulong>(StringComparer.Ordinal)
-        {
-            ["Shared"] = PolicyPlanEntry.ComputeRequirementHash(firstRequirement)
-        });
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => OperationPlan.Create(
+                "multiple-policy-requirements",
+                plan.Operation,
+                plan.RootNodes,
+                plan.AllNodes,
+                plan.DeliveryGroups,
+                plan.IncrementalPlans,
+                plan.IncludeConditions,
+                plan.PolicyExpressions,
+                plan.PolicySlots,
+                policies,
+                plan.SearchSpace,
+                plan.ExpandedNodes));
 
         // assert
         Assert.Equal(
-            new[]
-            {
-                PolicyPlanEntry.ComputeRequirementHash(firstRequirement),
-                PolicyPlanEntry.ComputeRequirementHash(secondRequirement)
-            }.OrderBy(hash => hash),
-            plan.Policies.Select(entry => entry.RequirementHash));
-        Assert.False(cache.Current.TryGet("plan", out _));
+            "The policy inventory does not match the compiled policy occurrences.",
+            exception.Message);
     }
 
     [Fact]
-    public void Add_Should_KeepPlan_When_DuplicateTargetRequirementsAgree()
+    public async Task CreatePlan_Should_RejectEmptyInventory_When_PlanContainsOnlyPolicyTarget()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument("type Query { field: String! }"));
-        var basePlan = PlanOperation(schema, "{ field }");
-        var requirement = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }");
-        var targets = Enumerable.Range(0, 2)
-            .Select(
-                _ => new PolicyExecutionTarget
-                {
-                    Kind = PolicyTargetKind.Object,
-                    Path = SelectionPath.Root,
-                    TypeName = "Query",
-                    Policies = [CreatePolicyApplication("Shared")],
-                    Requirements =
-                    [
-                        new PolicyRequirement
-                        {
-                            PolicyName = "Shared",
-                            SelectionSet = requirement
-                        }
-                    ]
-                })
-            .ToArray();
-        var node = new PolicyExecutionNode(1, targets, []);
-        var plan = OperationPlan.Create(
-            "agreeing-policy-requirements",
-            basePlan.Operation,
-            [node],
-            [node],
-            [],
-            [],
-            [],
-            basePlan.SearchSpace,
-            basePlan.ExpandedNodes);
-        var cache = new OperationPlanCache(16, diagnostics: null);
+        var plan = await CreateDataBearingPolicyPlanAsync("Shared");
 
         // act
-        cache.Add(cache.Capture(), "plan", plan);
-        cache.EvictPolicies(new Dictionary<string, ulong>(StringComparer.Ordinal)
-        {
-            ["Shared"] = PolicyPlanEntry.ComputeRequirementHash(requirement)
-        });
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => OperationPlan.Create(
+                "missing-target-inventory",
+                plan.Operation,
+                plan.RootNodes,
+                plan.AllNodes,
+                plan.DeliveryGroups,
+                plan.IncrementalPlans,
+                plan.IncludeConditions,
+                plan.PolicyExpressions,
+                plan.PolicySlots,
+                [],
+                plan.SearchSpace,
+                plan.ExpandedNodes));
 
         // assert
-        Assert.True(cache.Current.TryGet("plan", out var cachedPlan));
-        Assert.Same(plan, cachedPlan);
-        Assert.Equal(1, cache.IndexedIdCountForTesting);
+        Assert.Equal(
+            "The policy inventory does not match the compiled policy occurrences.",
+            exception.Message);
     }
 
     [Fact]
-    public void Add_Should_NotDriftIndexCount_When_PlanHasPolicyInMultipleSlots()
+    public async Task CreatePlan_Should_RejectDuplicateCompiledPolicyTarget()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument(
-                """
-                type Query {
-                  field: String!
-                }
-                """));
-        var plan = CreatePlanWithPolicyInMultipleSlots(schema, "Shared");
+        var plan = await CreateDataBearingPolicyPlanAsync("Shared");
+        var policyNode = Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>());
+        var target = Assert.Single(policyNode.Targets.ToArray());
+        var duplicateNode = new PolicyExecutionNode(
+            policyNode.Id,
+            [target, target],
+            policyNode.Conditions.ToArray());
+        var allNodes = plan.AllNodes
+            .Select(node => node.Id == policyNode.Id ? duplicateNode : node)
+            .ToImmutableArray();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => OperationPlan.Create(
+                "duplicate-policy-target",
+                plan.Operation,
+                plan.RootNodes,
+                allNodes,
+                plan.DeliveryGroups,
+                plan.IncrementalPlans,
+                plan.IncludeConditions,
+                plan.PolicyExpressions,
+                plan.PolicySlots,
+                plan.Policies,
+                plan.SearchSpace,
+                plan.ExpandedNodes));
+
+        // assert
+        Assert.Equal(
+            "A residual policy target has no unique compiled occurrence.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task Add_Should_NotDriftIndexCount_When_PlanHasPolicyInMultipleSlots()
+    {
+        // arrange
+        var plan = await CreatePlanWithPolicyInMultipleSlotsAsync("Shared");
         var planCache = new OperationPlanCache(16, diagnostics: null);
         var session = planCache.Capture();
 
@@ -254,19 +259,12 @@ public class OperationPlanCacheTests : FusionTestBase
     }
 
     [Fact]
-    public void Add_Should_DiscardStaleSessionIndex_When_CacheIsReset()
+    public async Task Add_Should_DiscardStaleSessionIndex_When_CacheIsReset()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument(
-                """
-                type Query {
-                  field: String!
-                }
-                """));
         var planCache = new OperationPlanCache(16, diagnostics: null);
         var staleSession = planCache.Capture();
-        var plan = CreatePlanWithPolicyInMultipleSlots(schema, "Shared");
+        var plan = await CreatePlanWithPolicyInMultipleSlotsAsync("Shared");
 
         // act
         planCache.Reset();
@@ -281,11 +279,9 @@ public class OperationPlanCacheTests : FusionTestBase
     public async Task Add_Should_NotPublishCapturedPlan_When_TargetedEvictionOccursBeforePublication()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument("type Query { field: String! }"));
         var planCache = new OperationPlanCache(16, diagnostics: null);
         var session = planCache.Capture();
-        var plan = CreatePlanWithPolicyInMultipleSlots(schema, "Shared");
+        var plan = await CreatePlanWithPolicyInMultipleSlotsAsync("Shared");
         using var entered = new ManualResetEventSlim();
         using var release = new ManualResetEventSlim();
         planCache.BeforeAddValidation = () =>
@@ -318,11 +314,9 @@ public class OperationPlanCacheTests : FusionTestBase
     public async Task Add_Should_KeepCurrentGenerationIndex_When_ResetRacesOldSessionPublication()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument("type Query { field: String! }"));
         var planCache = new OperationPlanCache(16, diagnostics: null);
         var oldSession = planCache.Capture();
-        var plan = CreatePlanWithPolicyInMultipleSlots(schema, "Shared");
+        var plan = await CreatePlanWithPolicyInMultipleSlotsAsync("Shared");
         using var entered = new ManualResetEventSlim();
         using var release = new ManualResetEventSlim();
         planCache.BeforeAddValidation = () =>
@@ -352,19 +346,12 @@ public class OperationPlanCacheTests : FusionTestBase
     }
 
     [Fact]
-    public void Add_Should_SweepEvictedPlanIds_When_IndexExceedsMaintenanceThreshold()
+    public async Task Add_Should_SweepEvictedPlanIds_When_IndexExceedsMaintenanceThreshold()
     {
         // arrange
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument(
-                """
-                type Query {
-                  field: String!
-                }
-                """));
         var planCache = new OperationPlanCache(1, diagnostics: null);
         var session = planCache.Capture();
-        var plan = CreatePlanWithPolicyInMultipleSlots(schema, "Shared");
+        var plan = await CreatePlanWithPolicyInMultipleSlotsAsync("Shared");
 
         // act
         for (var i = 0; i < 5; i++)
@@ -376,33 +363,56 @@ public class OperationPlanCacheTests : FusionTestBase
         Assert.Equal((long)planCache.Current.Count, planCache.IndexedIdCountForTesting);
     }
 
-    private static OperationPlan CreatePlanWithPolicyInMultipleSlots(
-        FusionSchemaDefinition schema,
+    private static async Task<OperationPlan> CreatePlanWithPolicyInMultipleSlotsAsync(
         string policyName)
     {
-        var basePlan = PlanOperation(schema, "{ field }");
-        var groups = ImmutableArray.Create(ImmutableArray.Create(policyName));
-        var policySlots = ImmutableArray.Create(
-            new PolicyConditionSlot { Ordinal = 0, Groups = groups, Rmax = PolicyDenialBehavior.Null },
-            new PolicyConditionSlot { Ordinal = 1, Groups = groups, Rmax = PolicyDenialBehavior.Error });
-        return OperationPlan.Create(
-            "plan-with-duplicate-policy-name",
-            basePlan.Operation,
-            basePlan.RootNodes,
-            basePlan.AllNodes,
-            basePlan.DeliveryGroups,
-            basePlan.IncrementalPlans,
-            policySlots,
-            basePlan.SearchSpace,
-            basePlan.ExpandedNodes);
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => new TestPolicyProvider(new TestPolicy(policyName)))
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(
+            ComposeSchemaDocument(
+                $$"""
+                # name: a
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  first: String @policy(names: "{{policyName}}", onDenied: NULL)
+                  second: String @policy(names: "{{policyName}}", onDenied: ERROR)
+                }
+                """),
+            services);
+        return PlanOperation(schema, "{ first second }");
     }
 
-    private static PolicyApplication CreatePolicyApplication(string policyName)
-        => new()
-        {
-            Groups = ImmutableArray.Create(ImmutableArray.Create(policyName)),
-            OnDenied = PolicyDenialBehavior.Null
-        };
+    private static async Task<OperationPlan> CreateDataBearingPolicyPlanAsync(string policyName)
+    {
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(
+                _ => new TestPolicyProvider(
+                    new TestPolicy(
+                        policyName,
+                        Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }"))))
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(
+            ComposeSchemaDocument(
+                $$"""
+                # name: a
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  id: ID!
+                  field: String @policy(names: "{{policyName}}")
+                }
+                """),
+            services);
+        return PlanOperation(schema, "{ field }");
+    }
 
     [Fact]
     public async Task Plan_Cache_Should_Have_Configured_Capacity()

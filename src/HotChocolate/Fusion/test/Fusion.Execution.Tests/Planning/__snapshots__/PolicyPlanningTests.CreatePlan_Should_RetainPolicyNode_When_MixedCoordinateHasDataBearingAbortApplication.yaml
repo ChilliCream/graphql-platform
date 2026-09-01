@@ -25,8 +25,6 @@ nodes:
         path: $
         typeName: Query
         policies:
-          - names: [["CanAudit"]]
-            onDenied: Null
           - names: [["CanReadQueryData"]]
             onDenied: Abort
         requirements:
@@ -34,9 +32,29 @@ nodes:
             selectionSet: { product { id } }
     dependencies:
       - id: 1
+policyExpressions:
+  - ordinal: 0
+    names: [["CanAudit"]]
+    expression: CanAudit
 policySlots:
   - ordinal: 0
     variable: $__fusion_policy_0
-    names: [["CanAudit"]]
+    applications:
+      - expressionOrdinal: 0
+        onDenied: Null
     rmax: Abort
-    expression: CanAudit
+    guardMasks: [0]
+    coordinates:
+      - typeName: Query
+        responseNames: []
+        applications:
+          - expressionOrdinal: 0
+            onDenied: Null
+        isRoot: true
+        liveGuardMasks: [0]
+        gateGuardMasks: []
+policies:
+  - name: CanAudit
+    requirementHash: 17241709254077376921
+  - name: CanReadQueryData
+    requirementHash: 10111767852615549870

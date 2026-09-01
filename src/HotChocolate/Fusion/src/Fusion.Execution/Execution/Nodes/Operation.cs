@@ -126,6 +126,10 @@ public sealed class Operation : IOperation
 
     public bool HasIncrementalParts => _hasIncrementalParts;
 
+    internal int IncludeConditionCount => _includeConditions.Count;
+
+    internal IncludeConditionCollection IncludeConditions => _includeConditions;
+
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
     /// if the selections named return type is an object type.

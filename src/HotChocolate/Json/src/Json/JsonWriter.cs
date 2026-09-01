@@ -40,6 +40,11 @@ public sealed partial class JsonWriter
     // Supports up to 64 levels of nesting.
     private long _containerTypeStack;
 
+    internal readonly record struct Checkpoint(
+        int CurrentDepth,
+        JsonTokenType TokenType,
+        long ContainerTypeStack);
+
     public JsonWriter(
         IBufferWriter<byte> writer,
         JsonWriterOptions options,
@@ -76,6 +81,22 @@ public sealed partial class JsonWriter
         _currentDepth = 0;
         _tokenType = default;
         _containerTypeStack = 0;
+        _realWriter = null;
+        _savedCurrentDepth = 0;
+        _savedTokenType = default;
+    }
+
+    internal Checkpoint CreateCheckpoint()
+        => new(_currentDepth, _tokenType, _containerTypeStack);
+
+    internal void Restore(IBufferWriter<byte> writer, Checkpoint checkpoint)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+
+        _writer = writer;
+        _currentDepth = checkpoint.CurrentDepth;
+        _tokenType = checkpoint.TokenType;
+        _containerTypeStack = checkpoint.ContainerTypeStack;
         _realWriter = null;
         _savedCurrentDepth = 0;
         _savedTokenType = default;

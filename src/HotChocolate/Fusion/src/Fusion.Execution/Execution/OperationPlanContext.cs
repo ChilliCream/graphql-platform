@@ -12,6 +12,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -153,6 +154,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
     /// </summary>
     public ulong IncludeFlags { get; private set; }
+
+    /// <summary>
+    /// Gets the policy condition slots denied for the current execution round.
+    /// </summary>
+    public ulong PolicyDenyFlags { get; private set; }
 
     /// <summary>
     /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
@@ -528,6 +534,22 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             entityTypeName);
     }
 
+    private void ValidateDeferredRequirementScope(
+        ReadOnlySpan<OperationRequirement> requirements)
+    {
+        if (requirements.Length == 0)
+        {
+            return;
+        }
+
+        var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+        if (importedMatchCount != 0 && importedMatchCount != requirements.Length)
+        {
+            throw CreateMixedScopeException(requirements);
+        }
+    }
+
     private InvalidOperationException CreateMixedScopeException(
         ReadOnlySpan<OperationRequirement> requirements)
     {
@@ -546,14 +568,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             }
         }
 
-        return new InvalidOperationException(
-            "A deferred incremental plan fetch references a mix of imported parent-sourced and local "
-            + "requirement keys. The planner is expected to keep these scopes separate so that "
-            + "each fetch sources its requirements from a single scope. Imported parent keys: ["
-            + string.Join(", ", imported)
-            + "]. Local requested keys: ["
-            + string.Join(", ", local)
-            + "].");
+        return ThrowHelper.MixedDeferredRequirementScopes(imported, local);
     }
 
     private int CountImportedRequirementKeys(ReadOnlySpan<OperationRequirement> requirements)
@@ -583,16 +598,18 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// </summary>
     internal void SetRequirements(
         ImmutableArray<VariableValues> parentValues,
-        HashSet<string> keys)
+        HashSet<string> keys,
+        Operation parentOperation)
     {
         ArgumentNullException.ThrowIfNull(keys);
+        ArgumentNullException.ThrowIfNull(parentOperation);
 
         if (parentValues.IsDefaultOrEmpty || keys.Count == 0)
         {
             return;
         }
 
-        _requirementValues = _resultStore.ImportVariableValues(parentValues);
+        _requirementValues = _resultStore.ImportVariableValues(parentValues, parentOperation);
         _requirementKeys = keys;
     }
 
@@ -601,6 +618,223 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// incremental plans.
     /// </summary>
     internal FetchResultStore GetResultStoreForChildDefer() => _resultStore;
+
+    internal void MaterializeSkippedDeferredPolicyDenials(
+        FetchResultStore parentResultStore,
+        IncrementalPlan incrementalPlan)
+    {
+        if (PolicyDenyFlags == 0)
+        {
+            return;
+        }
+
+        foreach (var operation in incrementalPlan.DeferredPolicyOperations)
+        {
+            switch (operation.Kind)
+            {
+                case DeferredPolicyOperationKind.Regular:
+                    MaterializeSkippedDeferredPolicyDenials(
+                        parentResultStore,
+                        operation.RegularOperation!);
+                    break;
+
+                case DeferredPolicyOperationKind.Apollo:
+                    MaterializeSkippedDeferredPolicyDenials(
+                        parentResultStore,
+                        operation.ApolloOperation!);
+                    break;
+
+                case DeferredPolicyOperationKind.RegularDefinition:
+                    MaterializeSkippedDeferredPolicyDenials(
+                        parentResultStore,
+                        operation.Definition!);
+                    break;
+
+                case DeferredPolicyOperationKind.ApolloDefinition:
+                    MaterializeSkippedDeferredPolicyDenials(
+                        parentResultStore,
+                        (SingleOperationDefinition)operation.Definition!,
+                        operation.Lookup!.Value);
+                    break;
+            }
+        }
+    }
+
+    internal static bool ShouldMaterializeSkippedDeferredPolicyDenial(
+        bool isSkipped,
+        int dependencyCount,
+        int skippedDependencyCount,
+        bool suppressOnlyWhenAllDependenciesAreSkipped,
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        IVariableValueCollection variables)
+    {
+        if (!isSkipped
+            || skippedDependencyCount > 0
+                && (suppressOnlyWhenAllDependenciesAreSkipped
+                    ? dependencyCount == skippedDependencyCount
+                    : true)
+            || variables is not PolicyVariableValueCollection policyVariables)
+        {
+            return false;
+        }
+
+        var deniedGateFound = false;
+        foreach (var condition in conditions)
+        {
+            if (!variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var value))
+            {
+                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
+            }
+
+            if (value.Value == condition.PassingValue)
+            {
+                continue;
+            }
+
+            if (!condition.VariableName.StartsWith("__fusion_policy_", StringComparison.Ordinal)
+                || !int.TryParse(condition.VariableName.AsSpan(16), out var ordinal)
+                || (uint)ordinal >= OperationPlanner.PolicySlotRegistry.MaxPolicySlots
+                || (policyVariables.FetchGateDenyFlags & (1UL << ordinal)) == 0)
+            {
+                return false;
+            }
+
+            deniedGateFound = true;
+        }
+
+        return deniedGateFound;
+    }
+
+    private void MaterializeSkippedDeferredPolicyDenials(
+        FetchResultStore parentResultStore,
+        OperationExecutionNode operation)
+    {
+        if (!ShouldMaterializeSkippedDeferredPolicyDenial(
+            IsNodeSkipped(operation.Id),
+            operation.Dependencies.Length,
+            CountSkippedDependencies(operation.Dependencies),
+            suppressOnlyWhenAllDependenciesAreSkipped: false,
+            operation.Conditions,
+            Variables))
+        {
+            return;
+        }
+
+        ValidateDeferredRequirementScope(operation.Requirements);
+
+        _resultStore.SeedDeferredPolicyDenials(
+            parentResultStore,
+            operation.Target,
+            operation.ResultSelectionSet,
+            operation.Requirements);
+    }
+
+    private void MaterializeSkippedDeferredPolicyDenials(
+        FetchResultStore parentResultStore,
+        ApolloOperationExecutionNode operation)
+    {
+        if (!ShouldMaterializeSkippedDeferredPolicyDenial(
+            IsNodeSkipped(operation.Id),
+            operation.Dependencies.Length,
+            CountSkippedDependencies(operation.Dependencies),
+            suppressOnlyWhenAllDependenciesAreSkipped: false,
+            operation.Conditions,
+            Variables))
+        {
+            return;
+        }
+
+        ValidateDeferredRequirementScope(operation.Requirements);
+
+        _resultStore.SeedDeferredPolicyDenials(
+            parentResultStore,
+            operation.Target,
+            operation.ResultSelectionSet,
+            operation.Requirements,
+            operation.Lookup.RepresentationShape);
+    }
+
+    private void MaterializeSkippedDeferredPolicyDenials(
+        FetchResultStore parentResultStore,
+        OperationDefinition operation)
+    {
+        if (!ShouldMaterializeSkippedDeferredPolicyDenial(
+            IsNodeSkipped(operation.Id),
+            operation.Dependencies.Length,
+            CountSkippedDependencies(operation.Dependencies),
+            suppressOnlyWhenAllDependenciesAreSkipped:
+                operation is BatchOperationDefinition,
+            operation.Conditions,
+            Variables))
+        {
+            return;
+        }
+
+        switch (operation)
+        {
+            case SingleOperationDefinition single:
+                ValidateDeferredRequirementScope(single.Requirements);
+
+                _resultStore.SeedDeferredPolicyDenials(
+                    parentResultStore,
+                    single.Target,
+                    single.ResultSelectionSet,
+                    single.Requirements);
+                break;
+
+            case BatchOperationDefinition batch:
+                ValidateDeferredRequirementScope(batch.Requirements);
+
+                _resultStore.SeedDeferredPolicyDenials(
+                    parentResultStore,
+                    batch.Targets,
+                    batch.ResultSelectionSet,
+                    batch.Requirements);
+
+                break;
+        }
+    }
+
+    private void MaterializeSkippedDeferredPolicyDenials(
+        FetchResultStore parentResultStore,
+        SingleOperationDefinition operation,
+        ApolloEntityLookup lookup)
+    {
+        if (!ShouldMaterializeSkippedDeferredPolicyDenial(
+            IsNodeSkipped(operation.Id),
+            operation.Dependencies.Length,
+            CountSkippedDependencies(operation.Dependencies),
+            suppressOnlyWhenAllDependenciesAreSkipped: false,
+            operation.Conditions,
+            Variables))
+        {
+            return;
+        }
+
+        ValidateDeferredRequirementScope(operation.Requirements);
+
+        _resultStore.SeedDeferredPolicyDenials(
+            parentResultStore,
+            operation.Target,
+            operation.ResultSelectionSet,
+            operation.Requirements,
+            lookup.RepresentationShape);
+    }
+
+    private int CountSkippedDependencies(ReadOnlySpan<IOperationPlanNode> dependencies)
+    {
+        var count = 0;
+
+        foreach (var dependency in dependencies)
+        {
+            if (IsNodeSkipped(dependency.Id))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
 
     /// <summary>
     /// Transfers retained result resources to the supplied
@@ -793,7 +1027,6 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal void Begin(long? start = null, string? traceId = null)
     {
         ResetNodeState();
-        _policyDecisions?.Clear();
 
         if (_collectTelemetry)
         {
@@ -1068,5 +1301,90 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             Array.Clear(seenDependents, 0, bitsetWordCount);
             return seenDependents;
         }
+    }
+}
+
+internal enum DeferredPolicyOperationKind
+{
+    Regular,
+    Apollo,
+    RegularDefinition,
+    ApolloDefinition
+}
+
+internal readonly record struct DeferredPolicyOperation
+{
+    private DeferredPolicyOperation(
+        DeferredPolicyOperationKind kind,
+        OperationExecutionNode? regularOperation = null,
+        ApolloOperationExecutionNode? apolloOperation = null,
+        OperationDefinition? definition = null,
+        ApolloEntityLookup? lookup = null)
+    {
+        Kind = kind;
+        RegularOperation = regularOperation;
+        ApolloOperation = apolloOperation;
+        Definition = definition;
+        Lookup = lookup;
+    }
+
+    public DeferredPolicyOperationKind Kind { get; }
+
+    public OperationExecutionNode? RegularOperation { get; }
+
+    public ApolloOperationExecutionNode? ApolloOperation { get; }
+
+    public OperationDefinition? Definition { get; }
+
+    public ApolloEntityLookup? Lookup { get; }
+
+    public static DeferredPolicyOperation From(OperationExecutionNode operation)
+        => new(DeferredPolicyOperationKind.Regular, regularOperation: operation);
+
+    public static DeferredPolicyOperation From(ApolloOperationExecutionNode operation)
+        => new(DeferredPolicyOperationKind.Apollo, apolloOperation: operation);
+
+    public static DeferredPolicyOperation From(OperationDefinition definition)
+        => new(DeferredPolicyOperationKind.RegularDefinition, definition: definition);
+
+    public static DeferredPolicyOperation From(
+        SingleOperationDefinition definition,
+        ApolloEntityLookup lookup)
+        => new(
+            DeferredPolicyOperationKind.ApolloDefinition,
+            definition: definition,
+            lookup: lookup);
+
+    internal static ImmutableArray<DeferredPolicyOperation> Create(
+        ImmutableArray<ExecutionNode> nodes)
+    {
+        var builder = ImmutableArray.CreateBuilder<DeferredPolicyOperation>();
+
+        foreach (var node in nodes)
+        {
+            switch (node)
+            {
+                case OperationExecutionNode operation:
+                    builder.Add(From(operation));
+                    break;
+                case ApolloOperationExecutionNode operation:
+                    builder.Add(From(operation));
+                    break;
+                case OperationBatchExecutionNode batch:
+                    foreach (var definition in batch.Operations)
+                    {
+                        builder.Add(From(definition));
+                    }
+                    break;
+                case ApolloOperationBatchExecutionNode batch:
+                    for (var i = 0; i < batch.Operations.Length; i++)
+                    {
+                        builder.Add(From(batch.Operations[i], batch.Lookups[i]));
+                    }
+                    break;
+            }
+        }
+
+        return builder.ToImmutable();
     }
 }

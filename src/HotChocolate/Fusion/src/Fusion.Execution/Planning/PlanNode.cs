@@ -109,9 +109,8 @@ internal sealed record PlanNode
         = OperationPlanner.RequirementAliasRegistry.Empty;
 
     /// <summary>
-    /// The operation-level registry that assigns a stable ordinal to each distinct plan-time
-    /// policy condition slot, so identical request-cacheable policy expressions reached from
-    /// different coordinates share one slot.
+    /// Gets the operation-wide registry of canonical policy expressions, reusable gates,
+    /// liveness masks, and explicit policy inventory entries accumulated by this branch.
     /// </summary>
     public OperationPlanner.PolicySlotRegistry PolicySlots { get; init; }
         = OperationPlanner.PolicySlotRegistry.Empty;

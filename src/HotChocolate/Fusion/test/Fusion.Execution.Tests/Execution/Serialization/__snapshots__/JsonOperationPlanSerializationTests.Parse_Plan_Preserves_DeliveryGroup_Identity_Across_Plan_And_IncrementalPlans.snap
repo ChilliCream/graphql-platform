@@ -1,5 +1,5 @@
 {
-  "id": "7ccc4b3cd883b1588a4115c02422819f7d1c38558717d2caf7ea8688f97a6de3",
+  "id": "85c01518d432648ea22264fe1d855e0c7ed46fdbedd9698ae63c0e162aaabb54",
   "operation": {
     "kind": "Query",
     "document": "{\n  user(id: \"1\") {\n    name\n    id @fusion__requirement\n  }\n}",
@@ -165,5 +165,6 @@
         }
       ]
     }
-  ]
+  ],
+  "includeConditions": []
 }

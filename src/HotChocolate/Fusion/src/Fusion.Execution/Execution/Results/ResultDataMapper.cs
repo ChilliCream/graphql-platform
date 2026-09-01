@@ -24,13 +24,24 @@ internal static class ResultDataMapper
         JsonWriter writer)
         => Visit(valueSelection, result, type, schema, internalAlias, writer);
 
+    /// <summary>
+    /// Determines whether a value selection can be resolved without serializing it.
+    /// </summary>
+    public static bool CanMap(
+        CompositeResultElement result,
+        IValueSelectionNode valueSelection,
+        ITypeNode type,
+        ISchemaDefinition schema,
+        string? internalAlias)
+        => Visit(valueSelection, result, type, schema, internalAlias, writer: null);
+
     private static bool Visit(
         IValueSelectionNode node,
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
         string? internalAlias,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         switch (node)
         {
@@ -60,7 +71,7 @@ internal static class ResultDataMapper
         ITypeNode? type,
         ISchemaDefinition schema,
         string? internalAlias,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         foreach (var branch in node.Branches)
         {
@@ -79,7 +90,7 @@ internal static class ResultDataMapper
         ITypeNode? type,
         ISchemaDefinition schema,
         string? internalAlias,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         var resolved = ResolvePath(schema, result, node, internalAlias);
         var valueKind = resolved.ValueKind;
@@ -96,7 +107,7 @@ internal static class ResultDataMapper
                 return false;
             }
 
-            writer.WriteNullValue();
+            writer?.WriteNullValue();
             return true;
         }
 
@@ -112,9 +123,9 @@ internal static class ResultDataMapper
     private static bool TryWriteLeafArray(
         CompositeResultElement array,
         ITypeNode? elementType,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
-        writer.WriteStartArray();
+        writer?.WriteStartArray();
 
         foreach (var item in array.EnumerateArray())
         {
@@ -127,7 +138,7 @@ internal static class ResultDataMapper
                     return false;
                 }
 
-                writer.WriteNullValue();
+                writer?.WriteNullValue();
             }
             else if (itemKind is JsonValueKind.Array)
             {
@@ -142,15 +153,20 @@ internal static class ResultDataMapper
             }
         }
 
-        writer.WriteEndArray();
+        writer?.WriteEndArray();
         return true;
     }
 
     private static void WriteLeafValue(
         CompositeResultElement value,
         JsonValueKind valueKind,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
+        if (writer is null)
+        {
+            return;
+        }
+
         // A custom scalar can have a JSON object as its runtime value, which
         // only the backing document can serialize.
         if (valueKind is JsonValueKind.Object)
@@ -167,14 +183,14 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ISchemaDefinition schema,
         string? internalAlias,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         if (result.ValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        writer.WriteStartObject();
+        writer?.WriteStartObject();
 
         foreach (var field in node.Fields)
         {
@@ -183,14 +199,13 @@ internal static class ResultDataMapper
                     ? internalAlias
                     : null;
 
-            writer.WritePropertyName(field.Name.Value);
+            writer?.WritePropertyName(field.Name.Value);
 
             bool written;
 
             if (field.ValueSelection is null)
             {
-                var pathNode = new PathNode(new PathSegmentNode(field.Name));
-                written = VisitPath(pathNode, result, null, schema, fieldInternalAlias, writer);
+                written = VisitField(result, field.Name.Value, fieldInternalAlias, writer);
             }
             else
             {
@@ -203,7 +218,39 @@ internal static class ResultDataMapper
             }
         }
 
-        writer.WriteEndObject();
+        writer?.WriteEndObject();
+        return true;
+    }
+
+    private static bool VisitField(
+        CompositeResultElement result,
+        string fieldName,
+        string? internalAlias,
+        JsonWriter? writer)
+    {
+        if (!result.TryGetProperty(internalAlias ?? fieldName, out var value))
+        {
+            return false;
+        }
+
+        var valueKind = value.ValueKind;
+        if (valueKind is JsonValueKind.Undefined)
+        {
+            return false;
+        }
+
+        if (valueKind is JsonValueKind.Null)
+        {
+            writer?.WriteNullValue();
+            return true;
+        }
+
+        if (valueKind is JsonValueKind.Array)
+        {
+            return TryWriteLeafArray(value, elementType: null, writer);
+        }
+
+        WriteLeafValue(value, valueKind, writer);
         return true;
     }
 
@@ -212,7 +259,7 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ISchemaDefinition schema,
         string? internalAlias,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         var resolved = ResolvePath(schema, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
@@ -236,7 +283,7 @@ internal static class ResultDataMapper
         ITypeNode? type,
         ISchemaDefinition schema,
         string? internalAlias,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         var resolved = ResolvePath(schema, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
@@ -252,7 +299,7 @@ internal static class ResultDataMapper
                     return false;
                 }
 
-                writer.WriteNullValue();
+                writer?.WriteNullValue();
                 return true;
 
             case JsonValueKind.Array:
@@ -268,14 +315,14 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? elementType,
         ISchemaDefinition schema,
-        JsonWriter writer)
+        JsonWriter? writer)
     {
         if (result.ValueKind is not JsonValueKind.Array)
         {
             return false;
         }
 
-        writer.WriteStartArray();
+        writer?.WriteStartArray();
 
         foreach (var item in result.EnumerateArray())
         {
@@ -286,7 +333,7 @@ internal static class ResultDataMapper
                     return false;
                 }
 
-                writer.WriteNullValue();
+                writer?.WriteNullValue();
                 continue;
             }
 
@@ -296,7 +343,7 @@ internal static class ResultDataMapper
             }
         }
 
-        writer.WriteEndArray();
+        writer?.WriteEndArray();
         return true;
     }
 

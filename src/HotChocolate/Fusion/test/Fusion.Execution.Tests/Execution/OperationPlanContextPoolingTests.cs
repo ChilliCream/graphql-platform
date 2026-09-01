@@ -166,7 +166,10 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [nodeField, fallback, batch],
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
             policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -185,7 +188,10 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node, dependent],
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
             policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -202,7 +208,10 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node],
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
             policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
     }

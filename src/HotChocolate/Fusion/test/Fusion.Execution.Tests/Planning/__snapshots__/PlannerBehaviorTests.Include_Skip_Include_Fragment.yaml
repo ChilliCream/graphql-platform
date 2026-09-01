@@ -29,7 +29,7 @@ nodes:
     operation: |
       query Op_123456789101112_3(
         $__fusion_2_isExpensive: Boolean!
-          $__fusion_3_id: ID!
+        $__fusion_3_id: ID!
       ) {
         productById(id: $__fusion_3_id) {
           neverCalledInclude(isExpensive: $__fusion_2_isExpensive)
@@ -73,3 +73,6 @@ nodes:
         passingValue: true
     dependencies:
       - id: 1
+includeConditions:
+  -
+    includeVariable: include

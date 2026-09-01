@@ -25,10 +25,7 @@ using IValueNode = HotChocolate.Language.IValueNode;
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 /// <summary>
-/// Measures the defer-only snapshot variable merge path
-/// (<see cref="FetchResultStore.CreateVariableValueSetsFromSnapshot"/>) across
-/// several input shapes. The existing non-defer variable creation path is
-/// included as a separate per-entry write reference.
+/// Measures variable materialization from deferred snapshots across representative input shapes.
 /// </summary>
 [MemoryDiagnoser]
 [SimpleJob(
@@ -42,10 +39,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
     private const string OperationId = "123456789101112";
     private const int MaxRetainedLength = 256;
 
-    // Each iteration performs one bounded invocation against a store retained
-    // across iterations. Production returns the owning OperationPlanContext to
-    // its pool by calling FetchResultStore.Clean(256, 256), rather than disposing
-    // the store. Setup and cleanup remain outside the measured invocation.
+    // Each iteration performs one bounded invocation against reusable stores.
     private const int N1OperationsPerInvoke = 32_768;
     private const int N10OperationsPerInvoke = 4_096;
     private const int N100OperationsPerInvoke = 512;
@@ -58,6 +52,9 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
 
     private static readonly OperationRequirement[] s_singleRequirement =
         [Requirement("__fusion_1_id")];
+
+    private static readonly OperationRequirement[] s_missingRequirement =
+        [Requirement("__fusion_2_sku")];
 
     private static readonly HashSet<string> s_oneImportedKey =
         new(["__fusion_1_id"], StringComparer.Ordinal);
@@ -80,6 +77,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
     private ImmutableArray<VariableValues> _list100Snapshot;
     private ImmutableArray<VariableValues> _list1000Snapshot;
     private ImmutableArray<VariableValues> _list1000DuplicateHeavySnapshot;
+    private ImmutableArray<VariableValues> _deepLargeSnapshot;
 
     [GlobalSetup]
     public void Setup()
@@ -104,9 +102,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
             OperationId,
             operationDefinition);
 
-        // The "source" store mints VariableValues entries that the snapshot
-        // merge consumes as imported parent rows. A separate store mirrors how
-        // a deferred incremental plan imports values from its parent before resolving.
+        // The source store supplies imported parent rows to the deferred snapshot.
         _sourceStore = new FetchResultStore();
         _baselineStore = new FetchResultStore();
         _snapshotStore = new FetchResultStore();
@@ -139,6 +135,13 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
             _sourceStore,
             count: 1000,
             uniqueValueCount: 10);
+        _deepLargeSnapshot =
+        [
+            CreateImportedEntry(
+                _sourceStore,
+                CompactPath.Root,
+                Field("__fusion_1_id", CreateDeepLargeValue(depth: 8, width: 128)))
+        ];
     }
 
     [IterationSetup]
@@ -153,9 +156,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
     [IterationCleanup]
     public void CleanupIteration()
     {
-        // This is the exact FetchResultStore lifecycle used by
-        // OperationPlanContextPool.Return. The same store instances are reused
-        // by the next iteration, including their retained deduplication tables.
+        // Clean the reusable stores between measured iterations.
         _baselineStore.Clean(MaxRetainedLength, MaxRetainedLength);
         _snapshotStore.Clean(MaxRetainedLength, MaxRetainedLength);
         _baselineArena.Dispose();
@@ -256,6 +257,22 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
             s_noForwardedVariables,
             N1000OperationsPerInvoke);
 
+    [Benchmark(OperationsPerInvoke = N10OperationsPerInvoke)]
+    public bool Defer_Eligibility_Missing_List_N10()
+        => RunEligibilityProbe(_list10Snapshot, N10OperationsPerInvoke);
+
+    [Benchmark(OperationsPerInvoke = N100OperationsPerInvoke)]
+    public bool Defer_Eligibility_Missing_List_N100()
+        => RunEligibilityProbe(_list100Snapshot, N100OperationsPerInvoke);
+
+    [Benchmark(OperationsPerInvoke = N1000OperationsPerInvoke)]
+    public bool Defer_Eligibility_Missing_List_N1000()
+        => RunEligibilityProbe(_list1000Snapshot, N1000OperationsPerInvoke);
+
+    [Benchmark(OperationsPerInvoke = N100OperationsPerInvoke)]
+    public bool Defer_Eligibility_Missing_DeepLargeValue()
+        => RunEligibilityProbe(_deepLargeSnapshot, N100OperationsPerInvoke);
+
     private ImmutableArray<VariableValues> RunSnapshotMerge(
         ImmutableArray<VariableValues> importedEntries,
         HashSet<string> importedKeys,
@@ -271,6 +288,23 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
                 importedKeys,
                 requestVariables,
                 s_singleRequirement);
+        }
+
+        return result;
+    }
+
+    private bool RunEligibilityProbe(
+        ImmutableArray<VariableValues> importedEntries,
+        int operations)
+    {
+        var result = false;
+
+        for (var i = 0; i < operations; i++)
+        {
+            result = _snapshotStore.HasVariableValueSetFromSnapshot(
+                importedEntries,
+                s_twoImportedKeys,
+                s_missingRequirement);
         }
 
         return result;
@@ -305,6 +339,26 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
 
     private static ObjectFieldNode Field(string name, IValueNode value)
         => new(name, value);
+
+    private static IValueNode CreateDeepLargeValue(int depth, int width)
+    {
+        var items = new IValueNode[width];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i] = new StringValueNode(i.ToString());
+        }
+
+        IValueNode value = new HotChocolate.Language.ListValueNode(items);
+
+        for (var i = 0; i < depth; i++)
+        {
+            value = new HotChocolate.Language.ObjectValueNode(
+                new ObjectFieldNode("value", value));
+        }
+
+        return value;
+    }
 
     private void InitializeStore(FetchResultStore store, MemoryArena arena)
         => store.Initialize(

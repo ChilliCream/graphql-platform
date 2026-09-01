@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -80,6 +81,32 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         RequestContext context,
         string operationId,
         Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual IDisposable EvaluateRequestPolicies(RequestContext context) => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        bool denied,
+        TimeSpan duration)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
     {
     }
 

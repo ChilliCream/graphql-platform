@@ -354,7 +354,10 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
                 [.. nodes],
                 deliveryGroups: [],
                 incrementalPlans: [],
+                includeConditions: operation.IncludeConditions.ToImmutableArray(),
+                policyExpressions: [],
                 policySlots: [],
+                policies: [],
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();

@@ -33,6 +33,66 @@ public sealed class FetchResultStoreTests : FusionTestBase
     private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
     [Fact]
+    public void ApplyPolicyDenial_Should_NullNonNullFieldInPlace_When_ErrorHandlingModeIsNull()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              secret: String!
+              sibling: String!
+            }
+            """);
+        var plan = PlanOperation(schema, "{ secret sibling }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Null,
+            includeFlags: 0,
+            deferFlags: 0,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = """{"data":{"secret":"classified","sibling":"visible"}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(CompactPath.Root, document),
+            node.ResultSelectionSet,
+            containsErrors: false);
+        var secret = store.Result.Data.GetProperty("secret");
+
+        // act
+        var canContinue = store.ApplyPolicyDenial(
+            secret,
+            PolicyDenialBehavior.Error,
+            "CanReadSecret",
+            "denied");
+
+        // assert
+        var error = Assert.Single(store.Errors!);
+        $"""
+            canContinue: {canContinue}
+            errorCode: {error.Code}
+            errorPath: {error.Path?.Print()}
+            data: {RenderData(store)}
+            """.MatchInlineSnapshot(
+            """
+            canContinue: True
+            errorCode: UNAUTHORIZED_FIELD_OR_TYPE
+            errorPath: secret
+            data: {"secret":null,"sibling":"visible"}
+            """);
+    }
+
+    [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
     {
         // arrange
@@ -1894,6 +1954,56 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"__fusion_1_tags":["b"]}
             """);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HasVariableValueSet_Should_MatchNonNullListElementEligibility(bool hasNullElement)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              tags: [String]
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { tags } }",
+            hasNullElement
+                ? """{"data":{"foos":[{"tags":["a",null]}]}}"""
+                : """{"data":{"foos":[{"tags":["a","b"]}]}}""",
+            resultArena,
+            sourceArena);
+        OperationRequirement[] requirements =
+        [
+            Requirement(
+                schema,
+                "__fusion_1_tags",
+                "tags",
+                new ListTypeNode(new NonNullTypeNode(new NamedTypeNode("String"))))
+        ];
+
+        // act
+        var eligible = store.HasVariableValueSet(
+            SelectionPath.Root.AppendField("foos"),
+            requirements);
+        var variables = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            requirements);
+
+        // assert
+        Assert.Equal(!hasNullElement, eligible);
+        Assert.Equal(!hasNullElement, !variables.IsDefaultOrEmpty);
     }
 
     [Fact]

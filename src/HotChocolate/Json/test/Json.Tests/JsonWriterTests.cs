@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -6,6 +7,64 @@ namespace HotChocolate.Text.Json;
 
 public class JsonWriterTests
 {
+    [Fact]
+    public void RestoreCheckpoint_Should_ResumeWritingToDistinctDestinationAtOpenNestedState()
+    {
+        // arrange
+        var source = new RollbackBufferWriter();
+        var destination = new RollbackBufferWriter();
+        var writer = new JsonWriter(
+            source,
+            new JsonWriterOptions { Indented = true, SkipValidation = true },
+            JsonNullIgnoreCondition.Lists);
+        var createCheckpoint = typeof(JsonWriter).GetMethod(
+            "CreateCheckpoint",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var restore = typeof(JsonWriter).GetMethod(
+            "Restore",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        writer.WriteStartObject();
+        writer.WritePropertyName("items");
+        writer.WriteStartArray();
+        writer.WriteStartObject();
+        writer.WritePropertyName("value");
+        var checkpoint = createCheckpoint.Invoke(writer, null)!;
+        var prefix = source.WrittenSpan;
+        prefix.CopyTo(destination.GetSpan(prefix.Length));
+        destination.Advance(prefix.Length);
+
+        // act
+        writer.WriteStringValue("discard");
+        writer.WriteEndObject();
+        writer.WriteEndArray();
+        writer.WriteEndObject();
+        writer.WriteStartArray();
+        writer.WriteStartObject();
+        restore.Invoke(writer, [destination, checkpoint]);
+        writer.WriteStringValue("keep");
+        writer.WriteEndObject();
+        writer.WriteEndArray();
+        writer.WritePropertyName("after");
+        writer.WriteNullValue();
+        writer.WriteEndObject();
+
+        // assert
+        var json = Encoding.UTF8.GetString(destination.WrittenSpan);
+        using var document = JsonDocument.Parse(destination.WrittenSpan.ToArray());
+        Assert.Equal(
+            """
+            {
+              "items": [
+                {
+                  "value": "keep"
+                }
+              ],
+              "after": null
+            }
+            """,
+            json);
+    }
+
     [Fact]
     public void WriteEmptyObject_Minimized()
     {
@@ -956,5 +1015,41 @@ public class JsonWriterTests
             ]
             """;
         Assert.Equal(expected, result);
+    }
+
+    private sealed class RollbackBufferWriter : IBufferWriter<byte>
+    {
+        private byte[] _buffer = new byte[256];
+
+        public int Length { get; private set; }
+
+        public ReadOnlySpan<byte> WrittenSpan => _buffer.AsSpan(0, Length);
+
+        public void Advance(int count) => Length += count;
+
+        public Memory<byte> GetMemory(int sizeHint = 0)
+        {
+            EnsureCapacity(sizeHint);
+            return _buffer.AsMemory(Length);
+        }
+
+        public Span<byte> GetSpan(int sizeHint = 0)
+        {
+            EnsureCapacity(sizeHint);
+            return _buffer.AsSpan(Length);
+        }
+
+        public void ResetTo(int position) => Length = position;
+
+        private void EnsureCapacity(int sizeHint)
+        {
+            var required = Length + Math.Max(sizeHint, 1);
+            if (required <= _buffer.Length)
+            {
+                return;
+            }
+
+            Array.Resize(ref _buffer, Math.Max(required, _buffer.Length * 2));
+        }
     }
 }

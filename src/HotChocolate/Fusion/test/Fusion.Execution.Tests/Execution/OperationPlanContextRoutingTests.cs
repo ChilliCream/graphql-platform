@@ -443,7 +443,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             _stores.Add(sourceStore);
 
             var entry = sourceStore.CreateVariableValueSets(CompactPath.Root, fields);
-            context.SetRequirements([entry], keys);
+            context.SetRequirements([entry], keys, context.OperationPlan.Operation);
         }
 
         public async ValueTask DisposeAsync()

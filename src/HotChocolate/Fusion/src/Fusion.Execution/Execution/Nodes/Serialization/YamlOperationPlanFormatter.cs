@@ -58,6 +58,48 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        if (!plan.IncludeConditions.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("includeConditions:");
+            writer.Indent();
+
+            foreach (var condition in plan.IncludeConditions)
+            {
+                writer.WriteLine("-");
+                writer.Indent();
+                if (condition.SkipVariable is not null)
+                {
+                    writer.WriteLine("skipVariable: {0}", condition.SkipVariable);
+                }
+
+                if (condition.IncludeVariable is not null)
+                {
+                    writer.WriteLine("includeVariable: {0}", condition.IncludeVariable);
+                }
+
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
+        if (!plan.PolicyExpressions.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("policyExpressions:");
+            writer.Indent();
+
+            foreach (var expression in plan.PolicyExpressions)
+            {
+                writer.WriteLine("- ordinal: {0}", expression.Ordinal);
+                writer.Indent();
+                writer.WriteLine("names: {0}", FormatPolicyNameGroups(expression.Groups));
+                writer.WriteLine("expression: {0}", expression.Format());
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
         if (!plan.PolicySlots.IsDefaultOrEmpty)
         {
             writer.WriteLine("policySlots:");
@@ -71,6 +113,20 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        if (!plan.Policies.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("policies:");
+            writer.Indent();
+            foreach (var policy in plan.Policies)
+            {
+                writer.WriteLine("- name: {0}", policy.PolicyName);
+                writer.Indent();
+                writer.WriteLine("requirementHash: {0}", policy.RequirementHash);
+                writer.Unindent();
+            }
+            writer.Unindent();
+        }
+
         return sb.ToString();
     }
 
@@ -80,9 +136,49 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Indent();
 
         writer.WriteLine("variable: ${0}", slot.VariableName);
-        writer.WriteLine("names: {0}", FormatPolicyNameGroups(slot.Groups));
+        writer.WriteLine("applications:");
+        writer.Indent();
+
+        foreach (var application in slot.Applications)
+        {
+            writer.WriteLine("- expressionOrdinal: {0}", application.ExpressionOrdinal);
+            writer.Indent();
+            writer.WriteLine("onDenied: {0}", application.OnDenied.ToString());
+            writer.Unindent();
+        }
+
+        writer.Unindent();
         writer.WriteLine("rmax: {0}", slot.Rmax.ToString());
-        writer.WriteLine("expression: {0}", slot.Format());
+        writer.WriteLine("guardMasks: [{0}]", string.Join(", ", slot.GuardMasks));
+        writer.WriteLine("coordinates:");
+        writer.Indent();
+
+        foreach (var coordinate in slot.Coordinates)
+        {
+            writer.WriteLine("- typeName: {0}", coordinate.TypeName);
+            writer.Indent();
+            if (coordinate.FieldName is not null)
+            {
+                writer.WriteLine("fieldName: {0}", coordinate.FieldName);
+            }
+            writer.WriteLine("responseNames: [{0}]", string.Join(", ", coordinate.ResponseNames));
+            writer.WriteLine("applications:");
+            writer.Indent();
+            foreach (var application in coordinate.Applications)
+            {
+                writer.WriteLine("- expressionOrdinal: {0}", application.ExpressionOrdinal);
+                writer.Indent();
+                writer.WriteLine("onDenied: {0}", application.OnDenied.ToString());
+                writer.Unindent();
+            }
+            writer.Unindent();
+            writer.WriteLine("isRoot: {0}", coordinate.IsRoot.ToString().ToLowerInvariant());
+            writer.WriteLine("liveGuardMasks: [{0}]", string.Join(", ", coordinate.LiveGuardMasks));
+            writer.WriteLine("gateGuardMasks: [{0}]", string.Join(", ", coordinate.GateGuardMasks));
+            writer.Unindent();
+        }
+
+        writer.Unindent();
 
         writer.Unindent();
     }

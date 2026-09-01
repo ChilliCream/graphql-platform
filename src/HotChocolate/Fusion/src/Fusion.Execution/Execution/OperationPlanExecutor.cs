@@ -505,23 +505,31 @@ internal static partial class OperationPlanExecutor
         }
 
         // Ownership of context and executionCts passes to ExecuteIncrementalPlan.
-        _ = ExecuteIncrementalPlan(context, incrementalPlan, executionCts, completion, cancellationToken);
+        _ = ExecuteIncrementalPlan(
+            context,
+            incrementalPlan,
+            parentResultStore,
+            executionCts,
+            completion,
+            cancellationToken);
     }
 
     private static async Task ExecuteIncrementalPlan(
         OperationPlanContext context,
-        IOperationPlan plan,
+        IncrementalPlan incrementalPlan,
+        FetchResultStore parentResultStore,
         CancellationTokenSource executionCts,
         ChannelWriter<IncrementalPlanResult> completion,
         CancellationToken cancellationToken)
     {
-        var incrementalPlan = (IncrementalPlan)plan;
-
         try
         {
             context.Begin();
 
-            await ExecuteQueryAsync(context, plan, executionCts.Token);
+            await ExecuteQueryAsync(context, incrementalPlan, executionCts.Token);
+            context.MaterializeSkippedDeferredPolicyDenials(
+                parentResultStore,
+                incrementalPlan);
 
             // Keep result resources available for nested incremental plans.
             var deferredResult = context.Complete(retainMemoryForDefer: true);
@@ -589,7 +597,10 @@ internal static partial class OperationPlanExecutor
             requestVariables: [],
             requirementSpan);
 
-        childContext.SetRequirements(parentValues, keys);
+        childContext.SetRequirements(
+            parentValues,
+            keys,
+            parentResultStore.CompiledOperation);
     }
 
     private static List<OperationRequirement> CollectParentScopeRequirements(IncrementalPlan incrementalPlan)
@@ -994,7 +1005,7 @@ internal static partial class OperationPlanExecutor
             results.Add(
                 new IncrementalObjectResult(
                     deliveryGroupId,
-                    errors,
+                    FilterIncrementalErrors(errors, element.Path),
                     subPath.IsRoot ? null : subPath,
                     CreateIncrementalData(document, element)));
             return;
@@ -1035,6 +1046,29 @@ internal static partial class OperationPlanExecutor
             deliveryGroupId,
             errors,
             results);
+    }
+
+    private static ImmutableList<IError>? FilterIncrementalErrors(
+        ImmutableList<IError>? errors,
+        Path resultPath)
+    {
+        if (errors is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        ImmutableList<IError>.Builder? builder = null;
+        foreach (var error in errors)
+        {
+            if (error.Path is { } errorPath
+                && PathUtilities.IsPathInSubtree(errorPath, resultPath, includeSelf: true))
+            {
+                builder ??= ImmutableList.CreateBuilder<IError>();
+                builder.Add(error);
+            }
+        }
+
+        return builder?.ToImmutable();
     }
 
     private static bool HasRemainingFieldSegments(SelectionPath selectionPath, int segmentIndex)
