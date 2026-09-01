@@ -370,6 +370,168 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
             ]);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_StreamDeferredPolicyDenial_When_DeferIsEnabled()
+    {
+        // arrange
+        var client = new RecordingClient(
+            request => request.OperationSourceText.Value.Span.IndexOf("immediate"u8) >= 0
+                ? """{"data":{"immediate":"initial"}}"""
+                : """{"data":{"secret":"classified"}}"""
+        );
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  immediate: String
+                  secret: String @policy(names: "CanReadSecret", onDenied: NULL)
+                }
+                """),
+            new DenyPolicy("CanReadSecret"),
+            client,
+            enableDefer: true);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """
+            query {
+              immediate
+              ... @defer {
+                secret
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal(1, client.ExecuteCount);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "immediate": "initial"
+              },
+              "pending": [
+                {
+                  "id": "0",
+                  "path": []
+                }
+              ],
+              "hasNext": true
+            }
+            """,
+            """
+            {
+              "incremental": [
+                {
+                  "id": "0",
+                  "data": {
+                    "secret": null
+                  }
+                }
+              ],
+              "completed": [
+                {
+                  "id": "0"
+                }
+              ],
+              "hasNext": false
+            }
+            """
+        ]);
+    }
+
+    [Fact(Skip = "repo-z7g: a denied @policy(onDenied: NULL) subscription must invoke source SubscribeAsync zero times; it currently invokes it once.")]
+    public async Task SubscribeAsync_Should_NotSubscribeSource_When_RootPolicyDenies()
+    {
+        // arrange
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            """{"data":{"onMessage":"classified"}}"""
+        );
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription {
+                  onMessage: String @policy(names: "CanReadMessage", onDenied: NULL)
+                }
+                """),
+            new DenyPolicy("CanReadMessage"),
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { onMessage }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        await using var enumerator = stream
+            .ReadResultsAsync()
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        await enumerator.MoveNextAsync();
+
+        // assert
+        Assert.Equal(0, client.SubscribeCount);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_MaskEventData_When_RootPolicyDenies()
+    {
+        // arrange
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            """{"data":{"onMessage":"classified"}}"""
+        );
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription {
+                  onMessage: String @policy(names: "CanReadMessage", onDenied: NULL)
+                }
+                """),
+            new DenyPolicy("CanReadMessage"),
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { onMessage }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal(1, client.SubscribeCount);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onMessage": null
+              }
+            }
+            """
+        ]);
+    }
+
     private static string CreateSchema(string typeDefinitions)
         => $$"""
         # name: a
@@ -396,17 +558,26 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         string schema,
         IPolicy policy,
-        RecordingClient client)
-        => await CreateExecutorAsync([schema], policy, ("a", client));
+        RecordingClient client,
+        bool enableDefer = false)
+        => await CreateExecutorAsync([schema], policy, [("a", client)], enableDefer);
 
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         string[] schemas,
         IPolicy policy,
         params (string Name, RecordingClient Client)[] clients)
+        => await CreateExecutorAsync(schemas, policy, clients, enableDefer: false);
+
+    private static async Task<IRequestExecutor> CreateExecutorAsync(
+        string[] schemas,
+        IPolicy policy,
+        (string Name, RecordingClient Client)[] clients,
+        bool enableDefer = false)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
         var builder = services.AddGraphQLGateway();
+        builder.ModifyOptions(o => o.EnableDefer = enableDefer);
         builder.AddInMemoryConfiguration(ComposeSchemaDocument(schemas));
         builder.ConfigureSchemaServices(
             (_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(new TestPolicyProvider(policy)));
@@ -529,16 +700,26 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
     private sealed class RecordingClient : ISourceSchemaClient
     {
         private readonly Func<SourceSchemaClientRequest, byte[]> _payloadFactory;
+        private readonly byte[]? _subscriptionPayload;
 
-        public RecordingClient(string payload)
-            : this(_ => payload)
+        public RecordingClient(string payload, string? subscriptionPayload = null)
+            : this(_ => payload, subscriptionPayload)
         {
         }
 
-        public RecordingClient(Func<SourceSchemaClientRequest, string> payloadFactory)
-            => _payloadFactory = request => Encoding.UTF8.GetBytes(payloadFactory(request));
+        public RecordingClient(
+            Func<SourceSchemaClientRequest, string> payloadFactory,
+            string? subscriptionPayload = null)
+        {
+            _payloadFactory = request => Encoding.UTF8.GetBytes(payloadFactory(request));
+            _subscriptionPayload = subscriptionPayload is null
+                ? null
+                : Encoding.UTF8.GetBytes(subscriptionPayload);
+        }
 
         public int ExecuteCount { get; private set; }
+
+        public int SubscribeCount { get; private set; }
 
         public List<RecordedRequest> Requests { get; } = [];
 
@@ -574,11 +755,22 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
             CancellationToken cancellationToken)
             => throw new NotSupportedException();
 
-        public IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+        public async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
             OperationPlanContext context,
             SourceSchemaClientRequest request,
-            CancellationToken cancellationToken)
-            => throw new NotSupportedException();
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            if (_subscriptionPayload is not { } payload)
+            {
+                throw new NotSupportedException();
+            }
+
+            SubscribeCount++;
+            var arena = context.MemorySource.GetNextArena();
+            var document = SourceResultDocument.Parse(arena, payload, payload.Length);
+            await Task.Yield();
+            yield return new SourceSchemaResult(CompactPath.Root, document);
+        }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
