@@ -1390,7 +1390,7 @@ public sealed class TuiShellTests
         Assert.True(footer.IndexOf("Search: find", StringComparison.Ordinal) < footer.IndexOf("move", StringComparison.Ordinal));
         Assert.True(footer.IndexOf("move", StringComparison.Ordinal) < footer.IndexOf("mail-wake:ready", StringComparison.Ordinal));
         Assert.True(footer.IndexOf("mail-wake:ready", StringComparison.Ordinal) < footer.IndexOf("lucy", StringComparison.Ordinal));
-        Assert.Equal("✔ saved", toast);
+        Assert.Equal("✔ saved".PadRight(160), toast);
     }
 
     [Fact]
