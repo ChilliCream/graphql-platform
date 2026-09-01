@@ -2,7 +2,9 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Microsoft.Extensions.Time.Testing;
+using Spectre.Console;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -316,6 +318,44 @@ public sealed class BoardModeTests
         Assert.Contains("Open (1)", console.Output);
         Assert.Contains("Closed (0)", console.Output);
         Assert.Contains("a-1", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ApplyDimLegibleClosedStyle_ToClosedFrameAndTitle_When_Unfocused()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(150)
+            .Height(20);
+
+        // act
+        console.Write(mode.Render(150, 20));
+
+        // assert
+        var style = ThemeTokens.GetStyle("board.column.status.closed");
+        var styleConsole = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(1)
+            .Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        var ansiIndex = console.Output.IndexOf(ansiPrefix, StringComparison.Ordinal);
+        var textIndex = console.Output.IndexOf("Closed (0)", StringComparison.Ordinal);
+        var runStart = ansiIndex + ansiPrefix.Length;
+
+        Assert.Equal(Color.Grey70, style.Foreground);
+        Assert.Equal(Decoration.Dim, style.Decoration);
+        Assert.True(
+            ansiIndex >= 0 && console.Output[ansiIndex + ansiPrefix.Length] == '╭',
+            "Expected the Closed style to begin at its frame.");
+        Assert.True(textIndex > ansiIndex, "Expected the Closed title to follow its styled frame.");
+        Assert.Equal(-1, console.Output.IndexOf('\u001b', runStart, textIndex - runStart));
     }
 
     [Fact]
