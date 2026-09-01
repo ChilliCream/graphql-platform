@@ -50,7 +50,7 @@ const CAT_SDL_ROWS = [
   "  productById(id: ID!): Product @lookup",
   "}",
   "",
-  "type Product {",
+  'type Product @key(fields: "id") {',
   "  id: ID!",
   "  name: String!",
   "  weight: Float!",
@@ -62,7 +62,7 @@ const SHIP_SDL_ROWS = [
   "  productById(id: ID!): Product @lookup",
   "}",
   "",
-  "type Product {",
+  'type Product @key(fields: "id") {',
   "  id: ID!",
   "  delivery(",
   '    weight: Float! @require(field: "weight")',
@@ -86,7 +86,11 @@ const STEP2_ROWS = [
   "}",
 ] as const;
 
-const SDL_MARKS = ['@require(field: "weight")', "@lookup"] as const;
+const SDL_MARKS = [
+  '@require(field: "weight")',
+  '@key(fields: "id")',
+  "@lookup",
+] as const;
 
 export function RequireVisual() {
   const { rootRef, set } = useVisual(T, (t, h) => {
@@ -575,6 +579,7 @@ const MOBILE_TINTS: readonly {
   readonly fill: string;
 }[] = [
   { token: '@require(field: "weight")', fill: "#5eead4" },
+  { token: '@key(fields: "id")', fill: "#5eead4" },
   { token: "@lookup", fill: "#5eead4" },
   { token: "12.4", fill: CANON[0].soft },
   { token: '"2d"', fill: CANON[3].soft },

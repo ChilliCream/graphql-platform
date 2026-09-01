@@ -12,7 +12,7 @@ By the end, you will have:
 - A Fusion gateway on `http://localhost:5000/graphql`
 - One composed API that clients query through the gateway
 
-If you want the broader conceptual background first, read [Overview](./index.md).
+If you want the broader conceptual background first, read [What is GraphQL Federation?](/platform/graphql-federation) and the [Overview](./index.md).
 
 # What Is Fusion and Why Use It?
 

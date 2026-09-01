@@ -33,9 +33,9 @@ export const metadata = pageMetadata(PAGE);
 const PLATFORM_SECTIONS = [
   {
     href: "/platform/graphql-federation",
-    title: "Federation with Fusion",
+    title: "GraphQL Federation",
     description:
-      "Compose independently owned GraphQL services into one gateway artifact before runtime.",
+      "What federation is, how composition works, and how Fusion composes any GraphQL server.",
   },
   {
     href: "/platform/analytics",

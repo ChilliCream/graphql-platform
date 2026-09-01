@@ -30,7 +30,7 @@ const ROWS: readonly Row[] = [
   {
     segs: [
       { t: "$ ", fill: PROMPT },
-      { t: "nitro fusion compose", fill: CMD },
+      { t: "compose", fill: CMD },
       { t: "  # checking a schema change", fill: INK_DIM },
     ],
   },
@@ -38,7 +38,7 @@ const ROWS: readonly Row[] = [
   {
     segs: [
       {
-        t: "  Product.price: Money! (billing) ≠ Float! (catalog)",
+        t: "  Product.id: Int! (billing) ≠ ID! (catalog)",
         fill: INK_DIM,
       },
     ],
@@ -48,13 +48,13 @@ const ROWS: readonly Row[] = [
   {
     segs: [
       { t: "$ ", fill: PROMPT },
-      { t: "nitro fusion compose", fill: CMD },
+      { t: "compose", fill: CMD },
       { t: "  # after the schema is corrected", fill: INK_DIM },
     ],
   },
   { segs: [{ t: "✓ composed 5 source schemas · 0 errors", fill: OK }] },
   {
-    segs: [{ t: "gateway.far · composed graph", fill: ARTIFACT }],
+    segs: [{ t: "composite schema · loaded by the gateway", fill: ARTIFACT }],
     arrow: true,
   },
 ];
@@ -81,14 +81,14 @@ interface DiffLine {
 }
 
 const DIFF: readonly DiffLine[] = [
-  { code: "type Product {", fill: "#c9d4e8" },
+  { code: 'type Product @key(fields: "id") {', fill: "#c9d4e8" },
   {
-    code: "-   price: Float! @shareable",
+    code: "-   id: ID!",
     fill: ERR,
     bg: "rgba(242,119,101,0.08)",
   },
   {
-    code: "+   price: Money! @shareable",
+    code: "+   id: Int!",
     fill: OK,
     bg: "rgba(102,190,119,0.09)",
   },
@@ -127,7 +127,7 @@ export function BuildCheckVisual() {
             className="font-mono text-[10px] tracking-[0.16em] uppercase"
             style={{ color: INK_DIM }}
           >
-            Schema change
+            Schema change · billing
           </div>
           <div className="mt-2 space-y-0.5 overflow-x-auto border-t border-[rgba(245,241,234,0.1)] pt-2 font-mono text-[12px] leading-6">
             {DIFF.map((l, i) => (
@@ -153,7 +153,7 @@ export function BuildCheckVisual() {
               className="font-mono text-[10px] tracking-[0.16em] uppercase"
               style={{ color: INK_DIM }}
             >
-              ci · fusion compose
+              ci · composition
             </span>
           </div>
           <div className="overflow-x-auto px-4 py-3 font-mono text-[11.5px] leading-6">
@@ -220,7 +220,7 @@ export function BuildCheckVisual() {
             letterSpacing="0.16em"
             fill={INK_DIM}
           >
-            SCHEMA CHANGE
+            SCHEMA CHANGE · BILLING
           </text>
           <line
             x1={PR.x}
@@ -292,7 +292,7 @@ export function BuildCheckVisual() {
             letterSpacing="0.16em"
             fill={INK_DIM}
           >
-            ci · fusion compose
+            ci · composition
           </text>
           <line
             x1={TERM.x}
@@ -336,7 +336,7 @@ export function BuildCheckVisual() {
             ref={set("artifactGlow")}
             x={TERM.x + 10}
             y={rowY(7) - 14}
-            width={230}
+            width={318}
             height={19}
             rx={4}
             fill="none"
