@@ -12,9 +12,14 @@
           "properties": {
             "name": {
               "type": "string"
+            },
+            "isPurring": {
+              "type": "boolean"
             }
           },
-          "required": [],
+          "required": [
+            "name"
+          ],
           "additionalProperties": false
         }
       },
