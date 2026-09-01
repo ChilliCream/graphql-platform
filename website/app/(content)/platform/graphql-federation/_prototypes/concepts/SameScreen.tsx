@@ -25,7 +25,7 @@ import {
 } from "../../visuals/anim";
 
 const W = 1024;
-const H = 5400;
+const H = 5500;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 const CANVAS_BG = "#0b0f1a";
 const DASHED = "rgba(245,241,234,0.28)";
@@ -64,7 +64,7 @@ const COPY_PLACEMENT: readonly Placement[] = [
   { top: 2350, left: 24, narrow: true },
   { top: 2875, left: 74, narrow: true },
   { top: 3650, left: 50, narrow: false },
-  { top: 4980, left: 26, narrow: true },
+  { top: 5050, left: 26, narrow: true },
 ];
 
 interface CopyBlockProps extends Placement {
@@ -241,12 +241,12 @@ function Frame({
         fontSize={9 * scale}
         letterSpacing="0.2em"
         fill={INK_DIM}
+        stroke={CANVAS_BG}
+        strokeWidth={5}
+        paintOrder="stroke"
       >
         {(captionOverride ?? `THE PRODUCT PAGE · ${counter}`).toUpperCase()}
       </text>
-      <clipPath id={`${idPrefix}-clip`}>
-        <rect x={left} y={y} width={w} height={h} rx={16 * scale} />
-      </clipPath>
     </g>
   );
 }
@@ -329,15 +329,15 @@ function Beat1() {
       <Frame x={BEAT1.x} y={BEAT1.y} counter="01/07" idPrefix="ss-b1" />
       <line
         x1={port.x}
-        y1={port.y + 6}
+        y1={port.y + 30}
         x2={port.x}
-        y2={port.y + 24}
+        y2={port.y + 48}
         stroke={DASHED}
         strokeDasharray="3 4"
       />
       <text
         x={port.x + 14}
-        y={port.y + 28}
+        y={port.y + 52}
         fontFamily={MONO}
         fontSize={9}
         letterSpacing="0.14em"
@@ -398,10 +398,10 @@ function Beat2({ set }: { readonly set: ReturnType<typeof useVisual>["set"] }) {
     <g>
       <FrameGhost x={BEAT2.x + 14} y={BEAT2.y + 14} opacity={0.35} />
       <FrameGhost x={BEAT2.x + 28} y={BEAT2.y + 28} opacity={0.18} />
-      <Frame x={BEAT2.x} y={BEAT2.y} counter="02/07" idPrefix="ss-b2" />
       {B2_TARGETS.map((t, i) =>
         cable(port.x, port.y, t.x, t.y, CANON[i].color, 0.85),
       )}
+      <Frame x={BEAT2.x} y={BEAT2.y} counter="02/07" idPrefix="ss-b2" />
       {B2_TARGETS.map((t, i) => (
         <rect
           key={CANON[i].name}
@@ -472,7 +472,6 @@ function Beat3() {
 
   return (
     <g>
-      <Frame x={BEAT3.x} y={BEAT3.y} counter="03/07" idPrefix="ss-b3" />
       <line
         x1={port.x}
         y1={port.y}
@@ -482,6 +481,7 @@ function Beat3() {
         strokeWidth={2}
         strokeLinecap="round"
       />
+      <Frame x={BEAT3.x} y={BEAT3.y} counter="03/07" idPrefix="ss-b3" />
       <rect
         x={cardX}
         y={cardY}
@@ -586,13 +586,6 @@ function Beat4() {
   const chip = { x: BEAT4.x, y: port.y + 74 };
   return (
     <g>
-      <Frame
-        x={BEAT4.x}
-        y={BEAT4.y}
-        counter="04/07"
-        idPrefix="ss-b4"
-        slotOpacities={[0.9, 0.9, 0.25, 0.9, 0.25]}
-      />
       <line
         x1={port.x}
         y1={port.y}
@@ -601,6 +594,13 @@ function Beat4() {
         stroke={GREY_CABLE}
         strokeWidth={2}
         strokeLinecap="round"
+      />
+      <Frame
+        x={BEAT4.x}
+        y={BEAT4.y}
+        counter="04/07"
+        idPrefix="ss-b4"
+        slotOpacities={[0.9, 0.9, 0.25, 0.9, 0.25]}
       />
       <GlowNode x={chip.x} y={chip.y} id="ss-b4-glow" r={5} />
       <GatewayChip x={chip.x} y={chip.y} label="ONE SCHEMA" w={140} />
@@ -625,7 +625,7 @@ function Beat4() {
 /* ------------------------------------------------------------------ */
 
 const BEAT5 = { x: 220, y: 2680 } as const;
-const PEN_ANGLES = [-70, -30, 10, 50, 90] as const;
+const PEN_ANGLES = [-30, 10, 90, 130, 170] as const;
 
 function Beat5() {
   const sheet = { x: BEAT5.x - 75, y: BEAT5.y + 280, w: 170, h: 110 };
@@ -687,9 +687,8 @@ function Beat5() {
       </text>
       {CANON.map((service, i) => {
         const angle = (PEN_ANGLES[i] * Math.PI) / 180;
-        const r = 65;
-        const px = cx + Math.cos(angle) * r;
-        const py = cy + Math.sin(angle) * (r * 0.62);
+        const px = cx + Math.cos(angle) * 104;
+        const py = cy + Math.sin(angle) * 84;
         return (
           <path
             key={service.name}
@@ -708,14 +707,14 @@ function Beat5() {
 /* ------------------------------------------------------------------ */
 
 const BEAT6 = { x: 200, y: 4050 } as const;
-const MINI_CARD_W = 110;
+const MINI_CARD_W = 104;
 const MINI_LINES = [{ code: "id: ID!" }, { code: "name: String!", dim: true }];
 const MINI_ARC = [
-  { x: 430, y: 4070 },
-  { x: 525, y: 4030 },
-  { x: 620, y: 4020 },
-  { x: 715, y: 4030 },
-  { x: 810, y: 4070 },
+  { x: 318, y: 4070 },
+  { x: 442, y: 4030 },
+  { x: 566, y: 4020 },
+  { x: 690, y: 4030 },
+  { x: 814, y: 4070 },
 ] as const;
 const PEN = { x: 945, y: 4050, w: 70, h: 190 } as const;
 const HORIZON_Y = 4700;
@@ -742,11 +741,12 @@ function Beat6() {
           y={m.y}
           w={MINI_CARD_W}
           label={CANON[i].name}
+          file=""
           color={CANON[i].color}
           lines={MINI_LINES}
         />
       ))}
-      <g transform={`translate(${(430 + 810) / 2} ${composeY})`}>
+      <g transform={`translate(${(318 + 918) / 2} ${composeY})`}>
         <rect
           x={-68}
           y={-14}
@@ -800,14 +800,25 @@ function Beat6() {
       ))}
       <text
         x={PEN.x + PEN.w / 2}
-        y={PEN.y + PEN.h + 20}
+        y={PEN.y + PEN.h + 18}
         textAnchor="middle"
         fontFamily={MONO}
         fontSize={8.5}
         letterSpacing="0.1em"
         fill={INK_DIM}
       >
-        SERVICES · NOT READ
+        SERVICES
+      </text>
+      <text
+        x={PEN.x + PEN.w / 2}
+        y={PEN.y + PEN.h + 32}
+        textAnchor="middle"
+        fontFamily={MONO}
+        fontSize={8.5}
+        letterSpacing="0.1em"
+        fill={INK_DIM}
+      >
+        NOT READ
       </text>
       <line
         x1={80}
@@ -860,13 +871,6 @@ function Beat7({ set }: { readonly set: ReturnType<typeof useVisual>["set"] }) {
   const port = { x: BEAT7.x, y: BEAT7.y + FRAME_H };
   return (
     <g>
-      <Frame
-        x={BEAT7.x}
-        y={BEAT7.y}
-        counter="07/07"
-        idPrefix="ss-b7"
-        slotOpacities={[1, 1, 1, 1, 1]}
-      />
       <line
         x1={port.x}
         y1={port.y}
@@ -875,6 +879,13 @@ function Beat7({ set }: { readonly set: ReturnType<typeof useVisual>["set"] }) {
         stroke={GREY_CABLE}
         strokeWidth={2}
         strokeLinecap="round"
+      />
+      <Frame
+        x={BEAT7.x}
+        y={BEAT7.y}
+        counter="07/07"
+        idPrefix="ss-b7"
+        slotOpacities={[1, 1, 1, 1, 1]}
       />
       <GatewayChip x={CHIP7.x} y={CHIP7.y} />
       {B7_TARGETS.map((t, i) => (
@@ -948,16 +959,6 @@ function MobileFrame({ beat }: { readonly beat: number }) {
       aria-hidden="true"
       className="mx-auto mb-4 block w-full max-w-[220px] sm:hidden"
     >
-      {beat === 5 && (
-        <line
-          x1={10}
-          x2={210}
-          y1={190}
-          y2={190}
-          stroke="rgba(245,241,234,0.22)"
-          strokeDasharray="4 5"
-        />
-      )}
       {beat === 1 && (
         <>
           <FrameGhost x={cx + 8} y={top + 8} opacity={0.3} />
@@ -1030,7 +1031,7 @@ const BOX_LAYOUT: readonly {
   readonly width?: string;
 }[][] = [
   [{ top: 190, left: 26, width: "sm:w-[min(30%,19rem)]" }],
-  [],
+  [{ top: 1420, left: 26, width: "sm:w-[min(30%,19rem)]" }],
   [],
   [{ top: 2050, left: 74, width: "sm:w-[min(30%,19rem)]" }],
   [
@@ -1090,7 +1091,7 @@ export function SameScreen() {
   return (
     <PageSection maxWidth="6xl">
       <div ref={rootRef} className="relative mx-auto w-full max-w-5xl">
-        <div className="relative sm:aspect-[1024/5400]">
+        <div className="relative sm:aspect-[1024/5500]">
           <svg
             viewBox={`0 0 ${W} ${H}`}
             aria-hidden="true"
