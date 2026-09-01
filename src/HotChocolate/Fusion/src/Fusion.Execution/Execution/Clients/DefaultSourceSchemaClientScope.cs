@@ -12,7 +12,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 #else
     private readonly object _sync = new();
 #endif
-    private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
+    private readonly ConcurrentDictionary<(string Name, OperationType? Type), ISourceSchemaClient> _clients = [];
     private readonly ISourceSchemaClientFactory[] _clientFactories;
     private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
@@ -34,7 +34,15 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        var key = (name, operationType);
+        if (!_configurations.TryGet(name, operationType, out var config))
+        {
+            throw new InvalidOperationException(
+                $"No client configuration found for schema '{name}' and operation type {operationType}.");
+        }
+
+        var key = (name, config is WebSocketSourceSchemaClientConfiguration
+            ? (OperationType?)null
+            : operationType);
 
         if (!_clients.TryGetValue(key, out var sourceSchemaClient))
         {
@@ -42,12 +50,6 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             {
                 if (!_clients.TryGetValue(key, out sourceSchemaClient))
                 {
-                    if (!_configurations.TryGet(name, operationType, out var config))
-                    {
-                        throw new InvalidOperationException(
-                            $"No client configuration found for schema '{name}' and operation type {operationType}.");
-                    }
-
                     sourceSchemaClient = CreateClient(config);
                     _clients.TryAdd(key, sourceSchemaClient);
                 }
