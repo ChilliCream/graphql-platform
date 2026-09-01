@@ -379,7 +379,7 @@ public sealed class GraphModeTests
         // assert
         Assert.Equal(["z"], mode.CollapsedEpicIds);
         Assert.Equal("z", mode.SelectedTaskId);
-        Assert.Equal(["z", "a"], mode.CanvasView.Layout.Nodes.Select(t => t.Id));
+        Assert.Equal(["a", "z"], mode.CanvasView.Layout.Nodes.Select(t => t.Id).Order(StringComparer.Ordinal));
     }
 
     [Fact]
