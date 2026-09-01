@@ -99,7 +99,7 @@ function NumeralSvg({ n }: { readonly n: string }) {
     <svg
       viewBox="0 0 320 240"
       aria-hidden="true"
-      className="text-cc-ink-faint h-16 w-auto [--folio-stroke:1.5] sm:h-40 sm:[--folio-stroke:1.25] md:h-48"
+      className="text-cc-ink-faint h-16 w-auto sm:aspect-[4/3] sm:h-auto sm:w-full sm:max-w-64"
     >
       <text
         x="0"
@@ -108,7 +108,8 @@ function NumeralSvg({ n }: { readonly n: string }) {
         fontSize="210"
         fill="none"
         stroke="currentColor"
-        style={{ strokeWidth: "var(--folio-stroke)" }}
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
       >
         {n}
       </text>
