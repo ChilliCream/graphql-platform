@@ -42,7 +42,7 @@ const STAGE_COLOR: Record<StageStatus, string> = {
 };
 
 const band = "py-16 sm:py-24";
-const grid = "grid grid-cols-1 gap-8 sm:grid-cols-12 sm:gap-10";
+const grid = "grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10";
 
 function Copy({
   children,
@@ -122,6 +122,8 @@ interface PipelineCardProps {
   readonly caption?: string;
   readonly captionColor?: string;
   readonly pulse?: boolean;
+  readonly fanInIndex?: number;
+  readonly dropLeaderIndex?: number;
 }
 
 /**
@@ -136,19 +138,24 @@ function PipelineCard({
   caption,
   captionColor,
   pulse = true,
+  fanInIndex,
+  dropLeaderIndex,
 }: PipelineCardProps) {
-  const margin = 58;
-  const step = 76;
-  const width = margin * 2 + (stages.length - 1) * step;
-  const height = 100;
-  const trackY = 68;
-  const firstX = margin;
-  const lastX = margin + (stages.length - 1) * step;
+  const step = 60;
+  const width = 460;
+  const height = 120;
+  const trackY = 70;
+  const firstX = (width - (stages.length - 1) * step) / 2;
+  const lastX = firstX + (stages.length - 1) * step;
+  const padTop = fanInIndex != null ? 56 : 0;
+  const padBottom = dropLeaderIndex != null ? 48 : 0;
+  const fx = fanInIndex != null ? firstX + fanInIndex * step : 0;
+  const dx = dropLeaderIndex != null ? firstX + dropLeaderIndex * step : 0;
 
   return (
     <div className="w-full max-w-[460px]">
       <svg
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={`0 ${-padTop} ${width} ${height + padTop + padBottom}`}
         role="img"
         aria-label={`Run number ${runNumber}, ${stages.map((s) => `${s.label} ${s.status}`).join(", ")}`}
         className="h-auto w-full"
@@ -198,7 +205,7 @@ function PipelineCard({
           stroke="rgba(245,241,234,0.1)"
         />
         {stages.map((s, i) => {
-          const x = margin + i * step;
+          const x = firstX + i * step;
           return (
             <g key={i}>
               {i > 0 && (
@@ -246,6 +253,49 @@ function PipelineCard({
                 offsetPath: `path("M${firstX} ${trackY} L${lastX} ${trackY}")`,
               } as CSSProperties
             }
+          />
+        )}
+        {fanInIndex != null && (
+          <>
+            {CANON.map((s, i) => {
+              const glyphCx = fx - 44 + 22 * i;
+              return (
+                <Fragment key={s.name}>
+                  <line
+                    x1={glyphCx}
+                    y1={-30}
+                    x2={fx}
+                    y2={-3}
+                    stroke={DASHED}
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                  />
+                  <FileGlyphG cx={glyphCx} top={-50} color={s.color} />
+                </Fragment>
+              );
+            })}
+            <text
+              x={fx}
+              y={trackY + 32}
+              textAnchor="middle"
+              fontFamily={MONO}
+              fontSize={9}
+              letterSpacing="0.2em"
+              fill={TEAL}
+            >
+              READS SCHEMAS ONLY
+            </text>
+          </>
+        )}
+        {dropLeaderIndex != null && (
+          <line
+            x1={dx}
+            x2={dx}
+            y1={height + 2}
+            y2={height + 44}
+            stroke={DASHED}
+            strokeWidth={1}
+            strokeDasharray="3 3"
           />
         )}
       </svg>
@@ -330,6 +380,28 @@ function DotChip({
   );
 }
 
+/** 14x18 folded-corner file glyph paths, positioned as a <g> inside an SVG. */
+function FileGlyphG({
+  cx,
+  top,
+  color,
+}: {
+  readonly cx: number;
+  readonly top: number;
+  readonly color: string;
+}) {
+  return (
+    <g transform={`translate(${cx - 7} ${top})`}>
+      <path
+        d="M2 1 H9 L12 4 V16 A1 1 0 0 1 11 17 H2 A1 1 0 0 1 1 16 V2 A1 1 0 0 1 2 1 Z"
+        fill={color}
+        opacity={0.9}
+      />
+      <path d="M9 1 V4 H12" fill="none" stroke="#0d1424" strokeWidth={0.75} />
+    </g>
+  );
+}
+
 /** 14x18 folded-corner file glyph: a schema.graphql input, not a service. */
 function FileGlyph({ color }: { readonly color: string }) {
   return (
@@ -338,23 +410,8 @@ function FileGlyph({ color }: { readonly color: string }) {
       aria-hidden="true"
       className="h-[18px] w-[14px] shrink-0"
     >
-      <path
-        d="M2 1 H9 L12 4 V16 A1 1 0 0 1 11 17 H2 A1 1 0 0 1 1 16 V2 A1 1 0 0 1 2 1 Z"
-        fill={color}
-        opacity={0.9}
-      />
-      <path d="M9 1 V4 H12" fill="none" stroke="#0d1424" strokeWidth={0.75} />
+      <FileGlyphG cx={7} top={0} color={color} />
     </svg>
-  );
-}
-
-function FanInGlyphs() {
-  return (
-    <div className="flex items-center gap-1.5">
-      {CANON.map((s) => (
-        <FileGlyph key={s.name} color={s.color} />
-      ))}
-    </div>
   );
 }
 
@@ -451,7 +508,7 @@ function Beat3() {
 /** Beat 4 - RUN #501: an unchanged pipeline, pointed at a schema no one owns. */
 function Beat4() {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div className="flex flex-col items-start gap-3">
         <PipelineCard
           runNumber={501}
@@ -503,14 +560,8 @@ function Beat5() {
 function Beat6() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-12">
-        <div className="flex flex-col items-start gap-2 sm:col-span-7">
-          <FanInGlyphs />
-          <span
-            aria-hidden="true"
-            className="h-4 w-px border-l border-dashed"
-            style={{ borderColor: DASHED }}
-          />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="flex flex-col items-start gap-2 lg:col-span-7">
           <PipelineCard
             runNumber={517}
             stages={[
@@ -519,11 +570,17 @@ function Beat6() {
               { label: "COMPOSE", status: "pass" },
               { label: "DEPLOY", status: "pass" },
             ]}
-            caption="READS SCHEMAS ONLY · DEPLOYED: BILLING v19 · ONLY BILLING"
-            captionColor={TEAL}
+            fanInIndex={2}
+            dropLeaderIndex={2}
           />
+          <p
+            className="w-full max-w-[460px] text-right font-mono text-[9px] tracking-[0.2em] uppercase"
+            style={{ color: TEAL }}
+          >
+            DEPLOYED: BILLING v19 · ONLY BILLING
+          </p>
         </div>
-        <div className="flex flex-col gap-1.5 sm:col-span-5">
+        <div className="flex flex-col gap-1.5 lg:col-span-5">
           <MicroLabel>Separate clocks, intact</MicroLabel>
           <SiblingBar
             color={CANON[0].color}
@@ -661,12 +718,12 @@ export function RunNumberRising() {
                 ) : (
                   <div className={`mt-8 ${grid}`}>
                     <div
-                      className={`sm:col-span-5 sm:self-center ${isRight ? "sm:order-2" : "sm:order-1"}`}
+                      className={`lg:col-span-5 lg:self-center ${isRight ? "lg:order-2" : "lg:order-1"}`}
                     >
                       <Beat />
                     </div>
                     <Copy
-                      className={`sm:col-span-7 ${isRight ? "sm:order-1" : "sm:order-2"}`}
+                      className={`lg:col-span-7 ${isRight ? "lg:order-1" : "lg:order-2"}`}
                     >
                       {chapter.body}
                     </Copy>
