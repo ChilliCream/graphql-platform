@@ -325,7 +325,7 @@ public sealed class GraphModeTests
 
         // assert
         Assert.Equal(["epic"], hiddenState);
-        Assert.Equal([null, "epic"], shownRows);
+        Assert.Equal(new string?[] { null, "epic" }, shownRows);
         Assert.Empty(mode.CollapsedEpicIds);
     }
 
