@@ -456,7 +456,7 @@ public sealed class GraphModeTests
         // act
         mode.Handle(new TuiMessage.FilterGraphRequested());
         Type(mode, "alpha");
-        mode.HandleRawKey(new ConsoleKeyInfo('s', ConsoleKey.S, false, true, false));
+        mode.HandleRawKey(new ConsoleKeyInfo('s', ConsoleKey.S, false, false, true));
         var filtered = mode.CanvasView.Layout.Nodes.Select(t => t.Id).ToArray();
         mode.Handle(new TuiMessage.FilterGraphRequested());
         mode.HandleRawKey(new ConsoleKeyInfo('\t', ConsoleKey.Tab, false, false, false));

@@ -28,9 +28,6 @@ internal sealed class GraphFilterForm
 
     public GraphFilterForm(IReadOnlySet<string> labels, IReadOnlySet<string> epicIds)
     {
-        ArgumentNullException.ThrowIfNull(labels);
-        ArgumentNullException.ThrowIfNull(epicIds);
-
         _labels = new TextField(
             LabelsFieldId,
             "Labels (comma-separated, all required)",
