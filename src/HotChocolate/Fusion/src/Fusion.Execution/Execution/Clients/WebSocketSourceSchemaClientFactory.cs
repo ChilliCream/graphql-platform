@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -7,40 +6,68 @@ internal sealed class WebSocketSourceSchemaClientFactory
     : SourceSchemaClientFactory<WebSocketSourceSchemaClientConfiguration>
     , IDisposable
 {
-    private readonly ConcurrentDictionary<string, HttpMessageInvoker> _invokers =
-        new(StringComparer.Ordinal);
+    private readonly object _sync = new();
+    private readonly Dictionary<string, HttpMessageInvoker> _invokers = new(StringComparer.Ordinal);
+    private readonly Func<HttpMessageInvoker> _createInvoker;
     private bool _disposed;
+
+    public WebSocketSourceSchemaClientFactory()
+        : this(CreateInvoker)
+    {
+    }
+
+    internal WebSocketSourceSchemaClientFactory(Func<HttpMessageInvoker> createInvoker)
+    {
+        ArgumentNullException.ThrowIfNull(createInvoker);
+        _createInvoker = createInvoker;
+    }
 
     protected override ISourceSchemaClient CreateClient(
         FusionSchemaDefinition schema,
         WebSocketSourceSchemaClientConfiguration configuration)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        HttpMessageInvoker invoker;
 
-        var invoker = _invokers.GetOrAdd(
-            configuration.Name,
-            static _ => new HttpMessageInvoker(
-                new SocketsHttpHandler
-                {
-                    EnableMultipleHttp2Connections = true
-                }));
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            if (!_invokers.TryGetValue(configuration.Name, out invoker!))
+            {
+                invoker = _createInvoker();
+                _invokers.Add(configuration.Name, invoker);
+            }
+        }
 
         return new WebSocketSourceSchemaClient(invoker, configuration);
     }
 
     public void Dispose()
     {
-        if (_disposed)
+        HttpMessageInvoker[] invokers;
+
+        lock (_sync)
         {
-            return;
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            invokers = [.. _invokers.Values];
+            _invokers.Clear();
         }
 
-        foreach (var invoker in _invokers.Values)
+        foreach (var invoker in invokers)
         {
             invoker.Dispose();
         }
-
-        _invokers.Clear();
-        _disposed = true;
     }
+
+    private static HttpMessageInvoker CreateInvoker()
+        => new(
+            new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
 }

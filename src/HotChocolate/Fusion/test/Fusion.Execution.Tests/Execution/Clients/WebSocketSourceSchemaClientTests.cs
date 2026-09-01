@@ -141,15 +141,166 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         Assert.Equal(1, connectCount);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_CompleteAndClose_When_ConnectionCreationIsPaused()
+    {
+        // arrange
+        await using var fixture = await WebSocketClientTestFixture.CreateAsync();
+        using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
+        var socket = new ScriptedWebSocket(SocketBehavior.Hold);
+        var connectionStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var allowConnection = new TaskCompletionSource<WebSocket>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var client = new WebSocketSourceSchemaClient(
+            invoker,
+            new WebSocketSourceSchemaClientConfiguration("A", new Uri("ws://localhost/graphql")),
+            async (_, _, _, _) =>
+            {
+                connectionStarted.TrySetResult();
+                return await allowConnection.Task;
+            });
+        var enumerator = client.ExecuteAsync(
+                fixture.CreateContext(),
+                CreateRequest(fixture.RootNode),
+                TestContext.Current.CancellationToken)
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        var moveNext = enumerator.MoveNextAsync().AsTask();
+        await connectionStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+        // act
+        var dispose = client.DisposeAsync().AsTask();
+        allowConnection.TrySetResult(socket);
+        await dispose;
+        var streamCompleted = !await moveNext;
+        await enumerator.DisposeAsync();
+
+        // assert
+        Assert.True(streamCompleted);
+        Assert.Equal(["complete", "close"], socket.Events);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ReleaseUnclaimedSharedResult_When_EnumerationStops()
+    {
+        // arrange
+        await using var fixture = await WebSocketClientTestFixture.CreateAsync();
+        using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
+        var socket = new ScriptedWebSocket(SocketBehavior.Respond);
+        await using var client = CreateClient(
+            invoker,
+            socket,
+            capabilities: SourceSchemaClientCapabilities.VariableBatching);
+        var enumerator = client.ExecuteAsync(
+                fixture.CreateContext(),
+                CreateRequest(fixture.RootNode, variableCount: 2),
+                TestContext.Current.CancellationToken)
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        Assert.True(await enumerator.MoveNextAsync());
+        var data = enumerator.Current.Data;
+        enumerator.Current.Dispose();
+        await enumerator.DisposeAsync();
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(() => data.GetProperty("field"));
+    }
+
+    [Fact]
+    public async Task ExecuteBatchAsync_Should_ReleaseUnclaimedSharedResult_When_EnumerationStops()
+    {
+        // arrange
+        await using var fixture = await WebSocketClientTestFixture.CreateAsync();
+        using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
+        var socket = new ScriptedWebSocket(SocketBehavior.Respond);
+        await using var client = CreateClient(
+            invoker,
+            socket,
+            capabilities: SourceSchemaClientCapabilities.VariableBatching);
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode, variableCount: 2));
+        var enumerator = client.ExecuteBatchAsync(
+                fixture.CreateContext(),
+                requests,
+                TestContext.Current.CancellationToken)
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        Assert.True(await enumerator.MoveNextAsync());
+        var data = enumerator.Current.Result.Data;
+        enumerator.Current.Result.Dispose();
+        await enumerator.DisposeAsync();
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(() => data.GetProperty("field"));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RejectInvalidVariableIndex_When_VariableBatchingIsEnabled()
+    {
+        // arrange
+        await using var fixture = await WebSocketClientTestFixture.CreateAsync();
+        using var invoker = new HttpMessageInvoker(new StubHttpMessageHandler());
+        var socket = new ScriptedWebSocket(SocketBehavior.Hold);
+        await using var client = CreateClient(
+            invoker,
+            socket,
+            capabilities: SourceSchemaClientCapabilities.VariableBatching);
+        var enumerator = client.ExecuteAsync(
+                fixture.CreateContext(),
+                CreateRequest(fixture.RootNode, variableCount: 2),
+                TestContext.Current.CancellationToken)
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        var moveNext = enumerator.MoveNextAsync().AsTask();
+        await socket.Subscribed.Task.WaitAsync(TestContext.Current.CancellationToken);
+        socket.SendPayload("{\"data\":{\"field\":\"value\"},\"variableIndex\":2}");
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await moveNext);
+        await enumerator.DisposeAsync();
+
+        // assert
+        Assert.Equal("The batch response contains an out-of-range variableIndex '2'.", exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateClient_Should_CreateAndDisposeOneInvoker_When_CalledConcurrently()
+    {
+        // arrange
+        var created = 0;
+        var handler = new TrackingHttpMessageHandler();
+        using var factory = new WebSocketSourceSchemaClientFactory(
+            () =>
+            {
+                Interlocked.Increment(ref created);
+                return new HttpMessageInvoker(handler);
+            });
+        var configuration = new WebSocketSourceSchemaClientConfiguration(
+            "A",
+            new Uri("ws://localhost/graphql"));
+
+        // act
+        await Task.WhenAll(
+            Enumerable.Range(0, 16)
+                .Select(_ => Task.Run(() => factory.CreateClient(null!, configuration))));
+        factory.Dispose();
+
+        // assert
+        Assert.Equal(1, created);
+        Assert.Equal(1, handler.DisposeCount);
+    }
+
     private static WebSocketSourceSchemaClient CreateClient(
         HttpMessageInvoker invoker,
         ScriptedWebSocket socket,
-        Action? onConnect = null)
+        Action? onConnect = null,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default)
         => new(
             invoker,
             new WebSocketSourceSchemaClientConfiguration(
                 "A",
-                new Uri("ws://localhost/graphql")),
+                new Uri("ws://localhost/graphql"),
+                capabilities: capabilities),
             (_, _, _, _) =>
             {
                 onConnect?.Invoke();
@@ -158,7 +309,8 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
 
     private static SourceSchemaClientRequest CreateRequest(
         ExecutionNode node,
-        OperationType operationType = OperationType.Query)
+        OperationType operationType = OperationType.Query,
+        int variableCount = 1)
     {
         var sourceText = operationType is OperationType.Subscription
             ? "subscription { field }"u8.ToArray()
@@ -175,7 +327,10 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
                 sourceText,
                 OperationSourceTextHash.Compute(sourceText)),
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
-            Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
+            Variables = Enumerable
+                .Range(0, variableCount)
+                .Select(_ => new VariableValues(CompactPath.Root, JsonSegment.Empty))
+                .ToImmutableArray()
         };
     }
 
@@ -304,6 +459,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         private string? _closeStatusDescription;
         private int _completeCount;
         private int _subscribeCount;
+        private string? _operationId;
         private readonly List<string> _events = [];
 
         public TaskCompletionSource Subscribed { get; } =
@@ -426,6 +582,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
 
                 case "subscribe":
                     var id = document.RootElement.GetProperty("id").GetString()!;
+                    _operationId = id;
                     Interlocked.Increment(ref _subscribeCount);
                     Subscribed.TrySetResult();
 
@@ -461,8 +618,38 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
             return ValueTask.CompletedTask;
         }
 
+        public void SendPayload(string payload)
+            => Enqueue(string.Concat(
+                "{\"type\":\"next\",\"id\":",
+                JsonSerializer.Serialize(_operationId),
+                ",\"payload\":",
+                payload,
+                "}"));
+
         private void Enqueue(string message)
             => _receivedMessages.Writer.TryWrite(Encoding.UTF8.GetBytes(message));
+    }
+
+    private sealed class TrackingHttpMessageHandler : HttpMessageHandler
+    {
+        private int _disposeCount;
+
+        public int DisposeCount => Volatile.Read(ref _disposeCount);
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Interlocked.Increment(ref _disposeCount);
+            }
+
+            base.Dispose(disposing);
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+            => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotImplemented));
     }
 
     private sealed class StubHttpMessageHandler : HttpMessageHandler

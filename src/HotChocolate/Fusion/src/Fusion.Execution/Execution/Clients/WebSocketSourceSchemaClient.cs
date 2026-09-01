@@ -166,25 +166,43 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
             {
-                if (request.Variables.Length <= 1)
-                {
-                    yield return CreateResult(request, variableIndex: 0, document);
-                    continue;
-                }
+                var documentTransferred = false;
 
-                var variableIndex = Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching)
-                    ? ResolveVariableIndex(request, document)
-                    : ResolveSequentialVariableIndex(request, document, ref sequentialVariableIndex);
-
-                if (variableIndex >= 0)
+                try
                 {
-                    yield return CreateResult(request, variableIndex, document);
-                }
-                else
-                {
-                    foreach (var result in CreateSharedResults(request, document))
+                    if (request.Variables.Length <= 1)
                     {
+                        var result = CreateResult(request, variableIndex: 0, document);
+                        documentTransferred = true;
                         yield return result;
+                        continue;
+                    }
+
+                    var variableIndex = Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching)
+                        ? ResolveVariableIndex(request, document)
+                        : ResolveSequentialVariableIndex(request, document, ref sequentialVariableIndex);
+
+                    if (variableIndex >= 0)
+                    {
+                        var result = CreateResult(request, variableIndex, document);
+                        documentTransferred = true;
+                        yield return result;
+                    }
+                    else
+                    {
+                        documentTransferred = true;
+
+                        foreach (var result in CreateSharedResults(request, document))
+                        {
+                            yield return result;
+                        }
+                    }
+                }
+                finally
+                {
+                    if (!documentTransferred)
+                    {
+                        document.Dispose();
                     }
                 }
             }
@@ -234,38 +252,54 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
             {
-                var entryIndex = ResolveRequestIndex(entries.Length, document, ref sequentialRequestIndex);
+                var documentTransferred = false;
 
-                if (entryIndex >= 0)
+                try
                 {
-                    var entry = entries[entryIndex];
-                    var request = requests[entry.RequestIndex];
-                    var variableIndex = entry.VariableIndex;
+                    var entryIndex = ResolveRequestIndex(entries.Length, document, ref sequentialRequestIndex);
 
-                    if (variableIndex < 0)
+                    if (entryIndex >= 0)
                     {
-                        variableIndex = ResolveVariableIndex(request, document);
-                    }
+                        var entry = entries[entryIndex];
+                        var request = requests[entry.RequestIndex];
+                        var variableIndex = entry.VariableIndex;
 
-                    if (variableIndex >= 0)
-                    {
-                        yield return new SourceSchemaBatchResult(
-                            entry.RequestIndex,
-                            CreateResult(request, variableIndex, document));
+                        if (variableIndex < 0)
+                        {
+                            variableIndex = ResolveVariableIndex(request, document);
+                        }
+
+                        if (variableIndex >= 0)
+                        {
+                            var result = CreateResult(request, variableIndex, document);
+                            documentTransferred = true;
+                            yield return new SourceSchemaBatchResult(entry.RequestIndex, result);
+                        }
+                        else
+                        {
+                            documentTransferred = true;
+
+                            foreach (var result in CreateSharedResults(request, document))
+                            {
+                                yield return new SourceSchemaBatchResult(entry.RequestIndex, result);
+                            }
+                        }
                     }
                     else
                     {
-                        foreach (var result in CreateSharedResults(request, document))
+                        documentTransferred = true;
+
+                        foreach (var result in CreateSharedBatchResults(requests, document))
                         {
-                            yield return new SourceSchemaBatchResult(entry.RequestIndex, result);
+                            yield return result;
                         }
                     }
                 }
-                else
+                finally
                 {
-                    foreach (var result in CreateSharedBatchResults(requests, document))
+                    if (!documentTransferred)
                     {
-                        yield return result;
+                        document.Dispose();
                     }
                 }
             }
@@ -379,14 +413,6 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         var id = Interlocked.Increment(ref _nextOperationId);
         var activeOperation = new ActiveOperation(id, result);
         _activeOperations.TryAdd(id, activeOperation);
-
-        if (Volatile.Read(ref _disposed) != 0)
-        {
-            _activeOperations.TryRemove(id, out _);
-            _ = activeOperation.CompleteAsync();
-            ObjectDisposedException.ThrowIf(true, this);
-        }
-
         return activeOperation;
     }
 
@@ -496,21 +522,38 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         SourceSchemaClientRequest request,
         SourceResultDocument document)
     {
-        if (request.Variables.IsDefaultOrEmpty)
+        var referenceCount = Math.Max(1, request.Variables.Length);
+        var owner = new SourceResultDocumentOwner(document, referenceCount);
+        var pending = 0;
+
+        try
         {
-            yield return new SourceSchemaResult(CompactPath.Root, document);
-            yield break;
+            if (request.Variables.IsDefaultOrEmpty)
+            {
+                pending++;
+                yield return new SourceSchemaResult(CompactPath.Root, document, owner);
+            }
+            else
+            {
+                foreach (var variable in request.Variables)
+                {
+                    var result = new SourceSchemaResult(
+                        variable.Path,
+                        document,
+                        owner,
+                        additionalPaths: variable.AdditionalPaths);
+
+                    pending++;
+                    yield return result;
+                }
+            }
         }
-
-        var owner = new SourceResultDocumentOwner(document, request.Variables.Length);
-
-        foreach (var variable in request.Variables)
+        finally
         {
-            yield return new SourceSchemaResult(
-                variable.Path,
-                document,
-                owner,
-                additionalPaths: variable.AdditionalPaths);
+            for (var i = pending; i < referenceCount; i++)
+            {
+                owner.Dispose();
+            }
         }
     }
 
@@ -526,28 +569,43 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         }
 
         var owner = new SourceResultDocumentOwner(document, references);
+        var pending = 0;
 
-        for (var requestIndex = 0; requestIndex < requests.Length; requestIndex++)
+        try
         {
-            var request = requests[requestIndex];
-
-            if (request.Variables.IsDefaultOrEmpty)
+            for (var requestIndex = 0; requestIndex < requests.Length; requestIndex++)
             {
-                yield return new SourceSchemaBatchResult(
-                    requestIndex,
-                    new SourceSchemaResult(CompactPath.Root, document, owner));
-                continue;
+                var request = requests[requestIndex];
+
+                if (request.Variables.IsDefaultOrEmpty)
+                {
+                    var result = new SourceSchemaBatchResult(
+                        requestIndex,
+                        new SourceSchemaResult(CompactPath.Root, document, owner));
+                    pending++;
+                    yield return result;
+                    continue;
+                }
+
+                foreach (var variable in request.Variables)
+                {
+                    var result = new SourceSchemaBatchResult(
+                        requestIndex,
+                        new SourceSchemaResult(
+                            variable.Path,
+                            document,
+                            owner,
+                            additionalPaths: variable.AdditionalPaths));
+                    pending++;
+                    yield return result;
+                }
             }
-
-            foreach (var variable in request.Variables)
+        }
+        finally
+        {
+            for (var i = pending; i < references; i++)
             {
-                yield return new SourceSchemaBatchResult(
-                    requestIndex,
-                    new SourceSchemaResult(
-                        variable.Path,
-                        document,
-                        owner,
-                        additionalPaths: variable.AdditionalPaths));
+                owner.Dispose();
             }
         }
     }
@@ -666,15 +724,15 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-        {
-            return;
-        }
-
         await _operationGate.WaitAsync().ConfigureAwait(false);
 
         try
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
             var operations = _activeOperations.Values.ToArray();
             await Task.WhenAll(operations.Select(static t => t.CompleteAsync())).ConfigureAwait(false);
 
