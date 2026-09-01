@@ -254,6 +254,99 @@ public sealed class GraphReducerTests
     }
 
     [Fact]
+    public void Reduce_Should_LimitUnrelatedOpenNodes_When_ForcedReductionExceedsTheVisibleNodeCap()
+    {
+        // arrange
+        var nodes = Enumerable.Range(0, GraphReductionOptions.VisibleNodeCap + 1)
+            .Select(i => Node($"task-{i:D3}"))
+            .ToArray();
+
+        // act
+        var reduced = GraphReducer.Reduce(Model(nodes, []), new GraphReductionOptions { HideClosed = false, CollapsedEpicIds = Set() });
+
+        // assert
+        Assert.Equal(GraphReductionOptions.VisibleNodeCap, reduced.Nodes.Count);
+        Assert.Equal(1, reduced.HiddenNodeCount);
+        Assert.Equal("task-399", reduced.Nodes[^1].Id);
+    }
+
+    [Fact]
+    public void Reduce_Should_PruneEdgesToDiscardedNodes_When_ForcedReductionExceedsTheVisibleNodeCap()
+    {
+        // arrange
+        var nodes = Enumerable.Range(0, GraphReductionOptions.VisibleNodeCap + 1)
+            .Select(i => Node($"task-{i:D3}"))
+            .ToArray();
+        var edges = new[]
+        {
+            Edge("task-000", "task-001"),
+            Edge("task-000", "task-400"),
+            Edge("task-400", "task-000")
+        };
+
+        // act
+        var reduced = GraphReducer.Reduce(Model(nodes, edges), new GraphReductionOptions { HideClosed = false, CollapsedEpicIds = Set() });
+
+        // assert
+        Assert.Equal([Edge("task-000", "task-001")], reduced.Edges);
+        Assert.All(reduced.Edges, edge => Assert.Contains(edge.FromId, reduced.Nodes.Select(node => node.Id)));
+        Assert.All(reduced.Edges, edge => Assert.Contains(edge.ToId, reduced.Nodes.Select(node => node.Id)));
+    }
+
+    [Fact]
+    public void Reduce_Should_CountForcedStagesAndKeepEpicChildCounts_When_ClosedCollapseAndCapAreApplied()
+    {
+        // arrange
+        var nodes = new List<GraphNode>
+        {
+            Node("epic", type: TaskTypes.Epic, priority: 0),
+            Node("child-a"),
+            Node("child-b"),
+            Node("closed", status: TaskStates.Closed)
+        };
+        nodes.AddRange(Enumerable.Range(0, GraphReductionOptions.VisibleNodeCap).Select(i => Node($"task-{i:D3}", priority: 1)));
+        var edges = new[]
+        {
+            Edge("epic", "child-a", GraphEdgeKind.ParentChild),
+            Edge("epic", "child-b", GraphEdgeKind.ParentChild)
+        };
+
+        // act
+        var reduced = GraphReducer.Reduce(Model(nodes, edges), new GraphReductionOptions { HideClosed = false, CollapsedEpicIds = Set() });
+
+        // assert
+        var epic = Assert.Single(reduced.Nodes, node => node.Id == "epic");
+        Assert.Equal(GraphReductionOptions.VisibleNodeCap, reduced.Nodes.Count);
+        Assert.Equal(4, reduced.HiddenNodeCount);
+        Assert.Equal(2, epic.HiddenChildCount);
+    }
+
+    [Fact]
+    public void Reduce_Should_ReturnTheSameCappedGraph_When_InputNodesAndEdgesAreReversed()
+    {
+        // arrange
+        var nodes = Enumerable.Range(0, GraphReductionOptions.VisibleNodeCap + 1)
+            .Select(i => Node($"task-{i:D3}"))
+            .ToArray();
+        var edges = new[]
+        {
+            Edge("task-000", "task-001"),
+            Edge("task-001", "task-000"),
+            Edge("task-001", "task-400")
+        };
+        var options = new GraphReductionOptions { HideClosed = false, CollapsedEpicIds = Set() };
+
+        // act
+        var forward = GraphReducer.Reduce(Model(nodes, edges), options);
+        var reversed = GraphReducer.Reduce(Model(nodes.Reverse().ToArray(), edges.Reverse().ToArray()), options);
+
+        // assert
+        Assert.Equal(forward.Nodes, reversed.Nodes);
+        Assert.Equal(forward.Edges, reversed.Edges);
+        Assert.Equal([Edge("task-000", "task-001"), Edge("task-001", "task-000", isReversed: true)], forward.Edges);
+    }
+
+    [Fact]
     public void Reduce_Should_MarkTheLayoutBackEdge_When_CollapsedEpicsFormATwoCycle()
     {
         // arrange

@@ -31,9 +31,10 @@ internal static class GraphReducer
             .Select(t => t.Id)
             .ToHashSet(StringComparer.Ordinal);
         var forced = CollapseEpics(forceFiltered, forcedEpicIds);
-        var hiddenNodeCount = Math.Max(0, filtered.Nodes.Count - forced.Nodes.Count);
+        var capped = LimitNodes(forced);
+        var hiddenNodeCount = Math.Max(0, filtered.Nodes.Count - capped.Nodes.Count);
 
-        return MarkReversedEdges(forced) with
+        return MarkReversedEdges(capped) with
         {
             IsReduced = true,
             HiddenNodeCount = hiddenNodeCount
@@ -207,6 +208,22 @@ internal static class GraphReducer
         }
 
         return representatives;
+    }
+
+    private static GraphModel LimitNodes(GraphModel model)
+    {
+        if (model.Nodes.Count <= GraphReductionOptions.VisibleNodeCap)
+        {
+            return model;
+        }
+
+        var nodes = model.Nodes.Take(GraphReductionOptions.VisibleNodeCap).ToArray();
+        var nodeIds = nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
+        var edges = model.Edges
+            .Where(t => nodeIds.Contains(t.FromId) && nodeIds.Contains(t.ToId))
+            .ToArray();
+
+        return new GraphModel(nodes, edges);
     }
 
     private static GraphModel MarkReversedEdges(GraphModel model)
