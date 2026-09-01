@@ -666,7 +666,7 @@ public sealed class TuiShellTabsTests
         var graph = new GraphMode(new GraphDataLoader(store));
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            24,
+            60,
             8,
             tasksTabIndex: 0,
             store: store,
@@ -674,14 +674,14 @@ public sealed class TuiShellTabsTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
         graph.Handle(new TuiMessage.ToggleGraphProjection());
         graph.SelectTask("task-11");
-        _ = RenderToText(shell, width: 24);
+        _ = RenderToText(shell, width: 60);
         var expected = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
 
         // act
         var opened = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
-        var detail = RenderToText(shell, width: 24);
+        var detail = RenderToText(shell, width: 60);
         var closed = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
-        _ = RenderToText(shell, width: 24);
+        _ = RenderToText(shell, width: 60);
         var actual = (graph.SelectedTaskId, graph.IsCanvasActive, graph.CanvasView.Viewport);
 
         // assert
