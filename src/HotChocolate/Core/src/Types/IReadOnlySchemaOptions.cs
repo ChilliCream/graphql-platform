@@ -172,8 +172,8 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
-    /// Enables empty selection sets according to GraphQL specification PR 1227. This option defaults to
-    /// <c>false</c> and is planned to default to <c>true</c> in the next major release after the RFC merges.
+    /// Enables empty selection sets according to GraphQL specification PR 1227, defaults to <c>false</c>, and is
+    /// planned to default to <c>true</c> in the next major release after the RFC merges.
     /// When disabled, an empty selection set is a validation error rather than a syntax error, an empty
     /// subscription root is always invalid, and prebuilt-schema or custom-schema-builder executors call
     /// <c>ConfigureValidation</c> to set this behavior.
