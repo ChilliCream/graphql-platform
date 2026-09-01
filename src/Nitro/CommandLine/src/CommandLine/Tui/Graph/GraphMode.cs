@@ -633,7 +633,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
             case FormResult.ButtonActivated { ButtonId: GraphFilterForm.ClearButtonId }:
                 _filterForm = null;
-                ApplyFilters([], []);
+                ApplyFilters(s_emptySet, s_emptySet);
                 return [];
 
             case FormResult.Submitted:
