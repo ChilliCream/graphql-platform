@@ -266,11 +266,13 @@ function RequestChip({
   y,
   color,
   text,
+  index,
 }: {
   readonly x: number;
   readonly y: number;
   readonly color: string;
   readonly text: string;
+  readonly index: number;
 }) {
   const w = 190;
   const h = 26;
@@ -300,7 +302,7 @@ function RequestChip({
           y={0}
           scale={0.5}
           haloOpacity={0.35}
-          id={`bp-b2-${text}`}
+          id={`bp-b2-${index}`}
         />
       </g>
     </g>
@@ -339,6 +341,7 @@ function Beat2() {
           y={top + i * pitch}
           color={CANON[i].color}
           text={text}
+          index={i}
         />
       ))}
       <text
@@ -541,13 +544,13 @@ function Beat4() {
 /* Beat 5: no card knows all the fields, every card knows the same id  */
 /* ------------------------------------------------------------------ */
 
-const MINI_W = 130;
+const MINI_W = 150;
 const MINI_CENTERS = [
-  { x: 100, y: 3430 },
-  { x: 220, y: 3460 },
-  { x: 340, y: 3440 },
-  { x: 460, y: 3465 },
-  { x: 580, y: 3445 },
+  { x: 160, y: 3430 },
+  { x: 320, y: 3460 },
+  { x: 480, y: 3440 },
+  { x: 640, y: 3465 },
+  { x: 800, y: 3445 },
 ] as const;
 const MINI_FIELD = [
   "name: String!",
@@ -591,7 +594,7 @@ function Beat5() {
         );
       })}
       <text
-        x={340}
+        x={480}
         y={3600}
         textAnchor="middle"
         fontFamily={MONO}
@@ -788,28 +791,30 @@ function Beat6() {
 /* Beat 7: one id, three lookups, one response                        */
 /* ------------------------------------------------------------------ */
 
-const CHIP7 = { x: 512, y: 5950 } as const;
-const GATEWAY7 = { x: 512, y: 6070 } as const;
-const LOOKUP_Y = 6160;
+const CHIP7 = { x: 512, y: 6100 } as const;
+const GATEWAY7 = { x: 512, y: 6220 } as const;
+const LOOKUP_Y = 6310;
 const LOOKUPS = [
-  { x: 416, service: 0 },
+  { x: 352, service: 0 },
   { x: 512, service: 1 },
-  { x: 608, service: 3 },
+  { x: 672, service: 3 },
 ] as const;
 const DIM_SQUARES = [
-  { x: 300, service: 2 },
-  { x: 724, service: 4 },
+  { x: 240, service: 2 },
+  { x: 784, service: 4 },
 ] as const;
-const RESPONSE_Y = 6250;
+const RESPONSE_Y = 6400;
 
 function LookupChit({
   x,
   y,
   color,
+  index,
 }: {
   readonly x: number;
   readonly y: number;
   readonly color: string;
+  readonly index: number;
 }) {
   const w = 150;
   const h = 26;
@@ -839,7 +844,7 @@ function LookupChit({
           y={0}
           scale={0.4}
           haloOpacity={0.25}
-          id={`bp-b7-${color}`}
+          id={`bp-b7-${index}`}
         />
       </g>
     </g>
@@ -881,10 +886,10 @@ function Beat7() {
         strokeLinecap="round"
       />
       <GatewayChip x={GATEWAY7.x} y={GATEWAY7.y} w={120} />
-      {LOOKUPS.map((l) => (
+      {LOOKUPS.map((l, i) => (
         <Fragment key={l.x}>
           <line
-            x1={GATEWAY7.x}
+            x1={GATEWAY7.x + 60 * Math.sign(l.x - GATEWAY7.x)}
             y1={GATEWAY7.y + 13}
             x2={l.x}
             y2={LOOKUP_Y - 13}
@@ -892,7 +897,12 @@ function Beat7() {
             strokeOpacity={0.55}
             strokeDasharray="3 4"
           />
-          <LookupChit x={l.x} y={LOOKUP_Y} color={CANON[l.service].color} />
+          <LookupChit
+            x={l.x}
+            y={LOOKUP_Y}
+            color={CANON[l.service].color}
+            index={i}
+          />
         </Fragment>
       ))}
       {DIM_SQUARES.map((d) => (
@@ -1055,11 +1065,33 @@ export function BadgeP42() {
                       left={layout.left}
                       width={layout.width}
                     >
-                      <ProtoCodeBox
-                        label={box.label}
-                        color={box.color}
-                        lines={box.lines}
-                      />
+                      {i === 5 && j === 0 ? (
+                        <div className="relative">
+                          <ProtoCodeBox
+                            label={box.label}
+                            color={box.color}
+                            lines={box.lines}
+                          />
+                          <div
+                            aria-hidden="true"
+                            className="bp42-unison pointer-events-none absolute rounded-[5px]"
+                            style={{
+                              left: 16,
+                              right: 16,
+                              top: 78,
+                              height: 16,
+                              background: TEAL,
+                              opacity: 0.1,
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <ProtoCodeBox
+                          label={box.label}
+                          color={box.color}
+                          lines={box.lines}
+                        />
+                      )}
                     </BoxSlot>
                   );
                 })}
