@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -15,10 +16,12 @@ using HotChocolate.Transport.Http;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Transport.Sockets.Client;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using FusionGraphQLHttpClient = HotChocolate.Fusion.Transport.Http.GraphQLHttpClient;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
+using TransportOperationResult = HotChocolate.Transport.OperationResult;
 
 namespace HotChocolate.Fusion;
 
@@ -44,9 +47,11 @@ public sealed class WebSocketTransportTests : FusionTestBase
             gatewaySettings: WebSocketOnlySettings);
 
         // act
-        var query = await ExecuteOverWebSocketAsync(gateway, "{ queryValue }");
-        var mutation = await ExecuteOverWebSocketAsync(gateway, "mutation { setValue }");
-        var subscription = await ExecuteOverWebSocketAsync(gateway, "subscription { onMessage }");
+        var query = await ExecuteFiniteOverWebSocketAsync(gateway, "{ queryValue }");
+        var mutation = await ExecuteFiniteOverWebSocketAsync(gateway, "mutation { setValue }");
+        var subscription = await ExecuteSubscriptionOverWebSocketAsync(
+            gateway,
+            "subscription { onMessage }");
 
         // assert
         new[] { query.GetRawText(), mutation.GetRawText(), subscription.GetRawText() }
@@ -78,7 +83,9 @@ public sealed class WebSocketTransportTests : FusionTestBase
 
         // act
         var query = await ExecuteOverHttpAsync(gateway, "{ queryValue }");
-        var subscription = await ExecuteOverWebSocketAsync(gateway, "subscription { onMessage }");
+        var subscription = await ExecuteSubscriptionOverWebSocketAsync(
+            gateway,
+            "subscription { onMessage }");
 
         // assert
         new[] { query.GetRawText(), subscription.GetRawText() }.MatchInlineSnapshots(
@@ -120,11 +127,11 @@ public sealed class WebSocketTransportTests : FusionTestBase
 
         // act
         await ExecuteOverHttpAsync(configuredGateway, "{ queryValue }", "x-token", "header-value");
-        await ExecuteOverWebSocketAsync(
+        await ExecuteFiniteOverWebSocketAsync(
             configuredGateway,
             "{ queryValue }",
             JsonSerializer.SerializeToElement(new { client = "init-value" }));
-        await ExecuteOverWebSocketAsync(defaultGateway, "{ queryValue }");
+        await ExecuteFiniteOverWebSocketAsync(defaultGateway, "{ queryValue }");
 
         // assert
         configuredConnections.Payloads.Select(static p => p.GetRawText()).MatchInlineSnapshots(
@@ -138,16 +145,18 @@ public sealed class WebSocketTransportTests : FusionTestBase
         // arrange
         var subscriptionConnections = new ConnectionCapture();
         var lookupConnections = new ConnectionCapture();
+        var events = new EntityLookupEvents();
         using var subscriptions = CreateSourceSchema(
             "A",
             builder => builder
-                .AddQueryType<SubscriptionsOverHttpStoreTests.SourceSchema1.Query>()
-                .AddSubscriptionType<SubscriptionsOverHttpStoreTests.SourceSchema1.Subscription>()
-                .AddSocketSessionInterceptor(_ => new ConnectionCaptureInterceptor(subscriptionConnections)));
+                .AddQueryType<EntityLookupSourceSchema1.Query>()
+                .AddSubscriptionType<EntityLookupSourceSchema1.Subscription>()
+                .AddSocketSessionInterceptor(_ => new ConnectionCaptureInterceptor(subscriptionConnections)),
+            configureServices: services => services.AddSingleton(events));
         using var lookups = CreateSourceSchema(
             "B",
             builder => builder
-                .AddQueryType<SubscriptionsOverHttpStoreTests.SourceSchema2.Query>()
+                .AddQueryType<EntityLookupSourceSchema2.Query>()
                 .AddSocketSessionInterceptor(_ => new ConnectionCaptureInterceptor(lookupConnections)));
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", subscriptions), ("B", lookups)],
@@ -156,13 +165,37 @@ public sealed class WebSocketTransportTests : FusionTestBase
                 [("A", subscriptions), ("B", lookups)]),
             gatewaySettings: TwoWebSocketSourcesSettings);
 
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest = request =>
+            request.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        using var webSocket = await webSocketClient.ConnectAsync(
+            new Uri("ws://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        await using var client = await SocketClient.ConnectAsync(
+            webSocket,
+            TestContext.Current.CancellationToken);
+        using var result = await client.ExecuteAsync(
+            new OperationRequest("subscription { onBookCreated { id title } }"),
+            TestContext.Current.CancellationToken);
+        await using var results = result.ReadResultsAsync().GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
         // act
-        var result = await ExecuteOverWebSocketAsync(
-            gateway,
-            "subscription { onBookCreated { id title } }");
+        events.ReleaseFirst();
+        var first = await ReadNextResultAsync(results);
+        events.ReleaseSecond();
+        var second = await ReadNextResultAsync(results);
+        events.Complete();
+        var completed = !await results.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         // assert
-        result.GetRawText().MatchInlineSnapshot("""{"onBookCreated":{"id":1,"title":"Foo"}}""");
+        new[] { first.GetRawText(), second.GetRawText() }.MatchInlineSnapshots(
+            [
+                """{"onBookCreated":{"id":1,"title":"Foo"}}""",
+                """{"onBookCreated":{"id":2,"title":"Bar"}}"""
+            ]);
+        Assert.True(completed);
         Assert.Equal(1, subscriptionConnections.Count);
         Assert.Equal(1, lookupConnections.Count);
     }
@@ -172,6 +205,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
     {
         // arrange
         var connections = new ConnectionCapture();
+        var exceptions = new SocketClosedExceptionCapture();
         using var source = CreateSourceSchema(
             "A",
             builder => builder
@@ -181,16 +215,27 @@ public sealed class WebSocketTransportTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", source)],
             configureServices: services => ReplaceWebSocketClientFactory(services, [("A", source)]),
+            configureGatewayBuilder: builder => builder.AddErrorFilter(error =>
+            {
+                exceptions.TryCapture(error.Exception);
+                return error;
+            }),
             gatewaySettings: WebSocketOnlySettings);
 
         // act
-        var (resultCount, terminalError) = await ReadUntilTerminalAsync(
+        var results = await ReadSubscriptionResultsAsync(
             gateway,
             "subscription { onSlowMessage }");
 
         // assert
-        Assert.True(resultCount > 0);
-        Assert.True(terminalError);
+        results.Select(static result => result.GetRawText()).MatchInlineSnapshots(
+            [
+                """{"data":{"onSlowMessage":"first"}}""",
+                """{"data":null,"errors":[{"message":"Unexpected Execution Error","path":["onSlowMessage"]}]}"""
+            ]);
+        var exception = Assert.Single(exceptions.Items);
+        Assert.Equal(System.Net.WebSockets.WebSocketCloseStatus.InternalServerError, exception.Reason);
+        Assert.Equal("test source socket death", exception.Message);
         Assert.Equal(1, connections.Count);
     }
 
@@ -290,7 +335,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
         return result.Data.Clone();
     }
 
-    private static async Task<JsonElement> ExecuteOverWebSocketAsync(
+    private static async Task<JsonElement> ExecuteFiniteOverWebSocketAsync(
         Gateway gateway,
         string document,
         JsonElement initPayload = default)
@@ -310,6 +355,8 @@ public sealed class WebSocketTransportTests : FusionTestBase
             new OperationRequest(document),
             TestContext.Current.CancellationToken);
 
+        JsonElement data = default;
+
         await foreach (var operationResult in result.ReadResultsAsync()
             .WithCancellation(TestContext.Current.CancellationToken))
         {
@@ -320,14 +367,78 @@ public sealed class WebSocketTransportTests : FusionTestBase
                     throw new InvalidOperationException(operationResult.Errors.GetRawText());
                 }
 
-                return operationResult.Data.Clone();
+                if (data.ValueKind is not JsonValueKind.Undefined)
+                {
+                    throw new InvalidOperationException("The gateway operation produced more than one result.");
+                }
+
+                data = operationResult.Data.Clone();
             }
         }
 
-        throw new InvalidOperationException("The gateway operation did not produce a result.");
+        if (data.ValueKind is JsonValueKind.Undefined)
+        {
+            throw new InvalidOperationException("The gateway operation did not produce a result.");
+        }
+
+        return data;
     }
 
-    private static async Task<(int ResultCount, bool TerminalError)> ReadUntilTerminalAsync(
+    private static async Task<JsonElement> ReadNextResultAsync(IAsyncEnumerator<TransportOperationResult> results)
+    {
+        if (!await results.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken))
+        {
+            throw new InvalidOperationException("The gateway subscription completed before producing a result.");
+        }
+
+        using var result = results.Current;
+
+        if (result.Data.ValueKind is not JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(result.Errors.GetRawText());
+        }
+
+        return result.Data.Clone();
+    }
+
+    private static async Task<JsonElement> ExecuteSubscriptionOverWebSocketAsync(
+        Gateway gateway,
+        string document)
+    {
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest = request =>
+            request.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        using var webSocket = await webSocketClient.ConnectAsync(
+            new Uri("ws://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        await using var client = await SocketClient.ConnectAsync(
+            webSocket,
+            TestContext.Current.CancellationToken);
+        using var result = await client.ExecuteAsync(
+            new OperationRequest(document),
+            TestContext.Current.CancellationToken);
+        await using var results = result.ReadResultsAsync().GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        if (!await results.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken))
+        {
+            throw new InvalidOperationException("The gateway subscription completed before producing a result.");
+        }
+
+        using var operationResult = results.Current;
+
+        if (operationResult.Data.ValueKind is not JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(operationResult.Errors.GetRawText());
+        }
+
+        return operationResult.Data.Clone();
+    }
+
+    private static async Task<IReadOnlyList<JsonElement>> ReadSubscriptionResultsAsync(
         Gateway gateway,
         string document)
     {
@@ -342,30 +453,43 @@ public sealed class WebSocketTransportTests : FusionTestBase
         using var result = await client.ExecuteAsync(
             new OperationRequest(document),
             TestContext.Current.CancellationToken);
-        var resultCount = 0;
+        var results = new List<JsonElement>();
 
-        try
+        await foreach (var operationResult in result.ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
         {
-            await foreach (var operationResult in result.ReadResultsAsync()
-                .WithCancellation(TestContext.Current.CancellationToken))
+            using (operationResult)
             {
-                using (operationResult)
-                {
-                    resultCount++;
-
-                    if (operationResult.Errors.ValueKind is JsonValueKind.Array)
-                    {
-                        return (resultCount, true);
-                    }
-                }
+                results.Add(CreateResponsePayload(operationResult));
             }
         }
-        catch (Exception) when (!TestContext.Current.CancellationToken.IsCancellationRequested)
+
+        return results;
+    }
+
+    private static JsonElement CreateResponsePayload(TransportOperationResult result)
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        using var writer = new Utf8JsonWriter(buffer);
+        writer.WriteStartObject();
+
+        if (result.Data.ValueKind is not JsonValueKind.Undefined)
         {
-            return (resultCount, true);
+            writer.WritePropertyName("data");
+            result.Data.WriteTo(writer);
         }
 
-        return (resultCount, false);
+        if (result.Errors.ValueKind is not JsonValueKind.Undefined)
+        {
+            writer.WritePropertyName("errors");
+            result.Errors.WriteTo(writer);
+        }
+
+        writer.WriteEndObject();
+        writer.Flush();
+
+        using var document = JsonDocument.Parse(buffer.WrittenMemory);
+        return document.RootElement.Clone();
     }
 
     private sealed class TestServerWebSocketSourceSchemaClientFactory(
@@ -428,6 +552,44 @@ public sealed class WebSocketTransportTests : FusionTestBase
         public ConcurrentQueue<JsonElement> Payloads { get; } = [];
 
         public int Count => Payloads.Count;
+    }
+
+    private sealed class SocketClosedExceptionCapture
+    {
+        public ConcurrentQueue<HotChocolate.Fusion.Transport.Sockets.Client.SocketClosedException> Items { get; } = [];
+
+        public void TryCapture(Exception? exception)
+        {
+            if (exception is HotChocolate.Fusion.Transport.Sockets.Client.SocketClosedException socketClosedException)
+            {
+                Items.Enqueue(socketClosedException);
+            }
+        }
+    }
+
+    private sealed class EntityLookupEvents
+    {
+        private readonly TaskCompletionSource _first = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _second = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void ReleaseFirst() => _first.SetResult();
+
+        public void ReleaseSecond() => _second.SetResult();
+
+        public void Complete() => _completion.SetResult();
+
+        public async IAsyncEnumerable<EntityLookupSourceSchema1.Book> ReadAsync(
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await _first.Task.WaitAsync(cancellationToken);
+            yield return new EntityLookupSourceSchema1.Book(1);
+
+            await _second.Task.WaitAsync(cancellationToken);
+            yield return new EntityLookupSourceSchema1.Book(2);
+
+            await _completion.Task.WaitAsync(cancellationToken);
+        }
     }
 
     private sealed class ClosingConnectionInterceptor(ConnectionCapture capture) : DefaultSocketSessionInterceptor
@@ -517,7 +679,10 @@ public sealed class WebSocketTransportTests : FusionTestBase
             {
                 await inner.CloseAsync(closeStatus, statusDescription, cancellationToken);
             }
-            catch (Exception exception) when (exception is ObjectDisposedException or WebSocketException)
+            catch (Exception exception) when (
+                exception is ObjectDisposedException
+                    or WebSocketException
+                    or IOException { InnerException: ObjectDisposedException })
             {
             }
         }
@@ -549,14 +714,52 @@ public sealed class WebSocketTransportTests : FusionTestBase
 
         public sealed class Subscription
         {
-            public async IAsyncEnumerable<string> OnMessageStream()
+            public async IAsyncEnumerable<string> OnMessageStream(
+                [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 yield return "subscription";
-                await Task.Yield();
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
 
             [Subscribe(With = nameof(OnMessageStream))]
             public string OnMessage([EventMessage] string message) => message;
+        }
+    }
+
+    private static class EntityLookupSourceSchema1
+    {
+        [EntityKey("id")]
+        public sealed record Book(int Id);
+
+        public sealed class Query
+        {
+            public string Value() => "value";
+        }
+
+        public sealed class Subscription(EntityLookupEvents events)
+        {
+            public IAsyncEnumerable<Book> OnBookCreatedStream(CancellationToken cancellationToken)
+                => events.ReadAsync(cancellationToken);
+
+            [Subscribe(With = nameof(OnBookCreatedStream))]
+            public Book OnBookCreated([EventMessage] Book book) => book;
+        }
+    }
+
+    private static class EntityLookupSourceSchema2
+    {
+        public sealed record Book(int Id, string Title);
+
+        public sealed class Query
+        {
+            [Internal, Lookup]
+            public Book? GetBookById(int id)
+                => id switch
+                {
+                    1 => new Book(1, "Foo"),
+                    2 => new Book(2, "Bar"),
+                    _ => null
+                };
         }
     }
 
