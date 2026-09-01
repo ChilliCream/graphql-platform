@@ -42,7 +42,7 @@ const R_PHASES = [1200] as const;
 
 const CAT = { x: 640, y: 88, w: 250 } as const;
 const BIL = { x: 640, y: 194, w: 250 } as const;
-const STEM_X = CAT.x + 4;
+const STEM_X = CAT.x - 6;
 const COMP_EDGE = M.x + M.w;
 
 const TAG_PULSES = [2600, 6200, 9600] as const;
@@ -390,20 +390,22 @@ export function EvolutionVisual() {
           <line
             x1={STEM_X}
             x2={STEM_X}
-            y1={CAT.y - 4}
-            y2={CAT.y + 94}
+            y1={CAT.y}
+            y2={CAT.y + 90}
             stroke={CANON[0].color}
             strokeWidth={2}
             strokeOpacity={0.85}
+            strokeLinecap="round"
           />
           <line
             x1={STEM_X}
             x2={STEM_X}
-            y1={BIL.y - 4}
-            y2={BIL.y + 94}
+            y1={BIL.y}
+            y2={BIL.y + 90}
             stroke={CANON[1].color}
             strokeWidth={2}
             strokeOpacity={0.85}
+            strokeLinecap="round"
           />
 
           <rect
