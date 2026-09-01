@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -12,6 +11,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
 using Spectre.Console.Rendering;
 using EditingConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDialog;
 
@@ -1341,29 +1341,7 @@ internal sealed class TuiShell
     }
 
     private static int GetFooterTextElementWidth(string element)
-    {
-        var width = 0;
-
-        foreach (var rune in element.EnumerateRunes())
-        {
-            var category = Rune.GetUnicodeCategory(rune);
-
-            if (category is UnicodeCategory.NonSpacingMark or UnicodeCategory.EnclosingMark or UnicodeCategory.Format
-                || rune.Value is < 0x20 or (>= 0x7F and <= 0x9F))
-            {
-                continue;
-            }
-
-            width = Math.Max(width, rune.Value switch
-            {
-                >= 0x4E00 and <= 0x9FFF => 2,
-                >= 0x1F300 and <= 0x1FAFF => 2,
-                _ => 1
-            });
-        }
-
-        return width;
-    }
+        => Math.Max(0, element.GetCellWidth());
 
     /// <summary>
     /// The mail-wake daemon coordinator's current state as a short, fixed-width

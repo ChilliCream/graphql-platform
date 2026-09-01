@@ -64,15 +64,6 @@ public sealed class TuiShellTests
             .TrimEnd('\r')
             ?? string.Empty;
 
-    private static int MeasureCellWidth(string value)
-        => value.EnumerateRunes().Sum(rune => rune.Value switch
-        {
-            >= 0x0300 and <= 0x036F => 0,
-            >= 0x4E00 and <= 0x9FFF => 2,
-            >= 0x1F300 and <= 0x1FAFF => 2,
-            _ => 1
-        });
-
     private static bool ContainsLoneSurrogate(string value)
     {
         for (var index = 0; index < value.Length; index++)
@@ -1416,9 +1407,7 @@ public sealed class TuiShellTests
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
-    [InlineData(15)]
-    [InlineData(16)]
-    public void Render_Should_KeepFooterWithinTerminalCellWidth_When_TheWidthIsNarrow(int width)
+    public void Render_Should_KeepNarrowUnicodeFootersWithinTheirExactRowWidth(int width)
     {
         // arrange
         var shell = CreateShell(new FakeTuiMode { FooterStatus = "[漢🙂e\u0301]" }, width, actor: "🙂actor");
@@ -1427,8 +1416,38 @@ public sealed class TuiShellTests
         var text = width == 0 ? string.Empty : RenderFooterText(shell, width);
 
         // assert
-        Assert.True(MeasureCellWidth(text) <= width);
+        Assert.Equal(width == 0 ? string.Empty : "…", text);
         Assert.False(ContainsLoneSurrogate(text));
+    }
+
+    [Theory]
+    [InlineData("A", 1)]
+    [InlineData("e\u0301", 1)]
+    [InlineData("한", 2)]
+    [InlineData("あ", 2)]
+    [InlineData("Ａ", 2)]
+    [InlineData("\U00020000", 2)]
+    [InlineData("🇨🇭", 2)]
+    [InlineData("👨‍👩‍👧‍👦", 2)]
+    [InlineData("❤️", 2)]
+    [InlineData("1️⃣", 2)]
+    public void Render_Should_KeepUnicodeTextElementsWhole_When_TheirCellBudgetChanges(string value, int width)
+    {
+        // arrange
+        var exact = CreateShell(new FakeTuiMode { FooterStatus = value }, width);
+        var retained = CreateShell(new FakeTuiMode { FooterStatus = value + "xx" }, width + 1);
+        var replaced = CreateShell(new FakeTuiMode { FooterStatus = value + "xx" }, width);
+
+        // act
+        var exactText = RenderFooterText(exact, width);
+        var retainedText = RenderFooterText(retained, width + 1);
+        var replacedText = RenderFooterText(replaced, width);
+
+        // assert
+        Assert.Equal(value, exactText);
+        Assert.Equal(value + "…", retainedText);
+        Assert.Equal("…", replacedText);
+        Assert.False(ContainsLoneSurrogate(retainedText));
     }
 
     [Fact]
@@ -1444,6 +1463,5 @@ public sealed class TuiShellTests
         // assert
         Assert.Equal("[漢🙂e\u0301] ", text);
         Assert.False(ContainsLoneSurrogate(text));
-        Assert.True(MeasureCellWidth(text) <= 8);
     }
 }
