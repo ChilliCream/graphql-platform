@@ -219,6 +219,53 @@ public class DocumentValidatorTests
     }
 
     [Fact]
+    public void EmptyQuery_Should_BeValid_WhenEnabled()
+    {
+        // arrange
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true));
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("{ }"));
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
+    public void EmptyQuery_Should_BeInvalid_WhenDisabled()
+    {
+        // arrange
+        var validator = CreateValidator();
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("{ }"));
+
+        // assert
+        Assert.Equal(
+            "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
+            Assert.Single(result.Errors).Message);
+    }
+
+    [Fact]
+    public void EmptySubscription_Should_ReportRootSelectionAndSingleRootFieldErrors_WhenEnabled()
+    {
+        // arrange
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true));
+
+        // act
+        var result =
+            validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("subscription { }"));
+
+        // assert
+        Assert.Collection(
+            result.Errors,
+            t => Assert.Equal(
+                "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
+                t.Message),
+            t => Assert.Equal("Subscription operations must have exactly one root field.", t.Message));
+    }
+
+    [Fact]
     public void FieldIsNotDefinedOnTypeInFragment()
     {
         ExpectErrors(
@@ -1046,10 +1093,10 @@ public class DocumentValidatorTests
         snapshot.Match();
     }
 
-    private static DocumentValidator CreateValidator()
+    private static DocumentValidator CreateValidator(Action<DocumentValidatorBuilder>? configure = null)
     {
-        return DocumentValidatorBuilder.New()
-            .AddDefaultRules()
-            .Build();
+        var builder = DocumentValidatorBuilder.New().AddDefaultRules();
+        configure?.Invoke(builder);
+        return builder.Build();
     }
 }

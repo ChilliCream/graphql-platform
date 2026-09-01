@@ -21,6 +21,38 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
         Assert.False(interceptor.Options.ValidatePipelineOrder);
     }
 
+    [Fact]
+    public async Task ModifyOptions_EnableEmptySelectionSets_ExecutesEmptySelectionSets()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ModifyOptions(o => o.EnableEmptySelectionSets = true)
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var rootResult = await executor.ExecuteAsync("{ }");
+        var objectResult = await executor.ExecuteAsync("{ hero { } }");
+
+        // assert
+        rootResult.MatchInlineSnapshot(
+            """
+            {
+              "data": {}
+            }
+            """);
+        objectResult.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {}
+              }
+            }
+            """);
+    }
+
     private sealed class OptionsInterceptor : TypeInterceptor
     {
         public IReadOnlySchemaOptions Options { get; private set; } = null!;
@@ -36,5 +68,12 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     public class Query
     {
         public string Abc() => "abc";
+
+        public Hero Hero() => new();
+    }
+
+    public class Hero
+    {
+        public string Name => "Luke";
     }
 }

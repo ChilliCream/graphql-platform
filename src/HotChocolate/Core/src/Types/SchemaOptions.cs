@@ -112,6 +112,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableStream"/>
     public bool EnableStream { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableEmptySelectionSets"/>
+    public bool EnableEmptySelectionSets { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
 
@@ -232,6 +235,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
+            EnableEmptySelectionSets = options.EnableEmptySelectionSets,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
