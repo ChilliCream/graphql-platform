@@ -43,13 +43,20 @@ internal static class GraphParentMap
         Dictionary<string, string> parentsByChild,
         IReadOnlyDictionary<string, GraphNode> nodesById)
     {
+        var states = nodesById.Keys.ToDictionary(id => id, _ => 0, StringComparer.Ordinal);
+
         foreach (var startId in nodesById.Keys.OrderBy(id => nodesById[id].Priority).ThenBy(id => id, StringComparer.Ordinal))
         {
+            if (states[startId] != 0)
+            {
+                continue;
+            }
+
             var positions = new Dictionary<string, int>(StringComparer.Ordinal);
             var path = new List<string>();
             var currentId = startId;
 
-            while (true)
+            while (states[currentId] == 0)
             {
                 if (positions.TryGetValue(currentId, out var cycleStart))
                 {
@@ -71,6 +78,11 @@ internal static class GraphParentMap
                 }
 
                 currentId = parentId;
+            }
+
+            foreach (var id in path)
+            {
+                states[id] = 1;
             }
         }
     }

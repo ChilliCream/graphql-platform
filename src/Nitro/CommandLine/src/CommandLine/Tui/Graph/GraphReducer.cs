@@ -131,7 +131,7 @@ internal static class GraphReducer
         var activeEpicIds = collapsedEpicIds
             .Where(id => nodes.TryGetValue(id, out var node) && node.IsEpic)
             .ToHashSet(StringComparer.Ordinal);
-        var representativeById = nodes.Keys.ToDictionary(id => id, id => Representative(id), StringComparer.Ordinal);
+        var representativeById = BuildCollapsedRepresentatives(nodes, parentByChild, activeEpicIds);
         var hiddenChildCounts = new Dictionary<string, int>(StringComparer.Ordinal);
 
         foreach (var pair in representativeById)
@@ -161,26 +161,52 @@ internal static class GraphReducer
         }
 
         return Order(new GraphModel(reducedNodes, reducedEdges));
+    }
 
-        string Representative(string id)
+    private static Dictionary<string, string> BuildCollapsedRepresentatives(
+        IReadOnlyDictionary<string, GraphNode> nodesById,
+        IReadOnlyDictionary<string, string> parentByChild,
+        IReadOnlySet<string> collapsedEpicIds)
+    {
+        var childrenByParent = parentByChild
+            .GroupBy(t => t.Value, StringComparer.Ordinal)
+            .ToDictionary(
+                t => t.Key,
+                t => t.Select(child => child.Key).Order(StringComparer.Ordinal).ToArray(),
+                StringComparer.Ordinal);
+        var childIds = parentByChild.Keys.ToHashSet(StringComparer.Ordinal);
+        var representatives = new Dictionary<string, string>(nodesById.Count, StringComparer.Ordinal);
+        var pending = new Queue<(string Id, string? CollapsedAncestorId)>();
+
+        foreach (var nodeId in nodesById.Keys.Order(StringComparer.Ordinal))
         {
-            var current = id;
-            var seenIds = new HashSet<string>(StringComparer.Ordinal);
-            var representative = id;
-
-            while (seenIds.Add(current)
-                && parentByChild.TryGetValue(current, out var parentId))
+            if (!childIds.Contains(nodeId))
             {
-                current = parentId;
+                pending.Enqueue((nodeId, null));
+            }
+        }
 
-                if (activeEpicIds.Contains(current))
+        while (pending.TryDequeue(out var current))
+        {
+            var collapsedAncestorId = current.CollapsedAncestorId
+                ?? (collapsedEpicIds.Contains(current.Id) ? current.Id : null);
+            representatives[current.Id] = collapsedAncestorId ?? current.Id;
+
+            if (childrenByParent.TryGetValue(current.Id, out var children))
+            {
+                foreach (var childId in children)
                 {
-                    representative = current;
+                    pending.Enqueue((childId, collapsedAncestorId));
                 }
             }
-
-            return representative;
         }
+
+        foreach (var nodeId in nodesById.Keys)
+        {
+            representatives.TryAdd(nodeId, nodeId);
+        }
+
+        return representatives;
     }
 
     private static GraphModel MarkReversedEdges(GraphModel model)

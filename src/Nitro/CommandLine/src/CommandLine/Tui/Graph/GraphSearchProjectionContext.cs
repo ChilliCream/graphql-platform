@@ -5,15 +5,14 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Graph;
 /// </summary>
 internal sealed class GraphSearchProjectionContext
 {
-    private readonly IReadOnlyDictionary<string, string> _parentByChild;
     private readonly HashSet<string> _reducedIds;
     private readonly Dictionary<string, string> _representatives = new(StringComparer.Ordinal);
 
     public GraphSearchProjectionContext(GraphModel visibleModel, GraphModel reducedModel)
     {
         VisibleNodes = visibleModel.Nodes;
-        _parentByChild = GraphParentMap.Build(visibleModel);
         _reducedIds = reducedModel.Nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);
+        BuildRepresentatives(GraphParentMap.Build(visibleModel));
     }
 
     /// <summary>
@@ -25,38 +24,51 @@ internal sealed class GraphSearchProjectionContext
     /// Resolves a visible task to its reduced canvas representative.
     /// </summary>
     public string ResolveRepresentative(string id)
-    {
-        if (_representatives.TryGetValue(id, out var representative))
-        {
-            return representative;
-        }
-
-        var current = id;
-        var visited = new HashSet<string>(StringComparer.Ordinal);
-
-        while (true)
-        {
-            if (_reducedIds.Contains(current))
-            {
-                representative = current;
-                break;
-            }
-
-            if (!visited.Add(current) || !_parentByChild.TryGetValue(current, out var parentId))
-            {
-                representative = id;
-                break;
-            }
-
-            current = parentId;
-        }
-
-        _representatives[id] = representative;
-        return representative;
-    }
+        => _representatives.GetValueOrDefault(id, id);
 
     /// <summary>
     /// Whether the id is represented in the current reduced canvas model.
     /// </summary>
     public bool ContainsReducedId(string id) => _reducedIds.Contains(id);
+
+    private void BuildRepresentatives(IReadOnlyDictionary<string, string> parentByChild)
+    {
+        var childrenByParent = parentByChild
+            .GroupBy(t => t.Value, StringComparer.Ordinal)
+            .ToDictionary(
+                t => t.Key,
+                t => t.Select(child => child.Key).Order(StringComparer.Ordinal).ToArray(),
+                StringComparer.Ordinal);
+        var childIds = parentByChild.Keys.ToHashSet(StringComparer.Ordinal);
+        var pending = new Queue<(string Id, string? NearestReducedId)>();
+
+        foreach (var node in VisibleNodes)
+        {
+            if (!childIds.Contains(node.Id))
+            {
+                pending.Enqueue((node.Id, null));
+            }
+        }
+
+        while (pending.TryDequeue(out var current))
+        {
+            var nearestReducedId = _reducedIds.Contains(current.Id)
+                ? current.Id
+                : current.NearestReducedId;
+            _representatives[current.Id] = nearestReducedId ?? current.Id;
+
+            if (childrenByParent.TryGetValue(current.Id, out var childIdsForParent))
+            {
+                foreach (var childId in childIdsForParent)
+                {
+                    pending.Enqueue((childId, nearestReducedId));
+                }
+            }
+        }
+
+        foreach (var node in VisibleNodes)
+        {
+            _representatives.TryAdd(node.Id, node.Id);
+        }
+    }
 }

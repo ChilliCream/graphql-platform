@@ -196,9 +196,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         if (info.Key == ConsoleKey.Escape)
         {
             _searchEditor = null;
-            _matchIds.Clear();
-            _searchMatchIndex = -1;
-            ApplyMatchIds();
+            RecomputeAndApplySearchState();
             return [];
         }
 
@@ -210,7 +208,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
 
         if (_searchEditor.HandleKey(info))
         {
-            UpdateMatches();
+            RecomputeAndApplySearchState();
         }
 
         return [];
@@ -274,7 +272,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         _canvasView.SetModel(reduced);
         RebuildSearchContext();
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
-        UpdateMatches();
+        RecomputeAndApplySearchState();
     }
 
     private void ToggleProjection()
@@ -302,7 +300,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         _canvasView.SetModel(reduced);
         RebuildSearchContext();
         SelectVisibleTask(ResolveVisibleSelection(_selectedTaskId, reduced));
-        ApplyMatchIds();
+        RecomputeAndApplySearchState();
     }
 
     private void Move(CursorDirection direction)
@@ -414,7 +412,7 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         _canvasModel = reduced;
         _canvasView.SetModel(reduced);
         RebuildSearchContext();
-        ApplyMatchIds();
+        RecomputeAndApplySearchState();
         SelectVisibleTask(ResolveVisibleSelection(requestedSelection, reduced));
     }
 
@@ -592,10 +590,10 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
     private void OpenSearch()
     {
         _searchEditor ??= new LineEditor();
-        UpdateMatches();
+        RecomputeAndApplySearchState();
     }
 
-    private void UpdateMatches()
+    private void RecomputeAndApplySearchState()
     {
         _matchIds.Clear();
         _directMatchIds.Clear();
@@ -694,7 +692,6 @@ internal sealed class GraphMode : ITuiMode, IRawKeyCapturingMode
         _epicIds.UnionWith(epicIds);
         RecreateTree();
         UpdateCanvasModel(requestedSelection);
-        UpdateMatches();
     }
 
     private string FilterNotice()

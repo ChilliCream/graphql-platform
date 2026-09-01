@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
@@ -1212,24 +1213,24 @@ internal sealed class TuiShell
         MailWakeDaemonState? mailWakeDaemonState,
         string? inlineStatus)
     {
-        if (!string.IsNullOrEmpty(inlineStatus))
+        if (width <= 0)
         {
-            var statusWidth = Math.Max(1, width / 2);
-            var statusText = inlineStatus.Length <= statusWidth
-                ? inlineStatus
-                : statusWidth == 1
-                    ? FooterEllipsis
-                    : inlineStatus[..(statusWidth - FooterEllipsis.Length)] + FooterEllipsis;
-            var statusStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
-            var statusMarkup = $"[{statusStyle}]{Markup.Escape(statusText)}[/]";
-            var remaining = Math.Max(0, width - statusText.Length - FooterSeparator.Length);
-            var hintsMarkup = FormatFooterHints(hints, remaining, out _);
-
-            return hintsMarkup.Length == 0 ? statusMarkup : statusMarkup + FooterSeparator + hintsMarkup;
+            return string.Empty;
         }
 
-        var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
-        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+        var statusText = string.IsNullOrEmpty(inlineStatus) ? null : TruncateFooterText(inlineStatus, width);
+        var statusWidth = statusText?.Length ?? 0;
+        var hintWidth = Math.Max(0, width - statusWidth - (statusWidth > 0 ? FooterSeparator.Length : 0));
+        var hintMarkup = FormatFooterHints(hints, hintWidth, out var hintPlainWidth);
+        var leadingWidth = statusWidth + hintPlainWidth + (statusWidth > 0 && hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+        var leadingMarkup = statusWidth == 0
+            ? hintMarkup
+            : hintPlainWidth == 0
+                ? $"[{ThemeTokens.GetStyle("footer.action").ToMarkup()}]{Markup.Escape(statusText!)}[/]"
+                : $"[{ThemeTokens.GetStyle("footer.action").ToMarkup()}]{Markup.Escape(statusText!)}[/]"
+                    + FooterSeparator
+                    + hintMarkup;
+        var available = width - leadingWidth - (leadingWidth > 0 ? FooterSeparator.Length : 0);
 
         if (available <= 0)
         {
@@ -1282,12 +1283,43 @@ internal sealed class TuiShell
 
         if (trailingPlainWidth == 0)
         {
-            return hintMarkup;
+            return leadingMarkup;
         }
 
-        var padding = Math.Max(0, width - hintPlainWidth - trailingPlainWidth);
+        var padding = Math.Max(0, width - leadingWidth - trailingPlainWidth);
 
-        return hintMarkup + new string(' ', padding) + trailingMarkup;
+        return leadingMarkup + new string(' ', padding) + trailingMarkup;
+    }
+
+    private static string TruncateFooterText(string value, int width)
+    {
+        if (value.Length <= width)
+        {
+            return value;
+        }
+
+        if (width <= FooterEllipsis.Length)
+        {
+            return FooterEllipsis;
+        }
+
+        var builder = new StringBuilder(width);
+        var enumerator = StringInfo.GetTextElementEnumerator(value);
+        var remaining = width - FooterEllipsis.Length;
+
+        while (enumerator.MoveNext() && builder.Length < remaining)
+        {
+            var element = enumerator.GetTextElement();
+
+            if (builder.Length + element.Length > remaining)
+            {
+                break;
+            }
+
+            builder.Append(element);
+        }
+
+        return builder.Append(FooterEllipsis).ToString();
     }
 
     /// <summary>
