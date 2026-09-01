@@ -81,4 +81,6 @@ public class WebSocketSourceSchemaClientConfiguration : ISourceSchemaClientConfi
     /// Gets the maximum number of response payload bytes queued for one operation.
     /// </summary>
     public int MaxOperationQueueBytes { get; }
+
+    internal WebSocketContextForwardingConfiguration? ContextForwarding { get; set; }
 }

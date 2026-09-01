@@ -201,7 +201,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         var client = new WebSocketSourceSchemaClient(
             invoker,
             new WebSocketSourceSchemaClientConfiguration("A", new Uri("ws://localhost/graphql")),
-            async (_, _, _, _) =>
+            async (_, _, _, _, _) =>
             {
                 connectionStarted.TrySetResult();
                 return await allowConnection.Task;
@@ -348,13 +348,13 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
                 "A",
                 new Uri("ws://localhost/graphql"),
                 capabilities: capabilities),
-            (_, _, _, _) =>
+            (_, _, _, _, _) =>
             {
                 onConnect?.Invoke();
                 return ValueTask.FromResult<WebSocket>(socket);
             });
 
-    private static SourceSchemaClientRequest CreateRequest(
+    internal static SourceSchemaClientRequest CreateRequest(
         ExecutionNode node,
         OperationType operationType = OperationType.Query,
         int variableCount = 1)
@@ -381,7 +381,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         };
     }
 
-    private static async Task<string?> ReadValueAsync(IAsyncEnumerable<SourceSchemaResult> results)
+    internal static async Task<string?> ReadValueAsync(IAsyncEnumerable<SourceSchemaResult> results)
     {
         await foreach (var result in results.WithCancellation(TestContext.Current.CancellationToken))
         {
@@ -394,7 +394,7 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         return null;
     }
 
-    private sealed class WebSocketClientTestFixture : IAsyncDisposable
+    internal sealed class WebSocketClientTestFixture : IAsyncDisposable
     {
         private readonly ServiceProvider _services;
         private readonly IRequestExecutor _executor;
@@ -491,14 +491,14 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         }
     }
 
-    private enum SocketBehavior
+    internal enum SocketBehavior
     {
         Respond,
         Hold,
         Terminate
     }
 
-    private sealed class ScriptedWebSocket(
+    internal sealed class ScriptedWebSocket(
         SocketBehavior behavior,
         WebSocketState state = WebSocketState.Open,
         string? subProtocol = WellKnownProtocols.GraphQL_Transport_WS) : WebSocket
@@ -523,6 +523,8 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
         public int DisposeCount => Volatile.Read(ref _disposeCount);
 
         public int SubscribeCount => Volatile.Read(ref _subscribeCount);
+
+        public JsonElement ConnectionInitPayload { get; private set; }
 
         public IReadOnlyList<string> Events
         {
@@ -631,6 +633,11 @@ public sealed class WebSocketSourceSchemaClientTests : FusionTestBase
             switch (type)
             {
                 case "connection_init":
+                    if (document.RootElement.TryGetProperty("payload", out var payload))
+                    {
+                        ConnectionInitPayload = payload.Clone();
+                    }
+
                     Enqueue("""{"type":"connection_ack"}""");
                     break;
 

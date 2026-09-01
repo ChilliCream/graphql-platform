@@ -893,6 +893,8 @@ internal sealed class FusionRequestExecutorManager
                 configurations.Add(configure.Invoke(applicationServices));
             }
 
+            ApplyWebSocketContextForwarding(configurations, setup);
+
             if (unclaimedSourceSchemas is not null)
             {
                 var configuredNames = new HashSet<string>(StringComparer.Ordinal);
@@ -925,6 +927,52 @@ internal sealed class FusionRequestExecutorManager
             }
 
             return new SourceSchemaClientConfigurations(configurations);
+        }
+
+        private static void ApplyWebSocketContextForwarding(
+            List<ISourceSchemaClientConfiguration> configurations,
+            FusionGatewaySetup setup)
+        {
+            if (setup.GlobalWebSocketContextForwardingModifiers.Count == 0
+                && setup.WebSocketContextForwardingModifiers.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var configuration in configurations.OfType<WebSocketSourceSchemaClientConfiguration>())
+            {
+                var sourceSchemaBuilder = new WebSocketContextForwardingBuilder();
+
+                foreach (var configure in setup.WebSocketContextForwardingModifiers)
+                {
+                    if (string.Equals(
+                            configure.SourceSchemaName,
+                            configuration.Name,
+                            StringComparison.Ordinal))
+                    {
+                        configure.Configure(sourceSchemaBuilder);
+                    }
+                }
+
+                if (sourceSchemaBuilder.ExcludeGlobalRules)
+                {
+                    configuration.ContextForwarding = sourceSchemaBuilder.Build();
+                    continue;
+                }
+
+                var globalBuilder = new WebSocketContextForwardingBuilder();
+                foreach (var configure in setup.GlobalWebSocketContextForwardingModifiers)
+                {
+                    configure(globalBuilder);
+                }
+
+                var globalConfiguration = globalBuilder.Build();
+                var sourceSchemaConfiguration = sourceSchemaBuilder.Build();
+                configuration.ContextForwarding = new WebSocketContextForwardingConfiguration(
+                    [.. globalConfiguration.Rules, .. sourceSchemaConfiguration.Rules],
+                    excludeGlobalRules: false,
+                    [.. globalConfiguration.OnConnect, .. sourceSchemaConfiguration.OnConnect]);
+            }
         }
 
         private bool TryClaimSourceSchema(

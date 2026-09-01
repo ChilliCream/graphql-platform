@@ -11,6 +11,39 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class CoreFusionGatewayBuilderExtensions
 {
     /// <summary>
+    /// Configures context forwarding for all source schema WebSocket connections.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketContextForwarding(
+        this IFusionGatewayBuilder builder,
+        Action<WebSocketContextForwardingBuilder> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.GlobalWebSocketContextForwardingModifiers.Add(configure));
+    }
+
+    /// <summary>
+    /// Configures context forwarding for a source schema WebSocket connection.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketContextForwarding(
+        this IFusionGatewayBuilder builder,
+        string sourceSchemaName,
+        Action<WebSocketContextForwardingBuilder> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.WebSocketContextForwardingModifiers.Add(
+                new WebSocketContextForwardingModifier(sourceSchemaName, configure)));
+    }
+
+    /// <summary>
     /// Adds an http client configuration to the fusion gateway.
     /// </summary>
     /// <param name="builder">

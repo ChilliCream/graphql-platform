@@ -30,5 +30,18 @@ public sealed class FusionGatewaySetup
 
     public List<Func<IServiceProvider, ISourceSchemaClientConfiguration>> ClientConfigurationModifiers { get; } = [];
 
+    internal List<Action<WebSocketContextForwardingBuilder>> GlobalWebSocketContextForwardingModifiers { get; } = [];
+
+    internal List<WebSocketContextForwardingModifier> WebSocketContextForwardingModifiers { get; } = [];
+
     public List<ISourceSchemaClientConfigurationParser> SourceSchemaClientConfigurationParsers { get; } = [];
+}
+
+internal sealed class WebSocketContextForwardingModifier(
+    string sourceSchemaName,
+    Action<WebSocketContextForwardingBuilder> configure)
+{
+    public string SourceSchemaName { get; } = sourceSchemaName;
+
+    public Action<WebSocketContextForwardingBuilder> Configure { get; } = configure;
 }

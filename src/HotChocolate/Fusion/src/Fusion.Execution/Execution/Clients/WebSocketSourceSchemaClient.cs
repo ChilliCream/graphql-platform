@@ -123,7 +123,7 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         try
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
-            var client = await GetSocketClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await GetSocketClientAsync(context, cancellationToken).ConfigureAwait(false);
 
             if (!subscribe
                 && request.Variables.Length > 1
@@ -227,7 +227,7 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         try
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
-            var client = await GetSocketClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await GetSocketClientAsync(context, cancellationToken).ConfigureAwait(false);
             var batch = CreateOperationBatch(requests);
             entries = batch.Entries;
             socketResult = await client.ExecuteBatchAsync(
@@ -354,7 +354,9 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         }
     }
 
-    private async ValueTask<SocketClient> GetSocketClientAsync(CancellationToken cancellationToken)
+    private async ValueTask<SocketClient> GetSocketClientAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
 
@@ -381,6 +383,19 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
             {
                 WebSocket? socket = null;
                 var ownsSocket = false;
+                var forwarding = _configuration.ContextForwarding;
+                JsonElement initPayload;
+                Dictionary<string, string> upgradeHeaders;
+
+                if (forwarding is null)
+                {
+                    initPayload = default;
+                    upgradeHeaders = [];
+                }
+                else
+                {
+                    forwarding.Apply(context, out initPayload, out upgradeHeaders);
+                }
 
                 try
                 {
@@ -388,6 +403,7 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
                         _configuration.Url,
                         _invoker,
                         _configuration.KeepAliveInterval,
+                        upgradeHeaders,
                         cancellationToken).ConfigureAwait(false);
                     ownsSocket = true;
 
@@ -414,6 +430,7 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
                     var client = await SocketClient.ConnectAsync(
                         socket,
                         options,
+                        initPayload,
                         cancellationToken).ConfigureAwait(false);
 
                     _socketClient = client;
@@ -732,6 +749,7 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         Uri url,
         HttpMessageInvoker invoker,
         TimeSpan keepAliveInterval,
+        IReadOnlyDictionary<string, string> upgradeHeaders,
         CancellationToken cancellationToken)
     {
         var socket = new ClientWebSocket();
@@ -739,6 +757,11 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         socket.Options.KeepAliveInterval = keepAliveInterval;
         socket.Options.HttpVersion = HttpVersion.Version20;
         socket.Options.HttpVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+
+        foreach (var (name, value) in upgradeHeaders)
+        {
+            socket.Options.SetRequestHeader(name, value);
+        }
 
         try
         {
@@ -785,6 +808,7 @@ public sealed class WebSocketSourceSchemaClient : ISourceSchemaClient
         Uri url,
         HttpMessageInvoker invoker,
         TimeSpan keepAliveInterval,
+        IReadOnlyDictionary<string, string> upgradeHeaders,
         CancellationToken cancellationToken);
 
     private readonly record struct BatchEntry(int RequestIndex, int VariableIndex);
