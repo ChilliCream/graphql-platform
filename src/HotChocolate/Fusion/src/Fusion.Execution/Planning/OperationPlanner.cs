@@ -129,7 +129,7 @@ public sealed partial class OperationPlanner
                 // Path and IfVariable populated). The rewriter consumes the
                 // same instances so its per-set grouping and the compiler's
                 // later Selection._deliveryGroups entries share object identity.
-                var deferConditions = new DeferConditionCollection();
+                var deferConditions = new DeferConditionCollection(_operationCompiler.MaxAllowedDeferConditions);
                 partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
                 var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);

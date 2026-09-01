@@ -313,8 +313,8 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
             DefaultErrorHandler.Default,
             _operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default(ConditionFlags),
+            deferFlags: default(ConditionFlags),
             pathSegmentLocalPoolCapacity: 16);
 
     private static OperationRequirement Requirement(string key)
