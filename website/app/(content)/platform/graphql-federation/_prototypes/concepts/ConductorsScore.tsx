@@ -22,10 +22,10 @@ const MARKERS = [
   { s: 4, x: 874, y: 260 },
 ] as const;
 
-const TAP_DOT_Y = 1060;
+const TAP_DOT_Y = 1290;
 
 const BRACKET = { x1: 110, x2: 914, yTop: 1552, yBottom: 1570, labelY: 1602 };
-const BRACKET_LANE_X = 512;
+const BRACKET_LANE_X = 704;
 
 const SCHEMA_STUB_Y = 2900;
 
@@ -33,7 +33,7 @@ const PLATE = { x: 112, y: 3380, w: 800, h: 200 };
 const PLATE_ROW_START = PLATE.y + 62;
 const PLATE_ROW_STEP = 26;
 
-const SPINE_X = 512;
+const SPINE_X = 524;
 const SPINE_TOP = PLATE.y + PLATE.h;
 const HORIZON_Y = 4300;
 const CHIP = { x: 512, y: 4380 } as const;
@@ -50,7 +50,7 @@ const PLATE_ROWS = CHAPTERS[0].boxes[0].lines.map((line, i) => ({
 const GAPS = [
   { x: 470, w: 460, y: 400, h: 320 },
   { x: 95, w: 460, y: 900, h: 320 },
-  { x: 220, w: 584, y: 1410, h: 300 },
+  { x: 95, w: 460, y: 1390, h: 340 },
   { x: 470, w: 460, y: 1900, h: 320 },
   { x: 220, w: 584, y: 2350, h: 300 },
   { x: 220, w: 584, y: 3560, h: 360 },
@@ -135,7 +135,7 @@ const PLACEMENT: readonly {
     copy: { top: 1060, left: 30, side: true, title: "" },
     boxes: [{ top: 1060, left: 72 }],
   },
-  { copy: { top: 1600, left: 50, title: "" }, boxes: [] },
+  { copy: { top: 1600, left: 30, side: true, title: "" }, boxes: [] },
   {
     copy: { top: 2020, left: 70, side: true, title: "" },
     boxes: [{ top: 2020, left: 28 }],
@@ -254,13 +254,7 @@ function Score() {
 
       {/* Beat 2: each app touches every lane once. */}
       {LANE_X.map((x, i) => (
-        <circle
-          key={i}
-          cx={x}
-          cy={TAP_DOT_Y}
-          r={5}
-          fill="rgba(255,255,255,0.85)"
-        />
+        <circle key={i} cx={x} cy={TAP_DOT_Y} r={5} fill="#fff" />
       ))}
 
       {/* Beat 3: the chokepoint is a clamp across all five staves, not a merge. */}
@@ -308,9 +302,9 @@ function Score() {
           />
         ))}
         <text
-          x={(BRACKET.x1 + BRACKET.x2) / 2}
+          x={BRACKET.x2}
           y={BRACKET.labelY}
-          textAnchor="middle"
+          textAnchor="end"
           fontFamily={MONO}
           fontSize={11}
           letterSpacing="0.18em"
@@ -361,7 +355,7 @@ function Score() {
       {PLATE_ROWS.map((row, i) => (
         <g key={row.label}>
           <text
-            x={PLATE.x + 20}
+            x={PLATE.x + 60}
             y={PLATE_ROW_START + i * PLATE_ROW_STEP}
             fontFamily={MONO}
             fontSize={12}
@@ -531,8 +525,8 @@ function MobileScore() {
       ))}
 
       <line
-        x1={160}
-        x2={160}
+        x1={166}
+        x2={166}
         y1={plateY + plateH}
         y2={spineBottom}
         stroke="#5eead4"
