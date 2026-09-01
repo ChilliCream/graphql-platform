@@ -1,7 +1,7 @@
+using CookieCrumble.Resources;
 using System.Data;
 using HotChocolate.Tests;
 using Npgsql;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
