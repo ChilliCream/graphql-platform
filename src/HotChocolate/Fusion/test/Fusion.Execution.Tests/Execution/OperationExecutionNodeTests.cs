@@ -6,6 +6,8 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -136,9 +138,71 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task Subscription_Should_BorrowDedicatedScope_ForSameSchemaDependentClient()
+    {
+        // arrange
+        var clientScopeFactory = new TestClientScopeFactory();
+        var executor = await CreateExecutorAsync(
+            new EmptyQueryClient(),
+            clientScopeFactory: clientScopeFactory);
+        var request = CreateSubscriptionRequest();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ExpectResponseStream();
+        await using var enumerator = stream
+            .ReadResultsAsync()
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        var hasResult = await enumerator.MoveNextAsync();
+
+        // assert
+        Assert.False(hasResult);
+        Assert.Equal(2, clientScopeFactory.Scopes.Count);
+        var subscriptionClient = (ScopeBorrowSubscriptionClient)clientScopeFactory.Scopes[1].Client;
+        Assert.Same(subscriptionClient, subscriptionClient.DependentClient);
+        Assert.Equal(1, clientScopeFactory.Scopes[1].DisposeCount);
+    }
+
+    [Fact]
+    public async Task Subscription_Should_DisposeDedicatedScope_When_SubscriptionFails()
+    {
+        // arrange
+        var clientScopeFactory = new TestClientScopeFactory(
+            static () => new ThrowingScopeBorrowSubscriptionClient());
+        var executor = await CreateExecutorAsync(
+            new EmptyQueryClient(),
+            clientScopeFactory: clientScopeFactory);
+        var request = CreateSubscriptionRequest();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ExpectResponseStream();
+        await using var enumerator = stream
+            .ReadResultsAsync()
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        var hasResult = await enumerator.MoveNextAsync();
+        var errorResult = enumerator.Current;
+
+        // assert
+        try
+        {
+            Assert.True(hasResult);
+            Assert.Single(errorResult.Errors!);
+            Assert.Equal(1, clientScopeFactory.Scopes[1].DisposeCount);
+        }
+        finally
+        {
+            await errorResult.DisposeAsync();
+        }
+    }
+
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         ISourceSchemaClient client,
-        SupportedOperationType supportedOperations = SupportedOperationType.Subscription)
+        SupportedOperationType supportedOperations = SupportedOperationType.Subscription,
+        TestClientScopeFactory? clientScopeFactory = null)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -160,6 +224,11 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new TestSubscriptionClientFactory(client));
+
+        if (clientScopeFactory is not null)
+        {
+            builder.Services.AddSingleton<ISourceSchemaClientScopeFactory>(clientScopeFactory);
+        }
 
         FusionSetupUtilities.Configure(
             builder,
@@ -279,6 +348,34 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class ScopeBorrowSubscriptionClient : TestSubscriptionClient
+    {
+        public ISourceSchemaClient? DependentClient { get; private set; }
+
+        public override async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            DependentClient = context.GetClient("events", OperationType.Query);
+            await Task.Yield();
+            yield break;
+        }
+    }
+
+    private sealed class ThrowingScopeBorrowSubscriptionClient : TestSubscriptionClient
+    {
+        public override async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            await Task.FromException(new InvalidOperationException("The subscription failed."));
+            yield break;
+        }
+    }
+
     private sealed class TestSubscriptionClientFactory(ISourceSchemaClient client)
         : ISourceSchemaClientFactory
     {
@@ -289,6 +386,41 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             FusionSchemaDefinition schema,
             ISourceSchemaClientConfiguration configuration)
             => client;
+    }
+
+    private sealed class TestClientScopeFactory : ISourceSchemaClientScopeFactory
+    {
+        private readonly Func<ISourceSchemaClient> _createClient;
+
+        public TestClientScopeFactory(Func<ISourceSchemaClient>? createClient = null)
+        {
+            _createClient = createClient ?? (() => new ScopeBorrowSubscriptionClient());
+        }
+
+        public List<TestClientScope> Scopes { get; } = [];
+
+        public ISourceSchemaClientScope CreateScope(ISchemaDefinition schemaDefinition)
+        {
+            var scope = new TestClientScope(_createClient());
+            Scopes.Add(scope);
+            return scope;
+        }
+    }
+
+    private sealed class TestClientScope(ISourceSchemaClient client) : ISourceSchemaClientScope
+    {
+        public ISourceSchemaClient Client { get; } = client;
+
+        public int DisposeCount { get; private set; }
+
+        public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
+            => Client;
+
+        public ValueTask DisposeAsync()
+        {
+            DisposeCount++;
+            return ValueTask.CompletedTask;
+        }
     }
 
     private sealed class TestSubscriptionClientConfiguration(
