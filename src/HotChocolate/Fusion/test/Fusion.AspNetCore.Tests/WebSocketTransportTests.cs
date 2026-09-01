@@ -201,6 +201,147 @@ public sealed class WebSocketTransportTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Subscription_Should_ShareSourceSocketWithReentryLookup_When_EntityHopReturnsToSource()
+    {
+        // arrange
+        var connections = new ConnectionCapture();
+        var operations = new SourceWebSocketOperationCapture();
+        var events = new XyEntityLookupEvents();
+        using var sourceX = CreateSourceSchema(
+            "X",
+            builder => builder
+                .AddQueryType<XySourceSchemaX.Query>()
+                .AddSubscriptionType<XySourceSchemaX.Subscription>()
+                .AddSocketSessionInterceptor(_ => new SourceSocketSessionInterceptor(connections, operations)),
+            configureServices: services =>
+            {
+                services.AddSingleton(events);
+                services.AddSingleton(new XyLookupGate());
+            });
+        using var sourceY = CreateSourceSchema(
+            "Y",
+            builder => builder.AddQueryType<XySourceSchemaY.Query>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("X", sourceX), ("Y", sourceY)],
+            configureServices: services => ReplaceWebSocketClientFactory(
+                services,
+                [("X", sourceX), ("Y", sourceY)],
+                operations),
+            gatewaySettings: XyTransportSettings);
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest = request =>
+            request.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        using var webSocket = await webSocketClient.ConnectAsync(
+            new Uri("ws://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        await using var client = await SocketClient.ConnectAsync(webSocket, TestContext.Current.CancellationToken);
+        using var result = await client.ExecuteAsync(
+            new OperationRequest("subscription { onBookCreated { id title sequel { title } } }"),
+            TestContext.Current.CancellationToken);
+        await using var results = result.ReadResultsAsync().GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        events.ReleaseFirst();
+        var first = await ReadNextResultAsync(results);
+        await operations.WaitForSubscriptionAndQueryAsync(TestContext.Current.CancellationToken);
+        events.Complete();
+
+        // assert
+        first.GetRawText().MatchInlineSnapshot(
+            """{"onBookCreated":{"id":1,"title":"Foo","sequel":{"title":"Bar"}}}""");
+        Assert.Equal(1, connections.Count);
+        var subscription = Assert.Single(operations.Subscribes, operation => operation.OperationType == OperationType.Subscription);
+        var lookup = Assert.Single(operations.Subscribes, operation => operation.OperationType == OperationType.Query);
+        Assert.Equal(subscription.ConnectionId, lookup.ConnectionId);
+        Assert.NotEqual(subscription.OperationId, lookup.OperationId);
+    }
+
+    [Fact]
+    public async Task Subscription_Should_OverflowWithoutClosingReentryLookup_When_SourceSocketIsShared()
+    {
+        // arrange
+        var connections = new ConnectionCapture();
+        var operations = new SourceWebSocketOperationCapture();
+        var events = new XyEntityLookupEvents(chatty: true);
+        var lookupGate = new XyLookupGate(block: true);
+        var exceptions = new SocketOperationExceptionCapture();
+        using var sourceX = CreateSourceSchema(
+            "X",
+            builder => builder
+                .AddQueryType<XySourceSchemaX.Query>()
+                .AddSubscriptionType<XySourceSchemaX.Subscription>()
+                .AddSocketSessionInterceptor(_ => new SourceSocketSessionInterceptor(connections, operations)),
+            configureServices: services =>
+            {
+                services.AddSingleton(events);
+                services.AddSingleton(lookupGate);
+            });
+        using var sourceY = CreateSourceSchema(
+            "Y",
+            builder => builder.AddQueryType<XySourceSchemaY.Query>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("X", sourceX), ("Y", sourceY)],
+            configureServices: services => ReplaceWebSocketClientFactory(
+                services,
+                [("X", sourceX), ("Y", sourceY)],
+                operations),
+            configureGatewayBuilder: builder =>
+            {
+                builder.AddWebSocketClientConfiguration(
+                    "X",
+                    new Uri("ws://localhost:5000/graphql"),
+                    maxOperationQueueBytes: 64);
+                builder.AddErrorFilter(error =>
+                {
+                    exceptions.TryCapture(error.Exception);
+                    return error.Exception is HotChocolate.Fusion.Transport.Sockets.Client.SocketOperationException
+                        ? error.WithMessage("The source WebSocket operation exceeded its queued payload limit of 64 bytes.")
+                        : error;
+                });
+            },
+            gatewaySettings: XyTransportSettings);
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest = request =>
+            request.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        using var webSocket = await webSocketClient.ConnectAsync(
+            new Uri("ws://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        await using var client = await SocketClient.ConnectAsync(webSocket, TestContext.Current.CancellationToken);
+        using var result = await client.ExecuteAsync(
+            new OperationRequest("subscription { onBookCreated { id title sequel { title } } }"),
+            TestContext.Current.CancellationToken);
+        await using var results = result.ReadResultsAsync().GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        events.ReleaseFirst();
+        await lookupGate.WaitForEntryAsync(TestContext.Current.CancellationToken);
+        await operations.WaitForSubscriptionAndQueryAsync(TestContext.Current.CancellationToken);
+        var subscription = operations.Subscribes.Single(operation => operation.OperationType == OperationType.Subscription);
+        var lookup = operations.Subscribes.Single(operation => operation.OperationType == OperationType.Query);
+        events.ReleaseBurst();
+        await operations.WaitForCompleteAsync(subscription.OperationId, TestContext.Current.CancellationToken);
+        lookupGate.Release();
+        await operations.WaitForResultAsync(lookup.OperationId, TestContext.Current.CancellationToken);
+        var responses = new[]
+        {
+            await ReadNextResponseAsync(results),
+            await ReadNextResponseAsync(results)
+        };
+
+        // assert
+        responses.Select(static response => response.GetRawText()).MatchInlineSnapshots(
+            [
+                """{"data":{"onBookCreated":{"id":1,"title":"Foo","sequel":{"title":"Bar"}}}}""",
+                """{"data":null,"errors":[{"message":"The source WebSocket operation exceeded its queued payload limit of 64 bytes.","path":["onBookCreated"]}]}"""
+            ]);
+        var exception = Assert.Single(exceptions.Items);
+        Assert.Equal($"The WebSocket operation `{subscription.OperationId}` exceeded its queued payload limit of 64 bytes.", exception.Message);
+        Assert.Equal(lookup.OperationId, Assert.Single(operations.ResultOperationIds, id => id == lookup.OperationId));
+        Assert.Equal(subscription.ConnectionId, lookup.ConnectionId);
+        Assert.Equal(1, connections.Count);
+    }
+
+    [Fact]
     public async Task Subscription_Should_ReportTerminalErrorWithoutRedial_When_SourceSocketDies()
     {
         // arrange
@@ -291,9 +432,31 @@ public sealed class WebSocketTransportTests : FusionTestBase
         }
         """;
 
+    private const string XyTransportSettings = """
+        {
+          "sourceSchemas": {
+            "X": {
+              "transports": {
+                "websockets": {
+                  "url": "ws://localhost:5000/graphql"
+                }
+              }
+            },
+            "Y": {
+              "transports": {
+                "http": {
+                  "url": "http://localhost:5000/graphql"
+                }
+              }
+            }
+          }
+        }
+        """;
+
     private static void ReplaceWebSocketClientFactory(
         IServiceCollection services,
-        (string Name, TestServer Server)[] servers)
+        (string Name, TestServer Server)[] servers,
+        SourceWebSocketOperationCapture? operations = null)
     {
         for (var i = services.Count - 1; i >= 0; i--)
         {
@@ -304,7 +467,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
         }
 
         services.AddSingleton<ISourceSchemaClientFactory>(new TestServerHttpSourceSchemaClientFactory(servers));
-        services.AddSingleton<ISourceSchemaClientFactory>(new TestServerWebSocketSourceSchemaClientFactory(servers));
+        services.AddSingleton<ISourceSchemaClientFactory>(new TestServerWebSocketSourceSchemaClientFactory(servers, operations));
     }
 
     private static async Task<JsonElement> ExecuteOverHttpAsync(
@@ -403,6 +566,19 @@ public sealed class WebSocketTransportTests : FusionTestBase
         return result.Data.Clone();
     }
 
+    private static async Task<JsonElement> ReadNextResponseAsync(IAsyncEnumerator<TransportOperationResult> results)
+    {
+        if (!await results.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken))
+        {
+            throw new InvalidOperationException("The gateway subscription completed before producing a response.");
+        }
+
+        using var result = results.Current;
+        return CreateResponsePayload(result);
+    }
+
     private static async Task<JsonElement> ExecuteSubscriptionOverWebSocketAsync(
         Gateway gateway,
         string document)
@@ -493,7 +669,8 @@ public sealed class WebSocketTransportTests : FusionTestBase
     }
 
     private sealed class TestServerWebSocketSourceSchemaClientFactory(
-        (string Name, TestServer Server)[] servers)
+        (string Name, TestServer Server)[] servers,
+        SourceWebSocketOperationCapture? operations = null)
         : SourceSchemaClientFactory<WebSocketSourceSchemaClientConfiguration>, IDisposable
     {
         private readonly Dictionary<string, TestServer> _servers = servers.ToDictionary(static t => t.Name, static t => t.Server);
@@ -520,7 +697,7 @@ public sealed class WebSocketTransportTests : FusionTestBase
                         }
                     };
                     var socket = await client.ConnectAsync(url, cancellationToken);
-                    return new TestServerWebSocket(socket);
+                    return new TestServerWebSocket(socket, operations, operations?.OpenConnection() ?? 0);
                 });
         }
 
@@ -566,6 +743,118 @@ public sealed class WebSocketTransportTests : FusionTestBase
             }
         }
     }
+
+    private sealed class SocketOperationExceptionCapture
+    {
+        public ConcurrentQueue<HotChocolate.Fusion.Transport.Sockets.Client.SocketOperationException> Items { get; } = [];
+
+        public void TryCapture(Exception? exception)
+        {
+            if (exception is HotChocolate.Fusion.Transport.Sockets.Client.SocketOperationException socketOperationException)
+            {
+                Items.Enqueue(socketOperationException);
+            }
+        }
+    }
+
+    private sealed class SourceWebSocketOperationCapture
+    {
+        private readonly TaskCompletionSource _subscriptionAndQuery = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly ConcurrentDictionary<string, TaskCompletionSource> _completions = [];
+        private readonly ConcurrentDictionary<string, TaskCompletionSource> _results = [];
+        private int _nextConnectionId;
+
+        public ConcurrentQueue<SourceWebSocketOperation> Subscribes { get; } = [];
+
+        public ConcurrentQueue<string> CompletedOperationIds { get; } = [];
+
+        public ConcurrentQueue<string> ResultOperationIds { get; } = [];
+
+        public int OpenConnection() => Interlocked.Increment(ref _nextConnectionId);
+
+        public void CaptureMessage(int connectionId, ReadOnlySpan<byte> message)
+        {
+            using var document = JsonDocument.Parse(message.ToArray());
+            var root = document.RootElement;
+
+            if (!root.TryGetProperty("type", out var type)
+                || !type.ValueEquals("subscribe"u8)
+                || !root.TryGetProperty("id", out var id)
+                || !root.TryGetProperty("payload", out var payload)
+                || !payload.TryGetProperty("query", out var query))
+            {
+                return;
+            }
+
+            var operationType = query.GetString()!.TrimStart().StartsWith("subscription", StringComparison.Ordinal)
+                ? OperationType.Subscription
+                : OperationType.Query;
+            Subscribes.Enqueue(new SourceWebSocketOperation(connectionId, id.GetString()!, operationType));
+
+            if (Subscribes.Any(operation => operation.OperationType == OperationType.Subscription)
+                && Subscribes.Any(operation => operation.OperationType == OperationType.Query))
+            {
+                _subscriptionAndQuery.TrySetResult();
+            }
+        }
+
+        public void Complete(string operationId)
+        {
+            CompletedOperationIds.Enqueue(operationId);
+            _completions.GetOrAdd(operationId, static _ => CreateSignal()).TrySetResult();
+        }
+
+        public void Result(string operationId)
+        {
+            ResultOperationIds.Enqueue(operationId);
+            _results.GetOrAdd(operationId, static _ => CreateSignal()).TrySetResult();
+        }
+
+        public Task WaitForSubscriptionAndQueryAsync(CancellationToken cancellationToken)
+        {
+            if (Subscribes.Any(operation => operation.OperationType == OperationType.Subscription)
+                && Subscribes.Any(operation => operation.OperationType == OperationType.Query))
+            {
+                return Task.CompletedTask;
+            }
+
+            return _subscriptionAndQuery.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+        }
+
+        public Task WaitForCompleteAsync(string operationId, CancellationToken cancellationToken)
+        {
+            if (CompletedOperationIds.Contains(operationId))
+            {
+                return Task.CompletedTask;
+            }
+
+            return _completions
+                .GetOrAdd(operationId, static _ => CreateSignal())
+                .Task
+                .WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+        }
+
+        public Task WaitForResultAsync(string operationId, CancellationToken cancellationToken)
+        {
+            if (ResultOperationIds.Contains(operationId))
+            {
+                return Task.CompletedTask;
+            }
+
+            return _results
+                .GetOrAdd(operationId, static _ => CreateSignal())
+                .Task
+                .WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+        }
+
+        private static TaskCompletionSource CreateSignal()
+            => new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    private sealed record SourceWebSocketOperation(
+        int ConnectionId,
+        string OperationId,
+        OperationType OperationType);
 
     private sealed class EntityLookupEvents
     {
@@ -658,19 +947,49 @@ public sealed class WebSocketTransportTests : FusionTestBase
             CancellationToken cancellationToken)
             => inner.ReceiveAsync(buffer, cancellationToken);
 
+        public TestServerWebSocket(
+            WebSocket inner,
+            SourceWebSocketOperationCapture? operations,
+            int connectionId)
+            : this(inner)
+        {
+            _operations = operations;
+            _connectionId = connectionId;
+        }
+
+        private readonly SourceWebSocketOperationCapture? _operations;
+        private readonly int _connectionId;
+
         public override Task SendAsync(
             ArraySegment<byte> buffer,
             WebSocketMessageType messageType,
             bool endOfMessage,
             CancellationToken cancellationToken)
-            => inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+        {
+            CaptureMessage(buffer, messageType, endOfMessage);
+            return inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+        }
 
         public override ValueTask SendAsync(
             ReadOnlyMemory<byte> buffer,
             WebSocketMessageType messageType,
             WebSocketMessageFlags endOfMessage,
             CancellationToken cancellationToken)
-            => inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+        {
+            CaptureMessage(buffer, messageType, endOfMessage.HasFlag(WebSocketMessageFlags.EndOfMessage));
+            return inner.SendAsync(buffer, messageType, endOfMessage, cancellationToken);
+        }
+
+        private void CaptureMessage(
+            ReadOnlyMemory<byte> payload,
+            WebSocketMessageType messageType,
+            bool endOfMessage)
+        {
+            if (messageType is WebSocketMessageType.Text && endOfMessage)
+            {
+                _operations?.CaptureMessage(_connectionId, payload.Span);
+            }
+        }
 
         private async ValueTask CloseCoreAsync(
             WebSocketCloseStatus closeStatus,
@@ -705,6 +1024,39 @@ public sealed class WebSocketTransportTests : FusionTestBase
         {
             capture.Payloads.Enqueue(connectionInitMessage.Payload?.Clone() ?? default);
             return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
+        }
+    }
+
+    private sealed class SourceSocketSessionInterceptor(
+        ConnectionCapture connections,
+        SourceWebSocketOperationCapture operations) : DefaultSocketSessionInterceptor
+    {
+        public override ValueTask<ConnectionStatus> OnConnectAsync(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage,
+            CancellationToken cancellationToken = default)
+        {
+            connections.Payloads.Enqueue(connectionInitMessage.Payload?.Clone() ?? default);
+            return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
+        }
+
+        public override ValueTask OnCompleteAsync(
+            ISocketSession session,
+            string operationSessionId,
+            CancellationToken cancellationToken = default)
+        {
+            operations.Complete(operationSessionId);
+            return base.OnCompleteAsync(session, operationSessionId, cancellationToken);
+        }
+
+        public override ValueTask<OperationResult> OnResultAsync(
+            ISocketSession session,
+            string operationSessionId,
+            OperationResult result,
+            CancellationToken cancellationToken = default)
+        {
+            operations.Result(operationSessionId);
+            return base.OnResultAsync(session, operationSessionId, result, cancellationToken);
         }
     }
 
@@ -768,6 +1120,113 @@ public sealed class WebSocketTransportTests : FusionTestBase
                     2 => new Book(2, "Bar"),
                     _ => null
                 };
+        }
+    }
+
+    private sealed class XyEntityLookupEvents(bool chatty = false)
+    {
+        private readonly TaskCompletionSource _first = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _burst = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void ReleaseFirst() => _first.SetResult();
+
+        public void ReleaseBurst() => _burst.SetResult();
+
+        public void Complete()
+        {
+            _burst.TrySetResult();
+            _completion.TrySetResult();
+        }
+
+        public async IAsyncEnumerable<XySourceSchemaX.Book> ReadAsync(
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await _first.Task.WaitAsync(cancellationToken);
+            yield return new XySourceSchemaX.Book(1, "Foo");
+
+            if (chatty)
+            {
+                await _burst.Task.WaitAsync(cancellationToken);
+
+                for (var i = 0; i < 8; i++)
+                {
+                    yield return new XySourceSchemaX.Book(1, "Foo");
+                }
+            }
+
+            await _completion.Task.WaitAsync(cancellationToken);
+        }
+    }
+
+    private sealed class XyLookupGate(bool block = false)
+    {
+        private readonly TaskCompletionSource _entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async Task WaitAsync(CancellationToken cancellationToken)
+        {
+            if (!block)
+            {
+                return;
+            }
+
+            _entered.TrySetResult();
+            await _release.Task.WaitAsync(cancellationToken);
+        }
+
+        public Task WaitForEntryAsync(CancellationToken cancellationToken)
+            => _entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+
+        public void Release() => _release.TrySetResult();
+    }
+
+    private static class XySourceSchemaX
+    {
+        [EntityKey("id")]
+        public sealed record Book(int Id, string Title);
+
+        public sealed class Query(XyLookupGate lookupGate)
+        {
+            public string Value() => "value";
+
+            [Internal, Lookup]
+            public async Task<Book?> GetBookById(int id, CancellationToken cancellationToken)
+            {
+                if (id == 2)
+                {
+                    await lookupGate.WaitAsync(cancellationToken);
+                }
+
+                return id switch
+                {
+                    1 => new Book(1, "Foo"),
+                    2 => new Book(2, "Bar"),
+                    _ => null
+                };
+            }
+        }
+
+        public sealed class Subscription(XyEntityLookupEvents events)
+        {
+            public IAsyncEnumerable<Book> OnBookCreatedStream(CancellationToken cancellationToken)
+                => events.ReadAsync(cancellationToken);
+
+            [Subscribe(With = nameof(OnBookCreatedStream))]
+            public Book OnBookCreated([EventMessage] Book book) => book;
+        }
+    }
+
+    private static class XySourceSchemaY
+    {
+        [EntityKey("id")]
+        public sealed record Book(int Id, Book? Sequel);
+
+        public sealed class Query
+        {
+            [Internal, Lookup]
+            public Book? GetBookById(int id)
+                => id == 1 ? new Book(1, new Book(2, null)) : null;
         }
     }
 
