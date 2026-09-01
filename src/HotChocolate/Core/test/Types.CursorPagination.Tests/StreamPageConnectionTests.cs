@@ -1,7 +1,6 @@
 using GreenDonut.Data;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -115,8 +114,9 @@ public class StreamPageConnectionTests
         // arrange
         using var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
+        var items = new CancellableAsyncEnumerable();
         var page = new StreamPage<string>(
-            CreateCancellableItems(),
+            items,
             new PagingArguments(first: 1),
             static item => item);
         var connection = new StreamPageConnection<string>(page);
@@ -128,6 +128,7 @@ public class StreamPageConnectionTests
         await enumerator.DisposeAsync();
 
         // assert
+        Assert.Equal(cancellationTokenSource.Token, items.EnumerationToken);
         await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
         await Assert.ThrowsAsync<TaskCanceledException>(() => connection.PageInfo);
     }
@@ -214,12 +215,23 @@ public class StreamPageConnectionTests
         }
     }
 
-    private static async IAsyncEnumerable<string> CreateCancellableItems(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    private sealed class CancellableAsyncEnumerable : IAsyncEnumerable<string>, IAsyncEnumerator<string>
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        yield return "a";
-        await Task.Yield();
+        public CancellationToken EnumerationToken { get; private set; }
+
+        public string Current => string.Empty;
+
+        public IAsyncEnumerator<string> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        {
+            EnumerationToken = cancellationToken;
+            return this;
+        }
+
+        public ValueTask<bool> MoveNextAsync()
+            => ValueTask.FromCanceled<bool>(EnumerationToken);
+
+        public ValueTask DisposeAsync()
+            => ValueTask.CompletedTask;
     }
 
     [GraphQLName("Query")]
