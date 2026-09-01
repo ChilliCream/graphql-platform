@@ -16,6 +16,7 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private int _enumerationStarted;
     private Exception? _completionException;
+    private bool _sourceFailed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamPage{T}"/> class.
@@ -124,23 +125,25 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
             {
                 while (requestedSize is null || itemIndex < requestedSize)
                 {
-                    if (!await MoveNextAsync(enumerator))
+                    if (!await MoveNextAsync(enumerator, cancellationToken))
                     {
                         break;
                     }
 
                     fetchCount++;
-                    var cursor = CreateCursor(new EdgeEntry<T>(GetCurrent(enumerator), 0, 0, 0));
+                    var cursor = CreateCursor(
+                        new EdgeEntry<T>(GetCurrent(enumerator, cancellationToken), 0, 0, 0),
+                        cancellationToken);
                     startCursor ??= cursor;
                     endCursor = cursor;
                     itemIndex++;
 
-                    yield return new StreamPageEdge<T>(GetCurrent(enumerator), cursor);
+                    yield return new StreamPageEdge<T>(GetCurrent(enumerator, cancellationToken), cursor);
                 }
 
                 if (requestedSize is not null)
                 {
-                    hasNextPage = await MoveNextAsync(enumerator);
+                    hasNextPage = await MoveNextAsync(enumerator, cancellationToken);
 
                     if (hasNextPage)
                     {
@@ -150,7 +153,13 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
             }
             finally
             {
-                await DisposeAsync(enumerator);
+                try
+                {
+                    await DisposeAsync(enumerator, cancellationToken, !_sourceFailed);
+                }
+                catch when (_sourceFailed)
+                {
+                }
             }
 
             _completionSource.TrySetResult(
@@ -183,94 +192,129 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         {
             return _items.GetAsyncEnumerator(cancellationToken);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            RecordSourceException(exception, cancellationToken);
             throw;
         }
     }
 
-    private ValueTask<bool> MoveNextAsync(IAsyncEnumerator<T> enumerator)
+    private ValueTask<bool> MoveNextAsync(
+        IAsyncEnumerator<T> enumerator,
+        CancellationToken cancellationToken)
     {
         try
         {
             var operation = enumerator.MoveNextAsync();
             return operation.IsCompletedSuccessfully
                 ? operation
-                : AwaitMoveNextAsync(operation);
+                : AwaitMoveNextAsync(operation, cancellationToken);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            RecordSourceException(exception, cancellationToken);
             throw;
         }
     }
 
-    private async ValueTask<bool> AwaitMoveNextAsync(ValueTask<bool> operation)
+    private async ValueTask<bool> AwaitMoveNextAsync(
+        ValueTask<bool> operation,
+        CancellationToken cancellationToken)
     {
         try
         {
             return await operation.ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            RecordSourceException(exception, cancellationToken);
             throw;
         }
     }
 
-    private T GetCurrent(IAsyncEnumerator<T> enumerator)
+    private T GetCurrent(IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
     {
         try
         {
             return enumerator.Current;
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            RecordSourceException(exception, cancellationToken);
             throw;
         }
     }
 
-    private ValueTask DisposeAsync(IAsyncEnumerator<T> enumerator)
+    private ValueTask DisposeAsync(
+        IAsyncEnumerator<T> enumerator,
+        CancellationToken cancellationToken,
+        bool recordException)
     {
         try
         {
             var operation = enumerator.DisposeAsync();
             return operation.IsCompletedSuccessfully
                 ? operation
-                : AwaitDisposeAsync(operation);
+                : AwaitDisposeAsync(operation, cancellationToken, recordException);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            if (recordException)
+            {
+                RecordCompletionException(exception, cancellationToken);
+            }
+
             throw;
         }
     }
 
-    private async ValueTask AwaitDisposeAsync(ValueTask operation)
+    private async ValueTask AwaitDisposeAsync(
+        ValueTask operation,
+        CancellationToken cancellationToken,
+        bool recordException)
     {
         try
         {
             await operation.ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            if (recordException)
+            {
+                RecordCompletionException(exception, cancellationToken);
+            }
+
             throw;
         }
     }
 
-    private string CreateCursor(EdgeEntry<T> entry)
+    private string CreateCursor(EdgeEntry<T> entry, CancellationToken cancellationToken)
     {
         try
         {
             return _createCursor(entry);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception)
         {
-            _completionException = exception;
+            RecordSourceException(exception, cancellationToken);
             throw;
+        }
+    }
+
+    private void RecordSourceException(Exception exception, CancellationToken cancellationToken)
+    {
+        _sourceFailed = true;
+        RecordCompletionException(exception, cancellationToken);
+    }
+
+    private void RecordCompletionException(Exception exception, CancellationToken cancellationToken)
+    {
+        if (exception is not OperationCanceledException operationCanceledException
+            || operationCanceledException.CancellationToken != cancellationToken
+            ||
+            !cancellationToken.IsCancellationRequested)
+        {
+            _completionException ??= exception;
         }
     }
 

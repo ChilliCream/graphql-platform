@@ -188,6 +188,96 @@ public class StreamPageTests
     }
 
     [Fact]
+    public async Task Completion_Should_PreserveCurrentException_When_SourceDisposalAlsoFails()
+    {
+        // arrange
+        var expectedException = new InvalidOperationException();
+        var page = new StreamPage<string>(
+            new ThrowingAsyncEnumerable(
+                disposeException: new InvalidOperationException(),
+                currentException: expectedException),
+            new PagingArguments(first: 1),
+            static item => item);
+
+        // act
+        var enumerationException = await Assert.ThrowsAsync<InvalidOperationException>(() => EnumerateAsync(page));
+        var completionException = await Assert.ThrowsAsync<InvalidOperationException>(() => page.Completion);
+
+        // assert
+        Assert.Same(expectedException, enumerationException);
+        Assert.Same(enumerationException, completionException);
+    }
+
+    [Fact]
+    public async Task Completion_Should_FaultWithCurrentException_When_CurrentThrowsUncanceledOperationCanceledException()
+    {
+        // arrange
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var expectedException = new OperationCanceledException(cancellationTokenSource.Token);
+        var page = new StreamPage<string>(
+            new ThrowingAsyncEnumerable(currentException: expectedException),
+            new PagingArguments(first: 1),
+            static item => item);
+        await using var enumerator = page.GetAsyncEnumerator(cancellationTokenSource.Token);
+
+        // act
+        var enumerationException = await Assert.ThrowsAsync<OperationCanceledException>(
+            async () => await enumerator.MoveNextAsync());
+        var completionException = await Assert.ThrowsAsync<OperationCanceledException>(() => page.Completion);
+
+        // assert
+        Assert.Same(expectedException, enumerationException);
+        Assert.Same(enumerationException, completionException);
+    }
+
+    [Fact]
+    public async Task Completion_Should_FaultWithCurrentException_When_CurrentThrowsOperationCanceledExceptionForDifferentToken()
+    {
+        // arrange
+        using var enumerationCancellationTokenSource = new CancellationTokenSource();
+        using var sourceCancellationTokenSource = new CancellationTokenSource();
+        enumerationCancellationTokenSource.Cancel();
+        sourceCancellationTokenSource.Cancel();
+        var expectedException = new OperationCanceledException(sourceCancellationTokenSource.Token);
+        var page = new StreamPage<string>(
+            new ThrowingAsyncEnumerable(currentException: expectedException),
+            new PagingArguments(first: 1),
+            static item => item);
+        await using var enumerator = page.GetAsyncEnumerator(enumerationCancellationTokenSource.Token);
+
+        // act
+        var enumerationException = await Assert.ThrowsAsync<OperationCanceledException>(
+            async () => await enumerator.MoveNextAsync());
+        var completionException = await Assert.ThrowsAsync<OperationCanceledException>(() => page.Completion);
+
+        // assert
+        Assert.Same(expectedException, enumerationException);
+        Assert.Same(enumerationException, completionException);
+    }
+
+    [Fact]
+    public async Task Completion_Should_BeCanceled_When_CurrentThrowsOperationCanceledExceptionForCanceledEnumerationToken()
+    {
+        // arrange
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+        var expectedException = new OperationCanceledException(cancellationTokenSource.Token);
+        var page = new StreamPage<string>(
+            new ThrowingAsyncEnumerable(currentException: expectedException),
+            new PagingArguments(first: 1),
+            static item => item);
+        await using var enumerator = page.GetAsyncEnumerator(cancellationTokenSource.Token);
+
+        // act
+        var enumerationException = await Assert.ThrowsAsync<OperationCanceledException>(
+            async () => await enumerator.MoveNextAsync());
+
+        // assert
+        Assert.Same(expectedException, enumerationException);
+        await Assert.ThrowsAsync<TaskCanceledException>(() => page.Completion);
+    }
+
+    [Fact]
     public async Task Completion_Should_FaultWithCursorException_When_CursorCreationFails()
     {
         // arrange
