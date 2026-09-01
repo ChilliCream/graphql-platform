@@ -55,8 +55,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var document = SourceResultDocument.Parse(
@@ -105,8 +105,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var results = new[]
@@ -392,8 +392,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -471,8 +471,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -771,8 +771,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(
@@ -911,8 +911,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -965,8 +965,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         store.AddError(ErrorBuilder.New().SetMessage("event 1").Build());
@@ -2058,8 +2058,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -2089,8 +2089,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: default(ConditionFlags),
-            deferFlags: default(ConditionFlags),
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
         resultSelectionSet = node.ResultSelectionSet;
         return store;
