@@ -7,8 +7,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal sealed class MailNudge(
     IAgentSessionRegistry sessions,
     IMailStore mail,
+    ISessionDeliveryLedger ledger,
     IClaudePeerClient claudePeerClient,
-    ICodexQueueClient codexQueueClient) : IMailNudge
+    ICodexQueueClient codexQueueClient,
+    TimeProvider timeProvider) : IMailNudge
 {
     public async Task NudgeAsync(IReadOnlyList<string> actors, CancellationToken cancellationToken)
     {
@@ -32,18 +34,53 @@ internal sealed class MailNudge(
                 continue;
             }
 
-            var unread = await mail.CountUnreadAsync(actor, cancellationToken);
-
-            if (unread == 0)
-            {
-                continue;
-            }
-
-            var text = MailNudgeText.Format(actor, unread);
-
             foreach (var target in targets)
             {
-                await SendAsync(target.Session, text, cancellationToken);
+                try
+                {
+                    var unread = await mail.QueryInboxAsync(
+                        new MailInboxFilter
+                        {
+                            Actor = actor,
+                            UnreadOnly = true,
+                            Limit = MailDigestPolicy.MaxMessages
+                        },
+                        cancellationToken);
+
+                    if (unread.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var generation = new AgentSessionGeneration(
+                        target.Session.Harness,
+                        target.Session.SessionId,
+                        target.Session.Host);
+                    var messageIds = unread.Select(message => message.Id).ToList();
+                    var delivered = await ledger.FindDeliveredAsync(
+                        generation, messageIds, cancellationToken);
+                    var reserved = await ledger.ReserveAsync(
+                        generation.Harness,
+                        generation.SessionId,
+                        messageIds,
+                        AgentSessionChannel.Ping,
+                        timeProvider.GetUtcNow(),
+                        cancellationToken);
+                    var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+                    var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+                    var messages = unread
+                        .Where(message =>
+                            reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+                        .ToList();
+                    var unreadTotal = await mail.CountUnreadAsync(actor, cancellationToken);
+                    var text = MailDigest.Render(actor, messages, unreadTotal);
+
+                    await SendAsync(target.Session, text, cancellationToken);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    // Best effort: the recipient's next turn reports the unread mail.
+                }
             }
         }
     }

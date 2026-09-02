@@ -383,7 +383,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
             ✓ Sent '{id}' to zeta.
             """);
         var call = Assert.Single(queueClient.Calls);
-        Assert.Equal("thread-zeta", call.ThreadId);
+        Assert.Equal(("thread-zeta", id, "Deploying."), ReadDigestCall(call));
     }
 
     [Fact]

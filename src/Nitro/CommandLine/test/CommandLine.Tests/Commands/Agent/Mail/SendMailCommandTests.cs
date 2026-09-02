@@ -45,7 +45,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SetupSuccessfulWakeAsync("host-send-single-test", "bob");
+        var queueClient = await SetupSuccessfulWakeAsync("host-send-single-test", "bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -57,6 +57,66 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             $"""
             ✓ Sent '{id}' to bob.
             """);
+        Assert.Equal(
+            ("thread-bob", id, "All good."),
+            ReadDigestCall(Assert.Single(queueClient.Calls)));
+    }
+
+    [Fact]
+    public async Task NudgeAsync_Should_SendPointer_When_TheSameMessageIsPushedTwiceToTheSameSession()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("bob");
+        var queueClient = await SetupSuccessfulWakeAsync("host-send-repeat-test", "bob");
+        var message = await SeedMessageAsync(
+            "test-agent", "Status", ["bob"], body: "All good.");
+        var nudge = CreateMailNudge("host-send-repeat-test", queueClient);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Collection(
+            queueClient.Calls,
+            first => Assert.Equal(("thread-bob", message.Id, "All good."), ReadDigestCall(first)),
+            second => Assert.Equal(
+                ("thread-bob", "You have 1 unread nitro message. "
+                    + "Run `nitro agent mail inbox --actor bob`."),
+                (second.ThreadId, second.Message)));
+    }
+
+    [Fact]
+    public async Task SingleRecipient_Should_SendBodyToEachLiveSession_When_ActorHasTwoSessions()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        SetupInstanceId("host-send-two-sessions-test");
+        var queueClient = new FakeCodexQueueClient();
+        SetupCodexQueueClient(queueClient);
+        await SeedAliveSessionAsync(
+            "session-bob-1", "bob", role: "", host: "host-send-two-sessions-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob-1");
+        await SeedAliveSessionAsync(
+            "session-bob-2", "bob", role: "", host: "host-send-two-sessions-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob-2");
+
+        // act
+        await ExecuteCommandAsync(
+            "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
+
+        // assert
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
+        Assert.Equal(
+            new[]
+            {
+                ("thread-bob-1", id!, "All good."),
+                ("thread-bob-2", id!, "All good.")
+            },
+            queueClient.Calls.Select(ReadDigestCall).OrderBy(call => call.ThreadId).ToArray());
     }
 
     [Fact]
