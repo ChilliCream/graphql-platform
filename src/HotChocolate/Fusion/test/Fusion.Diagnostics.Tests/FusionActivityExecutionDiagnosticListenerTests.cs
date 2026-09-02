@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Diagnostics.Listeners;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
@@ -14,8 +15,10 @@ using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using FusionPolicyDenialBehavior = HotChocolate.Fusion.Types.PolicyDenialBehavior;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
+using static HotChocolate.Fusion.Diagnostics.HotChocolateFusionActivitySource;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
@@ -350,7 +353,161 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         Assert.Equal(
             "event_stream",
             ExecutePlanNodeSpan.KindValues[ExecutionNodeType.EventStream]);
+        Assert.Equal(
+            "policy",
+            ExecutePlanNodeSpan.KindValues[ExecutionNodeType.Policy]);
     }
+
+    [Fact]
+    public void EvaluateRequestPolicies_Should_UseAmbientParent_WhenExecuteRequestScopeIsDisabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var options = new InstrumentationOptions
+            {
+                Scopes = FusionActivityScopes.EvaluateRequestPolicies
+            };
+            var listener = new FusionActivityExecutionDiagnosticEventListener(
+                new FusionActivityEnricher(options),
+                options);
+            var context = new PooledRequestContext();
+            using var parent = new Activity("ambient-parent").Start();
+
+            // act
+            using (listener.EvaluateRequestPolicies(context))
+            {
+            }
+
+            // assert
+            var activity = Assert.Single(activities.Exported);
+            Assert.Equal(parent.SpanId, activity.ParentSpanId);
+            Assert.Equal("policy_evaluate", activity.GetTagItem("graphql.processing.type"));
+        }
+    }
+
+    [Fact]
+    public void PolicyCompilationError_Should_CreateParentlessErrorSpan()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var options = new InstrumentationOptions();
+            var listener = new FusionActivityExecutionDiagnosticEventListener(
+                new FusionActivityEnricher(options),
+                options);
+            using var parent = new Activity("ambient-parent").Start();
+
+            // act
+            listener.PolicyCompilationError("CanReadSecret", new InvalidOperationException("failure"));
+
+            // assert
+            var activity = activities.Exported.Single();
+            $"""
+                operationName={activity.OperationName}; kind={activity.Kind}; parentSpanId={activity.ParentSpanId}; status={activity.Status}; tags={FormatTags(activity.TagObjects)}; events={FormatEvents(activity.Events)}
+                """.MatchInlineSnapshot(
+                """
+                operationName=GraphQL Policy Compilation Error; kind=Internal; parentSpanId=0000000000000000; status=Error; tags=error.type=System.InvalidOperationException, graphql.policy.name=CanReadSecret; events=exception[exception.message=failure, exception.type=System.InvalidOperationException, exception.stacktrace=<present>]
+                """);
+        }
+    }
+
+    [Fact]
+    public void PolicyEvents_Should_RecordLowCardinalityTagsAndOnlyAbortMarksSpanError()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var options = new InstrumentationOptions();
+            var listener = new FusionActivityExecutionDiagnosticEventListener(
+                new FusionActivityEnricher(options),
+                options);
+            var context = new PooledRequestContext();
+
+            // act
+            using (Source.StartActivity("policy-error", ActivityKind.Internal))
+            {
+                listener.PolicyEvaluated(
+                    context,
+                    "CanReadSecret",
+                    PolicyEvaluationOutcome.Denied,
+                    TimeSpan.FromMilliseconds(12.5));
+                listener.PolicySlotDenied(
+                    context,
+                    "d1",
+                    "CanReadSecret",
+                    "Query",
+                    "secret",
+                    FusionPolicyDenialBehavior.Error,
+                    "secret reason",
+                    Guid.NewGuid(),
+                    "subject-1");
+                listener.PolicyDenialApplied(
+                    null!,
+                    null!,
+                    SelectionPath.Root.AppendField("alias"),
+                    "Query",
+                    "secret",
+                    "CanReadSecret",
+                    FusionPolicyDenialBehavior.Error,
+                    deniedCount: 1,
+                    totalCount: 1,
+                    "secret reason",
+                    Guid.NewGuid(),
+                    "subject-1");
+            }
+
+            using (Source.StartActivity("policy-abort", ActivityKind.Internal))
+            {
+                listener.PolicyDenialApplied(
+                    null!,
+                    null!,
+                    SelectionPath.Root.AppendField("alias"),
+                    "Query",
+                    "secret",
+                    "CanReadSecret",
+                    FusionPolicyDenialBehavior.Abort,
+                    deniedCount: 1,
+                    totalCount: 1,
+                    "secret reason",
+                    Guid.NewGuid(),
+                    "subject-1");
+            }
+
+            // assert
+            string.Join(
+                Environment.NewLine,
+                activities.Exported
+                    .OrderBy(activity => activity.OperationName, StringComparer.Ordinal)
+                    .Select(activity =>
+                        $"{activity.OperationName}: kind={activity.Kind}; status={activity.Status}; "
+                            + $"tags={FormatTags(activity.TagObjects)}; events={FormatEvents(activity.Events)}; "
+                            + "reason=<absent>; reasonId=<absent>; subject=<absent>"))
+                .MatchInlineSnapshot(
+                """
+                policy-abort: kind=Internal; status=Error; tags=error.type=UNAUTHORIZED_FIELD_OR_TYPE; events=graphql.policy.denial_applied[graphql.policy.expression=CanReadSecret, graphql.policy.on_denied=abort, graphql.selection.path=$.alias, graphql.type.name=Query, graphql.policy.denied_count=1, graphql.policy.total_count=1, graphql.field.name=secret]; reason=<absent>; reasonId=<absent>; subject=<absent>
+                policy-error: kind=Internal; status=Unset; tags=<none>; events=graphql.policy.evaluated[graphql.policy.name=CanReadSecret, graphql.policy.outcome=denied, graphql.policy.duration_ms=12.5], graphql.policy.slot_denied[graphql.policy.slot_variable=d1, graphql.policy.expression=CanReadSecret, graphql.type.name=Query, graphql.policy.on_denied=error, graphql.field.name=secret], graphql.policy.denial_applied[graphql.policy.expression=CanReadSecret, graphql.policy.on_denied=error, graphql.selection.path=$.alias, graphql.type.name=Query, graphql.policy.denied_count=1, graphql.policy.total_count=1, graphql.field.name=secret]; reason=<absent>; reasonId=<absent>; subject=<absent>
+                """);
+        }
+    }
+
+    private static string FormatTags(IEnumerable<KeyValuePair<string, object?>> tags)
+    {
+        var formatted = tags.Select(tag => $"{tag.Key}={tag.Value}").ToArray();
+        return formatted.Length == 0 ? "<none>" : string.Join(", ", formatted);
+    }
+
+    private static string FormatEvents(IEnumerable<ActivityEvent> events)
+        => string.Join(
+            ", ",
+            events.Select(@event =>
+            {
+                var tags = @event.Tags?.Where(tag => tag.Key != "exception.stacktrace") ?? [];
+                var stackTrace = @event.Tags?.Any(tag => tag.Key == "exception.stacktrace") is true
+                    ? ", exception.stacktrace=<present>"
+                    : string.Empty;
+                return $"{@event.Name}[{FormatTags(tags)}{stackTrace}]";
+            }));
 
     [Fact]
     public async Task PersistedOperation_LoadsFromStorage_DefaultScopes()

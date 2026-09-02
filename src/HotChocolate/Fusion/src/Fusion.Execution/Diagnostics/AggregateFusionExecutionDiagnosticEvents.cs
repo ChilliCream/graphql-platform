@@ -170,15 +170,61 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         return new AggregateActivityScope(scopes);
     }
 
+    public IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecutePolicyNode(context, node);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public void PolicyEvaluated(
         RequestContext context,
         string policyName,
-        bool denied,
+        PolicyEvaluationOutcome outcome,
         TimeSpan duration)
     {
         for (var i = 0; i < listeners.Length; i++)
         {
-            listeners[i].PolicyEvaluated(context, policyName, denied, duration);
+            listeners[i].PolicyEvaluated(context, policyName, outcome, duration);
+        }
+    }
+
+    public void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyDenialApplied(
+                context,
+                node,
+                targetPath,
+                typeName,
+                fieldName,
+                policyExpression,
+                behavior,
+                deniedCount,
+                totalCount,
+                reason,
+                reasonId,
+                subjectId);
         }
     }
 

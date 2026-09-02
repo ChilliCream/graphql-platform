@@ -7,6 +7,17 @@ using HotChocolate.Fusion.Types;
 namespace HotChocolate.Fusion.Diagnostics;
 
 /// <summary>
+/// Describes the terminal outcome of a policy evaluation.
+/// </summary>
+public enum PolicyEvaluationOutcome
+{
+    Allowed,
+    Denied,
+    Error,
+    Cancelled
+}
+
+/// <summary>
 /// Provides diagnostic events specific to GraphQL Fusion execution.
 /// Extends the core execution diagnostic events with fusion-specific operations
 /// such as operation planning, node execution, and source schema interactions.
@@ -84,13 +95,37 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     IDisposable EvaluateRequestPolicies(RequestContext context);
 
     /// <summary>
-    /// Reports one completed policy-engine evaluation.
+    /// Creates a scope for executing a policy plan node.
+    /// </summary>
+    IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node);
+
+    /// <summary>
+    /// Reports one policy-engine evaluation and its terminal outcome.
     /// </summary>
     void PolicyEvaluated(
         RequestContext context,
         string policyName,
-        bool denied,
+        PolicyEvaluationOutcome outcome,
         TimeSpan duration);
+
+    /// <summary>
+    /// Reports the denial applied by a policy execution node.
+    /// </summary>
+    void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId);
 
     /// <summary>
     /// Reports a denied policy condition at one live operation coordinate.

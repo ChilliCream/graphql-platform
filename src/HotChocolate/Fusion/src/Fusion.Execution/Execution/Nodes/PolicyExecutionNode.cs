@@ -1,8 +1,10 @@
 using System.Buffers;
 using System.Collections;
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -38,6 +40,9 @@ public sealed class PolicyExecutionNode : ExecutionNode
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
 
     public override string? SchemaName => null;
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.DiagnosticEvents.ExecutePolicyNode(context, this);
 
     /// <summary>
     /// Gets the policy targets evaluated by this node.
@@ -163,6 +168,9 @@ public sealed class PolicyExecutionNode : ExecutionNode
             var selection = target.Kind is PolicyTargetKind.Field
                 ? FindSelection(effects[0]) ?? FindSelection(entities[0])
                 : null;
+            var fieldName = target.Kind is PolicyTargetKind.Field
+                ? selection?.Field.Name
+                : null;
             var type = schema.Types.GetType<ITypeDefinition>(target.TypeName);
 
             var denied = new BitArray(effectCount);
@@ -265,14 +273,56 @@ public sealed class PolicyExecutionNode : ExecutionNode
 
             if (abortIndex >= 0)
             {
+                var abortDenials = new Dictionary<(string Expression, PolicyDenialBehavior Behavior),
+                    PolicyDenialSummary>();
+
+                for (var i = 0; i < effectCount; i++)
+                {
+                    if (!denied[i] || denialBehaviors[i] is not PolicyDenialBehavior.Abort)
+                    {
+                        continue;
+                    }
+
+                    var key = (denialPolicies[i]!, PolicyDenialBehavior.Abort);
+                    if (!abortDenials.TryGetValue(key, out var summary))
+                    {
+                        summary = new PolicyDenialSummary(denialReasons[i], Guid.NewGuid());
+                        abortDenials.Add(key, summary);
+                    }
+
+                    summary.DeniedCount++;
+                }
+
+                foreach (var (key, summary) in abortDenials)
+                {
+                    context.DiagnosticEvents.PolicyDenialApplied(
+                        context,
+                        this,
+                        target.Path,
+                        target.TypeName,
+                        fieldName,
+                        key.Expression,
+                        key.Behavior,
+                        summary.DeniedCount,
+                        effectCount,
+                        summary.Reason,
+                        summary.ReasonId,
+                        GetSubjectId(user));
+                }
+
+                var abortSummary = abortDenials[(denialPolicies[abortIndex]!, PolicyDenialBehavior.Abort)];
                 context.ApplyPolicyDenial(
                     effects[abortIndex],
                     PolicyDenialBehavior.Abort,
                     denialPolicies[abortIndex]!,
-                    denialReasons[abortIndex]);
+                    denialReasons[abortIndex],
+                    abortSummary.ReasonId);
                 aborted = true;
                 break;
             }
+
+            var appliedDenials = new Dictionary<(string Expression, PolicyDenialBehavior Behavior),
+                PolicyDenialSummary>();
 
             for (var i = 0; i < effectCount; i++)
             {
@@ -282,11 +332,37 @@ public sealed class PolicyExecutionNode : ExecutionNode
                 }
 
                 var behavior = denialBehaviors[i];
+                var key = (denialPolicies[i]!, behavior);
+                if (!appliedDenials.TryGetValue(key, out var summary))
+                {
+                    summary = new PolicyDenialSummary(denialReasons[i], Guid.NewGuid());
+                    appliedDenials.Add(key, summary);
+                }
+
                 context.ApplyPolicyDenial(
                     effects[i],
                     behavior,
                     denialPolicies[i]!,
-                    denialReasons[i]);
+                    denialReasons[i],
+                    summary.ReasonId);
+                summary.DeniedCount++;
+            }
+
+            foreach (var (key, summary) in appliedDenials)
+            {
+                context.DiagnosticEvents.PolicyDenialApplied(
+                    context,
+                    this,
+                    target.Path,
+                    target.TypeName,
+                    fieldName,
+                    key.Expression,
+                    key.Behavior,
+                    summary.DeniedCount,
+                    effectCount,
+                    summary.Reason,
+                    summary.ReasonId,
+                    GetSubjectId(user));
             }
 
             if (allDenied)
@@ -361,12 +437,46 @@ public sealed class PolicyExecutionNode : ExecutionNode
             context.Variables,
             new ReadOnlyMemory<CompositeResultElement>(entities, 0, effectCount));
 
-        await policy.EvaluateAsync(policyContext, cancellationToken).ConfigureAwait(false);
+        var start = Stopwatch.GetTimestamp();
+        var outcome = PolicyEvaluationOutcome.Error;
+        var evaluationStarted = false;
 
-        for (var i = 0; i < effectCount; i++)
+        try
         {
-            policyDenied[i] = policyContext.IsDenied(i);
-            policyReasons[i] = policyContext.GetReason(i);
+            evaluationStarted = true;
+            await policy.EvaluateAsync(policyContext, cancellationToken).ConfigureAwait(false);
+
+            var policyWasDenied = false;
+            for (var i = 0; i < effectCount; i++)
+            {
+                policyDenied[i] = policyContext.IsDenied(i);
+                policyReasons[i] = policyContext.GetReason(i);
+
+                if (policyDenied[i])
+                {
+                    policyWasDenied = true;
+                }
+            }
+
+            outcome = policyWasDenied
+                ? PolicyEvaluationOutcome.Denied
+                : PolicyEvaluationOutcome.Allowed;
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = PolicyEvaluationOutcome.Cancelled;
+            throw;
+        }
+        finally
+        {
+            if (evaluationStarted)
+            {
+                context.DiagnosticEvents.PolicyEvaluated(
+                    context.RequestContext,
+                    policy.Name,
+                    outcome,
+                    Stopwatch.GetElapsedTime(start));
+            }
         }
 
         return new TargetDecision(policyDenied, policyReasons);
@@ -404,6 +514,19 @@ public sealed class PolicyExecutionNode : ExecutionNode
         }
 
         return null;
+    }
+
+    private static string? GetSubjectId(ClaimsPrincipal user)
+        => user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? user.FindFirst("sub")?.Value;
+
+    private sealed class PolicyDenialSummary(string? reason, Guid reasonId)
+    {
+        public int DeniedCount { get; set; }
+
+        public string? Reason { get; } = reason;
+
+        public Guid ReasonId { get; } = reasonId;
     }
 
     private readonly struct TargetDecision(BitArray denied, string?[] reasons)

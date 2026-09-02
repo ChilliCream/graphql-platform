@@ -357,21 +357,36 @@ internal sealed class PolicyRequestState
     {
         await _evaluationLock.WaitAsync(state.CancellationToken).ConfigureAwait(false);
         var start = Stopwatch.GetTimestamp();
+        var outcome = PolicyEvaluationOutcome.Error;
+        var evaluationStarted = false;
 
         try
         {
             _policyContext.ResetForRequest(state.User);
+            evaluationStarted = true;
             await policy.EvaluateAsync(_policyContext, state.CancellationToken).ConfigureAwait(false);
             var decision = _policyContext.GetDecision(0);
-            _diagnosticEvents.PolicyEvaluated(
-                _requestContext,
-                policy.Name,
-                decision.IsDenied,
-                Stopwatch.GetElapsedTime(start));
+            outcome = decision.IsDenied
+                ? PolicyEvaluationOutcome.Denied
+                : PolicyEvaluationOutcome.Allowed;
             return decision;
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = PolicyEvaluationOutcome.Cancelled;
+            throw;
         }
         finally
         {
+            if (evaluationStarted)
+            {
+                _diagnosticEvents.PolicyEvaluated(
+                    _requestContext,
+                    policy.Name,
+                    outcome,
+                    Stopwatch.GetElapsedTime(start));
+            }
+
             _policyContext.Clear();
             _evaluationLock.Release();
         }

@@ -5,6 +5,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Types;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -51,6 +52,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("operation");
         WriteOperation(jsonWriter, plan.Operation);
 
+        if (trace is not null)
+        {
+            WritePolicyConditions(jsonWriter, plan);
+        }
+
         jsonWriter.WritePropertyName("searchSpace");
         jsonWriter.WriteNumberValue(plan.SearchSpace);
 
@@ -92,6 +98,51 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WritePolicies(jsonWriter, plan.Policies);
 
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WritePolicyConditions(JsonWriter jsonWriter, OperationPlan plan)
+    {
+        if (plan.PolicySlots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("policyConditions");
+        jsonWriter.WriteStartArray();
+
+        foreach (var slot in plan.PolicySlots)
+        {
+            foreach (var application in slot.Applications)
+            {
+                var expression = plan.PolicyExpressions[application.ExpressionOrdinal];
+                jsonWriter.WriteStartObject();
+                jsonWriter.WritePropertyName("slot");
+                jsonWriter.WriteStringValue(slot.VariableName);
+                jsonWriter.WritePropertyName("expression");
+                jsonWriter.WriteStringValue(PolicyNameGroups.Format(expression.Groups));
+                jsonWriter.WritePropertyName("coordinates");
+                jsonWriter.WriteStartArray();
+
+                foreach (var coordinate in slot.Coordinates)
+                {
+                    if (!coordinate.Applications.Any(t =>
+                        t.ExpressionOrdinal == application.ExpressionOrdinal))
+                    {
+                        continue;
+                    }
+
+                    jsonWriter.WriteStringValue(
+                        coordinate.FieldName is null
+                            ? coordinate.TypeName
+                            : $"{coordinate.TypeName}.{coordinate.FieldName}");
+                }
+
+                jsonWriter.WriteEndArray();
+                jsonWriter.WriteEndObject();
+            }
+        }
+
+        jsonWriter.WriteEndArray();
     }
 
     internal void Format(

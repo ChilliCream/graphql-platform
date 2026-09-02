@@ -2077,7 +2077,13 @@ public sealed partial class PolicyExecutionNodeTests
 
         // assert
         Assert.Single(plan.PolicySlots);
-        Assert.Equal((1, 1), (requestPolicy.EvaluationCount, listener.EvaluationCount));
+        Assert.Equal(1, requestPolicy.EvaluationCount);
+        listener.PolicyEvaluations.Select(
+            static evaluation => $"{evaluation.PolicyName}/{evaluation.Outcome}").ToArray().MatchInlineSnapshots(
+        [
+            "CanReadProduct/Allowed",
+            "CanReadName/Allowed"
+        ]);
         var batch = Assert.IsType<OperationResultBatch>(result);
         batch.Results.Select(current => current.ToJson()).ToArray().MatchInlineSnapshots(
         [
@@ -2721,6 +2727,8 @@ public sealed partial class PolicyExecutionNodeTests
 
         public int EvaluationCount { get; private set; }
 
+        public List<PolicyEvaluationEvent> PolicyEvaluations { get; } = [];
+
         public List<string> Denials { get; } = [];
 
         public List<DeniedEvent> Events { get; } = [];
@@ -2734,10 +2742,11 @@ public sealed partial class PolicyExecutionNodeTests
         public override void PolicyEvaluated(
             RequestContext context,
             string policyName,
-            bool denied,
+            PolicyEvaluationOutcome outcome,
             TimeSpan duration)
         {
             EvaluationCount++;
+            PolicyEvaluations.Add(new PolicyEvaluationEvent(policyName, outcome));
         }
 
         public override void PolicySlotDenied(
@@ -2758,6 +2767,10 @@ public sealed partial class PolicyExecutionNodeTests
     }
 
     private readonly record struct DeniedEvent(Guid ReasonId, string? SubjectId);
+
+    private readonly record struct PolicyEvaluationEvent(
+        string PolicyName,
+        PolicyEvaluationOutcome Outcome);
 
     private sealed class MutableCountingPolicy : IPolicy
     {

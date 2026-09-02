@@ -771,6 +771,53 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_ReportOneTerminalOutcomePerEvaluationAcrossFunnels()
+    {
+        // arrange
+        var listener = new PolicyEvaluationListener();
+        var outcomes = new[]
+        {
+            PolicyEvaluationOutcome.Allowed,
+            PolicyEvaluationOutcome.Denied,
+            PolicyEvaluationOutcome.Error,
+            PolicyEvaluationOutcome.Cancelled
+        };
+
+        // act
+        foreach (var outcome in outcomes)
+        {
+            var executor = await CreateExecutorAsync(
+                PolicyDenialBehavior.Null,
+                new OutcomePolicy(outcome, isRequestConstant: true),
+                diagnosticListener: listener);
+            await using var result = await executor.ExecuteAsync(
+                "{ secret }",
+                TestContext.Current.CancellationToken);
+        }
+
+        foreach (var outcome in outcomes)
+        {
+            var executor = await CreateRequirementExecutorAsync(
+                new OutcomePolicy(outcome, isRequestConstant: false),
+                new RecordingRequirementClient(),
+                listener);
+            await using var result = await executor.ExecuteAsync(
+                "{ secret }",
+                TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        $"""
+            requestOutcomes={string.Join(',', listener.Outcomes.Take(4))}
+            nodeOutcomes={string.Join(',', listener.Outcomes.Skip(4))}
+            """.MatchInlineSnapshot(
+            """
+            requestOutcomes=Allowed,Denied,Error,Cancelled
+            nodeOutcomes=Allowed,Denied,Error,Cancelled
+            """);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_FailClosed_When_PolicyThrowsNonCooperativeCancellation()
     {
         // arrange
@@ -1189,6 +1236,73 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
                   null
                 ]
               }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ShareAggregateReasonIdForAliasedMultiEffectDenials()
+    {
+        // arrange
+        var listener = new PolicyDenialAppliedListener();
+        var policy = new CountingDenyAllProductsPolicy();
+        var executor = await CreateAliasedFieldPolicyListExecutorAsync(listener, policy);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ products: topProducts { revealed: price } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var denial = Assert.Single(listener.Events);
+        var errorIds = ReasonIdPattern().Matches(result.ToJson())
+            .Select(match => Guid.Parse(match.Value))
+            .ToArray();
+        $"""
+            executePolicyNodeScopeCount={listener.ExecutePolicyNodeScopeCount}; evaluateAsyncCount={policy.EvaluationCount}; policyEvaluatedCount={listener.PolicyEvaluatedCount}; eventCount={listener.Events.Count}; deniedCount={denial.DeniedCount}; totalCount={denial.TotalCount}; targetPath={denial.TargetPath}; typeName={denial.TypeName}; fieldName={denial.FieldName}; reason={denial.Reason ?? "<null>"}; subject={denial.SubjectId ?? "<null>"}; errorCount={errorIds.Length}; sharedReasonId={errorIds.All(reasonId => reasonId == denial.ReasonId)}
+            """.MatchInlineSnapshot(
+            """
+            executePolicyNodeScopeCount=1; evaluateAsyncCount=1; policyEvaluatedCount=1; eventCount=1; deniedCount=2; totalCount=2; targetPath=$.products.revealed; typeName=Product; fieldName=price; reason=denied all products; subject=<null>; errorCount=2; sharedReasonId=True
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ReportAllAbortAggregatesBeforeShortCircuiting()
+    {
+        // arrange
+        var listener = new PolicyDenialAppliedListener();
+        var executor = await CreateThreePositionAbortPolicyExecutorAsync(
+            listener,
+            new DenyMatchingIdsPolicy("CanReadFirst", "1", "2"),
+            new DenyMatchingIdsPolicy("CanReadSecond", "3"));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ topProducts { price } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var errorReasonId = Guid.Parse(Assert.Single(ReasonIdPattern().Matches(result.ToJson())).Value);
+        listener.Events.Select(
+            denial => $"{denial.PolicyExpression}|{denial.Behavior}|{denial.DeniedCount}/{denial.TotalCount}|{denial.Reason}|{denial.ReasonId == errorReasonId}")
+            .MatchInlineSnapshots(
+            [
+                "CanReadFirst|Abort|2/3|denied product 1|True",
+                "CanReadSecond|Abort|1/3|denied product 3|False"
+            ]);
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
             }
             """);
     }
@@ -1851,7 +1965,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     private static async Task<IRequestExecutor> CreateRequirementExecutorAsync(
         IPolicy policy,
         RecordingRequirementClient client,
-        PlanningErrorListener listener)
+        FusionExecutionDiagnosticEventListener listener)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -2238,6 +2352,90 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 
+    private static async Task<IRequestExecutor> CreateAliasedFieldPolicyListExecutorAsync(
+        FusionExecutionDiagnosticEventListener diagnosticListener,
+        IPolicy policy)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
+
+                    type Query {
+                      topProducts: [Product]
+                    }
+
+                    type Product @key(fields: "id") {
+                      id: ID!
+                      price: Float @policy(names: "CanReadSecret", onDenied: ERROR)
+                    }
+                    """));
+
+        ConfigurePolicies(builder, new TestPolicyProvider(policy));
+        builder.AddDiagnosticEventListener(_ => diagnosticListener);
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(
+                ("a", new AliasedTwoProductResultClient())));
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
+    private static async Task<IRequestExecutor> CreateThreePositionAbortPolicyExecutorAsync(
+        FusionExecutionDiagnosticEventListener diagnosticListener,
+        params IPolicy[] policies)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+
+        var builder = services
+            .AddGraphQLGateway()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    # name: a
+                    enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                    directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                      repeatable on OBJECT | FIELD_DEFINITION
+
+                    type Query {
+                      topProducts: [Product]
+                    }
+
+                    type Product @key(fields: "id") {
+                      id: ID!
+                      price: Float
+                        @policy(names: "CanReadFirst", onDenied: ABORT)
+                        @policy(names: "CanReadSecond", onDenied: ABORT)
+                    }
+                    """));
+
+        ConfigurePolicies(builder, new TestPolicyProvider(policies));
+        builder.AddDiagnosticEventListener(_ => diagnosticListener);
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(
+            new TestClientFactory(
+                ("a", new ThreeProductResultClient())));
+        FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(
+                _ => new TestClientConfiguration("a")));
+
+        return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+    }
+
     private static async Task<IRequestExecutor> CreateSelectiveBatchExecutorAsync(
         SelectiveBatchClient downstreamClient,
         FusionExecutionDiagnosticEventListener? diagnosticListener = null,
@@ -2510,6 +2708,34 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class DenyMatchingIdsPolicy(string name, params string[] deniedIds) : IPolicy
+    {
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }") };
+
+        public string Name => name;
+
+        public PolicyRequirements Requirements => s_requirements;
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            var span = context.Selection!.Entities.Span;
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                var id = span[i].GetProperty("id").GetString();
+                if (deniedIds.Contains(id, StringComparer.Ordinal))
+                {
+                    context.Deny(i, $"denied product {id}");
+                }
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
     private sealed class CountingRequirementPolicy(string name) : IPolicy
     {
         private static readonly PolicyRequirements s_requirements =
@@ -2751,6 +2977,54 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class OutcomePolicy(
+        PolicyEvaluationOutcome outcome,
+        bool isRequestConstant) : IPolicy
+    {
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }") };
+
+        public string Name => "CanReadSecret";
+
+        public PolicyRequirements Requirements
+            => isRequestConstant ? PolicyRequirements.Empty : s_requirements;
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            switch (outcome)
+            {
+                case PolicyEvaluationOutcome.Allowed:
+                    return ValueTask.CompletedTask;
+
+                case PolicyEvaluationOutcome.Denied:
+                    if (context.Selection is { } selection)
+                    {
+                        for (var i = 0; i < selection.Entities.Length; i++)
+                        {
+                            context.Deny(i);
+                        }
+                    }
+                    else
+                    {
+                        context.Deny(0);
+                    }
+
+                    return ValueTask.CompletedTask;
+
+                case PolicyEvaluationOutcome.Error:
+                    throw new InvalidOperationException("policy backend unavailable");
+
+                case PolicyEvaluationOutcome.Cancelled:
+                    throw new OperationCanceledException("policy evaluation cancelled");
+
+                default:
+                    throw new InvalidOperationException("Unknown policy evaluation outcome.");
+            }
+        }
+    }
+
     private sealed class NonCooperativeCancellationPolicy : IPolicy
     {
         public string Name => "CanReadSecret";
@@ -2952,6 +3226,113 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         }
     }
 
+    private sealed class CountingDenyAllProductsPolicy : IPolicy
+    {
+        private static readonly PolicyRequirements s_requirements =
+            new() { Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }") };
+        private int _evaluationCount;
+
+        public string Name => "CanReadSecret";
+
+        public PolicyRequirements Requirements => s_requirements;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(
+            IPolicyContext context,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+
+            var span = context.Selection!.Entities.Span;
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                context.Deny(i, "denied all products");
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class PolicyDenialAppliedListener : FusionExecutionDiagnosticEventListener
+    {
+        public int ExecutePolicyNodeScopeCount { get; private set; }
+
+        public int PolicyEvaluatedCount { get; private set; }
+
+        public List<PolicyDenialEvent> Events { get; } = [];
+
+        public override IDisposable ExecutePolicyNode(
+            OperationPlanContext context,
+            PolicyExecutionNode node)
+        {
+            ExecutePolicyNodeScopeCount++;
+            return EmptyScope;
+        }
+
+        public override void PolicyEvaluated(
+            RequestContext context,
+            string policyName,
+            PolicyEvaluationOutcome outcome,
+            TimeSpan duration)
+        {
+            PolicyEvaluatedCount++;
+        }
+
+        public override void PolicyDenialApplied(
+            OperationPlanContext context,
+            PolicyExecutionNode node,
+            SelectionPath targetPath,
+            string typeName,
+            string? fieldName,
+            string policyExpression,
+            PolicyDenialBehavior behavior,
+            int deniedCount,
+            int totalCount,
+            string? reason,
+            Guid reasonId,
+            string? subjectId)
+            => Events.Add(
+                new PolicyDenialEvent(
+                    targetPath.ToString(),
+                    typeName,
+                    fieldName,
+                    policyExpression,
+                    behavior,
+                    deniedCount,
+                    totalCount,
+                    reason,
+                    reasonId,
+                    subjectId));
+    }
+
+    private sealed record PolicyDenialEvent(
+        string TargetPath,
+        string TypeName,
+        string? FieldName,
+        string PolicyExpression,
+        PolicyDenialBehavior Behavior,
+        int DeniedCount,
+        int TotalCount,
+        string? Reason,
+        Guid ReasonId,
+        string? SubjectId);
+
+    private sealed class PolicyEvaluationListener : FusionExecutionDiagnosticEventListener
+    {
+        public List<PolicyEvaluationOutcome> Outcomes { get; } = [];
+
+        public override void PolicyEvaluated(
+            RequestContext context,
+            string policyName,
+            PolicyEvaluationOutcome outcome,
+            TimeSpan duration)
+        {
+            Outcomes.Add(outcome);
+        }
+    }
+
     private sealed class StaticResultClient : ISourceSchemaClient
     {
         private static readonly byte[] s_payload = """{"data":{"secret":"classified"}}"""u8.ToArray();
@@ -3072,6 +3453,72 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     {
         private static readonly byte[] s_payload =
             """{"data":{"topProducts":[{"id":"1"},{"id":"2"}]}}"""u8.ToArray();
+
+        public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
+
+        public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var arena = context.MemorySource.GetNextArena();
+            var document = SourceResultDocument.Parse(arena, s_payload, s_payload.Length);
+            await Task.Yield();
+            yield return new SourceSchemaResult(CompactPath.Root, document);
+        }
+
+        public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
+            OperationPlanContext context,
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class AliasedTwoProductResultClient : ISourceSchemaClient
+    {
+        private static readonly byte[] s_payload =
+            """{"data":{"products":[{"id":"1","revealed":9.99},{"id":"2","revealed":19.99}]}}"""u8.ToArray();
+
+        public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
+
+        public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var arena = context.MemorySource.GetNextArena();
+            var document = SourceResultDocument.Parse(arena, s_payload, s_payload.Length);
+            await Task.Yield();
+            yield return new SourceSchemaResult(CompactPath.Root, document);
+        }
+
+        public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
+            OperationPlanContext context,
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class ThreeProductResultClient : ISourceSchemaClient
+    {
+        private static readonly byte[] s_payload =
+            """{"data":{"topProducts":[{"id":"1","price":9.99},{"id":"2","price":19.99},{"id":"3","price":29.99}]}}"""u8.ToArray();
 
         public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
 

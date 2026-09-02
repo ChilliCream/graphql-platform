@@ -88,11 +88,34 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual IDisposable EvaluateRequestPolicies(RequestContext context) => EmptyScope;
 
     /// <inheritdoc />
+    public virtual IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node)
+        => EmptyScope;
+
+    /// <inheritdoc />
     public virtual void PolicyEvaluated(
         RequestContext context,
         string policyName,
-        bool denied,
+        PolicyEvaluationOutcome outcome,
         TimeSpan duration)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
     {
     }
 

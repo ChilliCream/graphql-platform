@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -18,6 +19,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         var writer = new CodeWriter(sb);
 
         WriteOperation(plan, trace, writer);
+
+        if (trace is not null)
+        {
+            WritePolicyConditions(plan, writer);
+        }
 
         writer.WriteLine("nodes:");
         writer.Indent();
@@ -128,6 +134,50 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
 
         return sb.ToString();
+    }
+
+    private static void WritePolicyConditions(OperationPlan plan, CodeWriter writer)
+    {
+        if (plan.PolicySlots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        writer.WriteLine("policyConditions:");
+        writer.Indent();
+
+        foreach (var slot in plan.PolicySlots)
+        {
+            foreach (var application in slot.Applications)
+            {
+                var expression = plan.PolicyExpressions[application.ExpressionOrdinal];
+                writer.WriteLine("- slot: {0}", slot.VariableName);
+                writer.Indent();
+                writer.WriteLine("expression: {0}", PolicyNameGroups.Format(expression.Groups));
+                writer.WriteLine("coordinates:");
+                writer.Indent();
+
+                foreach (var coordinate in slot.Coordinates)
+                {
+                    if (!coordinate.Applications.Any(t =>
+                        t.ExpressionOrdinal == application.ExpressionOrdinal))
+                    {
+                        continue;
+                    }
+
+                    writer.WriteLine(
+                        "- {0}",
+                        coordinate.FieldName is null
+                            ? coordinate.TypeName
+                            : $"{coordinate.TypeName}.{coordinate.FieldName}");
+                }
+
+                writer.Unindent();
+                writer.Unindent();
+            }
+        }
+
+        writer.Unindent();
     }
 
     private static void WritePolicySlot(PolicyConditionSlot slot, CodeWriter writer)

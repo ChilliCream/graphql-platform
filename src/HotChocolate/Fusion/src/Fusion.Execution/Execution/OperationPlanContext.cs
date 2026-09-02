@@ -1002,8 +1002,16 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         PolicyDenialBehavior behavior,
         string policyName,
         string? reason)
+        => ApplyPolicyDenial(element, behavior, policyName, reason, Guid.NewGuid());
+
+    internal void ApplyPolicyDenial(
+        CompositeResultElement element,
+        PolicyDenialBehavior behavior,
+        string policyName,
+        string? reason,
+        Guid reasonId)
     {
-        if (!_resultStore.ApplyPolicyDenial(element, behavior, policyName, reason))
+        if (!_resultStore.ApplyPolicyDenial(element, behavior, policyName, reason, reasonId))
         {
             ExecutionState.CancelProcessing();
         }
