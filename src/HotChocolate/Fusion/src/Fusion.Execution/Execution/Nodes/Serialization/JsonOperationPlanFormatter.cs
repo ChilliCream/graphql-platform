@@ -1484,20 +1484,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         WriteConditions(jsonWriter, node.Conditions);
 
-        // Policy nodes never carry parent dependencies (PolicyPlanStep does not
-        // model them), so only regular dependency edges are written.
-        if (node.Dependencies.Length > 0)
-        {
-            jsonWriter.WritePropertyName("dependencies");
-            jsonWriter.WriteStartArray();
-
-            foreach (var dependency in node.Dependencies)
-            {
-                jsonWriter.WriteNumberValue(dependency.Id);
-            }
-
-            jsonWriter.WriteEndArray();
-        }
+        WriteDependencies(jsonWriter, node.Dependencies, node.ParentDependencies);
 
         TryWriteNodeTrace(jsonWriter, operation, trace);
 

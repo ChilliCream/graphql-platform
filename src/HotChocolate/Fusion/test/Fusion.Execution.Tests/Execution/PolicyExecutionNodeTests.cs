@@ -1387,6 +1387,80 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_DispatchRetainedRegularBatchMember_When_DeferredPolicyDeniesSibling()
+    {
+        // arrange
+        var downstreamClient = new SelectiveBatchClient();
+        var listener = new ExecutionNodeStartListener();
+        var executor = await CreateSelectiveBatchExecutorAsync(
+            downstreamClient,
+            listener,
+            enableDefer: true);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ before ... @defer { topProducts { price } viewers { name } } }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal((ExecuteCalls: 0, BatchCalls: 1, BatchedRequests: 1), (
+            ExecuteCalls: downstreamClient.ExecuteCalls,
+            BatchCalls: downstreamClient.BatchCalls,
+            BatchedRequests: downstreamClient.Requests.Count));
+        Assert.Equal(1, listener.DownstreamBatchStarts);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "before": "initial"
+              },
+              "pending": [
+                {
+                  "id": "0",
+                  "path": []
+                }
+              ],
+              "hasNext": true
+            }
+            """,
+            """
+            {
+              "incremental": [
+                {
+                  "id": "0",
+                  "data": {
+                    "topProducts": [
+                      null
+                    ],
+                    "viewers": [
+                      {
+                        "name": "Michael"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "completed": [
+                {
+                  "id": "0"
+                }
+              ],
+              "hasNext": false
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_OmitDeniedMemberAndDispatchUnrelatedMember_When_ApolloBatchIsShared()
     {
         // arrange
@@ -1433,6 +1507,79 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_DispatchRetainedApolloBatchMember_When_DeferredPolicyDeniesSibling()
+    {
+        // arrange
+        var downstreamClient = new SelectiveApolloBatchClient();
+        var listener = new ExecutionNodeStartListener();
+        var executor = await CreateSelectiveApolloBatchExecutorAsync(
+            downstreamClient,
+            listener,
+            enableDefer: true);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ before ... @defer { topProducts { price } viewers { name } } }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal((BatchCalls: 1, BatchedRequests: 1), (
+            BatchCalls: downstreamClient.BatchCalls,
+            BatchedRequests: downstreamClient.Requests.Count));
+        Assert.Equal(1, listener.DownstreamBatchStarts);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "before": "initial"
+              },
+              "pending": [
+                {
+                  "id": "0",
+                  "path": []
+                }
+              ],
+              "hasNext": true
+            }
+            """,
+            """
+            {
+              "incremental": [
+                {
+                  "id": "0",
+                  "data": {
+                    "topProducts": [
+                      null
+                    ],
+                    "viewers": [
+                      {
+                        "name": "Michael"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "completed": [
+                {
+                  "id": "0"
+                }
+              ],
+              "hasNext": false
+            }
+            """
+        ]);
     }
 
     [Fact]
@@ -1634,9 +1781,8 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddHttpClient();
 
-        var builder = services
-            .AddGraphQLGateway()
-            .AddInMemoryConfiguration(
+        var builder = services.AddGraphQLGateway();
+        builder.AddInMemoryConfiguration(
                 ComposeSchemaDocument(
                     $$"""
                     # name: a
@@ -2095,7 +2241,8 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     private static async Task<IRequestExecutor> CreateSelectiveBatchExecutorAsync(
         SelectiveBatchClient downstreamClient,
         FusionExecutionDiagnosticEventListener? diagnosticListener = null,
-        bool protectViewer = false)
+        bool protectViewer = false,
+        bool enableDefer = false)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -2103,10 +2250,10 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
         var viewerPolicy = protectViewer
             ? "@policy(names: \"CanReadSecret\")"
             : string.Empty;
-        var builder = services
-            .AddGraphQLGateway()
-            .AddInMemoryConfiguration(
-                ComposeSchemaDocument(
+        var builder = services.AddGraphQLGateway();
+        builder.ModifyOptions(options => options.EnableDefer = enableDefer);
+        builder.AddInMemoryConfiguration(
+            ComposeSchemaDocument(
                     $$"""
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
@@ -2115,6 +2262,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
                       repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
+                      before: String
                       topProducts: [Product]
                       viewers: [Viewer]
                     }
@@ -2170,15 +2318,16 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
 
     private static async Task<IRequestExecutor> CreateSelectiveApolloBatchExecutorAsync(
         SelectiveApolloBatchClient downstreamClient,
-        FusionExecutionDiagnosticEventListener diagnosticListener)
+        FusionExecutionDiagnosticEventListener diagnosticListener,
+        bool enableDefer = false)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
 
-        var builder = services
-            .AddGraphQLGateway()
-            .AddInMemoryConfiguration(
-                ComposeApolloPolicySchemaDocument(
+        var builder = services.AddGraphQLGateway();
+        builder.ModifyOptions(options => options.EnableDefer = enableDefer);
+        builder.AddInMemoryConfiguration(
+            ComposeApolloPolicySchemaDocument(
                     """
                     # name: a
                     enum PolicyDenialBehavior { NULL ERROR ABORT }
@@ -2187,6 +2336,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
                       repeatable on OBJECT | FIELD_DEFINITION
 
                     type Query {
+                      before: String
                       topProducts: [Product]
                       viewers: [Viewer]
                     }
@@ -3000,7 +3150,7 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
     private sealed class ProductAndViewerResultClient : ISourceSchemaClient
     {
         private static readonly byte[] s_payload =
-            """{"data":{"topProducts":[{"id":"1"}],"viewers":[{"id":"v1"}]}}"""u8.ToArray();
+            """{"data":{"before":"initial","topProducts":[{"id":"1"}],"viewers":[{"id":"v1"}]}}"""u8.ToArray();
 
         public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
 

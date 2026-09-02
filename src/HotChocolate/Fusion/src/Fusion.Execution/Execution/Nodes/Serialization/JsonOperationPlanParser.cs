@@ -407,6 +407,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         JsonElement deliveryGroupsElement,
         Dictionary<int, DeliveryGroup> deliveryGroupMap)
     {
+        RequireArray(deliveryGroupsElement, "deliveryGroups");
+
         // Phase 1: Construct every DeliveryGroup without resolving parent references.
         // Parents are captured as numeric ids for the second pass because a parent
         // may appear after its child in the serialized array.
@@ -444,22 +446,71 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 IfVariable = ifVariable
             };
 
+            if (!deliveryGroupMap.TryAdd(deferId, deliveryGroup))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "An operation plan cannot contain duplicate delivery group identifiers.");
+            }
+
             ordered.Add((deliveryGroup, parentId));
-            deliveryGroupMap[deferId] = deliveryGroup;
         }
 
-        // Phase 2: Resolve every parent id against the map and rebuild the
-        // records so their Parent references point at the canonical instances.
+        // Phase 2: Resolve every parent id against the raw group table and rebuild
+        // the records so their Parent references point at canonical instances. The
+        // recursive resolution keeps a child canonical even when its parent appears
+        // later in the serialized array.
+        var entriesById = ordered.ToDictionary(entry => entry.Usage.Id);
+        var resolvedById = new Dictionary<int, DeliveryGroup>();
+        var resolvingIds = new HashSet<int>();
+
+        DeliveryGroup Resolve(int id)
+        {
+            if (resolvedById.TryGetValue(id, out var resolved))
+            {
+                return resolved;
+            }
+
+            if (!entriesById.TryGetValue(id, out var entry)
+                || !resolvingIds.Add(id))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "Delivery group parent references must form an acyclic immediate-parent topology.");
+            }
+
+            try
+            {
+                if (entry.ParentId is null)
+                {
+                    resolved = entry.Usage;
+                }
+                else
+                {
+                    if (entry.ParentId.Value == entry.Usage.Id
+                        || !entriesById.ContainsKey(entry.ParentId.Value))
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A non-root delivery group must reference an existing immediate parent delivery group.");
+                    }
+
+                    resolved = entry.Usage with { Parent = Resolve(entry.ParentId.Value) };
+                }
+
+                resolvedById.Add(id, resolved);
+                return resolved;
+            }
+            finally
+            {
+                resolvingIds.Remove(id);
+            }
+        }
+
         // Update the map so incremental plans and the returned collection share
         // the same DeliveryGroup instances.
         var builder = ImmutableArray.CreateBuilder<DeliveryGroup>(ordered.Count);
 
-        foreach (var (usage, parentId) in ordered)
+        foreach (var (usage, _) in ordered)
         {
-            var resolved = parentId is null
-                ? usage
-                : usage with { Parent = deliveryGroupMap[parentId.Value] };
-
+            var resolved = Resolve(usage.Id);
             deliveryGroupMap[usage.Id] = resolved;
             builder.Add(resolved);
         }
@@ -591,7 +642,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     "An operation plan cannot contain duplicate node identifiers.");
             }
 
-            ValidateRawDependencies(nodeElement, id, nodeType);
+            ValidateRawDependencies(nodeElement, id);
 
             if (nodeType is "Policy")
             {
@@ -915,8 +966,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
     private static void ValidateRawDependencies(
         JsonElement nodeElement,
-        int nodeId,
-        string? nodeType)
+        int nodeId)
     {
         if (!nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
         {
@@ -949,12 +999,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     break;
 
                 case JsonValueKind.Object:
-                    if (nodeType is "Policy")
-                    {
-                        throw ThrowHelper.InvalidOperationPlan(
-                            $"Policy execution node {nodeId} cannot contain parent dependencies.");
-                    }
-
                     var parentNodeId = dependency.GetProperty("parentNodeId").GetInt32();
                     if (!parentDependencies.Add(parentNodeId))
                     {
@@ -974,21 +1018,41 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
 
         var previousDependencyId = -1;
+        var previousParentDependencyId = -1;
+        var hasParentDependencies = false;
         foreach (var dependency in dependenciesElement.EnumerateArray())
         {
-            if (dependency.ValueKind is not JsonValueKind.Number)
+            switch (dependency.ValueKind)
             {
-                continue;
-            }
+                case JsonValueKind.Number:
+                    if (hasParentDependencies)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Policy execution node {nodeId} numeric dependencies must precede parent dependencies.");
+                    }
 
-            var dependencyId = dependency.GetInt32();
-            if (dependencyId <= previousDependencyId)
-            {
-                throw ThrowHelper.InvalidOperationPlan(
-                    $"Policy execution node {nodeId} dependencies must be in canonical order.");
-            }
+                    var dependencyId = dependency.GetInt32();
+                    if (dependencyId <= previousDependencyId)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Policy execution node {nodeId} dependencies must be in canonical order.");
+                    }
 
-            previousDependencyId = dependencyId;
+                    previousDependencyId = dependencyId;
+                    break;
+
+                case JsonValueKind.Object:
+                    hasParentDependencies = true;
+                    var parentDependencyId = dependency.GetProperty("parentNodeId").GetInt32();
+                    if (parentDependencyId <= previousParentDependencyId)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            $"Policy execution node {nodeId} parent dependencies must be in canonical order.");
+                    }
+
+                    previousParentDependencyId = parentDependencyId;
+                    break;
+            }
         }
     }
 
@@ -1690,7 +1754,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             });
         }
 
-        var dependencies = TryParseDependencies(nodeElement, out _);
+        var dependencies = TryParseDependencies(nodeElement, out var parentDependencies);
         var conditions = TryParseConditions(nodeElement);
 
         return new ParsedPolicyNodeInfo
@@ -1698,7 +1762,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Id = id,
             Targets = targets.ToArray(),
             Conditions = conditions,
-            Dependencies = dependencies
+            Dependencies = dependencies,
+            ParentDependencies = parentDependencies
         };
     }
 
@@ -2021,11 +2086,20 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     private sealed class ParsedPolicyNodeInfo : ParsedNodeInfo
     {
         public PolicyExecutionTarget[] Targets { get; init; } = [];
+        public int[]? ParentDependencies { get; init; }
         public ExecutionNodeCondition[] Conditions { get; init; } = [];
 
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
         {
             var node = new PolicyExecutionNode(Id, Targets, Conditions);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    node.AddParentDependency(parentId);
+                }
+            }
 
             return (node, Dependencies, null, null);
         }

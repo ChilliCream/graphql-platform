@@ -109,6 +109,15 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
+        if (PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            incrementalPlans,
+            allNodes,
+            out var coordinate,
+            out var scope))
+        {
+            throw ThrowHelper.NestedDeferredPolicyScopeNotSupported(coordinate, scope);
+        }
+
         var operationPlan = OperationPlan.Create(
             operation,
             rootNodes,
@@ -802,10 +811,17 @@ public sealed partial class OperationPlanner
             AddOrMergePolicyTarget(targets, target);
         }
 
-        return new PolicyExecutionNode(
+        var node = new PolicyExecutionNode(
             policyStep.Id,
             targets.ToArray(),
             policyStep.Conditions);
+
+        foreach (var parentDependency in policyStep.ParentDependencies)
+        {
+            node.AddParentDependency(parentDependency.StepId);
+        }
+
+        return node;
     }
 
     private static Dictionary<int, HashSet<int>> CapturePolicyProducers(
@@ -1863,6 +1879,12 @@ public sealed partial class OperationPlanner
                     isProvided = true;
                 }
 
+                if (!isProvided
+                    && IsProvidedByParentDependency(ctx.ExecutionNodes.Values, path))
+                {
+                    isProvided = true;
+                }
+
                 if (!isProvided)
                 {
                     throw new InvalidOperationException(
@@ -1991,6 +2013,70 @@ public sealed partial class OperationPlanner
                 if (candidate.Equals(responseName, StringComparison.Ordinal))
                 {
                     return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool IsProvidedByParentDependency(
+            IEnumerable<ExecutionNode> candidates,
+            string[] requirementPath)
+        {
+            foreach (var candidate in candidates)
+            {
+                ReadOnlySpan<OperationRequirement> requirements;
+                ReadOnlySpan<int> parentDependencies;
+
+                switch (candidate)
+                {
+                    case OperationExecutionNode operation:
+                        requirements = operation.Requirements;
+                        parentDependencies = operation.ParentDependencies;
+                        break;
+
+                    case ApolloOperationExecutionNode operation:
+                        requirements = operation.Requirements;
+                        parentDependencies = operation.ParentDependencies;
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                if (parentDependencies.Length == 0)
+                {
+                    continue;
+                }
+
+                foreach (var requirement in requirements)
+                {
+                    var pathIndex = 0;
+
+                    for (var i = 0; i < requirement.Path.Length; i++)
+                    {
+                        var segment = requirement.Path[i];
+                        if (segment.Kind is SelectionPathSegmentKind.Field)
+                        {
+                            if (pathIndex == requirementPath.Length
+                                || !segment.Name.Equals(requirementPath[pathIndex++], StringComparison.Ordinal))
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (pathIndex >= requirementPath.Length)
+                    {
+                        continue;
+                    }
+
+                    var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
+                    if (fieldName?.Equals(requirementPath[pathIndex], StringComparison.Ordinal) == true
+                        && pathIndex + 1 == requirementPath.Length)
+                    {
+                        return true;
+                    }
                 }
             }
 

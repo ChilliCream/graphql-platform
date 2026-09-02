@@ -353,21 +353,6 @@ public sealed partial class OperationPlanner
             return new DeferIncrementalPlanResult([], null, policySlots);
         }
 
-        foreach (var step in plan.Value.Steps)
-        {
-            if (step is not PolicyPlanStep { Targets.Length: > 0 } policyStep)
-            {
-                continue;
-            }
-
-            var target = policyStep.Targets[0];
-            var coordinate = target.Kind is PolicyTargetKind.Field
-                ? $"{target.TypeName}.{target.Path.Name}"
-                : target.TypeName;
-            throw HotChocolate.Fusion.Execution.ThrowHelper
-                .DeferredPolicyTargetNotSupported(coordinate);
-        }
-
         return new DeferIncrementalPlanResult(
             plan.Value.Steps,
             plan.Value.InternalOperationDefinition,
@@ -1550,6 +1535,10 @@ public sealed partial class OperationPlanner
                 && operationStep.SchemaName is not null
                 && !operationStep.Dependents.IsEmpty
                 && (operationStep.Target.Equals(anchorPath) || operationStep.Target.IsRoot)
+                && HasOnlyParentReachableRequirementConsumers(
+                    operationStep,
+                    incrementalPlanSteps,
+                    anchorPath)
                 && IsPureRequirementProducer(operationStep, incrementalPlanSteps))
             {
                 producers.Add(operationStep);
@@ -1557,6 +1546,32 @@ public sealed partial class OperationPlanner
         }
 
         return producers.ToImmutable();
+    }
+
+    private static bool HasOnlyParentReachableRequirementConsumers(
+        OperationPlanStep providerStep,
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
+    {
+        foreach (var dependentStepId in providerStep.Dependents)
+        {
+            if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
+            {
+                continue;
+            }
+
+            foreach (var (_, requirement) in dependentStep.Requirements)
+            {
+                if (TryFindDeferRequirementProvider(incrementalPlanSteps, dependentStep, requirement)?.Id
+                        == providerStep.Id
+                    && !requirement.Path.IsParentOfOrSame(anchorPath))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -1885,6 +1900,27 @@ public sealed partial class OperationPlanner
                     ParentDependencies = newParentDependencies
                 });
             }
+            else if (step is PolicyPlanStep policyStep)
+            {
+                var parentDependencies = policyStep.ParentDependencies;
+
+                foreach (var pairedOperationStep in incrementalPlanSteps.OfType<OperationPlanStep>())
+                {
+                    if (!pairedOperationStep.Dependents.Contains(step.Id)
+                        || !parentRefsByStepId.TryGetValue(pairedOperationStep.Id, out var parentRefBuilder))
+                    {
+                        continue;
+                    }
+
+                    parentDependencies = parentDependencies.Union(parentRefBuilder.ToImmutable());
+                }
+
+                rewritten.Add(policyStep with
+                {
+                    Id = oldToNewId[step.Id],
+                    ParentDependencies = parentDependencies
+                });
+            }
             else
             {
                 rewritten.Add(step with { Id = oldToNewId[step.Id] });
@@ -2187,9 +2223,15 @@ public sealed partial class OperationPlanner
             promoteNestedConditions: true);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
+        ValidateDeferredPolicyRoots(ctx);
+        var policyProducers = CapturePolicyProducers(ctx);
         var policyRequirementProviders = OperationPlanner.AddPolicyRequirementDependencies(ctx);
-        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        policyRequirementProviders = ConsolidatePolicyExecutionNodes(
+            ctx,
+            policyProducers,
+            policyRequirementProviders);
+        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
         ApplyPolicyGuards(ctx, policyGuards);
         WireExecutionDependencies(ctx);
 
@@ -2211,5 +2253,18 @@ public sealed partial class OperationPlanner
         }
 
         return (rootNodes, allNodes);
+    }
+
+    private static void ValidateDeferredPolicyRoots(ExecutionPlanBuildContext ctx)
+    {
+        foreach (var policyNode in ctx.ExecutionNodes.Values.OfType<PolicyExecutionNode>())
+        {
+            if ((!ctx.DependenciesByStepId.TryGetValue(policyNode.Id, out var dependencies)
+                    || dependencies.Count == 0)
+                && policyNode.ParentDependencies.Length == 0)
+            {
+                throw HotChocolate.Fusion.Execution.ThrowHelper.DeferredPolicyRootNotAnchored(policyNode.Id);
+            }
+        }
     }
 }

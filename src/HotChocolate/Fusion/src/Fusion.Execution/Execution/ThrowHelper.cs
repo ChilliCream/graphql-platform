@@ -44,10 +44,17 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
-    public static InvalidOperationException DeferredPolicyTargetNotSupported(string coordinate)
+    public static InvalidOperationException DeferredPolicyRootNotAnchored(int nodeId)
         => new(
-            "The deferred incremental plan contains an uncovered policy target at "
-            + $"'{coordinate}'. Data-bearing deferred policy targets require deferred policy planning support.");
+            "A deferred incremental plan contains an unanchored policy execution node "
+            + $"with id '{nodeId}'.");
+
+    public static InvalidOperationException NestedDeferredPolicyScopeNotSupported(
+        string coordinate,
+        string scope)
+        => new(
+            $"The deferred policy target '{coordinate}' in nested scope '{scope}' "
+            + "cannot be authorized from its immediate parent scope.");
 
     public static InvalidOperationException DeferredSelectionPathCannotBeRebased(string responseName)
         => new(

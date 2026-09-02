@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -108,6 +109,39 @@ public sealed class PolicyPlanningTests : FusionTestBase
         // assert
         Assert.Single(parsedPlan.AllNodes.OfType<PolicyExecutionNode>());
         Assert.Single(parsedPlan.AllNodes.OfType<OperationBatchExecutionNode>());
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RejectSiblingDeferredBatchedPolicyTargets()
+    {
+        // arrange
+        var schema = CreateBatchedPolicySchema();
+
+        // act
+        // repo-ias owns support for this combined deferred batch shape.
+        var exception = Assert.Throws<InvalidOperationException>(() => PlanOperation(
+            schema,
+            """
+            {
+              first {
+                id
+                ... @defer {
+                  rating
+                }
+              }
+              second {
+                id
+                ... @defer {
+                  rating
+                }
+              }
+            }
+            """));
+
+        // assert
+        Assert.Equal(
+            "Every required compiled policy occurrence facet must be claimed exactly once.",
+            exception.Message);
     }
 
     [Fact]
@@ -1008,13 +1042,13 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_RejectDeferredDataBearingPolicyTarget()
+    public void CreatePlan_Should_IncludeDeferredDataBearingPolicyTarget()
     {
         // arrange
         var schema = CreateDeferredDataPolicySchema();
 
         // act
-        var error = Assert.Throws<InvalidOperationException>(() => PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -1024,13 +1058,707 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 }
               }
             }
-            """));
+            """);
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        Assert.Equal(1, policyNode.Targets.Length);
+        var target = policyNode.Targets[0];
+
+        // assert
+        ($"roots={string.Join(',', incrementalPlan.RootNodes.Select(node => node.GetType().Name))}; "
+            + $"all={string.Join(',', incrementalPlan.AllNodes.Select(node => node.GetType().Name))}; "
+            + $"target={target.TypeName}.{target.Path}; requirement={target.Requirements[0].SelectionSet}")
+            .MatchInlineSnapshot(
+                """
+                roots=OperationExecutionNode; all=OperationExecutionNode,PolicyExecutionNode; target=User.$.user.secret; requirement={
+                  role
+                }
+                """);
+    }
+
+    [Fact]
+    public void JsonParser_Should_RejectUnanchoredDeferredPolicyRoot_When_IncrementalDependencyIsRemoved()
+    {
+        // arrange
+        var schema = CreateDeferredDataPolicySchema();
+        var (json, parser) = SerializePlan(
+            schema,
+            PlanOperation(
+                schema,
+                """
+                {
+                  user {
+                    ... @defer {
+                      secret
+                    }
+                  }
+                }
+                """));
+        var policy = json["incrementalPlans"]!.AsArray()[0]!["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["type"]!.GetValue<string>() == "Policy");
+        policy["dependencies"]!.AsArray().Clear();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
 
         // assert
         Assert.Equal(
-            "The deferred incremental plan contains an uncovered policy target at "
-                + "'User.secret'. Data-bearing deferred policy targets require deferred policy planning support.",
-            error.Message);
+            "A policy execution node dependencies must exactly match its producer and requirement providers.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_KeepDeferredPolicyParentAnchored_When_PairedProviderIsLifted()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+        var parsedPolicyNode = Assert.Single(
+            Assert.Single(parsedPlan.IncrementalPlans).AllNodes.OfType<PolicyExecutionNode>());
+
+        // assert
+        ($"roots={string.Join(',', incrementalPlan.RootNodes.Select(node => node.GetType().Name))}; "
+            + $"incrementalOperations={string.Join(',', incrementalPlan.AllNodes.OfType<OperationExecutionNode>().Select(node => node.SchemaName))}; "
+            + $"dependencies={policyNode.Dependencies.Length}; "
+            + $"parentDependencies={string.Join(',', policyNode.ParentDependencies.ToArray())}; "
+            + $"roundTripParentDependencies={string.Join(',', parsedPolicyNode.ParentDependencies.ToArray())}; "
+            + $"policies={string.Join(',', plan.Policies.Select(entry => entry.PolicyName))}")
+            .MatchInlineSnapshot(
+                "roots=OperationExecutionNode; incrementalOperations=c; dependencies=1; parentDependencies=1,2; roundTripParentDependencies=1,2; policies=CanReadReviews");
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RejectNestedDeferredPolicy_When_ImmediateParentScopeCannotAuthorizeIt()
+    {
+        // arrange
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  description: String!
+                  productSku: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(productSku: String! @require(field: "productSku")): [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(
+                schema,
+                """
+                {
+                  product(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                      description
+                      productSku
+                      ... @defer(label: "inner") {
+                        reviews
+                      }
+                    }
+                  }
+                }
+                """));
+
+        // assert
+        Assert.Equal(
+            "The deferred policy target 'Product.reviews' in nested scope 'inner' "
+            + "cannot be authorized from its immediate parent scope.",
+            exception.Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryFindNestedParentAuthorityGap_Should_RejectAmbiguousProviderAcrossSplitParentPieces(
+        bool reversePieces)
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var policyNode = Assert.Single(
+            Assert.Single(plan.IncrementalPlans).AllNodes.OfType<PolicyExecutionNode>());
+        var outer = new DeliveryGroup("outer", Parent: null, DeferConditionIndex: 0) { Id = 100 };
+        var inner = new DeliveryGroup("inner", outer, DeferConditionIndex: 0) { Id = 101 };
+        var firstParent = new IncrementalPlan(
+            plan.Operation,
+            plan.RootNodes,
+            plan.AllNodes,
+            [outer],
+            requirements: []);
+        var secondParent = new IncrementalPlan(
+            plan.Operation,
+            plan.RootNodes,
+            plan.AllNodes,
+            [outer],
+            requirements: []);
+        var child = new IncrementalPlan(
+            plan.Operation,
+            [policyNode],
+            [policyNode],
+            [inner],
+            requirements: []);
+        var incrementalPlans = reversePieces
+            ? ImmutableArray.Create(secondParent, firstParent, child)
+            : ImmutableArray.Create(firstParent, secondParent, child);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            incrementalPlans,
+            rootNodes: [],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.True(hasGap);
+        Assert.Equal("Product.reviews", coordinate);
+        Assert.Equal("inner", scope);
+    }
+
+    [Fact]
+    public void TryFindNestedParentAuthorityGap_Should_UseUnambiguousProviderFromLaterSplitParentPiece()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var policyNode = Assert.Single(
+            Assert.Single(plan.IncrementalPlans).AllNodes.OfType<PolicyExecutionNode>());
+        var outer = new DeliveryGroup("outer", Parent: null, DeferConditionIndex: 0) { Id = 100 };
+        var inner = new DeliveryGroup("inner", outer, DeferConditionIndex: 0) { Id = 101 };
+        var firstParent = new IncrementalPlan(
+            plan.Operation,
+            rootNodes: [],
+            allNodes: [new PolicyExecutionNode(999, [], [])],
+            deliveryGroups: [outer],
+            requirements: []);
+        var secondParent = new IncrementalPlan(
+            plan.Operation,
+            plan.RootNodes,
+            plan.AllNodes,
+            [outer],
+            requirements: []);
+        var child = new IncrementalPlan(
+            plan.Operation,
+            [policyNode],
+            [policyNode],
+            [inner],
+            requirements: []);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [firstParent, secondParent, child],
+            rootNodes: [],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.False(hasGap);
+        Assert.Equal(string.Empty, coordinate);
+        Assert.Equal(string.Empty, scope);
+    }
+
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("ambiguous")]
+    public void TryFindNestedParentAuthorityGap_Should_ReturnPolicyTarget_When_ImmediateParentScopeIsInvalid(
+        string topology)
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var policyNode = Assert.Single(
+            Assert.Single(plan.IncrementalPlans).AllNodes.OfType<PolicyExecutionNode>());
+        var firstOuter = new DeliveryGroup("first", Parent: null, DeferConditionIndex: 0) { Id = 100 };
+        var firstInner = new DeliveryGroup("inner", firstOuter, DeferConditionIndex: 0) { Id = 101 };
+        var secondOuter = new DeliveryGroup("second", Parent: null, DeferConditionIndex: 0) { Id = 102 };
+        var secondInner = new DeliveryGroup("inner", secondOuter, DeferConditionIndex: 0) { Id = 103 };
+        var groups = topology is "missing"
+            ? ImmutableArray.Create(firstInner)
+            : ImmutableArray.Create(firstInner, secondInner);
+        var child = new IncrementalPlan(
+            plan.Operation,
+            [policyNode],
+            [policyNode],
+            groups,
+            requirements: []);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [child],
+            rootNodes: [],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.True(hasGap);
+        Assert.Equal("Product.reviews", coordinate);
+        Assert.Equal("inner", scope);
+    }
+
+    [Fact]
+    public void TryFindNestedParentAuthorityGap_Should_ReportLaterTarget_When_ItLacksParentAuthority()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        var originalTarget = policyNode.Targets[0];
+        var unavailableTarget = originalTarget with
+        {
+            Path = SelectionPath.Parse("$.product.unavailable"),
+            Requirements =
+            [
+                new PolicyRequirement
+                {
+                    PolicyName = "CanReadReviews",
+                    SelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ unavailable }")
+                }
+            ]
+        };
+        policyNode.SetTargets([originalTarget, unavailableTarget]);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [incrementalPlan],
+            plan.AllNodes,
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.True(hasGap);
+        Assert.Equal("Product.unavailable", coordinate);
+        Assert.Equal("$.product", scope);
+    }
+
+    [Fact]
+    public void TryFindNestedParentAuthorityGap_Should_IgnoreDuplicateIdsInNonPolicySplitParentPieces()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var outer = new DeliveryGroup("outer", Parent: null, DeferConditionIndex: 0) { Id = 100 };
+        var inner = new DeliveryGroup("inner", outer, DeferConditionIndex: 0) { Id = 101 };
+        var firstParent = new IncrementalPlan(
+            plan.Operation,
+            rootNodes: [],
+            allNodes: [new PolicyExecutionNode(999, [], [])],
+            deliveryGroups: [outer],
+            requirements: []);
+        var secondParent = new IncrementalPlan(
+            plan.Operation,
+            rootNodes: [],
+            allNodes: [new PolicyExecutionNode(999, [], [])],
+            deliveryGroups: [outer],
+            requirements: []);
+        var child = new IncrementalPlan(
+            plan.Operation,
+            rootNodes: [],
+            allNodes: [],
+            deliveryGroups: [inner],
+            requirements: []);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [firstParent, secondParent, child],
+            rootNodes: [],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.False(hasGap);
+        Assert.Equal(string.Empty, coordinate);
+        Assert.Equal(string.Empty, scope);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Bind_Should_RejectAmbiguousParentAuthorityAcrossSplitPieces(bool reversePieces)
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var (incrementalPlans, slots) = CreateStrictSplitParentAuthorityFixture(
+            schema,
+            plan,
+            firstParentNodes: plan.AllNodes,
+            secondParentNodes: plan.AllNodes,
+            reversePieces);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PolicyArtifactBinder.Bind(
+                plan.Operation,
+                incrementalPlans,
+                plan.PolicyExpressions,
+                slots,
+                plan.Policies,
+                plan.AllNodes));
+
+        // assert
+        Assert.Equal(
+            "A policy parent requirement provider is ambiguous across immediate parent plan pieces.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void Bind_Should_AcceptAuthorityFromLaterSplitParentPiece()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var (incrementalPlans, slots) = CreateStrictSplitParentAuthorityFixture(
+            schema,
+            plan,
+            firstParentNodes: [],
+            secondParentNodes: plan.AllNodes,
+            reversePieces: false);
+
+        // act
+        var boundSlots = PolicyArtifactBinder.Bind(
+            plan.Operation,
+            incrementalPlans,
+            plan.PolicyExpressions,
+            slots,
+            plan.Policies,
+            plan.AllNodes);
+
+        // assert
+        Assert.Equal(slots, boundSlots);
+    }
+
+    [Fact]
+    public void Bind_Should_AcceptDuplicateNonPolicyId_When_ItDoesNotContributeParentAuthority()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var neutralPlan = PlanOperation(schema, "{ product(id: \"1\") { name } }");
+        var nonPolicyNode = Assert.Single(neutralPlan.AllNodes.OfType<OperationExecutionNode>());
+        Assert.Contains(plan.AllNodes, node => node.Id == nonPolicyNode.Id);
+        var (incrementalPlans, slots) = CreateStrictSplitParentAuthorityFixture(
+            schema,
+            plan,
+            firstParentNodes: [nonPolicyNode],
+            secondParentNodes: plan.AllNodes,
+            reversePieces: false);
+
+        // act
+        var boundSlots = PolicyArtifactBinder.Bind(
+            plan.Operation,
+            incrementalPlans,
+            plan.PolicyExpressions,
+            slots,
+            plan.Policies,
+            plan.AllNodes);
+
+        // assert
+        Assert.Equal(slots, boundSlots);
+    }
+
+    [Theory]
+    [InlineData("stripped")]
+    [InlineData("extra")]
+    [InlineData("swapped")]
+    [InlineData("parent-before-numeric")]
+    public void JsonParser_Should_RejectPolicyParentDependencies_When_ParentReferencesAreMutated(
+        string mutation)
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var policy = json["incrementalPlans"]!.AsArray()[0]!["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["type"]!.GetValue<string>() == "Policy");
+        var policyId = policy["id"]!.GetValue<int>();
+        var parentDependencies = policy["dependencies"]!.AsArray()
+            .Where(dependency => dependency is JsonObject)
+            .ToArray();
+
+        switch (mutation)
+        {
+            case "stripped":
+                policy["dependencies"]!.AsArray().Remove(parentDependencies[0]);
+                break;
+
+            case "extra":
+                policy["dependencies"]!.AsArray().Add(new JsonObject { ["parentNodeId"] = 999 });
+                break;
+
+            case "swapped":
+                var dependencies = policy["dependencies"]!.AsArray();
+                var firstIndex = dependencies.IndexOf(parentDependencies[0]);
+                var secondIndex = dependencies.IndexOf(parentDependencies[1]);
+                var first = dependencies[firstIndex]!.DeepClone();
+                dependencies[firstIndex] = dependencies[secondIndex]!.DeepClone();
+                dependencies[secondIndex] = first;
+                break;
+
+            case "parent-before-numeric":
+                var orderedDependencies = policy["dependencies"]!.AsArray();
+                var parentDependency = parentDependencies[0]!.DeepClone();
+                orderedDependencies.Remove(parentDependencies[0]);
+                orderedDependencies.Insert(0, parentDependency);
+                break;
+        }
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
+
+        // assert
+        var expectedMessage = mutation switch
+        {
+            "swapped" => $"Policy execution node {policyId} parent dependencies must be in canonical order.",
+            "parent-before-numeric" =>
+                $"Policy execution node {policyId} numeric dependencies must precede parent dependencies.",
+            _ => "A policy execution node parent dependencies must exactly match its parent requirement providers."
+        };
+        Assert.Equal(expectedMessage, exception.Message);
+    }
+
+    [Fact]
+    public void JsonParser_Should_RejectFirstLevelPolicy_When_RootAuthorityAndReferencesAreRemoved()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var policy = json["incrementalPlans"]!.AsArray()[0]!["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["type"]!.GetValue<string>() == "Policy");
+        var parentProviderIds = policy["dependencies"]!.AsArray()
+            .OfType<JsonObject>()
+            .Select(dependency => dependency["parentNodeId"]!.GetValue<int>())
+            .ToHashSet();
+        var rootNodes = json["nodes"]!.AsArray();
+
+        foreach (var rootNode in rootNodes
+            .Where(node => parentProviderIds.Contains(node!["id"]!.GetValue<int>()))
+            .ToArray())
+        {
+            rootNodes.Remove(rootNode);
+        }
+
+        foreach (var parentDependency in policy["dependencies"]!.AsArray()
+            .OfType<JsonObject>()
+            .ToArray())
+        {
+            policy["dependencies"]!.AsArray().Remove(parentDependency);
+        }
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
+
+        // assert
+        Assert.Equal(
+            "A policy parent requirement provider cannot be resolved from the immediate parent scope.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void JsonParser_Should_RejectParentProviderThatClaimsAnotherParentScope()
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var policy = json["incrementalPlans"]!.AsArray()[0]!["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["type"]!.GetValue<string>() == "Policy");
+        var dependencies = policy["dependencies"]!.AsArray();
+        var parentProviderId = dependencies
+            .OfType<JsonObject>()
+            .Max(dependency => dependency["parentNodeId"]!.GetValue<int>());
+        var provider = json["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["id"]!.GetValue<int>() == parentProviderId);
+        var parentDependency = dependencies
+            .OfType<JsonObject>()
+            .Single(dependency => dependency["parentNodeId"]!.GetValue<int>() == parentProviderId);
+        dependencies.Remove(parentDependency);
+        provider["dependencies"] = new JsonArray(new JsonObject { ["parentNodeId"] = 999 });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
+
+        // assert
+        Assert.Equal(
+            "A policy parent requirement provider cannot reference another parent scope.",
+            exception.Message);
+    }
+
+    [Theory]
+    [InlineData("duplicate")]
+    [InlineData("detached")]
+    [InlineData("ambiguous")]
+    public void JsonParser_Should_RejectNonCanonicalDeliveryGroupTopology(string mutation)
+    {
+        // arrange
+        var (schema, plan) = CreateParentAnchoredDeferredPolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var deliveryGroups = json["deliveryGroups"]!.AsArray();
+        var parent = deliveryGroups[0]!.AsObject();
+        var parentId = parent["id"]!.GetValue<int>();
+        var incrementalPlan = json["incrementalPlans"]!.AsArray()[0]!.AsObject();
+
+        switch (mutation)
+        {
+            case "duplicate":
+                deliveryGroups.Add(parent.DeepClone());
+                break;
+
+            case "detached":
+                var detached = parent.DeepClone().AsObject();
+                detached["id"] = parentId + 1;
+                detached["parentId"] = parentId;
+                deliveryGroups.Add(detached);
+                incrementalPlan["deliveryGroupIds"] = new JsonArray(parentId + 1);
+                break;
+
+            case "ambiguous":
+                var sibling = parent.DeepClone().AsObject();
+                sibling["id"] = parentId + 1;
+                deliveryGroups.Add(sibling);
+                var firstChild = parent.DeepClone().AsObject();
+                firstChild["id"] = parentId + 2;
+                firstChild["parentId"] = parentId;
+                deliveryGroups.Add(firstChild);
+                var secondChild = parent.DeepClone().AsObject();
+                secondChild["id"] = parentId + 3;
+                secondChild["parentId"] = parentId + 1;
+                deliveryGroups.Add(secondChild);
+                incrementalPlan["deliveryGroupIds"] = new JsonArray(parentId + 2, parentId + 3);
+                break;
+        }
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
+
+        // assert
+        var expectedMessage = mutation switch
+        {
+            "duplicate" => "An operation plan cannot contain duplicate delivery group identifiers.",
+            "detached" => "A non-root delivery group must have a matching immediate parent plan scope.",
+            _ => "An incremental plan must have one unambiguous immediate parent delivery group."
+        };
+        Assert.Equal(expectedMessage, exception.Message);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_KeepBelowAnchorPolicyRequirementLocal_When_ProviderIsCrossSubgraph()
+    {
+        // arrange
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  details: Details
+                }
+
+                type Details @key(fields: "id") {
+                  id: ID!
+                  ownerId: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  detailsById(id: ID!): Details @lookup @internal
+                }
+
+                type Details @key(fields: "id") {
+                  id: ID!
+                  secret: String @policy(names: "CanReadDetails", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadDetails",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ ownerId }")));
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer {
+                  details {
+                    secret
+                  }
+                }
+              }
+            }
+            """);
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+
+        // assert
+        ($"main={string.Join(',', plan.AllNodes.OfType<OperationExecutionNode>().Select(node => node.SchemaName))}; "
+            + $"incremental={string.Join(',', incrementalPlan.AllNodes.OfType<OperationExecutionNode>().Select(node => node.SchemaName))}; "
+            + $"dependencies={policyNode.Dependencies.Length}; "
+            + $"parentDependencies={policyNode.ParentDependencies.Length}")
+            .MatchInlineSnapshot("main=a; incremental=b,c; dependencies=2; parentDependencies=0");
     }
 
     [Fact]
@@ -1773,28 +2501,6 @@ public sealed class PolicyPlanningTests : FusionTestBase
         Assert.Equal(2, parsedPlan.AllNodes.OfType<PolicyExecutionNode>().Count());
     }
 
-    [Fact]
-    public void JsonParser_Should_RejectPolicyParentDependency()
-    {
-        // arrange
-        var schema = CreateRequirementPolicySchema();
-        var (json, parser) = SerializePlan(schema, PlanOperation(schema, "{ secret }"));
-        var policy = json["nodes"]!.AsArray()
-            .Select(node => node!.AsObject())
-            .Single(node => node["type"]!.GetValue<string>() == "Policy");
-        var policyId = policy["id"]!.GetValue<int>();
-        policy["dependencies"]!.AsArray().Add(new JsonObject { ["parentNodeId"] = policyId });
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
-
-        // assert
-        Assert.Equal(
-            $"Policy execution node {policyId} cannot contain parent dependencies.",
-            exception.Message);
-    }
-
     [Theory]
     [InlineData("duplicate")]
     [InlineData("removed")]
@@ -2157,6 +2863,127 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
         return (JsonNode.Parse(buffer.WrittenSpan)!.AsObject(), new JsonOperationPlanParser(compiler));
+    }
+
+    private static (ImmutableArray<IncrementalPlan> IncrementalPlans, ImmutableArray<PolicyConditionSlot> Slots)
+        CreateStrictSplitParentAuthorityFixture(
+            FusionSchemaDefinition schema,
+            OperationPlan plan,
+            ImmutableArray<ExecutionNode> firstParentNodes,
+            ImmutableArray<ExecutionNode> secondParentNodes,
+            bool reversePieces)
+    {
+        var originalChildPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(originalChildPlan.AllNodes.OfType<PolicyExecutionNode>());
+        policyNode.SetTargets(
+            policyNode.Targets.ToArray()
+                .Select(target => target with
+                {
+                    Occurrences = target.Occurrences
+                        .Select(occurrence => occurrence with { PlanPart = 3 })
+                        .ToImmutableArray()
+                })
+                .ToArray());
+        var slots = plan.PolicySlots
+            .Select(slot => slot with
+            {
+                Coordinates = slot.Coordinates
+                    .Select(coordinate => coordinate with
+                    {
+                        Occurrences = coordinate.Occurrences
+                            .Select(occurrence => occurrence with { PlanPart = 3 })
+                            .ToImmutableArray()
+                    })
+                    .ToImmutableArray()
+            })
+            .ToImmutableArray();
+        var parentOperation = PlanOperation(schema, "{ product(id: \"1\") { name } }").Operation;
+        var outer = new DeliveryGroup("outer", Parent: null, DeferConditionIndex: 0) { Id = 100 };
+        var inner = new DeliveryGroup("inner", outer, DeferConditionIndex: 0) { Id = 101 };
+        var firstParent = new IncrementalPlan(
+            parentOperation,
+            firstParentNodes,
+            firstParentNodes,
+            [outer],
+            requirements: []);
+        var secondParent = new IncrementalPlan(
+            parentOperation,
+            secondParentNodes,
+            secondParentNodes,
+            [outer],
+            requirements: []);
+        var child = new IncrementalPlan(
+            originalChildPlan.Operation,
+            originalChildPlan.RootNodes,
+            originalChildPlan.AllNodes,
+            [inner],
+            requirements: []);
+        var incrementalPlans = reversePieces
+            ? ImmutableArray.Create(secondParent, firstParent, child)
+            : ImmutableArray.Create(firstParent, secondParent, child);
+        return (incrementalPlans, slots);
+    }
+
+    private (FusionSchemaDefinition Schema, OperationPlan Plan) CreateParentAnchoredDeferredPolicyPlan()
+    {
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  productSku: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(productSku: String! @require(field: "productSku")): [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer {
+                  reviews
+                }
+              }
+            }
+            """);
+
+        return (schema, plan);
     }
 
     private static FusionSchemaDefinition CreateRootConditionSlotSchema()

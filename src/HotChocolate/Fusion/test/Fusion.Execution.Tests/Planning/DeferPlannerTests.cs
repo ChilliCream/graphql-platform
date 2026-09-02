@@ -1204,46 +1204,6 @@ public class DeferPlannerTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Natural Fusion schemas do not reach this walker-escalation path. "
-        + "The outer defer always has a key-producing step (to satisfy its own lookup's "
-        + "argument requirement) on the same subgraph as the enclosing entity; the walker's "
-        + "per-scope same-subgraph inline always succeeds at outer scope before needing to "
-        + "escalate. Cross-subgraph promote also succeeds whenever the inner's required "
-        + "subgraph is reachable via a lookup from outer's key. The walker's parent-chain "
-        + "escalation is retained as defensive code against planner-internal matching or "
-        + "partitioning bugs; snapshot verification is not observable for schema-reachable "
-        + "cases. Kept as a documentation fixture of .work/defer-requirement-variable-wiring.md "
-        + "§2.4's target behavior.")]
-    public void Defer_NestedDefer_InnerRequirement_UnreachableFromOuter_Should_BubbleToRoot()
-    {
-        // arrange
-        // No schema construction produced walker escalation to root. The
-        // plan's §2.4 invariant is that the walker's chain escalation is
-        // logically unreachable for any schema whose outer defer's own
-        // lookup-key requirement anchors a same-subgraph step that can
-        // absorb an inner's requirement via inline or promote.
-        Assert.True(true);
-    }
-
-    [Fact(Skip = "Natural schemas do not reach the unsatisfiable-requirement throw. "
-        + "If the defer's incremental plan planner produced a self-fetch, that self-fetch is "
-        + "an existence proof that the required value is reachable from some subgraph, "
-        + "and the parent's planning machinery (same-subgraph injection or cross-subgraph "
-        + "promote) can route to the same subgraph. Every attempt to construct an "
-        + "unsatisfiable schema collapsed into either (a) a composition-time failure or "
-        + "(b) a schema whose same-subgraph hoist or cross-subgraph promote succeeds. "
-        + "The throw in ApplyDeferRequirementsToParent is defensive against "
-        + "planner-internal matching bugs, not against schema shapes. Retained as a "
-        + "documentation fixture for .work/defer-requirement-variable-wiring.md Phase 1.")]
-    public void Defer_UnsatisfiableRequirement_Should_ThrowPlannerError_When_NotReachableAnywhere()
-    {
-        // arrange
-        // No schema construction produced the throw. The plan's Phase 1
-        // invariant is that the throw is logically unreachable for any
-        // schema whose deferred incremental plan succeeds at plan time.
-        Assert.True(true);
-    }
-
     [Fact]
     public void Defer_OnMutationRoot_Should_ThrowPlannerError_When_NoLookupAvailable()
     {

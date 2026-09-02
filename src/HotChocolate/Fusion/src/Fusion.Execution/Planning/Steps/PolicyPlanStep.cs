@@ -8,4 +8,6 @@ public sealed record PolicyPlanStep : PlanStep
     public required ImmutableArray<PolicyExecutionTarget> Targets { get; init; }
 
     public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+    public ImmutableHashSet<ParentStepRef> ParentDependencies { get; init; } = [];
 }

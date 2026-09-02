@@ -96,6 +96,65 @@ public class OperationPlanCacheTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Apply_Should_EvictDeferredOnlyPolicyPlan_When_RequirementChanges()
+    {
+        // arrange
+        var provider = new TestPolicyProvider(
+            new TestPolicy(
+                "Deferred",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }")));
+        await using var services = new ServiceCollection()
+            .AddSingleton<IPolicyProvider>(_ => provider)
+            .BuildServiceProvider();
+        var schema = FusionSchemaDefinition.Create(
+            Utf8GraphQLParser.Parse(
+                """
+                schema {
+                  query: Query
+                }
+
+                type Query @fusion__type(schema: A) {
+                  user: User @fusion__field(schema: A)
+                }
+
+                type User @fusion__type(schema: A) {
+                  id: ID! @fusion__field(schema: A)
+                  role: String @fusion__field(schema: A)
+                  secret: String
+                    @fusion__field(schema: A)
+                    @fusion__policy(names: "Deferred", onDenied: NULL)
+                }
+
+                enum fusion__Schema {
+                  A @fusion__schema_metadata(name: "A")
+                }
+                """),
+            services);
+        var planCache = new OperationPlanCache(16, diagnostics: null);
+        schema.Policies.AttachPlanCache(planCache);
+        var session = planCache.Capture();
+        var plan = PlanOperation(schema, "{ user { ... @defer { secret } } }");
+        Assert.Collection(
+            plan.Policies,
+            entry => Assert.Equal(
+                (
+                    "Deferred",
+                    PolicyPlanEntry.ComputeRequirementHash(
+                        Utf8GraphQLParser.Syntax.ParseSelectionSet("{ role }"))),
+                (entry.PolicyName, entry.RequirementHash)));
+        planCache.Add(session, "deferred", plan);
+
+        // act
+        provider.Emit(
+            new TestPolicy(
+                "Deferred",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id role }")));
+
+        // assert
+        Assert.False(session.Cache.TryGet("deferred", out _));
+    }
+
+    [Fact]
     public async Task CreatePlan_Should_UseResourceRequirementHash_When_ApplicationMixesPolicyKinds()
     {
         // arrange

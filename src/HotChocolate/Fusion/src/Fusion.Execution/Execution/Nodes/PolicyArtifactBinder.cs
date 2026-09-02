@@ -9,6 +9,60 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal static class PolicyArtifactBinder
 {
+    internal static bool TryFindNestedParentAuthorityGap(
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<ExecutionNode> rootNodes,
+        out string coordinate,
+        out string scope)
+    {
+        foreach (var incrementalPlan in incrementalPlans)
+        {
+            var operationOwners = CreateOperationOwners(incrementalPlan.AllNodes);
+            var hasParentScope = TryResolveParentPlanScope(
+                incrementalPlan,
+                incrementalPlans,
+                rootNodes,
+                out var parentScope,
+                out _);
+
+            foreach (var policyNode in incrementalPlan.AllNodes.OfType<PolicyExecutionNode>())
+            {
+                PolicyExecutionTarget? failingTarget = null;
+                if (hasParentScope
+                    && TryFindParentRequirementProviders(
+                        policyNode.Targets,
+                        operationOwners,
+                        parentScope,
+                        out var expectedParentDependencies,
+                        out failingTarget,
+                        out _))
+                {
+                    var actualParentDependencies = policyNode.ParentDependencies.ToArray();
+                    if (actualParentDependencies.SequenceEqual(expectedParentDependencies.Dependencies))
+                    {
+                        continue;
+                    }
+
+                    failingTarget = FindTargetForMissingParentDependency(
+                        expectedParentDependencies,
+                        actualParentDependencies)
+                        ?? policyNode.Targets[0];
+                }
+
+                var target = failingTarget ?? policyNode.Targets[0];
+                coordinate = target.Kind is PolicyTargetKind.Field
+                    ? $"{target.TypeName}.{target.Path.Name}"
+                    : target.TypeName;
+                scope = GetDeferredScope(incrementalPlan);
+                return true;
+            }
+        }
+
+        coordinate = string.Empty;
+        scope = string.Empty;
+        return false;
+    }
+
     internal static ImmutableArray<PolicyConditionSlot> Bind(
         Operation operation,
         ImmutableArray<IncrementalPlan> incrementalPlans,
@@ -242,7 +296,11 @@ internal static class PolicyArtifactBinder
             slots,
             candidateByReference,
             claimed);
-        ValidatePolicyTopology(allNodes, planPart: 0, candidateByReference);
+        ValidatePolicyTopology(
+            allNodes,
+            parentScope: ParentPlanScope.Empty,
+            planPart: 0,
+            candidateByReference);
         for (var i = 0; i < incrementalPlans.Length; i++)
         {
             ValidateTargets(
@@ -254,6 +312,7 @@ internal static class PolicyArtifactBinder
                 claimed);
             ValidatePolicyTopology(
                 incrementalPlans[i].AllNodes,
+                parentScope: ResolveParentPlanScope(incrementalPlans[i], incrementalPlans, allNodes),
                 i + 1,
                 candidateByReference);
         }
@@ -267,20 +326,92 @@ internal static class PolicyArtifactBinder
         ValidateArtifactTables(expressions, slots, expected, allowUnboundOccurrences: false);
     }
 
+    private static ParentPlanScope ResolveParentPlanScope(
+        IncrementalPlan incrementalPlan,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<ExecutionNode> rootNodes)
+    {
+        if (!TryResolveParentPlanScope(
+                incrementalPlan,
+                incrementalPlans,
+                rootNodes,
+                out var parentScope,
+                out var error))
+        {
+            throw ThrowHelper.InvalidOperationPlan(error!);
+        }
+
+        return parentScope;
+    }
+
+    private static bool TryResolveParentPlanScope(
+        IncrementalPlan incrementalPlan,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        ImmutableArray<ExecutionNode> rootNodes,
+        out ParentPlanScope parentScope,
+        out string? error)
+    {
+        var parentGroupIds = incrementalPlan.DeliveryGroups
+            .Where(deliveryGroup => deliveryGroup.Parent is not null)
+            .Select(deliveryGroup => deliveryGroup.Parent!.Id)
+            .Distinct()
+            .ToArray();
+
+        if (parentGroupIds.Length == 0)
+        {
+            parentScope = new ParentPlanScope(
+                [new ParentPlanPiece(0, rootNodes)],
+                HasImmediateParentScope: true);
+            error = null;
+            return true;
+        }
+
+        if (parentGroupIds.Length != 1)
+        {
+            parentScope = ParentPlanScope.Empty;
+            error = "An incremental plan must have one unambiguous immediate parent delivery group.";
+            return false;
+        }
+
+        var parentGroupId = parentGroupIds[0];
+        var candidatePlans = incrementalPlans
+            .Where(candidate => !ReferenceEquals(candidate, incrementalPlan)
+                && candidate.DeliveryGroups.Any(group => group.Id == parentGroupId))
+            .ToArray();
+
+        if (candidatePlans.Length == 0)
+        {
+            parentScope = ParentPlanScope.Empty;
+            error = "A non-root delivery group must have a matching immediate parent plan scope.";
+            return false;
+        }
+
+        parentScope = new ParentPlanScope(
+            [.. candidatePlans.Select((candidate, index) => new ParentPlanPiece(
+                index,
+                candidate.AllNodes))],
+            HasImmediateParentScope: true);
+        error = null;
+        return true;
+    }
+
+    private static string GetDeferredScope(IncrementalPlan incrementalPlan)
+    {
+        var deliveryGroup = incrementalPlan.DeliveryGroups
+            .FirstOrDefault(group => group.Parent is not null)
+            ?? incrementalPlan.DeliveryGroups.FirstOrDefault();
+        return deliveryGroup?.Label
+            ?? deliveryGroup?.Path?.ToString()
+            ?? "nested defer";
+    }
+
     private static void ValidatePolicyTopology(
         ImmutableArray<ExecutionNode> nodes,
+        ParentPlanScope parentScope,
         int planPart,
         IReadOnlyDictionary<PolicyOccurrenceReference, Candidate> candidates)
     {
-        var operationArtifacts = new List<OperationArtifact>();
-        foreach (var node in nodes)
-        {
-            operationArtifacts.AddRange(CreateOperationArtifacts(node));
-        }
-
-        var operationOwners = operationArtifacts
-            .GroupBy(artifact => artifact.Owner.Id)
-            .ToDictionary(group => group.Key, group => group.ToArray());
+        var operationOwners = CreateOperationOwners(nodes);
         var claimedProducerIds = new HashSet<int>();
         PolicyOccurrenceReference? previousPolicyNodeOccurrence = null;
 
@@ -348,6 +479,17 @@ internal static class PolicyArtifactBinder
                     "A policy execution node dependencies must exactly match its producer and requirement providers.");
             }
 
+            var expectedParentDependencies = FindParentRequirementProviders(
+                targets,
+                operationOwners,
+                parentScope);
+            var actualParentDependencies = policyNode.ParentDependencies.ToArray();
+            if (!actualParentDependencies.SequenceEqual(expectedParentDependencies))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "A policy execution node parent dependencies must exactly match its parent requirement providers.");
+            }
+
             var expectedDependents = new HashSet<int>();
             foreach (var (ownerId, artifacts) in operationOwners)
             {
@@ -407,91 +549,393 @@ internal static class PolicyArtifactBinder
 
         foreach (var target in targets)
         {
-            var entityPath = target.Kind is PolicyTargetKind.Field
-                ? target.Path.Parent ?? SelectionPath.Root
-                : target.Path;
-            foreach (var requirement in target.Requirements)
+            foreach (var leaf in GetRequirementLeaves(target))
             {
-                var leaves = new List<string[]>();
-                var path = GetFieldSegments(entityPath).ToList();
-                AddRequirementLeaves(requirement.SelectionSet, path, leaves);
-
-                foreach (var leaf in leaves)
-                {
-                    foreach (var (ownerId, artifacts) in operationOwners)
-                    {
-                        if (artifacts.Any(artifact => ProvidesPath(
-                            artifact.Target,
-                            artifact.ResultSelectionSet,
-                            leaf)))
-                        {
-                            result.Add(ownerId);
-                        }
-                    }
-                }
+                result.UnionWith(FindRequirementProviders(leaf, operationOwners));
             }
         }
 
         return result;
+    }
 
-        static void AddRequirementLeaves(
-            SelectionSetNode selectionSet,
-            List<string> path,
-            List<string[]> leaves)
+    private static IReadOnlyDictionary<int, OperationArtifact[]> CreateOperationOwners(
+        ImmutableArray<ExecutionNode> nodes)
+    {
+        var artifacts = new List<OperationArtifact>();
+        foreach (var node in nodes)
         {
-            foreach (var selection in selectionSet.Selections)
+            artifacts.AddRange(CreateOperationArtifacts(node));
+        }
+
+        return artifacts
+            .GroupBy(artifact => artifact.Owner.Id)
+            .ToDictionary(group => group.Key, group => group.ToArray());
+    }
+
+    private static HashSet<int> FindRequirementProviders(
+        string[] leaf,
+        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners)
+    {
+        var result = new HashSet<int>();
+
+        foreach (var (ownerId, artifacts) in operationOwners)
+        {
+            if (artifacts.Any(artifact => ProvidesPath(artifact, leaf)))
             {
-                if (selection is not FieldNode field)
+                result.Add(ownerId);
+            }
+        }
+
+        return result;
+    }
+
+    private static List<string[]> GetRequirementLeaves(PolicyExecutionTarget target)
+    {
+        var entityPath = target.Kind is PolicyTargetKind.Field
+            ? target.Path.Parent ?? SelectionPath.Root
+            : target.Path;
+        var leaves = new List<string[]>();
+        var path = GetFieldSegments(entityPath).ToList();
+
+        foreach (var requirement in target.Requirements)
+        {
+            AddRequirementLeaves(requirement.SelectionSet, path, leaves);
+        }
+
+        return leaves;
+    }
+
+    private static void AddRequirementLeaves(
+        SelectionSetNode selectionSet,
+        List<string> path,
+        List<string[]> leaves)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode field)
+            {
+                continue;
+            }
+
+            path.Add(field.Alias?.Value ?? field.Name.Value);
+            if (field.SelectionSet is { } child)
+            {
+                AddRequirementLeaves(child, path, leaves);
+            }
+            else
+            {
+                leaves.Add(path.ToArray());
+            }
+
+            path.RemoveAt(path.Count - 1);
+        }
+    }
+
+    private static bool ProvidesPath(OperationArtifact artifact, string[] path)
+    {
+        var targetFields = GetFieldSegments(artifact.Target);
+        if (targetFields.Length > path.Length
+            || !path.AsSpan(0, targetFields.Length).SequenceEqual(targetFields))
+        {
+            return false;
+        }
+
+        var selectionSet = artifact.SelectionSet;
+        foreach (var sourceField in GetFieldSegments(artifact.Source))
+        {
+            if (!TryGetFieldSelection(selectionSet, sourceField, artifact.Fragments, out selectionSet))
+            {
+                return false;
+            }
+        }
+
+        for (var i = targetFields.Length; i < path.Length; i++)
+        {
+            if (!TryGetFieldSelection(selectionSet, path[i], artifact.Fragments, out selectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TryGetFieldSelection(
+        SelectionSetNode selectionSet,
+        string responseName,
+        IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
+        out SelectionSetNode childSelectionSet)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field
+                    when (field.Alias?.Value ?? field.Name.Value).Equals(responseName, StringComparison.Ordinal):
+                    childSelectionSet = field.SelectionSet!;
+                    return true;
+
+                case InlineFragmentNode fragment
+                    when TryGetFieldSelection(fragment.SelectionSet, responseName, fragments, out childSelectionSet):
+                    return true;
+
+                case FragmentSpreadNode spread
+                    when fragments.TryGetValue(spread.Name.Value, out var fragment)
+                        && TryGetFieldSelection(fragment.SelectionSet, responseName, fragments, out childSelectionSet):
+                    return true;
+            }
+        }
+
+        childSelectionSet = default!;
+        return false;
+    }
+
+    private static int[] FindParentRequirementProviders(
+        ReadOnlySpan<PolicyExecutionTarget> targets,
+        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners,
+        ParentPlanScope parentScope)
+    {
+        if (TryFindParentRequirementProviders(
+                targets,
+                operationOwners,
+                parentScope,
+                out var dependencies,
+                out _,
+                out var error))
+        {
+            return dependencies.Dependencies;
+        }
+
+        throw ThrowHelper.InvalidOperationPlan(error!);
+    }
+
+    private static bool TryFindParentRequirementProviders(
+        ReadOnlySpan<PolicyExecutionTarget> targets,
+        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners,
+        ParentPlanScope parentScope,
+        out ParentRequirementProviders dependencies,
+        out PolicyExecutionTarget? failingTarget,
+        out string? error)
+    {
+        var parentOwners = parentScope.Pieces
+            .SelectMany(piece => CreateOperationOwners(piece.Nodes)
+                .Select(owner => new ParentOperationOwner(
+                    piece,
+                    owner.Key,
+                    owner.Value)))
+            .ToArray();
+        var selected = new Dictionary<ParentNodeKey, ExecutionNode>();
+        var selectedById = new Dictionary<int, HashSet<int>>();
+        var targetDependencies = new List<ParentRequirementProviderTarget>();
+        string? failure = null;
+
+        foreach (var target in targets)
+        {
+            var targetSelected = new HashSet<int>();
+            foreach (var leaf in GetRequirementLeaves(target))
+            {
+                if (FindRequirementProviders(leaf, operationOwners).Count != 0)
                 {
                     continue;
                 }
 
-                path.Add(field.Alias?.Value ?? field.Name.Value);
-                if (field.SelectionSet is { } child)
+                var providers = parentOwners
+                    .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(artifact, leaf)))
+                    .ToArray();
+                if (providers.Length == 0)
                 {
-                    AddRequirementLeaves(child, path, leaves);
-                }
-                else
-                {
-                    leaves.Add(path.ToArray());
+                    if (parentScope.HasImmediateParentScope)
+                    {
+                        dependencies = ParentRequirementProviders.Empty;
+                        failingTarget = target;
+                        error = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
+                        return false;
+                    }
+
+                    continue;
                 }
 
-                path.RemoveAt(path.Count - 1);
+                foreach (var provider in providers)
+                {
+                    if (!TryAddParentDependencyClosure(provider.Piece, provider.NodeId, targetSelected))
+                    {
+                        dependencies = ParentRequirementProviders.Empty;
+                        failingTarget = target;
+                        error = failure;
+                        return false;
+                    }
+                }
             }
-        }
 
-        static bool ProvidesPath(
-            SelectionPath target,
-            ResultSelectionSet resultSelectionSet,
-            string[] path)
-        {
-            var targetFields = GetFieldSegments(target);
-            if (targetFields.Length > path.Length
-                || !path.AsSpan(0, targetFields.Length).SequenceEqual(targetFields))
+            if (selectedById.Any(entry => entry.Value.Count > 1))
             {
+                dependencies = ParentRequirementProviders.Empty;
+                failingTarget = target;
+                error = "A policy parent requirement provider is ambiguous across immediate parent plan pieces.";
                 return false;
             }
 
-            for (var i = targetFields.Length; i < path.Length; i++)
+            targetDependencies.Add(new ParentRequirementProviderTarget(
+                target,
+                [.. targetSelected.Order()]));
+        }
+
+        dependencies = new ParentRequirementProviders(
+            [.. selectedById.Keys.Order()],
+            [.. targetDependencies]);
+        failingTarget = null;
+        error = null;
+        return true;
+
+        bool TryAddParentDependencyClosure(
+            ParentPlanPiece piece,
+            int nodeId,
+            HashSet<int> selectedForTarget)
+        {
+            selectedForTarget.Add(nodeId);
+            var key = new ParentNodeKey(piece.Id, nodeId);
+            if (selected.ContainsKey(key))
             {
-                if (!Contains(resultSelectionSet.ResponseNames, path[i]))
+                return true;
+            }
+
+            var nodes = piece.Nodes.Where(node => node.Id == nodeId).ToArray();
+            if (nodes.Length != 1)
+            {
+                failure = "A policy parent requirement provider is ambiguous across immediate parent plan pieces.";
+                return false;
+            }
+
+            var node = nodes[0];
+            selected.Add(key, node);
+            if (!selectedById.TryGetValue(nodeId, out var pieces))
+            {
+                pieces = [];
+                selectedById.Add(nodeId, pieces);
+            }
+
+            pieces.Add(piece.Id);
+
+            if (!node.ParentDependencies.IsEmpty)
+            {
+                failure = "A policy parent requirement provider cannot reference another parent scope.";
+                return false;
+            }
+
+            foreach (var dependency in node.Dependencies)
+            {
+                if (!TryAddParentDependencyClosure(piece, dependency.Id, selectedForTarget))
                 {
                     return false;
                 }
+            }
 
-                if (i + 1 < path.Length
-                    && resultSelectionSet.TryGetChild(path[i]) is { } child)
+            foreach (var requirement in GetRequirements(node))
+            {
+                var providers = parentOwners
+                    .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(
+                        artifact,
+                        CreateRequirementPath(requirement))))
+                    .ToArray();
+                if (providers.Length == 0)
                 {
-                    resultSelectionSet = child;
+                    failure = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
+                    return false;
                 }
-                else if (i + 1 < path.Length)
+
+                foreach (var provider in providers)
                 {
-                    return true;
+                    if (!TryAddParentDependencyClosure(
+                            provider.Piece,
+                            provider.NodeId,
+                            selectedForTarget))
+                    {
+                        return false;
+                    }
                 }
             }
 
             return true;
         }
+    }
+
+    private static PolicyExecutionTarget? FindTargetForMissingParentDependency(
+        ParentRequirementProviders expected,
+        ReadOnlySpan<int> actualDependencies)
+    {
+        var missing = expected.Dependencies
+            .Except(actualDependencies.ToArray())
+            .ToHashSet();
+        if (missing.Count == 0)
+        {
+            return null;
+        }
+
+        return expected.Targets
+            .FirstOrDefault(target => target.Dependencies.Any(missing.Contains))
+            ?.Target;
+    }
+
+    private static IEnumerable<OperationRequirement> GetRequirements(ExecutionNode node)
+    {
+        switch (node)
+        {
+            case OperationExecutionNode operation:
+                return operation.GetRequirementsArray();
+
+            case ApolloOperationExecutionNode operation:
+                return operation.GetRequirementsArray();
+
+            case OperationBatchExecutionNode batch:
+                return GetBatchRequirements(batch.Operations.ToArray());
+
+            case ApolloOperationBatchExecutionNode batch:
+                return GetBatchRequirements(batch.Operations.ToArray());
+
+            default:
+                return [];
+        }
+    }
+
+    private static ImmutableArray<OperationRequirement> GetBatchRequirements(
+        IReadOnlyList<OperationDefinition> operations)
+    {
+        var requirements = ImmutableArray.CreateBuilder<OperationRequirement>();
+
+        foreach (var operation in operations)
+        {
+            requirements.AddRange(operation.GetRequirementsArray());
+        }
+
+        return requirements.MoveToImmutable();
+    }
+
+    private static string[] CreateRequirementPath(OperationRequirement requirement)
+    {
+        var path = GetFieldSegments(requirement.Path).ToList();
+        var map = requirement.Map.ToString();
+        var fieldStart = 0;
+
+        while (fieldStart < map.Length
+            && !char.IsLetter(map[fieldStart])
+            && map[fieldStart] != '_')
+        {
+            fieldStart++;
+        }
+
+        var fieldEnd = fieldStart;
+        while (fieldEnd < map.Length
+            && (char.IsLetterOrDigit(map[fieldEnd]) || map[fieldEnd] == '_'))
+        {
+            fieldEnd++;
+        }
+
+        if (fieldEnd > fieldStart)
+        {
+            path.Add(requirement.InternalAlias ?? map[fieldStart..fieldEnd]);
+        }
+
+        return [.. path];
     }
 
     private static ImmutableArray<OperationArtifact> CreateOperationArtifacts(ExecutionNode node)
@@ -2464,6 +2908,33 @@ internal static class PolicyArtifactBinder
         SelectionSetNode SelectionSet,
         IReadOnlyDictionary<string, FragmentDefinitionNode> Fragments,
         ResultSelectionSet ResultSelectionSet);
+
+    private sealed record ParentPlanScope(
+        ImmutableArray<ParentPlanPiece> Pieces,
+        bool HasImmediateParentScope)
+    {
+        public static ParentPlanScope Empty { get; } = new([], HasImmediateParentScope: false);
+    }
+
+    private sealed record ParentPlanPiece(int Id, ImmutableArray<ExecutionNode> Nodes);
+
+    private sealed record ParentOperationOwner(
+        ParentPlanPiece Piece,
+        int NodeId,
+        OperationArtifact[] Artifacts);
+
+    private readonly record struct ParentNodeKey(int PieceId, int NodeId);
+
+    private sealed record ParentRequirementProviders(
+        int[] Dependencies,
+        ParentRequirementProviderTarget[] Targets)
+    {
+        public static ParentRequirementProviders Empty { get; } = new([], []);
+    }
+
+    private sealed record ParentRequirementProviderTarget(
+        PolicyExecutionTarget Target,
+        int[] Dependencies);
 
     private enum PolicyApplicationClass
     {
