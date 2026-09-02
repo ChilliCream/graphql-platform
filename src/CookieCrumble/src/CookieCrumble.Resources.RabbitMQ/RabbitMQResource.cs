@@ -12,7 +12,15 @@ public class RabbitMQResource : ContainerResource<RabbitMqContainer>
 
     public async Task<string> InvokeCommandAsync(IEnumerable<string> command)
     {
-        var result = await Container.ExecAsync([.. command]);
+        var arguments = command.ToArray();
+        var result = await Container.ExecAsync(arguments);
+
+        if (result.ExitCode != 0)
+        {
+            throw new InvalidOperationException(
+                $"'{string.Join(' ', arguments)}' failed with exit code {result.ExitCode}: "
+                + result.Stderr);
+        }
 
         return result.Stdout;
     }
