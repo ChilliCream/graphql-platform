@@ -44,8 +44,7 @@ public sealed class TakeoverLedgerTests : IDisposable
 
         // assert
         Assert.StartsWith("to-", record.Id);
-        Assert.Equal("maya", record.FromActor);
-        Assert.Equal("nora", record.ToActor);
+        Assert.Equal(("maya", "nora"), (record.FromActor, record.ToActor));
         Assert.Collection(
             record.Items,
             item => Assert.Equal((TakeoverItemKinds.MessageSender, "m-1"), (item.Kind, item.ItemId)),
@@ -211,6 +210,38 @@ public sealed class TakeoverLedgerTests : IDisposable
             connection,
             "SELECT COUNT(*) FROM agent_takeover_items",
             cancellationToken);
+        Assert.Equal((0L, 0L), (headerCount, itemCount));
+    }
+
+    [Fact]
+    public async Task RecordAsync_Should_PropagateCancellation_When_TokenIsAlreadyCancelled()
+    {
+        // arrange
+        var testCancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(testCancellationToken);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        // act
+        var exception = await Record.ExceptionAsync(
+            () => _ledger.RecordAsync(
+                CreateRecord("maya", "nora", "maya"),
+                [new TakeoverItem { Kind = TakeoverItemKinds.Task, ItemId = "repo-cpf" }],
+                cancellationTokenSource.Token));
+
+        // assert
+        Assert.IsAssignableFrom<OperationCanceledException>(exception);
+        await using var connection = await new AgentDatabase().ConnectAsync(
+            _workspaceDirectory,
+            testCancellationToken);
+        var headerCount = await ExecuteScalarAsync(
+            connection,
+            "SELECT COUNT(*) FROM agent_takeovers",
+            testCancellationToken);
+        var itemCount = await ExecuteScalarAsync(
+            connection,
+            "SELECT COUNT(*) FROM agent_takeover_items",
+            testCancellationToken);
         Assert.Equal((0L, 0L), (headerCount, itemCount));
     }
 
