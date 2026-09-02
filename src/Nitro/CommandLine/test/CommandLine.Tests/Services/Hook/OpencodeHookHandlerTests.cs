@@ -174,20 +174,37 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionDeletedAsync_Should_RemainNeutral_When_AConcurrentDeletionWonTheRace()
+    public async Task HandleChatMessageAsync_Should_RemainNeutral_When_TheSessionIsDeletedBeforeReservation()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var handler = CreateHandler(new SessionDeletingDeliveryLedger(_ledger, _sessions, CurrentGeneration()));
 
         // act
-        var first = await _handler.HandleSessionDeletedAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        var second = await _handler.HandleSessionDeletedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, first);
-        Assert.Equal(OpencodeHookOutcome.Neutral, second);
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        Assert.Null(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionIdleAsync_Should_RemainNeutral_When_TheSessionIsDeletedBeforeReservation()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        var handler = CreateHandler(new SessionDeletingDeliveryLedger(_ledger, _sessions, CurrentGeneration()));
+
+        // act
+        var outcome = await handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
         Assert.Null(await FindRowAsync(cancellationToken));
     }
 
@@ -236,6 +253,16 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         HarnessVersion = "1.18.25"
     };
 
+    private OpencodeHookHandler CreateHandler(ISessionDeliveryLedger ledger) => new(
+        _fileSystem,
+        _timeProvider,
+        _sessions,
+        ledger,
+        _mail,
+        _environmentVariables,
+        new FixedInstanceIdProvider("host-1"),
+        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
         await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
@@ -263,6 +290,37 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         AgentSessionHarness.Opencode,
         SessionId,
         "host-1");
+}
+
+internal sealed class SessionDeletingDeliveryLedger(
+    ISessionDeliveryLedger inner,
+    IAgentSessionRegistry sessionRegistry,
+    AgentSessionGeneration generation) : ISessionDeliveryLedger
+{
+    private bool _deleted;
+
+    public async Task<IReadOnlyList<string>> ReserveAsync(
+        string harness,
+        string sessionId,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        DateTimeOffset deliveredAt,
+        CancellationToken cancellationToken)
+    {
+        if (!_deleted)
+        {
+            _deleted = true;
+            await sessionRegistry.EndAsync(generation, cancellationToken);
+        }
+
+        return await inner.ReserveAsync(
+            harness,
+            sessionId,
+            messageIds,
+            channel,
+            deliveredAt,
+            cancellationToken);
+    }
 }
 
 internal static class OpencodeHookFixtures

@@ -1,5 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -75,29 +77,34 @@ internal sealed class OpencodeHookHandler(
 
         var parts = new List<string>(2);
 
-        // Reserves the durable, atomic first-prompt marker for this session.
-        var announcement = await ledger.ReserveAsync(
-            resolved.Generation.Harness,
-            resolved.Generation.SessionId,
-            [FirstPromptAnnouncementId],
-            AgentSessionChannel.Digest,
-            timeProvider.GetUtcNow(),
-            cancellationToken);
-
-        if (announcement.Count > 0)
+        try
         {
-            parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
+            // Reserves the durable, atomic first-prompt marker for this session.
+            var announcement = await ReserveAsync(
+                resolved.Generation,
+                [FirstPromptAnnouncementId],
+                AgentSessionChannel.Digest,
+                cancellationToken);
+
+            if (announcement.Count > 0)
+            {
+                parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
+            }
+
+            var digest = await BuildDigestAsync(
+                resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
+
+            if (digest is not null)
+            {
+                parts.Add(digest);
+            }
+
+            return parts.Count == 0 ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { Parts = parts };
         }
-
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
-
-        if (digest is not null)
+        catch (SessionRemovedDuringDeliveryException)
         {
-            parts.Add(digest);
+            return OpencodeHookOutcome.Neutral;
         }
-
-        return parts.Count == 0 ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { Parts = parts };
     }
 
     public async Task<OpencodeHookOutcome> HandleSessionIdleAsync(
@@ -124,10 +131,17 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
+        try
+        {
+            var digest = await BuildDigestAsync(
+                resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
 
-        return digest is null ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { IdleDelivery = digest };
+            return digest is null ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { IdleDelivery = digest };
+        }
+        catch (SessionRemovedDuringDeliveryException)
+        {
+            return OpencodeHookOutcome.Neutral;
+        }
     }
 
     public async Task<OpencodeHookOutcome> HandleSessionDeletedAsync(
@@ -158,17 +172,42 @@ internal sealed class OpencodeHookHandler(
             return null;
         }
 
-        var reserved = await ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
+        var reserved = await ReserveAsync(
+            generation,
             unread.Select(static message => message.Id).ToList(),
             channel,
-            timeProvider.GetUtcNow(),
             cancellationToken);
 
         return reserved.Count == 0
             ? null
             : MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+    }
+
+    private async Task<IReadOnlyList<string>> ReserveAsync(
+        AgentSessionGeneration generation,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ledger.ReserveAsync(
+                generation.Harness,
+                generation.SessionId,
+                messageIds,
+                channel,
+                timeProvider.GetUtcNow(),
+                cancellationToken);
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 19 && ex.SqliteExtendedErrorCode == 787)
+        {
+            if (await sessionRegistry.FindByGenerationAsync(generation, cancellationToken) is null)
+            {
+                throw new SessionRemovedDuringDeliveryException();
+            }
+
+            throw;
+        }
     }
 
     private async Task<ResolvedGeneration?> ResolveAsync(
@@ -204,4 +243,6 @@ internal sealed class OpencodeHookHandler(
         AgentSessionGeneration Generation,
         string Cwd,
         string WorkspaceDirectory);
+
+    private sealed class SessionRemovedDuringDeliveryException : Exception;
 }
