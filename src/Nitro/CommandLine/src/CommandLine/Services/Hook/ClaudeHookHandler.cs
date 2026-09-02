@@ -9,6 +9,7 @@ internal sealed class ClaudeHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     IAgentSessionRegistry sessionRegistry,
+    IAgentRegistry agentRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
     IClaudeSessionFileReader sessionFileReader,
@@ -59,9 +60,13 @@ internal sealed class ClaudeHookHandler(
                 resolved.Generation, resolved.HarnessVersion, cancellationToken);
         }
 
+        var role = session.Role.Length > 0
+            ? session.Role
+            : (await agentRegistry.GetAsync(session.AgentName!, cancellationToken))?.Role ?? string.Empty;
+
         return new ClaudeHookOutcome
         {
-            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+            AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
         };
     }
 

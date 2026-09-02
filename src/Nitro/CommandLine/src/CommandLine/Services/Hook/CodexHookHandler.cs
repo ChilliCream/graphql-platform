@@ -8,6 +8,7 @@ internal sealed class CodexHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     IAgentSessionRegistry sessionRegistry,
+    IAgentRegistry agentRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
     ICodexHarnessVersionResolver harnessVersionResolver,
@@ -19,6 +20,7 @@ internal sealed class CodexHookHandler(
         IFileSystem fileSystem,
         TimeProvider timeProvider,
         IAgentSessionRegistry sessionRegistry,
+        IAgentRegistry agentRegistry,
         ISessionDeliveryLedger ledger,
         IMailStore mailStore,
         IEnvironmentVariableProvider environmentVariableProvider,
@@ -30,6 +32,7 @@ internal sealed class CodexHookHandler(
             fileSystem,
             timeProvider,
             sessionRegistry,
+            agentRegistry,
             ledger,
             mailStore,
             harnessVersionResolver,
@@ -73,9 +76,13 @@ internal sealed class CodexHookHandler(
             await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
         }
 
+        var role = session.Role.Length > 0
+            ? session.Role
+            : (await agentRegistry.GetAsync(session.AgentName!, cancellationToken))?.Role ?? string.Empty;
+
         return new CodexHookOutcome
         {
-            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+            AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
         };
     }
 

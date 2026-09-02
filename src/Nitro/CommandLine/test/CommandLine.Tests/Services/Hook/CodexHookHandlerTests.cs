@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
@@ -61,10 +62,13 @@ public sealed class CodexHookHandlerTests : IDisposable
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
-    private CodexHookHandler CreateHandler() => new(
+    private CodexHookHandler CreateHandler() => CreateHandler(_agentRegistry);
+
+    private CodexHookHandler CreateHandler(IAgentRegistry agentRegistry) => new(
         _fileSystem,
         _timeProvider,
         _sessions,
+        agentRegistry,
         _ledger,
         _mail,
         _environmentVariables,
@@ -108,6 +112,75 @@ public sealed class CodexHookHandlerTests : IDisposable
         Assert.Equal(first.AdditionalContext, outcome.AdditionalContext);
         Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
         Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_UseDurableAgentRole_When_SessionRoleIsEmpty()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await _sessions.RegisterAsync(
+            CurrentGeneration(), actor: null, actorGiven: false, role: "researcher", roleGiven: true,
+            cancellationToken: cancellationToken);
+        await _sessions.SetRoleAsync(CurrentGeneration(), string.Empty, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            Your Nitro role is "researcher".
+            """);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_UseSessionRole_When_DurableAgentRoleAlsoExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await _sessions.RegisterAsync(
+            CurrentGeneration(), actor: null, actorGiven: false, role: "researcher", roleGiven: true,
+            cancellationToken: cancellationToken);
+        await _sessions.SetRoleAsync(CurrentGeneration(), "planner", cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            Your Nitro role is "planner".
+            """);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_OmitRole_When_SessionRoleIsEmptyAndAgentIsMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var agentRegistry = new Mock<IAgentRegistry>(MockBehavior.Strict);
+        agentRegistry
+            .Setup(registry => registry.GetAsync(It.IsAny<string>(), cancellationToken))
+            .ReturnsAsync((AgentRecord?)null);
+        var handler = CreateHandler(agentRegistry.Object);
+
+        // act
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
     }
 
     [Fact]
@@ -186,6 +259,7 @@ public sealed class CodexHookHandlerTests : IDisposable
             _fileSystem,
             _timeProvider,
             _sessions,
+            _agentRegistry,
             _ledger,
             _mail,
             _environmentVariables,
