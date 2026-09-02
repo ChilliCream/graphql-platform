@@ -357,18 +357,6 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         return new TakeoverHistory(message, earliestId!, latestId!);
     }
 
-    private async Task<string?> QueryScalarAsync(string sql)
-    {
-        await using var connection =
-            new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={DatabasePath};Pooling=False");
-        await connection.OpenAsync(TestContext.Current.CancellationToken);
-        await using var command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        var result = await command.ExecuteScalarAsync(TestContext.Current.CancellationToken);
-        return result is null or DBNull ? null : result.ToString();
-    }
-
     private sealed record TakeoverHistory(
         ChilliCream.Nitro.CommandLine.Services.Mail.MailMessage Message,
         string EarliestId,
