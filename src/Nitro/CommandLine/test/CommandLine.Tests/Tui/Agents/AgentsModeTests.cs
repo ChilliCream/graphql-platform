@@ -790,7 +790,7 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_ApplyAnsiStyling_ToResearcherRoleToken()
+    public void Render_Should_ApplyAnsiStyling_ToPerRoleToken_When_RoleIsResearcher()
     {
         // arrange: agent-a stays plain at the selected row; the researcher
         // role under test lives on agent-b's unselected row.
@@ -809,11 +809,11 @@ public sealed class AgentsModeTests
         console.Write(mode.Render(140, 20));
 
         // assert: pin to agent-b's row rather than the whole frame.
-        Assert.NotEqual(
-            ThemeTokens.GetStyle("agents.list.role"),
+        Assert.Equal(
+            new Style(Color.Blue),
             ThemeTokens.GetStyle("agents.list.role.researcher"));
         var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
-        AssertAnsiStyleApplied(row, "agents.list.role.researcher");
+        AssertAnsiStylePrefixesText(row, "agents.list.role.researcher", "researcher");
     }
 
     [Fact]
