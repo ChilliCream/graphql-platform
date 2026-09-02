@@ -37,6 +37,29 @@ internal interface IAgentSessionRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Upserts a session with its endpoint credential. Implementations that
+    /// do not store endpoint credentials preserve the existing session
+    /// lifecycle and ignore <paramref name="endpointSecret"/>.
+    /// </summary>
+    Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        string? envActor,
+        CancellationToken cancellationToken)
+        => StartAsync(
+            generation,
+            cwd,
+            workspacePath,
+            endpointKind,
+            endpointAddr,
+            envActor,
+            cancellationToken);
+
+    /// <summary>
     /// Applies the claim state machine to the row matching
     /// <paramref name="generation"/> exactly (harness, session id, and host
     /// all predicate the row lookup, so a stale generation matches

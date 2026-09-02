@@ -18,7 +18,7 @@ internal sealed record AgentSessionRecord
     public const string Columns =
         "harness AS Harness, session_id AS SessionId, agent_name AS AgentName, "
         + "binding_kind AS BindingKind, host AS Host, cwd AS Cwd, workspace_path AS WorkspacePath, endpoint_kind AS EndpointKind, "
-        + "endpoint_addr AS EndpointAddr, started_at AS StartedAt, last_beat_at AS LastBeatAt, "
+        + "endpoint_addr AS EndpointAddr, endpoint_secret AS EndpointSecret, started_at AS StartedAt, last_beat_at AS LastBeatAt, "
         + "block_budget_used AS BlockBudgetUsed, last_ping_at AS LastPingAt, "
         + "last_ping_attempt AS LastPingAttempt, last_ping_result AS LastPingResult, "
         + "last_ping_detail AS LastPingDetail, role AS Role, harness_version AS HarnessVersion";
@@ -48,6 +48,12 @@ internal sealed record AgentSessionRecord
     /// Empty only when <see cref="EndpointKind"/> is <c>"none"</c>.
     /// </summary>
     public required string EndpointAddr { get; init; }
+
+    /// <summary>
+    /// The credential for endpoints that require one, or null when the
+    /// endpoint has no credential.
+    /// </summary>
+    public string? EndpointSecret { get; init; }
 
     public required DateTimeOffset StartedAt { get; init; }
     public required DateTimeOffset LastBeatAt { get; init; }

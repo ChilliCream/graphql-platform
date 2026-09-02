@@ -21,7 +21,7 @@ internal sealed class AgentSessionRegistry(
     /// </summary>
     private static readonly TimeSpan s_staleAfter = TimeSpan.FromHours(24);
 
-    public async Task<AgentSessionRecord> StartAsync(
+    public Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
         string cwd,
         string workspacePath,
@@ -29,9 +29,29 @@ internal sealed class AgentSessionRegistry(
         string endpointAddr,
         string? envActor,
         CancellationToken cancellationToken)
+        => StartAsync(
+            generation,
+            cwd,
+            workspacePath,
+            endpointKind,
+            endpointAddr,
+            endpointSecret: null,
+            envActor: envActor,
+            cancellationToken: cancellationToken);
+
+    public async Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        string? envActor,
+        CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
-        var (normalizedEndpointKind, normalizedEndpointAddr) = NormalizeEndpoint(endpointKind, endpointAddr);
+        var (normalizedEndpointKind, normalizedEndpointAddr, normalizedEndpointSecret) =
+            NormalizeEndpoint(endpointKind, endpointAddr, endpointSecret);
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = connection.BeginTransaction(deferred: false);
@@ -42,7 +62,8 @@ internal sealed class AgentSessionRegistry(
 
         if (generation.Harness is AgentSessionHarness.ClaudeCode
             or AgentSessionHarness.Codex
-            or AgentSessionHarness.Copilot)
+            or AgentSessionHarness.Copilot
+            or AgentSessionHarness.Opencode)
         {
             var identity = await EnsureCodingIdentityWithinTransactionAsync(
                 connection, transaction, generation, now, envActor, cancellationToken);
@@ -78,11 +99,11 @@ internal sealed class AgentSessionRegistry(
                 """
                 INSERT INTO agent_sessions (
                     harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
                     block_budget_used, role
                 ) VALUES (
                     @harness, @sessionId, @agentName, @bindingKind, @host,
-                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @role
+                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @endpointSecret, @now, @now, 0, @role
                 );
                 """,
                 new
@@ -96,6 +117,7 @@ internal sealed class AgentSessionRegistry(
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
+                    endpointSecret = normalizedEndpointSecret,
                     now,
                     role = identityRole,
                     cancellationToken
@@ -181,6 +203,7 @@ internal sealed class AgentSessionRegistry(
                     workspace_path = @workspacePath,
                     endpoint_kind = @endpointKind,
                     endpoint_addr = @endpointAddr,
+                    endpoint_secret = @endpointSecret,
                     started_at = @now,
                     last_beat_at = @now,
                     block_budget_used = 0,
@@ -204,6 +227,7 @@ internal sealed class AgentSessionRegistry(
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
+                    endpointSecret = normalizedEndpointSecret,
                     now,
                     role = identityRole,
                     oldHost = existing.Host,
@@ -1219,14 +1243,24 @@ internal sealed class AgentSessionRegistry(
     /// <see cref="EndpointAddress"/> enforces; the table's cross-column
     /// CHECK requires the two to agree.
     /// </summary>
-    private static (string Kind, string Addr) NormalizeEndpoint(string endpointKind, string endpointAddr)
+    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret)
     {
-        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
-            return (AgentSessionEndpointKind.None, string.Empty);
+            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
+                ? (endpointKind, endpointAddr, endpointSecret)
+                : (AgentSessionEndpointKind.None, string.Empty, null);
         }
 
-        return (endpointKind, endpointAddr);
+        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        {
+            return (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        return (endpointKind, endpointAddr, null);
     }
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
@@ -1252,6 +1286,7 @@ internal sealed class AgentSessionRegistry(
         public required string WorkspacePath { get; init; }
         public required string EndpointKind { get; init; }
         public required string EndpointAddr { get; init; }
+        public string? EndpointSecret { get; init; }
         public required string StartedAt { get; init; }
         public required string LastBeatAt { get; init; }
         public required int BlockBudgetUsed { get; init; }
@@ -1280,6 +1315,9 @@ internal sealed class AgentSessionRegistry(
             WorkspacePath = reader.GetString(reader.GetOrdinal("WorkspacePath")),
             EndpointKind = reader.GetString(reader.GetOrdinal("EndpointKind")),
             EndpointAddr = reader.GetString(reader.GetOrdinal("EndpointAddr")),
+            EndpointSecret = reader.IsDBNull(reader.GetOrdinal("EndpointSecret"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("EndpointSecret")),
             StartedAt = reader.GetString(reader.GetOrdinal("StartedAt")),
             LastBeatAt = reader.GetString(reader.GetOrdinal("LastBeatAt")),
             BlockBudgetUsed = reader.GetInt32(reader.GetOrdinal("BlockBudgetUsed")),
@@ -1310,6 +1348,7 @@ internal sealed class AgentSessionRegistry(
             WorkspacePath = WorkspacePath,
             EndpointKind = EndpointKind,
             EndpointAddr = EndpointAddr,
+            EndpointSecret = EndpointSecret,
             StartedAt = DateTimeOffset.Parse(StartedAt, CultureInfo.InvariantCulture),
             LastBeatAt = DateTimeOffset.Parse(LastBeatAt, CultureInfo.InvariantCulture),
             BlockBudgetUsed = BlockBudgetUsed,

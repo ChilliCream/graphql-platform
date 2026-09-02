@@ -97,6 +97,33 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_Should_StoreOpencodeServerEndpointAndCredential_When_OpencodeSessionStarts()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = new AgentSessionGeneration(AgentSessionHarness.Opencode, "session-1", CurrentHost);
+
+        // act
+        var record = await _sessions.StartAsync(
+            generation,
+            "/work",
+            "/work/.nitro/agents",
+            AgentSessionEndpointKind.OpencodeServer,
+            "http://127.0.0.1:4096",
+            "server-password",
+            envActor: null,
+            cancellationToken);
+
+        // assert
+        Assert.Equal(AgentSessionEndpointKind.OpencodeServer, record.EndpointKind);
+        Assert.Equal("http://127.0.0.1:4096", record.EndpointAddr);
+        Assert.Equal("server-password", record.EndpointSecret);
+        var identity = Assert.Single(await _sessions.ListIdentitiesAsync(cancellationToken));
+        Assert.Equal(AgentSessionHarness.Opencode, identity.Identity.Harness);
+    }
+
+    [Fact]
     public async Task StartAsync_Should_UseEveryBaseActorBeforeSuffixingTheNextWave()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

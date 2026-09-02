@@ -161,6 +161,58 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(AgentDatabase.CurrentVersion, version);
     }
 
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ExistingVersionIsV11()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                DROP TABLE agent_session_identities;
+                CREATE TABLE agent_session_identities (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    actor TEXT NOT NULL UNIQUE REFERENCES agents (name),
+                    role TEXT NOT NULL DEFAULT '',
+                    actor_revision INTEGER NOT NULL DEFAULT 1 CHECK (actor_revision > 0),
+                    created_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id)
+                );
+                CREATE INDEX idx_agent_session_identities_actor
+                    ON agent_session_identities (actor);
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await ExecuteAsync(
+            upgraded,
+            """
+            INSERT INTO agents (name, registered_at, last_seen_at)
+            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agent_session_identities (
+                harness, session_id, actor, created_at, last_seen_at
+            ) VALUES (
+                'opencode', 'session-1', 'maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("opencode", await QueryScalarStringAsync(
+            upgraded,
+            "SELECT harness FROM agent_session_identities WHERE session_id = 'session-1'",
+            cancellationToken));
+    }
+
     /// <summary>
     /// Seeds a raw v2-shaped agents table, predating the role and implicit
     /// columns, with one row, mirroring a database left by a pre-.8 CLI.

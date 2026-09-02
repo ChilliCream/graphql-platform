@@ -40,15 +40,16 @@ internal static class AgentSessionSchema
     /// </summary>
     private const string AgentSessionsColumns =
         """
-            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
+            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
             session_id TEXT NOT NULL,
             agent_name TEXT NULL REFERENCES agents (name),
             binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
             host TEXT NOT NULL,
             cwd TEXT NOT NULL,
             workspace_path TEXT NOT NULL,
-            endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'db-watch', 'none')),
+            endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
             endpoint_addr TEXT NOT NULL,
+            endpoint_secret TEXT NULL,
             started_at TEXT NOT NULL,
             last_beat_at TEXT NOT NULL,
             block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),

@@ -13,6 +13,10 @@ internal static partial class EndpointAddress
 {
     public static bool IsValid(string value) => Pattern().IsMatch(value);
 
+    public static bool IsValidOpencodeServerUrl(string value)
+        => Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
     [GeneratedRegex(@"^[A-Za-z0-9._-]{1,128}$")]
     private static partial Regex Pattern();
 }
