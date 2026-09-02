@@ -1116,6 +1116,18 @@ internal static partial class OperationPlanExecutor
             context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
             context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
 
+            if (context.TryGetDeniedSubscriptionRoot(out var denial, out var responseName))
+            {
+                var result = ErrorHelper.PolicySubscriptionDenied(
+                    denial,
+                    responseName,
+                    requestContext.Schema.Services.GetRequiredService<IErrorHandler>());
+                await context.DisposeAsync();
+                context = null;
+                executionCts.Dispose();
+                return result;
+            }
+
             var subscriptionResult = root switch
             {
                 OperationExecutionNode subscriptionNode => subscriptionNode.Subscribe(context),
@@ -1363,6 +1375,7 @@ internal static partial class OperationPlanExecutor
                 // that each event is bounded by the configured execution timeout.
                 eventCts.CancelAfter(eventTimeout);
                 var eventToken = eventCts.Token;
+                var terminateStream = false;
 
                 try
                 {
@@ -1376,73 +1389,86 @@ internal static partial class OperationPlanExecutor
 
                     executionState.Reset();
 
-                    executionState.FillBacklog(plan);
-                    executionState.EnqueueForCompletion(
-                        new ExecutionNodeResult(
-                            subscriptionNode.Id,
-                            eventArgs.Activity,
-                            eventArgs.Status,
-                            eventArgs.Duration,
-                            Exception: null,
-                            DependentsToExecute: eventArgs.DependentsToExecute,
-                            SkippedDefinitions: [],
-                            VariableValueSets: eventArgs.VariableValueSets));
+                    await context.ReevaluatePolicySlotsAsync(eventToken).ConfigureAwait(false);
 
-                    while (!eventToken.IsCancellationRequested && executionState.IsProcessing())
+                    if (context.TryGetDeniedSubscriptionRoot(out var denial, out var responseName))
                     {
-                        while (executionState.TryDequeuePendingMerge(out var merge))
-                        {
-                            executionState.ApplyMerge(context, merge);
-                        }
+                        result = ErrorHelper.PolicySubscriptionDenied(
+                            denial,
+                            responseName,
+                            context.RequestContext.Schema.Services.GetRequiredService<IErrorHandler>());
+                        terminateStream = true;
+                    }
+                    else
+                    {
+                        executionState.FillBacklog(plan);
+                        executionState.EnqueueForCompletion(
+                            new ExecutionNodeResult(
+                                subscriptionNode.Id,
+                                eventArgs.Activity,
+                                eventArgs.Status,
+                                eventArgs.Duration,
+                                Exception: null,
+                                DependentsToExecute: eventArgs.DependentsToExecute,
+                                SkippedDefinitions: [],
+                                VariableValueSets: eventArgs.VariableValueSets));
 
-                        while (executionState.TryDequeueCompletedResult(out var nodeResult))
+                        while (!eventToken.IsCancellationRequested && executionState.IsProcessing())
                         {
                             while (executionState.TryDequeuePendingMerge(out var merge))
                             {
                                 executionState.ApplyMerge(context, merge);
                             }
 
-                            nodeResult = executionState.ApplyPendingMergeFailure(nodeResult);
-                            var node = plan.GetNodeById(nodeResult.Id);
-                            executionState.CompleteNode(plan, node, nodeResult);
+                            while (executionState.TryDequeueCompletedResult(out var nodeResult))
+                            {
+                                while (executionState.TryDequeuePendingMerge(out var merge))
+                                {
+                                    executionState.ApplyMerge(context, merge);
+                                }
+
+                                nodeResult = executionState.ApplyPendingMergeFailure(nodeResult);
+                                var node = plan.GetNodeById(nodeResult.Id);
+                                executionState.CompleteNode(plan, node, nodeResult);
+                            }
+
+                            if (!eventToken.IsCancellationRequested)
+                            {
+                                executionState.EnqueueNextNodes(context, eventToken);
+                            }
+
+                            if (eventToken.IsCancellationRequested || !executionState.IsProcessing())
+                            {
+                                break;
+                            }
+
+                            // The signal will be set every time a node completes and will release the executor
+                            // from the async wait to go through the completed results.
+                            await executionState.Signal;
                         }
 
-                        if (!eventToken.IsCancellationRequested)
+                        // The context is shared across events and the next event resets the
+                        // execution state, so we must let this event's in-flight sibling nodes
+                        // finish and account for their completions before that reset. Otherwise
+                        // a late completion would poison the next event.
+                        await DrainActiveNodesAsync(plan, executionState);
+
+                        // If the original CancellationToken of the request was cancelled,
+                        // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+                        // so we throw here to properly cancel the request execution.
+                        requestCancellationToken.ThrowIfCancellationRequested();
+
+                        // If the event token was cancelled by a genuine timeout or abort, tear the
+                        // stream down. A root-null halt also cancels the event token, but that is benign
+                        // (the result is a settled {data: null, errors: [...]}), so we keep the stream
+                        // alive and let context.Complete() produce it.
+                        if (!executionState.ProcessingCompletedEarly)
                         {
-                            executionState.EnqueueNextNodes(context, eventToken);
+                            eventToken.ThrowIfCancellationRequested();
                         }
 
-                        if (eventToken.IsCancellationRequested || !executionState.IsProcessing())
-                        {
-                            break;
-                        }
-
-                        // The signal will be set every time a node completes and will release the executor
-                        // from the async wait to go through the completed results.
-                        await executionState.Signal;
+                        result = context.Complete(reusable: true);
                     }
-
-                    // The context is shared across events and the next event resets the
-                    // execution state, so we must let this event's in-flight sibling nodes
-                    // finish and account for their completions before that reset. Otherwise
-                    // a late completion would poison the next event.
-                    await DrainActiveNodesAsync(plan, executionState);
-
-                    // If the original CancellationToken of the request was cancelled,
-                    // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
-                    // so we throw here to properly cancel the request execution.
-                    requestCancellationToken.ThrowIfCancellationRequested();
-
-                    // If the event token was cancelled by a genuine timeout or abort, tear the
-                    // stream down. A root-null halt also cancels the event token, but that is benign
-                    // (the result is a settled {data: null, errors: [...]}), so we keep the stream
-                    // alive and let context.Complete() produce it.
-                    if (!executionState.ProcessingCompletedEarly)
-                    {
-                        eventToken.ThrowIfCancellationRequested();
-                    }
-
-                    result = context.Complete(reusable: true);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -1497,6 +1523,11 @@ internal static partial class OperationPlanExecutor
                     subscriptionNode,
                     schemaName,
                     subscriptionResult.Id);
+
+                if (terminateStream)
+                {
+                    yield break;
+                }
             }
         }
         finally

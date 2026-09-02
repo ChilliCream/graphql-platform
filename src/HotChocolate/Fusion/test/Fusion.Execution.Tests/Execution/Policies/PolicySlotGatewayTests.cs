@@ -451,7 +451,7 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
         ]);
     }
 
-    [Fact(Skip = "repo-z7g: a denied @policy(onDenied: NULL) subscription must invoke source SubscribeAsync zero times; it currently invokes it once.")]
+    [Fact]
     public async Task SubscribeAsync_Should_NotSubscribeSource_When_RootPolicyDenies()
     {
         // arrange
@@ -474,31 +474,41 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
         await using var result = await executor.ExecuteAsync(
             "subscription { onMessage }",
             TestContext.Current.CancellationToken);
-        await using var stream = result.ExpectResponseStream();
-        await using var enumerator = stream
-            .ReadResultsAsync()
-            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
-
-        await enumerator.MoveNextAsync();
 
         // assert
         Assert.Equal(0, client.SubscribeCount);
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
     }
 
     [Fact]
-    public async Task SubscribeAsync_Should_MaskEventData_When_RootPolicyDenies()
+    public async Task SubscribeAsync_Should_MaskEventData_When_NestedPolicyDenies()
     {
         // arrange
         var client = new RecordingClient(
             """{"data":{"placeholder":null}}""",
-            """{"data":{"onMessage":"classified"}}"""
+            """{"data":{"onMessage":{"secret":"classified"}}}"""
         );
         var executor = await CreateExecutorAsync(
             CreateSchema(
                 """
                 type Query { placeholder: String }
                 type Subscription {
-                  onMessage: String @policy(names: "CanReadMessage", onDenied: NULL)
+                  onMessage: Subscription
+                  secret: String @policy(names: "CanReadMessage", onDenied: NULL)
                 }
                 """),
             new DenyPolicy("CanReadMessage"),
@@ -506,7 +516,7 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
 
         // act
         await using var result = await executor.ExecuteAsync(
-            "subscription { onMessage }",
+            "subscription { onMessage { secret } }",
             TestContext.Current.CancellationToken);
         await using var stream = result.ExpectResponseStream();
         var responses = new List<string>();
@@ -525,11 +535,241 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
             """
             {
               "data": {
-                "onMessage": null
+                "onMessage": {
+                  "secret": null
+                }
               }
             }
             """
         ]);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_ReevaluateNestedPolicyForEachEvent()
+    {
+        // arrange
+        var policy = new TogglePolicy("CanReadMessage");
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            [
+                () => """{"data":{"onMessage":{"secret":"first"}}}""",
+                () =>
+                {
+                    policy.IsDenied = true;
+                    return """{"data":{"onMessage":{"secret":"second"}}}""";
+                }
+            ]);
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription { onMessage: Message }
+                type Message { secret: String @policy(names: "CanReadMessage", onDenied: NULL) }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { onMessage { secret } }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal(1, client.SubscribeCount);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "secret": "first"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "secret": null
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_TerminateStream_When_RootPolicyBecomesDenied()
+    {
+        // arrange
+        var policy = new TogglePolicy("CanReadMessage");
+        var readCount = 0;
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            (IReadOnlyList<Func<string>>)
+            [
+                () =>
+                {
+                    readCount++;
+                    return """{"data":{"onMessage":"first"}}""";
+                },
+                () =>
+                {
+                    readCount++;
+                    policy.IsDenied = true;
+                    return """{"data":{"onMessage":"second"}}""";
+                },
+                () =>
+                {
+                    readCount++;
+                    return """{"data":{"onMessage":"third"}}""";
+                }
+            ]);
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription {
+                  onMessage: String @policy(names: "CanReadMessage", onDenied: ERROR)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { onMessage }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal(1, client.SubscribeCount);
+        Assert.Equal(2, readCount);
+        responses.Select(NormalizeReasonId).ToArray().MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onMessage": "first"
+              }
+            }
+            """,
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "path": [
+                    "onMessage"
+                  ],
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_PreserveRootObjectAttribution_When_RootObjectAndFieldPoliciesDeny()
+    {
+        // arrange
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            """{"data":{"onMessage":"classified"}}"""
+        );
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription @policy(names: "CanReadMessage", onDenied: ERROR) {
+                  onMessage: String @policy(names: "CanReadMessage", onDenied: ERROR)
+                }
+                """),
+            new DenyPolicy("CanReadMessage"),
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { renamed: onMessage }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, client.SubscribeCount);
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_NotReplayPolicyDecisionAcrossEvents()
+    {
+        // arrange
+        var policy = new TogglePolicy("CanReadMessage");
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            [
+                () => """{"data":{"onMessage":{"secret":"first"}}}""",
+                () => """{"data":{"onMessage":{"secret":"second"}}}"""
+            ]);
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription { onMessage: Message }
+                type Message { secret: String @policy(names: "CanReadMessage", onDenied: NULL) }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { onMessage { secret } }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+
+        await foreach (var _ in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+        }
+
+        // assert
+        Assert.Equal(3, policy.EvaluationCount);
     }
 
     private static string CreateSchema(string typeDefinitions)
@@ -697,24 +937,62 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
         }
     }
 
+    private sealed class TogglePolicy(string name) : IPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public PolicyRequirements Requirements => PolicyRequirements.Empty;
+
+        public bool IsDenied { get; set; }
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(IPolicyContext context, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+
+            if (IsDenied)
+            {
+                context.Deny(0, "denied by test policy");
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
+
     private sealed class RecordingClient : ISourceSchemaClient
     {
         private readonly Func<SourceSchemaClientRequest, byte[]> _payloadFactory;
-        private readonly byte[]? _subscriptionPayload;
+        private readonly Func<byte[]>[]? _subscriptionPayloadFactories;
 
         public RecordingClient(string payload, string? subscriptionPayload = null)
-            : this(_ => payload, subscriptionPayload)
+            : this(
+                _ => payload,
+                subscriptionPayload is null
+                    ? null
+                    : [() => subscriptionPayload])
+        {
+        }
+
+        public RecordingClient(
+            string payload,
+            IReadOnlyList<Func<string>> subscriptionPayloadFactories)
+            : this(_ => payload, subscriptionPayloadFactories)
         {
         }
 
         public RecordingClient(
             Func<SourceSchemaClientRequest, string> payloadFactory,
-            string? subscriptionPayload = null)
+            IReadOnlyList<Func<string>>? subscriptionPayloadFactories = null)
         {
             _payloadFactory = request => Encoding.UTF8.GetBytes(payloadFactory(request));
-            _subscriptionPayload = subscriptionPayload is null
+            _subscriptionPayloadFactories = subscriptionPayloadFactories is null
                 ? null
-                : Encoding.UTF8.GetBytes(subscriptionPayload);
+                : subscriptionPayloadFactories
+                    .Select(factory => (Func<byte[]>)(() => Encoding.UTF8.GetBytes(factory())))
+                    .ToArray();
         }
 
         public int ExecuteCount { get; private set; }
@@ -760,16 +1038,20 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
             SourceSchemaClientRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (_subscriptionPayload is not { } payload)
+            if (_subscriptionPayloadFactories is not { } payloadFactories)
             {
                 throw new NotSupportedException();
             }
 
             SubscribeCount++;
-            var arena = context.MemorySource.GetNextArena();
-            var document = SourceResultDocument.Parse(arena, payload, payload.Length);
-            await Task.Yield();
-            yield return new SourceSchemaResult(CompactPath.Root, document);
+            foreach (var payloadFactory in payloadFactories)
+            {
+                var payload = payloadFactory();
+                var arena = context.MemorySource.GetNextArena();
+                var document = SourceResultDocument.Parse(arena, payload, payload.Length);
+                await Task.Yield();
+                yield return new SourceSchemaResult(CompactPath.Root, document);
+            }
         }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;

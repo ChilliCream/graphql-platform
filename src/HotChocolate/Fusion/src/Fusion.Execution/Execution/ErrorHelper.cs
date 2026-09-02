@@ -112,6 +112,30 @@ internal static class ErrorHelper
         return result;
     }
 
+    public static OperationResult PolicySubscriptionDenied(
+        PolicySlotDenial denial,
+        string? responseName,
+        IErrorHandler errorHandler)
+    {
+        var path = denial.Behavior is PolicyDenialBehavior.Error && responseName is not null
+            ? Path.Root.Append(responseName)
+            : Path.Root;
+        var error = PolicyDenied(
+            path,
+            denial.Behavior,
+            denial.Expression,
+            denial.Reason,
+            denial.ReasonId);
+
+        return new OperationResult(
+            new OperationResultData(
+                s_nullResultData,
+                isValueNull: true,
+                s_nullResultData,
+                memoryHolder: null),
+            [errorHandler.Handle(error.Error)]);
+    }
+
     public static OperationResult PolicyRequestEvaluationFailed()
         => new(
             new OperationResultData(

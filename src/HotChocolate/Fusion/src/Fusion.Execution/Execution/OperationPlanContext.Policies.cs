@@ -162,6 +162,112 @@ public sealed partial class OperationPlanContext
         return evaluation;
     }
 
+    internal bool TryGetDeniedSubscriptionRoot(
+        out PolicySlotDenial denial,
+        out string? responseName)
+    {
+        var operationPlan = OperationPlan as OperationPlan
+            ?? _policyRequestState?.OperationPlan;
+        var requestState = _policyRequestState;
+
+        if (PolicyDenyFlags == 0 || operationPlan is null || requestState is null)
+        {
+            denial = default;
+            responseName = null;
+            return false;
+        }
+
+        var rootSelectionSet = operationPlan.Operation.RootSelectionSet;
+        var rootSelection = rootSelectionSet.Selections[0];
+        var fieldCandidates = operationPlan.GetPolicyDenials(
+            0,
+            rootSelectionSet.Id,
+            rootSelection.Id);
+        var fieldIndex = 0;
+        var rootSlotOrdinal = 0;
+        var rootCoordinateOrdinal = 0;
+        denial = default;
+        responseName = null;
+        var hasRootObjectCandidate = TryGetNextRootObjectCandidate(
+            operationPlan.PolicySlots,
+            ref rootSlotOrdinal,
+            ref rootCoordinateOrdinal,
+            out var rootObjectCandidate);
+
+        while (fieldIndex < fieldCandidates.Length || hasRootObjectCandidate)
+        {
+            var fieldCandidate = fieldIndex < fieldCandidates.Length
+                ? fieldCandidates[fieldIndex]
+                : default;
+            var useFieldCandidate = fieldIndex < fieldCandidates.Length
+                && (!hasRootObjectCandidate
+                    || fieldCandidate.SlotOrdinal < rootObjectCandidate.SlotOrdinal
+                    || (fieldCandidate.SlotOrdinal == rootObjectCandidate.SlotOrdinal
+                        && fieldCandidate.CoordinateOrdinal < rootObjectCandidate.CoordinateOrdinal));
+            var candidate = useFieldCandidate ? fieldCandidate : rootObjectCandidate;
+
+            if (useFieldCandidate)
+            {
+                fieldIndex++;
+            }
+            else
+            {
+                rootCoordinateOrdinal++;
+                hasRootObjectCandidate = TryGetNextRootObjectCandidate(
+                    operationPlan.PolicySlots,
+                    ref rootSlotOrdinal,
+                    ref rootCoordinateOrdinal,
+                    out rootObjectCandidate);
+            }
+
+            if ((PolicyDenyFlags & (1UL << candidate.SlotOrdinal)) == 0
+                || !requestState.TryGetCoordinateDenial(
+                    candidate.SlotOrdinal,
+                    candidate.CoordinateOrdinal,
+                    out denial))
+            {
+                continue;
+            }
+
+            responseName = useFieldCandidate ? rootSelection.ResponseName : null;
+            return true;
+        }
+
+        return false;
+
+        static bool TryGetNextRootObjectCandidate(
+            ImmutableArray<PolicyConditionSlot> slots,
+            ref int slotOrdinal,
+            ref int coordinateOrdinal,
+            out PolicyDenialLookupEntry candidate)
+        {
+            while (slotOrdinal < slots.Length)
+            {
+                var slot = slots[slotOrdinal];
+                while (coordinateOrdinal < slot.Coordinates.Length)
+                {
+                    var coordinate = slot.Coordinates[coordinateOrdinal];
+                    if (coordinate.IsRoot)
+                    {
+                        candidate = new PolicyDenialLookupEntry(
+                            slot.Ordinal,
+                            coordinateOrdinal,
+                            coordinate.LiveGuardMasks);
+                        return true;
+                    }
+
+                    coordinateOrdinal++;
+                }
+
+                slotOrdinal++;
+                coordinateOrdinal = 0;
+            }
+
+            candidate = default;
+            return false;
+        }
+    }
+
     private PolicyRequestState GetOrCreatePolicyRequestState()
     {
         if (_policyRequestState is { } requestState)
