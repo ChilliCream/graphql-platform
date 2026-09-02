@@ -9,7 +9,7 @@ internal static class MailDigest
 {
     public static string Render(
         string actor,
-        IReadOnlyList<MailMessageDetailResult> messages,
+        IReadOnlyList<MailMessage> messages,
         int unreadTotal)
     {
         if (messages.Count == 0)
@@ -21,6 +21,7 @@ internal static class MailDigest
             .OrderBy(message => message.CreatedAt)
             .ThenBy(message => message.Id, StringComparer.Ordinal)
             .Take(MailDigestPolicy.MaxMessages)
+            .Select(message => MailMessageDetailResult.Create(message, actor))
             .Select(message => TruncateBody(message, actor))
             .ToList();
 

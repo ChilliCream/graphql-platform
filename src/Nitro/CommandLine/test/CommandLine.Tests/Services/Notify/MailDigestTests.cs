@@ -22,7 +22,17 @@ public sealed class MailDigestTests
     public void Render_Should_IncludeOneMessage_When_ItFitsTheDigest()
     {
         // arrange
-        var message = Message("m-1", "One", "Hello", "2026-01-01T00:00:00Z");
+        var message = Message(
+            "m-1",
+            "One",
+            "Hello",
+            "2026-01-01T00:00:00Z",
+            [
+                Recipient("zara", MailRecipientKinds.Cc, 3),
+                Recipient("maya", MailRecipientKinds.To, 1, read: true, archived: true),
+                Recipient("bob", MailRecipientKinds.To, 0),
+                Recipient("alex", MailRecipientKinds.Cc, 2)
+            ]);
 
         // act
         var digest = MailDigest.Render("maya", [message], 1);
@@ -39,14 +49,18 @@ public sealed class MailDigestTests
                   "inReplyTo": null,
                   "from": "bob",
                   "to": [
+                    "bob",
                     "maya"
                   ],
-                  "cc": [],
+                  "cc": [
+                    "alex",
+                    "zara"
+                  ],
                   "subject": "One",
                   "body": "Hello",
                   "createdAt": "2026-01-01T00:00:00+00:00",
-                  "read": false,
-                  "archived": false
+                  "read": true,
+                  "archived": true
                 }
               ]
             }
@@ -304,23 +318,36 @@ public sealed class MailDigestTests
             """);
     }
 
-    private static MailMessageDetailResult Message(
+    private static MailMessage Message(
         string id,
         string subject,
         string body,
-        string createdAt)
+        string createdAt,
+        IReadOnlyList<MailRecipient>? recipients = null)
         => new()
         {
             Id = id,
             ThreadId = "t-1",
             InReplyTo = null,
-            From = "bob",
-            To = ["maya"],
-            Cc = [],
+            Sender = "bob",
             Subject = subject,
             Body = body,
             CreatedAt = DateTimeOffset.Parse(createdAt),
-            Read = false,
-            Archived = false
+            Recipients = recipients ?? [Recipient("maya", MailRecipientKinds.To, 0)]
+        };
+
+    private static MailRecipient Recipient(
+        string name,
+        string kind,
+        int ordinal,
+        bool read = false,
+        bool archived = false)
+        => new()
+        {
+            Name = name,
+            Kind = kind,
+            Ordinal = ordinal,
+            ReadAt = read ? DateTimeOffset.Parse("2026-01-01T00:00:00Z") : null,
+            ArchivedAt = archived ? DateTimeOffset.Parse("2026-01-01T00:00:00Z") : null
         };
 }
