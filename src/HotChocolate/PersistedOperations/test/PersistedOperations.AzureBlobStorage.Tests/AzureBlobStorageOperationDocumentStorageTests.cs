@@ -1,8 +1,8 @@
 using Azure.Storage.Blobs;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Squadron;
 
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
