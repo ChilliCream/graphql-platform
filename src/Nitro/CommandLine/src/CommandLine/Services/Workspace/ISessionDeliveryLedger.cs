@@ -19,8 +19,7 @@ internal interface ISessionDeliveryLedger
     /// input returns an empty result without opening a connection.
     /// </summary>
     Task<IReadOnlyList<string>> ReserveAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         IReadOnlyList<string> messageIds,
         string channel,
         DateTimeOffset deliveredAt,
@@ -30,8 +29,7 @@ internal interface ISessionDeliveryLedger
     /// Releases one exact reservation so a later transition can claim it again.
     /// </summary>
     Task ReleaseAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         string messageId,
         string channel,
         CancellationToken cancellationToken);

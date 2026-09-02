@@ -208,8 +208,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         var firstMail = await SendMailAsync("bob", actor, cancellationToken);
         await _ledger.ReserveAsync(
-            AgentSessionHarness.Opencode,
-            SessionId,
+            CurrentGeneration(),
             [firstMail.Id],
             AgentSessionChannel.Gate,
             _timeProvider.GetUtcNow(),
@@ -260,6 +259,54 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
         Assert.Null(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_RemainNeutral_When_TheSessionWasReplacedBeforeTouch()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _sessions.StartAsync(
+            new AgentSessionGeneration(AgentSessionHarness.Opencode, SessionId, "host-2"),
+            _workspaceRoot,
+            _workspaceDirectory,
+            AgentSessionEndpointKind.OpencodeServer,
+            "http://127.0.0.1:4096",
+            endpointSecret: null,
+            envActor: null,
+            cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleSessionIdleAsync_Should_RemainNeutral_When_TheSessionWasReplacedBeforeTouch()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _sessions.StartAsync(
+            new AgentSessionGeneration(AgentSessionHarness.Opencode, SessionId, "host-2"),
+            _workspaceRoot,
+            _workspaceDirectory,
+            AgentSessionEndpointKind.OpencodeServer,
+            "http://127.0.0.1:4096",
+            endpointSecret: null,
+            envActor: null,
+            cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
     }
 
     [Fact]
@@ -372,8 +419,7 @@ internal sealed class SessionDeletingDeliveryLedger(
     private bool _deleted;
 
     public async Task<IReadOnlyList<string>> ReserveAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         IReadOnlyList<string> messageIds,
         string channel,
         DateTimeOffset deliveredAt,
@@ -386,8 +432,7 @@ internal sealed class SessionDeletingDeliveryLedger(
         }
 
         return await inner.ReserveAsync(
-            harness,
-            sessionId,
+            generation,
             messageIds,
             channel,
             deliveredAt,
@@ -395,12 +440,11 @@ internal sealed class SessionDeletingDeliveryLedger(
     }
 
     public Task ReleaseAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         string messageId,
         string channel,
         CancellationToken cancellationToken)
-        => inner.ReleaseAsync(harness, sessionId, messageId, channel, cancellationToken);
+        => inner.ReleaseAsync(generation, messageId, channel, cancellationToken);
 }
 
 internal static class OpencodeHookFixtures

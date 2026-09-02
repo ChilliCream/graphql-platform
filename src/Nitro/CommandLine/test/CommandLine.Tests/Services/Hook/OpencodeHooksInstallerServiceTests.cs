@@ -128,7 +128,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     [Fact]
-    public void Build_Should_StripThePushedMarkerAndForwardTheStablePayload()
+    public void Build_Should_DetectTheExactPushedMetadataWithoutMutatingText()
     {
         // arrange
         var descriptor = new LaunchDescriptor("nitro", []);
@@ -137,8 +137,13 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         var template = OpencodeHooksTemplate.Build(descriptor);
 
         // assert
-        Assert.Contains($"const nitroPushedMarker = \"{OpencodeHookProtocol.PushedPromptMarker}\"", template);
-        Assert.Contains("part.text = part.text.slice(nitroPushedMarker.length);", template);
+        Assert.Contains(
+            $"const nitroPushedMetadataKey = \"{OpencodeHookProtocol.PushedPromptMetadataKey}\"",
+            template);
+        Assert.Contains(
+            $"part?.metadata?.[nitroPushedMetadataKey] === \"{OpencodeHookProtocol.PushedPromptMetadataValue}\"",
+            template);
+        Assert.Contains("function isNitroPushed(parts)", template);
         Assert.Contains("nitroPushed,", template);
     }
 

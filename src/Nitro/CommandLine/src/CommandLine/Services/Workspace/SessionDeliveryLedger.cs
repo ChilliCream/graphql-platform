@@ -5,8 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabase database) : ISessionDeliveryLedger
 {
     public async Task<IReadOnlyList<string>> ReserveAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         IReadOnlyList<string> messageIds,
         string channel,
         DateTimeOffset deliveredAt,
@@ -36,11 +35,15 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
             command.CommandText =
                 """
                 INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES (@harness, @sessionId, @messageId, @channel, @deliveredAt)
+                SELECT @harness, @sessionId, @messageId, @channel, @deliveredAt
+                WHERE EXISTS (
+                    SELECT 1 FROM agent_sessions
+                    WHERE harness = @harness AND session_id = @sessionId AND host = @host)
                 ON CONFLICT DO NOTHING;
                 """;
-            command.Parameters.AddWithValue("@harness", harness);
-            command.Parameters.AddWithValue("@sessionId", sessionId);
+            command.Parameters.AddWithValue("@harness", generation.Harness);
+            command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+            command.Parameters.AddWithValue("@host", generation.Host);
             command.Parameters.AddWithValue("@messageId", messageId);
             command.Parameters.AddWithValue("@channel", channel);
             command.Parameters.AddWithValue("@deliveredAt", deliveredAt);
@@ -59,8 +62,7 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
     }
 
     public async Task ReleaseAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         string messageId,
         string channel,
         CancellationToken cancellationToken)
@@ -72,9 +74,11 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
         await using var command = connection.CreateCommand();
         command.CommandText =
             "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId "
-            + "AND message_id = @messageId AND channel = @channel";
-        command.Parameters.AddWithValue("@harness", harness);
-        command.Parameters.AddWithValue("@sessionId", sessionId);
+            + "AND message_id = @messageId AND channel = @channel AND EXISTS ("
+            + "SELECT 1 FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId AND host = @host)";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
         command.Parameters.AddWithValue("@messageId", messageId);
         command.Parameters.AddWithValue("@channel", channel);
 

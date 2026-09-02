@@ -160,8 +160,7 @@ internal sealed class ClaudeHookHandler(
         }
 
         var reserved = await ledger.ReserveAsync(
-            resolved.Generation.Harness,
-            resolved.Generation.SessionId,
+            resolved.Generation,
             unread.Select(m => m.Id).ToList(),
             AgentSessionChannel.Gate,
             timeProvider.GetUtcNow(),
@@ -217,8 +216,7 @@ internal sealed class ClaudeHookHandler(
         }
 
         var reserved = await ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
+            generation,
             unread.Select(m => m.Id).ToList(),
             AgentSessionChannel.Digest,
             timeProvider.GetUtcNow(),

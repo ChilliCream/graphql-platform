@@ -68,7 +68,10 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+        if (!await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken))
+        {
+            return OpencodeHookOutcome.Neutral;
+        }
 
         if (payload.NitroPushed)
         {
@@ -132,7 +135,10 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+        if (!await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken))
+        {
+            return OpencodeHookOutcome.Neutral;
+        }
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
@@ -228,8 +234,7 @@ internal sealed class OpencodeHookHandler(
         try
         {
             return await ledger.ReserveAsync(
-                generation.Harness,
-                generation.SessionId,
+                generation,
                 messageIds,
                 channel,
                 timeProvider.GetUtcNow(),
@@ -252,8 +257,7 @@ internal sealed class OpencodeHookHandler(
         string channel,
         CancellationToken cancellationToken)
         => ledger.ReleaseAsync(
-            generation.Harness,
-            generation.SessionId,
+            generation,
             messageId,
             channel,
             cancellationToken);

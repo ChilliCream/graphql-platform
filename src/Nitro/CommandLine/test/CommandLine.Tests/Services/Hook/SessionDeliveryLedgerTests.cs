@@ -13,6 +13,7 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
 {
     private const string Harness = "claude-code";
     private const string SessionId = "session-1";
+    private static readonly AgentSessionGeneration s_generation = new(Harness, SessionId, "host-1");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -41,7 +42,7 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         // act: no workspace was even initialized - proves this short-circuits
         // before opening a connection.
         var reserved = await _ledger.ReserveAsync(
-            Harness, SessionId, [], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, [], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Empty(reserved);
@@ -56,7 +57,7 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
 
         // act
         var reserved = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-1", "m-2", "m-3"], reserved);
@@ -72,11 +73,11 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAndSessionAsync(cancellationToken);
         await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // act
         var reserved = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-3"], reserved);
@@ -90,13 +91,13 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAndSessionAsync(cancellationToken);
         await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // act
         var reservedGate = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
         var reservedPing = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "ping", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "ping", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-1"], reservedGate);
@@ -113,8 +114,8 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
 
         // act
         var results = await Task.WhenAll(
-            _ledger.ReserveAsync(Harness, SessionId, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken),
-            _ledger.ReserveAsync(Harness, SessionId, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
+            _ledger.ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken),
+            _ledger.ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
 
         // assert: exactly one of the two calls won the reservation, never
         // both and never neither.
@@ -129,20 +130,43 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAndSessionAsync(cancellationToken);
         await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
         await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // act
-        await _ledger.ReleaseAsync(Harness, SessionId, "m-1", "gate", cancellationToken);
+        await _ledger.ReleaseAsync(s_generation, "m-1", "gate", cancellationToken);
         var gate = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
         var digest = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-1"], gate);
         Assert.Empty(digest);
+    }
+
+    [Fact]
+    public async Task ReserveAndReleaseAsync_Should_NotAffectReplacementReservation_When_GenerationIsStale()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var replacement = new AgentSessionGeneration(Harness, SessionId, "host-2");
+        await InitializeWorkspaceAndSessionAsync(cancellationToken);
+        await ReplaceSessionHostAsync(replacement.Host, cancellationToken);
+        await _ledger.ReserveAsync(
+            replacement, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+
+        // act
+        var staleReserved = await _ledger.ReserveAsync(
+            s_generation, ["m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+        await _ledger.ReleaseAsync(s_generation, "m-1", "gate", cancellationToken);
+        var replacementReserved = await _ledger.ReserveAsync(
+            replacement, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+
+        // assert
+        Assert.Empty(staleReserved);
+        Assert.Empty(replacementReserved);
     }
 
     private async Task InitializeWorkspaceAndSessionAsync(CancellationToken cancellationToken)
@@ -159,6 +183,19 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
                 '/work', '/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00Z', '2026-01-10T12:00:00Z'
             );
             """;
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private async Task ReplaceSessionHostAsync(string host, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET host = @host WHERE harness = @harness AND session_id = @sessionId";
+        command.Parameters.AddWithValue("@host", host);
+        command.Parameters.AddWithValue("@harness", Harness);
+        command.Parameters.AddWithValue("@sessionId", SessionId);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }

@@ -748,22 +748,20 @@ internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedg
     public IReadOnlyList<string>? LastMessageIds { get; private set; }
 
     public Task<IReadOnlyList<string>> ReserveAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         IReadOnlyList<string> messageIds,
         string channel,
         DateTimeOffset deliveredAt,
         CancellationToken cancellationToken)
     {
         LastMessageIds = messageIds;
-        return inner.ReserveAsync(harness, sessionId, messageIds, channel, deliveredAt, cancellationToken);
+        return inner.ReserveAsync(generation, messageIds, channel, deliveredAt, cancellationToken);
     }
 
     public Task ReleaseAsync(
-        string harness,
-        string sessionId,
+        AgentSessionGeneration generation,
         string messageId,
         string channel,
         CancellationToken cancellationToken)
-        => inner.ReleaseAsync(harness, sessionId, messageId, channel, cancellationToken);
+        => inner.ReleaseAsync(generation, messageId, channel, cancellationToken);
 }

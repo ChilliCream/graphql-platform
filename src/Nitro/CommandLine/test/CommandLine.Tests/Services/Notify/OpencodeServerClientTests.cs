@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class OpencodeServerClientTests
 {
     [Fact]
-    public async Task PushMessageAsync_Should_PostTextPart_When_ServerAcceptsTheMessage()
+    public async Task PushMessageAsync_Should_PreserveTextAndMarkTheTextPart_When_ServerAcceptsTheMessage()
     {
         // arrange
         HttpRequestMessage? capturedRequest = null;
@@ -26,7 +26,7 @@ public sealed class OpencodeServerClientTests
         var result = await client.PushMessageAsync(
             "http://localhost:4096",
             "ses_123",
-            "You have unread mail.",
+            "[[nitro:pushed]] user-authored text",
             secret: null,
             TestContext.Current.CancellationToken);
 
@@ -37,8 +37,14 @@ public sealed class OpencodeServerClientTests
         using var body = JsonDocument.Parse(capturedBody!);
         Assert.Equal("text", body.RootElement.GetProperty("parts")[0].GetProperty("type").GetString());
         Assert.Equal(
-            OpencodeHookProtocol.PushedPromptMarker + "You have unread mail.",
+            "[[nitro:pushed]] user-authored text",
             body.RootElement.GetProperty("parts")[0].GetProperty("text").GetString());
+        Assert.Equal(
+            OpencodeHookProtocol.PushedPromptMetadataValue,
+            body.RootElement.GetProperty("parts")[0]
+                .GetProperty("metadata")
+                .GetProperty(OpencodeHookProtocol.PushedPromptMetadataKey)
+                .GetString());
     }
 
     [Fact]

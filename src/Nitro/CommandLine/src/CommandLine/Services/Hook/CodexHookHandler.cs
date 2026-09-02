@@ -216,8 +216,7 @@ internal sealed class CodexHookHandler(
         }
 
         var reserved = await ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
+            generation,
             unread.Select(m => m.Id).ToList(),
             channel,
             timeProvider.GetUtcNow(),

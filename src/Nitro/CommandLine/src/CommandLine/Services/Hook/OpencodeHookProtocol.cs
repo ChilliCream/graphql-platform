@@ -6,7 +6,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal static class OpencodeHookProtocol
 {
     /// <summary>
-    /// Prefixes prompts pushed by Nitro so the shim can identify and remove it before model delivery.
+    /// The namespaced metadata key that marks a prompt pushed by Nitro.
     /// </summary>
-    public const string PushedPromptMarker = "[[nitro:pushed]] ";
+    public const string PushedPromptMetadataKey = "com.chillicream.nitro.pushed";
+
+    /// <summary>
+    /// The exact metadata value that marks a prompt pushed by Nitro.
+    /// </summary>
+    public const string PushedPromptMetadataValue = "true";
 }

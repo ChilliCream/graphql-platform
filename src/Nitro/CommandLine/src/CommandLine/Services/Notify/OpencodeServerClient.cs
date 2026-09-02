@@ -47,7 +47,7 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
             timeoutSource.Token);
         using var request = new HttpRequestMessage(HttpMethod.Post, uri)
         {
-            Content = CreateMessageContent(OpencodeHookProtocol.PushedPromptMarker + text)
+            Content = CreateMessageContent(text)
         };
 
         AddAuthentication(request, secret);
@@ -139,6 +139,12 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
             writer.WriteStartObject();
             writer.WriteString("type", "text");
             writer.WriteString("text", text);
+            writer.WritePropertyName("metadata");
+            writer.WriteStartObject();
+            writer.WriteString(
+                OpencodeHookProtocol.PushedPromptMetadataKey,
+                OpencodeHookProtocol.PushedPromptMetadataValue);
+            writer.WriteEndObject();
             writer.WriteEndObject();
             writer.WriteEndArray();
             writer.WriteEndObject();
