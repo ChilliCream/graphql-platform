@@ -1,13 +1,229 @@
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Fusion.Aspire;
 
 internal static class AspireCompositionHelper
 {
+    /// <summary>
+    /// Composes the given source schema archives into a fusion archive, resolving the source
+    /// schema settings against the environment of the distributed application.
+    /// </summary>
+    public static Task<bool> TryComposeArchivesAsync(
+        string fusionArchivePath,
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        GraphQLCompositionSettings settings,
+        ILogger logger,
+        CancellationToken cancellationToken)
+        => TryComposeArchivesAsync(
+            fusionArchivePath,
+            archives,
+            settings.EnvironmentName ?? "Aspire",
+            settings,
+            logger,
+            cancellationToken);
+
+    /// <summary>
+    /// Composes the given source schema archives into a fusion archive, resolving the source
+    /// schema settings against <paramref name="environmentName"/>.
+    /// </summary>
+    public static async Task<bool> TryComposeArchivesAsync(
+        string fusionArchivePath,
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        string environmentName,
+        GraphQLCompositionSettings settings,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        var sourceSchemas = await ReadSourceSchemasAsync(
+            archives,
+            cancellationToken);
+
+        try
+        {
+            using var archive = OpenArchive(fusionArchivePath, seedArchivePath: null);
+
+            return await ComposeArchivesAsync(
+                archive,
+                sourceSchemas,
+                environmentName,
+                settings,
+                stageSettings: null,
+                logger,
+                cancellationToken);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Composes the given source schema archives into a fusion archive, resolving the source
+    /// schema settings against <paramref name="environmentName"/>.
+    /// </summary>
+    /// <param name="fusionArchive">
+    /// The stream that the composed fusion archive is written to.
+    /// </param>
+    /// <param name="archives">
+    /// The source schema archives that are composed.
+    /// </param>
+    /// <param name="environmentName">
+    /// The environment that the settings of the source schemas resolve against.
+    /// </param>
+    /// <param name="settings">
+    /// The composition settings of the gateway.
+    /// </param>
+    /// <param name="stageSettings">
+    /// The composition settings that the deployment target declares. They only fill values that
+    /// <paramref name="settings"/> leaves unset.
+    /// </param>
+    /// <param name="logger">
+    /// The logger that receives the composition diagnostics.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    internal static async Task<bool> TryComposeArchivesAsync(
+        Stream fusionArchive,
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        string environmentName,
+        GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(fusionArchive);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        var sourceSchemas = await ReadSourceSchemasAsync(
+            archives,
+            cancellationToken);
+
+        try
+        {
+            using var archive = FusionArchive.Create(
+                fusionArchive,
+                leaveOpen: true);
+
+            return await ComposeArchivesAsync(
+                archive,
+                sourceSchemas,
+                environmentName,
+                settings,
+                stageSettings,
+                logger,
+                cancellationToken);
+        }
+        finally
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Composes source schemas that were read from archives. They are composed for a deployment,
+    /// so the configured URLs are composed as they are, without local overrides and without a
+    /// preference for development URLs.
+    /// </summary>
+    private static Task<bool> ComposeArchivesAsync(
+        FusionArchive archive,
+        List<SourceSchemaInfo> sourceSchemas,
+        string environment,
+        GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        var localSourceSchemas =
+            new Dictionary<string, LocalSourceSchema>(sourceSchemas.Count, StringComparer.Ordinal);
+
+        foreach (var sourceSchema in sourceSchemas)
+        {
+            localSourceSchemas.Add(
+                sourceSchema.Name,
+                new LocalSourceSchema(
+                    sourceSchema.Schema,
+                    sourceSchema.SchemaSettings,
+                    urlOverride: null));
+        }
+
+        return ComposeAsync(
+            archive,
+            localSourceSchemas,
+            environment,
+            settings,
+            stageSettings,
+            preferDevUrls: false,
+            logger,
+            cancellationToken);
+    }
+
+    private static async Task<List<SourceSchemaInfo>> ReadSourceSchemasAsync(
+        IReadOnlyList<SourceSchemaArchiveInfo> archives,
+        CancellationToken cancellationToken)
+    {
+        var sourceSchemas = new List<SourceSchemaInfo>(archives.Count);
+
+        try
+        {
+            foreach (var archiveInfo in archives)
+            {
+                await using var archiveStream = archiveInfo.OpenRead();
+                using var archive = FusionSourceSchemaArchive.Open(
+                    archiveStream);
+                var schema = await archive.TryGetSchemaAsync(cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        $"Fusion source archive '{archiveInfo.Name}' has no schema.");
+                var sourceSettings =
+                    await archive.TryGetSettingsAsync(cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        $"Fusion source archive '{archiveInfo.Name}' has no settings.");
+                var extensions =
+                    await archive.TryGetSchemaExtensionsAsync(cancellationToken);
+
+                sourceSchemas.Add(
+                    new SourceSchemaInfo
+                    {
+                        Name = archiveInfo.Name,
+                        Schema = new SourceSchemaText(
+                            archiveInfo.Name,
+                            Encoding.UTF8.GetString(schema.Span),
+                            extensions is null
+                                ? null
+                                : Encoding.UTF8.GetString(extensions.Value.Span)),
+                        SchemaSettings = sourceSettings
+                    });
+            }
+
+            return sourceSchemas;
+        }
+        catch
+        {
+            foreach (var sourceSchema in sourceSchemas)
+            {
+                sourceSchema.SchemaSettings.Dispose();
+            }
+
+            throw;
+        }
+    }
+
     /// <summary>
     /// Composes the source schemas of the distributed application into a fusion archive. The
     /// composition fails when a source schema declares no GraphQL endpoint path.
@@ -54,17 +270,38 @@ internal static class AspireCompositionHelper
 
         using var archive = OpenArchive(fusionArchivePath, seedArchivePath);
 
-        var compositionLog = new CompositionLog();
-        environment ??= settings.EnvironmentName ?? "Aspire";
+        return await ComposeAsync(
+            archive,
+            sourceSchemas,
+            environment ?? settings.EnvironmentName ?? "Aspire",
+            settings,
+            stageSettings: null,
+            preferDevUrls: true,
+            logger,
+            cancellationToken);
+    }
 
-        var compositionSettings = CreateCompositionSettings(settings);
+    private static async Task<bool> ComposeAsync(
+        FusionArchive archive,
+        Dictionary<string, LocalSourceSchema> localSourceSchemas,
+        string environment,
+        GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings,
+        bool preferDevUrls,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(environment);
+
+        var compositionLog = new CompositionLog();
+        var compositionSettings = CreateCompositionSettings(settings, stageSettings);
 
         var result = await CompositionHelper.ComposeAsync(
             compositionLog,
-            sourceSchemas,
+            localSourceSchemas,
             archive,
             environment,
-            preferDevUrls: true,
+            preferDevUrls,
             compositionSettings,
             legacyArchive: null,
             cancellationToken);
@@ -204,10 +441,46 @@ internal static class AspireCompositionHelper
         return url;
     }
 
-    internal static CompositionSettings CreateCompositionSettings(
-        GraphQLCompositionSettings settings)
+    /// <summary>
+    /// Resolves the settings of a single source schema against the given environment, so that the
+    /// resulting document no longer carries environment specific overrides.
+    /// </summary>
+    internal static JsonDocument ResolveSourceSchemaSettings(
+        JsonDocument sourceSchemaSettings,
+        string environmentName)
     {
-        return new CompositionSettings
+        ArgumentNullException.ThrowIfNull(sourceSchemaSettings);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentName);
+
+        using var buffer = new PooledArrayWriter();
+        new SettingsComposer().Compose(
+            buffer,
+            [sourceSchemaSettings.RootElement],
+            environmentName,
+            ReadOnlyDictionary<string, Uri>.Empty,
+            preferDevUrls: false,
+            new CompositionLog());
+        using var gatewaySettings = JsonDocument.Parse(buffer.WrittenMemory);
+        var sourceSchemas = gatewaySettings.RootElement
+            .GetProperty("sourceSchemas");
+        var resolvedSettings = sourceSchemas
+            .EnumerateObject()
+            .Single()
+            .Value;
+
+        return JsonSerializer.SerializeToDocument(resolvedSettings);
+    }
+
+    /// <summary>
+    /// Creates the composition settings of a composition. The settings that the distributed
+    /// application declares win, <paramref name="stageSettings"/> only fills the values that they
+    /// leave unset.
+    /// </summary>
+    internal static CompositionSettings CreateCompositionSettings(
+        GraphQLCompositionSettings settings,
+        CompositionSettings? stageSettings)
+    {
+        var localSettings = new CompositionSettings
         {
             Merger =
             {
@@ -217,19 +490,44 @@ internal static class AspireCompositionHelper
                 NodeResolution = settings.NodeResolution,
                 TagMergeBehavior = settings.TagMergeBehavior
             },
-            Satisfiability =
-            {
-                IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths
-            },
+            Satisfiability = { IncludeSatisfiabilityPaths = settings.IncludeSatisfiabilityPaths },
             ApolloFederationCompatibility =
             {
                 AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects,
                 ShareableFieldRuntimeTypeRouting = settings.ShareableFieldRuntimeTypeRouting
             },
-            Preprocessor =
-            {
-                ExcludeByTag = settings.ExcludeByTag?.ToHashSet()
-            }
+            Preprocessor = { ExcludeByTag = settings.ExcludeByTag?.ToHashSet() }
         };
+
+        return stageSettings is null
+            ? localSettings
+            : localSettings.MergeInto(stageSettings);
     }
+}
+
+internal readonly record struct SourceSchemaArchiveInfo
+{
+    private readonly string? _archivePath;
+    private readonly byte[]? _archive;
+
+    public SourceSchemaArchiveInfo(string name, string archivePath)
+    {
+        Name = name;
+        _archivePath = archivePath;
+    }
+
+    public SourceSchemaArchiveInfo(
+        string name,
+        byte[] archive)
+    {
+        Name = name;
+        _archive = archive;
+    }
+
+    public string Name { get; }
+
+    public Stream OpenRead()
+        => _archivePath is null
+            ? new MemoryStream(_archive!, writable: false)
+            : File.OpenRead(_archivePath);
 }

@@ -1,0 +1,10 @@
+mutation CommitFusionDeployment($input: CommitFusionConfigurationPublishInput!) {
+  commitFusionConfigurationPublish(input: $input) {
+    errors {
+      __typename
+      ... on Error {
+        message
+      }
+    }
+  }
+}

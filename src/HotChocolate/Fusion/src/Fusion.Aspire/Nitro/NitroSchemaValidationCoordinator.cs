@@ -10,20 +10,20 @@ internal sealed class NitroSchemaValidationCoordinator
 {
     private readonly Dictionary<string, GatewaySchemaValidationWorker> _workers = [with(StringComparer.Ordinal)];
     private readonly Lock _sync = new();
-    private readonly NitroCompositionOptions _options;
+    private readonly NitroSeedCoordinatorRegistry _coordinatorRegistry;
     private readonly ResourceLoggerService _resourceLoggerService;
     private readonly INitroSchemaValidationNotifier? _notifier;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly ILoggerFactory _loggerFactory;
 
     public NitroSchemaValidationCoordinator(
-        NitroCompositionOptions options,
+        NitroSeedCoordinatorRegistry coordinatorRegistry,
         ResourceLoggerService resourceLoggerService,
         INitroSchemaValidationNotifier? notifier,
         IHostApplicationLifetime lifetime,
         ILoggerFactory loggerFactory)
     {
-        _options = options;
+        _coordinatorRegistry = coordinatorRegistry;
         _resourceLoggerService = resourceLoggerService;
         _notifier = notifier;
         _lifetime = lifetime;
@@ -62,10 +62,10 @@ internal sealed class NitroSchemaValidationCoordinator
 
     private bool ScheduleCore(IResource resource, byte[] schema)
     {
-        var apiId = resource.GetNitroApiId();
-        var coordinator = _options.Coordinator;
-        if (apiId is null
-            || coordinator is null
+        var stage = resource.GetNitroCompositionBase();
+        var apiId = stage?.Api.ApiId;
+        if (stage is null
+            || apiId is null
             || _notifier is null)
         {
             return false;
@@ -79,13 +79,19 @@ internal sealed class NitroSchemaValidationCoordinator
                 var resourceLogger = _resourceLoggerService.GetLogger(resource);
                 worker = new GatewaySchemaValidationWorker(
                     resource.Name,
-                    coordinator.Stage,
-                    (request, cancellationToken) => coordinator.ValidateSchemaAsync(
-                        apiId,
-                        request.Schema,
-                        request.SchemaHash,
-                        resourceLogger,
-                        cancellationToken),
+                    stage.StageName,
+                    async (request, cancellationToken) =>
+                    {
+                        var coordinator = await _coordinatorRegistry.GetAsync(
+                            stage,
+                            cancellationToken);
+                        return await coordinator.ValidateSchemaAsync(
+                            apiId,
+                            request.Schema,
+                            request.SchemaHash,
+                            resourceLogger,
+                            cancellationToken);
+                    },
                     resourceLogger,
                     _notifier,
                     _lifetime.ApplicationStopping,

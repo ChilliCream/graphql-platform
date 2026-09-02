@@ -123,6 +123,38 @@ A custom schema download path moves to `schemaPath`:
 
 An Apollo Federation source schema serves its schema through the GraphQL endpoint at `path`, so `schemaPath` is ignored for it.
 
+## AddNitro declares APIs and stages as resources
+
+In 16.5, `AddNitro(stage)` bound the whole distributed application to one Nitro stage and `WithNitroApiId` on a gateway selected the API it composed against. 16.6 replaces both with a declarative resource graph: `AddNitro()` adds a Nitro resource, `AddApi` declares an API on it, `WithNitroApiId` carries the API id, and `AddStage` declares a stage that a gateway selects with `WithNitroCompositionBase`.
+
+```diff
+-builder.AddNitro("dev");
++var nitro = builder.AddNitro();
++
++var devStage = nitro
++    .AddApi("products-fusion")
++    .WithNitroApiId("QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==")
++    .AddStage("dev");
+
+ builder
+     .AddProject<Projects.Gateway>("gateway")
+-    .WithNitroApiId("QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==")
+     .WithNitroComposition()
++    .WithNitroCompositionBase(devStage)
+     .WithReference(products);
+```
+
+Because the stage is a resource, one AppHost can model several APIs and stages, and different gateways can compose against different ones. Selecting a second stage for the same gateway throws while the AppHost builds. See [Local Development](../local-development.md#developing-across-teams-and-repositories) for the full workflow.
+
+The seed update overload keeps its configure callback and now takes the portal URL first:
+
+```csharp
+public static IResourceBuilder<NitroResource> AddNitro(
+    this IDistributedApplicationBuilder builder,
+    Uri? portalUrl,
+    Action<NitroSeedUpdateOptions> configureSeedUpdates);
+```
+
 File-based source schemas are being retired. Replace `WithGraphQLSchemaFile` with `WithGraphQLHttpEndpoint`, which downloads the schema from the running resource instead of reading it from the project directory:
 
 ```diff
@@ -134,24 +166,18 @@ File-based source schemas are being retired. Replace `WithGraphQLSchemaFile` wit
 
 # Noteworthy changes
 
-## AddGraphQLOrchestrator deprecated in favor of AddNitroComposition
+## AddGraphQLOrchestrator deprecated in favor of AddNitro
 
-`AddGraphQLOrchestrator` is marked `[Obsolete]` and forwards to `AddNitroComposition`. Rename the call:
+`AddGraphQLOrchestrator` is marked `[Obsolete]` and forwards to `AddNitro`. Rename the call:
 
 ```diff
 -builder.AddGraphQLOrchestrator();
-+builder.AddNitroComposition();
-```
-
-`AddNitroComposition` optionally takes a Nitro stage. With a stage, the AppHost composes the local source schemas on top of the fusion configuration that Nitro serves for that stage, and `WithNitroApiId` selects the API a gateway composes against. See [Local Development](../local-development.md) for the full workflow.
-
-```csharp
-builder.AddNitroComposition("dev");
++builder.AddNitro();
 ```
 
 ## Nitro schema validation during composition
 
-When the AppHost composes against a Nitro stage and the gateway selects an API with `WithNitroApiId`, composition validates the composed schema through Nitro. `WithNitroComposition(disableValidation: true)` turns the validation off.
+When a gateway selects a Nitro stage with `WithNitroCompositionBase` and the API of that stage carries an id, composition validates the composed schema through Nitro. `WithNitroComposition(disableValidation: true)` turns the validation off.
 
 ## Polyglot AppHost support
 
@@ -161,36 +187,37 @@ The Aspire integration now exports its extension methods to polyglot AppHosts. I
 
 The 16.6 preview builds (`16.6.0-p.x`) shipped intermediate APIs that changed before the release. Skip this section when you upgrade from 16.5.
 
-## AddNitro renamed to AddNitroComposition
+## AddNitroComposition replaced by the declarative Nitro resources
 
-The three `AddNitro` overloads collapsed into a single method:
-
-```csharp
-public static IDistributedApplicationBuilder AddNitroComposition(
-    this IDistributedApplicationBuilder builder,
-    string? stage = null,
-    Uri? portalUrl = null,
-    NitroSeedUpdateOptions? seedUpdates = null);
-```
-
-The seed update configure callback became an options object, and the `NitroSeedUpdateOptions` properties are init-only:
+A preview build shipped `AddNitroComposition(stage, portalUrl, seedUpdates)`. The release replaced it with `AddNitro()` and the declarative API and stage resources described in [AddNitro declares APIs and stages as resources](#addnitro-declares-apis-and-stages-as-resources):
 
 ```diff
--builder.AddNitro(
--    "dev",
--    portalUrl,
--    options =>
--    {
--        options.AutoUpdate = false;
--    });
-+builder.AddNitroComposition(
-+    "dev",
-+    portalUrl,
-+    new NitroSeedUpdateOptions { AutoUpdate = false });
+-builder.AddNitroComposition("dev", portalUrl);
++var devStage = builder
++    .AddNitro(portalUrl)
++    .AddApi("products-fusion")
++    .WithNitroApiId(apiId)
++    .AddStage("dev");
 ```
 
-Passing `portalUrl` or `seedUpdates` without a stage throws an `ArgumentException`.
+The seed update settings are configured with a callback again, and the `NitroSeedUpdateOptions` properties are settable:
 
-## WithNitroApiId requires a resource with endpoints
+```diff
+-builder.AddNitroComposition(
+-    "dev",
+-    portalUrl,
+-    new NitroSeedUpdateOptions { AutoUpdate = false });
++builder.AddNitro(
++    portalUrl,
++    options => options.AutoUpdate = false);
+```
 
-The generic constraint of `WithNitroApiId` changed from `IResource` to `IResourceWithEndpoints`. A call on a resource builder typed to a resource without endpoints no longer compiles. Project and container resources implement `IResourceWithEndpoints`, so a typical AppHost compiles unchanged.
+## WithNitroApiId moved to the Nitro API resource
+
+`WithNitroApiId` is no longer an extension of a gateway resource builder. It belongs to the API declaration that `AddApi` returns:
+
+```csharp
+public static IResourceBuilder<NitroApiResource> WithNitroApiId(
+    this IResourceBuilder<NitroApiResource> builder,
+    string apiId);
+```

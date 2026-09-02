@@ -20,7 +20,6 @@ internal sealed record CompositionHarness(
 {
     public static CompositionHarness Create(
         NitroSeedCoordinator? coordinator,
-        Uri? portalUrl = null,
         INitroSchemaValidationNotifier? notifier = null,
         INitroCompositionNotifier? compositionNotifier = null,
         bool waitForRunningState = false)
@@ -33,20 +32,16 @@ internal sealed record CompositionHarness(
             lifetime,
             EmptyServiceProvider.Instance,
             resourceLoggerService);
-        var options = new NitroCompositionOptions
-        {
-            Coordinator = coordinator,
-            PortalUrl = portalUrl,
-            SeedUpdates = new NitroSeedUpdateOptions { Enabled = false }
-        };
+        var coordinatorRegistry = coordinator is null
+            ? new NitroSeedCoordinatorRegistry()
+            : NitroSeedCoordinatorRegistry.CreateForTests(coordinator);
         var validationCoordinator = new NitroSchemaValidationCoordinator(
-            options,
+            coordinatorRegistry,
             resourceLoggerService,
             notifier,
             lifetime,
             NullLoggerFactory.Instance);
         var seedUpdateService = new NitroSeedUpdateService(
-            options,
             resourceLoggerService,
             NoopSeedUpdateNotifier.Instance,
             lifetime,
@@ -61,21 +56,23 @@ internal sealed record CompositionHarness(
                 notifications,
                 resourceLoggerService,
                 lifetime,
-                options,
+                coordinatorRegistry,
                 resolvedCompositionNotifier,
                 validationCoordinator,
                 seedUpdateService,
                 commandCoordinator,
+                EmptyServiceProvider.Instance,
                 logger)
             : new SchemaComposition(
                 notifications,
                 resourceLoggerService,
                 lifetime,
-                options,
+                coordinatorRegistry,
                 resolvedCompositionNotifier,
                 validationCoordinator,
                 seedUpdateService,
                 commandCoordinator,
+                EmptyServiceProvider.Instance,
                 logger);
 
         return new CompositionHarness(
@@ -99,21 +96,23 @@ internal sealed record CompositionHarness(
             ResourceNotificationService resourceNotificationService,
             ResourceLoggerService resourceLoggerService,
             IHostApplicationLifetime lifetime,
-            NitroCompositionOptions nitroOptions,
+            NitroSeedCoordinatorRegistry coordinatorRegistry,
             INitroCompositionNotifier nitroCompositionNotifier,
             NitroSchemaValidationCoordinator validationCoordinator,
             NitroSeedUpdateService seedUpdateService,
             GatewayCompositionCommandCoordinator commandCoordinator,
+            IServiceProvider services,
             ILogger<SchemaComposition> logger)
             : base(
                 resourceNotificationService,
                 resourceLoggerService,
                 lifetime,
-                nitroOptions,
+                coordinatorRegistry,
                 nitroCompositionNotifier,
                 validationCoordinator,
                 seedUpdateService,
                 commandCoordinator,
+                services,
                 logger)
         {
             _notifications = resourceNotificationService;

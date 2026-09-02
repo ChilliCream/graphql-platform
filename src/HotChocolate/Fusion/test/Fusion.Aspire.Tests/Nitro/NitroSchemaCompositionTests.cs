@@ -213,6 +213,11 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             .AddProject("products", _productsProjectFile)
             .WithHttpEndpoint(name: "http")
             .WithGraphQLHttpEndpoint();
+        var stage = builder
+            .AddNitro()
+            .AddApi("gateway")
+            .WithNitroApiId(GatewayApiId)
+            .AddStage("production");
         var configuredGateway = builder
             .AddProject("gateway", _gatewayProjectFile)
             .WithNitroComposition(
@@ -221,7 +226,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                     DisableSchemaValidation = true,
                     EnableGlobalObjectIdentification = true
                 })
-            .WithNitroApiId(GatewayApiId)
+            .WithNitroCompositionBase(stage)
             .WithReference(products);
         var model = new DistributedApplicationModel(builder.Resources);
         var gateway = configuredGateway.Resource;
@@ -556,25 +561,33 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ReportNitroConfigurationDiagnostics_Should_Warn_When_AnApiIdCannotTakeEffect()
+    public void ReportNitroConfigurationDiagnostics_Should_Warn_When_CompositionApiHasNoId()
     {
         // arrange
-        var harness = CompositionHarness.Create(coordinator: null, waitForRunningState: true);
-        var (model, gateway) = await CreateModelAsync(harness, GatewayApiId, SubgraphApiId);
+        var harness = CompositionHarness.Create(coordinator: null);
+        var builder = DistributedApplication.CreateBuilder();
+        var stage = builder
+            .AddNitro()
+            .AddApi("gateway")
+            .AddStage("production");
+        var gateway = builder
+            .AddProject("gateway", _gatewayProjectFile)
+            .WithNitroComposition()
+            .WithNitroCompositionBase(stage)
+            .Resource;
+        var model = new DistributedApplicationModel(builder.Resources);
 
         // act
         harness.Composition.ReportNitroConfigurationDiagnostics(model, [gateway]);
 
         // assert
         DescribeEntries(harness, LogLevel.Warning).MatchInlineSnapshot(
-            """
-            The resource products selects the Nitro api QXBpCnByb2R1Y3Rz, but no Nitro stage is configured. Call AddNitroComposition(stage: ...) on the distributed application builder so the api id takes effect.
-            The resource gateway selects the Nitro api QXBpCmdhdGV3YXk, but no Nitro stage is configured. Call AddNitroComposition(stage: ...) on the distributed application builder so the api id takes effect.
-            """);
+            "The resource gateway uses the Nitro stage production as its composition base, but API "
+            + "gateway has no Nitro API ID. Call WithNitroApiId on the API resource.");
     }
 
     [Fact]
-    public async Task ReportNitroConfigurationDiagnostics_Should_Warn_When_NoGatewaySelectsAnApi()
+    public async Task ReportNitroConfigurationDiagnostics_Should_StaySilent_When_GatewayUsesNoCompositionBase()
     {
         // arrange
         var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
@@ -584,10 +597,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         harness.Composition.ReportNitroConfigurationDiagnostics(model, [gateway]);
 
         // assert
-        DescribeEntries(harness, LogLevel.Warning).MatchInlineSnapshot(
-            "Nitro is added for the stage production, but no composed schema selects a Nitro api. "
-            + "Call WithNitroApiId on the gateway that composes against the fusion configuration "
-            + "of Nitro.");
+        Assert.Equal(string.Empty, DescribeEntries(harness, LogLevel.Warning));
     }
 
     [Fact]
@@ -639,8 +649,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
     {
         // arrange
         var portalUrl = new Uri("https://portal.example.test/custom?tenant=abc");
-        var harness = CompositionHarness.Create(CreateCoordinator(), portalUrl);
-        var (_, gateway) = await CreateModelAsync(harness, GatewayApiId);
+        var harness = CompositionHarness.Create(CreateCoordinator(), waitForRunningState: true);
+        var (_, gateway) = await CreateModelAsync(harness, GatewayApiId, portalUrl: portalUrl);
 
         // act
         await harness.Composition.AddNitroPortalUrlsAsync(
@@ -1005,7 +1015,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         CompositionHarness harness,
         string? gatewayApiId,
         string? productsApiId = null,
-        bool disableSchemaValidation = false)
+        bool disableSchemaValidation = false,
+        Uri? portalUrl = null)
     {
         var builder = DistributedApplication.CreateBuilder();
         var products = builder
@@ -1013,20 +1024,32 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             .WithHttpEndpoint(name: "http")
             .WithGraphQLHttpEndpoint();
 
-        if (productsApiId is not null)
-        {
-            products.WithNitroApiId(productsApiId);
-        }
-
         var gateway = builder
             .AddProject("gateway", _gatewayProjectFile)
             .WithNitroComposition(
                 disableValidation: disableSchemaValidation)
             .WithReference(products);
 
-        if (gatewayApiId is not null)
+        if (gatewayApiId is not null || productsApiId is not null)
         {
-            gateway.WithNitroApiId(gatewayApiId);
+            var nitro = builder.AddNitro(portalUrl);
+
+            if (productsApiId is not null)
+            {
+                nitro
+                    .AddApi("products")
+                    .WithNitroApiId(productsApiId)
+                    .AddStage("production");
+            }
+
+            if (gatewayApiId is not null)
+            {
+                var stage = nitro
+                    .AddApi("gateway")
+                    .WithNitroApiId(gatewayApiId)
+                    .AddStage("production");
+                gateway.WithNitroCompositionBase(stage);
+            }
         }
 
         var model = new DistributedApplicationModel(builder.Resources);
@@ -1072,7 +1095,6 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             validator
                 ?? new NitroSchemaValidator(
                     GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
-                    _timeProvider,
                     new RecordingLogger<NitroSchemaValidator>()),
             new NoopStageUpdateClient(),
             new NitroCompositionSettingsClient(

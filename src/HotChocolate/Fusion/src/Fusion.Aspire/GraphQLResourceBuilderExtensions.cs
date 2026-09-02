@@ -27,6 +27,11 @@ public static class GraphQLResourceBuilderExtensions
     /// <c>name</c> in <c>schema-settings.json</c>.
     /// </param>
     /// <returns>The resource builder for chaining</returns>
+    /// <remarks>
+    /// During Aspire publishing, the endpoint must already be reachable from the artifact runner
+    /// and must use a fixed target port. The publishing pipeline does not start the source
+    /// resource or allocate a dynamic port.
+    /// </remarks>
     [AspireExport]
     public static IResourceBuilder<T> WithGraphQLHttpEndpoint<T>(
         this IResourceBuilder<T> builder,
@@ -58,7 +63,8 @@ public static class GraphQLResourceBuilderExtensions
                 SchemaPath = schemaPath,
                 GraphQLPath = path,
                 Location = SourceSchemaLocationType.SchemaEndpoint
-            });
+            },
+            ResourceAnnotationMutationBehavior.Replace);
 
         return builder;
     }
@@ -103,7 +109,8 @@ public static class GraphQLResourceBuilderExtensions
                 EndpointName = endpointName,
                 SchemaPath = path,
                 Location = SourceSchemaLocationType.SchemaEndpoint
-            });
+            },
+            ResourceAnnotationMutationBehavior.Replace);
 
         return builder;
     }
@@ -131,7 +138,43 @@ public static class GraphQLResourceBuilderExtensions
                 SourceSchemaName = sourceSchemaName,
                 SchemaPath = fileName,
                 Location = SourceSchemaLocationType.ProjectDirectory
-            });
+            },
+            ResourceAnnotationMutationBehavior.Replace);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Marks a project resource as exporting a GraphQL schema through an Aspire-backed Hot
+    /// Chocolate command whenever the integration acquires the source schema.
+    /// </summary>
+    /// <param name="builder">The project resource builder.</param>
+    /// <param name="schemaName">
+    /// The registered schema name to export. When omitted, Hot Chocolate's default schema is
+    /// exported and its emitted name must match the Aspire resource name.
+    /// </param>
+    /// <returns>The resource builder for chaining.</returns>
+    [AspireExportIgnore(Reason = "The schema export runs the .NET project of the resource.")]
+    public static IResourceBuilder<ProjectResource> WithGraphQLSchemaExport(
+        this IResourceBuilder<ProjectResource> builder,
+        string? schemaName = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (schemaName is not null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(schemaName);
+        }
+
+        builder.WithAnnotation(
+            new GraphQLSourceSchemaAnnotation
+            {
+                SourceSchemaName = schemaName,
+                Location = SourceSchemaLocationType.CommandLineExport
+            },
+            ResourceAnnotationMutationBehavior.Replace);
+
+        GraphQLSchemaExportCommand.Register(builder, schemaName);
 
         return builder;
     }
@@ -240,9 +283,16 @@ public static class GraphQLResourceBuilderExtensions
         return annotation?.SourceSchemaName;
     }
 
+    /// <summary>
+    /// Builds the URL that the source schema document of a resource is downloaded from.
+    /// <paramref name="endpointName"/> overrides the endpoint that the resource declares, which
+    /// the publishing pipeline uses. An endpoint that is not allocated resolves against its
+    /// declared target port, because the publishing pipeline never starts the resource.
+    /// </summary>
     internal static string? GetGraphQLSchemaUrl(
         this IResourceWithEndpoints resource,
-        string path)
+        string path,
+        string? endpointName = null)
     {
         var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
         if (annotation is not { Location: SourceSchemaLocationType.SchemaEndpoint })
@@ -250,8 +300,33 @@ public static class GraphQLResourceBuilderExtensions
             return null;
         }
 
-        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == annotation.EndpointName);
-        if (endpoint?.Url == null)
+        var targetEndpointName = endpointName ?? annotation.EndpointName;
+        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == targetEndpointName);
+        if (endpoint is null)
+        {
+            return null;
+        }
+
+        if (!endpoint.IsAllocated)
+        {
+            var endpointAnnotation = endpoint.EndpointAnnotation;
+            var port = endpointAnnotation.TargetPort ?? endpointAnnotation.Port;
+            if (port is null || string.IsNullOrWhiteSpace(endpointAnnotation.UriScheme))
+            {
+                return null;
+            }
+
+            var host = string.IsNullOrWhiteSpace(endpointAnnotation.TargetHost)
+                ? "localhost"
+                : endpointAnnotation.TargetHost;
+            var uri = new UriBuilder(
+                endpointAnnotation.UriScheme,
+                host,
+                port.Value);
+            return uri.Uri.GetLeftPart(UriPartial.Authority) + path;
+        }
+
+        if (endpoint.Url is null)
         {
             return null;
         }

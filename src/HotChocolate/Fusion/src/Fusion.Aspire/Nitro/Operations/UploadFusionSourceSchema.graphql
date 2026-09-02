@@ -1,0 +1,13 @@
+mutation UploadFusionSourceSchema($input: UploadFusionSubgraphInput!) {
+  uploadFusionSubgraph(input: $input) {
+    fusionSubgraphVersion {
+      id
+    }
+    errors {
+      __typename
+      ... on Error {
+        message
+      }
+    }
+  }
+}

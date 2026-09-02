@@ -61,7 +61,7 @@ Each subgraph project needs a `schema-settings.json` file in its project directo
 
 # Setting Up the AppHost
 
-The AppHost wires together your subgraphs and gateway. Three extension methods configure the composition pipeline.
+The AppHost wires together your subgraphs and gateway. A few resource extension methods configure the composition pipeline.
 
 <LanguageTabs>
 <CSharp>
@@ -69,7 +69,7 @@ The AppHost wires together your subgraphs and gateway. Three extension methods c
 ```csharp filename="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddNitroComposition();
+builder.AddNitro();
 
 var productsApi = builder
     .AddProject<Projects.Products>("products-api")
@@ -96,7 +96,7 @@ import { createBuilder } from "./.aspire/modules/aspire.mjs";
 
 const builder = await createBuilder();
 
-await builder.addNitroComposition();
+await builder.addNitro();
 
 const productsApi = await builder
   .addProject("products-api", "../Products/Products.csproj")
@@ -120,7 +120,7 @@ await builder.build().run();
 
 Four things to notice:
 
-- **`AddNitroComposition()`** registers the composition orchestrator with the Aspire eventing system. Call this once on the application builder.
+- **`AddNitro()`** adds the Nitro resource and registers the composition orchestrator with the Aspire eventing system. Calling it again returns the same resource.
 - **`WithGraphQLHttpEndpoint()`** declares the GraphQL route of a subgraph and the path its source schema is downloaded from. The orchestrator waits for the subgraph to start, then fetches the source schema over HTTP.
 - **`WithNitroComposition()`** marks the gateway as needing composition. The orchestrator discovers all referenced subgraphs, extracts their schemas, composes them, and writes a `gateway.far` file to the gateway project directory.
 - **`WithReference()`** is standard Aspire. It tells the orchestrator which subgraphs to include in composition for this gateway.
@@ -179,7 +179,7 @@ Sign in once with the Nitro CLI ([installation](./cli.md#installation)). The App
 nitro login
 ```
 
-Then bind the AppHost to a stage and tell the gateway which Nitro API carries its fusion configuration:
+Then declare the Nitro API and its stages, and select the stage that is the composition base of the gateway:
 
 <LanguageTabs>
 <CSharp>
@@ -187,7 +187,14 @@ Then bind the AppHost to a stage and tell the gateway which Nitro API carries it
 ```csharp filename="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddNitroComposition("dev");
+var nitro = builder.AddNitro();
+
+var productsFusionApi = nitro
+    .AddApi("products-fusion")
+    .WithNitroApiId("QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==");
+
+var devStage = productsFusionApi.AddStage("dev");
+productsFusionApi.AddStage("production");
 
 var productsApi = builder
     .AddProject<Projects.Products>("products-api")
@@ -195,8 +202,8 @@ var productsApi = builder
 
 builder
     .AddProject<Projects.Gateway>("gateway-api")
-    .WithNitroApiId("QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==")
     .WithNitroComposition()
+    .WithNitroCompositionBase(devStage)
     .WithReference(productsApi);
 
 builder.Build().Run();
@@ -210,7 +217,14 @@ import { createBuilder } from "./.aspire/modules/aspire.mjs";
 
 const builder = await createBuilder();
 
-await builder.addNitroComposition({ stage: "dev" });
+const nitro = await builder.addNitro();
+
+const productsFusionApi = await nitro
+  .addApi("products-fusion")
+  .withNitroApiId("QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==");
+
+const devStage = await productsFusionApi.addStage("dev");
+await productsFusionApi.addStage("production");
 
 const productsApi = await builder
   .addProject("products-api", "../Products/Products.csproj")
@@ -218,8 +232,8 @@ const productsApi = await builder
 
 await builder
   .addProject("gateway-api", "../Gateway/Gateway.csproj")
-  .withNitroApiId("QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==")
   .withNitroComposition()
+  .withNitroCompositionBase(devStage)
   .withReference(productsApi);
 
 await builder.build().run();
@@ -228,14 +242,16 @@ await builder.build().run();
 </TypeScript>
 </LanguageTabs>
 
-- **`AddNitroComposition()`** registers the orchestrator for composing only the subgraphs that run locally. **`AddNitroComposition(stage)`** additionally binds the distributed application to one stage in Nitro. Calling both is safe and registers the orchestrator once. Calling `AddNitroComposition(stage)` twice with different stage names throws during AppHost configuration, because a run composes against a single stage.
-- **`WithNitroApiId(apiId)`** selects the Nitro API whose fusion configuration a gateway composes against. The API id is the id that the Nitro dashboard and the Nitro CLI report for the API, the same value that `--api-id` takes. Calling the method again replaces the previously configured id. On a resource that is not composed, the API id is accepted as identity metadata for your own tooling and the pull and compose flow ignores it. If you set an API id without calling `AddNitroComposition`, the resource console tells you that it cannot take effect.
+- **`AddNitro()`** adds the declarative Nitro root and registers the composition orchestration once.
+- **`AddApi(name)`** declares a Nitro API. **`WithNitroApiId(apiId)`** belongs to that API declaration and carries the id that the Nitro dashboard and the Nitro CLI report for the API, the same value that `--api-id` takes. A stage whose API has no id is reported on the gateway console, because it cannot take effect.
+- **`AddStage(name)`** declares a stage of that API. A stage is both a local composition base and a publishing target.
+- **`WithNitroCompositionBase(stage)`** selects the stage whose fusion configuration the gateway composes on top of. Different gateways can select different stages, or stages of different APIs. Selecting a second stage for the same gateway throws while the AppHost builds, because a gateway composes against a single stage.
 
 ## What Happens When a Gateway Starts
 
-Before the orchestrator starts a gateway process that carries an API id:
+Before the orchestrator starts a gateway process with a Nitro composition base:
 
-1. The fusion configuration for that API id and the `AddNitroComposition` stage is downloaded from Nitro. The download runs while the orchestrator waits for the local subgraphs to become healthy, so the two waits do not add up.
+1. The fusion configuration of the selected API and stage is downloaded from Nitro. The download runs while the orchestrator waits for the local subgraphs to become healthy, so the two waits do not add up.
 2. Each source schema of the distributed application replaces the source schema of the same name in the downloaded configuration. A source schema whose name does not appear there is added to the composition.
 3. Each source schema that the distributed application runs is reached at the allocated HTTP endpoint of its Aspire resource. The orchestrator combines that endpoint with the path of the `url` in the subgraph's `schema-settings.json`, or with `/graphql` when the settings define no usable path.
 4. Each source schema that only the downloaded configuration carries is external. The gateway reaches it at its `devUrl`, or at its `url` when no `devUrl` is defined. Composition logs a warning for every external source schema without a `devUrl`, because a deployed URL is often not reachable from a developer machine. A subgraph that runs in the local AppHost but has no allocated HTTP endpoint at composition time cannot receive an injected URL either, so it is treated like an external schema for URL resolution, which is why such a resource can also trigger the missing-devUrl warning. See [`transports.http.devUrl`](./cli.md#transports-http-devurl).
@@ -243,7 +259,7 @@ Before the orchestrator starts a gateway process that carries an API id:
 
 The downloaded configuration is the only base the composition builds on. What a previous composition wrote to `gateway.far` is never an input again, so a source schema that was removed or renamed upstream also disappears from your next run.
 
-Variable substitution follows the same split as the URL resolution. The settings of the subgraphs you run resolve against the `Aspire` environment in `schema-settings.json`, while the settings that the downloaded configuration carries resolve against the stage name you passed to `AddNitroComposition`.
+Variable substitution follows the same split as the URL resolution. The settings of the subgraphs you run resolve against the `Aspire` environment in `schema-settings.json`, while the settings that the downloaded configuration carries resolve against the name of the selected stage.
 
 A composition or download failure fails only the gateway it belongs to. The rest of the distributed application keeps running.
 
@@ -335,13 +351,13 @@ With Aspire, your inner dev loop looks like this:
 4. The gateway loads the new archive and exposes the updated composite schema.
 5. Open Nitro at the gateway endpoint and query immediately.
 
-With `AddNitroComposition`, step 3 composes on top of the fusion configuration that was downloaded when the gateway started, so the loop stays the same while your subgraph runs inside the full graph.
+With `WithNitroCompositionBase`, step 3 composes on top of the fusion configuration that was downloaded when the gateway started, so the loop stays the same while your subgraph runs inside the full graph.
 
 If composition fails (for example, a field conflict or a missing lookup), the orchestrator logs the error on the gateway console and the gateway fails to start. Every other resource keeps running, so you can fix the issue and restart the gateway, which composes again. You get the same composition validation as the Nitro CLI, integrated into your build step.
 
 ## Validating Changes Against the Stage
 
-When `AddNitroComposition` binds the run to a stage and the gateway selects a Nitro API with `WithNitroApiId`, every composition is followed by a validation of the composed gateway schema against that stage. The AppHost uploads the schema to Nitro, and Nitro compares it with the schema version and the clients registered for the API and stage:
+When a gateway selects a Nitro stage with `WithNitroCompositionBase` and the API of that stage carries an id, every composition is followed by a validation of the composed gateway schema against that stage. The AppHost uploads the schema to Nitro, and Nitro compares it with the schema version and the clients registered for the API and stage:
 
 - Schema changes are classified as breaking, dangerous, or safe.
 - Every registered client is checked with its persisted operations. A violated operation is reported with its hash, its deployed tags, and the message, code, path, and location of each error.
@@ -377,6 +393,141 @@ await builder
 </LanguageTabs>
 
 Disabling validation turns off only the schema upload and the reports. Composition, the configuration download, and the archive install are unaffected.
+
+# Deploying with Aspire
+
+The same AppHost that drives your dev loop can also drive a release. Instead of composing on your machine, the integration uploads each source schema to Nitro under an immutable tag, then composes and publishes from those exact versions inside your deployment job.
+
+The work is split across two commands, and both are opt-in. They are not attached to `aspire publish` or `aspire deploy`, so nothing contacts Nitro unless you ask for it by name:
+
+| Command                    | Runs in        | What it does                                                                   |
+| -------------------------- | -------------- | ------------------------------------------------------------------------------ |
+| `aspire do fusion-upload`  | Build job      | Produces source artifacts and reconciles each `name@tag` version in Nitro.     |
+| `aspire do fusion-publish` | Deployment job | Downloads those exact versions, composes them, and publishes to a Nitro stage. |
+
+The two jobs never exchange a file. Nitro is the handoff: the build job writes immutable versions, the deployment job reads them back by tag. Both jobs evaluate the same AppHost, so they must run from the same commit.
+
+## Declaring APIs and Stages
+
+Publishing uses the same Nitro resource graph as [Developing Across Teams and Repositories](#developing-across-teams-and-repositories). It describes each API and every stage that the AppHost is allowed to publish to, and the same stage resources can be selected as local composition bases.
+
+<LanguageTabs>
+<CSharp>
+
+```csharp filename="AppHost/Program.cs"
+var nitroApiKey = builder.AddParameter("nitroApiKey", secret: true);
+
+var nitro = builder
+    .AddNitro()
+    .WithNitroCloudUrl("https://api.chillicream.com")
+    .WithNitroApiKey(nitroApiKey);
+
+var productsApi = nitro
+    .AddApi("products-fusion")
+    .WithNitroApiId("QXBpCnByb2R1Y3Rz");
+
+productsApi.AddStage("development")
+    .WithApproval(waitForApproval: false);
+
+productsApi.AddStage("production")
+    .WithApproval(waitForApproval: true)
+    .WithForcePublish(force: false);
+```
+
+</CSharp>
+<TypeScript>
+
+```typescript filename="apphost.mts"
+const nitroApiKey = await builder.addParameter("nitroApiKey", { secret: true });
+
+const nitro = await builder
+  .addNitro()
+  .withNitroCloudUrl("https://api.chillicream.com")
+  .withNitroApiKey(nitroApiKey);
+
+const productsApi = await nitro
+  .addApi("products-fusion")
+  .withNitroApiId("QXBpCnByb2R1Y3Rz");
+
+await (await productsApi.addStage("development"))
+  .withApproval({ waitForApproval: false });
+
+await (await productsApi.addStage("production"))
+  .withApproval({ waitForApproval: true })
+  .withForcePublish({ force: false });
+```
+
+</TypeScript>
+</LanguageTabs>
+
+- **`AddApi()`** declares one Nitro API. Every API requires its own Nitro API id.
+- **`AddStage()`** declares one publishable stage. An API with no stages is rejected as an invalid pipeline declaration.
+- **`WithApproval()`** makes the publication wait for a human to approve it in Nitro before it commits.
+- **`WithForcePublish()`** permits publication after a known validation failure. Reserve it for an explicit operational policy.
+
+The cloud URL can also come from `Nitro:CloudUrl` or `NITRO_CLOUD_URL`, as described in [Continuous Integration and Self-Hosted Nitro](#continuous-integration-and-self-hosted-nitro). API ids stay on their API declarations so an AppHost can model more than one API.
+
+`WithNitroApiKey()` is optional. When it is omitted, the publishing commands first check `Nitro:ApiKey` and `NITRO_API_KEY`, then use the active Nitro CLI session. This makes an explicit API key the normal choice for non-interactive CI while allowing a signed-in developer to run the same commands locally.
+
+A stage composes with an environment named after the stage itself, so a stage called `production` resolves `{{VARIABLE_NAME}}` placeholders against the `production` environment in `schema-settings.json`.
+
+## Preparing Sources for Publishing
+
+Publishing composes from artifacts, not from running services, so each source needs a `schema-settings.json` whose `url` points at the address the deployed gateway will call. A loopback address such as `http://localhost:5000/graphql` is rejected, because it cannot be reachable from production. The source name has to be unique and match the `name` property in that file exactly.
+
+You can supply the schema two ways:
+
+- **`WithGraphQLSchemaExport()`** runs `dotnet run -- schema export` on the source project for every upload, reusing the project's `schema-settings.json`. The project has to be set up for that command, which means the `HotChocolate.AspNetCore.CommandLine` package and returning `app.RunWithGraphQLCommandsAsync(args)` from `Program.cs`. See [Command Line](../hotchocolate/server/command-line.md).
+- **`WithGraphQLHttpEndpoint()`** downloads the schema over HTTP. The endpoint has to be reachable from the build agent and bound to a fixed target port, because the publishing pipeline does not start your resources. Pass `sourceSchemaName` explicitly so the deployment job can request the same immutable source without reading the build checkout.
+
+The export takes an optional schema name that defaults to the Aspire resource name. Pass it to select a named schema, or when the source name differs from the resource name:
+
+```csharp filename="AppHost/Program.cs"
+var productsApi = builder
+    .AddProject<Projects.Products>("products-api")
+    .WithGraphQLSchemaExport("Products");
+```
+
+The effective source name has to match the `name` in `schema-settings.json` exactly. `WithGraphQLSchemaEndpoint()` and `WithGraphQLSchemaFile()` still work for a checked-in schema file, but both are retired in favor of the two options above.
+
+## Running the Two Jobs
+
+The commands receive `tag` and `stage` when they run. These values are invocation inputs, not resources in the AppHost topology. Prefer environment variables for CI.
+
+**Build job**
+
+```bash
+export NITRO_TAG="$GITHUB_SHA"
+export Parameters__nitroApiKey="$NITRO_API_KEY"
+
+aspire do fusion-upload \
+  --apphost ./src/AppHost/AppHost.csproj \
+  --non-interactive
+```
+
+**Deployment job**
+
+```bash
+export NITRO_STAGE="production"
+export NITRO_TAG="$GITHUB_SHA"
+export Parameters__nitroApiKey="$NITRO_API_KEY"
+
+aspire do fusion-publish \
+  --apphost ./src/AppHost/AppHost.csproj \
+  --non-interactive
+```
+
+Parameters can also be forwarded to the AppHost after `--`:
+
+```bash
+aspire do fusion-publish -- \
+  --stage=production \
+  --tag="$GITHUB_SHA"
+```
+
+`fusion-upload` requires `tag`. `fusion-publish` requires both `tag` and `stage`, and fails when the named stage is not declared on every participating API. The equivalent environment variables are `NITRO_TAG` and `NITRO_STAGE`.
+
+Use one tag for the upload and for every stage in the rollout. Promoting a release to a second stage is the deployment job again with a different stage and the same tag, which is what makes a promotion provably the same configuration.
 
 # Next Steps
 

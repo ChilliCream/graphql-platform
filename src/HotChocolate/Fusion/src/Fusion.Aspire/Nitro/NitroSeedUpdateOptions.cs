@@ -9,15 +9,15 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 public sealed class NitroSeedUpdateOptions
 {
     /// <summary>
-    /// Gets whether Fusion Aspire subscribes to stage changes and downloads newer Fusion
+    /// Gets or sets whether Fusion Aspire subscribes to stage changes and downloads newer Fusion
     /// configurations. The default is <see langword="true"/>.
     /// </summary>
-    public bool Enabled { get; init; } = true;
+    public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// Gets whether a newly downloaded Fusion configuration is immediately applied. When disabled,
-    /// new configurations are staged and applied by the next local recomposition. The default is
-    /// <see langword="true"/>.
+    /// Gets or sets whether a newly downloaded Fusion configuration is immediately applied. When
+    /// disabled, new configurations are staged and applied by the next local recomposition. The
+    /// default is <see langword="true"/>.
     /// </summary>
-    public bool AutoUpdate { get; init; } = true;
+    public bool AutoUpdate { get; set; } = true;
 }
