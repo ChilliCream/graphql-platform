@@ -66,6 +66,146 @@ public class RabbitMQReceiveEndpointBindFromTests
         RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
+    [Fact]
+    public void OnDiscoverTopology_Should_InheritQueueAutoProvision_When_QueueOptsIn()
+    {
+        // arrange
+        // With the transport deny-by-default, a queue that opts in to provisioning must carry that
+        // opt-in onto the binding its BindFrom derives; the foreign source exchange stays opted out.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.AutoProvision(false);
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .AutoProvision(true)
+                    .Consumer<OrderSpyConsumer>()
+                    .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created");
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var binding = topology.Bindings
+            .OfType<RabbitMQQueueBinding>()
+            .Single(b => b.Source.Name == "source-fanout-exchange" && b.Destination.Name == "orders");
+        var exchange = topology.Exchanges.Single(e => e.Name == "source-fanout-exchange");
+
+        // assert
+        Assert.True(binding.AutoProvision);
+        Assert.Null(exchange.AutoProvision);
+    }
+
+    [Fact]
+    public void OnDiscoverTopology_Should_LeaveBindingAutoProvisionUnset_When_QueueDoesNotOptIn()
+    {
+        // arrange
+        // A queue without its own AutoProvision leaves the derived binding on the transport default.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created");
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var binding = topology.Bindings
+            .OfType<RabbitMQQueueBinding>()
+            .Single(b => b.Source.Name == "source-fanout-exchange" && b.Destination.Name == "orders");
+
+        // assert
+        Assert.Null(binding.AutoProvision);
+    }
+
+    [Fact]
+    public void OnDiscoverTopology_Should_KeepBindingOptOut_When_QueueOptsIn()
+    {
+        // arrange
+        // A binding can opt out of provisioning individually even though its queue opts in.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.AutoProvision(false);
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .AutoProvision(true)
+                    .Consumer<OrderSpyConsumer>()
+                    .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created", false);
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var binding = topology.Bindings
+            .OfType<RabbitMQQueueBinding>()
+            .Single(b => b.Source.Name == "source-fanout-exchange" && b.Destination.Name == "orders");
+
+        // assert
+        Assert.False(binding.AutoProvision);
+    }
+
+    [Fact]
+    public void OnDiscoverTopology_Should_ProvisionBinding_When_OnlyBindingOptsIn()
+    {
+        // arrange
+        // A binding can opt in individually even though its queue does not.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.AutoProvision(false);
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created", autoProvision: true);
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var binding = topology.Bindings
+            .OfType<RabbitMQQueueBinding>()
+            .Single(b => b.Source.Name == "source-fanout-exchange" && b.Destination.Name == "orders");
+
+        // assert
+        Assert.True(binding.AutoProvision);
+    }
+
+    [Fact]
+    public void OnDiscoverTopology_Should_InheritQueueOptOut_When_TransportProvisionsByDefault()
+    {
+        // arrange
+        // Inheritance also carries an opt-out: a queue that is managed externally drags its
+        // BindFrom binding out of provisioning even though the transport provisions by default.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .AutoProvision(false)
+                    .Consumer<OrderSpyConsumer>()
+                    .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created");
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var binding = topology.Bindings
+            .OfType<RabbitMQQueueBinding>()
+            .Single(b => b.Source.Name == "source-fanout-exchange" && b.Destination.Name == "orders");
+
+        // assert
+        Assert.False(binding.AutoProvision);
+    }
+
     private static MessagingRuntime CreateRuntime(
         Action<IMessageBusHostBuilder> configureBuilder,
         Action<IRabbitMQMessagingTransportDescriptor> configureTransport)

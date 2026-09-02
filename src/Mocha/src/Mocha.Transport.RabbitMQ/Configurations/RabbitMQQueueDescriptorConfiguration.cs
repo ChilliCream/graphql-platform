@@ -91,4 +91,10 @@ public sealed class RabbitMQQueueSourceBindingConfiguration
     /// Gets or sets the optional routing key.
     /// </summary>
     public string? RoutingKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the derived binding is provisioned. <c>null</c> inherits the queue's
+    /// setting, falling back to the transport default.
+    /// </summary>
+    public bool? AutoProvision { get; set; }
 }

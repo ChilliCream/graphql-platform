@@ -221,6 +221,20 @@ internal sealed class RabbitMQQueueDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.SourceBindings.Add(
+            new RabbitMQQueueSourceBindingConfiguration
+            {
+                Source = source,
+                RoutingKey = routingKey,
+                AutoProvision = autoProvision
+            });
+        return this;
+    }
+
     public RabbitMQQueueDescriptorConfiguration CreateConfiguration() => Configuration;
 
     public static RabbitMQQueueDescriptor New(IMessagingConfigurationContext context, string name)
