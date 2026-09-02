@@ -51,7 +51,7 @@ internal sealed class AgentSessionRegistry(
     {
         var now = timeProvider.GetUtcNow();
         var (normalizedEndpointKind, normalizedEndpointAddr, normalizedEndpointSecret) =
-            NormalizeEndpoint(endpointKind, endpointAddr, endpointSecret);
+            NormalizeEndpoint(generation.Harness, endpointKind, endpointAddr, endpointSecret);
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = connection.BeginTransaction(deferred: false);
@@ -1244,6 +1244,7 @@ internal sealed class AgentSessionRegistry(
     /// CHECK requires the two to agree.
     /// </summary>
     private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
+        string harness,
         string endpointKind,
         string endpointAddr,
         string? endpointSecret)
@@ -1251,7 +1252,7 @@ internal sealed class AgentSessionRegistry(
         if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
             return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
-                ? (endpointKind, endpointAddr, endpointSecret)
+                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
                 : (AgentSessionEndpointKind.None, string.Empty, null);
         }
 
