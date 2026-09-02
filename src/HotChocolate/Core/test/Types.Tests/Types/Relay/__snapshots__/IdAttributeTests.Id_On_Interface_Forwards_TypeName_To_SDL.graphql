@@ -1,0 +1,28 @@
+schema {
+  query: NamedNodeQuery
+}
+
+type NamedNodeQuery {
+  namedNode: NamedNodeInterface!
+  genericNamedNode: GenericNamedNodeInterface!
+}
+
+type GenericNamedNode implements GenericNamedNodeInterface {
+  id: ID!
+}
+
+type NamedNode implements NamedNodeInterface {
+  id: ID!
+}
+
+type Renamed {
+  id: Int!
+}
+
+interface GenericNamedNodeInterface {
+  id: ID!
+}
+
+interface NamedNodeInterface {
+  id: ID!
+}
