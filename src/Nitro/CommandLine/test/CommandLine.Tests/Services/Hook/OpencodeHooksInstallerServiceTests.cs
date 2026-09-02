@@ -127,6 +127,21 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         Assert.Contains("session.deleted", template, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Build_Should_StripThePushedMarkerAndForwardTheStablePayload()
+    {
+        // arrange
+        var descriptor = new LaunchDescriptor("nitro", []);
+
+        // act
+        var template = OpencodeHooksTemplate.Build(descriptor);
+
+        // assert
+        Assert.Contains($"const nitroPushedMarker = \"{OpencodeHookProtocol.PushedPromptMarker}\"", template);
+        Assert.Contains("part.text = part.text.slice(nitroPushedMarker.length);", template);
+        Assert.Contains("nitroPushed,", template);
+    }
+
     private OpencodeHooksInstallerService CreateService() => new(
         _fileSystem,
         new FixedOpencodePathResolver(_hooksPath),

@@ -133,7 +133,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionIdleAsync_Should_AuthorizeEachUnreadMailOnlyOnce()
+    public async Task HandleSessionIdleAsync_Should_DeliverOnlyOnceUntilAnOrdinaryChatMessageRearmsTheTransition()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -146,11 +146,83 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var second = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
         await SendMailAsync("carol", actor, cancellationToken);
         var third = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var fourth = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
         Assert.NotNull(first.IdleDelivery);
         Assert.Equal(OpencodeHookOutcome.Neutral, second);
-        Assert.NotNull(third.IdleDelivery);
+        Assert.Equal(OpencodeHookOutcome.Neutral, third);
+        Assert.NotNull(fourth.IdleDelivery);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_NotRearmOrAppendParts_When_TheMessageWasPushedByNitro()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _sessions.IncrementBlockBudgetAsync(CurrentGeneration(), cancellationToken);
+        var pushedPayload = Payload(SessionId);
+        pushedPayload.NitroPushed = true;
+
+        // act
+        var pushed = await _handler.HandleChatMessageAsync(
+            pushedPayload, dryRun: true, cancellationToken);
+        await SendMailAsync("carol", actor, cancellationToken);
+        var idle = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, pushed);
+        Assert.Equal(OpencodeHookOutcome.Neutral, idle);
+        Assert.Equal(1, (await FindRowAsync(cancellationToken))!.BlockBudgetUsed);
+    }
+
+    [Fact]
+    public async Task HandleSessionIdleAsync_Should_ClaimOneDelivery_When_ConcurrentIdleEventsRace()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+
+        // act
+        var outcomes = await Task.WhenAll(
+            _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken),
+            _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken));
+
+        // assert
+        Assert.Equal(1, outcomes.Count(static outcome => outcome.IdleDelivery is not null));
+    }
+
+    [Fact]
+    public async Task HandleSessionIdleAsync_Should_RearmTheTransition_When_NoMailDigestWasReserved()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var firstMail = await SendMailAsync("bob", actor, cancellationToken);
+        await _ledger.ReserveAsync(
+            AgentSessionHarness.Opencode,
+            SessionId,
+            [firstMail.Id],
+            AgentSessionChannel.Gate,
+            _timeProvider.GetUtcNow(),
+            cancellationToken);
+
+        // act
+        var first = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("carol", actor, cancellationToken);
+        var second = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, first);
+        Assert.NotNull(second.IdleDelivery);
     }
 
     [Fact]
@@ -321,6 +393,14 @@ internal sealed class SessionDeletingDeliveryLedger(
             deliveredAt,
             cancellationToken);
     }
+
+    public Task ReleaseAsync(
+        string harness,
+        string sessionId,
+        string messageId,
+        string channel,
+        CancellationToken cancellationToken)
+        => inner.ReleaseAsync(harness, sessionId, messageId, channel, cancellationToken);
 }
 
 internal static class OpencodeHookFixtures

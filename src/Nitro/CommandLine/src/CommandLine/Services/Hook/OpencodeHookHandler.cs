@@ -26,6 +26,9 @@ internal sealed class OpencodeHookHandler(
     // Reserved internal marker for an actor announcement, never a Nitro mail id.
     private const string FirstPromptAnnouncementId = "__nitro_internal:opencode:first-prompt-announcement";
 
+    // Reserved internal marker for the current idle period, never a Nitro mail id.
+    private const string IdleTransitionId = "__nitro_internal:opencode:idle-transition";
+
     public async Task<OpencodeHookOutcome> HandleSessionCreatedAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
@@ -66,6 +69,13 @@ internal sealed class OpencodeHookHandler(
         }
 
         await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+
+        if (payload.NitroPushed)
+        {
+            return OpencodeHookOutcome.Neutral;
+        }
+
+        await ReleaseAsync(resolved.Generation, IdleTransitionId, AgentSessionChannel.Gate, cancellationToken);
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
@@ -133,10 +143,36 @@ internal sealed class OpencodeHookHandler(
 
         try
         {
+            var unread = await mailStore.QueryInboxAsync(
+                new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
+                cancellationToken);
+
+            if (unread.Count == 0)
+            {
+                return OpencodeHookOutcome.Neutral;
+            }
+
+            var transition = await ReserveAsync(
+                resolved.Generation,
+                [IdleTransitionId],
+                AgentSessionChannel.Gate,
+                cancellationToken);
+
+            if (transition.Count == 0)
+            {
+                return OpencodeHookOutcome.Neutral;
+            }
+
             var digest = await BuildDigestAsync(
                 resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
 
-            return digest is null ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { IdleDelivery = digest };
+            if (digest is not null)
+            {
+                return new OpencodeHookOutcome { IdleDelivery = digest };
+            }
+
+            await ReleaseAsync(resolved.Generation, IdleTransitionId, AgentSessionChannel.Gate, cancellationToken);
+            return OpencodeHookOutcome.Neutral;
         }
         catch (SessionRemovedDuringDeliveryException)
         {
@@ -209,6 +245,18 @@ internal sealed class OpencodeHookHandler(
             throw;
         }
     }
+
+    private Task ReleaseAsync(
+        AgentSessionGeneration generation,
+        string messageId,
+        string channel,
+        CancellationToken cancellationToken)
+        => ledger.ReleaseAsync(
+            generation.Harness,
+            generation.SessionId,
+            messageId,
+            channel,
+            cancellationToken);
 
     private async Task<ResolvedGeneration?> ResolveAsync(
         OpencodeHookPayload payload,

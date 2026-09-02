@@ -35,6 +35,9 @@ internal sealed class OpencodeHookPayload
     [JsonPropertyName("harnessVersion")]
     public string? HarnessVersion { get; set; }
 
+    [JsonPropertyName("nitroPushed")]
+    public bool NitroPushed { get; set; }
+
     [JsonPropertyName("version")]
     public string? HarnessVersionAlias
     {

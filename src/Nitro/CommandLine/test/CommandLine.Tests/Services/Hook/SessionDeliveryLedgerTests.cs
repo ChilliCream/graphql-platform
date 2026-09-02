@@ -122,6 +122,29 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         Assert.Equal(1, totalReserved);
     }
 
+    [Fact]
+    public async Task ReleaseAsync_Should_RemoveOnlyTheExactClaim()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAndSessionAsync(cancellationToken);
+        await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+        await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+
+        // act
+        await _ledger.ReleaseAsync(Harness, SessionId, "m-1", "gate", cancellationToken);
+        var gate = await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+        var digest = await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+
+        // assert
+        Assert.Equal(["m-1"], gate);
+        Assert.Empty(digest);
+    }
+
     private async Task InitializeWorkspaceAndSessionAsync(CancellationToken cancellationToken)
     {
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);

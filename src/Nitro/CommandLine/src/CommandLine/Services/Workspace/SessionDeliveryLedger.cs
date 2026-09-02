@@ -57,4 +57,27 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
 
         return reserved;
     }
+
+    public async Task ReleaseAsync(
+        string harness,
+        string sessionId,
+        string messageId,
+        string channel,
+        CancellationToken cancellationToken)
+    {
+        var workspaceDirectory = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory())
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
+
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "DELETE FROM session_deliveries WHERE harness = @harness AND session_id = @sessionId "
+            + "AND message_id = @messageId AND channel = @channel";
+        command.Parameters.AddWithValue("@harness", harness);
+        command.Parameters.AddWithValue("@sessionId", sessionId);
+        command.Parameters.AddWithValue("@messageId", messageId);
+        command.Parameters.AddWithValue("@channel", channel);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

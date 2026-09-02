@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -36,7 +37,7 @@ public sealed class OpencodeServerClientTests
         using var body = JsonDocument.Parse(capturedBody!);
         Assert.Equal("text", body.RootElement.GetProperty("parts")[0].GetProperty("type").GetString());
         Assert.Equal(
-            "You have unread mail.",
+            OpencodeHookProtocol.PushedPromptMarker + "You have unread mail.",
             body.RootElement.GetProperty("parts")[0].GetProperty("text").GetString());
     }
 

@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using HotChocolate.Buffers;
 
@@ -46,7 +47,7 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
             timeoutSource.Token);
         using var request = new HttpRequestMessage(HttpMethod.Post, uri)
         {
-            Content = CreateMessageContent(text)
+            Content = CreateMessageContent(OpencodeHookProtocol.PushedPromptMarker + text)
         };
 
         AddAuthentication(request, secret);

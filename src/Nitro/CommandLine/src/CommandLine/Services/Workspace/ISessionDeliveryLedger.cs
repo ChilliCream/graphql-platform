@@ -25,4 +25,14 @@ internal interface ISessionDeliveryLedger
         string channel,
         DateTimeOffset deliveredAt,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Releases one exact reservation so a later transition can claim it again.
+    /// </summary>
+    Task ReleaseAsync(
+        string harness,
+        string sessionId,
+        string messageId,
+        string channel,
+        CancellationToken cancellationToken);
 }
