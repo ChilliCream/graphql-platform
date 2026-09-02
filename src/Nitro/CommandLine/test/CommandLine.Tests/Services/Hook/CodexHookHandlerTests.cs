@@ -249,14 +249,36 @@ public sealed class CodexHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        Assert.NotNull(outcome.AdditionalContext);
-        Assert.Contains("1 unread nitro message.", outcome.AdditionalContext);
-        Assert.Contains("nitro agent mail inbox --actor", outcome.AdditionalContext);
-        Assert.DoesNotContain("Your Nitro actor name", outcome.AdditionalContext);
+        outcome.AdditionalContext!
+            .Replace(actor, "<actor>")
+            .Replace(message.Id, "<message-id>")
+            .MatchInlineSnapshot(
+                """
+                You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor <actor> --body "..."` or ack with `nitro agent mail ack --message <id> --actor <actor>`; anything not shown is in `nitro agent mail inbox --unread --actor <actor>`.
+                {
+                  "items": [
+                    {
+                      "id": "<message-id>",
+                      "threadId": "<message-id>",
+                      "inReplyTo": null,
+                      "from": "bob",
+                      "to": [
+                        "<actor>"
+                      ],
+                      "cc": [],
+                      "subject": "status",
+                      "body": "please check",
+                      "createdAt": "2026-01-10T12:00:00+00:00",
+                      "read": false,
+                      "archived": false
+                    }
+                  ]
+                }
+                """);
     }
 
     [Fact]
@@ -365,14 +387,21 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleNotifyAsync_Should_QueueTheInboxPointer_When_MailWasAnnouncedOnTheDigestChannel()
+    public async Task HandleNotifyAsync_Should_QueueTheInboxPointer_When_MailWasSeenOnThePingChannel()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
-        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var generation = CurrentGeneration();
+        await _ledger.ReserveAsync(
+            generation.Harness,
+            generation.SessionId,
+            [message.Id],
+            AgentSessionChannel.Ping,
+            _timeProvider.GetUtcNow(),
+            cancellationToken);
 
         // act
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
