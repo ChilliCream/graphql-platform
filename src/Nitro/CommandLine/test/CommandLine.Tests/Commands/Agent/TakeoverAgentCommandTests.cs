@@ -238,10 +238,8 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
                   "forced": false,
                   "role": "planner",
                   "reason": null,
-                  "messageSenders": [],
-                  "messageRecipients": [
-                    "{{history.MessageId}}"
-                  ],
+                  "messageSenders": 0,
+                  "messageRecipients": 1,
                   "tasks": [
                     "{{history.TaskId}}"
                   ]
@@ -255,10 +253,8 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
                   "forced": false,
                   "role": "planner",
                   "reason": "handoff",
-                  "messageSenders": [],
-                  "messageRecipients": [
-                    "{{history.MessageId}}"
-                  ],
+                  "messageSenders": 0,
+                  "messageRecipients": 1,
                   "tasks": [
                     "{{history.TaskId}}"
                   ]
@@ -282,7 +278,6 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
         // assert
         result.StdOut
             .Replace(history.EarliestId, "<id>")
-            .Replace(history.MessageId, "<message>")
             .Replace(history.TaskId, "<task>")
             .MatchInlineSnapshot(
                 """
@@ -297,10 +292,8 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
                       "forced": false,
                       "role": "planner",
                       "reason": "handoff",
-                      "messageSenders": [],
-                      "messageRecipients": [
-                        "<message>"
-                      ],
+                      "messageSenders": 0,
+                      "messageRecipients": 1,
                       "tasks": [
                         "<task>"
                       ]
@@ -340,7 +333,6 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("zoe");
         await SeedAgentAsync("sender");
         await SendMailAsync("sender", "maya", "received");
-        var messageId = (await QueryScalarAsync("SELECT id FROM messages"))!;
         var taskId = await CreateTaskAsync("maya");
 
         await ExecuteCommandAsync(
@@ -352,12 +344,11 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
         var latestId = (await QueryScalarAsync(
             "SELECT id FROM agent_takeovers ORDER BY created_at DESC LIMIT 1"))!;
 
-        return new TakeoverHistory(earliestId, latestId, messageId, taskId);
+        return new TakeoverHistory(earliestId, latestId, taskId);
     }
 
     private sealed record TakeoverHistory(
         string EarliestId,
         string LatestId,
-        string MessageId,
         string TaskId);
 }

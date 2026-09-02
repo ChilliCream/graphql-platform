@@ -53,7 +53,7 @@ internal sealed class TakeoverHistoryAgentCommand : Command
                 $"{result.Id.EscapeMarkup()}  {TaskDates.Format(result.CreatedAt)}  "
                 + $"{result.From.EscapeMarkup()} -> {result.To.EscapeMarkup()}  "
                 + $"by {result.Actor.EscapeMarkup()}  "
-                + $"{result.MessageSenders.Count + result.MessageRecipients.Count} messages, "
+                + $"{result.MessageSenders + result.MessageRecipients} messages, "
                 + $"{result.Tasks.Count} tasks");
         }
 
@@ -70,9 +70,12 @@ internal sealed class TakeoverHistoryAgentCommand : Command
             record.Forced,
             record.Role,
             record.Reason,
-            GetItemIds(record, TakeoverItemKinds.MessageSender),
-            GetItemIds(record, TakeoverItemKinds.MessageRecipient),
+            GetItemCount(record, TakeoverItemKinds.MessageSender),
+            GetItemCount(record, TakeoverItemKinds.MessageRecipient),
             GetItemIds(record, TakeoverItemKinds.Task));
+
+    private static int GetItemCount(TakeoverRecord record, string kind)
+        => record.Items.Count(item => item.Kind == kind);
 
     private static IReadOnlyList<string> GetItemIds(TakeoverRecord record, string kind)
         => record.Items
@@ -89,7 +92,7 @@ internal sealed class TakeoverHistoryAgentCommand : Command
         bool Forced,
         string? Role,
         string? Reason,
-        IReadOnlyList<string> MessageSenders,
-        IReadOnlyList<string> MessageRecipients,
+        int MessageSenders,
+        int MessageRecipients,
         IReadOnlyList<string> Tasks);
 }
