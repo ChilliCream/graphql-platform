@@ -241,6 +241,90 @@ public class FusionArchiveSignatureTests : IDisposable
     }
 
     [Fact]
+    public async Task VerifyIntegrity_Should_PreserveManifestMissingDistinction_When_ArchiveIsSigned()
+    {
+        // arrange
+        var unsignedStream = CreateStream();
+        var signedStream = CreateStream();
+        using var certificate = CreateTestCertificate();
+
+        using (var signedArchive = FusionArchive.Create(signedStream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(signedArchive);
+            await signedArchive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await signedArchive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        signedStream.Position = 0;
+#if NET10_0_OR_GREATER
+        await using (var zip = new ZipArchive(signedStream, ZipArchiveMode.Update, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(signedStream, ZipArchiveMode.Update, leaveOpen: true))
+#endif
+        {
+            zip.GetEntry("manifest.json")!.Delete();
+        }
+
+        // act
+        using var unsignedArchive = FusionArchive.Create(unsignedStream, leaveOpen: true);
+        var unsignedResult = await unsignedArchive.VerifyIntegrityAsync(TestContext.Current.CancellationToken);
+        signedStream.Position = 0;
+        using var readArchive = FusionArchive.Open(signedStream, leaveOpen: true);
+        var signedResult = await readArchive.VerifyIntegrityAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.NotSigned, unsignedResult);
+        Assert.Equal(SignatureVerificationResult.ManifestMissing, signedResult);
+    }
+
+    [Fact]
+    public async Task VerifyIntegrity_Should_ReturnUnsupportedAlgorithm_When_ManifestAlgorithmIsNotSha256()
+    {
+        // arrange
+        var stream = CreateStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(archive);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        await RewriteEntryAsync(
+            stream,
+            "manifest.json",
+            text => text.Replace("\"algorithm\":\"sha256\"", "\"algorithm\":\"sha512\""));
+
+        // assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifyIntegrityAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(SignatureVerificationResult.UnsupportedAlgorithm, result);
+    }
+
+    [Fact]
+    public async Task VerifyIntegrity_Should_ReturnVerificationFailed_When_ManifestCannotBeParsed()
+    {
+        // arrange
+        var stream = CreateStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(archive);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        await RewriteEntryAsync(stream, "manifest.json", _ => "not json");
+
+        // assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifyIntegrityAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(SignatureVerificationResult.VerificationFailed, result);
+    }
+
+    [Fact]
     public async Task VerifySignature_Should_ReturnFilesModified_When_UnsignedArchiveFileTampered()
     {
         // arrange

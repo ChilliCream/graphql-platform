@@ -1125,20 +1125,16 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Verifies the archive against its content manifest, and against the detached signature when the
-    /// archive is signed, using the provided public key certificate. The manifest integrity checks apply
-    /// to every archive: the root manifest must be present; every file present in the archive, other than
-    /// the manifest and the contents of the signature directory, must be listed in the manifest; listed
-    /// files that are absent are permitted (a stripped archive); and every listed file that is present
-    /// must match its recorded digest. When the archive carries a signature, the detached signature must
-    /// additionally verify over the manifest bytes. An archive whose manifest integrity holds but that
-    /// carries no signature reports <see cref="SignatureVerificationResult.NotSigned"/>.
+    /// Verifies the archive contents against its content manifest. Every archive file, except the
+    /// manifest and files in the signature directory, must be listed and match its recorded digest.
+    /// Listed files that are absent are permitted.
     /// </summary>
-    /// <param name="publicKey">The certificate containing the public key for verification.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The result of the verification process.</returns>
-    public async Task<SignatureVerificationResult> VerifySignatureAsync(
-        X509Certificate2 publicKey,
+    /// <returns>
+    /// The verification result. Archives without a signature report
+    /// <see cref="SignatureVerificationResult.NotSigned"/> after their manifest integrity is checked.
+    /// </returns>
+    public async Task<SignatureVerificationResult> VerifyIntegrityAsync(
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -1174,7 +1170,6 @@ public sealed class FusionArchive : IDisposable
                 await manifestStream.CopyToAsync(buffer, cancellationToken);
             }
 
-            var manifestBytes = buffer.WrittenSpan.ToArray();
             var manifest = ArchiveManifestSerializer.Parse(buffer.WrittenMemory);
 
             // sha256 is the only supported digest algorithm.
@@ -1221,13 +1216,59 @@ public sealed class FusionArchive : IDisposable
                 }
             }
 
-            // 4. The detached signature is verified only when the archive is signed.
-            if (!signaturePresent)
+            return signaturePresent
+                ? SignatureVerificationResult.Valid
+                : SignatureVerificationResult.NotSigned;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (CryptographicException)
+        {
+            return SignatureVerificationResult.InvalidSignature;
+        }
+        catch (Exception)
+        {
+            return SignatureVerificationResult.VerificationFailed;
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    /// <summary>
+    /// Verifies the archive against its content manifest and detached signature using the provided public
+    /// key certificate.
+    /// </summary>
+    /// <param name="publicKey">The certificate containing the public key for verification.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The result of the verification process.</returns>
+    public async Task<SignatureVerificationResult> VerifySignatureAsync(
+        X509Certificate2 publicKey,
+        CancellationToken cancellationToken = default)
+    {
+        var integrityResult = await VerifyIntegrityAsync(cancellationToken);
+        if (integrityResult is not SignatureVerificationResult.Valid)
+        {
+            return integrityResult;
+        }
+
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            await using (var manifestStream = await _session.OpenReadAsync(
+                FileNames.Manifest,
+                FileKind.Manifest,
+                cancellationToken))
             {
-                return SignatureVerificationResult.NotSigned;
+                await manifestStream.CopyToAsync(buffer, cancellationToken);
             }
 
-            // 5. Verify the detached signature over the raw manifest bytes.
+            var manifestBytes = buffer.WrittenSpan.ToArray();
+
             buffer.Clear();
             await using (var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,

@@ -1,13 +1,13 @@
 namespace HotChocolate.Fusion.Packaging;
 
 /// <summary>
-/// Represents the result of signature verification for a Fusion Archive.
+/// Represents the result of Fusion Archive integrity and signature verification.
 /// </summary>
 public enum SignatureVerificationResult
 {
     /// <summary>
-    /// The signature is valid and all integrity checks passed.
-    /// The archive has not been tampered with since signing.
+    /// The archive integrity checks passed. When verifying a signature, the detached signature is also
+    /// valid.
     /// </summary>
     Valid,
 

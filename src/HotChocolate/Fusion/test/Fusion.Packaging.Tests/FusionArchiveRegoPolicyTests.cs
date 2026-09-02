@@ -380,6 +380,55 @@ public class FusionArchiveRegoPolicyTests
         Assert.Equal(SignatureVerificationResult.Valid, result);
     }
 
+    [Fact]
+    public async Task VerifyIntegrity_Should_ReturnValid_When_SignedPolicyIsStrippedThroughZip()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var certificate = CreateTestCertificate();
+#if NET9_0_OR_GREATER
+        using var publicCertificate = X509CertificateLoader.LoadCertificate(
+            certificate.Export(X509ContentType.Cert));
+#else
+        using var publicCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
+#endif
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyAsync(
+                "CanReadProduct",
+                "package authz"u8.ToArray(),
+                "fragment Requirements on Product { id }"u8.ToArray(),
+                s_version1,
+                TestContext.Current.CancellationToken);
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        // Delete the policy pair through the zip so the signed manifest remains unchanged.
+        stream.Position = 0;
+#if NET10_0_OR_GREATER
+        await using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+#else
+        using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+#endif
+        {
+            zipArchive.GetEntry("policies/rego/1.0.0/CanReadProduct.rego")!.Delete();
+            zipArchive.GetEntry("policies/rego/1.0.0/CanReadProduct.graphql")!.Delete();
+        }
+
+        // assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var integrityResult = await readArchive.VerifyIntegrityAsync(TestContext.Current.CancellationToken);
+        var signatureResult = await readArchive.VerifySignatureAsync(
+            publicCertificate,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(SignatureVerificationResult.Valid, integrityResult);
+        Assert.Equal(SignatureVerificationResult.Valid, signatureResult);
+    }
+
     private static MemoryStream CreateArchive(params (string Path, string Content)[] files)
     {
         var stream = new MemoryStream();
