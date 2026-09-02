@@ -18,7 +18,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
               Take over another actor's mail and tasks.
 
             Usage:
-              nitro agent takeover [options]
+              nitro agent takeover [command] [options]
 
             Options:
               --from <from> (REQUIRED)    The actor whose mail and tasks to take over
@@ -27,6 +27,9 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
               --reason <reason>           The reason recorded for the takeover
               --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
+
+            Commands:
+              history  List actor takeover history, newest first.
 
             Example:
               nitro agent takeover --from "maya" --actor "nora"
@@ -196,6 +199,117 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
             "2|3|message_recipient:1,message_sender:1,task:1|0|maya:nora:nora:planner:handoff");
     }
 
+    [Fact]
+    public async Task History_Should_PrintTwoTakeoversNewestFirst()
+    {
+        // arrange
+        var history = await SeedTakeoverHistoryAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "takeover", "history");
+
+        // assert
+        result.AssertSuccess(
+            $"{history.LatestId}  2026-01-02 00:00  nora -> zoe  by zoe  1 messages, 1 tasks\n"
+            + $"{history.EarliestId}  2026-01-01 00:00  maya -> nora  by nora  1 messages, 1 tasks");
+    }
+
+    [Fact]
+    public async Task History_Should_ReturnExactJsonShapeNewestFirst()
+    {
+        // arrange
+        var history = await SeedTakeoverHistoryAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "takeover", "history");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{history.LatestId}}",
+                  "from": "nora",
+                  "to": "zoe",
+                  "actor": "zoe",
+                  "createdAt": "2026-01-02T00:00:00+00:00",
+                  "forced": false,
+                  "role": "planner",
+                  "reason": null,
+                  "messageSenders": [],
+                  "messageRecipients": [
+                    "{{history.MessageId}}"
+                  ],
+                  "tasks": [
+                    "{{history.TaskId}}"
+                  ]
+                },
+                {
+                  "id": "{{history.EarliestId}}",
+                  "from": "maya",
+                  "to": "nora",
+                  "actor": "nora",
+                  "createdAt": "2026-01-01T00:00:00+00:00",
+                  "forced": false,
+                  "role": "planner",
+                  "reason": "handoff",
+                  "messageSenders": [],
+                  "messageRecipients": [
+                    "{{history.MessageId}}"
+                  ],
+                  "tasks": [
+                    "{{history.TaskId}}"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task History_Should_ApplyActorFilterAndLimitThroughLedger()
+    {
+        // arrange
+        var history = await SeedTakeoverHistoryAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "takeover", "history", "--actor", "maya", "--limit", "1");
+
+        // assert
+        result.StdOut
+            .Replace(history.EarliestId, "<id>")
+            .Replace(history.MessageId, "<message>")
+            .Replace(history.TaskId, "<task>")
+            .MatchInlineSnapshot(
+                """
+                {
+                  "items": [
+                    {
+                      "id": "<id>",
+                      "from": "maya",
+                      "to": "nora",
+                      "actor": "nora",
+                      "createdAt": "2026-01-01T00:00:00+00:00",
+                      "forced": false,
+                      "role": "planner",
+                      "reason": "handoff",
+                      "messageSenders": [],
+                      "messageRecipients": [
+                        "<message>"
+                      ],
+                      "tasks": [
+                        "<task>"
+                      ]
+                    }
+                  ]
+                }
+                """);
+    }
+
     private async Task SendMailAsync(string from, string to, string subject)
     {
         var result = await ExecuteCommandAsync(
@@ -217,4 +331,33 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
 
         return (await QueryScalarAsync("SELECT id FROM tasks WHERE title = 'Takeover task'"))!;
     }
+
+    private async Task<TakeoverHistory> SeedTakeoverHistoryAsync()
+    {
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya", "planner");
+        await SeedAgentAsync("nora");
+        await SeedAgentAsync("zoe");
+        await SeedAgentAsync("sender");
+        await SendMailAsync("sender", "maya", "received");
+        var messageId = (await QueryScalarAsync("SELECT id FROM messages"))!;
+        var taskId = await CreateTaskAsync("maya");
+
+        await ExecuteCommandAsync(
+            "agent", "takeover", "--from", "maya", "--actor", "nora", "--reason", "handoff");
+        var earliestId = (await QueryScalarAsync("SELECT id FROM agent_takeovers"))!;
+
+        FakeTime.Advance(TimeSpan.FromDays(1));
+        await ExecuteCommandAsync("agent", "takeover", "--from", "nora", "--actor", "zoe");
+        var latestId = (await QueryScalarAsync(
+            "SELECT id FROM agent_takeovers ORDER BY created_at DESC LIMIT 1"))!;
+
+        return new TakeoverHistory(earliestId, latestId, messageId, taskId);
+    }
+
+    private sealed record TakeoverHistory(
+        string EarliestId,
+        string LatestId,
+        string MessageId,
+        string TaskId);
 }

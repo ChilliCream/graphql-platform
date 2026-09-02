@@ -13,6 +13,8 @@ internal sealed class TakeoverAgentCommand : Command
     {
         Description = "Take over another actor's mail and tasks.";
 
+        Subcommands.Add(new TakeoverHistoryAgentCommand());
+
         Options.Add(Opt<TakeoverFromActorOption>.Instance);
         Options.Add(Opt<TakeoverActorOption>.Instance);
         Options.Add(Opt<ForceActorTakeoverOption>.Instance);

@@ -22,6 +22,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
 
@@ -82,6 +83,8 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
 [JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
 [JsonSerializable(typeof(TakeoverAgentCommand.AgentTakeoverResult))]
+[JsonSerializable(typeof(ListResult<TakeoverHistoryAgentCommand.AgentTakeoverHistoryResult>))]
+[JsonSerializable(typeof(TakeoverReferenceResult))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(MailSendResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]

@@ -387,7 +387,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
                       "body": "please check",
                       "createdAt": "2026-01-10T12:00:00+00:00",
                       "read": false,
-                      "archived": false
+                      "archived": false,
+                      "takeovers": []
                     }
                   ]
                 }

@@ -60,7 +60,8 @@ public sealed class MailDigestTests
                   "body": "Hello",
                   "createdAt": "2026-01-01T00:00:00+00:00",
                   "read": true,
-                  "archived": true
+                  "archived": true,
+                  "takeovers": []
                 }
               ]
             }
@@ -97,7 +98,8 @@ public sealed class MailDigestTests
                   "body": "first",
                   "createdAt": "2026-01-02T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-2",
@@ -112,7 +114,8 @@ public sealed class MailDigestTests
                   "body": "second",
                   "createdAt": "2026-01-02T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-3",
@@ -127,7 +130,8 @@ public sealed class MailDigestTests
                   "body": "third",
                   "createdAt": "2026-01-03T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 }
               ]
             }
@@ -163,7 +167,8 @@ public sealed class MailDigestTests
                   "body": "<body>\n[body truncated: nitro agent mail read --message m-1 --actor maya]",
                   "createdAt": "2026-01-01T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 }
               ]
             }
@@ -201,7 +206,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-01T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-2",
@@ -216,7 +222,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-02T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-3",
@@ -231,7 +238,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-03T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-4",
@@ -246,7 +254,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-04T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-5",
@@ -261,7 +270,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-05T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-6",
@@ -276,7 +286,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-06T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 },
                 {
                   "id": "m-7",
@@ -291,7 +302,8 @@ public sealed class MailDigestTests
                   "body": "<body>",
                   "createdAt": "2026-01-07T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 }
               ]
             }

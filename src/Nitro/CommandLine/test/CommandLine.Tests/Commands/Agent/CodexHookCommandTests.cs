@@ -164,7 +164,8 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
                   "body": "please check",
                   "createdAt": "2026-01-01T00:00:00+00:00",
                   "read": false,
-                  "archived": false
+                  "archived": false,
+                  "takeovers": []
                 }
               ]
             }

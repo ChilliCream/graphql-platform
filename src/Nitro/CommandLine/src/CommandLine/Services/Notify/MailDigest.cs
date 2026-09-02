@@ -21,7 +21,7 @@ internal static class MailDigest
             .OrderBy(message => message.CreatedAt)
             .ThenBy(message => message.Id, StringComparer.Ordinal)
             .Take(MailDigestPolicy.MaxMessages)
-            .Select(message => MailMessageDetailResult.Create(message, actor))
+            .Select(message => MailMessageDetailResult.Create(message, actor, []))
             .Select(message => TruncateBody(message, actor))
             .ToList();
 

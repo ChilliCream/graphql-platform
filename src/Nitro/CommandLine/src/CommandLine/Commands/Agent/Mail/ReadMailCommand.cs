@@ -33,6 +33,7 @@ internal sealed class ReadMailCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
         var registry = services.GetRequiredService<IAgentRegistry>();
+        var ledger = services.GetRequiredService<ITakeoverLedger>();
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
@@ -48,10 +49,13 @@ internal sealed class ReadMailCommand : Command
         var messages = thread
             ? await MarkThreadReadAsync(store, message.ThreadId, actor, cancellationToken)
             : [await MarkMessageReadAsync(store, message, actor, cancellationToken)];
+        var takeovers = await GetTakeoversAsync(ledger, messages, cancellationToken);
 
         if (!console.IsHumanReadable)
         {
-            var results = messages.Select(m => MailMessageDetailResult.Create(m, actor)).ToArray();
+            var results = messages
+                .Select((message, index) => MailMessageDetailResult.Create(message, actor, takeovers[index]))
+                .ToArray();
 
             resultHolder.SetResult(
                 thread
@@ -71,7 +75,7 @@ internal sealed class ReadMailCommand : Command
             }
 
             var sender = await registry.GetAsync(messages[i].Sender, cancellationToken);
-            WriteMessage(console, messages[i], sender?.Role ?? "");
+            WriteMessage(console, messages[i], sender?.Role ?? "", takeovers[i]);
         }
 
         return ExitCodes.Success;
@@ -131,7 +135,29 @@ internal sealed class ReadMailCommand : Command
         return await store.GetThreadMessagesAsync(threadId, cancellationToken);
     }
 
-    private static void WriteMessage(INitroConsole console, MailMessage message, string senderRole)
+    private static async Task<IReadOnlyList<TakeoverReferenceResult>[]> GetTakeoversAsync(
+        ITakeoverLedger ledger,
+        IReadOnlyList<MailMessage> messages,
+        CancellationToken cancellationToken)
+    {
+        var takeovers = new IReadOnlyList<TakeoverReferenceResult>[messages.Count];
+
+        for (var index = 0; index < messages.Count; index++)
+        {
+            var records = await ledger.QueryAsync(
+                new TakeoverFilter { MessageId = messages[index].Id },
+                cancellationToken);
+            takeovers[index] = records.Select(TakeoverReferenceResult.FromRecord).ToArray();
+        }
+
+        return takeovers;
+    }
+
+    private static void WriteMessage(
+        INitroConsole console,
+        MailMessage message,
+        string senderRole,
+        IReadOnlyList<TakeoverReferenceResult> takeovers)
     {
         var to = message.Recipients
             .Where(r => r.Kind == MailRecipientKinds.To)
@@ -159,6 +185,14 @@ internal sealed class ReadMailCommand : Command
         console.WriteLine($"Date: {TaskDates.Format(message.CreatedAt)}");
         console.WriteLine($"Subject: {message.Subject}");
         console.WriteLine($"Thread: {message.ThreadId}");
+
+        foreach (var takeover in takeovers)
+        {
+            console.WriteLine(
+                $"Takeover: {takeover.From} -> {takeover.To} "
+                + $"({takeover.Id}, {takeover.CreatedAt.ToUniversalTime():yyyy-MM-dd})");
+        }
+
         console.WriteLine();
         console.WriteLine(message.Body);
     }
