@@ -425,9 +425,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         Assert.True(outcome.Block);
         Assert.StartsWith(
             "Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.\n",
-            outcome.BlockReason!);
-        Assert.Contains(message.Id, outcome.BlockReason!);
-        Assert.Contains("\"items\"", outcome.BlockReason!);
+            outcome.BlockReason);
+        Assert.Contains(message.Id, outcome.BlockReason);
+        Assert.Contains("\"items\"", outcome.BlockReason);
     }
 
     [Fact]
