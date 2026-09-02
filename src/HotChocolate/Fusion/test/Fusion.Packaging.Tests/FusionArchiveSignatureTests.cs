@@ -54,6 +54,26 @@ public class FusionArchiveSignatureTests : IDisposable
     }
 
     [Fact]
+    public async Task Commit_Should_Throw_When_ReSigningIsCanceled()
+    {
+        // arrange
+        var stream = CreateStream();
+        using var certificate = CreateTestCertificate();
+        using var cancellation = new CancellationTokenSource();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+        cancellation.Cancel();
+
+        // act
+        var sign = () => archive.SignArchiveAsync(certificate, cancellation.Token);
+
+        // assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(sign);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.CommitAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task SignArchive_Should_ReturnValidSignature_When_SignatureIsRemovedBeforeMutation()
     {
         // arrange

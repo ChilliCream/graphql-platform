@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -237,6 +239,35 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 ArchiveFormats.Far,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => CreateFusionArchiveStreamWithCompositionSettings(settingsJson));
+    }
+
+    protected void SetupSignedFusionConfigurationDownload()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.DownloadLatestFusionArchiveAsync(
+                ApiId,
+                Stage,
+                "2.0.0",
+                ArchiveFormats.Far,
+                It.IsAny<CancellationToken>()))
+            .Returns(async () => await CreateSignedFusionArchiveStreamAsync());
+    }
+
+    protected static async Task SignArchiveAsync(
+        string archiveFile,
+        CancellationToken cancellationToken)
+    {
+        using var rsa = RSA.Create(2048);
+        using var certificate = new CertificateRequest(
+            "CN=Test",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1).CreateSelfSigned(
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddYears(1));
+        using var archive = FusionArchive.Open(archiveFile, FusionArchiveMode.Update);
+        await archive.SignArchiveAsync(certificate, cancellationToken);
+        await archive.CommitAsync(cancellationToken);
     }
 
     protected void SetupStageCompositionSettings(StageCompositionSettings? settings = null)
@@ -690,6 +721,32 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             using var settings = JsonDocument.Parse(settingsJson);
             archive.SetCompositionSettingsAsync(settings).GetAwaiter().GetResult();
             archive.CommitAsync().GetAwaiter().GetResult();
+        }
+
+        stream.Position = 0;
+
+        return stream;
+    }
+
+    private static async Task<MemoryStream> CreateSignedFusionArchiveStreamAsync()
+    {
+        var stream = CreateFusionArchiveStream();
+        using var rsa = RSA.Create(2048);
+        using var certificate = new CertificateRequest(
+            "CN=Test",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1).CreateSelfSigned(
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddYears(1));
+
+        using (var archive = FusionArchive.Open(
+                   stream,
+                   FusionArchiveMode.Update,
+                   leaveOpen: true))
+        {
+            await archive.SignArchiveAsync(certificate);
+            await archive.CommitAsync();
         }
 
         stream.Position = 0;

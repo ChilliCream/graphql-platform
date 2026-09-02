@@ -77,6 +77,71 @@ public sealed class AspireCompositionHelperTests
         }
     }
 
+    [Fact]
+    public async Task TryComposeAsync_Should_ReleaseArchive_When_SignatureRemovalIsCanceled()
+    {
+        // arrange
+        var archivePath = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            System.IO.Path.GetRandomFileName());
+        using var rsa = RSA.Create(2048);
+        using var certificate = new CertificateRequest(
+            "CN=Test",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1).CreateSelfSigned(
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddYears(1));
+        using var cancellation = new CancellationTokenSource();
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var products = CreateSourceSchema(
+            "Products",
+            allocatedHttpEndpointUrl: null,
+            productsSettings,
+            ProductsSchemaText);
+        var logger = new RecordingLogger<SchemaComposition>();
+
+        try
+        {
+            using (var archive = FusionArchive.Create(archivePath))
+            {
+                await archive.SetArchiveMetadataAsync(
+                    new ArchiveMetadata
+                    {
+                        SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                        SourceSchemas = []
+                    },
+                    TestContext.Current.CancellationToken);
+                await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+                await archive.CommitAsync(TestContext.Current.CancellationToken);
+            }
+
+            cancellation.Cancel();
+
+            // act
+            var compose = () => AspireCompositionHelper.TryComposeAsync(
+                archivePath,
+                seedArchivePath: null,
+                [products],
+                default,
+                environment: null,
+                logger,
+                cancellation.Token);
+
+            // assert
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(compose);
+            using var updateArchive = FusionArchive.Open(archivePath, FusionArchiveMode.Update);
+            Assert.True(updateArchive.IsSigned);
+        }
+        finally
+        {
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+        }
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData(NodeResolution.Gateway)]

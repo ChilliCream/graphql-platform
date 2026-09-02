@@ -1109,6 +1109,8 @@ public sealed class FusionArchive : IDisposable
                 nameof(privateKey));
         }
 
+        _signatureCurrent = false;
+
         // Bring the root manifest up to date so the signature covers the current archive contents.
         var manifestBytes = await WriteManifestAsync(cancellationToken);
 

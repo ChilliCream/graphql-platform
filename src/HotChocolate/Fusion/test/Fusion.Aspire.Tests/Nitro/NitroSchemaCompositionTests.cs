@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
@@ -260,6 +262,53 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             Tag: IncludePrivate
             Settings requests: 1
             """);
+    }
+
+    [Fact]
+    public async Task AcquireSeedAsync_Should_RemoveSignatureAndWarn_When_NitroArchiveIsSigned()
+    {
+        // arrange
+        var seedArchive = await NitroTestArchive.CreateAsync(
+            TestContext.Current.CancellationToken,
+            "products");
+        await using var archiveStream = new MemoryStream();
+        await archiveStream.WriteAsync(seedArchive, TestContext.Current.CancellationToken);
+        archiveStream.Position = 0;
+        using var rsa = RSA.Create(2048);
+        using var certificate = new CertificateRequest(
+            "CN=Test",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1).CreateSelfSigned(
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddYears(1));
+        using (var archive = FusionArchive.Open(
+                   archiveStream,
+                   FusionArchiveMode.Update,
+                   leaveOpen: true))
+        {
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        _server.DownloadHandler = _ => FakeNitroResponse.Archive(archiveStream.ToArray());
+        _server.GraphQLHandler = _ => CreateCompositionSettingsResponse();
+        var logger = new RecordingLogger<NitroSchemaCompositionTests>();
+
+        // act
+        var acquisition = await CreateCoordinator().AcquireSeedAsync(
+            "gateway",
+            GatewayApiId,
+            logger,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var updatedArchive = FusionArchive.Open(acquisition.Seed!.FilePath);
+        Assert.False(updatedArchive.IsSigned);
+        Assert.Equal(
+            "The Fusion archive signature was removed before applying Nitro composition settings. "
+            + "The producer must re-sign the archive.",
+            Assert.Single(logger.Entries, entry => entry.Level is LogLevel.Warning).Message);
     }
 
     [Fact]

@@ -123,14 +123,22 @@ internal static class AspireCompositionHelper
                 : FusionArchive.Create(fusionArchivePath);
         }
 
-        if (archive.IsSigned)
+        try
         {
-            await archive.RemoveSignatureAsync(cancellationToken);
-            logger.LogWarning(
-                "The Fusion archive signature was removed before composition. The producer must re-sign the archive.");
-        }
+            if (archive.IsSigned)
+            {
+                await archive.RemoveSignatureAsync(cancellationToken);
+                logger.LogWarning(
+                    "The Fusion archive signature was removed before composition. The producer must re-sign the archive.");
+            }
 
-        return archive;
+            return archive;
+        }
+        catch
+        {
+            archive.Dispose();
+            throw;
+        }
     }
 
     /// <summary>

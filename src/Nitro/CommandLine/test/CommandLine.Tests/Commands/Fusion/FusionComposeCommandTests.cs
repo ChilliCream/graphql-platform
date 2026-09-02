@@ -100,6 +100,35 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Compose_Should_RemoveSignatureAndWarn_When_ArchiveIsSigned()
+    {
+        // arrange
+        var archiveFileName = await BuildArchiveAsync(
+            "valid-example-1/source-schema-1.graphqls",
+            "valid-example-1/source-schema-2.graphqls");
+        await SignArchiveAsync(archiveFileName, TestContext.Current.CancellationToken);
+        SetupFile(archiveFileName, new MemoryStream(File.ReadAllBytes(archiveFileName)));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--remove-source-schema",
+            "Schema2");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(archiveFileName);
+        Assert.False(archive.IsSigned);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Warning: The Fusion archive signature was removed before it was changed. The producer must re-sign the archive.
+            """);
+    }
+
+    [Fact]
     public async Task Compose_RenameReplaceSourceSchema_RecomposesArchive()
     {
         // arrange

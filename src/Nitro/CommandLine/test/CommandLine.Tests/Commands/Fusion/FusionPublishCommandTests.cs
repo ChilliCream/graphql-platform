@@ -1269,6 +1269,44 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_Should_RemoveSignatureAndWarn_When_DownloadedArchiveIsSigned()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupSignedFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        Assert.False(archive.IsSigned);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Warning: The Fusion archive signature was removed before it was changed. The producer must re-sign the archive.
+            """);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_NullStageCompositionSettings_ArchiveSettingsPreserved()
     {
         // arrange
