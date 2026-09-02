@@ -240,7 +240,7 @@ public interface IReadOnlySchemaOptions
     bool ApplyShareableToConnections { get; }
 
     /// <summary>
-    /// Applies the @sharable directive to all collection segment types.
+    /// Applies the @shareable directive to all collection segment types.
     /// </summary>
     bool ApplyShareableToCollectionSegments { get; }
 
