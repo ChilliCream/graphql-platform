@@ -52,7 +52,11 @@ internal static class AspireCompositionHelper
             return false;
         }
 
-        using var archive = OpenArchive(fusionArchivePath, seedArchivePath);
+        using var archive = await OpenArchiveAsync(
+            fusionArchivePath,
+            seedArchivePath,
+            logger,
+            cancellationToken);
 
         var compositionLog = new CompositionLog();
         environment ??= settings.EnvironmentName ?? "Aspire";
@@ -99,18 +103,34 @@ internal static class AspireCompositionHelper
     /// Opens the archive that the composition writes to. A seed replaces the content of the
     /// archive, so what a previous composition wrote is never an input.
     /// </summary>
-    private static FusionArchive OpenArchive(string fusionArchivePath, string? seedArchivePath)
+    private static async Task<FusionArchive> OpenArchiveAsync(
+        string fusionArchivePath,
+        string? seedArchivePath,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
+        FusionArchive archive;
+
         if (seedArchivePath is not null)
         {
             File.Copy(seedArchivePath, fusionArchivePath, overwrite: true);
-
-            return FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update);
+            archive = FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update);
+        }
+        else
+        {
+            archive = File.Exists(fusionArchivePath)
+                ? FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update)
+                : FusionArchive.Create(fusionArchivePath);
         }
 
-        return File.Exists(fusionArchivePath)
-            ? FusionArchive.Open(fusionArchivePath, FusionArchiveMode.Update)
-            : FusionArchive.Create(fusionArchivePath);
+        if (archive.IsSigned)
+        {
+            await archive.RemoveSignatureAsync(cancellationToken);
+            logger.LogWarning(
+                "The Fusion archive signature was removed before composition. The producer must re-sign the archive.");
+        }
+
+        return archive;
     }
 
     /// <summary>

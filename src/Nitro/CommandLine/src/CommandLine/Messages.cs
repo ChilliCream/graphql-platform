@@ -77,6 +77,10 @@ internal static class Messages
     public static string LegacyArchiveCorrupt(string filePath, string detail)
         => $"Legacy v1 archive '{filePath}' is corrupt or malformed: {detail}";
 
+    public const string FusionArchiveSignatureRemoved =
+        "Warning: The Fusion archive signature was removed before it was changed. "
+        + "The producer must re-sign the archive.";
+
     public static string LegacyArchiveSchemaExtensionsNotSupported(string sourceSchemaName)
         => $"Legacy archive source schema '{sourceSchemaName}' contains schema extensions which are not supported in .far archives.";
 

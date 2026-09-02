@@ -27,6 +27,7 @@ public sealed class FusionArchive : IDisposable
     private FusionArchiveMode _mode;
     private ArrayBufferWriter<byte>? _buffer;
     private ArchiveMetadata? _metadata;
+    private bool _signatureCurrent;
     private bool _disposed;
 
     private FusionArchive(
@@ -1099,7 +1100,7 @@ public sealed class FusionArchive : IDisposable
     {
         ArgumentNullException.ThrowIfNull(privateKey);
         ObjectDisposedException.ThrowIf(_disposed, this);
-        EnsureMutable();
+        EnsureMutable(invalidateSignature: false);
 
         if (!privateKey.HasPrivateKey)
         {
@@ -1122,6 +1123,25 @@ public sealed class FusionArchive : IDisposable
         await using var stream = _session.OpenWrite(FileNames.Signature);
         await stream.WriteAsync(signatureBytes, cancellationToken);
         await stream.FlushAsync(cancellationToken);
+        _signatureCurrent = true;
+    }
+
+    /// <summary>
+    /// Removes the archive signature so its contents can be changed and committed.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public Task RemoveSignatureAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable(invalidateSignature: false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _session.Delete(FileNames.Signature);
+        _signatureCurrent = false;
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -1439,7 +1459,7 @@ public sealed class FusionArchive : IDisposable
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        EnsureMutable();
+        EnsureMutable(invalidateSignature: false);
 
         if (_session.HasUncommittedChanges)
         {
@@ -2406,11 +2426,16 @@ public sealed class FusionArchive : IDisposable
         => Convert.ToHexString(bytes).ToLowerInvariant();
 #endif
 
-    private void EnsureMutable()
+    private void EnsureMutable(bool invalidateSignature = true)
     {
         if (_mode is FusionArchiveMode.Read)
         {
             throw new InvalidOperationException("Cannot modify a read-only archive.");
+        }
+
+        if (invalidateSignature)
+        {
+            _signatureCurrent = false;
         }
     }
 
@@ -2432,6 +2457,11 @@ public sealed class FusionArchive : IDisposable
 
         if (_session.HasUncommittedChanges)
         {
+            if (IsSigned && !_signatureCurrent)
+            {
+                throw ThrowHelper.SignatureMustBeRemovedBeforeCommit();
+            }
+
             // Regenerate the content manifest so it always reflects the committed archive contents.
             // Determinism guarantees that unchanged content yields a byte-identical manifest.
             await WriteManifestAsync(cancellationToken);

@@ -285,16 +285,10 @@ public class FusionArchiveRegoPolicyTests
     }
 
     [Fact]
-    public async Task VerifySignature_Should_ReturnInvalidSignature_When_PolicyIsAddedAndRecommittedAfterSigning()
+    public async Task Commit_Should_Throw_When_PolicyIsAddedToASignedArchive()
     {
         await using var stream = new MemoryStream();
         using var certificate = CreateTestCertificate();
-#if NET9_0_OR_GREATER
-        using var publicCertificate = X509CertificateLoader.LoadCertificate(
-            certificate.Export(X509ContentType.Cert));
-#else
-        using var publicCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
-#endif
 
         using (var archive = FusionArchive.Create(stream, leaveOpen: true))
         {
@@ -309,15 +303,6 @@ public class FusionArchiveRegoPolicyTests
         }
 
         stream.Position = 0;
-        using (var archive = FusionArchive.Open(stream, leaveOpen: true))
-        {
-            var validResult = await archive.VerifySignatureAsync(
-                publicCertificate,
-                TestContext.Current.CancellationToken);
-            Assert.Equal(SignatureVerificationResult.Valid, validResult);
-        }
-
-        stream.Position = 0;
         using (var archive = FusionArchive.Open(
             stream,
             FusionArchiveMode.Update,
@@ -329,16 +314,51 @@ public class FusionArchiveRegoPolicyTests
                 "fragment Requirements on Product { price }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);
+            var action = () => archive.CommitAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            await Assert.ThrowsAsync<InvalidOperationException>(action);
+        }
+    }
+
+    [Fact]
+    public async Task VerifyIntegrity_Should_ReturnNotSigned_When_SignatureIsRemovedBeforeAddingPolicy()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var certificate = CreateTestCertificate();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyAsync(
+                "CanReadProduct",
+                "package authz"u8.ToArray(),
+                "fragment Requirements on Product { id }"u8.ToArray(),
+                s_version1,
+                TestContext.Current.CancellationToken);
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
             await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
-        // Recommitting regenerates the content manifest, so the old signature no longer matches.
+        // act
+        stream.Position = 0;
+        using (var archive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await archive.RemoveSignatureAsync(TestContext.Current.CancellationToken);
+            await archive.SetRegoPolicyAsync(
+                "CanReadPrice",
+                "package price"u8.ToArray(),
+                "fragment Requirements on Product { price }"u8.ToArray(),
+                s_version1,
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
         stream.Position = 0;
         using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
-        var result = await readArchive.VerifySignatureAsync(
-            publicCertificate,
-            TestContext.Current.CancellationToken);
-        Assert.Equal(SignatureVerificationResult.InvalidSignature, result);
+        var result = await readArchive.VerifyIntegrityAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(SignatureVerificationResult.NotSigned, result);
     }
 
     [Fact]

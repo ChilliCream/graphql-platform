@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
@@ -9,6 +11,71 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class AspireCompositionHelperTests
 {
     private const string ProductsSchemaText = "type Query { product: String }";
+
+    [Fact]
+    public async Task TryComposeAsync_Should_RemoveSignatureAndWarn_When_ExistingArchiveIsSigned()
+    {
+        // arrange
+        var archivePath = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            System.IO.Path.GetRandomFileName());
+        using var rsa = RSA.Create(2048);
+        using var certificate = new CertificateRequest(
+            "CN=Test",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1).CreateSelfSigned(
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow.AddYears(1));
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var products = CreateSourceSchema(
+            "Products",
+            allocatedHttpEndpointUrl: null,
+            productsSettings,
+            ProductsSchemaText);
+        var logger = new RecordingLogger<SchemaComposition>();
+
+        try
+        {
+            using (var archive = FusionArchive.Create(archivePath))
+            {
+                await archive.SetArchiveMetadataAsync(
+                    new ArchiveMetadata
+                    {
+                        SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                        SourceSchemas = []
+                    },
+                    TestContext.Current.CancellationToken);
+                await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+                await archive.CommitAsync(TestContext.Current.CancellationToken);
+            }
+
+            // act
+            var success = await AspireCompositionHelper.TryComposeAsync(
+                archivePath,
+                seedArchivePath: null,
+                [products],
+                default,
+                environment: null,
+                logger,
+                TestContext.Current.CancellationToken);
+
+            // assert
+            Assert.True(success);
+            using var readArchive = FusionArchive.Open(archivePath);
+            Assert.False(readArchive.IsSigned);
+            Assert.Equal(
+                "The Fusion archive signature was removed before composition. The producer must re-sign the archive.",
+                Assert.Single(logger.Entries, entry => entry.Level is LogLevel.Warning).Message);
+        }
+        finally
+        {
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+        }
+    }
 
     [Theory]
     [InlineData(null)]

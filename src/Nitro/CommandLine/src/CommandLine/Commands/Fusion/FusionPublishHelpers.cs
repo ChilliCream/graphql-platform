@@ -560,6 +560,7 @@ internal static class FusionPublishHelpers
                 newSourceSchemas,
                 compositionSettings,
                 legacyBuffer,
+                console,
                 cancellationToken);
 
             if (result.IsSuccess)
@@ -608,6 +609,7 @@ internal static class FusionPublishHelpers
         Dictionary<string, LocalSourceSchema> newSourceSchemas,
         CompositionSettings? compositionSettings,
         Stream? legacyArchive,
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
         FusionArchive archive;
@@ -623,6 +625,12 @@ internal static class FusionPublishHelpers
                 archiveStream,
                 mode: FusionArchiveMode.Update,
                 leaveOpen: true);
+
+            if (archive.IsSigned)
+            {
+                await archive.RemoveSignatureAsync(cancellationToken);
+                console.Error.WriteErrorLine(Messages.FusionArchiveSignatureRemoved);
+            }
         }
         else
         {

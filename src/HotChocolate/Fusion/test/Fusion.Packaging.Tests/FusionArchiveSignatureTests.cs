@@ -35,6 +35,64 @@ public class FusionArchiveSignatureTests : IDisposable
     }
 
     [Fact]
+    public async Task Commit_Should_Throw_When_SignedArchiveIsMutatedBeforeTheSignatureIsRemoved()
+    {
+        // arrange
+        var stream = CreateStream();
+        using var certificate = CreateTestCertificate();
+
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await BuildGatewayAsync(archive);
+        await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+        await archive.SetCompositionSettingsAsync(CreateSettings(), TestContext.Current.CancellationToken);
+
+        // act
+        var action = () => archive.CommitAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        await Assert.ThrowsAsync<InvalidOperationException>(action);
+    }
+
+    [Fact]
+    public async Task SignArchive_Should_ReturnValidSignature_When_SignatureIsRemovedBeforeMutation()
+    {
+        // arrange
+        var stream = CreateStream();
+        using var certificate = CreateTestCertificate();
+        using var publicCertificate = ToPublicCertificate(certificate);
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(archive);
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        stream.Position = 0;
+        using (var archive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await archive.SetCompositionSettingsAsync(CreateSettings(), TestContext.Current.CancellationToken);
+            await archive.RemoveSignatureAsync(TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        stream.Position = 0;
+        using (var archive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(publicCertificate, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.Valid, result);
+    }
+
+    [Fact]
     public async Task VerifySignature_Should_ReturnFilesModified_When_EntryIsTamperedThroughZip()
     {
         // arrange

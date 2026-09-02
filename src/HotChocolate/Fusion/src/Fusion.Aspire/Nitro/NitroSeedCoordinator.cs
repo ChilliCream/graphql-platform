@@ -277,7 +277,7 @@ internal sealed class NitroSeedCoordinator
         else
         {
             filePath = CopyToRunDirectory(gatewayName, result.FilePath!);
-            await ApplyCompositionSettingsAsync(filePath, stageSettings, cancellationToken);
+            await ApplyCompositionSettingsAsync(filePath, stageSettings, logger, cancellationToken);
             downloadedAt = result.DownloadedAt!.Value;
             isFresh = result.Outcome is NitroSeedOutcome.Downloaded;
         }
@@ -394,7 +394,7 @@ internal sealed class NitroSeedCoordinator
 
         var stageSettings = await settingsTask;
         var filePath = CopyToRunDirectory(gatewayName, result.FilePath!);
-        await ApplyCompositionSettingsAsync(filePath, stageSettings, cancellationToken);
+        await ApplyCompositionSettingsAsync(filePath, stageSettings, logger, cancellationToken);
         var seed = new NitroGatewaySeed(
             apiId,
             Stage,
@@ -683,6 +683,7 @@ internal sealed class NitroSeedCoordinator
     private static async Task ApplyCompositionSettingsAsync(
         string filePath,
         CompositionSettings? settings,
+        ILogger logger,
         CancellationToken cancellationToken)
     {
         if (settings is null)
@@ -691,6 +692,15 @@ internal sealed class NitroSeedCoordinator
         }
 
         using var archive = FusionArchive.Open(filePath, FusionArchiveMode.Update);
+
+        if (archive.IsSigned)
+        {
+            await archive.RemoveSignatureAsync(cancellationToken);
+            logger.LogWarning(
+                "The Fusion archive signature was removed before applying Nitro composition settings. "
+                + "The producer must re-sign the archive.");
+        }
+
         using var settingsDocument = await archive.GetCompositionSettingsAsync(cancellationToken);
         var existing = settingsDocument?.Deserialize(
             SettingsJsonSerializerContext.Default.CompositionSettings)
