@@ -790,6 +790,33 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
+    public void Render_Should_ApplyAnsiStyling_ToResearcherRoleToken()
+    {
+        // arrange: agent-a stays plain at the selected row; the researcher
+        // role under test lives on agent-b's unselected row.
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
+        sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
+            sessionId: "s-b", agentName: "agent-b", role: "researcher"));
+        var mode = CreateMode(sessions);
+        mode.OnEnter();
+
+        // A wide console so the harness column doesn't eat the role
+        // column's truncation budget down to nothing.
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(140).Height(20);
+
+        // act
+        console.Write(mode.Render(140, 20));
+
+        // assert: pin to agent-b's row rather than the whole frame.
+        Assert.NotEqual(
+            ThemeTokens.GetStyle("agents.list.role"),
+            ThemeTokens.GetStyle("agents.list.role.researcher"));
+        var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
+        AssertAnsiStyleApplied(row, "agents.list.role.researcher");
+    }
+
+    [Fact]
     public void Render_Should_ApplyAnsiStyling_ToBaseRoleToken_When_RoleHasNoDedicatedColor()
     {
         // arrange: "backend" has no per-role token, so RoleStyle must fall

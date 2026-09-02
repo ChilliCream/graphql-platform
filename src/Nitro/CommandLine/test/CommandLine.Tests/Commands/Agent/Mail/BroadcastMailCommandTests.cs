@@ -26,7 +26,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
               --subject <subject> (REQUIRED)  The message subject
               --body <body>                   The message body; use --body-file to read it from a file instead
               --body-file <body-file>         A file to read the message body from; use it instead of --body
-              --role <role>                   The actor role, normalized lowercase
+              --role <role>                   The actor role, normalized lowercase. Known roles: orchestrator, planner, implementer, reviewer, researcher; any other value is accepted.
               --actor <actor> (REQUIRED)      The actor performing this command; allocate one with `nitro agent login`
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information

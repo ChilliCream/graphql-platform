@@ -16,7 +16,7 @@ internal sealed class RegisterAgentCommand : Command
         Options.Add(Opt<RoleAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent register --actor \"maya\"", "agent register --actor \"maya\" --role \"backend\"");
+        this.AddExamples("agent register --actor \"maya\"", "agent register --actor \"maya\" --role \"researcher\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
