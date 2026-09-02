@@ -874,18 +874,26 @@ public sealed class MailStoreTests : IAsyncDisposable
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("old", cancellationToken);
         await SeedAgentAsync("target", cancellationToken);
-        var message = await SendAsync("claude", "inbox", ["old"], null, cancellationToken);
-        await _store.MarkReadAsync([message.Id], "old", cancellationToken);
+        var targetMessage = await SendAsync("claude", "target", ["target"], null, cancellationToken);
+        var unreadMessage = await SendAsync("claude", "unread", ["old"], null, cancellationToken);
+        var readMessage = await SendAsync("claude", "read", ["old"], null, cancellationToken);
+        await _store.MarkReadAsync([targetMessage.Id], "target", cancellationToken);
+        await _store.MarkReadAsync([readMessage.Id], "old", cancellationToken);
 
         // act
-        var result = await _store.TransferParticipationAsync(" OLD ", " TARGET ", cancellationToken);
+        var result = await _store.TransferParticipationAsync("OLD", "TARGET", cancellationToken);
         var inbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "target" }, cancellationToken);
+        var sourceInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken);
 
         // assert
-        Assert.Equal(new MailTransferResult(1, 0, 0), result);
-        Assert.Equal([message.Id], inbox.Select(t => t.Id));
-        Assert.NotNull(inbox[0].Recipients.Single().ReadAt);
-        Assert.Empty(await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken));
+        Assert.Equal(new MailTransferResult(2, 0, 0), result);
+        Assert.Equal(
+            [readMessage.Id, targetMessage.Id, unreadMessage.Id].Order(),
+            inbox.Select(t => t.Id).Order());
+        Assert.Equal(
+            [true, true, false],
+            inbox.OrderBy(t => t.Subject).Select(t => t.Recipients.Single().ReadAt is not null));
+        Assert.Empty(sourceInbox);
     }
 
     [Fact]
@@ -1026,7 +1034,7 @@ public sealed class MailStoreTests : IAsyncDisposable
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
-            () => _store.TransferParticipationAsync("target", " TARGET ", cancellationToken));
+            () => _store.TransferParticipationAsync("target", "TARGET", cancellationToken));
     }
 
     [Fact]

@@ -83,7 +83,8 @@ internal interface IMailStore
     Task<MailTransferResult> TransferParticipationAsync(
         string from,
         string to,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => Task.FromException<MailTransferResult>(new NotSupportedException());
 
     /// <summary>
     /// Returns the message with the given ID, with its recipients embedded,
