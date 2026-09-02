@@ -886,7 +886,11 @@ public sealed class MailStoreTests : IAsyncDisposable
         var sourceInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken);
 
         // assert
-        Assert.Equal(new MailTransferResult(2, 0, 0), result);
+        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
+            + $"{string.Join(",", result.SenderMessageIds)}|"
+            + string.Join(",", result.RecipientMessageIds))
+            .MatchInlineSnapshot(
+                $"2|0|0||{string.Join(",", new[] { readMessage.Id, unreadMessage.Id }.Order())}");
         Assert.Equal(
             new[] { readMessage.Id, targetMessage.Id, unreadMessage.Id }.Order(),
             inbox.Select(t => t.Id).Order());
@@ -912,7 +916,10 @@ public sealed class MailStoreTests : IAsyncDisposable
         var reply = await _store.ReplyMessageAsync(message.Id, "bob", "reply", cancellationToken);
 
         // assert
-        Assert.Equal(new MailTransferResult(0, 1, 0), transfer);
+        ($"{transfer.RecipientsMoved}|{transfer.SendersMoved}|{transfer.Dropped}|"
+            + $"{string.Join(",", transfer.SenderMessageIds)}|"
+            + string.Join(",", transfer.RecipientMessageIds))
+            .MatchInlineSnapshot($"0|1|0|{message.Id}|");
         Assert.Equal("bob", reply.Sender);
         Assert.Equal(["target"], reply.Recipients.Select(t => t.Name));
         Assert.Equal(message.ThreadId, reply.ThreadId);
@@ -954,7 +961,10 @@ public sealed class MailStoreTests : IAsyncDisposable
         var reloaded = await _store.GetRequiredMessageAsync(message.Id, cancellationToken);
 
         // assert
-        Assert.Equal(new MailTransferResult(0, 0, 1), result);
+        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
+            + $"{string.Join(",", result.SenderMessageIds)}|"
+            + string.Join(",", result.RecipientMessageIds))
+            .MatchInlineSnapshot("0|0|1||");
         var recipient = Assert.Single(reloaded.Recipients);
         Assert.Equal("target", recipient.Name);
         Assert.NotNull(recipient.ReadAt);

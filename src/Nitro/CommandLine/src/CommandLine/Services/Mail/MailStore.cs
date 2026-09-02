@@ -276,6 +276,11 @@ internal sealed class MailStore(
             throw new ExitException($"Target agent '{target}' does not exist.");
         }
 
+        var senderMessageIds = (await connection.QueryAsync<string>(
+            "SELECT id FROM messages WHERE sender = @source ORDER BY id",
+            new { source, cancellationToken },
+            transaction)).ToArray();
+
         var dropped = await connection.ExecuteAsync(
             """
             DELETE FROM message_recipients AS source
@@ -288,6 +293,11 @@ internal sealed class MailStore(
             """,
             new { source, target, cancellationToken },
             transaction);
+
+        var recipientMessageIds = (await connection.QueryAsync<string>(
+            "SELECT message_id FROM message_recipients WHERE recipient = @source ORDER BY message_id",
+            new { source, cancellationToken },
+            transaction)).ToArray();
 
         var recipientsMoved = await connection.ExecuteAsync(
             """
@@ -309,7 +319,11 @@ internal sealed class MailStore(
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new MailTransferResult(recipientsMoved, sendersMoved, dropped);
+        return new MailTransferResult(recipientsMoved, sendersMoved, dropped)
+        {
+            SenderMessageIds = senderMessageIds,
+            RecipientMessageIds = recipientMessageIds
+        };
     }
 
     /// <summary>

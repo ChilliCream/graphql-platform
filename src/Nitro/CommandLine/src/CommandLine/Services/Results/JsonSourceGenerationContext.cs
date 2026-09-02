@@ -81,6 +81,7 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 [JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
 [JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
+[JsonSerializable(typeof(TakeoverAgentCommand.AgentTakeoverResult))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(MailSendResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]
