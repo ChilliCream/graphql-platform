@@ -60,9 +60,8 @@ internal sealed class ClaudeHookHandler(
                 resolved.Generation, resolved.HarnessVersion, cancellationToken);
         }
 
-        var role = session.Role.Length > 0
-            ? session.Role
-            : (await agentRegistry.GetAsync(session.AgentName!, cancellationToken))?.Role ?? string.Empty;
+        var role = await AgentEffectiveRole.ResolveAsync(
+            session.Role, session.AgentName!, agentRegistry, cancellationToken);
 
         return new ClaudeHookOutcome
         {

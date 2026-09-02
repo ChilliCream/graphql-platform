@@ -189,6 +189,29 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task HandleSessionStartAsync_Should_PreserveActorContext_When_DurableRoleLookupFails()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var agentRegistry = new Mock<IAgentRegistry>(MockBehavior.Strict);
+        agentRegistry
+            .Setup(registry => registry.GetAsync(It.IsAny<string>(), cancellationToken))
+            .ThrowsAsync(new InvalidOperationException("lookup failed"));
+        var handler = CreateHandler(agentRegistry.Object);
+
+        // act
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
+    }
+
+    [Fact]
     public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutCreatingARow_When_CwdHasNoWorkspace()
     {
         // arrange: fail-open on a missing workspace. The payload's cwd is a

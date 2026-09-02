@@ -76,9 +76,8 @@ internal sealed class CodexHookHandler(
             await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
         }
 
-        var role = session.Role.Length > 0
-            ? session.Role
-            : (await agentRegistry.GetAsync(session.AgentName!, cancellationToken))?.Role ?? string.Empty;
+        var role = await AgentEffectiveRole.ResolveAsync(
+            session.Role, session.AgentName!, agentRegistry, cancellationToken);
 
         return new CodexHookOutcome
         {
