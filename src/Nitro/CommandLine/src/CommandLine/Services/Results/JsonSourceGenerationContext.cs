@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
