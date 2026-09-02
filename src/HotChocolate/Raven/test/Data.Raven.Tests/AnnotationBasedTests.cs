@@ -1,15 +1,15 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> resource)
-    : IClassFixture<RavenDBResource<CustomRavenDBDefaultOptions>>
+public class AnnotationBasedTests(RavenDBResource resource)
+    : IClassFixture<RavenDBResource>
 {
     [Fact]
     public async Task Queryable_Should_BeExecuted()

@@ -1,17 +1,17 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
-using Squadron;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefaultOptions>>
+public class FluentApiTests : IClassFixture<RavenDBResource>
 {
-    private readonly RavenDBResource<CustomRavenDBDefaultOptions> _resource;
+    private readonly RavenDBResource _resource;
 
-    public FluentApiTests(RavenDBResource<CustomRavenDBDefaultOptions> resource)
+    public FluentApiTests(RavenDBResource resource)
     {
         _resource = resource;
     }

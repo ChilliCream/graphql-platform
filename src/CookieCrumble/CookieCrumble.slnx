@@ -11,6 +11,7 @@
     <Project Path="src/CookieCrumble.Resources.Nats/CookieCrumble.Resources.Nats.csproj" />
     <Project Path="src/CookieCrumble.Resources.PostgreSql/CookieCrumble.Resources.PostgreSql.csproj" />
     <Project Path="src/CookieCrumble.Resources.RabbitMQ/CookieCrumble.Resources.RabbitMQ.csproj" />
+    <Project Path="src/CookieCrumble.Resources.RavenDB/CookieCrumble.Resources.RavenDB.csproj" />
     <Project Path="src/CookieCrumble.Resources.Redis/CookieCrumble.Resources.Redis.csproj" />
     <Project Path="src/CookieCrumble.Resources.SqlServer/CookieCrumble.Resources.SqlServer.csproj" />
     <Project Path="src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
