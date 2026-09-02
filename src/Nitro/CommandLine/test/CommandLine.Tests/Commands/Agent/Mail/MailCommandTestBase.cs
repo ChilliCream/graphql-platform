@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Data.Sqlite;
+using TestFileSystem = ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
