@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -70,6 +71,10 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexPathResolver, CodexPathResolver>();
         services.TryAddSingleton<ICodexHooksSidecarStore, CodexHooksSidecarStore>();
         services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
+        services.TryAddSingleton<IOpencodePathResolver, OpencodePathResolver>();
+        services.TryAddSingleton<IOpencodeHooksSidecarStore, OpencodeHooksSidecarStore>();
+        services.TryAddSingleton<IOpencodeHooksInstallerService, OpencodeHooksInstallerService>();
+        services.TryAddSingleton<IOpencodeVersionResolver, OpencodeVersionResolver>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IMemoryStore, MemoryStore>();
