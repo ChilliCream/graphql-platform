@@ -34,6 +34,16 @@ internal sealed class TakeoverLedger(
             cancellationToken,
             transaction);
 
+        var headerParameters = new DynamicParameters();
+        headerParameters.Add("Id", id);
+        headerParameters.Add("FromActor", creation.FromActor);
+        headerParameters.Add("ToActor", creation.ToActor);
+        headerParameters.Add("Actor", creation.Actor);
+        headerParameters.Add("CreatedAt", createdAt);
+        headerParameters.Add("Forced", creation.Forced);
+        headerParameters.Add("Role", creation.Role);
+        headerParameters.Add("Reason", creation.Reason);
+
         await connection.ExecuteAsync(
             new CommandDefinition(
                 """
@@ -44,17 +54,7 @@ internal sealed class TakeoverLedger(
                 @Id, @FromActor, @ToActor, @Actor, @CreatedAt, @Forced, @Role, @Reason
             );
             """,
-            new
-            {
-                Id = id,
-                creation.FromActor,
-                creation.ToActor,
-                creation.Actor,
-                createdAt,
-                creation.Forced,
-                creation.Role,
-                creation.Reason
-            },
+                headerParameters,
                 transaction,
                 cancellationToken: cancellationToken));
 
