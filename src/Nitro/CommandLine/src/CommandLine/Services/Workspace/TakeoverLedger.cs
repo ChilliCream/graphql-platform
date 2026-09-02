@@ -35,7 +35,8 @@ internal sealed class TakeoverLedger(
             transaction);
 
         await connection.ExecuteAsync(
-            """
+            new CommandDefinition(
+                """
             INSERT INTO agent_takeovers (
                 id, from_actor, to_actor, actor, created_at, forced, role, reason
             )
@@ -54,17 +55,20 @@ internal sealed class TakeoverLedger(
                 creation.Role,
                 creation.Reason
             },
-            transaction);
+                transaction,
+                cancellationToken: cancellationToken));
 
         foreach (var item in items)
         {
             await connection.ExecuteAsync(
-                """
+                new CommandDefinition(
+                    """
                 INSERT INTO agent_takeover_items (takeover_id, kind, item_id)
                 VALUES (@TakeoverId, @Kind, @ItemId);
                 """,
-                new { TakeoverId = id, item.Kind, item.ItemId },
-                transaction);
+                    new { TakeoverId = id, item.Kind, item.ItemId },
+                    transaction,
+                    cancellationToken: cancellationToken));
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -134,14 +138,16 @@ internal sealed class TakeoverLedger(
         parameters.Add("Limit", filter.Limit);
 
         var records = (await connection.QueryAsync<TakeoverRecord>(
-            $"""
+            new CommandDefinition(
+                $"""
             SELECT {TakeoverRecord.Columns}
             FROM agent_takeovers AS t
             {(where.Count == 0 ? string.Empty : $"WHERE {string.Join(" AND ", where)}")}
             ORDER BY t.created_at DESC, t.id DESC
             LIMIT COALESCE(@Limit, -1);
             """,
-            parameters)).ToArray();
+                parameters,
+                cancellationToken: cancellationToken))).ToArray();
 
         if (records.Length == 0)
         {
@@ -159,13 +165,15 @@ internal sealed class TakeoverLedger(
         }
 
         var itemRows = await connection.QueryAsync<TakeoverItemRow>(
-            $"""
+            new CommandDefinition(
+                $"""
             SELECT takeover_id AS TakeoverId, kind AS Kind, item_id AS ItemId
             FROM agent_takeover_items
             WHERE takeover_id IN ({string.Join(", ", itemNames)})
             ORDER BY takeover_id, kind, item_id;
             """,
-            itemParameters);
+                itemParameters,
+                cancellationToken: cancellationToken));
         var itemsByTakeoverId = itemRows
             .GroupBy(item => item.TakeoverId, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => (IReadOnlyList<TakeoverItem>)group
@@ -196,16 +204,20 @@ internal sealed class TakeoverLedger(
         DbTransaction transaction)
     {
         var takeoverCount = await connection.ExecuteScalarAsync<long>(
-            "SELECT COUNT(*) FROM agent_takeovers",
-            transaction: transaction);
+            new CommandDefinition(
+                "SELECT COUNT(*) FROM agent_takeovers",
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
             var id = IdPrefix + CreateIdSuffix(seed, takeoverCount, attempt);
             var exists = await connection.ExecuteScalarAsync<long>(
-                "SELECT COUNT(*) FROM agent_takeovers WHERE id = @Id",
-                new { Id = id },
-                transaction);
+                new CommandDefinition(
+                    "SELECT COUNT(*) FROM agent_takeovers WHERE id = @Id",
+                    new { Id = id },
+                    transaction,
+                    cancellationToken: cancellationToken));
 
             if (exists == 0)
             {

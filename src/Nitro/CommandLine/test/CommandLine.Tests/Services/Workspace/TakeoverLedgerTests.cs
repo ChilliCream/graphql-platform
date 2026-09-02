@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -138,6 +139,80 @@ public sealed class TakeoverLedgerTests : IDisposable
         Assert.Equal(("maya", "nora"), (Assert.Single(records).FromActor, records[0].ToActor));
     }
 
+    [Fact]
+    public void TakeoverFilter_Should_Throw_When_LimitIsNegative()
+    {
+        // act & assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TakeoverFilter { Limit = -1 });
+    }
+
+    [Fact]
+    public async Task QueryAsync_Should_ReturnNoRecords_When_LimitIsZero()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _ledger.RecordAsync(CreateRecord("maya", "nora", "maya"), [], cancellationToken);
+
+        // act
+        var records = await _ledger.QueryAsync(new TakeoverFilter { Limit = 0 }, cancellationToken);
+
+        // assert
+        Assert.Empty(records);
+    }
+
+    [Fact]
+    public async Task QueryAsync_Should_ReturnNewestRecords_When_LimitIsPositive()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _ledger.RecordAsync(CreateRecord("maya", "nora", "maya"), [], cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await _ledger.RecordAsync(CreateRecord("nora", "jules", "nora"), [], cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await _ledger.RecordAsync(CreateRecord("jules", "sam", "jules"), [], cancellationToken);
+
+        // act
+        var records = await _ledger.QueryAsync(new TakeoverFilter { Limit = 2 }, cancellationToken);
+
+        // assert
+        Assert.Collection(
+            records,
+            record => Assert.Equal(("jules", "sam"), (record.FromActor, record.ToActor)),
+            record => Assert.Equal(("nora", "jules"), (record.FromActor, record.ToActor)));
+    }
+
+    [Fact]
+    public async Task RecordAsync_Should_RollBack_When_CancelledAfterHeaderInsertBlocks()
+    {
+        // arrange
+        var testCancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(testCancellationToken);
+        await using var lockingConnection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
+        await lockingConnection.OpenAsync(testCancellationToken);
+        await ExecuteNonQueryAsync(lockingConnection, "BEGIN IMMEDIATE;", testCancellationToken);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var recordTask = _ledger.RecordAsync(
+            CreateRecord("maya", "nora", "maya"),
+            [new TakeoverItem { Kind = TakeoverItemKinds.Task, ItemId = "repo-cpf" }],
+            cancellationTokenSource.Token);
+
+        await Task.Delay(TimeSpan.FromMilliseconds(100), testCancellationToken);
+        Assert.False(recordTask.IsCompleted);
+
+        // act
+        cancellationTokenSource.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => recordTask.WaitAsync(TimeSpan.FromSeconds(5), testCancellationToken));
+
+        // assert
+        await ExecuteNonQueryAsync(lockingConnection, "ROLLBACK;", testCancellationToken);
+        var records = await _ledger.QueryAsync(new TakeoverFilter(), testCancellationToken);
+        Assert.Empty(records);
+    }
+
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_workspaceDirectory);
@@ -154,4 +229,14 @@ public sealed class TakeoverLedgerTests : IDisposable
             Role = "implementer",
             Reason = "handoff"
         };
+
+    private static async Task ExecuteNonQueryAsync(
+        SqliteConnection connection,
+        string commandText,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = commandText;
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

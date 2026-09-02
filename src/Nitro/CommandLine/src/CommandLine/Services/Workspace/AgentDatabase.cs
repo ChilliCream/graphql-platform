@@ -107,14 +107,26 @@ internal sealed class AgentDatabase
             AgentWorkspace.GetDatabasePath(workspaceDirectory),
             cancellationToken);
 
-        // Validated before anything else touches the file, including the
-        // constraint rebuild below: a database newer than this CLI
-        // understands must be rejected untouched, not partially rewritten
-        // by a rebuild built against this CLI's own idea of the table's
-        // shape.
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+        long version;
 
-        ValidateVersionForInitialize(version);
+        try
+        {
+            // Validated before anything else touches the file, including the
+            // constraint rebuild below: a database newer than this CLI
+            // understands must be rejected untouched, not partially rewritten
+            // by a rebuild built against this CLI's own idea of the table's
+            // shape.
+            version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+
+            ValidateVersionForInitialize(version);
+
+            await ConfigureAcceptedConnectionAsync(connection, cancellationToken);
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
 
         // Must run before the main transaction below starts, and manages its
         // own: PRAGMA foreign_keys can only be toggled when there is no
@@ -612,11 +624,21 @@ internal sealed class AgentDatabase
             AgentWorkspace.GetDatabasePath(workspaceDirectory),
             cancellationToken);
 
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+        try
+        {
+            var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
 
-        ValidateVersionForConnect(version);
+            ValidateVersionForConnect(version);
 
-        return connection;
+            await ConfigureAcceptedConnectionAsync(connection, cancellationToken);
+
+            return connection;
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
     }
 
     /// <summary>
@@ -684,9 +706,14 @@ internal sealed class AgentDatabase
         var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
 
         await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
         return connection;
     }
+
+    private static Task ConfigureAcceptedConnectionAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+        => connection.ExecuteAsync(
+            new CommandDefinition(
+                "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;",
+                cancellationToken: cancellationToken));
 }
