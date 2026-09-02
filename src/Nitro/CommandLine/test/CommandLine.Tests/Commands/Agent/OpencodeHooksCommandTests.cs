@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task Help_HooksOpencode_ExplainsTheFailOpenLocalOnlySetup()
+    public async Task ExecuteCommandAsync_Should_ExplainFailOpenLocalOnlySetup_When_OpencodeHelpIsRequested()
     {
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "--help");
@@ -17,7 +17,7 @@ public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : Age
     }
 
     [Fact]
-    public async Task Help_HooksOpencodeInstall_DescribesTheTwoScopes()
+    public async Task ExecuteCommandAsync_Should_DescribeTwoScopes_When_OpencodeInstallHelpIsRequested()
     {
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--help");
@@ -29,32 +29,43 @@ public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : Age
     }
 
     [Fact]
-    public async Task InstallStatusUninstall_OpencodeGroup_ProjectScope_RoundTripsWithoutUsingTheHomeDirectory()
+    public async Task ExecuteCommandAsync_Should_RoundTripWithoutUsingHomeDirectory_When_ProjectScopeIsUsed()
     {
         // arrange
         var sidecarDirectory = Path.Combine(WorkingDirectory, "..", "app-data");
         SetupGlobalConfigDirectory(sidecarDirectory);
         await InitWorkspaceAsync();
 
-        // act and assert
+        // act
         var install = await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+
+        // assert
         Assert.Equal(0, install.ExitCode);
         Assert.True(File.Exists(Path.Combine(WorkingDirectory, ".opencode", "plugin", "nitro-hooks.js")));
 
+        // act
         var statusAfterInstall =
             await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
         Assert.Equal(0, statusAfterInstall.ExitCode);
 
+        // act
         var uninstall = await ExecuteCommandAsync("agent", "hooks", "opencode", "uninstall", "--scope", "project");
+
+        // assert
         Assert.Equal(0, uninstall.ExitCode);
 
+        // act
         var statusAfterUninstall =
             await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
         Assert.Equal(1, statusAfterUninstall.ExitCode);
     }
 
     [Fact]
-    public async Task ResolveAsync_FakeVersionReader_ParsesTheVersion()
+    public async Task ResolveAsync_Should_ParseVersion_When_VersionReaderReturnsVersion()
     {
         // arrange
         var resolver = new OpencodeVersionResolver(_ => Task.FromResult<string?>("opencode 1.18.23"));

@@ -14,7 +14,7 @@ internal static class OpencodeVersionWarning
         var version = await versionResolver.ResolveAsync(cancellationToken);
 
         if (!console.IsHumanReadable
-            || (version is not null && version.CompareTo(s_minimumSupportedVersion) >= 0))
+            || version?.CompareTo(s_minimumSupportedVersion) >= 0)
         {
             return;
         }
