@@ -349,6 +349,20 @@ builder
 
 When `EnableOptInFeatures` is enabled on the gateway, the introspection schema exposes the `includeOptIn` argument and `__schema.optInFeatures` / `optInFeatureStability` fields. Members marked `@requiresOptIn` are hidden from introspection unless the client opts into their feature via `includeOptIn`. Opt-in affects introspection visibility only: hidden members remain fully executable, and the gateway never rejects a request that selects an opt-in field.
 
+## Empty Selection Sets
+
+Enable empty selection sets with `EnableEmptySelectionSets`:
+
+```csharp filename="Gateway/Program.cs"
+builder
+    .AddGraphQLGateway()
+    .ModifyOptions(o => o.EnableEmptySelectionSets = true);
+```
+
+The gateway resolves empty selection sets locally and never sends one to a source schema. It requests `__typename` downstream and removes the synthetic field from the result.
+
+The default remains `false` until [RFC PR 1227](https://github.com/graphql/graphql-spec/pull/1227) merges into the specification draft and is planned to change to `true` in the next major release.
+
 ## Discovering Opt-In Fields
 
 Clients pass the `includeOptIn` argument in introspection queries to discover opt-in fields.
