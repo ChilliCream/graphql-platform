@@ -69,14 +69,6 @@
     <PackageVersion Include="Spectre.Console" Version="0.55.2" />
     <PackageVersion Include="Spectre.Console.Testing" Version="0.55.2" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-    <PackageVersion Include="Squadron.AzureStorage" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.Mongo" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.Nats" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.PostgreSql" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.RabbitMQ" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.RavenDB" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.Redis" Version="2.0.0-p.1" />
-    <PackageVersion Include="Squadron.SqlServer" Version="2.0.0-p.1" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.5" />
