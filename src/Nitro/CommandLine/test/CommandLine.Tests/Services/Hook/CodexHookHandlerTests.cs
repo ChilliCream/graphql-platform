@@ -347,19 +347,42 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleNotifyAsync_Should_QueueTheDigest_When_UnreadMailExistsForTheClaimedActor()
+    public async Task HandleNotifyAsync_Should_QueueTheDigestJson_When_UnreadMailExistsForTheClaimedActor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
         Assert.True(outcome.Queued);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(SessionId, call.ThreadId);
-        Assert.Contains("nitro agent mail inbox --actor", call.Message);
+        Assert.Contains("1 shown below as `nitro agent mail read --thread --output json` prints them.", call.Message);
+        Assert.Contains(message.Id, call.Message);
+        Assert.Contains("\"items\"", call.Message);
+    }
+
+    [Fact]
+    public async Task HandleNotifyAsync_Should_QueueTheInboxPointer_When_MailWasAnnouncedOnTheDigestChannel()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Queued);
+        var call = Assert.Single(_queueClient.Calls);
+        Assert.Equal(
+            $"You have 1 unread nitro message. Run `nitro agent mail inbox --actor {actor}`.",
+            call.Message);
     }
 
     [Fact]

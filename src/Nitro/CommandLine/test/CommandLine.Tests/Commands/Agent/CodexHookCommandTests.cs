@@ -148,7 +148,26 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         Assert.Equal(SessionId, call.ThreadId);
         call.Message.Replace(message.Id, "<id>").MatchInlineSnapshot(
             """
-            You have 1 unread nitro message. Run `nitro agent mail inbox --actor maya`.
+            You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor maya --body "..."` or ack with `nitro agent mail ack --message <id> --actor maya`; anything not shown is in `nitro agent mail inbox --unread --actor maya`.
+            {
+              "items": [
+                {
+                  "id": "<id>",
+                  "threadId": "<id>",
+                  "inReplyTo": null,
+                  "from": "bob",
+                  "to": [
+                    "maya"
+                  ],
+                  "cc": [],
+                  "subject": "status",
+                  "body": "please check",
+                  "createdAt": "2026-01-01T00:00:00+00:00",
+                  "read": false,
+                  "archived": false
+                }
+              ]
+            }
             """);
     }
 

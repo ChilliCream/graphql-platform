@@ -388,20 +388,45 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleStopAsync_Should_Block_When_UnreadMailExistsForTheClaimedActor()
+    public async Task HandleStopAsync_Should_IncludeTheDigest_When_UnreadMailHasNotBeenDelivered()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
 
         // act
         var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
         Assert.True(outcome.Block);
-        Assert.NotNull(outcome.BlockReason);
+        Assert.StartsWith(
+            "Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.\n",
+            outcome.BlockReason!);
+        Assert.Contains(message.Id, outcome.BlockReason!);
+        Assert.Contains("\"items\"", outcome.BlockReason!);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_KeepTheBlockReason_When_AllMailWasAnnouncedOnTheDigestChannel()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Block);
+        Assert.Equal(
+            $"Unread nitro mail is waiting. Read it with `nitro agent mail inbox --actor {actor}` "
+                + "before ending this turn, or ignore this once if it is not actionable right now.",
+            outcome.BlockReason);
     }
 
     [Fact]
@@ -747,6 +772,12 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
 internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
 {
     public IReadOnlyList<string>? LastMessageIds { get; private set; }
+
+    public Task<IReadOnlyList<string>> FindDeliveredAsync(
+        AgentSessionGeneration generation,
+        IReadOnlyList<string> messageIds,
+        CancellationToken cancellationToken)
+        => inner.FindDeliveredAsync(generation, messageIds, cancellationToken);
 
     public Task<IReadOnlyList<string>> ReserveAsync(
         string harness,

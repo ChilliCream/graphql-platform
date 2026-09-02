@@ -124,7 +124,7 @@ internal sealed class CodexHookHandler(
 
         return digest is null
             ? CodexHookOutcome.Neutral
-            : new CodexHookOutcome { AdditionalContext = digest };
+            : new CodexHookOutcome { AdditionalContext = digest.Text };
     }
 
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
@@ -184,18 +184,17 @@ internal sealed class CodexHookHandler(
         // digest on the gate channel from then on rather than retrying or
         // duplicating it - the message stays visible to a direct inbox read
         // and to the digest channel either way.
-        var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest, cancellationToken);
+        var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest.Text, cancellationToken);
 
         return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
     }
 
     /// <summary>
-    /// The unread-mail nudge for this session on <paramref name="channel"/>,
-    /// or null when nothing is unread or every unread message was already
-    /// announced there. It names the command that reads the mail; the mail
-    /// itself stays in the inbox.
+    /// The unread-mail digest for this session on <paramref name="channel"/>,
+    /// or null when nothing is unread or every message is already reserved on
+    /// that channel.
     /// </summary>
-    private async Task<string?> BuildDigestAsync(
+    private async Task<MailDigestResult?> BuildDigestAsync(
         AgentSessionGeneration generation,
         string actor,
         string channel,
@@ -210,10 +209,12 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
+        var messageIds = unread.Select(message => message.Id).ToList();
+        var delivered = await ledger.FindDeliveredAsync(generation, messageIds, cancellationToken);
         var reserved = await ledger.ReserveAsync(
             generation.Harness,
             generation.SessionId,
-            unread.Select(m => m.Id).ToList(),
+            messageIds,
             channel,
             timeProvider.GetUtcNow(),
             cancellationToken);
@@ -223,7 +224,15 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+        var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+        var messages = unread
+            .Where(message => reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+            .ToList();
+        var unreadTotal = await mailStore.CountUnreadAsync(actor, cancellationToken);
+
+        return new MailDigestResult(
+            MailDigest.Render(actor, messages, unreadTotal));
     }
 
     /// <summary>
@@ -267,4 +276,6 @@ internal sealed class CodexHookHandler(
     }
 
     private sealed record ResolvedGeneration(AgentSessionGeneration Generation, string WorkspaceDirectory);
+
+    private sealed record MailDigestResult(string Text);
 }
