@@ -13,10 +13,14 @@
   },
   "containerEnv": {
     "DOTNET_LOCAL_DEV": "1",
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "HISTFILE": "/home/vscode/.commandhistory/.zsh_history"
   },
   "mounts": [
-    "source=claude-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+    "source=claude-config-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=codex-config-${devcontainerId},target=/home/vscode/.codex,type=volume",
+    "source=copilot-config-${devcontainerId},target=/home/vscode/.copilot,type=volume",
+    "source=shell-history-${devcontainerId},target=/home/vscode/.commandhistory,type=volume"
   ],
   "postCreateCommand": "dotnet build src/All.slnx",
   "postStartCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/setup-git-signing.sh",
