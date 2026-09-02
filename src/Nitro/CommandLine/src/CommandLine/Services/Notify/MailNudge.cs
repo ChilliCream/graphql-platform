@@ -14,6 +14,20 @@ internal sealed class MailNudge(
 {
     public async Task NudgeAsync(IReadOnlyList<string> actors, CancellationToken cancellationToken)
     {
+        try
+        {
+            await NudgeCoreAsync(actors, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Best effort: the recipients' next turns report the unread mail.
+        }
+    }
+
+    private async Task NudgeCoreAsync(
+        IReadOnlyList<string> actors,
+        CancellationToken cancellationToken)
+    {
         if (actors.Count == 0)
         {
             return;

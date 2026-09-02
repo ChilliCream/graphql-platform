@@ -1,13 +1,40 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
 public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     : MailCommandTestBase(fixture)
 {
+    [Fact]
+    public async Task NudgeAsync_Should_ReturnNormally_When_ParticipantDiscoveryThrows()
+    {
+        // arrange
+        var sessions = new Mock<IAgentSessionRegistry>();
+        sessions
+            .Setup(registry => registry.ListParticipantsAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("participant discovery failed"));
+        var nudge = new MailNudge(
+            sessions.Object,
+            Mock.Of<IMailStore>(),
+            Mock.Of<ISessionDeliveryLedger>(),
+            Mock.Of<IClaudePeerClient>(),
+            Mock.Of<ICodexQueueClient>(),
+            TimeProvider.System);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        sessions.Verify(
+            registry => registry.ListParticipantsAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
