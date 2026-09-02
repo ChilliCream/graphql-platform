@@ -1,6 +1,5 @@
 using System.Text;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Subscriptions.NATS;
 using HotChocolate.Transport.Http;
@@ -34,11 +33,12 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_ReturnErrorAndStayAlive_When_EnrichmentLookupRejectsEventId()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
+        await using var nats = new NatsResource();
+        await nats.InitializeAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await CreateStreamAsync(nats.NatsConnectionString, stream, Topic, cts.Token);
 
         using var events = CreateSourceSchema(
             "EVENTS",
@@ -54,7 +54,7 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
+                    o.Url = nats.NatsConnectionString;
                     o.JetStream = new NatsJetStreamOptions { Stream = stream };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
@@ -85,9 +85,13 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
         // The first event carries the raw database key (not a valid global id), so the node lookup
         // that fetches `body` fails. The second event carries the encoded global id and resolves.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"review":{"id":1}}""", cts.Token);
-        await PublishAsync(nats.Url, Topic, "{\"review\":{\"id\":\"" + validId + "\"}}", cts.Token);
+        await WaitForConsumerAsync(nats.NatsConnectionString, stream, expectedCount: 1, cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"review":{"id":1}}""", cts.Token);
+        await PublishAsync(
+            nats.NatsConnectionString,
+            Topic,
+            "{\"review\":{\"id\":\"" + validId + "\"}}",
+            cts.Token);
 
         var results = new List<OperationResult>();
         await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
@@ -209,48 +213,5 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
         public record ReviewCreated(Review Review, [property: EventCursor] string Cursor);
 
         public record Review(int Id, string Body);
-    }
-
-    private sealed class JetStreamNatsFixture : IAsyncDisposable
-    {
-        private readonly IContainer _container;
-
-        private JetStreamNatsFixture(IContainer container) => _container = container;
-
-        public string Url => $"nats://localhost:{_container.GetMappedPublicPort(4222)}";
-
-        public static async Task<JetStreamNatsFixture> StartAsync()
-        {
-            var fixture = new JetStreamNatsFixture(
-                new ContainerBuilder("nats:2.10-alpine")
-                    .WithPortBinding(4222, assignRandomHostPort: true)
-                    .WithCommand("-js")
-                    .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(4222))
-                    .Build());
-
-            await fixture._container.StartAsync();
-            await fixture.WaitForConnectionAsync();
-            return fixture;
-        }
-
-        private async Task WaitForConnectionAsync()
-        {
-            var attempt = 0;
-            while (true)
-            {
-                try
-                {
-                    await using var connection = new NatsConnection(new NatsOpts { Url = Url });
-                    await connection.ConnectAsync();
-                    return;
-                }
-                catch (NatsException) when (++attempt < 20)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(250));
-                }
-            }
-        }
-
-        public async ValueTask DisposeAsync() => await _container.DisposeAsync();
     }
 }

@@ -14,14 +14,13 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate.Language\CookieCrumble.HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Nats\CookieCrumble.Resources.Nats.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="NATS.Client.Core" />
     <PackageReference Include="NATS.Client.JetStream" />
-    <PackageReference Include="Squadron.Nats" />
-    <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
 </Project>

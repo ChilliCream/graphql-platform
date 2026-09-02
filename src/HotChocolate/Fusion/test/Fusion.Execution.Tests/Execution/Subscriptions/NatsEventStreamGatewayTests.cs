@@ -1,5 +1,4 @@
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Logging;
@@ -33,13 +32,14 @@ public sealed class NatsEventStreamGatewayTests
     public async Task Subscribe_Should_ContinueAfterCursor_When_ResumedAgainstRealNatsJetStream()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
+        await using var nats = new NatsResource();
+        await nats.InitializeAsync();
         var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await CreateStreamAsync(nats.NatsConnectionString, stream, Topic, cts.Token);
 
-        var executor = await BuildGatewayAsync(nats.Url, stream);
+        var executor = await BuildGatewayAsync(nats.NatsConnectionString, stream);
 
         // act
         // Drive the initial subscription, publish two events to the single NATS subject, and receive
@@ -58,9 +58,21 @@ public sealed class NatsEventStreamGatewayTests
             count: 2,
             async () =>
             {
-                await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-                await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
-                await PublishAsync(nats.Url, Topic, """{"user":{"id":"u2"}}""", cts.Token);
+                await WaitForConsumerAsync(
+                    nats.NatsConnectionString,
+                    stream,
+                    expectedCount: 1,
+                    cts.Token);
+                await PublishAsync(
+                    nats.NatsConnectionString,
+                    Topic,
+                    """{"user":{"id":"u1"}}""",
+                    cts.Token);
+                await PublishAsync(
+                    nats.NatsConnectionString,
+                    Topic,
+                    """{"user":{"id":"u2"}}""",
+                    cts.Token);
             },
             cts.Token);
 
@@ -77,7 +89,11 @@ public sealed class NatsEventStreamGatewayTests
             }
             """,
             count: 2,
-            async () => await PublishAsync(nats.Url, Topic, """{"user":{"id":"u3"}}""", cts.Token),
+            async () => await PublishAsync(
+                nats.NatsConnectionString,
+                Topic,
+                """{"user":{"id":"u3"}}""",
+                cts.Token),
             cts.Token);
 
         // assert
@@ -334,34 +350,4 @@ public sealed class NatsEventStreamGatewayTests
     public record OnUserCreatedEvent(User User, [property: EventCursor] string Cursor);
 
     public record User(string Id);
-
-    private sealed class JetStreamNatsFixture : IAsyncDisposable
-    {
-        private readonly IContainer _container;
-
-        private JetStreamNatsFixture(IContainer container)
-        {
-            _container = container;
-        }
-
-        public string Url => $"nats://localhost:{_container.GetMappedPublicPort(4222)}";
-
-        public static async Task<JetStreamNatsFixture> StartAsync()
-        {
-            var fixture = new JetStreamNatsFixture(
-                new ContainerBuilder("nats:2.10-alpine")
-                    .WithPortBinding(4222, assignRandomHostPort: true)
-                    .WithCommand("-js")
-                    .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(4222))
-                    .Build());
-
-            await fixture._container.StartAsync();
-            return fixture;
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _container.DisposeAsync();
-        }
-    }
 }
