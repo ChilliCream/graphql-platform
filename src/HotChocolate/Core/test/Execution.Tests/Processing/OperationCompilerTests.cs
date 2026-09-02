@@ -2007,7 +2007,7 @@ public class OperationCompilerTests
                     "someName",
                     SelectionPath.Root,
                     baz,
-                    [new FieldSelectionNode(bazSelection, 0)],
+                    [new FieldSelectionNode(bazSelection, default(ConditionFlags))],
                     [],
                     isProjectionRequirement: false,
                     isInternal: true,

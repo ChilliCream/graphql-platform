@@ -437,12 +437,22 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOpti
 
             var parentType =
                 context.PendingFields.Count == 0
-                    ? null
+                    ? context.Schema.GetOperationType(context.OperationType)
                     : context.PendingFields.Peek().Field.Type.NamedType();
 
+            var declaringNode = context.Nodes.ElementAtOrDefault(2);
+
+            NamedTypeNode? fragmentTypeCondition = null;
+            if (declaringNode is FragmentSpreadNode spreadNode
+                && context.Fragments.TryGetValue(spreadNode.Name.Value, out var fragmentNode))
+            {
+                fragmentTypeCondition = fragmentNode.TypeCondition;
+            }
+
             var selectionState = fieldNode.GetSelectionState(
-                declaringNode: context.Nodes.ElementAtOrDefault(2),
-                parentType);
+                declaringNode,
+                parentType,
+                fragmentTypeCondition);
 
             if (selectionState is SelectionState.Excluded)
             {
@@ -635,7 +645,14 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOpti
         {
             if (context.Fragments.TryGetValue(fragmentSpreadNode.Name.Value, out var fragmentNode))
             {
+                // Narrow the type for the duration of this fragment.
+                var parent = context.Frames.Peek();
+                var typeCondition = fragmentNode.TypeCondition.Name.Value;
+                var narrowed = (IOutputTypeDefinition)context.Schema.Types[typeCondition];
+
+                context.Frames.Push(parent with { Type = narrowed });
                 Visit(fragmentNode.SelectionSet, context);
+                context.Frames.Pop();
             }
 
             return Skip;

@@ -20,4 +20,4 @@ namespace HotChocolate.Execution.Processing;
 public sealed record DeferUsage(
     string? Label,
     DeferUsage? Parent,
-    byte DeferConditionIndex);
+    int DeferConditionIndex);

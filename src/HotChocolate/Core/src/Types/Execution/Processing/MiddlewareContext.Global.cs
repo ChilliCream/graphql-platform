@@ -40,6 +40,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public ulong IncludeFlags => _operationContext.IncludeFlags;
 
+    public ConditionFlags IncludeConditionFlags => _operationContext.IncludeConditionFlags;
+
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;

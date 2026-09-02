@@ -2,7 +2,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Demo.Shipping</AssemblyName>
     <RootNamespace>HotChocolate.Demo.Shipping</RootNamespace>
-    <TargetFramework>net11.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Demo.ServiceDefaults\Demo.ServiceDefaults.csproj" />

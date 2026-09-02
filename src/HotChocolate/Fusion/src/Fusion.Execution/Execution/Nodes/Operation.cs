@@ -70,6 +70,8 @@ public sealed class Operation : IOperation
         _hasIncrementalParts = hasIncrementalParts;
         _lastId = lastId;
         _elementsById = elementsById;
+        HasWideIncludeFlags = includeConditions.Count > 64;
+        HasWideDeferFlags = deferConditions.Count > 64;
 
         _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
@@ -125,6 +127,28 @@ public sealed class Operation : IOperation
     public IFeatureCollection Features => _features;
 
     public bool HasIncrementalParts => _hasIncrementalParts;
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 include
+    /// conditions and therefore requires the wide include flag overloads.
+    /// </summary>
+    public bool HasWideIncludeFlags { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 defer
+    /// conditions and therefore requires the wide defer flag overloads.
+    /// </summary>
+    public bool HasWideDeferFlags { get; }
+
+    /// <summary>
+    /// Gets the number of distinct include conditions of this operation.
+    /// </summary>
+    internal int IncludeConditionCount => _includeConditions.Count;
+
+    /// <summary>
+    /// Gets the number of distinct defer conditions of this operation.
+    /// </summary>
+    internal int DeferConditionCount => _deferConditions.Count;
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
@@ -185,6 +209,8 @@ public sealed class Operation : IOperation
                             (FusionComplexTypeDefinition)typeContext,
                             _includeConditions,
                             _deliveryGroupByFragment,
+                            HasWideIncludeFlags,
+                            HasWideDeferFlags,
                             ref _elementsById,
                             ref _lastId);
                     selectionSet.Seal(this);
@@ -254,6 +280,12 @@ public sealed class Operation : IOperation
             }
 
             index++;
+
+            // The single-word API only evaluates the first 64 conditions.
+            if (index == 64)
+            {
+                break;
+            }
         }
 
         return includeFlags;
@@ -281,9 +313,77 @@ public sealed class Operation : IOperation
             }
 
             index++;
+
+            // The single-word API only evaluates the first 64 conditions.
+            if (index == 64)
+            {
+                break;
+            }
         }
 
         return deferFlags;
+    }
+
+    /// <summary>
+    /// Creates the include condition flags for the specified variable values.
+    /// </summary>
+    public ConditionFlags CreateIncludeConditionFlags(IVariableValueCollection variables)
+    {
+        ulong[]? overflow = HasWideIncludeFlags
+            ? new ulong[(_includeConditions.Count - 1) >> 6]
+            : null;
+        var index = 0;
+        var word0 = 0ul;
+
+        foreach (var includeCondition in _includeConditions)
+        {
+            if (includeCondition.IsIncluded(variables))
+            {
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
+            }
+
+            index++;
+        }
+
+        return new ConditionFlags(word0, overflow);
+    }
+
+    /// <summary>
+    /// Creates the defer condition flags for the specified variable values.
+    /// </summary>
+    public ConditionFlags CreateDeferConditionFlags(IVariableValueCollection variables)
+    {
+        ulong[]? overflow = HasWideDeferFlags
+            ? new ulong[(_deferConditions.Count - 1) >> 6]
+            : null;
+        var index = 0;
+        var word0 = 0ul;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (deferCondition.IsDeferred(variables))
+            {
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
+            }
+
+            index++;
+        }
+
+        return new ConditionFlags(word0, overflow);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

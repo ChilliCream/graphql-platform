@@ -38,7 +38,7 @@ internal class Query : ITypeResolverInterceptor
 
     public static void Schema(FieldContext context)
     {
-        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+        context.FieldResult.CreateObjectValue(context.Selection);
         context.AddRuntimeResult(context.Schema);
     }
 
@@ -47,7 +47,7 @@ internal class Query : ITypeResolverInterceptor
         var name = context.ArgumentValue<StringValueNode>("name");
         if (context.Schema.Types.TryGetType(name.Value, out var type))
         {
-            context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+            context.FieldResult.CreateObjectValue(context.Selection);
             context.AddRuntimeResult(type);
         }
     }
@@ -135,7 +135,7 @@ internal class Query : ITypeResolverInterceptor
         foreach (var element in list.EnumerateArray())
         {
             context.AddRuntimeResult(results[i++]);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            element.CreateObjectValue(context.Selection);
         }
     }
 
@@ -194,7 +194,7 @@ internal class Query : ITypeResolverInterceptor
             var definition = definitions[i++];
             var objectType = SchemaDefinitionTypeResolver.ResolveObjectType(context.Schema, definition);
             context.AddRuntimeResult(definition);
-            element.CreateObjectValue(context.Selection, objectType, context.IncludeFlags);
+            element.CreateObjectValue(context.Selection, objectType);
         }
     }
 }

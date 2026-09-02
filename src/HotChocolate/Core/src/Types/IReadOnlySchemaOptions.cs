@@ -246,6 +246,16 @@ public interface IReadOnlySchemaOptions
     bool ApplyShareableToConnections { get; }
 
     /// <summary>
+    /// Applies the @shareable directive to all collection segment types.
+    /// </summary>
+    bool ApplyShareableToCollectionSegments { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the CollectionSegmentInfo type.
+    /// </summary>
+    bool ApplyShareableToCollectionSegmentInfo { get; }
+
+    /// <summary>
     /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
     /// field when Global Object Identification is turned on.
     /// </summary>
