@@ -888,7 +888,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // assert
         Assert.Equal(new MailTransferResult(2, 0, 0), result);
         Assert.Equal(
-            [readMessage.Id, targetMessage.Id, unreadMessage.Id].Order(),
+            new[] { readMessage.Id, targetMessage.Id, unreadMessage.Id }.Order(),
             inbox.Select(t => t.Id).Order());
         Assert.Equal(
             [true, true, false],
