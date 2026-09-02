@@ -184,33 +184,34 @@ public sealed class TakeoverLedgerTests : IDisposable
     }
 
     [Fact]
-    public async Task RecordAsync_Should_RollBack_When_CancelledAfterHeaderInsertBlocks()
+    public async Task RecordAsync_Should_RollBackHeaderAndItems_When_ItemInsertFails()
     {
         // arrange
-        var testCancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(testCancellationToken);
-        await using var lockingConnection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
-        await lockingConnection.OpenAsync(testCancellationToken);
-        await ExecuteNonQueryAsync(lockingConnection, "BEGIN IMMEDIATE;", testCancellationToken);
-        using var cancellationTokenSource = new CancellationTokenSource();
-        var recordTask = _ledger.RecordAsync(
-            CreateRecord("maya", "nora", "maya"),
-            [new TakeoverItem { Kind = TakeoverItemKinds.Task, ItemId = "repo-cpf" }],
-            cancellationTokenSource.Token);
-
-        await Task.Delay(TimeSpan.FromMilliseconds(100), testCancellationToken);
-        Assert.False(recordTask.IsCompleted);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var duplicateItem = new TakeoverItem { Kind = TakeoverItemKinds.Task, ItemId = "repo-cpf" };
 
         // act
-        cancellationTokenSource.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => recordTask.WaitAsync(TimeSpan.FromSeconds(5), testCancellationToken));
+        var exception = await Record.ExceptionAsync(
+            () => _ledger.RecordAsync(
+                CreateRecord("maya", "nora", "maya"),
+                [duplicateItem, duplicateItem],
+                cancellationToken));
 
         // assert
-        await ExecuteNonQueryAsync(lockingConnection, "ROLLBACK;", testCancellationToken);
-        var records = await _ledger.QueryAsync(new TakeoverFilter(), testCancellationToken);
-        Assert.Empty(records);
+        Assert.IsType<SqliteException>(exception);
+        await using var connection = await new AgentDatabase().ConnectAsync(
+            _workspaceDirectory,
+            cancellationToken);
+        var headerCount = await ExecuteScalarAsync(
+            connection,
+            "SELECT COUNT(*) FROM agent_takeovers",
+            cancellationToken);
+        var itemCount = await ExecuteScalarAsync(
+            connection,
+            "SELECT COUNT(*) FROM agent_takeover_items",
+            cancellationToken);
+        Assert.Equal((0L, 0L), (headerCount, itemCount));
     }
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
@@ -230,13 +231,13 @@ public sealed class TakeoverLedgerTests : IDisposable
             Reason = "handoff"
         };
 
-    private static async Task ExecuteNonQueryAsync(
+    private static async Task<long> ExecuteScalarAsync(
         SqliteConnection connection,
         string commandText,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = commandText;
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
     }
 }

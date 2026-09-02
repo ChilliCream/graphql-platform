@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
@@ -137,7 +138,7 @@ internal sealed class TakeoverLedger(
 
         parameters.Add("Limit", filter.Limit);
 
-        var records = (await connection.QueryAsync<TakeoverRecord>(
+        var rows = (await connection.QueryAsync<TakeoverRecordRow>(
             new CommandDefinition(
                 $"""
             SELECT {TakeoverRecord.Columns}
@@ -149,19 +150,19 @@ internal sealed class TakeoverLedger(
                 parameters,
                 cancellationToken: cancellationToken))).ToArray();
 
-        if (records.Length == 0)
+        if (rows.Length == 0)
         {
-            return records;
+            return [];
         }
 
         var itemParameters = new DynamicParameters();
-        var itemNames = new string[records.Length];
+        var itemNames = new string[rows.Length];
 
-        for (var index = 0; index < records.Length; index++)
+        for (var index = 0; index < rows.Length; index++)
         {
             var name = $"TakeoverId{index}";
             itemNames[index] = $"@{name}";
-            itemParameters.Add(name, records[index].Id);
+            itemParameters.Add(name, rows[index].Id);
         }
 
         var itemRows = await connection.QueryAsync<TakeoverItemRow>(
@@ -180,17 +181,17 @@ internal sealed class TakeoverLedger(
                 .Select(item => new TakeoverItem { Kind = item.Kind, ItemId = item.ItemId })
                 .ToArray(), StringComparer.Ordinal);
 
-        return records.Select(record => new TakeoverRecord
+        return rows.Select(row => new TakeoverRecord
         {
-            Id = record.Id,
-            FromActor = record.FromActor,
-            ToActor = record.ToActor,
-            Actor = record.Actor,
-            CreatedAt = record.CreatedAt,
-            Forced = record.Forced,
-            Role = record.Role,
-            Reason = record.Reason,
-            Items = itemsByTakeoverId.GetValueOrDefault(record.Id, [])
+            Id = row.Id,
+            FromActor = row.FromActor,
+            ToActor = row.ToActor,
+            Actor = row.Actor,
+            CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture),
+            Forced = row.Forced,
+            Role = row.Role,
+            Reason = row.Reason,
+            Items = itemsByTakeoverId.GetValueOrDefault(row.Id, [])
         }).ToArray();
     }
 
@@ -247,5 +248,17 @@ internal sealed class TakeoverLedger(
         public required string TakeoverId { get; init; }
         public required string Kind { get; init; }
         public required string ItemId { get; init; }
+    }
+
+    internal sealed class TakeoverRecordRow
+    {
+        public required string Id { get; init; }
+        public required string FromActor { get; init; }
+        public required string ToActor { get; init; }
+        public required string Actor { get; init; }
+        public required string CreatedAt { get; init; }
+        public required bool Forced { get; init; }
+        public string? Role { get; init; }
+        public string? Reason { get; init; }
     }
 }
