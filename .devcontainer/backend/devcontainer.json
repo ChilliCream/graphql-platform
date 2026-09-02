@@ -12,8 +12,12 @@
     }
   },
   "containerEnv": {
-    "DOTNET_LOCAL_DEV": "1"
+    "DOTNET_LOCAL_DEV": "1",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
   },
+  "mounts": [
+    "source=claude-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+  ],
   "postCreateCommand": "dotnet build src/All.slnx",
   "postStartCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/setup-git-signing.sh",
   "customizations": {

@@ -44,6 +44,11 @@ RUN npm install -g yarn npm@11.12.0 @openai/codex @github/copilot
 # Install Claude Code (as vscode user so it installs to their home directory)
 RUN su - vscode -c "curl -fsSL https://claude.ai/install.sh | bash"
 
+# Pre-create the Claude Code config directory so the persistent volume mounted
+# here inherits vscode ownership instead of defaulting to root
+RUN mkdir -p /home/vscode/.claude \
+    && chown -R vscode:vscode /home/vscode/.claude
+
 # Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
