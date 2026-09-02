@@ -40,11 +40,6 @@ internal sealed class CodexHookHandler(
         ArgumentNullException.ThrowIfNull(environmentVariableProvider);
     }
 
-    /// <summary>
-    /// How many unread messages one nudge accounts for.
-    /// </summary>
-    public const int MaxDigestMessages = 10;
-
     public async Task<CodexHookOutcome> HandleSessionStartAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
@@ -207,7 +202,7 @@ internal sealed class CodexHookHandler(
         CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
+            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)

@@ -138,7 +138,7 @@ internal sealed class PingSessionExecutor(
     private async Task<string?> BuildDigestAsync(string actorName, CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actorName, UnreadOnly = true, Limit = PingPolicy.MaxDigestMessages },
+            new MailInboxFilter { Actor = actorName, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)

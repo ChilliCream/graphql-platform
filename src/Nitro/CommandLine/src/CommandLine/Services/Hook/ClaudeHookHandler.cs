@@ -22,11 +22,6 @@ internal sealed class ClaudeHookHandler(
     /// </summary>
     public const int MaxBlocksPerTurn = 3;
 
-    /// <summary>
-    /// How many unread messages one nudge accounts for.
-    /// </summary>
-    public const int MaxDigestMessages = 10;
-
     private static string BlockReason(string actor)
         => $"Unread nitro mail is waiting. Read it with `nitro agent mail inbox --actor {actor}` "
             + "before ending this turn, or ignore this once if it is not actionable right now.";
@@ -151,7 +146,7 @@ internal sealed class ClaudeHookHandler(
         }
 
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
+            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)
@@ -208,7 +203,7 @@ internal sealed class ClaudeHookHandler(
         CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
+            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)

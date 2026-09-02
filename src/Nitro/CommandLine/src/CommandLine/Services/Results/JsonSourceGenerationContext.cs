@@ -7,7 +7,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Label;

@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -517,7 +518,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
 
-        for (var i = 0; i < ClaudeHookHandler.MaxDigestMessages + 5; i++)
+        for (var i = 0; i < MailDigestPolicy.MaxMessages + 5; i++)
         {
             await SendMailAsync($"bob-{i}", actor, cancellationToken);
         }
@@ -539,7 +540,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // assert
         Assert.True(outcome.Block);
         Assert.NotNull(spyLedger.LastMessageIds);
-        Assert.True(spyLedger.LastMessageIds!.Count <= ClaudeHookHandler.MaxDigestMessages);
+        Assert.True(spyLedger.LastMessageIds!.Count <= MailDigestPolicy.MaxMessages);
     }
 
     [Fact]

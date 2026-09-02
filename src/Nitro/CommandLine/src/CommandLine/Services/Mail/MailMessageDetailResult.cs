@@ -1,6 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Services.Mail;
-
-namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
 /// A message's full detail, as returned by the structured (JSON) output of
