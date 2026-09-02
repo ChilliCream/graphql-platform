@@ -862,11 +862,12 @@ public sealed class AgentDatabaseTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await StampVersionOnNewFileAsync(AgentDatabase.CurrentVersion + 1, cancellationToken);
-        await using (var connection = new SqliteConnection(
+        await using (var journalModeConnection = new SqliteConnection(
             $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
         {
-            await connection.OpenAsync(cancellationToken);
-            _ = await QueryScalarStringAsync(connection, "PRAGMA journal_mode = DELETE;", cancellationToken);
+            await journalModeConnection.OpenAsync(cancellationToken);
+            _ = await QueryScalarStringAsync(
+                journalModeConnection, "PRAGMA journal_mode = DELETE;", cancellationToken);
         }
 
         // act & assert
