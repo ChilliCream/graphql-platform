@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Projections;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.MongoDb.Projections;
@@ -19,7 +20,15 @@ public class MongoDbProjectionFieldHandler
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
-        context.Path.Push(field.GetName());
+        context.Path.Push(field.GetProjectionName());
+
+        if (field.TryGetDiscriminatorElementName(out var discriminatorElementName))
+        {
+            context.Path.Push(discriminatorElementName);
+            context.Projections.Push(new MongoDbIncludeProjectionOperation(context.GetPath()));
+            context.Path.Pop();
+        }
+
         action = SelectionVisitor.Continue;
         return true;
     }
