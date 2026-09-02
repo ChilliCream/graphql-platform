@@ -178,6 +178,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var firstQuestionId = await CreateTaskAsync(
             "First question", "--type", "question", "--priority", "p0");
+        FakeTime.Advance(TimeSpan.FromSeconds(1));
         var secondQuestionId = await CreateTaskAsync(
             "Second question", "--type", "question", "--priority", "p1");
         await CreateTaskAsync("Feature task", "--type", "feature");
@@ -218,6 +219,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var firstQuestionId = await CreateTaskAsync(
             "First question", "--type", "question", "--priority", "p0");
+        FakeTime.Advance(TimeSpan.FromSeconds(1));
         var secondQuestionId = await CreateTaskAsync(
             "Second question", "--type", "question", "--priority", "p1");
         await CreateTaskAsync("Feature task", "--type", "feature");
