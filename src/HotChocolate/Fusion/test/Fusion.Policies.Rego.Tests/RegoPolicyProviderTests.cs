@@ -424,6 +424,7 @@ public sealed class RegoPolicyProviderTests
 
                     default read := true
                     default write := true
+                    default allow := true
                     """,
                     "c1")).Policies);
         var observer = new CapturingObserver();
@@ -457,6 +458,7 @@ public sealed class RegoPolicyProviderTests
                     # METADATA
                     # title: Read products
                     default read := true
+                    default allow := true
                     """,
                     "c1")).Policies);
         var observer = new CapturingObserver();
@@ -490,6 +492,7 @@ public sealed class RegoPolicyProviderTests
                     import rego.v1
 
                     default read := true
+                    default allow := true
                     """,
                     "c1")).Policies);
         var observer = new CapturingObserver();
