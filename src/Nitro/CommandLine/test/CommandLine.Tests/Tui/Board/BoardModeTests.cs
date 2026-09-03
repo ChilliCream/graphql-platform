@@ -321,7 +321,7 @@ public sealed class BoardModeTests
     }
 
     [Fact]
-    public void Render_Should_ApplyDimLegibleClosedStyle_ToClosedFrameAndTitle_When_Unfocused()
+    public void Render_Should_ApplyLegibleClosedStyle_ToClosedFrameAndTitle_When_Unfocused()
     {
         // arrange
         var store = new FakeTaskStore();
@@ -349,8 +349,8 @@ public sealed class BoardModeTests
         var textIndex = console.Output.IndexOf("Closed (0)", StringComparison.Ordinal);
         var runStart = ansiIndex + ansiPrefix.Length;
 
-        Assert.Equal(Color.Grey70, style.Foreground);
-        Assert.Equal(Decoration.Dim, style.Decoration);
+        Assert.Equal(Color.Grey84, style.Foreground);
+        Assert.Equal(Decoration.None, style.Decoration);
         Assert.True(
             ansiIndex >= 0 && console.Output[ansiIndex + ansiPrefix.Length] == '╭',
             "Expected the Closed style to begin at its frame.");

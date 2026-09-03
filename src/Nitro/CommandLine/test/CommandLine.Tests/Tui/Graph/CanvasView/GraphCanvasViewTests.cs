@@ -239,13 +239,14 @@ public sealed class GraphCanvasViewTests
         var neutralTitle = status == TaskStates.Closed
             ? new Style(decoration: Decoration.Dim)
             : Style.Plain;
+        var expectedNodeStyle = ExpectedNodeStyle(status, token);
 
         // act
         var buffer = view.CreateRenderResult().Buffer;
 
         // assert
         Assert.Equal(
-            (ThemeTokens.GetStyle(token), ThemeTokens.GetStyle(token), neutralTitle),
+            (expectedNodeStyle, expectedNodeStyle, neutralTitle),
             (buffer.Get(node.X, node.Y).Style,
                 buffer.Get(node.X + 1, node.Y + 1).Style,
                 buffer.Get(node.X + 1, node.Y + 2).Style));
@@ -270,7 +271,10 @@ public sealed class GraphCanvasViewTests
         var output = Render(view, 80, 8, ansi: true);
 
         // assert
-        AnsiAssertions.AssertAnsiStylePrefixesText(output, token, "┌");
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", ExpectedNodeStyle(status, token)));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        Assert.Contains(ansiPrefix + "┌", output);
         Assert.Contains(glyph, output, StringComparison.Ordinal);
     }
 
@@ -292,13 +296,14 @@ public sealed class GraphCanvasViewTests
         var neutralTitle = status == TaskStates.Closed
             ? new Style(decoration: Decoration.Dim)
             : Style.Plain;
+        var expectedNodeStyle = ExpectedNodeStyle(status, token);
 
         // act
         var buffer = view.CreateRenderResult().Buffer;
 
         // assert
         Assert.Equal(
-            (ThemeTokens.GetStyle(token), ThemeTokens.GetStyle(token), neutralTitle),
+            (expectedNodeStyle, expectedNodeStyle, neutralTitle),
             (buffer.Get(node.X, node.Y).Style,
                 buffer.Get(node.X + 6, node.Y).Style,
                 buffer.Get(node.X + 11, node.Y).Style));
@@ -595,5 +600,18 @@ public sealed class GraphCanvasViewTests
 
         console.Write(view.Render(width, height));
         return console.Output;
+    }
+
+    /// <summary>
+    /// The board status style, adjusted for closed/terminal statuses to match
+    /// <c>GraphCanvasNodeRenderer.Compose</c>, which dims every terminal-status
+    /// node's border and glyph regardless of the theme token's own decoration.
+    /// </summary>
+    private static Style ExpectedNodeStyle(string status, string token)
+    {
+        var style = ThemeTokens.GetStyle(token);
+        return TaskStates.IsTerminal(status)
+            ? new Style(style.Foreground, style.Background, style.Decoration | Decoration.Dim)
+            : style;
     }
 }
