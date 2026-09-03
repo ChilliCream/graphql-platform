@@ -393,6 +393,31 @@ public class RequirementCrossEntityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Requiring_Type_Has_Lookup()
+    {
+        // arrange
+        // the Product key comes from cart itself, so once promotions has delivered discountedPrice
+        // the planner re-enters cart at CartItem through cartItemById to pass the value.
+        var schema = CreateCartPricingSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              cart {
+                items {
+                  unitPrice
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateCircularCrossProviderSchema()
     {
         return ComposeSchema(
@@ -783,6 +808,53 @@ public class RequirementCrossEntityTests : FusionTestBase
             }
 
             type CartItem @key(fields: "id") {
+              id: ID!
+              product: Product!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice: Float!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateCartPricingSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cart: Cart
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Cart {
+              id: ID!
+              items: [CartItem!]
+            }
+
+            type CartItem {
               id: ID!
               product: Product!
               unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!

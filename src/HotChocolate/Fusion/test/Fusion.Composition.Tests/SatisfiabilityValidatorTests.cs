@@ -4149,6 +4149,248 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void Validate_Should_Fail_When_RequiringSchemaHasNoLookupToResolveFieldAfterRequirement()
+    {
+        // arrange
+        // the Product key comes from A itself, so A must be re-entered at CartItem once B has
+        // delivered discountedPrice, but A declares no lookup for CartItem.
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    cart: Cart
+                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Cart {
+                    id: ID!
+                    items: [CartItem!]
+                }
+
+                type CartItem {
+                    id: ID!
+                    product: Product!
+                    unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    discountedPrice: Float!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'CartItem.unitPrice' on path 'A:Query.cart<Cart> -> A:Cart.items<CartItem>'.
+              Unable to satisfy the requirement '{ product { discountedPrice } }' on field 'A:CartItem.unitPrice<Float>'.
+                The field 'CartItem.unitPrice' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'CartItem' that could resolve the field once the required data has been fetched.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequiringSchemaLookupKeyIsUnsatisfiable()
+    {
+        // arrange
+        // A declares a CartItem lookup, but its key 'sku' is only known to C, which A cannot reach.
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    cart: Cart
+                    cartItemBySku(sku: String!): CartItem @lookup @internal
+                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Cart {
+                    id: ID!
+                    items: [CartItem!]
+                }
+
+                type CartItem {
+                    id: ID!
+                    product: Product!
+                    unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    discountedPrice: Float!
+                }
+                """,
+                """
+                # Schema C
+                type CartItem {
+                    sku: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'CartItem.unitPrice' on path 'A:Query.cart<Cart> -> A:Cart.items<CartItem>'.
+              Unable to satisfy the requirement '{ product { discountedPrice } }' on field 'A:CartItem.unitPrice<Float>'.
+                The field 'CartItem.unitPrice' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'CartItem' that could resolve the field once the required data has been fetched.
+                  Unable to satisfy the requirement '{ sku }' for lookup 'cartItemBySku' in schema 'A'.
+                    Unable to satisfy the requirement 'sku'.
+                      Unable to access the required field 'CartItem.sku' on path 'A:Cart.items<CartItem>'.
+                        Unable to transition between schemas 'A' and 'C' for access to required field 'C:CartItem.sku<String>'.
+                          No lookups found for type 'CartItem' in schema 'C'.
+
+            Unable to access the field 'CartItem.sku' on path 'A:Query.cart<Cart> -> A:Cart.items<CartItem>'.
+              Unable to transition between schemas 'A' and 'C' for access to field 'C:CartItem.sku<String>'.
+                No lookups found for type 'CartItem' in schema 'C'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_RequiringSchemaHasLookupToResolveFieldAfterRequirement()
+    {
+        // arrange
+        // A declares a CartItem lookup, so the gateway can re-enter A with the fetched discountedPrice.
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    cart: Cart
+                    cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Cart {
+                    id: ID!
+                    items: [CartItem!]
+                }
+
+                type CartItem {
+                    id: ID!
+                    product: Product!
+                    unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    discountedPrice: Float!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_RequirementIsResolvableWithoutRequiringSchema()
+    {
+        // arrange
+        // A delivers firstName through the shared root path, so B resolves fullName in its first
+        // call and needs no lookup for Viewer.
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewers: [Viewer] @shareable
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    viewers: [Viewer] @shareable
+                }
+
+                type Viewer {
+                    fullName(firstName: String! @require(field: "firstName")): String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     public void Type_Without_Lookup_Not_All_Schemas_Share_Path_Up_To_Root()
     {
         // arrange
