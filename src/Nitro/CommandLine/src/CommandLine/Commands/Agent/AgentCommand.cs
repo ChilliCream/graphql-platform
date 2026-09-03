@@ -27,6 +27,7 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new LoginAgentCommand());
         Subcommands.Add(new RegisterAgentCommand());
         Subcommands.Add(new ListAgentCommand());
+        Subcommands.Add(new TakeoverAgentCommand());
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
 

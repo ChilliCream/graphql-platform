@@ -516,8 +516,9 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             cancellationToken);
 
         var queueClient = new FakeCodexQueueClient();
+        var ledger = new SessionDeliveryLedger(_fileSystem, _database);
         var executor = new PingSessionExecutor(
-            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
+            _mail, ledger, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
         var dispatcher = new ActorWakeDispatcher(
             _batches,
             _sessions,
@@ -538,8 +539,12 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Equal(MailWakeTargetStatus.Delivered, codexTarget.Status);
 
         var call = Assert.Single(queueClient.Calls);
-        Assert.Equal("thread-1", call.ThreadId);
-        Assert.Contains("1 unread nitro message.", call.Message);
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+        var item = document.RootElement.GetProperty("items")[0];
+        Assert.Equal(
+            ("thread-1", message.Id, "check"),
+            (call.ThreadId, item.GetProperty("id").GetString(), item.GetProperty("body").GetString()));
     }
 
     private static async Task<long> ScalarCountAsync(

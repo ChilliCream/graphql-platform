@@ -19,6 +19,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
               nitro agent tasks ready [options]
 
             Options:
+              --type <type>          Only show tasks of this type (task, bug, feature, epic, chore, docs, question, or custom)
               --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog); list/ready also accept a range like 0-1 or p0-p1
               --assignee <assignee>  The assignee
               --label <label>        A label; can be used multiple times
@@ -168,6 +169,88 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             "Invalid priority range '3-1'. The low bound must be <= the high bound.");
+    }
+
+    [Fact]
+    public async Task Ready_Should_ReturnOnlyMatchingTasks_When_TypeFilterIsSet()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var firstQuestionId = await CreateTaskAsync(
+            "First question", "--type", "question", "--priority", "p0");
+        FakeTime.Advance(TimeSpan.FromSeconds(1));
+        var secondQuestionId = await CreateTaskAsync(
+            "Second question", "--type", "question", "--priority", "p1");
+        await CreateTaskAsync("Feature task", "--type", "feature");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "tasks", "ready", "--type", "question");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {firstQuestionId}  P0  question  open  First question
+            {secondQuestionId}  P1  question  open  Second question
+
+            2 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task Ready_Should_ReturnNoTasks_When_TypeIsUnknown()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Question", "--type", "question");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "tasks", "ready", "--type", "unknown");
+
+        // assert
+        result.AssertSuccess("No ready tasks.");
+    }
+
+    [Fact]
+    public async Task Ready_Should_ReturnOnlyMatchingJsonTasks_When_TypeFilterIsSet()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var firstQuestionId = await CreateTaskAsync(
+            "First question", "--type", "question", "--priority", "p0");
+        FakeTime.Advance(TimeSpan.FromSeconds(1));
+        var secondQuestionId = await CreateTaskAsync(
+            "Second question", "--type", "question", "--priority", "p1");
+        await CreateTaskAsync("Feature task", "--type", "feature");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "tasks", "ready", "--type", "question");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "items": [
+                {
+                  "id": "{{firstQuestionId}}",
+                  "priority": 0,
+                  "type": "question",
+                  "status": "open",
+                  "title": "First question"
+                },
+                {
+                  "id": "{{secondQuestionId}}",
+                  "priority": 1,
+                  "type": "question",
+                  "status": "open",
+                  "title": "Second question"
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]

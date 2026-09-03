@@ -23,6 +23,11 @@ internal sealed class NitroConsole(
 
     public IAnsiConsole Error => errorConsole;
 
+    public void WriteRawLine(string value)
+    {
+        outConsole.Profile.Out.Writer.WriteLine(value);
+    }
+
     public void SetOutputFormat(OutputFormat format)
     {
         _outputFormat = format;

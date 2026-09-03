@@ -1,0 +1,264 @@
+using System.Data.Common;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+using Dapper;
+using Microsoft.Data.Sqlite;
+
+namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
+
+internal sealed class TakeoverLedger(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    AgentDatabase database) : ITakeoverLedger
+{
+    private const string IdPrefix = "to-";
+    private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+    private const int MinIdLength = 6;
+    private const int MaxIdAttempts = 10;
+
+    public async Task<TakeoverRecord> RecordAsync(
+        TakeoverRecordCreation creation,
+        IReadOnlyList<TakeoverItem> items,
+        CancellationToken cancellationToken)
+    {
+        var workspaceDirectory = FindWorkspaceDirectory()
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
+        var createdAt = timeProvider.GetUtcNow();
+
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var id = await CreateTakeoverIdAsync(
+            connection,
+            $"{creation.FromActor}|{creation.ToActor}|{creation.Actor}|{createdAt:O}",
+            cancellationToken,
+            transaction);
+
+        var headerParameters = new DynamicParameters();
+        headerParameters.Add("Id", id);
+        headerParameters.Add("FromActor", creation.FromActor);
+        headerParameters.Add("ToActor", creation.ToActor);
+        headerParameters.Add("Actor", creation.Actor);
+        headerParameters.Add("CreatedAt", createdAt);
+        headerParameters.Add("Forced", creation.Forced);
+        headerParameters.Add("Role", creation.Role);
+        headerParameters.Add("Reason", creation.Reason);
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+            INSERT INTO agent_takeovers (
+                id, from_actor, to_actor, actor, created_at, forced, role, reason
+            )
+            VALUES (
+                @Id, @FromActor, @ToActor, @Actor, @CreatedAt, @Forced, @Role, @Reason
+            );
+            """,
+                headerParameters,
+                transaction,
+                cancellationToken: cancellationToken));
+
+        foreach (var item in items)
+        {
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                INSERT INTO agent_takeover_items (takeover_id, kind, item_id)
+                VALUES (@TakeoverId, @Kind, @ItemId);
+                """,
+                    new { TakeoverId = id, item.Kind, item.ItemId },
+                    transaction,
+                    cancellationToken: cancellationToken));
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new TakeoverRecord
+        {
+            Id = id,
+            FromActor = creation.FromActor,
+            ToActor = creation.ToActor,
+            Actor = creation.Actor,
+            CreatedAt = createdAt,
+            Forced = creation.Forced,
+            Role = creation.Role,
+            Reason = creation.Reason,
+            Items = items.ToArray()
+        };
+    }
+
+    public async Task<IReadOnlyList<TakeoverRecord>> QueryAsync(
+        TakeoverFilter filter,
+        CancellationToken cancellationToken)
+    {
+        var workspaceDirectory = FindWorkspaceDirectory()
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
+
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+
+        var where = new List<string>();
+        var parameters = new DynamicParameters();
+
+        if (filter.Actor is not null)
+        {
+            where.Add("(t.from_actor = @Actor OR t.to_actor = @Actor)");
+            parameters.Add("Actor", filter.Actor);
+        }
+
+        if (filter.MessageId is not null)
+        {
+            where.Add(
+                """
+                EXISTS (
+                    SELECT 1
+                    FROM agent_takeover_items AS i
+                    WHERE i.takeover_id = t.id
+                        AND i.item_id = @MessageId
+                        AND i.kind IN ('message_sender', 'message_recipient')
+                )
+                """);
+            parameters.Add("MessageId", filter.MessageId);
+        }
+
+        if (filter.TaskId is not null)
+        {
+            where.Add(
+                """
+                EXISTS (
+                    SELECT 1
+                    FROM agent_takeover_items AS i
+                    WHERE i.takeover_id = t.id
+                        AND i.kind = 'task'
+                        AND i.item_id = @TaskId
+                )
+                """);
+            parameters.Add("TaskId", filter.TaskId);
+        }
+
+        parameters.Add("Limit", filter.Limit);
+
+        var rows = (await connection.QueryAsync<TakeoverRecordRow>(
+            new CommandDefinition(
+                $"""
+            SELECT {TakeoverRecord.Columns}
+            FROM agent_takeovers AS t
+            {(where.Count == 0 ? string.Empty : $"WHERE {string.Join(" AND ", where)}")}
+            ORDER BY t.created_at DESC, t.id DESC
+            LIMIT COALESCE(@Limit, -1);
+            """,
+                parameters,
+                cancellationToken: cancellationToken))).ToArray();
+
+        if (rows.Length == 0)
+        {
+            return [];
+        }
+
+        var itemParameters = new DynamicParameters();
+        var itemNames = new string[rows.Length];
+
+        for (var index = 0; index < rows.Length; index++)
+        {
+            var name = $"TakeoverId{index}";
+            itemNames[index] = $"@{name}";
+            itemParameters.Add(name, rows[index].Id);
+        }
+
+        var itemRows = await connection.QueryAsync<TakeoverItemRow>(
+            new CommandDefinition(
+                $"""
+            SELECT takeover_id AS TakeoverId, kind AS Kind, item_id AS ItemId
+            FROM agent_takeover_items
+            WHERE takeover_id IN ({string.Join(", ", itemNames)})
+            ORDER BY takeover_id, kind, item_id;
+            """,
+                itemParameters,
+                cancellationToken: cancellationToken));
+        var itemsByTakeoverId = itemRows
+            .GroupBy(item => item.TakeoverId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<TakeoverItem>)group
+                .Select(item => new TakeoverItem { Kind = item.Kind, ItemId = item.ItemId })
+                .ToArray(), StringComparer.Ordinal);
+
+        return rows.Select(row => new TakeoverRecord
+        {
+            Id = row.Id,
+            FromActor = row.FromActor,
+            ToActor = row.ToActor,
+            Actor = row.Actor,
+            CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture),
+            Forced = row.Forced,
+            Role = row.Role,
+            Reason = row.Reason,
+            Items = itemsByTakeoverId.GetValueOrDefault(row.Id, [])
+        }).ToArray();
+    }
+
+    private string? FindWorkspaceDirectory()
+        => AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
+
+    private static async Task<string> CreateTakeoverIdAsync(
+        SqliteConnection connection,
+        string seed,
+        CancellationToken cancellationToken,
+        DbTransaction transaction)
+    {
+        var takeoverCount = await connection.ExecuteScalarAsync<long>(
+            new CommandDefinition(
+                "SELECT COUNT(*) FROM agent_takeovers",
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
+        {
+            var id = IdPrefix + CreateIdSuffix(seed, takeoverCount, attempt);
+            var exists = await connection.ExecuteScalarAsync<long>(
+                new CommandDefinition(
+                    "SELECT COUNT(*) FROM agent_takeovers WHERE id = @Id",
+                    new { Id = id },
+                    transaction,
+                    cancellationToken: cancellationToken));
+
+            if (exists == 0)
+            {
+                return id;
+            }
+        }
+
+        throw new ExitException("Could not allocate a unique takeover ID.");
+    }
+
+    private static string CreateIdSuffix(string seed, long takeoverCount, int attempt)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes($"{seed}|{takeoverCount}|{attempt}"));
+        var length = MinIdLength + attempt / 3;
+        var suffix = new char[length];
+
+        for (var index = 0; index < length; index++)
+        {
+            suffix[index] = IdAlphabet[hash[index] % IdAlphabet.Length];
+        }
+
+        return new string(suffix);
+    }
+
+    private sealed class TakeoverItemRow
+    {
+        public required string TakeoverId { get; init; }
+        public required string Kind { get; init; }
+        public required string ItemId { get; init; }
+    }
+
+    internal sealed class TakeoverRecordRow
+    {
+        public required string Id { get; init; }
+        public required string FromActor { get; init; }
+        public required string ToActor { get; init; }
+        public required string Actor { get; init; }
+        public required string CreatedAt { get; init; }
+        public required bool Forced { get; init; }
+        public string? Role { get; init; }
+        public string? Reason { get; init; }
+    }
+}

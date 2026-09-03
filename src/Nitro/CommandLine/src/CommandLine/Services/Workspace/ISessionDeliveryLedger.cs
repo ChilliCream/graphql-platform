@@ -11,6 +11,17 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal interface ISessionDeliveryLedger
 {
     /// <summary>
+    /// Returns the message ids from <paramref name="messageIds"/> that have
+    /// been delivered to <paramref name="generation"/>, across all channels.
+    /// The returned ids retain the input order, and an empty input returns an empty result.
+    /// </summary>
+    Task<IReadOnlyList<string>> FindDeliveredAsync(
+        AgentSessionGeneration generation,
+        IReadOnlyList<string> messageIds,
+        CancellationToken cancellationToken)
+        => Task.FromException<IReadOnlyList<string>>(new NotSupportedException());
+
+    /// <summary>
     /// Atomically claims each of <paramref name="messageIds"/> for
     /// <paramref name="channel"/> on the given session. Returns the subset
     /// that was newly claimed by this call, in the order given; a message id

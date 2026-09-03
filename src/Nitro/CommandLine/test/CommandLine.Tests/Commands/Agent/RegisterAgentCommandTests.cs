@@ -23,13 +23,13 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
 
             Options:
               --actor <actor> (REQUIRED)  The actor to register; allocate one with `nitro agent login`
-              --role <role>               The actor role, normalized lowercase
+              --role <role>               The actor role, normalized lowercase. Known roles: orchestrator, planner, implementer, reviewer, researcher; any other value is accepted.
               --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help              Show help and usage information
 
             Example:
               nitro agent register --actor "maya"
-              nitro agent register --actor "maya" --role "backend"
+              nitro agent register --actor "maya" --role "researcher"
             """);
     }
 

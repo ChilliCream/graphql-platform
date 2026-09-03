@@ -6,6 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 internal sealed class PingSessionExecutor(
     IMailStore mailStore,
+    ISessionDeliveryLedger ledger,
     ICodexQueueClient queueClient,
     IClaudePeerClient claudePeerClient,
     IAgentSessionRegistry sessionRegistry,
@@ -89,7 +90,8 @@ internal sealed class PingSessionExecutor(
 
             try
             {
-                digest = await BuildDigestAsync(actorName, linkedSource.Token);
+                digest = await BuildDigestAsync(
+                    harness, sessionId, actorName, linkedSource.Token);
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
@@ -135,10 +137,14 @@ internal sealed class PingSessionExecutor(
         }
     }
 
-    private async Task<string?> BuildDigestAsync(string actorName, CancellationToken cancellationToken)
+    private async Task<string?> BuildDigestAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actorName, UnreadOnly = true, Limit = PingPolicy.MaxDigestMessages },
+            new MailInboxFilter { Actor = actorName, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)
@@ -146,8 +152,35 @@ internal sealed class PingSessionExecutor(
             return null;
         }
 
-        return MailNudgeText.Format(
-            actorName, await mailStore.CountUnreadAsync(actorName, cancellationToken));
+        var session = (await sessionRegistry.FindLiveClaimedByAgentNameAsync(actorName, cancellationToken))
+            .FirstOrDefault(candidate =>
+                candidate.Harness == harness && candidate.SessionId == sessionId);
+
+        if (session is null)
+        {
+            return null;
+        }
+
+        var generation = new AgentSessionGeneration(
+            session.Harness, session.SessionId, session.Host);
+        var messageIds = unread.Select(message => message.Id).ToList();
+        var delivered = await ledger.FindDeliveredAsync(
+            generation, messageIds, cancellationToken);
+        var reserved = await ledger.ReserveAsync(
+            generation.Harness,
+            generation.SessionId,
+            messageIds,
+            AgentSessionChannel.Ping,
+            timeProvider.GetUtcNow(),
+            cancellationToken);
+        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+        var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+        var messages = unread
+            .Where(message => reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+            .ToList();
+        var unreadTotal = await mailStore.CountUnreadAsync(actorName, cancellationToken);
+
+        return MailDigest.Render(actorName, messages, unreadTotal);
     }
 
     /// <summary>

@@ -13,7 +13,7 @@ internal sealed class ListTaskCommand : Command
         Description = "List tasks.";
 
         Options.Add(Opt<TaskStatusFilterOption>.Instance);
-        Options.Add(Opt<TaskTypeOption>.Instance);
+        Options.Add(Opt<TaskTypeFilterOption>.Instance);
         Options.Add(Opt<TaskPriorityOption>.Instance);
         Options.Add(Opt<TaskAssigneeOption>.Instance);
         Options.Add(Opt<TaskLabelOption>.Instance);
@@ -39,7 +39,7 @@ internal sealed class ListTaskCommand : Command
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var statuses = parseResult.GetValue(Opt<TaskStatusFilterOption>.Instance);
-        var type = parseResult.GetValue(Opt<TaskTypeOption>.Instance);
+        var type = parseResult.GetValue(Opt<TaskTypeFilterOption>.Instance);
         var priority = parseResult.GetValue(Opt<TaskPriorityOption>.Instance);
         var assignee = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance);
         var labels = parseResult.GetValue(Opt<TaskLabelOption>.Instance);

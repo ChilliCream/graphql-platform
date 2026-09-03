@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
@@ -73,9 +74,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // is bound to, sent by a second allocated actor.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
-        await SeedAgentAsync("ada");
-        await ExecuteCommandAsync(
-            "agent", "mail", "send", "--body", "All good.", "--to", "maya", "--subject", "Status", "--actor", "ada");
+        var message = await SeedMailAsync();
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -84,8 +83,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        result.StdOut.Trim().MatchInlineSnapshot(
-            """{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"You have 1 unread nitro message. Run \u0060nitro agent mail inbox --actor maya\u0060."}}""");
+        result.StdOut.Trim().Replace(message.Id, "<id>").MatchInlineSnapshot(
+            """
+            {"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"You have 1 unread nitro message; 1 shown below as \u0060nitro agent mail read --thread --output json\u0060 prints them. Reply with \u0060nitro agent mail reply --message \u003Cid\u003E --actor maya --body \u0022...\u0022\u0060 or ack with \u0060nitro agent mail ack --message \u003Cid\u003E --actor maya\u0060; anything not shown is in \u0060nitro agent mail inbox --unread --actor maya\u0060.\n{\n  \u0022items\u0022: [\n    {\n      \u0022id\u0022: \u0022<id>\u0022,\n      \u0022threadId\u0022: \u0022<id>\u0022,\n      \u0022inReplyTo\u0022: null,\n      \u0022from\u0022: \u0022ada\u0022,\n      \u0022to\u0022: [\n        \u0022maya\u0022\n      ],\n      \u0022cc\u0022: [],\n      \u0022subject\u0022: \u0022Status\u0022,\n      \u0022body\u0022: \u0022All good.\u0022,\n      \u0022createdAt\u0022: \u00222026-01-01T00:00:00\u002B00:00\u0022,\n      \u0022read\u0022: false,\n      \u0022archived\u0022: false,\n      \u0022takeovers\u0022: []\n    }\n  ]\n}"}}
+            """);
     }
 
     [Fact]
@@ -117,12 +118,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         // message never yet delivered on the gate channel.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
-        await SeedAgentAsync("ada");
+        var message = await SeedMailAsync();
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
-        await ExecuteCommandAsync(
-            "agent", "mail", "send", "--body", "All good.", "--to", "maya", "--subject", "Status", "--actor", "ada");
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -131,8 +130,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        result.StdOut.Trim().MatchInlineSnapshot(
-            """{"decision":"block","reason":"Unread nitro mail is waiting. Read it with \u0060nitro agent mail inbox --actor maya\u0060 before ending this turn, or ignore this once if it is not actionable right now."}""");
+        result.StdOut.Trim().Replace(message.Id, "<id>").MatchInlineSnapshot(
+            """
+            {"decision":"block","reason":"Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.\nYou have 1 unread nitro message; 1 shown below as \u0060nitro agent mail read --thread --output json\u0060 prints them. Reply with \u0060nitro agent mail reply --message \u003Cid\u003E --actor maya --body \u0022...\u0022\u0060 or ack with \u0060nitro agent mail ack --message \u003Cid\u003E --actor maya\u0060; anything not shown is in \u0060nitro agent mail inbox --unread --actor maya\u0060.\n{\n  \u0022items\u0022: [\n    {\n      \u0022id\u0022: \u0022<id>\u0022,\n      \u0022threadId\u0022: \u0022<id>\u0022,\n      \u0022inReplyTo\u0022: null,\n      \u0022from\u0022: \u0022ada\u0022,\n      \u0022to\u0022: [\n        \u0022maya\u0022\n      ],\n      \u0022cc\u0022: [],\n      \u0022subject\u0022: \u0022Status\u0022,\n      \u0022body\u0022: \u0022All good.\u0022,\n      \u0022createdAt\u0022: \u00222026-01-01T00:00:00\u002B00:00\u0022,\n      \u0022read\u0022: false,\n      \u0022archived\u0022: false,\n      \u0022takeovers\u0022: []\n    }\n  ]\n}"}
+            """);
     }
 
     [Fact]
@@ -244,5 +245,26 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
             Options:
               -?, -h, --help  Show help and usage information
             """);
+    }
+
+    private async Task<MailMessage> SeedMailAsync()
+    {
+        await SeedAgentAsync("ada");
+
+        var store = new MailStore(
+            new TestFileSystem(WorkingDirectory),
+            FakeTime,
+            new AgentDatabase(),
+            new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
+
+        return await store.SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = "ada",
+                Subject = "Status",
+                Body = "All good.",
+                To = ["maya"]
+            },
+            TestContext.Current.CancellationToken);
     }
 }
