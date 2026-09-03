@@ -22,6 +22,7 @@ public sealed class RedisSubscriptionTests
     public async Task Subscribe_Should_DeliverEventWithCrossSchemaData_When_RedisBrokerPublishes()
     {
         // arrange
+        _fixture.SkipWhenUnavailable();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var channel = _fixture.NextChannel();
         var ready = CreateReadyChannel();

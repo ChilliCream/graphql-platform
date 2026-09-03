@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Subscriptions.Redis;
 /// </summary>
 /// <remarks>
 /// The default path starts Redis through Testcontainers. Set REDIS_CONNECTION_STRING to use an
-/// existing Redis instance instead.
+/// existing Redis instance instead; tests skip when that instance cannot be reached.
 /// </remarks>
 public sealed class RedisFixture : IAsyncLifetime
 {
@@ -32,6 +32,8 @@ public sealed class RedisFixture : IAsyncLifetime
 
     public string ConnectionString { get; private set; } = null!;
 
+    public string? SkipReason { get; private set; }
+
     public string NextChannel()
         => "events-" + Guid.NewGuid().ToString("N");
 
@@ -45,9 +47,9 @@ public sealed class RedisFixture : IAsyncLifetime
             }
             catch (Exception ex)
             {
-                Assert.Skip(
+                SkipReason =
                     "REDIS_CONNECTION_STRING did not point to a usable Redis instance: "
-                    + ex.Message);
+                    + ex.Message;
             }
 
             return;
@@ -83,6 +85,18 @@ public sealed class RedisFixture : IAsyncLifetime
             .PublishAsync(CreateRedisChannel(channel), body)
             .WaitAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Skips the calling test when REDIS_CONNECTION_STRING points at an instance that could not
+    /// be reached.
+    /// </summary>
+    public void SkipWhenUnavailable()
+    {
+        if (SkipReason is not null)
+        {
+            Assert.Skip(SkipReason);
+        }
     }
 
     private async Task<ConnectionMultiplexer> GetPublisherAsync()
