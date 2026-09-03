@@ -55,7 +55,7 @@ public class GeoJsonLineStringTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on LineString { type coordinates bbox crs }}}",
+            "{ test { ... on GeoJSONLineStringType { type coordinates bbox crs }}}",
             TestContext.Current.CancellationToken);
 
         // assert
