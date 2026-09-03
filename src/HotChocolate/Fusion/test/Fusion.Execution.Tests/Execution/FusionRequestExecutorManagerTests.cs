@@ -394,7 +394,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         ReadOnlySpan<byte> source)
     {
         var policy = new PolicyContent(
-            "CanReadProduct.allow",
+            "CanReadProduct",
             PolicyContentType.Rego,
             source.ToArray(),
             new PolicyRequirements

@@ -64,11 +64,8 @@ internal static class PackagePolicyContentReader
             var digest = TryGetDigest(artifacts, key)
                 ?? ComputeDigest(source, requirements);
 
-            // The interim archive stores one Rego rule per pair keyed by the pair name, so the full
-            // policy name is the pair name suffixed with the conventional 'allow' rule and the
-            // requirements source projects the resource part.
             policies.Add(new PolicyContent(
-                $"{configuration.Name}.allow",
+                configuration.Name,
                 PolicyContentType.Rego,
                 source,
                 ParseRequirements(requirements),

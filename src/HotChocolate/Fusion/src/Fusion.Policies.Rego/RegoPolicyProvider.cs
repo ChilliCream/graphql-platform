@@ -150,20 +150,38 @@ public sealed class RegoPolicyProvider
             return;
         }
 
-        var names = new List<string>(_contents.Count);
-        var requirements = new List<PolicyRequirements>(_contents.Count);
+        var policies = new List<PolicyDefinition>();
         var modules = new List<PolicyModule>(_contents.Count);
-        var entryPoints = new List<string>(_contents.Count);
 
         foreach (var content in _contents.Values)
         {
-            names.Add(content.Name);
-            requirements.Add(content.Requirements);
+            var source = Encoding.UTF8.GetString(content.Source.Span);
             modules.Add(new PolicyModule(
                 $"{content.Name}.rego",
-                Encoding.UTF8.GetString(content.Source.Span)));
-            entryPoints.Add($"data.{content.Name}");
+                source));
+
+            var rules = RegoEntrypointScanner.Scan(source);
+
+            if (rules.Count == 0)
+            {
+                policies.Add(new PolicyDefinition(
+                    $"{content.Name}.allow",
+                    content.Name,
+                    content.Requirements));
+            }
+            else
+            {
+                foreach (var rule in rules)
+                {
+                    policies.Add(new PolicyDefinition(
+                        $"{content.Name}.{rule}",
+                        content.Name,
+                        content.Requirements));
+                }
+            }
         }
+
+        var entryPoints = policies.Select(static p => $"data.{p.Name}").ToList();
 
         CompiledPolicySet set;
 
@@ -173,38 +191,43 @@ public sealed class RegoPolicyProvider
         }
         catch (Exception ex)
         {
-            ReportCompileFailure(names, ex);
+            ReportCompileFailure(policies, ex);
             return;
         }
 
         var handle = new PolicySetHandle(set);
-        var policies = ImmutableArray.CreateBuilder<IPolicy>(names.Count);
+        var compiledPolicies = ImmutableArray.CreateBuilder<IPolicy>(policies.Count);
 
-        for (var i = 0; i < names.Count; i++)
+        for (var i = 0; i < policies.Count; i++)
         {
-            policies.Add(new RegoPolicy(
-                names[i],
-                requirements[i],
+            compiledPolicies.Add(new RegoPolicy(
+                policies[i].Name,
+                policies[i].Requirements,
                 handle,
                 set.GetEntryPointIndex(entryPoints[i])));
         }
 
         _currentHandle = handle;
-        Emit(policies.MoveToImmutable());
+        Emit(compiledPolicies.MoveToImmutable());
     }
 
-    private void ReportCompileFailure(List<string> names, Exception error)
+    private void ReportCompileFailure(List<PolicyDefinition> policies, Exception error)
     {
-        foreach (var name in names)
+        var reported = false;
+
+        foreach (var policy in policies)
         {
-            if (error.Message.Contains(name, StringComparison.Ordinal))
+            if (error.Message.Contains(policy.PairName, StringComparison.Ordinal))
             {
-                _diagnosticEvents.PolicyCompilationError(name, error);
-                return;
+                _diagnosticEvents.PolicyCompilationError(policy.Name, error);
+                reported = true;
             }
         }
 
-        _diagnosticEvents.PolicyUpdateError(error);
+        if (!reported)
+        {
+            _diagnosticEvents.PolicyUpdateError(error);
+        }
     }
 
     private void Emit(ImmutableArray<IPolicy> policies)
@@ -265,4 +288,9 @@ public sealed class RegoPolicyProvider
         {
         }
     }
+
+    private sealed record PolicyDefinition(
+        string Name,
+        string PairName,
+        PolicyRequirements Requirements);
 }

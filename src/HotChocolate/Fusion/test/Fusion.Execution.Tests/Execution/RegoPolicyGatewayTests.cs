@@ -94,7 +94,7 @@ public sealed class RegoPolicyGatewayTests : FusionTestBase
             new Version(1, 0, 0),
             ImmutableArray.Create(
                 new PolicyContent(
-                    "CanReadSecret.allow",
+                    "CanReadSecret",
                     PolicyContentType.Rego,
                     """
                     package CanReadSecret

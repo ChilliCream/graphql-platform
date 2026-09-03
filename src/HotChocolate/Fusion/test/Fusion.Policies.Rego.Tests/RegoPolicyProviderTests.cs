@@ -131,12 +131,12 @@ public sealed class RegoPolicyProviderTests
     public async Task Code_Should_ResolveEntrypoint_When_PackageDiffersFromName()
     {
         // arrange
-        // The policy name is the full rule path and the package is free-form, so the entrypoint
-        // 'data.acme.products.visible' resolves even though the package is not the policy name.
+        // The pair name and package are free-form, so the annotated rule resolves at the pair path.
         var content = new PolicyContent(
-            "acme.products.visible",
+            "acme.products",
             PolicyContentType.Rego,
-            Encoding.UTF8.GetBytes("package acme.products\nimport rego.v1\ndefault visible := true\n"),
+            Encoding.UTF8.GetBytes(
+                "package acme.products\nimport rego.v1\n# METADATA\n# entrypoint: true\ndefault visible := true\n"),
             PolicyRequirements.Empty,
             Encoding.UTF8.GetBytes("d1"));
         await using var config = new MutableFusionConfigurationProvider(Config(content));
@@ -153,6 +153,223 @@ public sealed class RegoPolicyProviderTests
         // assert
         Assert.NotNull(policy);
         Assert.Empty(context.DeniedIndices);
+    }
+
+    [Fact]
+    public async Task Code_Should_ExposeAndEvaluateAnnotatedRules_When_MetadataMarksEntrypoints()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    package p1
+                    import rego.v1
+
+                    # METADATA
+                    # entrypoint: true
+                    default read := true
+
+                    # METADATA
+                    # entrypoint: true
+                    default write := true
+
+                    default allow := false
+                    """,
+                    "c1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+        var read = observer.Current("p1.read")!;
+        var write = observer.Current("p1.write")!;
+        var readContext = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        var writeContext = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+
+        // act
+        await read.EvaluateAsync(readContext, TestContext.Current.CancellationToken);
+        await write.EvaluateAsync(writeContext, TestContext.Current.CancellationToken);
+
+        // assert
+        observer.Updates[^1].Select(static p => p.Name).MatchInlineSnapshot(
+            """
+            [
+              "p1.read",
+              "p1.write"
+            ]
+            """);
+        Assert.Empty(readContext.DeniedIndices);
+        Assert.Empty(writeContext.DeniedIndices);
+    }
+
+    [Fact]
+    public async Task Code_Should_NotExposeUnannotatedAllow_When_AnnotatedRulesExist()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    package p1
+                    import rego.v1
+
+                    # METADATA
+                    # entrypoint: true
+                    default read := true
+
+                    default allow := true
+                    """,
+                    "c1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+
+        // act
+        var names = observer.Updates[^1].Select(static p => p.Name);
+
+        // assert
+        names.MatchInlineSnapshot(
+            """
+            [
+              "p1.read"
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task Code_Should_ExposeAllowOnly_When_ModuleHasNoEntrypointMetadata()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    package p1
+                    import rego.v1
+
+                    default read := true
+                    default write := true
+                    """,
+                    "c1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+
+        // act
+        var names = observer.Updates[^1].Select(static p => p.Name);
+
+        // assert
+        names.MatchInlineSnapshot(
+            """
+            [
+              "p1.allow"
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task Code_Should_IgnoreMetadataWithoutEntrypointTrue()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    package p1
+                    import rego.v1
+
+                    # METADATA
+                    # title: Read products
+                    default read := true
+                    """,
+                    "c1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+
+        // act
+        var names = observer.Updates[^1].Select(static p => p.Name);
+
+        // assert
+        names.MatchInlineSnapshot(
+            """
+            [
+              "p1.allow"
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task Code_Should_IgnoreEntrypointMetadata_BeforePackage()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    # METADATA
+                    # entrypoint: true
+                    package p1
+                    import rego.v1
+
+                    default read := true
+                    """,
+                    "c1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+
+        // act
+        var names = observer.Updates[^1].Select(static p => p.Name);
+
+        // assert
+        names.MatchInlineSnapshot(
+            """
+            [
+              "p1.allow"
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task Code_Should_ReportEveryDecision_When_AnnotatedPairFailsToCompile()
+    {
+        // arrange
+        var diagnostics = new CapturingDiagnostics();
+        await using var provider = new RegoPolicyProvider(diagnostics);
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    package p1
+                    import rego.v1
+
+                    # METADATA
+                    # entrypoint: true
+                    read if {
+
+                    # METADATA
+                    # entrypoint: true
+                    write if { true }
+                    """,
+                    "c1")).Policies);
+
+        // act
+        var names = diagnostics.Errors.Select(static error => error.Split(':')[0]);
+
+        // assert
+        names.MatchInlineSnapshot(
+            """
+            [
+              "p1.read",
+              "p1.write"
+            ]
+            """);
     }
 
     [Fact]
@@ -227,20 +444,26 @@ public sealed class RegoPolicyProviderTests
         Assert.False(handle.IsAlive);
     }
 
-    // The policy name is the full rule path, so a base package named for the pair exposes the
-    // conventional 'allow' rule at 'data.<base>.allow'.
     private static PolicyContent Policy(string @base, string digest)
         => new(
-            $"{@base}.allow",
+            @base,
             PolicyContentType.Rego,
             Encoding.UTF8.GetBytes($"package {@base}\nimport rego.v1\ndefault allow := true\n"),
+            PolicyRequirements.Empty,
+            Encoding.UTF8.GetBytes(digest));
+
+    private static PolicyContent Policy(string @base, string source, string digest)
+        => new(
+            @base,
+            PolicyContentType.Rego,
+            Encoding.UTF8.GetBytes(source),
             PolicyRequirements.Empty,
             Encoding.UTF8.GetBytes(digest));
 
     // The rule body is malformed, so the whole set fails to compile.
     private static PolicyContent Broken(string @base, string digest)
         => new(
-            $"{@base}.allow",
+            @base,
             PolicyContentType.Rego,
             Encoding.UTF8.GetBytes($"package {@base}\nimport rego.v1\nallow if {{\n"),
             PolicyRequirements.Empty,
