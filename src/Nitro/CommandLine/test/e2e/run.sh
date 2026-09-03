@@ -230,7 +230,11 @@ for flow in "${FLOWS[@]}"; do
   #    `set -e`: capture it, record the flow as FAIL, and carry on to the rest.
   echo "==> recording ${flow}-flow"
   rec_ok=1
-  if ! docker run --rm --shm-size=512m \
+  # The published binary above is always linux-x64, so the container must run
+  # as amd64 regardless of host arch (docker would otherwise pick the host's
+  # native variant from this multi-arch image, e.g. arm64 on Apple Silicon,
+  # and the x64 binary can't exec there).
+  if ! docker run --rm --shm-size=512m --platform linux/amd64 \
       -v "$REPO_ROOT":/src:ro \
       -v "$OUT_DIR":/vhs \
       "$VHS_IMAGE" "/src/src/Nitro/CommandLine/test/e2e/${flow}-flow.tape"; then
