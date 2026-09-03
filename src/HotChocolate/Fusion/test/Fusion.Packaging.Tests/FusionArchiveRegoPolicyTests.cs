@@ -14,7 +14,7 @@ public class FusionArchiveRegoPolicyTests
     public async Task SetAndGetRegoPolicies_Should_RoundTrip_When_ArchiveContainsMultipleFormats()
     {
         // arrange
-        const string policy = "package authz\nallow := true";
+        const string policy = "package CanReadProduct\nallow := true";
         const string requirements = "fragment Requirements on Product { id }";
         var ct = TestContext.Current.CancellationToken;
         await using var stream = new MemoryStream();
@@ -29,13 +29,13 @@ public class FusionArchiveRegoPolicyTests
                 ct);
             await archive.SetRegoPolicyAsync(
                 "CanReadPrice",
-                "package price"u8.ToArray(),
+                "package CanReadPrice"u8.ToArray(),
                 "fragment Price on Product { price }"u8.ToArray(),
                 s_version1,
                 ct);
             await archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz_v2"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment RequirementsV2 on Product { id }"u8.ToArray(),
                 s_version2,
                 ct);
@@ -88,7 +88,7 @@ public class FusionArchiveRegoPolicyTests
             v1Names: CanReadPrice, CanReadProduct
             v1PolicyNames: CanReadPrice, CanReadProduct
             v1PolicyFormats: 1.0.0, 1.0.0
-            retrievedPolicy: package authz
+            retrievedPolicy: package CanReadProduct
             allow := true
             retrievedRequirements: fragment Requirements on Product { id }
             """);
@@ -117,6 +117,9 @@ public class FusionArchiveRegoPolicyTests
     [InlineData("..")]
     [InlineData("directory/policy")]
     [InlineData("directory\\policy")]
+    [InlineData("policy.name")]
+    [InlineData("policy-name")]
+    [InlineData("policy name")]
     public async Task SetRegoPolicy_Should_Throw_When_NameIsNotSafePathSegment(string policyName)
     {
         await using var stream = new MemoryStream();
@@ -126,6 +129,27 @@ public class FusionArchiveRegoPolicyTests
             () => archive.SetRegoPolicyAsync(
                 policyName,
                 "package authz"u8.ToArray(),
+                "fragment Requirements on Product { id }"u8.ToArray(),
+                s_version1,
+                TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("package authz[\"product\"]\nallow := true")]
+    [InlineData("allow := true")]
+    [InlineData("package policy-name\nallow := true")]
+    [InlineData("package OtherPolicy\nallow := true")]
+    public async Task SetRegoPolicy_Should_Throw_When_PackageIsNotMatchingSingleSegment(string policy)
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act & assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SetRegoPolicyAsync(
+                "CanReadProduct",
+                Encoding.UTF8.GetBytes(policy),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken));
@@ -169,7 +193,7 @@ public class FusionArchiveRegoPolicyTests
         await Assert.ThrowsAsync<ArgumentException>(
             () => archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 new Version(version),
                 TestContext.Current.CancellationToken));
@@ -204,7 +228,7 @@ public class FusionArchiveRegoPolicyTests
         using var archive = FusionArchive.Create(stream);
         await archive.SetRegoPolicyAsync(
             "CanReadProduct",
-            "package authz"u8.ToArray(),
+            "package CanReadProduct"u8.ToArray(),
             "fragment Requirements on Product { id }"u8.ToArray(),
             s_version1,
             TestContext.Current.CancellationToken);
@@ -294,7 +318,7 @@ public class FusionArchiveRegoPolicyTests
         {
             await archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);
@@ -310,7 +334,7 @@ public class FusionArchiveRegoPolicyTests
         {
             await archive.SetRegoPolicyAsync(
                 "CanReadPrice",
-                "package price"u8.ToArray(),
+                "package CanReadPrice"u8.ToArray(),
                 "fragment Requirements on Product { price }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);
@@ -332,7 +356,7 @@ public class FusionArchiveRegoPolicyTests
         {
             await archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);
@@ -347,7 +371,7 @@ public class FusionArchiveRegoPolicyTests
             await archive.RemoveSignatureAsync(TestContext.Current.CancellationToken);
             await archive.SetRegoPolicyAsync(
                 "CanReadPrice",
-                "package price"u8.ToArray(),
+                "package CanReadPrice"u8.ToArray(),
                 "fragment Requirements on Product { price }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);
@@ -371,7 +395,7 @@ public class FusionArchiveRegoPolicyTests
         {
             await archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);
@@ -417,7 +441,7 @@ public class FusionArchiveRegoPolicyTests
         {
             await archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 s_version1,
                 TestContext.Current.CancellationToken);

@@ -454,7 +454,9 @@ public sealed class FusionArchive : IDisposable
     /// <param name="requirements">The GraphQL data requirements as UTF-8 encoded bytes.</param>
     /// <param name="version">The Rego policy format version.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentException">Thrown when the policy name or version is invalid.</exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the policy name, package declaration, or version is invalid.
+    /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the policy or requirements are empty.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
@@ -483,13 +485,17 @@ public sealed class FusionArchive : IDisposable
                 + $"'{conflictingPolicy.Name}' because policy names must be unique ignoring case.");
         }
 
+        if (!TryScanRegoPackageSegments(policy.Span, out var packageSegments)
+            || packageSegments.Length != 1
+            || !packageSegments[0].Equals(policyName, StringComparison.Ordinal))
+        {
+            throw ThrowHelper.RegoPolicyPackageMustMatchName();
+        }
+
         // A policy declares a package whose rules form a virtual document rooted at that package path.
         // That virtual document must not overlap a data mount, which is a base document at the same
         // path. Reject the policy when its package collides with an existing data mount.
-        if (TryScanRegoPackageSegments(policy.Span, out var packageSegments))
-        {
-            await EnsureNoRegoBaseVirtualConflictForPolicyAsync(version, packageSegments, cancellationToken);
-        }
+        await EnsureNoRegoBaseVirtualConflictForPolicyAsync(version, packageSegments, cancellationToken);
 
         await using (var stream = _session.OpenWrite(FileNames.GetRegoPolicyPath(version, policyName)))
         {
@@ -1690,22 +1696,7 @@ public sealed class FusionArchive : IDisposable
         => policyName.Equals("data", StringComparison.Ordinal);
 
     private static bool IsValidRegoPolicyName(string policyName)
-    {
-        if (string.IsNullOrWhiteSpace(policyName) || policyName is "." or "..")
-        {
-            return false;
-        }
-
-        foreach (var character in policyName)
-        {
-            if (character is '/' or '\\' || char.IsControl(character))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+        => IsRegoPackageSegment(policyName);
 
     private static void ValidateRegoPolicyVersion(Version version)
     {
@@ -2100,7 +2091,7 @@ public sealed class FusionArchive : IDisposable
 
     // Reads the package path a Rego policy declares (for example 'package a.b.c' yields ["a", "b", "c"]).
     // Package references that use bracket or string notation cannot be mapped to a simple path and are
-    // reported as not scanned, so the conflict check is skipped rather than risk a false rejection.
+    // reported as not scanned.
     private static bool TryScanRegoPackageSegments(ReadOnlySpan<byte> source, out string[] segments)
     {
         // Skip a leading UTF-8 byte order mark so a policy authored with one is scanned correctly.

@@ -405,17 +405,17 @@ public class FusionArchiveRegoDataTests
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetRegoPolicyAsync(
             "CanReadProduct",
-            "package authz\nallow := true"u8.ToArray(),
+            "package CanReadProduct\nallow := true"u8.ToArray(),
             "fragment R on Product { id }"u8.ToArray(),
             s_version,
             TestContext.Current.CancellationToken);
 
         // act & assert
-        // The root data document defines the key 'authz', which is the policy package's virtual root.
+        // The root data document defines the key 'CanReadProduct', which is the policy package's virtual root.
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => archive.SetRegoDataAsync(
                 "",
-                """{ "authz": { "seed": 1 } }"""u8.ToArray(),
+                """{ "CanReadProduct": { "seed": 1 } }"""u8.ToArray(),
                 s_version,
                 TestContext.Current.CancellationToken));
     }
@@ -427,7 +427,7 @@ public class FusionArchiveRegoDataTests
         await using var stream = new MemoryStream();
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetRegoDataAsync(
-            "authz",
+            "CanReadProduct",
             "{ }"u8.ToArray(),
             s_version,
             TestContext.Current.CancellationToken);
@@ -436,7 +436,7 @@ public class FusionArchiveRegoDataTests
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz\nallow := true"u8.ToArray(),
+                "package CanReadProduct\nallow := true"u8.ToArray(),
                 "fragment R on Product { id }"u8.ToArray(),
                 s_version,
                 TestContext.Current.CancellationToken));
@@ -450,7 +450,7 @@ public class FusionArchiveRegoDataTests
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetRegoPolicyAsync(
             "CanReadProduct",
-            "package authz\nallow := true"u8.ToArray(),
+            "package CanReadProduct\nallow := true"u8.ToArray(),
             "fragment R on Product { id }"u8.ToArray(),
             s_version,
             TestContext.Current.CancellationToken);

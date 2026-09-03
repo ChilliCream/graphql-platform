@@ -127,7 +127,7 @@ public class FusionArchiveManifestTests : IDisposable
                 cancellationToken: TestContext.Current.CancellationToken);
             await archive.SetRegoPolicyAsync(
                 "CanReadProduct",
-                "package authz"u8.ToArray(),
+                "package CanReadProduct"u8.ToArray(),
                 "fragment Requirements on Product { id }"u8.ToArray(),
                 s_policyVersion,
                 TestContext.Current.CancellationToken);
