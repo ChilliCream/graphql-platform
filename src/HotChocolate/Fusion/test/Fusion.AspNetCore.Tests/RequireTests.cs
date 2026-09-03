@@ -399,6 +399,50 @@ public class RequireTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Theory]
+    [InlineData("1", "WithPromoCode")]
+    [InlineData("2", "WithoutPromoCode")]
+    public async Task Require_Should_InvokeResolverWithProjectedValue_When_ProjectionTargetIsNullable(
+        string cartId,
+        string postFix)
+    {
+        // arrange
+        // The promotions schema extends Cart with a nullable promoCode that is null for cart 2.
+        using var server1 = CreateSourceSchema(
+            "cart",
+            b => b.AddQueryType<CartWithPromoCodeRequirement.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "promotions",
+            b => b.AddQueryType<Promotions.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("cart", server1),
+            ("promotions", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            $$"""
+            {
+              cartById(id: "{{cartId}}") {
+                discountPercent
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix);
+    }
+
     [Fact]
     public async Task Require_Object_In_A_List()
     {
@@ -669,6 +713,47 @@ public class RequireTests : FusionTestBase
                 return nullableArgument is null ? "Required field is null" : "Required field is not null";
             }
         }
+    }
+
+    private static class CartWithPromoCodeRequirement
+    {
+        public class Query
+        {
+            [Lookup]
+            public Cart? GetCartById([ID] int id) => new Cart(id);
+        }
+
+        public record Cart([property: ID] int Id)
+        {
+            public int GetDiscountPercent(
+                [Require("promoCode.{ discountPercent isExpired }")] PromoInput? promo)
+                => promo is null || promo.IsExpired ? 0 : promo.DiscountPercent;
+        }
+
+        public class PromoInput
+        {
+            public required int DiscountPercent { get; set; }
+
+            public required bool IsExpired { get; set; }
+        }
+    }
+
+    private static class Promotions
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Cart? GetCartById([ID] int id) => new Cart(id);
+        }
+
+        public record Cart([property: ID] int Id)
+        {
+            public PromoCode? PromoCode
+                => Id == 1 ? new PromoCode("SAVE10", 10, false) : null;
+        }
+
+        public record PromoCode(string Code, int DiscountPercent, bool IsExpired);
     }
 
     public static class BookCatalog
