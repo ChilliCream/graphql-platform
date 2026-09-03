@@ -246,7 +246,7 @@ public sealed class RegoPolicyProviderTests
     public void Scanner_Should_IgnoreMetadataInsideRuleBodies()
     {
         // arrange
-        var source =
+        const string source =
             """
             package p1
             import rego.v1
@@ -269,7 +269,7 @@ public sealed class RegoPolicyProviderTests
     public void Scanner_Should_IgnoreMetadataInsideMultilineRawStrings()
     {
         // arrange
-        var source =
+        const string source =
             """
             package p1
             import rego.v1
@@ -296,7 +296,7 @@ public sealed class RegoPolicyProviderTests
     public void Scanner_Should_IgnoreQuotedAndCommentDelimiters()
     {
         // arrange
-        var source =
+        const string source =
             """
             package p1
             import rego.v1
@@ -320,7 +320,7 @@ public sealed class RegoPolicyProviderTests
     public void Scanner_Should_RecognizeSimpleAndDefaultRuleHeads()
     {
         // arrange
-        var source =
+        const string source =
             """
             package p1
             import rego.v1
@@ -345,7 +345,7 @@ public sealed class RegoPolicyProviderTests
     public void Scanner_Should_IgnoreComplexAndMalformedRuleHeads()
     {
         // arrange
-        var source =
+        const string source =
             """
             package p1
             import rego.v1
