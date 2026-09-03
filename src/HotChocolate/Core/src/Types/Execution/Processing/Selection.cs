@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Properties;
 using HotChocolate.Features;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -87,6 +88,12 @@ public sealed class Selection : ISelection, IFeatureProvider
         if (field.Type.IsListType())
         {
             _flags |= Flags.List;
+        }
+
+        if ((field.Flags & CoreFieldFlags.Stream) == CoreFieldFlags.Stream
+            && syntaxNodes[0].Node.IsStreamable())
+        {
+            _flags |= Flags.Stream;
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
@@ -183,6 +190,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// Gets a value indicating whether this selection returns a list type.
     /// </summary>
     public bool IsList => (_flags & Flags.List) == Flags.List;
+
+    internal bool IsStream => (_flags & Flags.Stream) == Flags.Stream;
 
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;

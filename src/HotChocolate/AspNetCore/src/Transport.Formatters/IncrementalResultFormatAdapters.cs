@@ -695,7 +695,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
             case LegacyIncrementalEntryKind.Items:
                 writer.WritePropertyName(ResultFieldNames.Items);
-                WriteItems(writer, entry.Items, options);
+                WriteItems(writer, entry.Items);
                 break;
         }
 
@@ -713,8 +713,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
     private static void WriteItems(
         JsonWriter writer,
-        IReadOnlyList<object?>? items,
-        JsonSerializerOptions options)
+        IReadOnlyList<OperationResultData>? items)
     {
         if (items is null)
         {
@@ -726,7 +725,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
         for (var i = 0; i < items.Count; i++)
         {
-            WriteValue(writer, items[i], options);
+            items[i].Formatter.WriteDataTo(writer);
         }
 
         writer.WriteEndArray();
@@ -754,7 +753,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         string? Label,
         OperationResultData? Data,
         ReadOnlyMemorySegment? RawData,
-        IReadOnlyList<object?>? Items,
+        IReadOnlyList<OperationResultData>? Items,
         IReadOnlyList<IError>? Errors)
     {
         public static LegacyIncrementalEntry ForData(
@@ -768,7 +767,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         public static LegacyIncrementalEntry ForItems(
             Path path,
             string? label,
-            IReadOnlyList<object?>? items,
+            IReadOnlyList<OperationResultData>? items,
             IReadOnlyList<IError>? errors)
             => new(LegacyIncrementalEntryKind.Items, path, label, null, null, items, errors);
     }

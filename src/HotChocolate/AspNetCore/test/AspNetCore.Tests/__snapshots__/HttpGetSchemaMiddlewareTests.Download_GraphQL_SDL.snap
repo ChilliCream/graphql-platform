@@ -187,7 +187,7 @@ directive @defer(
   "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to."
   label: String
   "Deferred when true."
-  if: Boolean
+  if: Boolean! = true
 ) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 directive @foo(bar: Int!) on SUBSCRIPTION
@@ -213,5 +213,5 @@ directive @stream(
   "The initial elements that shall be send down to the consumer."
   initialCount: Int! = 0
   "Streamed when true."
-  if: Boolean
+  if: Boolean! = true
 ) on FIELD

@@ -9,7 +9,11 @@ namespace HotChocolate.Execution;
 /// Field errors that caused the incremental delivery to fail due to error bubbling above the incremental result's path.
 /// When present, indicates the delivery has failed.
 /// </param>
-public sealed record CompletedResult(int Id, IReadOnlyList<IError>? Errors = null)
+/// <param name="Extensions">Additional information associated with this completed result, if present.</param>
+public sealed record CompletedResult(
+    int Id,
+    IReadOnlyList<IError>? Errors = null,
+    IReadOnlyDictionary<string, object?>? Extensions = null)
 {
     /// <summary>
     /// Gets the request unique pending data identifier that matches a prior pending result.
@@ -21,4 +25,9 @@ public sealed record CompletedResult(int Id, IReadOnlyList<IError>? Errors = nul
     /// above the incremental result's path. When present, indicates the delivery has failed.
     /// </summary>
     public IReadOnlyList<IError>? Errors { get; init; } = Errors;
+
+    /// <summary>
+    /// Gets additional information associated with this completed result, or <c>null</c> when none is present.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?>? Extensions { get; init; } = Extensions;
 }

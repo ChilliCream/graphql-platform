@@ -10,6 +10,98 @@ namespace HotChocolate.Execution.Processing;
 public class OperationCompilerTests
 {
     [Fact]
+    public void Compile_Should_MarkStreamableSelectionAndOperationAsIncremental_When_StreamDirectiveIsPresent()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<StreamQuery>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ streamable @stream }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var selection = operation.RootSelectionSet.Selections[0];
+
+        // assert
+        Assert.Equal(1, operation.RootSelectionSet.Selections.Length);
+        Assert.True(selection.IsStream);
+        Assert.True(operation.RootSelectionSet.HasIncrementalParts);
+        Assert.True(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_Should_IgnoreStreamDirective_When_FieldIsNotStaticallyStreamable()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<StreamQuery>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ plain @stream }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var selection = operation.RootSelectionSet.Selections[0];
+
+        // assert
+        Assert.Equal(1, operation.RootSelectionSet.Selections.Length);
+        Assert.False(selection.IsStream);
+        Assert.False(operation.RootSelectionSet.HasIncrementalParts);
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_Should_MarkOperationAsIncremental_When_InterfaceFieldIsConventionDiscoveredAsStreamable()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<InterfaceStreamQuery>()
+            .AddType<InterfaceStreamContainer>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ container { values @stream } }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+
+        // assert
+        Assert.True(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_Should_MarkOperationAsIncremental_When_StreamIsInRetainedConditionalNestedFragment()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<NestedStreamQuery>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse(
+            "query($include: Boolean!) { container { ... @include(if: $include) { values @stream } } }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+
+        // assert
+        Assert.True(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_Should_MarkOperationAsIncremental_When_StreamIsInApplicableTypeConditionedNestedFragment()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<TypeConditionStreamQuery>()
+            .AddType<TypeConditionStreamContainer>()
+            .Create();
+        var document = Utf8GraphQLParser.Parse(
+            "{ container { ... on TypeConditionStreamContainer { values @stream } } }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+
+        // assert
+        Assert.True(operation.HasIncrementalParts);
+    }
+
+    [Fact]
     public void Prepare_One_Field()
     {
         // arrange
@@ -1972,6 +2064,71 @@ public class OperationCompilerTests
         sb.AppendLine();
         sb.AppendLine(compiled.ToString());
         sb.ToString().Replace("\r", "").MatchSnapshot();
+    }
+
+    public class StreamQuery
+    {
+        public async IAsyncEnumerable<int> GetStreamable()
+        {
+            yield return 1;
+            await Task.CompletedTask;
+        }
+
+        public int[] GetPlain() => [1];
+    }
+
+    public class InterfaceStreamQuery
+    {
+        public IInterfaceStreamContainer GetContainer() => new InterfaceStreamContainer();
+    }
+
+    public interface IInterfaceStreamContainer
+    {
+        IAsyncEnumerable<int> GetValues();
+    }
+
+    public class InterfaceStreamContainer : IInterfaceStreamContainer
+    {
+        public async IAsyncEnumerable<int> GetValues()
+        {
+            yield return 1;
+            await Task.CompletedTask;
+        }
+    }
+
+    public class NestedStreamQuery
+    {
+        public NestedStreamContainer GetContainer() => new();
+    }
+
+    public class NestedStreamContainer
+    {
+        public async IAsyncEnumerable<int> GetValues()
+        {
+            yield return 1;
+            await Task.CompletedTask;
+        }
+    }
+
+    public class TypeConditionStreamQuery
+    {
+        public ITypeConditionStreamContainer GetContainer() => new TypeConditionStreamContainer();
+    }
+
+    public interface ITypeConditionStreamContainer
+    {
+        string Name { get; }
+    }
+
+    public class TypeConditionStreamContainer : ITypeConditionStreamContainer
+    {
+        public string Name => "container";
+
+        public async IAsyncEnumerable<int> GetValues()
+        {
+            yield return 1;
+            await Task.CompletedTask;
+        }
     }
 
     public class Foo
