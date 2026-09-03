@@ -6,7 +6,6 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresPubSubIntegrationTests
     : SubscriptionIntegrationTestBase
-    , IClassFixture<PostgreSqlResource>
     , IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource;

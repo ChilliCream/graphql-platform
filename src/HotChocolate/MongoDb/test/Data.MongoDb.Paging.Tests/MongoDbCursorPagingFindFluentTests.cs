@@ -10,7 +10,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
-public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
+public class MongoDbCursorPagingFindFluentTests
 {
     private readonly List<Foo> _foos =
     [

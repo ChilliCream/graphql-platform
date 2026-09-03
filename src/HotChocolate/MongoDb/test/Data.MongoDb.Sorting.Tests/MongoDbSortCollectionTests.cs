@@ -10,7 +10,7 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
-public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
+public class MongoDbSortCollectionTests
 {
     private static readonly Foo[] s_fooEntities =
     [

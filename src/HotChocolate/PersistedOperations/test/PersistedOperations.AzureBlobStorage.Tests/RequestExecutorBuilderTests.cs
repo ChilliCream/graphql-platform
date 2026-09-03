@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
-public class RequestExecutorBuilderTests : IClassFixture<AzureStorageBlobResource>
+public class RequestExecutorBuilderTests
 {
     private readonly BlobContainerClient _client;
 

@@ -9,7 +9,6 @@ using HotChocolate.Types.Mutable;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
 
 namespace HotChocolate.Fusion;
 
@@ -34,12 +33,11 @@ public sealed class NatsEventStreamGatewayTests
         // arrange
         await using var nats = new NatsResource();
         await nats.InitializeAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.NatsConnectionString, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
-        var executor = await BuildGatewayAsync(nats.NatsConnectionString, stream);
+        var executor = await BuildGatewayAsync(nats.NatsConnectionString, stream.Name);
 
         // act
         // Drive the initial subscription, publish two events to the single NATS subject, and receive
@@ -60,7 +58,7 @@ public sealed class NatsEventStreamGatewayTests
             {
                 await WaitForConsumerAsync(
                     nats.NatsConnectionString,
-                    stream,
+                    stream.Name,
                     expectedCount: 1,
                     cts.Token);
                 await PublishAsync(
@@ -262,23 +260,6 @@ public sealed class NatsEventStreamGatewayTests
                 }
             }
         }
-    }
-
-    private static async Task CreateStreamAsync(
-        string url,
-        string stream,
-        string subject,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = new NatsConnection(new NatsOpts { Url = url });
-        var js = new NatsJSContext(connection);
-        await js.CreateStreamAsync(
-            new StreamConfig
-            {
-                Name = stream,
-                Subjects = [subject]
-            },
-            cancellationToken);
     }
 
     private static async Task PublishAsync(

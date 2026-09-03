@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixture<MongoResource>
+public class MongoDbProjectionObjectTests(MongoResource resource)
 {
     private static readonly BarNullable[] s_barWithoutRelation =
     [

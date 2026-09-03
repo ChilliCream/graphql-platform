@@ -7,7 +7,7 @@ using Raven.Client.Documents;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class FluentApiTests : IClassFixture<RavenDBResource>
+public class FluentApiTests
 {
     private readonly RavenDBResource _resource;
 

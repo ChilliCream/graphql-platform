@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
-public class ServiceCollectionExtensionsTests : IClassFixture<AzureStorageBlobResource>
+public class ServiceCollectionExtensionsTests
 {
     private readonly BlobContainerClient _client;
 

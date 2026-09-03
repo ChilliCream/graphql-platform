@@ -14,7 +14,7 @@ using NATS.Client.Core;
 
 namespace HotChocolate.Fusion.Subscriptions.NATS;
 
-public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
+public sealed class NatsSubscriptionTests
 {
     private readonly NatsResource _natsResource;
 

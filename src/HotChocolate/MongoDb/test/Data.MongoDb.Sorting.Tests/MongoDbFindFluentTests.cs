@@ -11,7 +11,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
-public class MongoDbFindFluentTests : IClassFixture<MongoResource>
+public class MongoDbFindFluentTests
 {
     private static readonly Foo[] s_fooEntities =
     [

@@ -11,7 +11,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
-public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
+public class MongoDbOffsetPagingAggregateTests
 {
     private readonly List<Foo> _foos =
     [
