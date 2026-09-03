@@ -1,4 +1,4 @@
- [T]asks   [M]ail   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory   [G]raph
 ╭─Blocked (3)─────────────────────────────────────────────────────────────────────────────────╮
 │   ○ [B] P0 acme-a1b Checkout crashes on Safari                                              │
 │   ○ [E] P1 acme-epic1 Launch v2 pricing page                                                │

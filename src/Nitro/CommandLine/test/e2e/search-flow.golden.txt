@@ -1,4 +1,4 @@
- [T]asks   [M]ail   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory   [G]raph
 > status:open pricing
 ╭─Results─────────────────────────────────────╮╭─acme-epic1 Launch v2 pricing page──╮
 │   ○ [E] P1 acme-epic1 Launch v2 pricing     ││ Blocks                             │

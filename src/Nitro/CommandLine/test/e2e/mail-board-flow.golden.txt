@@ -1,4 +1,4 @@
- [T]asks   [M]ail   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory   [G]raph
 ╭─Workspace: bob (3)────────────────────────────────────╮╭─m-fix002 Billing review────────────╮
 │         From           To             Su…  Age        ││ From: bob                          │
 │ >       bob            e2e-agent+1    Bi…  2026-01-01 ││ To: e2e-agent                      │

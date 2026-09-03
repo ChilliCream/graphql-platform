@@ -1,4 +1,4 @@
- [T]asks   [M]ail   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory   [G]raph
 ╭─Agents (1)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
 │ >   bob ◇ claude-code  started 2026-01-01   ││ Session                                      │
 │ heard 2026-01-01                            ││                                              │
