@@ -57,7 +57,7 @@ public class GeoJsonMultiPointTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on MultiPoint { type coordinates bbox crs }}}",
+            "{ test { ... on GeoJSONMultiPointType { type coordinates bbox crs }}}",
             TestContext.Current.CancellationToken);
 
         // assert

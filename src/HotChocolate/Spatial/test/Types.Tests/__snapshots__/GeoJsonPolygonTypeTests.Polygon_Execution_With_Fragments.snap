@@ -1,20 +1,38 @@
 {
-  "errors": [
-    {
-      "message": "Unknown type `Polygon`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 10
-        }
+  "data": {
+    "test": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            30,
+            10
+          ],
+          [
+            40,
+            40
+          ],
+          [
+            20,
+            40
+          ],
+          [
+            10,
+            20
+          ],
+          [
+            30,
+            10
+          ]
+        ]
       ],
-      "path": [
-        "test"
+      "bbox": [
+        10,
+        10,
+        40,
+        40
       ],
-      "extensions": {
-        "typeCondition": "Polygon",
-        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence"
-      }
+      "crs": 4326
     }
-  ]
+  }
 }
