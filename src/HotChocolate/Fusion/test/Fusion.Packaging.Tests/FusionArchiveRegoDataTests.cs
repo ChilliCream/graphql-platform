@@ -276,6 +276,7 @@ public class FusionArchiveRegoDataTests
     [Theory]
     [InlineData(".")]
     [InlineData("..")]
+    [InlineData(" ")]
     [InlineData("roles/..")]
     [InlineData("a//b")]
     [InlineData("/roles")]
@@ -294,6 +295,42 @@ public class FusionArchiveRegoDataTests
                 "{ }"u8.ToArray(),
                 s_version,
                 TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("roles-admin")]
+    [InlineData("roles.admin")]
+    [InlineData("roles admin")]
+    [InlineData("rôle")]
+    public async Task SetTryGetAndRemoveRegoData_Should_Succeed_When_MountPathSegmentIsNotARegoIdentifier(
+        string mountPath)
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+
+        // act
+        await archive.SetRegoDataAsync(
+            mountPath,
+            "{ }"u8.ToArray(),
+            s_version,
+            TestContext.Current.CancellationToken);
+        var data = await archive.TryGetRegoDataAsync(
+            mountPath,
+            s_version,
+            TestContext.Current.CancellationToken);
+        var removed = await archive.RemoveRegoDataAsync(
+            mountPath,
+            s_version,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("{ }"u8.ToArray(), data!.Value.ToArray());
+        Assert.True(removed);
+        Assert.Null(await archive.TryGetRegoDataAsync(
+            mountPath,
+            s_version,
+            TestContext.Current.CancellationToken));
     }
 
     [Fact]

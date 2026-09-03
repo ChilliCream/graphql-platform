@@ -1767,7 +1767,7 @@ public sealed class FusionArchive : IDisposable
 
         foreach (var segment in segments)
         {
-            if (!IsValidRegoPolicyName(segment))
+            if (!IsValidRegoDataMountSegment(segment))
             {
                 throw new ArgumentException(
                     $"The data mount path '{mountPath}' contains an invalid path segment.",
@@ -1776,6 +1776,24 @@ public sealed class FusionArchive : IDisposable
         }
 
         return segments;
+    }
+
+    private static bool IsValidRegoDataMountSegment(string? segment)
+    {
+        if (string.IsNullOrWhiteSpace(segment) || segment is "." or "..")
+        {
+            return false;
+        }
+
+        foreach (var character in segment)
+        {
+            if (character is '/' or '\\' || char.IsControl(character))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static JsonDocument ParseRegoDataObject(ReadOnlyMemory<byte> data)

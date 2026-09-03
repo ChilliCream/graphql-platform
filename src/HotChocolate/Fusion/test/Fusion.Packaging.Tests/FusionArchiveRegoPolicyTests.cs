@@ -138,6 +138,7 @@ public class FusionArchiveRegoPolicyTests
     [InlineData("package authz[\"product\"]\nallow := true")]
     [InlineData("allow := true")]
     [InlineData("package policy-name\nallow := true")]
+    [InlineData("package CanReadProduct.rules\nallow := true")]
     [InlineData("package OtherPolicy\nallow := true")]
     public async Task SetRegoPolicy_Should_Throw_When_PackageIsNotMatchingSingleSegment(string policy)
     {
