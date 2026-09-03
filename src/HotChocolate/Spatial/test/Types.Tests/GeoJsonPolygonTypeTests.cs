@@ -114,7 +114,7 @@ public class GeoJsonPolygonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on Polygon { type coordinates bbox crs }}}",
+            "{ test { ... on GeoJSONPolygonType { type coordinates bbox crs }}}",
             TestContext.Current.CancellationToken);
 
         // assert

@@ -127,7 +127,7 @@ public class GeoJsonMultiPolygonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on MultiPolygon { type coordinates bbox crs }}}",
+            "{ test { ... on GeoJSONMultiPolygonType { type coordinates bbox crs }}}",
             TestContext.Current.CancellationToken);
 
         // assert
