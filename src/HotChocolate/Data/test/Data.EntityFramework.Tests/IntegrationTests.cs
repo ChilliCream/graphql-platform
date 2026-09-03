@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text.Json;
 using CookieCrumble;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
@@ -1506,6 +1507,54 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
+    public async Task AsSelector_Should_Not_MisShare_Cached_Wide_Selector_When_Overflow_Flag_Differs()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+        var document = CreateWideConditionalSelectorDocument("tenantsCapturedWide");
+        var excludedVariables = CreateWideConditionalVariables(include: false);
+        var includedVariables = CreateWideConditionalVariables(include: true);
+
+        // act
+        await ExecuteConditionalRequestAsync(context, document, excludedVariables);
+        await ExecuteConditionalRequestAsync(context, document, includedVariables);
+        await ExecuteConditionalRequestAsync(context, document, excludedVariables);
+
+        // assert
+        Assert.Equal(3, context.SelectorCapture.Selectors.Count);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[1]);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[2]);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Evict_Narrow_Selector_When_Wide_Variants_Reach_Aggregate_Capacity()
+    {
+        // arrange
+        var diagnostics = new ConditionalCacheDiagnostics();
+        await using var context = await CreateConditionalTestContextAsync(2, diagnostics);
+        var wideDocument = CreateWideConditionalSelectorDocument("tenantsCapturedWide");
+
+        // act
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+        await ExecuteConditionalRequestAsync(
+            context,
+            wideDocument,
+            CreateWideConditionalVariables(include: false));
+        await ExecuteConditionalRequestAsync(
+            context,
+            wideDocument,
+            CreateWideConditionalVariables(include: true));
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+
+        // assert
+        Assert.Equal(4, context.SelectorCapture.Selectors.Count);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[3]);
+        Assert.Equal(1, diagnostics.CapacityGaugeRegistrations);
+        Assert.Equal(2, diagnostics.CapacityGauge!());
+        Assert.InRange(diagnostics.SizeGauge!(), 0, 2);
+    }
+
+    [Fact]
     public async Task AsSelector_Should_Reuse_Selection_Cached_Selector_When_Subtree_Is_Unconditional_In_Conditional_Operation()
     {
         // arrange
@@ -1532,6 +1581,33 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[3]);
     }
 
+    [Fact]
+    public async Task AsSelector_Should_Throw_For_Raw_Flags_When_Wide_Selector_Is_Cached()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+        var document = CreateWideConditionalSelectorDocument("tenantsRawSelectorGuard");
+
+        // act
+        await ExecuteConditionalRequestAsync(
+            context,
+            document,
+            CreateWideConditionalVariables(include: true));
+
+        // assert
+        context.SelectorCapture.RawSelectorExceptions
+            .Select(static exception => $"{exception?.GetType().Name}: {exception?.Message}")
+            .MatchInlineSnapshots(
+                [
+                    """
+                    InvalidOperationException: The operation has more than 64 include conditions; this projection requires the wide include flags. Use AsSelector<TValue>(ConditionFlags).
+                    """,
+                    """
+                    InvalidOperationException: The operation has more than 64 include conditions; this projection requires the wide include flags. Use AsSelector<TValue>(ConditionFlags).
+                    """
+                ]);
+    }
+
     private static async Task ExecuteConditionalSelectorCaptureRequestAsync(
         ConditionalTestContext context,
         bool include)
@@ -1549,15 +1625,24 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             """,
             include);
 
-    private static async Task ExecuteConditionalRequestAsync(
+    private static Task ExecuteConditionalRequestAsync(
         ConditionalTestContext context,
         string document,
         bool include)
+        => ExecuteConditionalRequestAsync(
+            context,
+            document,
+            new Dictionary<string, object?> { ["if"] = include });
+
+    private static async Task ExecuteConditionalRequestAsync(
+        ConditionalTestContext context,
+        string document,
+        IReadOnlyDictionary<string, object?> variables)
     {
         var result = await context.Executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(document)
-                .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
+                .SetVariableValues(variables)
                 .Build(),
             Xunit.TestContext.Current.CancellationToken);
 
@@ -1568,7 +1653,47 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         }
     }
 
-    private static async Task<ConditionalTestContext> CreateConditionalTestContextAsync()
+    private static string CreateWideConditionalSelectorDocument(string fieldName)
+    {
+        var variables = new string[65];
+        var fields = new string[64];
+
+        for (var i = 0; i < 64; i++)
+        {
+            variables[i] = $"$condition{i}: Boolean!";
+            fields[i] = $"tenantNames{i}: tenantNames @include(if: $condition{i})";
+        }
+
+        variables[64] = "$wide: Boolean!";
+
+        return $$"""
+            query({{string.Join(", ", variables)}}) {
+              {{string.Join(Environment.NewLine + "  ", fields)}}
+              tenants: {{fieldName}} {id
+                workspaces @include(if: $wide) {
+                  id
+                }
+              }
+            }
+            """;
+    }
+
+    private static IReadOnlyDictionary<string, object?> CreateWideConditionalVariables(bool include)
+    {
+        var variables = new Dictionary<string, object?>(65);
+
+        for (var i = 0; i < 64; i++)
+        {
+            variables.Add($"condition{i}", false);
+        }
+
+        variables.Add("wide", include);
+        return variables;
+    }
+
+    private static async Task<ConditionalTestContext> CreateConditionalTestContextAsync(
+        int cacheCapacity = 4096,
+        CacheDiagnostics? cacheDiagnostics = null)
     {
         var dbFile = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
@@ -1577,12 +1702,21 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         var sqlCapture = new ConditionalSqlCapture();
         var selectorCapture = new ConditionalSelectorCapture();
 
-        var services = new ServiceCollection()
+        var serviceCollection = new ServiceCollection()
             .AddSingleton(sqlCapture)
             .AddSingleton(selectorCapture)
-            .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
-            .AddGraphQL()
-            .AddProjectionSelectorCache()
+            .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString));
+
+        var builder = serviceCollection.AddGraphQL();
+
+        if (cacheDiagnostics is not null)
+        {
+            builder.ConfigureSchemaServices(
+                services => services.AddSingleton<CacheDiagnostics>(cacheDiagnostics));
+        }
+
+        var services = builder
+            .AddProjectionSelectorCache(cacheCapacity)
             .AddQueryType<ConditionalQuery>()
             .AddType<ConditionalTenantType>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -1781,6 +1915,32 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public sealed class ConditionalSelectorCapture
     {
         public List<LambdaExpression> Selectors { get; } = [];
+
+        public List<Exception?> RawSelectorExceptions { get; } = [];
+    }
+
+    private sealed class ConditionalCacheDiagnostics : CacheDiagnostics
+    {
+        public int CapacityGaugeRegistrations { get; private set; }
+
+        public Func<long>? CapacityGauge { get; private set; }
+
+        public Func<long>? SizeGauge { get; private set; }
+
+        public override void RegisterCapacityGauge(Func<long> capacityProvider)
+        {
+            CapacityGaugeRegistrations++;
+            CapacityGauge = capacityProvider;
+        }
+
+        public override void RegisterSizeGauge(Func<long> sizeProvider)
+            => SizeGauge = sizeProvider;
+
+        public override void Hit() { }
+
+        public override void Miss() { }
+
+        public override void Evict() { }
     }
 
     private sealed class ConditionalTestContext(
@@ -1816,7 +1976,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             [Service] ConditionalSqlCapture sqlCapture)
         {
             var selection = context.Selection;
-            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>(context.IncludeFlags));
+            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags));
             sqlCapture.Sql = query.ToQueryString();
             return query;
         }
@@ -1828,8 +1988,46 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             [Service] ConditionalSelectorCapture selectorCapture)
         {
             var selection = context.Selection;
-            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeFlags);
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
             selectorCapture.Selectors.Add(selector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsCapturedWide(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            selectorCapture.Selectors.Add(selector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsRawSelectorGuard(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            var includeFlags = context.IncludeConditionFlags.Word0;
+
+#pragma warning disable CS0618 // The obsolete overloads are the regression scenario under test.
+            selectorCapture.RawSelectorExceptions.Add(
+                Record.Exception(() => selection.AsSelector<ConditionalTenant>(includeFlags)));
+
+            ISelection interfaceSelection = selection;
+            selectorCapture.RawSelectorExceptions.Add(
+                Record.Exception(() => interfaceSelection.AsSelector<ConditionalTenant>(includeFlags)));
+#pragma warning restore CS0618
+
             var query = database.Tenants.Select(selector);
             sqlCapture.Sql = query.ToQueryString();
             return query;
@@ -1842,7 +2040,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             [Service] ConditionalSelectorCapture selectorCapture)
         {
             var selection = context.Selection;
-            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeFlags);
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
             var defaultSelector = selection.AsSelector<ConditionalTenant>();
             selectorCapture.Selectors.Add(selector);
             selectorCapture.Selectors.Add(defaultSelector);
@@ -1871,7 +2069,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             var selection = context.Selection;
             var query = database.Tenants
                 .OrderBy(t => t.Id)
-                .Select(selection.AsSelector<ConditionalTenant>(context.IncludeFlags));
+                .Select(selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags));
             sqlCapture.Sql = query.ToQueryString();
             return query;
         }

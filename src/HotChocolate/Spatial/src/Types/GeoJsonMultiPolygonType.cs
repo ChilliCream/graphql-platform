@@ -17,7 +17,7 @@ public sealed class GeoJsonMultiPolygonType
             .BindFieldsExplicitly();
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetGeometryCollectionCoordinates(null!))
+            .Field<GeoJsonResolvers>(x => x.GetMultiPolygonCoordinates(null!))
             .Name(CoordinatesFieldName)
             .Description(GeoJson_Field_Coordinates_Description_MultiPolygon)
             .Type<GeoJsonCoordinatesType>();

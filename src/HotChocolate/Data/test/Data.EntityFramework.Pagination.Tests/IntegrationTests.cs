@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -10,7 +11,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
