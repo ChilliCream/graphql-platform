@@ -370,6 +370,35 @@ public class RequirementCrossEntityTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice_Next_To_Required_Parent_Under_Interface()
+    {
+        // arrange
+        // same topology, but item is exposed as the Item interface so the requiring field
+        // sits under an inline fragment and requirement inlining takes the ancestor path.
+        var schema = CreateNestedRequireSelectedTwiceUnderInterfaceSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              item {
+                ... on CartItem {
+                  unitPrice
+                  u2: unitPrice
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice()
     {
         // arrange
@@ -855,6 +884,51 @@ public class RequirementCrossEntityTests : FusionTestBase
             }
 
             type CartItem {
+              id: ID!
+              product: Product!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice: Float!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateNestedRequireSelectedTwiceUnderInterfaceSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              item: Item!
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            interface Item {
+              id: ID!
+            }
+
+            type CartItem implements Item @key(fields: "id") {
               id: ID!
               product: Product!
               unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!

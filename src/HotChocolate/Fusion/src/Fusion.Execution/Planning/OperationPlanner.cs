@@ -2844,9 +2844,9 @@ public sealed partial class OperationPlanner
 
             if (schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
             {
-                // a requirement is never resolvable in the schema of the requiring field,
-                // so a step of that schema could only carry the path to the required
-                // fields, adding a dead selection and a spurious dependency.
+                // the required data is not natively resolvable in the requiring field's schema
+                // (composition forbids declaring the required leaves there), so a step of that
+                // schema could only carry the path, adding a dead selection and a spurious dependency.
                 continue;
             }
 
@@ -2926,7 +2926,8 @@ public sealed partial class OperationPlanner
 
         // Fallback: if no candidate step was found via exact selection set ID match,
         // walk the internal operation AST to find the nearest ancestor step and the
-        // complete connector chain to the target selection set.
+        // complete connector chain to the target selection set. An ancestor step of the
+        // requiring field's schema is skipped for the same reason as in the candidate loop.
         if (requirements is not null
             && TryFindAncestorStepForRequirement(
                 current.InternalOperationDefinition,
@@ -2935,7 +2936,8 @@ public sealed partial class OperationPlanner
                 workItem.Selection.SelectionSetId,
                 workItem.Selection.Path) is { } ancestorMatch
             && currentStep.Id != ancestorMatch.Step.Id
-            && !ancestorMatch.Step.DependsOn(currentStep, steps))
+            && !ancestorMatch.Step.DependsOn(currentStep, steps)
+            && !string.Equals(ancestorMatch.Step.SchemaName, current.SchemaName, StringComparison.Ordinal))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
