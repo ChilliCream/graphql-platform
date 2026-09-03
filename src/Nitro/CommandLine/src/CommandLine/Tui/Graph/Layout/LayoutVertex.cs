@@ -21,8 +21,3 @@ internal sealed class LayoutVertex
 
     public bool IsDummy => NodeId is null;
 }
-
-/// <summary>
-/// Connects two neighboring layout vertices for crossing minimization.
-/// </summary>
-internal sealed record LayoutSegment(LayoutVertex From, LayoutVertex To, LayoutArc Arc, int Sequence);

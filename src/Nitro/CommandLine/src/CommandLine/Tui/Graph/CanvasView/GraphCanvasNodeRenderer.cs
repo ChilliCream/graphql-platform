@@ -3,7 +3,6 @@ using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
-using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;
 

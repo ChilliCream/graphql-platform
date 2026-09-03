@@ -1,36 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
-using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
-
-/// <summary>
-/// Controls which graph edges are drawn and how their strokes are styled.
-/// </summary>
-internal sealed class GraphEdgeRenderOptions
-{
-    public bool IncludeParentChild { get; init; }
-
-    public Style BlocksStyle { get; init; } = GraphEdgeStyles.Line;
-
-    public Style ParentChildStyle { get; init; } = GraphEdgeStyles.Line;
-
-    public Func<GraphEdge, Style?>? StyleOverride { get; init; }
-}
-
-/// <summary>
-/// One routed span and the cells occupied by its stroke.
-/// </summary>
-internal sealed record GraphEdgeRoute(GraphLayoutEdgeSpan Span, IReadOnlyList<GraphLayoutPoint> Points);
-
-/// <summary>
-/// The routed graph canvas and its per-span geometry.
-/// </summary>
-internal sealed record GraphRenderResult(CellBuffer Buffer, IReadOnlyList<GraphEdgeRoute> Routes, GraphLayoutResult Layout)
-{
-    public int RenderedEdgeCount { get; init; }
-
-    public CanvasViewport Viewport => new(0, 0, Buffer.Width, Buffer.Height);
-}
 
 /// <summary>
 /// Routes layered graph spans through the whitespace between adjacent layers.

@@ -1,5 +1,4 @@
 using System.Buffers;
-using Spectre.Console;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Render;

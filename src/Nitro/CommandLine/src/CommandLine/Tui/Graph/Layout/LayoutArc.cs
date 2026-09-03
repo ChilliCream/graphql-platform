@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Tui.Graph;
-
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
 
 /// <summary>

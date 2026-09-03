@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
-using Spectre.Console;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;

@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Text;
-using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;
 
