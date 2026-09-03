@@ -455,6 +455,7 @@ public sealed class GraphReducerTests
             Id = id,
             Title = id,
             Status = status,
+            BoardStatus = status,
             Type = type,
             Priority = priority,
             Labels = labels ?? []

@@ -1,10 +1,14 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
+using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph;
 
 public sealed class GraphDataLoaderTests
 {
+    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     [Fact]
     public async Task LoadAsync_Should_LoadArchivedTasksAndApplyTheClosedVisibilityOption()
     {
@@ -12,7 +16,7 @@ public sealed class GraphDataLoaderTests
         var store = new FakeTaskStore();
         store.Tasks.Add(CreateTask("open", TaskStates.Open));
         store.Tasks.Add(CreateTask("archived", TaskStates.Archived));
-        var loader = new GraphDataLoader(store);
+        var loader = new GraphDataLoader(store, new FakeTimeProvider(Now));
 
         // act
         var raw = await loader.LoadAsync(TestContext.Current.CancellationToken);
@@ -33,7 +37,7 @@ public sealed class GraphDataLoaderTests
         store.Tasks.Add(CreateTask("one", TaskStates.Open));
         store.Tasks.Add(CreateTask("two", TaskStates.Open));
         store.TaskLabels.Add(new TaskLabels("one", ["alpha"]));
-        var loader = new GraphDataLoader(store);
+        var loader = new GraphDataLoader(store, new FakeTimeProvider(Now));
 
         // act
         var model = await loader.LoadAsync(TestContext.Current.CancellationToken);
@@ -42,6 +46,70 @@ public sealed class GraphDataLoaderTests
         Assert.Equal(1, store.BulkLabelReadCount);
         Assert.Equal(0, store.SingleLabelReadCount);
         Assert.Equal(["alpha"], model.Nodes.Single(t => t.Id == "one").Labels);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Should_StampOpenTaskWithUnmetBlockingDependencyAsBlocked()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(CreateTask("a-1", TaskStates.Open));
+        store.Blocked["a-1"] = ["a-9:open"];
+        var loader = new GraphDataLoader(store, new FakeTimeProvider(Now));
+
+        // act
+        var model = await loader.LoadAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Blocked, model.Nodes.Single(t => t.Id == "a-1").BoardStatus);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Should_StampOpenTaskWithFutureDeferUntilAsDeferred()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var task = CreateTask("a-1", TaskStates.Open);
+        task.DeferUntil = Now.AddDays(1);
+        store.Tasks.Add(task);
+        var loader = new GraphDataLoader(store, new FakeTimeProvider(Now));
+
+        // act
+        var model = await loader.LoadAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Deferred, model.Nodes.Single(t => t.Id == "a-1").BoardStatus);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Should_StampOpenTaskWithNoDependenciesAsReady()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(CreateTask("a-1", TaskStates.Open));
+        var loader = new GraphDataLoader(store, new FakeTimeProvider(Now));
+
+        // act
+        var model = await loader.LoadAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(TaskBoardStatus.Ready, model.Nodes.Single(t => t.Id == "a-1").BoardStatus);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Should_StampInProgressTaskAsInProgress_When_ItHasUnmetDependencies()
+    {
+        // arrange: the board rule -- in progress wins over blocked once work has started.
+        var store = new FakeTaskStore();
+        store.Tasks.Add(CreateTask("a-1", TaskStates.InProgress));
+        store.Blocked["a-1"] = ["a-9:open"];
+        var loader = new GraphDataLoader(store, new FakeTimeProvider(Now));
+
+        // act
+        var model = await loader.LoadAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.InProgress, model.Nodes.Single(t => t.Id == "a-1").BoardStatus);
     }
 
     private static TaskItem CreateTask(string id, string status)
@@ -58,6 +126,7 @@ public sealed class GraphDataLoaderTests
     {
         public List<TaskItem> Tasks { get; } = [];
         public List<TaskLabels> TaskLabels { get; } = [];
+        public Dictionary<string, IReadOnlyList<string>> Blocked { get; } = [];
         public int BulkLabelReadCount { get; private set; }
         public int SingleLabelReadCount { get; private set; }
 
@@ -95,7 +164,8 @@ public sealed class GraphDataLoaderTests
         public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(string taskId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(string taskId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<TaskDependentDetail>> GetDependentsAsync(string taskId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ComputeBlockedAsync(CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyDictionary<string, IReadOnlyList<string>>>(Blocked);
         public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<int> CountTasksAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<TaskCount>> CountTasksByAsync(TaskCountDimension dimension, CancellationToken cancellationToken) => throw new NotSupportedException();

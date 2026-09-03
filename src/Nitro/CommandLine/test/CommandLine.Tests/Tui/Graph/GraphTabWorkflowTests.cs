@@ -17,7 +17,7 @@ public sealed class GraphTabWorkflowTests
     {
         // arrange
         var store = CreateLargeGraphWorkspace();
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = CreateGraphShell(store, graph, height: 8);
 
         // act
@@ -49,7 +49,7 @@ public sealed class GraphTabWorkflowTests
     {
         // arrange
         var store = CreateLargeGraphWorkspace();
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = CreateGraphShell(store, graph);
         EnterGraphTab(shell);
 
@@ -82,7 +82,7 @@ public sealed class GraphTabWorkflowTests
     {
         // arrange
         var store = CreateLargeGraphWorkspace();
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = CreateGraphShell(store, graph, height: 8);
         EnterGraphTab(shell);
         graph.SelectTask("orphan-selected");
@@ -129,7 +129,7 @@ public sealed class GraphTabWorkflowTests
     {
         // arrange
         var store = CreateRefreshWorkspace();
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = CreateGraphShell(store, graph);
         EnterGraphTab(shell);
         shell.Handle(Key('v', ConsoleKey.V));
@@ -154,7 +154,7 @@ public sealed class GraphTabWorkflowTests
     {
         // arrange
         var store = CreateDetailWorkspace();
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = CreateGraphShell(store, graph, width: 40, height: 8);
         EnterGraphTab(shell);
         shell.Handle(Key('v', ConsoleKey.V));
@@ -211,7 +211,7 @@ public sealed class GraphTabWorkflowTests
                 Name = "Open",
                 Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
             }]);
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = new TuiShell(
             [CreateTab("Tasks", 'T', board), CreateTab("Graph", 'G', graph)],
             80,
@@ -267,7 +267,7 @@ public sealed class GraphTabWorkflowTests
             store.Tasks[id] = Task(id, index, title: $"Oversized task {index:D3}");
         }
 
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = CreateGraphShell(store, graph);
         EnterGraphTab(shell);
         shell.Handle(Key('v', ConsoleKey.V));

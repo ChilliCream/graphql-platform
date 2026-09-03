@@ -671,7 +671,7 @@ public sealed class TuiShellTabsTests
                 index == 11 ? "Selected Graph Task" : id);
         }
 
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
             60,
@@ -723,7 +723,7 @@ public sealed class TuiShellTabsTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Graph Detail");
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
             80,
@@ -755,7 +755,7 @@ public sealed class TuiShellTabsTests
         store.Tasks["target-b"] = TaskItemBuilder.Create("target-b");
         store.DependencyEdges.Add(Blocks("origin", "target-a"));
         store.DependencyEdges.Add(Blocks("origin", "target-b"));
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
             80,
@@ -787,7 +787,7 @@ public sealed class TuiShellTabsTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks["origin"] = TaskItemBuilder.Create("origin");
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
             80,
@@ -816,7 +816,7 @@ public sealed class TuiShellTabsTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Find Graph Task");
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var search = new SearchMode(store);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
@@ -854,7 +854,7 @@ public sealed class TuiShellTabsTests
                 Name = "Test",
                 Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
             }]);
-        var graph = new GraphMode(new GraphDataLoader(store));
+        var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         graph.SelectTask("graph-task");
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Graph", graph, mnemonic: 'G')],

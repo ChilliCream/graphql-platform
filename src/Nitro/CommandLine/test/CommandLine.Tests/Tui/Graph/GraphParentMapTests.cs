@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph;
@@ -64,6 +65,7 @@ public sealed class GraphParentMapTests
             Id = id,
             Title = id,
             Status = TaskStates.Open,
+            BoardStatus = TaskBoardStatus.Ready,
             Type = TaskTypes.Task,
             Priority = priority
         };

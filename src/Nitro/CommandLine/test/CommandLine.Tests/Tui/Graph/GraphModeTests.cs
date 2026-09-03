@@ -866,7 +866,9 @@ public sealed class GraphModeTests
             .ReturnsAsync([]);
         store.Setup(t => t.GetTaskLabelsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => taskLabels ?? []);
-        return (new GraphMode(new GraphDataLoader(store.Object)), store);
+        store.Setup(t => t.ComputeBlockedAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<string, IReadOnlyList<string>>());
+        return (new GraphMode(new GraphDataLoader(store.Object, TimeProvider.System)), store);
     }
 
     private static void Type(GraphMode mode, string value)

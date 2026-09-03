@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using ChilliCream.Nitro.CommandLine.Tests.Tui;
 using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.CanvasView;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Layout;
@@ -278,6 +277,31 @@ public sealed class GraphCanvasViewTests
         Assert.Contains(glyph, output, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CreateRenderResult_Should_ColorAnOpenNodeAsBlocked_When_ItsBoardStatusIsBlocked()
+    {
+        // arrange: an "open" task the Board would place in the Blocked column
+        // (an unmet dependency, an epic with open children, ...) must render
+        // with the same red the Board uses, while its glyph stays the open
+        // circle -- the raw status, not the board status, drives the glyph.
+        var view = new GraphCanvasView(Model(
+            [Node("task", status: TaskStates.Open, boardStatus: TaskStates.Blocked)]));
+        view.SelectTask(null);
+        var node = view.Layout.FindNode("task")!;
+        var blockedStyle = ThemeTokens.GetStyle("board.column.status.blocked");
+
+        // act
+        var buffer = view.CreateRenderResult().Buffer;
+        var output = Render(view, 80, 8, ansi: true);
+
+        // assert
+        Assert.Equal(
+            (blockedStyle, blockedStyle),
+            (buffer.Get(node.X, node.Y).Style, buffer.Get(node.X + 1, node.Y + 1).Style));
+        AnsiAssertions.AssertAnsiStylePrefixesText(output, "board.column.status.blocked", "┌");
+        Assert.Contains("○", output, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(TaskStates.Blocked, "board.column.status.blocked")]
     [InlineData(TaskStates.Deferred, "board.column.status.deferred")]
@@ -551,6 +575,7 @@ public sealed class GraphCanvasViewTests
         string id,
         string? title = null,
         string status = TaskStates.Open,
+        string? boardStatus = null,
         string type = TaskTypes.Task,
         string? assignee = null,
         int hiddenChildCount = 0)
@@ -559,6 +584,7 @@ public sealed class GraphCanvasViewTests
             Id = id,
             Title = title ?? id,
             Status = status,
+            BoardStatus = boardStatus ?? status,
             Type = type,
             Priority = 2,
             Assignee = assignee,

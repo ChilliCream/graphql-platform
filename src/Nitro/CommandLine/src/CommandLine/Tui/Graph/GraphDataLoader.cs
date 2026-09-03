@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph;
 
@@ -6,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Graph;
 /// Loads the complete current task graph from the task store. Loading is
 /// read-only and returns a model without applying presentation reductions.
 /// </summary>
-internal sealed class GraphDataLoader(ITaskStore store)
+internal sealed class GraphDataLoader(ITaskStore store, TimeProvider timeProvider)
 {
     public async Task<GraphModel> LoadAsync(CancellationToken cancellationToken)
     {
@@ -22,12 +23,15 @@ internal sealed class GraphDataLoader(ITaskStore store)
         var taskLabels = await store.GetTaskLabelsAsync(cancellationToken) ?? [];
         var labelsByTaskId = taskLabels
             .ToDictionary(t => t.TaskId, t => t.Labels, StringComparer.Ordinal);
+        var blocked = await store.ComputeBlockedAsync(cancellationToken);
+        var now = timeProvider.GetUtcNow();
         var nodes = new List<GraphNode>(tasks.Count);
 
         foreach (var task in tasks)
         {
             var labels = labelsByTaskId.GetValueOrDefault(task.Id, []);
-            nodes.Add(GraphNode.FromTask(task, labels));
+            var boardStatus = TaskBoardStatus.Resolve(task, blocked, now);
+            nodes.Add(GraphNode.FromTask(task, labels, boardStatus));
         }
 
         var nodeIds = nodes.Select(t => t.Id).ToHashSet(StringComparer.Ordinal);

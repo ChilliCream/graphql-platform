@@ -42,7 +42,7 @@ internal static class GraphCanvasNodeRenderer
         }
 
         var baseStyle = GetBaseStyle(node, selected, matched);
-        var borderStyle = Compose(GetStatusStyle(node.Status), node, selected, matched);
+        var borderStyle = Compose(GetStatusStyle(node.BoardStatus), node, selected, matched);
         var horizontal = new string('─', Math.Max(0, layoutNode.Width - 2));
         WriteSpan(buffer, layoutNode.X, layoutNode.Y, $"┌{horizontal}┐", borderStyle, layoutNode.Width);
         WriteSpan(buffer, layoutNode.X, layoutNode.Y + layoutNode.Height - 1, $"└{horizontal}┘", borderStyle, layoutNode.Width);
@@ -109,7 +109,7 @@ internal static class GraphCanvasNodeRenderer
         width = Math.Max(0, width);
         var baseStyle = GetBaseStyle(node, selected, matched);
         var status = TaskGlyphs.Status(node.Status);
-        var statusStyle = Compose(GetStatusStyle(node.Status), node, selected, matched);
+        var statusStyle = Compose(GetStatusStyle(node.BoardStatus), node, selected, matched);
         var type = $"[{TaskGlyphs.TypeCode(node.Type)}]";
         var identity = node.Status == TaskStates.InProgress && !string.IsNullOrWhiteSpace(node.Assignee)
             ? $"{node.Id} @{node.Assignee}"
@@ -166,14 +166,20 @@ internal static class GraphCanvasNodeRenderer
     private static Style GetBaseStyle(GraphNode node, bool selected, bool matched)
         => Compose(Style.Plain, node, selected, matched);
 
-    private static Style GetStatusStyle(string status)
-        => status switch
+    /// <summary>
+    /// The status style for a node's border and glyph, keyed on its resolved
+    /// <see cref="GraphNode.BoardStatus"/> rather than its raw
+    /// <see cref="GraphNode.Status"/> so the graph's colors match the
+    /// Board's columns (blocked/deferred include tasks the Board computes,
+    /// not just tasks whose literal status says so).
+    /// </summary>
+    private static Style GetStatusStyle(string boardStatus)
+        => boardStatus switch
         {
             TaskStates.Blocked => ThemeTokens.GetStyle("board.column.status.blocked"),
             TaskStates.Deferred => ThemeTokens.GetStyle("board.column.status.deferred"),
             TaskStates.InProgress => ThemeTokens.GetStyle("board.column.status.inprogress"),
-            TaskStates.Closed or TaskStates.Archived or TaskStates.Tombstone
-                => ThemeTokens.GetStyle("board.column.status.closed"),
+            TaskStates.Closed => ThemeTokens.GetStyle("board.column.status.closed"),
             _ => ThemeTokens.GetStyle("board.column.status.ready")
         };
 

@@ -157,7 +157,7 @@ internal static class AgentTuiLauncher
         var memoryMode = new MemoryMode(memoryStore, timeProvider);
         var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
 
-        var graphMode = new GraphMode(new GraphDataLoader(taskStore));
+        var graphMode = new GraphMode(new GraphDataLoader(taskStore, timeProvider));
         var graphTab = new TuiTab("Graph", mnemonic: 'G', graphMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         return [tasksTab, mailTab, agentsTab, memoryTab, graphTab];

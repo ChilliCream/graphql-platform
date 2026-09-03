@@ -11,6 +11,16 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvider)
 {
     /// <summary>
+    /// Stands in for a blocked map for the Deferred filter below, which never
+    /// consults it: <see cref="TaskBoardStatus.Resolve"/> resolves deferred
+    /// ahead of blocked, so its result for "is this task deferred" never
+    /// depends on the blocked set. Avoids a redundant
+    /// <see cref="ITaskStore.ComputeBlockedAsync"/> round trip.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> s_noBlockers =
+        new Dictionary<string, IReadOnlyList<string>>();
+
+    /// <summary>
     /// Loads the tasks currently matching one column.
     /// </summary>
     public async Task<IReadOnlyList<TaskItem>> LoadColumnAsync(
@@ -36,15 +46,11 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
         if (column.ComputedFilter == ColumnComputedFilter.Blocked)
         {
             var blocked = await store.ComputeBlockedAsync(cancellationToken);
-            tasks = tasks.Where(t =>
-                !TaskStates.IsTerminal(t.Status)
-                && t.Status != TaskStates.InProgress
-                && !IsDeferred(t, now)
-                && (t.Status == TaskStates.Blocked || blocked.ContainsKey(t.Id)));
+            tasks = tasks.Where(t => TaskBoardStatus.Resolve(t, blocked, now) == TaskStates.Blocked);
         }
         else if (column.ComputedFilter == ColumnComputedFilter.Deferred)
         {
-            tasks = tasks.Where(t => IsDeferred(t, now));
+            tasks = tasks.Where(t => TaskBoardStatus.Resolve(t, s_noBlockers, now) == TaskStates.Deferred);
         }
 
         if (column.Types is { Length: > 0 } types)
@@ -61,19 +67,6 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
 
         return column.Limit is { } limit ? sorted.Take(limit).ToList() : sorted.ToList();
     }
-
-    /// <summary>
-    /// Whether a task belongs to the Deferred column: its status is deferred,
-    /// or a future defer date hides it while nobody is actively working it.
-    /// The Blocked column defers to this test so a task waiting on both a
-    /// dependency and a date lands in one column, not two.
-    /// </summary>
-    private static bool IsDeferred(TaskItem task, DateTimeOffset now)
-        => task.Status == TaskStates.Deferred
-            || (!TaskStates.IsTerminal(task.Status)
-                && task.Status != TaskStates.InProgress
-                && task.DeferUntil is { } deferUntil
-                && deferUntil > now);
 
     private static bool IsUnassigned(string? assignee)
         => string.Equals(assignee, "unassigned", StringComparison.OrdinalIgnoreCase);

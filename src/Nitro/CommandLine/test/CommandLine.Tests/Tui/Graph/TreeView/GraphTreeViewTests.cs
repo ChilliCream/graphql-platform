@@ -401,6 +401,7 @@ public sealed class GraphTreeViewTests
             Id = id,
             Title = title ?? id,
             Status = status,
+            BoardStatus = status,
             Type = type,
             Priority = priority
         };

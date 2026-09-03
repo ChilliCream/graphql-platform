@@ -251,6 +251,7 @@ public sealed class GraphLayoutTests
             Id = id,
             Title = id,
             Status = "open",
+            BoardStatus = "ready",
             Type = "task",
             Priority = 0
         };
