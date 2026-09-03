@@ -5,9 +5,14 @@ namespace CookieCrumble.Resources;
 
 public class MongoResource : ContainerResource<MongoDbContainer>
 {
-    private MongoClient? _client;
+    private readonly Lazy<MongoClient> _client;
 
-    public IMongoClient Client => _client ??= new MongoClient(ConnectionString);
+    public MongoResource()
+    {
+        _client = new(() => new MongoClient(ConnectionString));
+    }
+
+    public IMongoClient Client => _client.Value;
 
     public string ConnectionString => Container.GetConnectionString();
 
@@ -29,4 +34,14 @@ public class MongoResource : ContainerResource<MongoDbContainer>
         => Configure(new MongoDbBuilder("mongo:6.0")).Build();
 
     protected virtual MongoDbBuilder Configure(MongoDbBuilder builder) => builder;
+
+    protected override ValueTask DisposeAsyncCore()
+    {
+        if (_client.IsValueCreated)
+        {
+            _client.Value.Dispose();
+        }
+
+        return ValueTask.CompletedTask;
+    }
 }

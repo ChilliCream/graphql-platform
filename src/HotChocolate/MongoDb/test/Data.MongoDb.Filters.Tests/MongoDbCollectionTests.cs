@@ -10,7 +10,7 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
-public class MongoDbCollectionTests : IClassFixture<MongoResource>
+public class MongoDbCollectionTests
 {
     private static readonly Foo[] s_fooEntities =
     [

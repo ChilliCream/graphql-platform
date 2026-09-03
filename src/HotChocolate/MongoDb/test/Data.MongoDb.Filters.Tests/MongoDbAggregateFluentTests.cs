@@ -11,7 +11,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
-public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
+public class MongoDbAggregateFluentTests
 {
     private static readonly Foo[] s_fooEntities =
     [

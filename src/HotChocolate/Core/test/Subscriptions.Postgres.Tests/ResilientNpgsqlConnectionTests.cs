@@ -4,7 +4,7 @@ using Npgsql;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class ResilientNpgsqlConnectionTests : IClassFixture<PostgreSqlResource>
+public class ResilientNpgsqlConnectionTests
 {
     private readonly PostgreSqlResource _resource;
     private readonly SubscriptionTestDiagnostics _events;

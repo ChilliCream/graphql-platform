@@ -8,7 +8,6 @@ using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 using OperationResult = HotChocolate.Transport.OperationResult;
 
@@ -23,7 +22,8 @@ namespace HotChocolate.Fusion;
 /// errors; the subscription must surface that as a per-event error result (subgraph error plus
 /// standard non-null propagation) and stay alive, not silently close.
 /// </summary>
-public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
+[Collection(NatsCollectionFixture.DefinitionName)]
+public class EventStreamEnrichmentErrorOverHttpTests(NatsResource nats) : FusionTestBase
 {
     private const string BrokerName = "nats";
     private const string Topic = "onCreateReview";
@@ -33,12 +33,9 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_ReturnErrorAndStayAlive_When_EnrichmentLookupRejectsEventId()
     {
         // arrange
-        await using var nats = new NatsResource();
-        await nats.InitializeAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.NatsConnectionString, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var events = CreateSourceSchema(
             "EVENTS",
@@ -55,7 +52,7 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
                 o =>
                 {
                     o.Url = nats.NatsConnectionString;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -85,7 +82,11 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
         // The first event carries the raw database key (not a valid global id), so the node lookup
         // that fetches `body` fails. The second event carries the encoded global id and resolves.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.NatsConnectionString, stream, expectedCount: 1, cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
         await PublishAsync(nats.NatsConnectionString, Topic, """{"review":{"id":1}}""", cts.Token);
         await PublishAsync(
             nats.NatsConnectionString,
@@ -147,13 +148,6 @@ public class EventStreamEnrichmentErrorOverHttpTests : FusionTestBase
                 }
                 """
             ]);
-    }
-
-    private static async Task CreateStreamAsync(string url, string stream, string subject, CancellationToken ct)
-    {
-        await using var connection = new NatsConnection(new NatsOpts { Url = url });
-        var js = new NatsJSContext(connection);
-        await js.CreateStreamAsync(new StreamConfig { Name = stream, Subjects = [subject] }, ct);
     }
 
     private static async Task PublishAsync(string url, string subject, string body, CancellationToken ct)

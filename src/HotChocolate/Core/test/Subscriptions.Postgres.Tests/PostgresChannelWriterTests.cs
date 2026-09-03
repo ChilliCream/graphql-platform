@@ -6,8 +6,7 @@ using Npgsql;
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresChannelWriterTests
-    : IClassFixture<PostgreSqlResource>
-    , IAsyncLifetime
+    : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource;
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";

@@ -25,11 +25,24 @@ public abstract class ContainerResource<TContainer> : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        if (_container is not null)
+        try
         {
-            await _container.DisposeAsync();
+            await DisposeAsyncCore();
+        }
+        finally
+        {
+            if (_container is not null)
+            {
+                await _container.DisposeAsync();
+            }
         }
     }
 
     protected abstract TContainer Build();
+
+    /// <summary>
+    /// Releases the clients this resource created on top of the container.
+    /// Runs before the container itself is disposed.
+    /// </summary>
+    protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
 }

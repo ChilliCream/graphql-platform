@@ -7,7 +7,7 @@ using StackExchange.Redis;
 namespace HotChocolate.Subscriptions.Redis;
 
 public class RedisTopicPrefixIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
-    : SubscriptionIntegrationTestBase(output), IClassFixture<RedisResource>
+    : SubscriptionIntegrationTestBase(output)
 {
     private const string TopicPrefix = "prefix:";
 

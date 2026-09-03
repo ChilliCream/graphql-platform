@@ -7,8 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace HotChocolate.Data.MongoDb.Sorting;
 
 public class MongoDbSortVisitorObjectTests
-    : SchemaCache,
-      IClassFixture<MongoResource>
+    : SchemaCache
 {
     private static readonly Bar[] s_barEntities =
     [

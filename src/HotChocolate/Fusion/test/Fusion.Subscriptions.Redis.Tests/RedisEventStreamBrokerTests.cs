@@ -7,7 +7,6 @@ using StackExchange.Redis;
 namespace HotChocolate.Fusion.Subscriptions.Redis;
 
 public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
-    : IClassFixture<RedisFixture>
 {
     [Fact]
     public async Task Subscribe_Should_DeliverPublishedEvent_When_RedisBrokerPublishes()

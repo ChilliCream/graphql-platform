@@ -9,7 +9,6 @@ using Raven.Client.Documents.Session;
 namespace HotChocolate.Data.Raven.Test;
 
 public class AnnotationBasedTests(RavenDBResource resource)
-    : IClassFixture<RavenDBResource>
 {
     [Fact]
     public async Task Queryable_Should_BeExecuted()

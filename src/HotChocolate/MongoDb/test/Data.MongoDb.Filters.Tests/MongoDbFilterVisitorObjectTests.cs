@@ -8,7 +8,6 @@ namespace HotChocolate.Data.MongoDb.Filters;
 
 public class MongoDbFilterVisitorObjectTests
     : SchemaCache
-    , IClassFixture<MongoResource>
 {
     private static readonly Bar[] s_barEntities =
     [

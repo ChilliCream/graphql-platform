@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
+public class MongoDbProjectionVisitorPagingTests
 {
     private static readonly Foo[] s_fooEntities =
     [

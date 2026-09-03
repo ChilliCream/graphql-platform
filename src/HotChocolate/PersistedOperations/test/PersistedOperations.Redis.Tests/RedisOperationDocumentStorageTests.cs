@@ -7,7 +7,6 @@ using StackExchange.Redis;
 namespace HotChocolate.PersistedOperations.Redis;
 
 public class RedisOperationDocumentStorageTests(RedisResource redisResource)
-    : IClassFixture<RedisResource>
 {
     private readonly IDatabase _database = redisResource.GetConnection().GetDatabase();
 

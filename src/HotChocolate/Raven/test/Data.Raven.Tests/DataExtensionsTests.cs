@@ -9,7 +9,7 @@ using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class DataExtensionsTests : IClassFixture<RavenDBResource>
+public class DataExtensionsTests
 {
     private readonly RavenDBResource _resource;
 
