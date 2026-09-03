@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion.Subscriptions.Redis;
 
 public sealed class RedisSubscriptionTests
-    : IClassFixture<RedisFixture>
 {
     private readonly RedisFixture _fixture;
 

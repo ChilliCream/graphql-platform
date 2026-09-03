@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using GreenDonut;
 using GreenDonut.Data;
 using HotChocolate.Data.Data;
@@ -6,7 +7,6 @@ using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;

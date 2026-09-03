@@ -1,13 +1,12 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.PersistedOperations.Redis;
 
 public class RedisOperationDocumentStorageTests(RedisResource redisResource)
-    : IClassFixture<RedisResource>
 {
     private readonly IDatabase _database = redisResource.GetConnection().GetDatabase();
 

@@ -45,7 +45,7 @@ internal sealed class __SearchResult : ITypeResolverInterceptor
 
         var member = context.Schema.GetMember(result.Coordinate);
         var objectType = SchemaDefinitionTypeResolver.ResolveObjectType(context.Schema, member);
-        context.FieldResult.CreateObjectValue(context.Selection, objectType, context.IncludeFlags);
+        context.FieldResult.CreateObjectValue(context.Selection, objectType);
         context.AddRuntimeResult(member);
     }
 
