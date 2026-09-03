@@ -1,6 +1,6 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 

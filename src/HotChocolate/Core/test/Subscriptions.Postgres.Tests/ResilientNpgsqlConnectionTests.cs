@@ -1,6 +1,6 @@
+using CookieCrumble.Resources;
 using HotChocolate.Tests;
 using Npgsql;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -6,7 +7,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
