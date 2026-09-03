@@ -9,9 +9,8 @@ namespace Mocha.Sagas;
 public static class SagaStateDescriptorExtensions
 {
     /// <summary>
-    /// Registers a transition triggered by a fault reply to a message the saga sent. It covers neither
-    /// failures of events the saga published nor failures of the saga's own transitions, since neither
-    /// produces a reply.
+    /// Registers a transition triggered by a fault notification for a message the saga sent or published.
+    /// It does not cover failures of the saga's own transitions.
     /// </summary>
     /// <typeparam name="TState">The saga state type.</typeparam>
     /// <param name="descriptor">The state descriptor to configure.</param>
@@ -24,9 +23,8 @@ public static class SagaStateDescriptorExtensions
     }
 
     /// <summary>
-    /// Registers a transition triggered by any successful reply. A state that declares this must also
-    /// handle fault replies through <c>OnFault</c>, either on the state itself or through
-    /// <c>DuringAny</c>.
+    /// Registers a transition triggered by any successful reply. Fault notifications are handled
+    /// separately through <c>OnFault</c>.
     /// </summary>
     /// <typeparam name="TState">The saga state type.</typeparam>
     /// <param name="descriptor">The state descriptor to configure.</param>

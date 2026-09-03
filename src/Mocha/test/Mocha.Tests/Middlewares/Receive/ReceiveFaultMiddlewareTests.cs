@@ -470,6 +470,34 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
+    public async Task InvokeAsync_Should_UseFaultAddress_When_FaultAndResponseAddressesAreSet()
+    {
+        // arrange
+        var bus = new ReplyCapturingMessageBus();
+        var context = new StubReceiveContext
+        {
+            FaultAddress = new Uri("memory:q/faults"),
+            ResponseAddress = new Uri("memory:q/responses"),
+            Services = CreateServices(s => s.AddSingleton<IMessageBus>(bus))
+        };
+        var middleware = new ReceiveFaultMiddleware(
+            TimeProvider.System,
+            errorEndpoint: null,
+            new UnusedMessagingPools());
+
+        // act
+        await middleware.InvokeAsync(
+            context,
+            CreateThrowingDelegate(new InvalidOperationException("handler failed")));
+
+        // assert
+        var (response, options) = Assert.Single(bus.Replies);
+        Assert.IsType<NotAcknowledgedEvent>(response);
+        Assert.Equal(new Uri("memory:q/faults"), options.ReplyAddress);
+        Assert.Equal(MessageKind.Fault, options.MessageKind);
+    }
+
+    [Fact]
     public void Create_Should_ReturnConfiguration_WithCorrectKey()
     {
         // act

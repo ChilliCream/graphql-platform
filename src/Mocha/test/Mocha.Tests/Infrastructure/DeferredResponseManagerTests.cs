@@ -97,26 +97,31 @@ public class DeferredResponseManagerTests
         var tcs = manager.AddPromise(correlationId, TimeSpan.FromSeconds(30));
 
         // act
-        var faulted = manager.SetException(correlationId, new InvalidOperationException("test error"));
+        manager.SetException(correlationId, new InvalidOperationException("test error"));
 
         // assert
-        Assert.True(faulted);
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => tcs.Task);
         Assert.Equal("test error", ex.Message);
     }
 
     [Fact]
-    public void SetException_Should_BeNoOp_When_PromiseDoesNotExist()
+    public async Task SetException_Should_LeaveOtherPromisePending_When_TargetPromiseDoesNotExist()
     {
         // arrange
         var manager = new DeferredResponseManager(TimeProvider.System);
+        var correlationId = Guid.NewGuid().ToString();
         var nonExistentId = Guid.NewGuid().ToString();
+        var tcs = manager.AddPromise(correlationId, TimeSpan.FromSeconds(30));
 
         // act
-        var faulted = manager.SetException(nonExistentId, new InvalidOperationException("test"));
+        manager.SetException(nonExistentId, new InvalidOperationException("test"));
 
-        // assert - the caller can tell that nothing was waiting on this correlation id
-        Assert.False(faulted);
+        // assert
+        Assert.False(tcs.Task.IsCompleted);
+
+        // cleanup
+        manager.CompletePromise(correlationId, null);
+        await tcs.Task;
     }
 
     [Fact]

@@ -46,12 +46,12 @@ public sealed class DefaultMessageBus(
     /// </summary>
     /// <remarks>
     /// The message is routed through the publish endpoint resolved by the runtime's router for the
-    /// given message type. Custom headers and expiration time from <paramref name="options"/> are
-    /// applied to the dispatch context before pipeline execution.
+    /// given message type. Fault routing, custom headers, and expiration from <paramref name="options"/>
+    /// are applied to the dispatch context before pipeline execution.
     /// </remarks>
     /// <typeparam name="T">The type of the message to publish.</typeparam>
     /// <param name="message">The message instance to publish. Must not be <see langword="null"/>.</param>
-    /// <param name="options">Options controlling headers and expiration for this publish operation.</param>
+    /// <param name="options">Options controlling fault routing, headers, and expiration for this publish operation.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
     public async ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
         where T : notnull
@@ -67,6 +67,7 @@ public sealed class DefaultMessageBus(
             context.Message = message;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
+            context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
 
@@ -332,6 +333,7 @@ public sealed class DefaultMessageBus(
             context.Message = message;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
+            context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = scheduledTime;
             context.DeliverBy = options.ExpirationTime;
 

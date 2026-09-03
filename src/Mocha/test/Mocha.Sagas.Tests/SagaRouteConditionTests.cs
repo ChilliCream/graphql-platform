@@ -7,22 +7,25 @@ namespace Mocha.Sagas.Tests;
 /// <summary>
 /// Tests for the route conditions that <see cref="SagaConsumer"/> derives. Reply transitions are
 /// gated on the saga-id header so non saga replies on the shared reply endpoint cannot select a saga;
-/// typed replies additionally keep their message type term, while subscribe transitions route by type
-/// alone.
+/// catch-all replies exclude faults, typed replies keep their message type term, and subscribe
+/// transitions route by type alone.
 /// </summary>
 public class SagaRouteConditionTests
 {
     [Fact]
-    public void Configure_Should_GateOnSagaIdOnly_When_OnAnyReply()
+    public void Configure_Should_GateOnSagaIdAndExcludeFaults_When_OnAnyReply()
     {
         // arrange & act
         var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
 
-        // assert - OnAnyReply routes every saga-id reply to the consumer, so it gates on the saga-id alone
+        // assert
         var route = GetSagaRoute(runtime, InboundRouteKind.Reply, typeof(object));
         var description = route.Condition.Describe();
-        Assert.Equal("HeaderPresent", description.Kind);
-        Assert.Equal("saga-id", description.Detail);
+        Assert.Equal("And", description.Kind);
+        Assert.Collection(
+            description.Children,
+            c => Assert.Equal("HeaderPresent", c.Kind),
+            c => Assert.Equal("NotFault", c.Kind));
     }
 
     [Fact]

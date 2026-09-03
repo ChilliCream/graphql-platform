@@ -110,11 +110,12 @@ public class IntegrationTests
         {
             b.Services.AddSingleton(recorder);
             b.Services.AddSingleton<TestScheduledMessageStore>();
-            b.Services.AddSingleton(new ScheduledMessageStoreRegistration(
-                transportType: null,
-                tokenPrefix: "test:",
-                storeType: typeof(TestScheduledMessageStore),
-                isFallback: true));
+            b.Services.AddSingleton(
+                new ScheduledMessageStoreRegistration(
+                    transportType: null,
+                    tokenPrefix: "test:",
+                    storeType: typeof(TestScheduledMessageStore),
+                    isFallback: true));
             b.AddEventHandler<TriggerEventRecorder>();
             b.AddSaga<TimeoutWithResponseSaga>();
         });
@@ -609,8 +610,7 @@ public class IntegrationTests
         }
     }
 
-    private sealed class SecondTriggerRequestHandler
-        : IEventRequestHandler<SecondTriggerRequest, SecondTriggerResponse>
+    private sealed class SecondTriggerRequestHandler : IEventRequestHandler<SecondTriggerRequest, SecondTriggerResponse>
     {
         public ValueTask<SecondTriggerResponse> HandleAsync(
             SecondTriggerRequest request,
@@ -623,9 +623,7 @@ public class IntegrationTests
     private sealed class FaultingTriggerRequestHandler(TaskCompletionSource handlerFaulted)
         : IEventRequestHandler<FaultingRequest, TriggerResponse>
     {
-        public ValueTask<TriggerResponse> HandleAsync(
-            FaultingRequest request,
-            CancellationToken cancellationToken)
+        public ValueTask<TriggerResponse> HandleAsync(FaultingRequest request, CancellationToken cancellationToken)
         {
             handlerFaulted.TrySetResult();
             throw new InvalidOperationException("terminal failure");

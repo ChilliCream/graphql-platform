@@ -8,6 +8,14 @@ namespace Mocha;
 internal static class ConsumeContextExtensions
 {
     /// <summary>
+    /// Creates reply options from the incoming message metadata when a fault channel is available.
+    /// </summary>
+    public static bool TryCreateFaultOptions(this IMessageContext context, out ReplyOptions options)
+    {
+        return TryCreateReplyOptions(context, context.FaultAddress, out options);
+    }
+
+    /// <summary>
     /// Creates reply options from the incoming message metadata when a response channel is available.
     /// </summary>
     /// <remarks>
@@ -17,8 +25,15 @@ internal static class ConsumeContextExtensions
     /// </remarks>
     public static bool TryCreateResponseOptions(this IMessageContext context, out ReplyOptions options)
     {
+        return TryCreateReplyOptions(context, context.ResponseAddress, out options);
+    }
+
+    private static bool TryCreateReplyOptions(
+        IMessageContext context,
+        Uri? replyTo,
+        out ReplyOptions options)
+    {
         options = ReplyOptions.Default;
-        var replyTo = context.ResponseAddress;
         if (replyTo is null)
         {
             return false;

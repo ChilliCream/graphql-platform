@@ -16,7 +16,7 @@ namespace Mocha;
 // TODO Not sure if this really has to be consumer. could also just be a middleware
 public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Consumer
 {
-    private ILogger<ReplyConsumer>? _logger;
+    private ILogger<ReplyConsumer> _logger = default!;
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
@@ -36,25 +36,28 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
         {
             // Dispatch always stamps a correlation id, so a reply without one came from elsewhere.
             // It cannot match a promise, and only matters when no other consumer claimed it.
-            ReportUnmatchedReply(context, correlationId: null);
+            ReportUnmatchedReply(context, null);
             return default;
         }
 
         try
         {
-            var message = context.GetMessage() ?? throw ThrowHelper.ResponseBodyNotSet();
+            if (context.GetMessage() is not { } message)
+            {
+                throw ThrowHelper.ResponseBodyNotSet();
+            }
 
-            var matched = message is NotAcknowledgedEvent failure
-                ? responseManager.SetException(
+            if (message is NotAcknowledgedEvent failure)
+            {
+                responseManager.SetException(
                     correlationId,
                     new RemoteErrorException(
                         failure.ErrorCode,
                         failure.ErrorMessage,
                         failure.MessageId,
-                        failure.CorrelationId))
-                : responseManager.CompletePromise(correlationId, message);
-
-            if (!matched)
+                        failure.CorrelationId));
+            }
+            else if (!responseManager.CompletePromise(correlationId, message))
             {
                 ReportUnmatchedReply(context, correlationId);
             }
@@ -62,10 +65,8 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
         catch (Exception ex)
         {
             // Fault the waiting requester rather than leave it to time out.
-            if (!responseManager.SetException(correlationId, ex))
-            {
-                _logger!.ReplyProcessingFailed(ex, correlationId, context.MessageId);
-            }
+            responseManager.SetException(correlationId, ex);
+            _logger.ReplyProcessingFailed(ex, correlationId, context.MessageId);
         }
 
         return default;
@@ -84,7 +85,7 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
             return;
         }
 
-        _logger!.ReplyDiscarded(correlationId, context.MessageId);
+        _logger.ReplyDiscarded(correlationId, context.MessageId);
     }
 }
 
@@ -93,13 +94,13 @@ internal static partial class ReplyConsumerLogs
     [LoggerMessage(
         LogLevel.Warning,
         "Discarded a reply that no pending request and no consumer claimed "
-        + "(correlation id {CorrelationId}, message id {MessageId})")]
+            + "(correlation id {CorrelationId}, message id {MessageId})")]
     public static partial void ReplyDiscarded(this ILogger logger, string? correlationId, string? messageId);
 
     [LoggerMessage(
         LogLevel.Error,
-        "Failed to process a reply with no pending request "
-        + "(correlation id {CorrelationId}, message id {MessageId})")]
+        "Failed to process a reply "
+            + "(correlation id {CorrelationId}, message id {MessageId})")]
     public static partial void ReplyProcessingFailed(
         this ILogger logger,
         Exception exception,

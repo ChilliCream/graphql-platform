@@ -10,13 +10,8 @@ namespace Mocha.Middlewares;
 /// the original message.
 /// </summary>
 /// <remarks>
-/// The middleware follows a two-path failure contract:
-/// request/response flows receive a direct negative acknowledgement on the response address, while
-/// non-request flows are forwarded to the error endpoint with fault metadata in headers.
-/// This keeps failure observable for both callers and operations, similar to fault-event + error
-/// queue patterns used in broker-centric systems.
-/// Without this middleware, callers often only see timeouts, and operators lose structured error
-/// context tied to the original envelope.
+/// Faults are sent to the fault address when present, otherwise to the response address. Messages
+/// with neither address are forwarded to the error endpoint with fault metadata in headers.
 /// </remarks>
 internal sealed class ReceiveFaultMiddleware(
     TimeProvider provider,
@@ -35,8 +30,8 @@ internal sealed class ReceiveFaultMiddleware(
         {
             var fault = FaultInfo.From(Guid.NewGuid(), provider.GetUtcNow(), ex);
 
-            // A requester expecting a reply should get an explicit negative acknowledgement first.
-            if (context.TryCreateResponseOptions(out var options))
+            if (context.TryCreateFaultOptions(out var options)
+                || context.TryCreateResponseOptions(out options))
             {
                 await ReplyToSenderAsync(context, options, fault);
             }

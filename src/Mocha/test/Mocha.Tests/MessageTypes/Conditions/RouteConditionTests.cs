@@ -136,6 +136,34 @@ public class RouteConditionTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
+    public void NotFaultCondition_Should_NotMatch_When_MessageIsFault()
+    {
+        // arrange
+        var context = new StubReceiveContext();
+        context.Headers.SetMessageKind(MessageKind.Fault);
+
+        // act
+        var matches = NotFaultCondition.Instance.Matches(context);
+
+        // assert
+        Assert.False(matches);
+    }
+
+    [Fact]
+    public void NotFaultCondition_Should_Match_When_MessageIsReply()
+    {
+        // arrange
+        var context = new StubReceiveContext();
+        context.Headers.SetMessageKind(MessageKind.Reply);
+
+        // act
+        var matches = NotFaultCondition.Instance.Matches(context);
+
+        // assert
+        Assert.True(matches);
+    }
+
+    [Fact]
     public void MessageTypeCondition_Should_Match_When_OptionalAndCorrectTypePresent()
     {
         // arrange
