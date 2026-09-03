@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -681,6 +682,124 @@ public class RequireTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Require_Should_Fulfill_List_Requirement_When_Path_Traverses_Connection_With_Nested_Require()
+    {
+        // arrange
+        // cart owns items and subtotal; subtotal requires items(first: 50).nodes[product.discountedPrice].
+        // discountedPrice is owned by promotions and itself requires price, which is owned by products.
+        using var server1 = CreateSourceSchema(
+            "cart",
+            b => b.AddQueryType<CartService.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "products",
+            b => b.AddQueryType<ProductPricing.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "promotions",
+            b => b.AddQueryType<ProductPromotions.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("cart", server1),
+            ("products", server2),
+            ("promotions", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              cart {
+                subtotal
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"cart":{"subtotal":15}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
+    [Fact]
+    public async Task Require_Should_Fulfill_Input_Object_List_Requirement_When_Path_Traverses_Connection_With_Nested_Require()
+    {
+        // arrange
+        // same topology as above, the requirement uses the input object list form
+        // items(first: 50).nodes[{ unitPrice: product.discountedPrice }].
+        using var server1 = CreateSourceSchema(
+            "cart",
+            b => b.AddQueryType<CartService.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "products",
+            b => b.AddQueryType<ProductPricing.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "promotions",
+            b => b.AddQueryType<ProductPromotions.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("cart", server1),
+            ("products", server2),
+            ("promotions", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              cart {
+                lineTotal
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"cart":{"lineTotal":15}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
     private static class NullableLeafFieldRequirement
     {
         public class Query
@@ -900,5 +1019,90 @@ public class RequireTests : FusionTestBase
         public required int Width { get; set; }
 
         public required int Height { get; set; }
+    }
+
+    public static class CartService
+    {
+        public class Query
+        {
+            public Cart GetCart() => new() { Id = 1 };
+
+            [Lookup]
+            [Internal]
+            public Cart? GetCartById(int id) => new() { Id = id };
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById(int id) => new() { Id = id };
+        }
+
+        public class Cart
+        {
+            public int Id { get; set; }
+
+            [UsePaging]
+            public CartItem[] GetItems() =>
+            [
+                new CartItem { Product = new Product { Id = 1 } },
+                new CartItem { Product = new Product { Id = 2 } }
+            ];
+
+            public double GetSubtotal(
+                [Require("items(first: 50).nodes[product.discountedPrice]")] List<double>? lines)
+                => lines?.Sum() ?? -1;
+
+            public double GetLineTotal(
+                [Require("items(first: 50).nodes[{ unitPrice: product.discountedPrice }]")] List<CartLineInput>? lines)
+                => lines?.Sum(line => line.UnitPrice) ?? -1;
+        }
+
+        public class CartItem
+        {
+            public required Product Product { get; set; }
+        }
+
+        public class Product
+        {
+            public int Id { get; set; }
+        }
+
+        public class CartLineInput
+        {
+            public double UnitPrice { get; set; }
+        }
+    }
+
+    public static class ProductPricing
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById(int id) => new() { Id = id };
+        }
+
+        public class Product
+        {
+            public int Id { get; set; }
+
+            public double GetPrice() => Id * 10;
+        }
+    }
+
+    public static class ProductPromotions
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById(int id) => new() { Id = id };
+        }
+
+        public class Product
+        {
+            public int Id { get; set; }
+
+            public double GetDiscountedPrice([Require("price")] double price) => price / 2;
+        }
     }
 }

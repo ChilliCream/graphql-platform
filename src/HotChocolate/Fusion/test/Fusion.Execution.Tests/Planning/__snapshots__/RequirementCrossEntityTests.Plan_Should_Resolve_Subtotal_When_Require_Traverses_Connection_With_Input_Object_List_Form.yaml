@@ -1,0 +1,126 @@
+operation:
+  - document: |
+      {
+        viewer {
+          cart {
+            subtotal
+            id @fusion__requirement
+            items(first: 50) @fusion__requirement {
+              nodes @fusion__requirement {
+                product @fusion__requirement {
+                  discountedPrice @fusion__requirement
+                  id @fusion__requirement
+                  price @fusion__requirement
+                }
+              }
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 13
+nodes:
+  - id: 2
+    type: Operation
+    schema: cart
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_lines: [CartLineInput]
+        $__fusion_2_id: ID!
+      ) {
+        cartById(id: $__fusion_2_id) {
+          subtotal(lines: $__fusion_1_lines)
+        }
+      }
+    source: $.cartById
+    target: $.viewer.cart
+    requirements:
+      - name: __fusion_1_lines
+        selectionMap: >-
+          items(first: 50).nodes[{
+            unitPrice: product.discountedPrice
+          }]
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 5
+      - id: 9
+  - id: 3
+    type: Operation
+    schema: cart
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        cartById(id: $__fusion_3_id) {
+          items(first: 50) {
+            nodes {
+              product {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.cartById
+    target: $.viewer.cart
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 9
+  - id: 5
+    type: Operation
+    schema: promotions
+    operation: |
+      query Op_123456789101112_5($__fusion_5_price: Float!, $__fusion_6_id: ID!) {
+        productById(id: $__fusion_6_id) {
+          discountedPrice(price: $__fusion_5_price)
+        }
+      }
+    source: $.productById
+    target: $.viewer.cart.items.nodes.product
+    requirements:
+      - name: __fusion_5_price
+        selectionMap: >-
+          price
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 6
+  - id: 6
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_6($__fusion_7_id: ID!) {
+        productById(id: $__fusion_7_id) {
+          price
+        }
+      }
+    source: $.productById
+    target: $.viewer.cart.items.nodes.product
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+  - id: 7
+    type: OperationBatch
+    schema: cart
+    operation: |
+      query Op_123456789101112_7 {
+        viewer {
+          cart {
+            id
+          }
+        }
+      }
+    targets:
+      - $
+      - $
+    batchingGroupId: 9

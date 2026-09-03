@@ -1152,10 +1152,13 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        // Steps that depend on this work item's data also depend on the parts that
+        // this step could not resolve, so the child lookups inherit its dependents.
         backlog = backlog.PushUnresolvable(
             unresolvable,
             current.SchemaName,
             stepDepth,
+            dependents: workItem.Dependents,
             allowSourceSchemaReentry: isEventStreamRoot,
             sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy is null
                 ? null
@@ -2881,6 +2884,9 @@ public sealed partial class OperationPlanner
                             entry.SelectionSet,
                             FromSchema: current.SchemaName)
                         {
+                            // the requiring step also depends on the lookups that
+                            // resolve the parts this step could not inline.
+                            Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                             ParentDepth = GetOperationStepDepth(current, step.Id),
                             Conditions = entry.Conditions,
                             SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
@@ -2947,6 +2953,7 @@ public sealed partial class OperationPlanner
                                 entry.SelectionSet,
                                 FromSchema: current.SchemaName)
                             {
+                                Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                                 ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
                                 Conditions = entry.Conditions,
                                 SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
