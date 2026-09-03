@@ -1701,7 +1701,7 @@ public sealed partial class OperationPlanner
             InlineSelections(
                 currentStep.Definition,
                 index,
-                currentStep.Type,
+                workItem.Selection.Field.DeclaringType,
                 workItem.Selection.SelectionSetId,
                 new SelectionSetNode(
                     [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]));
@@ -1830,9 +1830,9 @@ public sealed partial class OperationPlanner
         var leftoverRequirements =
             TryInlineFieldRequirements(
                 workItem,
-                stepConsumer.StepId,
+                stepId,
                 ref current,
-                currentStep,
+                mergeWithExistingStep ? existingStep : currentStep,
                 indexBuilder,
                 ref backlog,
                 ref steps,
@@ -2826,7 +2826,7 @@ public sealed partial class OperationPlanner
         // inlining performs must happen up front here.
         RegisterRequirementSelectionSets(requirements, index);
 
-        foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
             if (currentStep.Id == step.Id)
             {
@@ -2839,6 +2839,14 @@ public sealed partial class OperationPlanner
             {
                 // we cannot inline the field requirements into
                 // an operation step that depends on the current step.
+                continue;
+            }
+
+            if (schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
+            {
+                // a requirement is never resolvable in the schema of the requiring field,
+                // so a step of that schema could only carry the path to the required
+                // fields, adding a dead selection and a spurious dependency.
                 continue;
             }
 

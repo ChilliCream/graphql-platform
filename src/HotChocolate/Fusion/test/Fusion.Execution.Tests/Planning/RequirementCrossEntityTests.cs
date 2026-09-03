@@ -341,6 +341,58 @@ public class RequirementCrossEntityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice_Next_To_Required_Parent()
+    {
+        // arrange
+        // unitPrice requires product.discountedPrice, which is owned by promotions, so the
+        // requirement crosses the entity boundary of product. Selecting unitPrice under two
+        // response names next to a client selection of product must plan like a single one.
+        var schema = CreateNestedRequireSelectedTwiceSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              item {
+                unitPrice
+                u2: unitPrice
+                product {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice()
+    {
+        // arrange
+        // same topology without the client selection of product. Both response names of
+        // unitPrice must get their price from the promotions step.
+        var schema = CreateNestedRequireSelectedTwiceSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              item {
+                unitPrice
+                u2: unitPrice
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateCircularCrossProviderSchema()
     {
         return ComposeSchema(
@@ -714,5 +766,46 @@ public class RequirementCrossEntityTests : FusionTestBase
             """;
 
         return ComposeSchema([cartSchema, productsSchema, promotionsSchema, .. additionalSchemas]);
+    }
+
+    private static FusionSchemaDefinition CreateNestedRequireSelectedTwiceSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              item: CartItem!
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            type CartItem @key(fields: "id") {
+              id: ID!
+              product: Product!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice: Float!
+            }
+            """);
     }
 }

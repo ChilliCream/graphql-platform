@@ -800,6 +800,64 @@ public class RequireTests : FusionTestBase
             });
     }
 
+    [Fact]
+    public async Task Require_Should_Fulfill_Nested_Requirement_When_Two_Fields_Require_It_Next_To_Required_Parent()
+    {
+        // arrange
+        // unitPrice and lineTotal both require product.discountedPrice, which is owned by
+        // promotions, while the client also selects product next to them.
+        using var server1 = CreateSourceSchema(
+            "cart",
+            b => b.AddQueryType<CartItemPricing.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "promotions",
+            b => b.AddQueryType<CartItemPromotions.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("cart", server1),
+            ("promotions", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              item {
+                unitPrice
+                lineTotal
+                product {
+                  id
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"item":{"unitPrice":5,"lineTotal":15,"product":{"id":1}}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
     private static class NullableLeafFieldRequirement
     {
         public class Query
@@ -1103,6 +1161,55 @@ public class RequireTests : FusionTestBase
             public int Id { get; set; }
 
             public double GetDiscountedPrice([Require("price")] double price) => price / 2;
+        }
+    }
+
+    public static class CartItemPricing
+    {
+        public class Query
+        {
+            public CartItem GetItem() => new() { Id = 1, Quantity = 3, Product = new Product { Id = 1 } };
+
+            [Lookup]
+            [Internal]
+            public CartItem? GetCartItemById(int id)
+                => new() { Id = id, Quantity = 3, Product = new Product { Id = id } };
+        }
+
+        public class CartItem
+        {
+            public int Id { get; set; }
+
+            public int Quantity { get; set; }
+
+            public required Product Product { get; set; }
+
+            public double GetUnitPrice([Require("product.discountedPrice")] double price) => price;
+
+            public double GetLineTotal([Require("product.discountedPrice")] double price) => price * Quantity;
+        }
+
+        public class Product
+        {
+            [Shareable]
+            public int Id { get; set; }
+        }
+    }
+
+    public static class CartItemPromotions
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById(int id) => new() { Id = id };
+        }
+
+        public class Product
+        {
+            public int Id { get; set; }
+
+            public double GetDiscountedPrice() => Id * 5;
         }
     }
 }
