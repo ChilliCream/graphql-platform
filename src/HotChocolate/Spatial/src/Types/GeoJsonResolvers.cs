@@ -17,6 +17,18 @@ internal class GeoJsonResolvers
         return coordinates;
     }
 
+    public Coordinate[][][] GetMultiPolygonCoordinates([Parent] MultiPolygon multiPolygon)
+    {
+        var coordinates = new Coordinate[multiPolygon.NumGeometries][][];
+
+        for (var i = 0; i < multiPolygon.NumGeometries; i++)
+        {
+            coordinates[i] = GetPolygonRings((Polygon)multiPolygon.GetGeometryN(i));
+        }
+
+        return coordinates;
+    }
+
     public GeoJsonGeometryType GetType([Parent] Geometry geometry) =>
         geometry.OgcGeometryType switch
         {
@@ -39,4 +51,17 @@ internal class GeoJsonResolvers
 
     public int GetCrs([Parent] Geometry geometry) =>
         geometry.SRID is 0 or -1 ? 4326 : geometry.SRID;
+
+    private static Coordinate[][] GetPolygonRings(Polygon polygon)
+    {
+        var rings = new Coordinate[polygon.NumInteriorRings + 1][];
+        rings[0] = polygon.ExteriorRing.Coordinates;
+
+        for (var i = 0; i < polygon.NumInteriorRings; i++)
+        {
+            rings[i + 1] = polygon.GetInteriorRingN(i).Coordinates;
+        }
+
+        return rings;
+    }
 }

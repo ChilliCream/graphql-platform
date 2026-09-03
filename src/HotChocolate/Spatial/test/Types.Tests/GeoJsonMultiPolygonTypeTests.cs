@@ -26,6 +26,64 @@ public class GeoJsonMultiPolygonTypeTests
     ]);
 
     [Fact]
+    public async Task GetMultiPolygonCoordinates_Should_ReturnRingsPerPolygon_When_PolygonHasHoles()
+    {
+        // arrange
+        var multiPolygon = new MultiPolygon(
+        [
+            new Polygon(
+                new LinearRing(
+                [
+                    new Coordinate(0, 0),
+                    new Coordinate(40, 0),
+                    new Coordinate(40, 40),
+                    new Coordinate(0, 40),
+                    new Coordinate(0, 0)
+                ]),
+                [
+                    new LinearRing(
+                    [
+                        new Coordinate(10, 10),
+                        new Coordinate(20, 10),
+                        new Coordinate(20, 20),
+                        new Coordinate(10, 20),
+                        new Coordinate(10, 10)
+                    ])
+                ]),
+            new Polygon(
+                new LinearRing(
+                [
+                    new Coordinate(50, 50),
+                    new Coordinate(60, 50),
+                    new Coordinate(60, 60),
+                    new Coordinate(50, 60),
+                    new Coordinate(50, 50)
+                ]))
+        ]);
+
+        var schema = SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
+            .AddType<GeoJsonMultiPolygonType>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Resolve(multiPolygon))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ test { type coordinates bbox crs }}",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task MultiPolygon_Execution_Output()
     {
         // arrange
