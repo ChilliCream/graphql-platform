@@ -277,6 +277,73 @@ public sealed class RetryTests
             $"Expected 4 invocations (1 original + 3 default retries), but got {counter.Count}");
     }
 
+    [Fact]
+    public async Task Retry_Should_UseFreshScope_When_HandlerIsRetried()
+    {
+        // arrange
+        // A retry re-runs the handler; it must not observe scoped state the failed attempt left
+        // behind, so each attempt has to resolve its own scoped service instance.
+        var counter = new RetryInvocationCounter();
+        var capture = new ScopeCapture();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(counter)
+            .AddSingleton(capture)
+            .AddScoped<ScopeProbe>()
+            .AddMessageBus()
+            .AddResilience(p =>
+            {
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+            })
+            .AddEventHandler<ScopedThrowOnceHandler>()
+            .AddInMemory()
+            .BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-SCOPE" }, CancellationToken.None);
+
+        // assert - two attempts, each with its own scoped instance
+        Assert.True(await counter.WaitForCountAsync(2, s_timeout), "Handler was not retried");
+        Assert.Equal(2, capture.ProbeIds.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Retry_Should_PropagateConversationId_When_HandlerPublishesOnRetry()
+    {
+        // arrange
+        // Correlation propagation reads the ambient consume context from the scope, so the fresh
+        // scope of a retry has to carry it too, or a message published from a retry loses its lineage.
+        var counter = new RetryInvocationCounter();
+        var capture = new ScopeCapture();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(counter)
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddResilience(p =>
+            {
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+            })
+            .AddConsumer<PublishOnRetryConsumer>()
+            .AddConsumer<FollowUpSpy>()
+            .AddInMemory()
+            .BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CONV" }, CancellationToken.None);
+
+        // assert - the follow-up published from the retry belongs to the original conversation
+        await capture.FollowUpReceived.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        Assert.NotNull(capture.OriginalConversationId);
+        Assert.Equal(capture.OriginalConversationId, capture.FollowUpConversationId);
+    }
+
     // ============================================================
     // Test Helpers
     // ============================================================
@@ -333,6 +400,24 @@ public sealed class RetryTests
             return true;
         }
     }
+
+    private sealed class ScopeProbe
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+    }
+
+    private sealed class ScopeCapture
+    {
+        public ConcurrentBag<Guid> ProbeIds { get; } = [];
+
+        public string? OriginalConversationId { get; set; }
+
+        public string? FollowUpConversationId { get; set; }
+
+        public TaskCompletionSource FollowUpReceived { get; } = new();
+    }
+
+    private sealed record RetryFollowUp;
 
     // ============================================================
     // Test Handlers
@@ -418,6 +503,61 @@ public sealed class RetryTests
             var retryState = context.Features.Get<RetryFeature>();
             capture.Record(retryState?.ImmediateRetryCount ?? -1);
             throw new InvalidOperationException("Fail to trigger retry");
+        }
+    }
+    /// <summary>
+    /// Records the scoped probe it was given on every attempt and throws on the first one.
+    /// </summary>
+    private sealed class ScopedThrowOnceHandler(
+        ScopeProbe probe,
+        ScopeCapture capture,
+        RetryInvocationCounter counter)
+        : IEventHandler<OrderCreated>
+    {
+        public ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+        {
+            capture.ProbeIds.Add(probe.Id);
+            var invocation = counter.Count;
+            counter.Increment();
+
+            if (invocation == 0)
+            {
+                throw new InvalidOperationException("Transient failure");
+            }
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Throws on the first attempt and publishes a follow-up from the retry.
+    /// </summary>
+    private sealed class PublishOnRetryConsumer(ScopeCapture capture, RetryInvocationCounter counter)
+        : IConsumer<OrderCreated>
+    {
+        public async ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
+        {
+            var invocation = counter.Count;
+            counter.Increment();
+
+            if (invocation == 0)
+            {
+                throw new InvalidOperationException("Transient failure");
+            }
+
+            capture.OriginalConversationId = context.ConversationId;
+            var bus = context.Services.GetRequiredService<IMessageBus>();
+            await bus.PublishAsync(new RetryFollowUp(), context.CancellationToken);
+        }
+    }
+
+    private sealed class FollowUpSpy(ScopeCapture capture) : IConsumer<RetryFollowUp>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<RetryFollowUp> context)
+        {
+            capture.FollowUpConversationId = context.ConversationId;
+            capture.FollowUpReceived.TrySetResult();
+            return default;
         }
     }
 }

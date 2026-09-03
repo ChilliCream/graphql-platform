@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
   </ItemGroup>
 </Project>
