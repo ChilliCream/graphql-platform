@@ -86,10 +86,14 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
         }
         else
         {
+            // The tracked entity owns its document; the one being replaced is released here rather
+            // than on load, so the entity never holds a disposed document while it is tracked.
+            var previous = sagaState.State;
             sagaState.State = document;
             sagaState.UpdatedAt = DateTimeOffset.UtcNow;
             sagaState.Version = NewVersion();
             set.Entry(sagaState).Property(x => x.State).IsModified = true;
+            previous.Dispose();
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -126,12 +130,8 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     /// <returns>The deserialized saga state, or <c>default</c> if no state is found for the given identifier.</returns>
     public async Task<T?> LoadAsync<T>(Saga saga, Guid id, CancellationToken cancellationToken)
     {
-        // An in-scope retry re-reads through the same store after a conflicted save. The instance
-        // the failed attempt left in the change tracker would otherwise be served back by identity
-        // resolution, so it is detached first and the committed row is materialized fresh.
-        DetachTrackedState(saga.Name, id);
-
-        // as the state is scoped we load the whole saga state into memory for the concurrency check
+        // The state is loaded tracked so the save that follows checks the version observed here.
+        // Its document stays with the tracked entity and is released when a save replaces it.
         var sageState = await context
             .Set<SagaState>()
             .AsTracking()
@@ -143,26 +143,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
             return default;
         }
 
-        try
-        {
-            return FromJsonDocument<T>(saga, document);
-        }
-        finally
-        {
-            document.Dispose();
-        }
-    }
-
-    private void DetachTrackedState(string sagaName, Guid id)
-    {
-        foreach (var entry in context.ChangeTracker.Entries<SagaState>())
-        {
-            if (entry.Entity.Id == id && entry.Entity.SagaName == sagaName)
-            {
-                entry.State = EntityState.Detached;
-                break;
-            }
-        }
+        return FromJsonDocument<T>(saga, document);
     }
 
     private JsonDocument ToJsonDocument(Saga saga, SagaStateBase state)

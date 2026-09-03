@@ -5,9 +5,9 @@ using Mocha.Sagas.EfCore;
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
 /// <summary>
-/// Tests that <see cref="DbContextSagaStore"/> resolves optimistic concurrency conflicts across
-/// in-scope retries. A retry re-invokes load and save on the same scoped store, so a load must
-/// observe the committed row rather than the instance a failed attempt left in the change tracker.
+/// Tests the concurrency contract of <see cref="DbContextSagaStore"/>: a save checks the version its
+/// own load observed, and loading twice on one store stays safe because the tracked entity keeps
+/// ownership of its document. A retry runs in its own scope and never re-reads through a used store.
 /// </summary>
 public sealed class DbContextSagaStoreConcurrencyTests(PostgresFixture fixture)
     : IClassFixture<PostgresFixture>, IAsyncLifetime
@@ -17,67 +17,11 @@ public sealed class DbContextSagaStoreConcurrencyTests(PostgresFixture fixture)
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     [Fact]
-    public async Task SaveAsync_Should_Succeed_When_RetriedAfterConcurrencyConflict()
-    {
-        // arrange
-        // saga consumer A loads its state, then a concurrent consumer commits first
-        var (saga, id, connectionString) = await SeedAsync("Initial");
-        var (contextA, storeA) = await CreateStoreAsync(connectionString);
-        var (contextB, storeB) = await CreateStoreAsync(connectionString);
-
-        var stateA = await storeA.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        var stateB = await storeB.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        stateB!.Data = "winner";
-        await storeB.SaveAsync(saga, stateB, CancellationToken.None);
-
-        // act
-        // the first save conflicts, then the retry re-runs load and save on the same store
-        stateA!.Data = "loser";
-        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
-            () => storeA.SaveAsync(saga, stateA, CancellationToken.None));
-
-        var retried = await storeA.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        retried!.Data = "retried";
-        await storeA.SaveAsync(saga, retried, CancellationToken.None);
-
-        // assert
-        var (_, verify) = await CreateStoreAsync(connectionString);
-        var committed = await verify.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        Assert.Equal("retried", committed!.Data);
-        _ = contextA;
-        _ = contextB;
-    }
-
-    [Fact]
-    public async Task LoadAsync_Should_ReturnCommittedState_When_CalledAgainAfterConflictedSave()
-    {
-        // arrange
-        var (saga, id, connectionString) = await SeedAsync("Initial");
-        var (_, storeA) = await CreateStoreAsync(connectionString);
-        var (_, storeB) = await CreateStoreAsync(connectionString);
-
-        var stateA = await storeA.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        var stateB = await storeB.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        stateB!.Data = "winner";
-        await storeB.SaveAsync(saga, stateB, CancellationToken.None);
-
-        stateA!.Data = "loser";
-        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
-            () => storeA.SaveAsync(saga, stateA, CancellationToken.None));
-
-        // act
-        // the retry's load must observe the committed row, not the failed attempt's write
-        var retried = await storeA.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-
-        // assert
-        Assert.Equal("winner", retried!.Data);
-    }
-
-    [Fact]
     public async Task LoadAsync_Should_ReturnState_When_CalledTwiceOnTheSameStore()
     {
         // arrange
-        // a retry after a failure before any save re-runs the load on the same store
+        // the tracked entity keeps its document after a load, so a second load must not touch a
+        // disposed document
         var (saga, id, connectionString) = await SeedAsync("Initial", data: "twice");
         var (_, store) = await CreateStoreAsync(connectionString);
 
@@ -88,6 +32,25 @@ public sealed class DbContextSagaStoreConcurrencyTests(PostgresFixture fixture)
         // assert
         Assert.Equal("twice", first!.Data);
         Assert.Equal("twice", second!.Data);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Should_ReturnSavedState_When_CalledAfterSaveOnTheSameStore()
+    {
+        // arrange
+        // a save replaces and releases the loaded document; the entity must remain readable after
+        var (saga, id, connectionString) = await SeedAsync("Initial", data: "before");
+        var (_, store) = await CreateStoreAsync(connectionString);
+
+        var loaded = await store.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
+        loaded!.Data = "after";
+        await store.SaveAsync(saga, loaded, CancellationToken.None);
+
+        // act
+        var reloaded = await store.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
+
+        // assert
+        Assert.Equal("after", reloaded!.Data);
     }
 
     [Fact]
@@ -114,33 +77,6 @@ public sealed class DbContextSagaStoreConcurrencyTests(PostgresFixture fixture)
         var (_, verify) = await CreateStoreAsync(connectionString);
         var committed = await verify.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
         Assert.Equal("winner", committed!.Data);
-    }
-
-    [Fact]
-    public async Task DeleteAsync_Should_Succeed_When_RetriedAfterConcurrencyConflict()
-    {
-        // arrange
-        // a saga that reaches its final state on a retry deletes through the same store
-        var (saga, id, connectionString) = await SeedAsync("Initial");
-        var (_, storeA) = await CreateStoreAsync(connectionString);
-        var (_, storeB) = await CreateStoreAsync(connectionString);
-
-        var stateA = await storeA.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        var stateB = await storeB.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        stateB!.Data = "winner";
-        await storeB.SaveAsync(saga, stateB, CancellationToken.None);
-
-        stateA!.Data = "loser";
-        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
-            () => storeA.SaveAsync(saga, stateA, CancellationToken.None));
-
-        // act - the retry loads fresh state, reaches a final state, and deletes
-        _ = await storeA.LoadAsync<TestSagaState>(saga, id, CancellationToken.None);
-        await storeA.DeleteAsync(saga, id, CancellationToken.None);
-
-        // assert
-        var (_, verify) = await CreateStoreAsync(connectionString);
-        Assert.Null(await verify.LoadAsync<TestSagaState>(saga, id, CancellationToken.None));
     }
 
     private async Task<(TestSaga Saga, Guid Id, string ConnectionString)> SeedAsync(
