@@ -26,6 +26,11 @@ public readonly struct ReplyOptions
     public Dictionary<string, object?>? Headers { get; init; }
 
     /// <summary>
+    /// Gets the message kind stamped on the reply, or <c>null</c> to use <see cref="Mocha.MessageKind.Reply"/>.
+    /// </summary>
+    public string? MessageKind { get; init; }
+
+    /// <summary>
     /// Gets the default reply options with no overrides.
     /// </summary>
     public static readonly ReplyOptions Default;
