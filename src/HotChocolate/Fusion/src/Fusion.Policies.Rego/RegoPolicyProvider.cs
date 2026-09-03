@@ -155,7 +155,7 @@ public sealed class RegoPolicyProvider
 
         foreach (var content in _contents.Values)
         {
-            var source = Encoding.UTF8.GetString(content.Source.Span);
+            var source = NormalizeSource(Encoding.UTF8.GetString(content.Source.Span));
             modules.Add(new PolicyModule(
                 $"{content.Name}.rego",
                 source));
@@ -217,7 +217,7 @@ public sealed class RegoPolicyProvider
 
         foreach (var policy in policies)
         {
-            if (error.Message.Contains(policy.PairName, StringComparison.Ordinal))
+            if (error.Message.Contains($"{policy.PairName}.rego:", StringComparison.Ordinal))
             {
                 _diagnosticEvents.PolicyCompilationError(policy.Name, error);
                 reported = true;
@@ -293,4 +293,7 @@ public sealed class RegoPolicyProvider
         string Name,
         string PairName,
         PolicyRequirements Requirements);
+
+    private static string NormalizeSource(string source)
+        => source.StartsWith('\uFEFF') ? source[1..] : source;
 }

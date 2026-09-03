@@ -203,6 +203,178 @@ public sealed class RegoPolicyProviderTests
     }
 
     [Fact]
+    public async Task Code_Should_ExposeAnnotatedRule_When_SourceStartsWithBom()
+    {
+        // arrange
+        var diagnostics = new CapturingDiagnostics();
+        await using var provider = new RegoPolicyProvider(diagnostics);
+        provider.OnNext(
+            Config(
+                Policy(
+                    "p1",
+                    """
+                    ﻿package p1
+                    import rego.v1
+
+                    # METADATA
+                    # entrypoint: true
+                    default read := true
+
+                    default allow := false
+                    """,
+                    "c1")).Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+        var policy = observer.Current("p1.read")!;
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+
+        // act
+        await policy.EvaluateAsync(context, TestContext.Current.CancellationToken);
+
+        // assert
+        observer.Updates[^1].Select(static p => p.Name).MatchInlineSnapshot(
+            """
+            [
+              "p1.read"
+            ]
+            """);
+        Assert.Empty(context.DeniedIndices);
+        Assert.Empty(diagnostics.Errors);
+    }
+
+    [Fact]
+    public void Scanner_Should_IgnoreMetadataInsideRuleBodies()
+    {
+        // arrange
+        var source =
+            """
+            package p1
+            import rego.v1
+
+            allow if {
+              # METADATA
+              # entrypoint: true
+              default body := true
+            }
+            """;
+
+        // act
+        var entryPoints = RegoEntrypointScanner.Scan(source);
+
+        // assert
+        Assert.Empty(entryPoints);
+    }
+
+    [Fact]
+    public void Scanner_Should_IgnoreMetadataInsideMultilineRawStrings()
+    {
+        // arrange
+        var source =
+            """
+            package p1
+            import rego.v1
+
+            note := `
+            # METADATA
+            # entrypoint: true
+            default hidden := true
+            `
+
+            # METADATA
+            # entrypoint: true
+            default read := true
+            """;
+
+        // act
+        var entryPoints = RegoEntrypointScanner.Scan(source);
+
+        // assert
+        Assert.Equal(new[] { "read" }, entryPoints);
+    }
+
+    [Fact]
+    public void Scanner_Should_IgnoreQuotedAndCommentDelimiters()
+    {
+        // arrange
+        var source =
+            """
+            package p1
+            import rego.v1
+
+            message := "quoted { # } and \"quoted\""
+            # } ] )
+
+            # METADATA
+            # entrypoint: true
+            default read := true
+            """;
+
+        // act
+        var entryPoints = RegoEntrypointScanner.Scan(source);
+
+        // assert
+        Assert.Equal(new[] { "read" }, entryPoints);
+    }
+
+    [Fact]
+    public void Scanner_Should_RecognizeSimpleAndDefaultRuleHeads()
+    {
+        // arrange
+        var source =
+            """
+            package p1
+            import rego.v1
+
+            # METADATA
+            # entrypoint: true
+            read if { true }
+
+            # METADATA
+            # entrypoint: true
+            default write := true
+            """;
+
+        // act
+        var entryPoints = RegoEntrypointScanner.Scan(source);
+
+        // assert
+        Assert.Equal(new[] { "read", "write" }, entryPoints);
+    }
+
+    [Fact]
+    public void Scanner_Should_IgnoreComplexAndMalformedRuleHeads()
+    {
+        // arrange
+        var source =
+            """
+            package p1
+            import rego.v1
+
+            # METADATA
+            # entrypoint: true
+            read.value if { true }
+
+            # METADATA
+            # entrypoint: true
+            write(value) if { true }
+
+            # METADATA
+            # entrypoint: true
+            admin[input.subject] if { true }
+
+            # METADATA
+            # entrypoint: true
+            deny malformed
+            """;
+
+        // act
+        var entryPoints = RegoEntrypointScanner.Scan(source);
+
+        // assert
+        Assert.Empty(entryPoints);
+    }
+
+    [Fact]
     public async Task Code_Should_NotExposeUnannotatedAllow_When_AnnotatedRulesExist()
     {
         // arrange
@@ -344,6 +516,17 @@ public sealed class RegoPolicyProviderTests
         provider.OnNext(
             Config(
                 Policy(
+                    "p",
+                    """
+                    package p
+                    import rego.v1
+
+                    # METADATA
+                    # entrypoint: true
+                    default read := true
+                    """,
+                    "c0"),
+                Policy(
                     "p1",
                     """
                     package p1
@@ -351,11 +534,13 @@ public sealed class RegoPolicyProviderTests
 
                     # METADATA
                     # entrypoint: true
-                    read if {
+                    default read := true
 
                     # METADATA
                     # entrypoint: true
-                    write if { true }
+                    default write := true
+
+                    broken if {
                     """,
                     "c1")).Policies);
 
