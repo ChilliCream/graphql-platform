@@ -36,10 +36,10 @@ Response and remediation times depend on maintainer availability and are not gua
 
 Security fixes are released for the following release lines. Older versions do not receive security fixes and users should upgrade.
 
-| Version | Security fixes |
-| ------- | -------------- |
+| Version | Security fixes     |
+| ------- | ------------------ |
 | 16.x    | :white_check_mark: |
-| < 16.0  | :x: |
+| < 16.0  | :x:                |
 
 When a new major version is released, the oldest supported line moves out of support. Supported release lines are supported on .NET runtimes that are themselves in support by Microsoft.
 
