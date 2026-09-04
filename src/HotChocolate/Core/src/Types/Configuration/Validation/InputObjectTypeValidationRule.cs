@@ -73,12 +73,12 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
                 continue;
             }
 
-            context.FieldPath.Add(field.Name);
+            context.FieldPath.Add(field.Coordinate.ToString());
             if (context.CycleStartIndex.TryGetValue(inputObjectType, out var cycleIndex))
             {
                 var cyclePath = context.FieldPath.Skip(cycleIndex);
                 context.Errors.Add(
-                    InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf(type, cyclePath));
+                    InputObjectMustNotHaveUnbreakableCycle(inputObjectType, cyclePath));
             }
             else
             {

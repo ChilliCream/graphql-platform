@@ -1,9 +1,8 @@
 ﻿{
-  "message": "Cannot reference Input Object `YetAnotherInputObject` within itself through a series of non-null fields `startLoop --> nextInLoop --> closeLoop`.",
-  "type": "YetAnotherInputObject",
+  "message": "Input Object `SomeInputObject` cannot be provided a finite value because it references itself through fields `SomeInputObject.startLoop --> AnotherInputObject.nextInLoop --> YetAnotherInputObject.closeLoop`.",
+  "type": "SomeInputObject",
   "extensions": {
-    "rfc": "https://github.com/graphql/graphql-spec/pull/445",
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
   }
 }
 
