@@ -588,6 +588,9 @@
   <data name="RequirementsValidator_FieldDoesNotExistOnType" xml:space="preserve">
     <value>The field '{0}' does not exist on the type '{1}'.</value>
   </data>
+  <data name="RequirementsValidator_NoLookupForRequiringField" xml:space="preserve">
+    <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
+  </data>
   <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
   </data>
@@ -629,6 +632,9 @@
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
     <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoLookupForRequiringField" xml:space="preserve">
+    <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
