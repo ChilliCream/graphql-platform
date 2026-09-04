@@ -76,9 +76,9 @@ Wait+Screen@30s /> ⏸ \[C\] P4 acme-e5f Rotate staging API keys/
 
 # Right: focus "Ready" (index 2). Empty for this fixture (both open tasks
 # are blocked), so sync on the focused panel's own top border instead of a
-# card row.
+# card row. The focused pane draws a heavy border (┏━), unfocused panes rounded.
 Right
-Wait+Screen@30s /╭─Ready \(0\)─/
+Wait+Screen@30s /┏━Ready \(0\)━/
 
 # Right: focus "In Progress" (index 3), whose only card is acme-epic1.1.
 Right

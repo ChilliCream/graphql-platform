@@ -1,35 +1,35 @@
  [T]asks   [M]ail   [A]gents   M[e]mory   [G]raph
-╭─Workspace: bob (3)────────────────────────────────────╮╭─m-fix002 Billing review────────────╮
-│         From           To             Su…  Age        ││ From: bob                          │
-│ >       bob            e2e-agent+1    Bi…  2026-01-01 ││ To: e2e-agent                      │
-│         e2e-agent      bob            St…  2026-01-01 ││ Cc: alice                          │
-│         alice          bob            De…  2026-01-01 ││ Date: 2026-01-01 10:00             │
-│                                                       ││ e2e-agent: read 2026-01-02 08:00   │
-│                                                       ││ alice: unread                      │
-│                                                       ││                                    │
-│                                                       ││ Needs review before merge.         │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-│                                                       ││                                    │
-╰───────────────────────────────────────────────────────╯╰────────────────────────────────────╯
+┏━Workspace: bob (3)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓╭─m-fix002 Billing review────────────╮
+┃         From           To             Su…  Age        ┃│ From: bob                          │
+┃ >       bob            e2e-agent+1    Bi…  2026-01-01 ┃│ To: e2e-agent                      │
+┃         e2e-agent      bob            St…  2026-01-01 ┃│ Cc: alice                          │
+┃         alice          bob            De…  2026-01-01 ┃│ Date: 2026-01-01 10:00             │
+┃                                                       ┃│ e2e-agent: read 2026-01-02 08:00   │
+┃                                                       ┃│ alice: unread                      │
+┃                                                       ┃│                                    │
+┃                                                       ┃│ Needs review before merge.         │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┃                                                       ┃│                                    │
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛╰────────────────────────────────────╯
 hjkl move  tab switch pane  enter focus detail  y copy id  f filter  t thread  …
