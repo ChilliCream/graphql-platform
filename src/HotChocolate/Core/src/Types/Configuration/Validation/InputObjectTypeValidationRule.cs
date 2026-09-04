@@ -57,11 +57,8 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
     }
 
     /// <summary>
-    /// Records the fields through which each Input Object requires another Input Object: every
-    /// Input Object field of a OneOf Input Object, and every non-null Input Object field of a
-    /// non-OneOf Input Object. Returns the states that are finite on their own: a OneOf Input
-    /// Object with a field that requires nothing, or a non-OneOf Input Object with no requiring
-    /// field.
+    /// Records the fields through which each Input Object requires another Input Object and
+    /// returns the states that are finite without depending on any other Input Object.
     /// </summary>
     private static Stack<InputObjectState> CollectEdges(List<InputObjectState> states)
     {

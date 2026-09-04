@@ -292,6 +292,49 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
+    public void AcceptsOneOfEscapeThroughTypeWithRepeatedFiniteField()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+              x: X
+          }
+
+          input B {
+              a: A!
+          }
+
+          input X {
+              f1: F!
+              f2: F!
+          }
+
+          input F {
+              v: Int
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfWithEnumEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              self: A
+              kind: Kind
+          }
+
+          enum Kind {
+              X
+          }
+        """);
+    }
+
+    [Fact]
     public void RejectsNonBreakableDirectCircularReference()
     {
         ExpectError("""
@@ -468,7 +511,7 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
     public void RejectsSharedUnbreakableOneOfSubgraph()
     {
         // arrange
-        // T0 references itself; every T(n) has two fields into T(n-1).
+        // T0 references itself; every T(n) has two fields into T(n-1), so 2^16 paths reach T0.
         var sdl = new StringBuilder(
             """
             type Query { stub: String }
@@ -492,6 +535,21 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
 
         // act & assert
         ExpectError(sdl.ToString());
+    }
+
+    [Fact]
+    public void RejectsEmptyOneOfEscapeWithoutCycleError()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              self: A
+              e: E
+          }
+
+          input E @oneOf {}
+        """);
     }
 
     [Fact]

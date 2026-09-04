@@ -365,7 +365,7 @@ public sealed class NoInputObjectUnbreakableCycleRuleTests
     public void Validate_SharedUnbreakableOneOfSubgraph_Fails()
     {
         // arrange
-        // T0 references itself; every T(n) has two fields into T(n-1).
+        // T0 references itself; every T(n) has two fields into T(n-1), so 2^16 paths reach T0.
         var sdl = new StringBuilder(
             """
             input T0 @oneOf {
@@ -548,6 +548,61 @@ public sealed class NoInputObjectUnbreakableCycleRuleTests
             input B {
                 a: A!
             }
+            """);
+    }
+
+    [Fact]
+    public void Validate_OneOfEscapeThroughTypeWithRepeatedFiniteField_Succeeds()
+    {
+        AssertValid(
+            """
+            input A @oneOf {
+                b: B
+                x: X
+            }
+
+            input B {
+                a: A!
+            }
+
+            input X {
+                f1: F!
+                f2: F!
+            }
+
+            input F {
+                v: Int
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_OneOfWithEnumEscape_Succeeds()
+    {
+        AssertValid(
+            """
+            input A @oneOf {
+                self: A
+                kind: Kind
+            }
+
+            enum Kind {
+                X
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_OneOfWithEmptyOneOfEscape_Succeeds()
+    {
+        AssertValid(
+            """
+            input A @oneOf {
+                self: A
+                e: E
+            }
+
+            input E @oneOf {}
             """);
     }
 }
