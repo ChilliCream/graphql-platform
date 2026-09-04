@@ -57,11 +57,11 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
         // so the route never selects a non saga (RPC) reply on the shared reply endpoint.
         var sagaId = new HeaderPresentCondition<string>(SagaContextData.SagaId);
 
-        // OnAnyReply (OnReply<object>) routes every saga-id reply from the endpoint to the saga
-        // consumer, which then correlates by id.
+        // OnAnyReply routes successful replies to the saga consumer. Fault notifications are
+        // selected only by an explicit OnFault route.
         if (eventType == typeof(object))
         {
-            return sagaId;
+            return AndCondition.Create(sagaId, NotFaultCondition.Instance);
         }
 
         // A typed OnReply<T> requires the saga-id and, when the received message resolves a message

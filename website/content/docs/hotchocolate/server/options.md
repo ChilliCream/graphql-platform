@@ -141,10 +141,11 @@ builder
     });
 ```
 
-| Property                          | Type        | Default    | Description                                                                                                    |
-| --------------------------------- | ----------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | 10 seconds | The time a client has to send a `connection_init` message before the server closes the connection.             |
-| `KeepAliveInterval`               | `TimeSpan?` | 5 seconds  | The interval at which the server sends keep-alive ping messages. Set to `null` to disable keep-alive messages. |
+| Property                          | Type        | Default          | Description                                                                                                                                                                                                                         |
+| --------------------------------- | ----------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | 10 seconds       | The time a client has to send a `connection_init` message before the server closes the connection.                                                                                                                                  |
+| `KeepAliveInterval`               | `TimeSpan?` | 5 seconds        | The interval at which the server sends keep-alive ping messages. Set to `null` to disable keep-alive messages.                                                                                                                      |
+| `MaxAllowedMessageSize`           | `int`       | 20,480,000 bytes | The maximum size in bytes of a single incoming WebSocket message. When exceeded, the server closes the connection with close status `1009` (Message Too Big). The default (`20 * 1000 * 1024`) matches the HTTP request size limit. |
 
 # Paging Options (ModifyPagingOptions)
 
