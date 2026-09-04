@@ -2,7 +2,8 @@ using HotChocolate.Rules;
 
 namespace HotChocolate.Types.Validation.Rules;
 
-public sealed class NoInputObjectCycleRuleTests : RuleTestBase<NoInputObjectCycleRule>
+public sealed class NoInputObjectUnbreakableCycleRuleTests
+    : RuleTestBase<NoInputObjectUnbreakableCycleRule>
 {
     [Fact]
     public void Validate_BreakableCircularReferences_Succeeds()
@@ -42,13 +43,13 @@ public sealed class NoInputObjectCycleRuleTests : RuleTestBase<NoInputObjectCycl
             """,
             """
             {
-                "message": "Invalid circular reference. The Input Object 'SomeInputObject' references itself in the non-null field 'SomeInputObject.nonNullSelf'.",
+                "message": "Input Object 'SomeInputObject' cannot be provided a finite value because it references itself through fields: 'SomeInputObject.nonNullSelf'.",
                 "code": "HCV0018",
                 "severity": "Error",
                 "coordinate": "SomeInputObject",
                 "member": "SomeInputObject",
                 "extensions": {
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+                    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
                 }
             }
             """);
@@ -77,13 +78,13 @@ public sealed class NoInputObjectCycleRuleTests : RuleTestBase<NoInputObjectCycl
             """,
             """
             {
-                "message": "Invalid circular reference. The Input Object 'SomeInputObject' references itself via the non-null fields: 'SomeInputObject.startLoop', 'AnotherInputObject.nextInLoop', 'YetAnotherInputObject.closeLoop'.",
+                "message": "Input Object 'SomeInputObject' cannot be provided a finite value because it references itself through fields: 'SomeInputObject.startLoop', 'AnotherInputObject.nextInLoop', 'YetAnotherInputObject.closeLoop'.",
                 "code": "HCV0018",
                 "severity": "Error",
                 "coordinate": "SomeInputObject",
                 "member": "SomeInputObject",
                 "extensions": {
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+                    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
                 }
             }
             """);
@@ -114,37 +115,37 @@ public sealed class NoInputObjectCycleRuleTests : RuleTestBase<NoInputObjectCycl
             """,
             """
             {
-                "message": "Invalid circular reference. The Input Object 'SomeInputObject' references itself via the non-null fields: 'SomeInputObject.startLoop', 'AnotherInputObject.closeLoop'.",
+                "message": "Input Object 'SomeInputObject' cannot be provided a finite value because it references itself through fields: 'SomeInputObject.startLoop', 'AnotherInputObject.closeLoop'.",
                 "code": "HCV0018",
                 "severity": "Error",
                 "coordinate": "SomeInputObject",
                 "member": "SomeInputObject",
                 "extensions": {
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+                    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
                 }
             }
             """,
             """
             {
-                "message": "Invalid circular reference. The Input Object 'AnotherInputObject' references itself via the non-null fields: 'AnotherInputObject.startSecondLoop', 'YetAnotherInputObject.closeSecondLoop'.",
+                "message": "Input Object 'AnotherInputObject' cannot be provided a finite value because it references itself through fields: 'AnotherInputObject.startSecondLoop', 'YetAnotherInputObject.closeSecondLoop'.",
                 "code": "HCV0018",
                 "severity": "Error",
                 "coordinate": "AnotherInputObject",
                 "member": "AnotherInputObject",
                 "extensions": {
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+                    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
                 }
             }
             """,
             """
             {
-                "message": "Invalid circular reference. The Input Object 'YetAnotherInputObject' references itself in the non-null field 'YetAnotherInputObject.nonNullSelf'.",
+                "message": "Input Object 'YetAnotherInputObject' cannot be provided a finite value because it references itself through fields: 'YetAnotherInputObject.nonNullSelf'.",
                 "code": "HCV0018",
                 "severity": "Error",
                 "coordinate": "YetAnotherInputObject",
                 "member": "YetAnotherInputObject",
                 "extensions": {
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+                    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
                 }
             }
             """);

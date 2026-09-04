@@ -8,13 +8,15 @@ using static HotChocolate.Logging.LogEntryHelper;
 namespace HotChocolate.Rules;
 
 /// <summary>
-/// If an Input Object references itself either directly or through referenced Input Objects, at
-/// least one of the fields in the chain of references must be either a nullable or a List type.
+/// An Input Object must not reference itself through a cycle that cannot be broken. A field
+/// breaks a cycle when its type is a list, a nullable type on a non-OneOf Input Object, a type
+/// other than an Input Object, or an Input Object that can itself be provided a finite value.
 /// </summary>
-/// <seealso href="https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation">
+/// <seealso href="https://github.com/graphql/graphql-spec/pull/1211">
 /// Specification
 /// </seealso>
-public sealed class NoInputObjectCycleRule : IValidationEventHandler<InputObjectTypesEvent>
+public sealed class NoInputObjectUnbreakableCycleRule
+    : IValidationEventHandler<InputObjectTypesEvent>
 {
     /// <summary>
     /// Checks that there are no cycles in input object type definitions.
@@ -56,7 +58,8 @@ public sealed class NoInputObjectCycleRule : IValidationEventHandler<InputObject
             if (context.FieldPathIndexByType.TryGetValue(innerInputObjectType, out var cycleIndex))
             {
                 var cyclePath = context.FieldPath.Skip(cycleIndex);
-                context.LogEntries.Add(InputObjectCycle(innerInputObjectType, cyclePath));
+                context.LogEntries.Add(
+                    InputObjectUnbreakableCycle(innerInputObjectType, cyclePath));
             }
             else
             {
