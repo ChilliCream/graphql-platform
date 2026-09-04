@@ -83,6 +83,8 @@ public sealed class TuiTabTests
         // assert
         Assert.True(popped);
         Assert.Same(root, tab.ActiveMode);
+        Assert.True(root.EnterCalled);
+        Assert.Equal((80, 24), Assert.Single(root.ResizeCalls));
     }
 
     [Fact]
@@ -96,6 +98,38 @@ public sealed class TuiTabTests
 
         // assert
         Assert.False(popped);
+    }
+
+    [Fact]
+    public void ResumeSuspendedMode_Should_ResizeWithoutEnteringPreviousMode_When_StackHasMode()
+    {
+        // arrange
+        var root = new FakeTuiMode();
+        var detail = new FakeTuiMode();
+        var tab = new TuiTab("Graph", mnemonic: 'G', root, CreateDispatcher());
+        tab.SwitchTo(detail, 80, 24);
+
+        // act
+        var resumed = tab.ResumeSuspendedMode(100, 30);
+
+        // assert
+        Assert.True(resumed);
+        Assert.Same(root, tab.ActiveMode);
+        Assert.False(root.EnterCalled);
+        Assert.Equal((100, 30), Assert.Single(root.ResizeCalls));
+    }
+
+    [Fact]
+    public void ResumeSuspendedMode_Should_ReturnFalse_When_StackIsEmpty()
+    {
+        // arrange
+        var tab = new TuiTab("Graph", mnemonic: 'G', new FakeTuiMode(), CreateDispatcher());
+
+        // act
+        var resumed = tab.ResumeSuspendedMode(80, 24);
+
+        // assert
+        Assert.False(resumed);
     }
 
     [Fact]

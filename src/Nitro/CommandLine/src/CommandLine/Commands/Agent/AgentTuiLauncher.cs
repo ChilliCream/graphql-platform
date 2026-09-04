@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -7,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
+using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
@@ -18,7 +18,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Tree;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 
 /// <summary>
-/// Runs the unified Tasks, Mail, Agents, and Memory TUI.
+/// Runs the unified Tasks, Mail, Agents, Memory, and Graph TUI.
 /// </summary>
 internal static class AgentTuiLauncher
 {
@@ -130,7 +130,7 @@ internal static class AgentTuiLauncher
     }
 
     /// <summary>
-    /// Builds the Tasks, Mail, Agents, and Memory tabs in the order the
+    /// Builds the Tasks, Mail, Agents, Memory, and Graph tabs in the order the
     /// shell's tab strip renders them.
     /// </summary>
     internal static TuiTab[] BuildTabs(
@@ -157,7 +157,10 @@ internal static class AgentTuiLauncher
         var memoryMode = new MemoryMode(memoryStore, timeProvider);
         var memoryTab = new TuiTab("Memory", mnemonic: 'e', memoryMode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
 
-        return [tasksTab, mailTab, agentsTab, memoryTab];
+        var graphMode = new GraphMode(new GraphDataLoader(taskStore, timeProvider));
+        var graphTab = new TuiTab("Graph", mnemonic: 'G', graphMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
+
+        return [tasksTab, mailTab, agentsTab, memoryTab, graphTab];
     }
 
     /// <summary>

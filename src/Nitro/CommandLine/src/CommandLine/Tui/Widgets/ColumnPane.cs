@@ -4,8 +4,9 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets;
 
 /// <summary>
-/// Wraps a list of already-rendered markup lines in a rounded-border panel
-/// titled "Name (count)", with border style driven by focus state.
+/// Wraps a list of already-rendered markup lines in a bordered panel titled
+/// "Name (count)", with the border box, border style, and header weight all
+/// driven by focus state via <see cref="PaneBorders"/>.
 /// </summary>
 internal static class ColumnPane
 {
@@ -17,14 +18,15 @@ internal static class ColumnPane
     {
         IRenderable content = lines.Count == 0
             ? new Markup(string.Empty)
-            : new Rows(lines.Select(line => (IRenderable)new Markup(line)));
+            : new Rows(lines.Select(line => (IRenderable)new Markup(line).Overflow(Overflow.Ellipsis)));
 
         var borderToken = focused ? "board.column.border.focused" : "board.column.border";
+        var headerText = PaneBorders.HeaderText($"{name} ({count})", focused);
 
         return new Panel(content)
         {
-            Header = new PanelHeader($"{name} ({count})"),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(headerText),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken)
         };
     }

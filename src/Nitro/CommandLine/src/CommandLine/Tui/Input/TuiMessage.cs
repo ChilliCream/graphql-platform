@@ -31,6 +31,51 @@ internal abstract record TuiMessage
     public sealed record RefreshRequested : TuiMessage;
 
     /// <summary>
+    /// The graph should switch between its tree and canvas projections.
+    /// </summary>
+    public sealed record ToggleGraphProjection : TuiMessage;
+
+    /// <summary>
+    /// Graph canvas nodes should switch between boxed and compact rendering.
+    /// </summary>
+    public sealed record ToggleGraphCompact : TuiMessage;
+
+    /// <summary>
+    /// The graph canvas should toggle its parent-child edge overlay.
+    /// </summary>
+    public sealed record ToggleGraphParentChild : TuiMessage;
+
+    /// <summary>
+    /// The graph should toggle the visibility of terminal tasks.
+    /// </summary>
+    public sealed record ToggleGraphClosed : TuiMessage;
+
+    /// <summary>
+    /// The selected graph epic or super-node should collapse.
+    /// </summary>
+    public sealed record CollapseSelectedGraphEpic : TuiMessage;
+
+    /// <summary>
+    /// The selected graph epic or super-node should expand.
+    /// </summary>
+    public sealed record ExpandSelectedGraphEpic : TuiMessage;
+
+    /// <summary>
+    /// Every visible graph epic should collapse.
+    /// </summary>
+    public sealed record CollapseAllGraphEpics : TuiMessage;
+
+    /// <summary>
+    /// Every graph epic should expand.
+    /// </summary>
+    public sealed record ExpandAllGraphEpics : TuiMessage;
+
+    /// <summary>
+    /// Opens the graph's label and epic filter form.
+    /// </summary>
+    public sealed record FilterGraphRequested : TuiMessage;
+
+    /// <summary>
     /// An asynchronous effect completed. A mode that owns no effect queue
     /// ignores this; one that does is expected to drain it the same way it
     /// already does on every other message.

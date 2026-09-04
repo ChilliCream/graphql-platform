@@ -1,4 +1,4 @@
- [T]asks   [M]ail   [A]gents   M[e]mory
+ [T]asks   [M]ail   [A]gents   M[e]mory   [G]raph
 ╭─acme-epic1 · blocking · depended on by────────────────────╮
 │   ○ [E] P1 acme-epic1 Launch v2 pricing page              │
 │ ├─ > ● [T] P2 acme-epic1.1 Draft new pricing copy         │

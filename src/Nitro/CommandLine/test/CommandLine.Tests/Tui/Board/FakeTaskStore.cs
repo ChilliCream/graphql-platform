@@ -95,6 +95,12 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<string>>(Labels.TryGetValue(taskId, out var labels) ? labels : []);
 
+    public Task<IReadOnlyList<TaskLabels>> GetTaskLabelsAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskLabels>>(
+            Labels.OrderBy(t => t.Key, StringComparer.Ordinal)
+                .Select(t => new TaskLabels(t.Key, t.Value.Order(StringComparer.Ordinal).ToArray()))
+                .ToArray());
+
     public Task<IReadOnlyList<TaskComment>> GetCommentsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<TaskComment>>([]);
 
@@ -152,7 +158,7 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult<IReadOnlyList<TaskDependency>>([]);
 
     public Task<IReadOnlyList<TaskEpicStatus>> GetEpicStatusesAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();

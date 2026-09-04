@@ -63,4 +63,9 @@ internal interface ITuiMode
     /// gone. The default suppresses nothing.
     /// </summary>
     IReadOnlyCollection<KeyHint> SuppressedGlobalHints => [];
+
+    /// <summary>
+    /// A plain-text single-line status owned by the mode and rendered in the shell footer.
+    /// </summary>
+    string? FooterStatus => null;
 }

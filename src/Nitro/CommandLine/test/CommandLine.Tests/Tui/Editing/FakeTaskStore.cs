@@ -110,6 +110,9 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<IReadOnlyList<TaskLabels>> GetTaskLabelsAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskLabels>>([]);
+
     public Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();
 

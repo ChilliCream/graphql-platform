@@ -110,8 +110,8 @@ internal sealed class MailDetailView
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildHeader(state)),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(PaneBorders.HeaderText(BuildHeader(state), focused)),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
             Height = Math.Max(1, height)

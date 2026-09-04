@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -1840,16 +1839,46 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void Render_Should_ApplyAnsiStyling_ToWorkspaceHeaderText_When_MailboxIsWorkspace()
+    public void Render_Should_UseHeavyBorder_And_UnboldBorderStyle_When_WorkspaceMailboxIsFocused()
     {
-        // arrange: Spectre paints a panel's header text with its
-        // BorderStyle, so the Workspace header text sits inside the same
-        // styled run as the border characters (which
-        // Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace
-        // already covers) rather than a fresh escape sequence opened right
-        // before the header text; this asserts the styled run reaches the
-        // header text uninterrupted by any escape sequence, rather than
-        // requiring the escape sequence literally right in front of it.
+        // arrange: focus is shown by box weight, not by bolding the border -
+        // bold box-drawing glyphs render misaligned in some terminals (see
+        // hc-11-04h) - so the Workspace pane's own accent token must not
+        // carry Decoration.Bold, and its top-left corner must be the Heavy
+        // glyph rather than Rounded.
+        var store = new FakeMailStore();
+        AddMessage(store, "m-1", Now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        var borderToken = MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true);
+        var style = ThemeTokens.GetStyle(borderToken);
+        var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        var ansiIndex = console.Output.IndexOf(ansiPrefix, StringComparison.Ordinal);
+
+        Assert.Equal(Decoration.None, style.Decoration);
+        Assert.True(
+            ansiIndex >= 0 && console.Output[ansiIndex + ansiPrefix.Length] == '┏',
+            "Expected the focused Workspace pane to draw a heavy frame.");
+    }
+
+    [Fact]
+    public void Render_Should_BoldTheWorkspaceHeaderText_When_WorkspaceMailboxIsFocused()
+    {
+        // arrange: the header title is bolded through inline markup on the
+        // header text itself (PanelHeader.SetStyle is a no-op stub in this
+        // Spectre.Console version, and the panel's BorderStyle - which the
+        // header's un-marked text otherwise inherits - must stay unbolded),
+        // so a bold escape sequence opens between the border-styled run and
+        // the header text rather than being absent from the whole run.
         var store = new FakeMailStore();
         AddMessage(store, "m-1", Now);
         var mode = CreateMode(store);
@@ -1871,8 +1900,10 @@ public sealed class MailModeTests
         var textIndex = console.Output.IndexOf("Workspace (1)", StringComparison.Ordinal);
         Assert.True(ansiIndex >= 0, "Expected the Workspace border/header ANSI sequence to appear.");
         Assert.True(textIndex > ansiIndex, "Expected the header text to follow the styled run.");
-        var runStart = ansiIndex + ansiPrefix.Length;
-        Assert.Equal(-1, console.Output.IndexOf('\u001b', runStart, textIndex - runStart));
+        var boldOnIndex = console.Output.IndexOf("[1;", ansiIndex, StringComparison.Ordinal);
+        Assert.True(
+            boldOnIndex >= 0 && boldOnIndex < textIndex,
+            "Expected the focused Workspace header title to be bold.");
     }
 
     [Fact]

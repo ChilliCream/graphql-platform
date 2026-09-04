@@ -1,15 +1,18 @@
 using System.Globalization;
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
+using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
 using Spectre.Console.Rendering;
 using EditingConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDialog;
 
@@ -41,6 +44,7 @@ internal sealed class TuiShell
     private readonly ITaskStore? _store;
     private readonly IMailStore? _mailStore;
     private readonly string? _actor;
+    private readonly Dictionary<TuiTab, BoardDetailMode> _detailModes = [];
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
     private readonly IReadOnlyList<TuiQuitGate> _quitGates;
@@ -48,7 +52,6 @@ internal sealed class TuiShell
 
     private int _activeTabIndex;
     private bool _quitGateResolved;
-    private BoardDetailMode? _detailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
     private EditingConfirmDialog? _lifecycleDialog;
@@ -239,7 +242,13 @@ internal sealed class TuiShell
                                 : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
-            ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
+            ?? (IRenderable)new Markup(
+                FormatFooter(
+                    BuildFooterHints(),
+                    _width,
+                    _actor,
+                    _mailWakeDaemonState?.Invoke(),
+                    ActiveMode.FooterStatus));
 
         if (_tabs.Count <= 1)
         {
@@ -758,10 +767,20 @@ internal sealed class TuiShell
                 PopMode();
                 return true;
 
-            case TuiMessage.OpenSelected when ActiveMode is BoardMode:
+            case TuiMessage.OpenSelected when ActiveMode is BoardMode or GraphMode:
                 return TryOpenDetail();
 
             case TuiMessage.FocusSearchRequested:
+                if (ActiveMode is GraphMode graph)
+                {
+                    foreach (var followUp in graph.Handle(message))
+                    {
+                        HandleMessage(followUp);
+                    }
+
+                    return true;
+                }
+
                 if (!IsTasksTabActive || _searchMode is not { } search)
                 {
                     return false;
@@ -884,10 +903,8 @@ internal sealed class TuiShell
         $"Exit with {report.PendingCount} stored-but-pending, {report.OutcomeUnknownCount} outcome-unknown? (y/n)";
 
     /// <summary>
-    /// Switches to the board's task detail mode, rooted on the board's
-    /// currently selected task. Reuses the same mode-stack semantics as
-    /// <see cref="TryOpenTree"/>: Back returns to the board with its
-    /// selection untouched.
+    /// Opens the selected Board or Graph task in the active tab's detail mode.
+    /// Back returns to the prior mode with its retained state.
     /// </summary>
     private bool TryOpenDetail()
     {
@@ -901,9 +918,14 @@ internal sealed class TuiShell
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
 
-        _detailMode ??= new BoardDetailMode(_store);
-        _detailMode.OpenOnTask(id);
-        SwitchTo(_detailMode);
+        if (!_detailModes.TryGetValue(ActiveTab, out var detailMode))
+        {
+            detailMode = new BoardDetailMode(_store);
+            _detailModes.Add(ActiveTab, detailMode);
+        }
+
+        detailMode.OpenOnTask(id);
+        SwitchTo(detailMode);
         return true;
     }
 
@@ -1086,7 +1108,18 @@ internal sealed class TuiShell
     /// Pops the active tab's own navigation stack back to its previous mode,
     /// so <see cref="TuiMessage.Back"/> never crosses tabs.
     /// </summary>
-    private void PopMode() => ActiveTab.PopMode(_width, ContentHeight);
+    private void PopMode()
+    {
+        if (ActiveTab.RootMode is GraphMode
+            && _detailModes.TryGetValue(ActiveTab, out var detailMode)
+            && ReferenceEquals(ActiveMode, detailMode))
+        {
+            ActiveTab.ResumeSuspendedMode(_width, ContentHeight);
+            return;
+        }
+
+        ActiveTab.PopMode(_width, ContentHeight);
+    }
 
     /// <summary>
     /// Builds the footer's hint list for whichever context currently owns
@@ -1175,14 +1208,34 @@ internal sealed class TuiShell
     /// narrow for even that) rather than shrinking the hints further.
     /// </summary>
     private static string FormatFooter(
-        IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)
+        IReadOnlyList<KeyHint> hints,
+        int width,
+        string? actor,
+        MailWakeDaemonState? mailWakeDaemonState,
+        string? inlineStatus)
     {
-        var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
-        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+        if (width <= 0)
+        {
+            return string.Empty;
+        }
+
+        var statusText = string.IsNullOrEmpty(inlineStatus) ? null : TruncateFooterText(inlineStatus, width);
+        var statusWidth = statusText is null ? 0 : GetFooterDisplayWidth(statusText);
+        var hintWidth = Math.Max(0, width - statusWidth - (statusWidth > 0 ? FooterSeparator.Length : 0));
+        var hintMarkup = FormatFooterHints(hints, hintWidth, out var hintPlainWidth);
+        var leadingWidth = statusWidth + hintPlainWidth + (statusWidth > 0 && hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+        var leadingMarkup = statusWidth == 0
+            ? hintMarkup
+            : hintPlainWidth == 0
+                ? $"[{ThemeTokens.GetStyle("footer.action").ToMarkup()}]{Markup.Escape(statusText!)}[/]"
+                : $"[{ThemeTokens.GetStyle("footer.action").ToMarkup()}]{Markup.Escape(statusText!)}[/]"
+                    + FooterSeparator
+                    + hintMarkup;
+        var available = width - leadingWidth - (leadingWidth > 0 ? FooterSeparator.Length : 0);
 
         if (available <= 0)
         {
-            return hintMarkup;
+            return leadingMarkup;
         }
 
         var trailingMarkup = string.Empty;
@@ -1192,12 +1245,12 @@ internal sealed class TuiShell
         {
             var badgeText = FormatMailWakeDaemonBadge(state);
 
-            if (badgeText.Length <= available)
+            if (GetFooterDisplayWidth(badgeText) <= available)
             {
                 var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(state)).ToMarkup();
                 trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
-                trailingPlainWidth = badgeText.Length;
-                available -= badgeText.Length;
+                trailingPlainWidth = GetFooterDisplayWidth(badgeText);
+                available -= trailingPlainWidth;
             }
         }
 
@@ -1208,13 +1261,13 @@ internal sealed class TuiShell
 
             string? identityText = null;
 
-            if (actor.Length <= identityAvailable)
+            if (GetFooterDisplayWidth(actor) <= identityAvailable)
             {
                 identityText = actor;
             }
-            else if (identityAvailable > FooterEllipsis.Length)
+            else if (identityAvailable > GetFooterDisplayWidth(FooterEllipsis))
             {
-                identityText = actor[..(identityAvailable - FooterEllipsis.Length)] + FooterEllipsis;
+                identityText = TruncateFooterText(actor, identityAvailable);
             }
 
             if (identityText is not null)
@@ -1225,19 +1278,71 @@ internal sealed class TuiShell
                 trailingMarkup = trailingPlainWidth > 0
                     ? trailingMarkup + FooterSeparator + identityMarkup
                     : identityMarkup;
-                trailingPlainWidth += separatorNeeded + identityText.Length;
+                trailingPlainWidth += separatorNeeded + GetFooterDisplayWidth(identityText);
             }
         }
 
         if (trailingPlainWidth == 0)
         {
-            return hintMarkup;
+            return leadingMarkup;
         }
 
-        var padding = Math.Max(0, width - hintPlainWidth - trailingPlainWidth);
+        var padding = Math.Max(0, width - leadingWidth - trailingPlainWidth);
 
-        return hintMarkup + new string(' ', padding) + trailingMarkup;
+        return leadingMarkup + new string(' ', padding) + trailingMarkup;
     }
+
+    private static string TruncateFooterText(string value, int width)
+    {
+        if (GetFooterDisplayWidth(value) <= width)
+        {
+            return value;
+        }
+
+        var ellipsisWidth = GetFooterDisplayWidth(FooterEllipsis);
+
+        if (width <= ellipsisWidth)
+        {
+            return FooterEllipsis;
+        }
+
+        var builder = new StringBuilder(width);
+        var enumerator = StringInfo.GetTextElementEnumerator(value);
+        var remaining = width - ellipsisWidth;
+
+        while (enumerator.MoveNext())
+        {
+            var element = enumerator.GetTextElement();
+
+            var elementWidth = GetFooterDisplayWidth(element);
+
+            if (elementWidth > remaining)
+            {
+                break;
+            }
+
+            builder.Append(element);
+            remaining -= elementWidth;
+        }
+
+        return builder.Append('…').ToString();
+    }
+
+    private static int GetFooterDisplayWidth(string value)
+    {
+        var width = 0;
+        var enumerator = StringInfo.GetTextElementEnumerator(value);
+
+        while (enumerator.MoveNext())
+        {
+            width += GetFooterTextElementWidth(enumerator.GetTextElement());
+        }
+
+        return width;
+    }
+
+    private static int GetFooterTextElementWidth(string element)
+        => Math.Max(0, element.GetCellWidth());
 
     /// <summary>
     /// The mail-wake daemon coordinator's current state as a short, fixed-width
@@ -1292,7 +1397,8 @@ internal sealed class TuiShell
                 $"[{keyStyle}]{Markup.Escape(hints[i].Key)}[/] [{actionStyle}]{Markup.Escape(hints[i].Action)}[/]";
         }
 
-        var fullPlainWidth = plainItems.Sum(item => item.Length) + FooterSeparator.Length * (hints.Count - 1);
+        var separatorWidth = GetFooterDisplayWidth(FooterSeparator);
+        var fullPlainWidth = plainItems.Sum(GetFooterDisplayWidth) + separatorWidth * (hints.Count - 1);
 
         if (fullPlainWidth <= width)
         {
@@ -1302,11 +1408,11 @@ internal sealed class TuiShell
 
         var included = 0;
         var usedWidth = 0;
-        var trailerWidth = FooterSeparator.Length + FooterEllipsis.Length;
+        var trailerWidth = separatorWidth + GetFooterDisplayWidth(FooterEllipsis);
 
         for (var i = 0; i < hints.Count; i++)
         {
-            var itemWidth = (i == 0 ? 0 : FooterSeparator.Length) + plainItems[i].Length;
+            var itemWidth = (i == 0 ? 0 : separatorWidth) + GetFooterDisplayWidth(plainItems[i]);
 
             if (usedWidth + itemWidth + trailerWidth > width)
             {
@@ -1319,8 +1425,9 @@ internal sealed class TuiShell
 
         if (included == 0)
         {
-            plainWidth = width >= FooterEllipsis.Length ? FooterEllipsis.Length : 0;
-            return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
+            var ellipsisWidth = GetFooterDisplayWidth(FooterEllipsis);
+            plainWidth = width >= ellipsisWidth ? ellipsisWidth : 0;
+            return width >= ellipsisWidth ? FooterEllipsis : string.Empty;
         }
 
         plainWidth = usedWidth + trailerWidth;

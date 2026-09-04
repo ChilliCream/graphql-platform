@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -54,6 +55,33 @@ public sealed class TuiShellTests
         var console = new TestConsole().Width(width);
         console.Write(shell.Render());
         return console.Output;
+    }
+
+    private static string RenderFooterText(TuiShell shell, int width)
+        => RenderToText(shell, width)
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .LastOrDefault()?
+            .TrimEnd('\r')
+            ?? string.Empty;
+
+    private static bool ContainsLoneSurrogate(string value)
+    {
+        for (var index = 0; index < value.Length; index++)
+        {
+            if (char.IsHighSurrogate(value[index])
+                && (index + 1 == value.Length || !char.IsLowSurrogate(value[index + 1])))
+            {
+                return true;
+            }
+
+            if (char.IsLowSurrogate(value[index])
+                && (index == 0 || !char.IsHighSurrogate(value[index - 1])))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     [Fact]
@@ -428,15 +456,16 @@ public sealed class TuiShellTests
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var shell = CreateShellWithModes(board, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
-        Assert.Contains("Board task", RenderToText(shell));
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Refreshed Board task");
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
+        var rendered = RenderToText(shell);
 
         // assert
         Assert.True(dirty);
         Assert.Equal("a-1", board.State.Columns[0].SelectedTaskId);
-        Assert.DoesNotContain("Detail view not available yet.", RenderToText(shell));
+        Assert.Contains("Refreshed Board task", rendered, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1327,5 +1356,112 @@ public sealed class TuiShellTests
         // assert
         Assert.Contains("move", text);
         Assert.DoesNotContain("someone", text);
+    }
+
+    [Fact]
+    public void Render_Should_OrderGraphStatusHintsDaemonAndActorAndReplaceThemWithToast_When_StatusChanges()
+    {
+        // arrange
+        var mode = new FakeTuiMode { FooterStatus = "Search: find (2 hits); Filters active" };
+        var shell = new TuiShell(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            160,
+            24,
+            actor: "lucy",
+            mailWakeDaemonState: () => MailWakeDaemonState.Ready);
+
+        // act
+        var footer = RenderFooterText(shell, 160);
+        mode.HandleResult = _ => [new TuiMessage.ShowToast("saved", ToastStyle.Success)];
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+        var toast = RenderFooterText(shell, 160);
+
+        // assert
+        Assert.True(footer.IndexOf("Search: find", StringComparison.Ordinal) < footer.IndexOf("move", StringComparison.Ordinal));
+        Assert.True(footer.IndexOf("move", StringComparison.Ordinal) < footer.IndexOf("mail-wake:ready", StringComparison.Ordinal));
+        Assert.True(footer.IndexOf("mail-wake:ready", StringComparison.Ordinal) < footer.IndexOf("lucy", StringComparison.Ordinal));
+        Assert.Equal("✔ saved".PadRight(160), toast);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDaemonBadgeWithoutAnActor_When_ActorIsMissing()
+    {
+        // arrange
+        var shell = new TuiShell(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            new FakeTuiMode(),
+            120,
+            24,
+            mailWakeDaemonState: () => MailWakeDaemonState.Degraded);
+
+        // act
+        var footer = RenderFooterText(shell, 120);
+
+        // assert
+        Assert.Contains("mail-wake:degraded", footer, StringComparison.Ordinal);
+        Assert.Contains("quit", footer, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(0, "")]
+    [InlineData(1, "…")]
+    [InlineData(2, "[…")]
+    public void Render_Should_KeepNarrowUnicodeFootersWithinTheirExactRowWidth_When_WidthIsNarrow(int width, string expected)
+    {
+        // arrange
+        var shell = CreateShell(new FakeTuiMode { FooterStatus = "[漢🙂e\u0301]" }, width, actor: "🙂actor");
+
+        // act
+        var text = width == 0 ? string.Empty : RenderFooterText(shell, width);
+
+        // assert
+        Assert.Equal(expected, text);
+        Assert.False(ContainsLoneSurrogate(text));
+    }
+
+    [Theory]
+    [InlineData("A", 1)]
+    [InlineData("e\u0301", 1)]
+    [InlineData("한", 2)]
+    [InlineData("あ", 2)]
+    [InlineData("Ａ", 2)]
+    [InlineData("\U00020000", 2)]
+    [InlineData("🇨🇭", 2)]
+    [InlineData("👨‍👩‍👧‍👦", 2)]
+    [InlineData("❤️", 2)]
+    [InlineData("1️⃣", 2)]
+    public void Render_Should_KeepUnicodeTextElementsWhole_When_TheirCellBudgetChanges(string value, int width)
+    {
+        // arrange
+        var exact = CreateShell(new FakeTuiMode { FooterStatus = value }, width);
+        var retained = CreateShell(new FakeTuiMode { FooterStatus = value + "xx" }, width + 1);
+        var replaced = CreateShell(new FakeTuiMode { FooterStatus = value + "xx" }, width);
+
+        // act
+        var exactText = RenderFooterText(exact, width);
+        var retainedText = RenderFooterText(retained, width + 1);
+        var replacedText = RenderFooterText(replaced, width);
+
+        // assert
+        Assert.Equal(value, exactText);
+        Assert.Equal(value + "…", retainedText);
+        Assert.Equal(width == 1 ? "…" : "… ", replacedText);
+        Assert.False(ContainsLoneSurrogate(retainedText));
+    }
+
+    [Fact]
+    public void Render_Should_EscapeMarkupAndPreserveTextElements_When_FooterStatusIsUnicode()
+    {
+        // arrange
+        const string status = "[漢🙂e\u0301]";
+        var shell = CreateShell(new FakeTuiMode { FooterStatus = status }, width: 8, actor: null);
+
+        // act
+        var text = RenderFooterText(shell, 8);
+
+        // assert
+        Assert.Equal("[漢🙂e\u0301] ", text);
+        Assert.False(ContainsLoneSurrogate(text));
     }
 }

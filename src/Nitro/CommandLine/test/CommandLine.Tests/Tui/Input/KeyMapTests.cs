@@ -91,9 +91,22 @@ public sealed class KeyMapTests
     }
 
     [Fact]
-    public void CreateDefaultGlobal_Should_MapShiftG_ToMoveToBottom()
+    public void CreateDefaultGlobal_Should_MapEndToBottom_AndLeaveShiftGUnbound()
     {
-        AssertMovesToEdge(new KeyChord(ConsoleKey.G, ConsoleModifiers.Shift, 'G'), EdgeTarget.Bottom);
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+        var end = new KeyChord(ConsoleKey.End, ConsoleModifiers.None, '\0');
+        var shiftG = new KeyChord(ConsoleKey.G, ConsoleModifiers.Shift, 'G');
+
+        // act
+        var endResolved = keyMap.TryResolve(end, out var endMessage);
+        var shiftGResolved = keyMap.TryResolve(shiftG, out var shiftGMessage);
+
+        // assert
+        Assert.True(endResolved);
+        Assert.Equal(EdgeTarget.Bottom, Assert.IsType<TuiMessage.MoveToEdge>(endMessage).Edge);
+        Assert.False(shiftGResolved);
+        Assert.Null(shiftGMessage);
     }
 
     private static void AssertMovesCursor(KeyChord chord, CursorDirection expectedDirection)

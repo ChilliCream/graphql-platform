@@ -45,6 +45,12 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns labels grouped by task id, with labels in each group ordered by label.
+    /// </summary>
+    Task<IReadOnlyList<TaskLabels>> GetTaskLabelsAsync(
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Returns every label in use on a non-tombstone task, with how many
     /// tasks carry it, ordered by label.
     /// </summary>
