@@ -138,6 +138,52 @@ public class SubscriptionSingleRootFieldRuleTests
     }
 
     [Fact]
+    public void SubscriptionWithoutRootField_Should_ReportSingleRootFieldError()
+    {
+        ExpectErrors(
+            """
+            subscription { }
+            """,
+            t => Assert.Equal(
+                "Subscription operations must have exactly one root field.", t.Message));
+    }
+
+    [Fact]
+    public void SubscriptionWithoutRootField_Should_ReportSingleRootFieldError_WhenUsingTypedInlineFragment()
+    {
+        ExpectErrors(
+            """
+            subscription { ... on Subscription { } }
+            """,
+            t => Assert.Equal(
+                "Subscription operations must have exactly one root field.", t.Message));
+    }
+
+    [Fact]
+    public void SubscriptionWithoutRootField_Should_ReportSingleRootFieldError_WhenUsingUntypedInlineFragment()
+    {
+        ExpectErrors(
+            """
+            subscription { ... { } }
+            """,
+            t => Assert.Equal(
+                "Subscription operations must have exactly one root field.", t.Message));
+    }
+
+    [Fact]
+    public void SubscriptionWithoutRootField_Should_ReportSingleRootFieldError_WhenUsingFragmentSpread()
+    {
+        ExpectErrors(
+            """
+            subscription { ...f }
+
+            fragment f on Subscription { }
+            """,
+            t => Assert.Equal(
+                "Subscription operations must have exactly one root field.", t.Message));
+    }
+
+    [Fact]
     public void DisallowedSkipDirectiveOnRootField()
     {
         ExpectErrors(@"

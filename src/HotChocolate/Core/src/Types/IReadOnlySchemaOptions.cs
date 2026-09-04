@@ -172,6 +172,12 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables empty selection sets according to GraphQL specification PR 1227; defaults to <c>false</c>.
+    /// When disabled, an empty selection set is a validation error, and an empty subscription root is invalid in either state.
+    /// </summary>
+    bool EnableEmptySelectionSets { get; }
+
+    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }

@@ -68,6 +68,7 @@ public class FusionOptionsTests : FusionTestBase
               "EnableDefer": false,
               "EnableObjectDeprecation": true,
               "EnableOptInFeatures": false,
+              "EnableEmptySelectionSets": false,
               "EnableSemanticIntrospection": true
             }
             """);
