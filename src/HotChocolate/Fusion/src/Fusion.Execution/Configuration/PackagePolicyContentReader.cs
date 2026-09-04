@@ -7,6 +7,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Packaging;
 using HotChocolate.Language;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Configuration;
 
