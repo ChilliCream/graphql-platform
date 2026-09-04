@@ -1,13 +1,18 @@
+using System.Security.Cryptography;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixture<RedisResource>
+public class RedisIntegrationTests : SubscriptionIntegrationTestBase
 {
+    // Redis channel names are the hex MD5 of the topic name.
+    private static readonly string s_onMessageChannel =
+        Convert.ToHexString(MD5.HashData("OnMessage"u8));
+
     private readonly RedisResource _redisResource;
 
     public RedisIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
@@ -97,7 +102,10 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
 
     private async Task<RedisResult[]> GetActiveChannelsAsync()
     {
-        return (RedisResult[])(await _redisResource.GetConnection().GetDatabase().ExecuteAsync("PUBSUB", "CHANNELS"))!;
+        var database = _redisResource.GetConnection().GetDatabase();
+        var channels = await database.ExecuteAsync("PUBSUB", "CHANNELS", s_onMessageChannel);
+
+        return (RedisResult[])channels!;
     }
 
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)

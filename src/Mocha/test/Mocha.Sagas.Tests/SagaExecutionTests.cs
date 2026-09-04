@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Events;
 using Mocha.Features;
 using Mocha.Transport.InMemory;
 
@@ -262,6 +263,37 @@ public sealed class SagaExecutionTests
         Assert.False(baseActionCalled);
         var state = Assert.Single(_store.States);
         Assert.Equal("ExactHandled", state.State);
+    }
+
+    [Fact]
+    public async Task OnHandleTransition_Should_NotUseAnyReply_When_MessageIsFault()
+    {
+        // arrange
+        var saga = Saga.Create<TestState>(x =>
+        {
+            x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Awaiting");
+            x.During("Awaiting").OnAnyReply().TransitionTo("Ended");
+            x.Finally("Ended");
+        });
+        Initialize(saga);
+
+        var state = new TestState { State = "Awaiting" };
+        _store.States.Add(state);
+
+        var context = CreateContext(
+            saga,
+            new NotAcknowledgedEvent(null, null, ErrorCodes.Exception, "failed"));
+        context.MutableHeaders.Set(SagaContextData.SagaId, state.Id.ToString("D"));
+        context.MutableHeaders.SetMessageKind(MessageKind.Fault);
+
+        // act
+        var exception = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEvent(context));
+
+        // assert
+        Assert.Equal(
+            "No transition defined for event 'NotAcknowledgedEvent' in state 'Awaiting'.",
+            exception.Message);
+        Assert.Equal("Awaiting", state.State);
     }
 
     [Fact]

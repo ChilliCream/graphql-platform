@@ -379,6 +379,13 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             eventType = eventType.BaseType;
         }
 
+        if (eventType == typeof(object)
+            && transition?.TransitionKind is SagaTransitionKind.Reply
+            && context.Headers.GetMessageKind() == MessageKind.Fault)
+        {
+            transition = null;
+        }
+
         if (transition is null)
         {
             throw new SagaExecutionException(
@@ -532,6 +539,12 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
                 options = options with { Headers = [] };
             }
 
+            var eventType = context.Runtime.GetMessageType(message.GetType());
+            var endpoint = context.Runtime.GetPublishEndpoint(eventType);
+            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+
+            options = options with { FaultEndpoint = replyEndpoint };
+
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
 
             _logger!.PublishingEvent(Name, message.GetType().Name);
@@ -574,10 +587,10 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
-            // Route the reply to the shared reply endpoint, where the saga's OnReply/OnAnyReply route
-            // is bound. The reply is delivered to the saga consumer there and correlated by the saga
-            // header, so no correlation id is required.
-            options = options with { ReplyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address };
+            // Route replies and faults to the shared reply endpoint, where the saga's reply routes
+            // are bound and correlated by the saga header.
+            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
 
