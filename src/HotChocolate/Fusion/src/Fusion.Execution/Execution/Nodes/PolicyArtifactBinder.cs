@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -870,25 +871,26 @@ internal static class PolicyArtifactBinder
 
             foreach (var requirement in GetRequirements(node))
             {
-                var providers = parentOwners
-                    .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(
-                        artifact,
-                        CreateRequirementPath(requirement))))
-                    .ToArray();
-                if (providers.Length == 0)
+                foreach (var path in CreateRequirementPaths(requirement))
                 {
-                    failure = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
-                    return false;
-                }
-
-                foreach (var provider in providers)
-                {
-                    if (!TryAddParentDependencyClosure(
-                            provider.Piece,
-                            provider.NodeId,
-                            selectedForTarget))
+                    var providers = parentOwners
+                        .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(artifact, path)))
+                        .ToArray();
+                    if (providers.Length == 0)
                     {
+                        failure = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
                         return false;
+                    }
+
+                    foreach (var provider in providers)
+                    {
+                        if (!TryAddParentDependencyClosure(
+                                provider.Piece,
+                                provider.NodeId,
+                                selectedForTarget))
+                        {
+                            return false;
+                        }
                     }
                 }
             }
@@ -948,32 +950,53 @@ internal static class PolicyArtifactBinder
         return requirements.ToImmutable();
     }
 
-    private static string[] CreateRequirementPath(OperationRequirement requirement)
+    private static List<string[]> CreateRequirementPaths(OperationRequirement requirement)
     {
         var path = GetFieldSegments(requirement.Path).ToList();
-        var map = requirement.Map.ToString();
-        var fieldStart = 0;
+        var leaves = new List<string[]>();
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([requirement.Map]);
+        AddRequirementPaths(selectionSet, path, leaves);
 
-        while (fieldStart < map.Length
-            && !char.IsLetter(map[fieldStart])
-            && map[fieldStart] != '_')
+        if (requirement.InternalAlias is not null)
         {
-            fieldStart++;
+            var pathLength = path.Count;
+            foreach (var leaf in leaves)
+            {
+                leaf[pathLength] = requirement.InternalAlias;
+            }
         }
 
-        var fieldEnd = fieldStart;
-        while (fieldEnd < map.Length
-            && (char.IsLetterOrDigit(map[fieldEnd]) || map[fieldEnd] == '_'))
-        {
-            fieldEnd++;
-        }
+        return leaves;
+    }
 
-        if (fieldEnd > fieldStart)
+    private static void AddRequirementPaths(
+        SelectionSetNode selectionSet,
+        List<string> path,
+        List<string[]> leaves)
+    {
+        foreach (var selection in selectionSet.Selections)
         {
-            path.Add(requirement.InternalAlias ?? map[fieldStart..fieldEnd]);
-        }
+            switch (selection)
+            {
+                case FieldNode field:
+                    path.Add(field.Alias?.Value ?? field.Name.Value);
+                    if (field.SelectionSet is { } child)
+                    {
+                        AddRequirementPaths(child, path, leaves);
+                    }
+                    else
+                    {
+                        leaves.Add(path.ToArray());
+                    }
 
-        return [.. path];
+                    path.RemoveAt(path.Count - 1);
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    AddRequirementPaths(inlineFragment.SelectionSet, path, leaves);
+                    break;
+            }
+        }
     }
 
     private static ImmutableArray<OperationArtifact> CreateOperationArtifacts(ExecutionNode node)
