@@ -1,0 +1,242 @@
+title: Require_Should_InvokeResolverWithProjectedValue_When_ProjectionTargetIsNullable
+request:
+  document: |
+    {
+      cartById(id: "1") {
+        discountPercent
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "cartById": {
+          "discountPercent": 10
+        }
+      }
+    }
+sourceSchemas:
+  - name: cart
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        cartById(id: ID!): Cart @lookup
+      }
+
+      type Cart @key(fields: "id") {
+        discountPercent(
+          promo: PromoInput @require(field: "promoCode.{\n  discountPercent\n  isExpired\n}")
+        ): Int!
+        id: ID!
+      }
+
+      input PromoInput {
+        discountPercent: Int!
+        isExpired: Boolean!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_640ade6c_1 {
+              cartById(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "cartById": {
+                    "id": "1"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_640ade6c_2($__fusion_1_promo: PromoInput, $__fusion_2_id: ID!) {
+              cartById(id: $__fusion_2_id) {
+                discountPercent(promo: $__fusion_1_promo)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_promo": {
+                "discountPercent": 10,
+                "isExpired": false
+              },
+              "__fusion_2_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "cartById": {
+                    "discountPercent": 10
+                  }
+                }
+              }
+  - name: promotions
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        cartById(id: ID!): Cart @lookup @internal
+      }
+
+      type Cart @key(fields: "id") {
+        id: ID!
+        promoCode: PromoCode
+      }
+
+      type PromoCode {
+        code: String!
+        discountPercent: Int!
+        isExpired: Boolean!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_640ade6c_3($__fusion_3_id: ID!) {
+                  cartById(id: $__fusion_3_id) {
+                    promoCode {
+                      discountPercent
+                      isExpired
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_3_id": "1"
+                }
+            - document: |
+                query Op_640ade6c_4($__fusion_4_id: ID!) {
+                  cartById(id: $__fusion_4_id) {
+                    id
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_4_id": "1"
+                }
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "cartById": {
+                    "promoCode": {
+                      "discountPercent": 10,
+                      "isExpired": false
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "cartById": {
+                    "id": "1"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          cartById(id: "1") {
+            discountPercent
+            id @fusion__requirement
+            promoCode @fusion__requirement {
+              discountPercent @fusion__requirement
+              isExpired @fusion__requirement
+            }
+          }
+        }
+      hash: 640ade6c01c355dbd76d8d5ea9fdade4
+      searchSpace: 2
+      expandedNodes: 6
+  nodes:
+    - id: 1
+      type: Operation
+      schema: cart
+      operation: |
+        query Op_640ade6c_1 {
+          cartById(id: "1") {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: cart
+      operation: |
+        query Op_640ade6c_2($__fusion_1_promo: PromoInput, $__fusion_2_id: ID!) {
+          cartById(id: $__fusion_2_id) {
+            discountPercent(promo: $__fusion_1_promo)
+          }
+        }
+      source: $.cartById
+      target: $.cartById
+      requirements:
+        - name: __fusion_1_promo
+          selectionMap: >-
+            promoCode.{
+              discountPercent
+              isExpired
+            }
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 5
+    - id: 3
+      type: Operation
+      schema: promotions
+      operation: |
+        query Op_640ade6c_3($__fusion_3_id: ID!) {
+          cartById(id: $__fusion_3_id) {
+            promoCode {
+              discountPercent
+              isExpired
+            }
+          }
+        }
+      source: $.cartById
+      target: $.cartById
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: promotions
+      operation: |
+        query Op_640ade6c_4($__fusion_4_id: ID!) {
+          cartById(id: $__fusion_4_id) {
+            id
+          }
+        }
+      source: $.cartById
+      target: $.cartById
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
