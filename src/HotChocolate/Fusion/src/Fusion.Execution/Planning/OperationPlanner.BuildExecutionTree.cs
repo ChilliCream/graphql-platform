@@ -1849,17 +1849,23 @@ public sealed partial class OperationPlanner
                 {
                     ResultSelectionSet resultSelectionSet;
                     SelectionPath target;
+                    SelectionPath source;
+                    ReadOnlyMemory<byte> operationSource;
 
                     switch (candidate)
                     {
                         case OperationExecutionNode operation:
                             resultSelectionSet = operation.ResultSelectionSet;
                             target = operation.Target;
+                            source = operation.Source;
+                            operationSource = operation.Operation.Value;
                             break;
 
                         case ApolloOperationExecutionNode operation:
                             resultSelectionSet = operation.ResultSelectionSet;
                             target = operation.Target;
+                            source = operation.Source;
+                            operationSource = operation.Operation.Value;
                             break;
 
                         default:
@@ -1869,6 +1875,8 @@ public sealed partial class OperationPlanner
                     if (!TryProvidesRequirement(
                         resultSelectionSet,
                         target,
+                        source,
+                        operationSource,
                         path))
                     {
                         continue;
@@ -1949,6 +1957,8 @@ public sealed partial class OperationPlanner
         static bool TryProvidesRequirement(
             ResultSelectionSet resultSelectionSet,
             SelectionPath operationTarget,
+            SelectionPath operationSource,
+            ReadOnlyMemory<byte> operationSourceText,
             string[] requirementPath)
         {
             var targetFieldCount = 0;
@@ -1994,9 +2004,12 @@ public sealed partial class OperationPlanner
                 {
                     if (resultSelectionSet.TryGetChild(responseName) is not { } child)
                     {
-                        // A leaf result selection copies the complete field value, including
-                        // any nested policy requirement data returned by the source operation.
-                        return true;
+                        // Mirrors PolicyArtifactBinder.ProvidesPath for leaf-copy requirements.
+                        return SourceOperationProvidesRequirement(
+                            operationSourceText,
+                            operationSource,
+                            requirementPath,
+                            targetFieldCount);
                     }
 
                     resultSelectionSet = child;
@@ -2004,6 +2017,89 @@ public sealed partial class OperationPlanner
             }
 
             return true;
+        }
+
+        static bool SourceOperationProvidesRequirement(
+            ReadOnlyMemory<byte> operationSourceText,
+            SelectionPath operationSource,
+            string[] requirementPath,
+            int requirementPathIndex)
+        {
+            var document = Utf8GraphQLParser.Parse(operationSourceText.Span, ParserOptions.Trusted);
+            var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+            var fragments = document.Definitions
+                .OfType<FragmentDefinitionNode>()
+                .ToDictionary(fragment => fragment.Name.Value, StringComparer.Ordinal);
+            var selectionSet = operation.SelectionSet;
+
+            for (var i = 0; i < operationSource.Length; i++)
+            {
+                var segment = operationSource[i];
+
+                if (segment.Kind is SelectionPathSegmentKind.Field
+                    && !TryGetFieldSelection(
+                        selectionSet,
+                        segment.Name,
+                        fragments,
+                        out selectionSet))
+                {
+                    return false;
+                }
+            }
+
+            for (var i = requirementPathIndex; i < requirementPath.Length; i++)
+            {
+                if (!TryGetFieldSelection(
+                    selectionSet,
+                    requirementPath[i],
+                    fragments,
+                    out selectionSet))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        static bool TryGetFieldSelection(
+            SelectionSetNode selectionSet,
+            string responseName,
+            IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
+            out SelectionSetNode childSelectionSet)
+        {
+            foreach (var selection in selectionSet.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode field
+                        when (field.Alias?.Value ?? field.Name.Value).Equals(
+                            responseName,
+                            StringComparison.Ordinal):
+                        childSelectionSet = field.SelectionSet!;
+                        return true;
+
+                    case InlineFragmentNode fragment
+                        when TryGetFieldSelection(
+                            fragment.SelectionSet,
+                            responseName,
+                            fragments,
+                            out childSelectionSet):
+                        return true;
+
+                    case FragmentSpreadNode spread
+                        when fragments.TryGetValue(spread.Name.Value, out var fragment)
+                            && TryGetFieldSelection(
+                                fragment.SelectionSet,
+                                responseName,
+                                fragments,
+                                out childSelectionSet):
+                        return true;
+                }
+            }
+
+            childSelectionSet = default!;
+            return false;
         }
 
         static bool ContainsResponseName(ReadOnlySpan<string> responseNames, string responseName)

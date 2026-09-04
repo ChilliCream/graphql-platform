@@ -209,6 +209,63 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_ExcludeLeafCopyCandidate_WhenSourceOperationDoesNotSelectRequirement()
+    {
+        // arrange
+        var schema = CreateLeafCopyRequirementPolicySchema(rootProvidesProductSku: false);
+        var plan = PlanOperation(schema, "{ product(id: \"1\") { reviews } }");
+        var policyNode = Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>());
+        var operationNodes = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .ToDictionary(node => node.SchemaName!, StringComparer.Ordinal);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+        var (mutatedJson, mutatedParser) = SerializePlan(schema, plan);
+        mutatedJson["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["id"]!.GetValue<int>() == policyNode.Id)
+            ["dependencies"]!
+            .AsArray()
+            .Insert(0, operationNodes["a"].Id);
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => mutatedParser.Parse(Encoding.UTF8.GetBytes(mutatedJson.ToJsonString())));
+
+        // assert
+        Assert.Equal(
+            [operationNodes["b"].Id, operationNodes["c"].Id],
+            policyNode.Dependencies.ToArray().Select(node => ((ExecutionNode)node).Id).ToArray());
+        Assert.Single(parsedPlan.AllNodes.OfType<PolicyExecutionNode>());
+        Assert.Equal(
+            "A policy execution node dependencies must exactly match its producer and requirement providers.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_IncludeLeafCopyCandidate_WhenSourceOperationSelectsRequirement()
+    {
+        // arrange
+        var schema = CreateLeafCopyRequirementPolicySchema(rootProvidesProductSku: true);
+        var plan = PlanOperation(schema, "{ product(id: \"1\") { reviews } }");
+        var policyNode = Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>());
+        var operationNodes = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .ToDictionary(node => node.SchemaName!, StringComparer.Ordinal);
+        var root = operationNodes["a"];
+
+        // act
+        var operation = Encoding.UTF8.GetString(root.Operation.Value.Span);
+
+        // assert
+        Assert.Null(root.ResultSelectionSet.TryGetChild("product"));
+        Assert.Contains("productSku", operation, StringComparison.Ordinal);
+        Assert.Equal(
+            [operationNodes["a"].Id, operationNodes["c"].Id],
+            policyNode.Dependencies.ToArray().Select(node => ((ExecutionNode)node).Id).ToArray());
+    }
+
+    [Fact]
     public void CreatePlan_Should_UseNewRequirement_When_PolicyChangesFromEmptyRequirement()
     {
         // arrange
@@ -3094,6 +3151,53 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new TestPolicy(
                 "CanReadSecond",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ secondRole }")));
+
+    private static FusionSchemaDefinition CreateLeafCopyRequirementPolicySchema(
+        bool rootProvidesProductSku)
+        => CreateSchema(
+            ComposeSchemaDocument(
+                $$"""
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  {{(rootProvidesProductSku ? "productSku: String!" : "name: String!")}}
+                }
+                """,
+                $$"""
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  {{(rootProvidesProductSku ? "description: String!" : "productSku: String!")}}
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(productSku: String! @require(field: "productSku")): [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
 
     private static FusionSchemaDefinition CreateMultipleResidualApplicationSchema()
         => CreateSchema(
