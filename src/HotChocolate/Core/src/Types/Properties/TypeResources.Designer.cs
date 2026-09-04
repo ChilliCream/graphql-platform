@@ -1133,7 +1133,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Input Object `{0}` cannot be provided a finite value because it references itself through fields `{1}`..
+        ///   Looks up a localized string similar to Input Object &apos;{0}&apos; cannot be provided a finite value because it references itself through fields: {1}..
         /// </summary>
         internal static string ErrorHelper_InputObjectMustNotHaveUnbreakableCycle {
             get {

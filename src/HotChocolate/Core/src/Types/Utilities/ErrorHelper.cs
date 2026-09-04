@@ -204,7 +204,7 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_InputObjectMustNotHaveUnbreakableCycle,
                 type.Name,
-                string.Join(" --> ", path))
+                string.Join(", ", path.Select(i => $"'{i}'")))
             .SetType(type)
             .SetRfc(1211)
             .Build();

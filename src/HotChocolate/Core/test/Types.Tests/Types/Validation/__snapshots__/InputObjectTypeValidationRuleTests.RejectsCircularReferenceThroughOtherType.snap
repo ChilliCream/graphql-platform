@@ -1,5 +1,5 @@
-﻿{
-  "message": "Input Object `SomeInputObject` cannot be provided a finite value because it references itself through fields `SomeInputObject.startLoop --> AnotherInputObject.nextInLoop --> YetAnotherInputObject.closeLoop`.",
+{
+  "message": "Input Object 'SomeInputObject' cannot be provided a finite value because it references itself through fields: 'SomeInputObject.startLoop', 'AnotherInputObject.nextInLoop', 'YetAnotherInputObject.closeLoop'.",
   "type": "SomeInputObject",
   "extensions": {
     "rfc": "https://github.com/graphql/graphql-spec/pull/1211"

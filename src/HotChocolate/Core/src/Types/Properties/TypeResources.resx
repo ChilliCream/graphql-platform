@@ -895,7 +895,7 @@ Type: `{0}`</value>
     <value>OneOf Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
   </data>
   <data name="ErrorHelper_InputObjectMustNotHaveUnbreakableCycle" xml:space="preserve">
-    <value>Input Object `{0}` cannot be provided a finite value because it references itself through fields `{1}`.</value>
+    <value>Input Object '{0}' cannot be provided a finite value because it references itself through fields: {1}.</value>
   </data>
   <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">
     <value>Required argument {0} cannot be deprecated.</value>
