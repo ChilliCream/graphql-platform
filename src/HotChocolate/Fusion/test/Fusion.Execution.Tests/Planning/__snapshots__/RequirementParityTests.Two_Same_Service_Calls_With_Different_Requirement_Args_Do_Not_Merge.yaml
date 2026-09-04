@@ -12,7 +12,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 2
-    expandedNodes: 9
+    expandedNodes: 8
 nodes:
   - id: 1
     type: Operation
@@ -52,7 +52,7 @@ nodes:
         selectionMap: >-
           price(withDiscount: true)
     dependencies:
-      - id: 7
+      - id: 6
   - id: 3
     type: Operation
     schema: products
@@ -60,11 +60,12 @@ nodes:
       query Op_123456789101112_3($__fusion_3_upc: String!) {
         productByUpc(upc: $__fusion_3_upc) {
           fusion__requirement_price_0: price(withDiscount: false)
+          fusion__requirement_price_1: price(withDiscount: true)
         }
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 7
+    batchingGroupId: 6
     requirements:
       - name: __fusion_3_upc
         selectionMap: >-
@@ -82,7 +83,7 @@ nodes:
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 7
+    batchingGroupId: 6
     requirements:
       - name: __fusion_4_upc
         selectionMap: >-
@@ -95,32 +96,14 @@ nodes:
     operation: |
       query Op_123456789101112_5($__fusion_6_upc: String!) {
         productByUpc(upc: $__fusion_6_upc) {
-          fusion__requirement_price_1: price(withDiscount: true)
-        }
-      }
-    source: $.productByUpc
-    target: $.products
-    batchingGroupId: 7
-    requirements:
-      - name: __fusion_6_upc
-        selectionMap: >-
-          upc
-    dependencies:
-      - id: 1
-  - id: 6
-    type: Operation
-    schema: products
-    operation: |
-      query Op_123456789101112_6($__fusion_7_upc: String!) {
-        productByUpc(upc: $__fusion_7_upc) {
           price
         }
       }
     source: $.productByUpc
     target: $.products
-    batchingGroupId: 7
+    batchingGroupId: 6
     requirements:
-      - name: __fusion_7_upc
+      - name: __fusion_6_upc
         selectionMap: >-
           upc
     dependencies:

@@ -1152,10 +1152,13 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        // Steps that depend on this work item's data also depend on the parts that
+        // this step could not resolve, so the child lookups inherit its dependents.
         backlog = backlog.PushUnresolvable(
             unresolvable,
             current.SchemaName,
             stepDepth,
+            dependents: workItem.Dependents,
             allowSourceSchemaReentry: isEventStreamRoot,
             sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy is null
                 ? null
@@ -1698,7 +1701,7 @@ public sealed partial class OperationPlanner
             InlineSelections(
                 currentStep.Definition,
                 index,
-                currentStep.Type,
+                workItem.Selection.Field.DeclaringType,
                 workItem.Selection.SelectionSetId,
                 new SelectionSetNode(
                     [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]));
@@ -1827,9 +1830,9 @@ public sealed partial class OperationPlanner
         var leftoverRequirements =
             TryInlineFieldRequirements(
                 workItem,
-                stepConsumer.StepId,
+                stepId,
                 ref current,
-                currentStep,
+                mergeWithExistingStep ? existingStep : currentStep,
                 indexBuilder,
                 ref backlog,
                 ref steps,
@@ -2823,7 +2826,7 @@ public sealed partial class OperationPlanner
         // inlining performs must happen up front here.
         RegisterRequirementSelectionSets(requirements, index);
 
-        foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
             if (currentStep.Id == step.Id)
             {
@@ -2836,6 +2839,14 @@ public sealed partial class OperationPlanner
             {
                 // we cannot inline the field requirements into
                 // an operation step that depends on the current step.
+                continue;
+            }
+
+            if (schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
+            {
+                // the required data is not natively resolvable in the requiring field's schema
+                // (composition forbids declaring the required leaves there), so a step of that
+                // schema could only carry the path, adding a dead selection and a spurious dependency.
                 continue;
             }
 
@@ -2881,6 +2892,9 @@ public sealed partial class OperationPlanner
                             entry.SelectionSet,
                             FromSchema: current.SchemaName)
                         {
+                            // the requiring step also depends on the lookups that
+                            // resolve the parts this step could not inline.
+                            Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                             ParentDepth = GetOperationStepDepth(current, step.Id),
                             Conditions = entry.Conditions,
                             SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
@@ -2912,7 +2926,8 @@ public sealed partial class OperationPlanner
 
         // Fallback: if no candidate step was found via exact selection set ID match,
         // walk the internal operation AST to find the nearest ancestor step and the
-        // complete connector chain to the target selection set.
+        // complete connector chain to the target selection set. An ancestor step of the
+        // requiring field's schema is skipped for the same reason as in the candidate loop.
         if (requirements is not null
             && TryFindAncestorStepForRequirement(
                 current.InternalOperationDefinition,
@@ -2921,7 +2936,8 @@ public sealed partial class OperationPlanner
                 workItem.Selection.SelectionSetId,
                 workItem.Selection.Path) is { } ancestorMatch
             && currentStep.Id != ancestorMatch.Step.Id
-            && !ancestorMatch.Step.DependsOn(currentStep, steps))
+            && !ancestorMatch.Step.DependsOn(currentStep, steps)
+            && !string.Equals(ancestorMatch.Step.SchemaName, current.SchemaName, StringComparison.Ordinal))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
@@ -2947,6 +2963,7 @@ public sealed partial class OperationPlanner
                                 entry.SelectionSet,
                                 FromSchema: current.SchemaName)
                             {
+                                Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                                 ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
                                 Conditions = entry.Conditions,
                                 SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null

@@ -1727,6 +1727,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}.{1}&apos; in schema &apos;{2}&apos; requires data from another schema, but schema &apos;{2}&apos; has no lookup for type &apos;{0}&apos; that could resolve the field once the required data has been fetched..
+        /// </summary>
+        internal static string RequirementsValidator_NoLookupForRequiringField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoLookupForRequiringField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
         /// </summary>
         internal static string RequirementsValidator_NoLookupsFoundForType {
@@ -1849,6 +1858,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_NodeTypeHasNoNodeLookup {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoNodeLookup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}.{1}&apos; in schema &apos;{2}&apos; requires data from another schema, but schema &apos;{2}&apos; has no lookup for type &apos;{0}&apos; that could resolve the field once the required data has been fetched..
+        /// </summary>
+        internal static string SatisfiabilityValidator_NoLookupForRequiringField {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_NoLookupForRequiringField", resourceCulture);
             }
         }
 
