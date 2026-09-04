@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using static System.Net.WebSockets.WebSocketMessageType;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.Transport.Sockets.SocketDefaults;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
@@ -13,15 +14,27 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class WebSocketConnection : ISocketConnection
 {
+    // Bounds the close handshake on the message-too-big path. The Close frame is
+    // sent first, so a well-behaved client still sees 1009 (MessageTooBig), but
+    // WebSocket.CloseAsync then drains the peer's remaining frames until its
+    // answering Close frame arrives. A peer that keeps streaming and never answers
+    // must not keep the connection open, so the drain is cut off after this
+    // timeout, which aborts the socket.
+    private static readonly TimeSpan s_closeTimeout = TimeSpan.FromSeconds(5);
+
     private readonly IProtocolHandler[] _protocolHandlers;
+    private readonly int _maxAllowedMessageSize;
     private WebSocket? _webSocket;
     private bool _disposed;
 
-    public WebSocketConnection(HttpContext httpContext)
+    public WebSocketConnection(HttpContext httpContext, int maxAllowedMessageSize)
     {
         HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxAllowedMessageSize);
+
         var executor = (IRequestExecutor)httpContext.Items[WellKnownContextData.RequestExecutor]!;
         _protocolHandlers = executor.Services.GetServices<IProtocolHandler>().ToArray();
+        _maxAllowedMessageSize = maxAllowedMessageSize;
     }
 
     public bool IsClosed => _webSocket.IsClosed();
@@ -94,7 +107,7 @@ internal sealed class WebSocketConnection : ISocketConnection
 
         try
         {
-            var size = 0;
+            long size = 0;
             ValueWebSocketReceiveResult socketResult;
 
             do
@@ -108,6 +121,17 @@ internal sealed class WebSocketConnection : ISocketConnection
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
                 writer.Advance(socketResult.Count);
                 size += socketResult.Count;
+
+                // The message size must be bounded here, while the frames are still
+                // being received, because everything read is buffered into the pipe
+                // until the end of the message. Pipe backpressure only engages on
+                // flush, and the receiver only flushes after the end of the message,
+                // so a single oversized message would otherwise be buffered in full.
+                if (size > _maxAllowedMessageSize)
+                {
+                    await CloseMessageTooBigAsync(cancellationToken);
+                    return false;
+                }
             } while (!socketResult.EndOfMessage);
 
             return size > 0;
@@ -124,25 +148,27 @@ internal sealed class WebSocketConnection : ISocketConnection
        ConnectionCloseReason reason,
        CancellationToken cancellationToken = default)
     {
+        var webSocket = _webSocket;
+
+        if (_disposed || webSocket.IsClosed())
+        {
+            return;
+        }
+
         try
         {
-            var webSocket = _webSocket;
-
-            if (_disposed || webSocket.IsClosed())
-            {
-                return;
-            }
-
             await webSocket.CloseAsync(
                 MapCloseStatus(reason),
                 message,
                 cancellationToken);
-
-            Dispose();
         }
         catch
         {
             // we do not throw here ...
+        }
+        finally
+        {
+            Dispose();
         }
     }
 
@@ -151,26 +177,39 @@ internal sealed class WebSocketConnection : ISocketConnection
         int reason,
         CancellationToken cancellationToken = default)
     {
+        var webSocket = _webSocket;
+
+        if (_disposed || webSocket.IsClosed())
+        {
+            return;
+        }
+
         try
         {
-            var webSocket = _webSocket;
-
-            if (_disposed || webSocket.IsClosed())
-            {
-                return;
-            }
-
             await webSocket.CloseAsync(
                 (WebSocketCloseStatus)reason,
                 message,
                 cancellationToken);
-
-            Dispose();
         }
         catch
         {
             // we do not throw here ...
         }
+        finally
+        {
+            Dispose();
+        }
+    }
+
+    private async Task CloseMessageTooBigAsync(CancellationToken cancellationToken)
+    {
+        using var closeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        closeCts.CancelAfter(s_closeTimeout);
+
+        await CloseAsync(
+            WebSocketConnection_MessageTooBig,
+            ConnectionCloseReason.MessageTooBig,
+            closeCts.Token);
     }
 
     private static WebSocketCloseStatus MapCloseStatus(ConnectionCloseReason closeReason)

@@ -5,6 +5,9 @@ namespace HotChocolate.AspNetCore;
 /// </summary>
 public sealed class GraphQLSocketOptions
 {
+    private const int DefaultMaxAllowedMessageSize = 20 * 1000 * 1024;
+    private int _maxAllowedMessageSize = DefaultMaxAllowedMessageSize;
+
     /// <summary>
     /// Defines the time in which the client must send a connection initialization
     /// message before the server closes the connection.
@@ -24,4 +27,22 @@ public sealed class GraphQLSocketOptions
     /// </summary>
     public TimeSpan? KeepAliveInterval { get; set; } =
         TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// <para>
+    /// Defines the maximum size in bytes of a single incoming WebSocket message.
+    /// If a message exceeds this size the server closes the connection with
+    /// the close status <c>1009 MessageTooBig</c>.
+    /// </para>
+    /// <para>Default: <c>20 * 1000 * 1024</c> (20,480,000 bytes)</para>
+    /// </summary>
+    public int MaxAllowedMessageSize
+    {
+        get => _maxAllowedMessageSize;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+            _maxAllowedMessageSize = value;
+        }
+    }
 }
