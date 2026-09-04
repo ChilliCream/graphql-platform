@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -19,7 +18,6 @@ internal static class PolicyArtifactBinder
         foreach (var incrementalPlan in incrementalPlans)
         {
             var operationOwners = CreateOperationOwners(incrementalPlan.AllNodes);
-            var schema = (FusionSchemaDefinition)incrementalPlan.Operation.Schema;
             var hasParentScope = TryResolveParentPlanScope(
                 incrementalPlan,
                 incrementalPlans,
@@ -35,7 +33,6 @@ internal static class PolicyArtifactBinder
                         policyNode.Targets,
                         operationOwners,
                         parentScope,
-                        schema,
                         out var expectedParentDependencies,
                         out failingTarget,
                         out _))
@@ -303,7 +300,6 @@ internal static class PolicyArtifactBinder
             allNodes,
             parentScope: ParentPlanScope.Empty,
             planPart: 0,
-            (FusionSchemaDefinition)operation.Schema,
             candidateByReference);
         for (var i = 0; i < incrementalPlans.Length; i++)
         {
@@ -318,7 +314,6 @@ internal static class PolicyArtifactBinder
                 incrementalPlans[i].AllNodes,
                 parentScope: ResolveParentPlanScope(incrementalPlans[i], incrementalPlans, allNodes),
                 i + 1,
-                (FusionSchemaDefinition)incrementalPlans[i].Operation.Schema,
                 candidateByReference);
         }
 
@@ -414,7 +409,6 @@ internal static class PolicyArtifactBinder
         ImmutableArray<ExecutionNode> nodes,
         ParentPlanScope parentScope,
         int planPart,
-        FusionSchemaDefinition schema,
         IReadOnlyDictionary<PolicyOccurrenceReference, Candidate> candidates)
     {
         var operationOwners = CreateOperationOwners(nodes);
@@ -438,7 +432,7 @@ internal static class PolicyArtifactBinder
             }
 
             previousPolicyNodeOccurrence = firstOccurrence;
-            var expectedProviders = FindRequirementProviders(targets, operationOwners, schema);
+            var expectedProviders = FindRequirementProviders(targets, operationOwners);
             var producerOwners = operationOwners
                 .Select(owner => new
                 {
@@ -488,8 +482,7 @@ internal static class PolicyArtifactBinder
             var expectedParentDependencies = FindParentRequirementProviders(
                 targets,
                 operationOwners,
-                parentScope,
-                schema);
+                parentScope);
             var actualParentDependencies = policyNode.ParentDependencies.ToArray();
             if (!actualParentDependencies.SequenceEqual(expectedParentDependencies))
             {
@@ -550,8 +543,7 @@ internal static class PolicyArtifactBinder
 
     private static HashSet<int> FindRequirementProviders(
         ReadOnlySpan<PolicyExecutionTarget> targets,
-        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners,
-        FusionSchemaDefinition schema)
+        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners)
     {
         var result = new HashSet<int>();
 
@@ -559,7 +551,7 @@ internal static class PolicyArtifactBinder
         {
             foreach (var leaf in GetRequirementLeaves(target))
             {
-                result.UnionWith(FindRequirementProviders(leaf, operationOwners, schema));
+                result.UnionWith(FindRequirementProviders(leaf, operationOwners));
             }
         }
 
@@ -581,15 +573,14 @@ internal static class PolicyArtifactBinder
     }
 
     private static HashSet<int> FindRequirementProviders(
-        RequirementLeaf leaf,
-        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners,
-        FusionSchemaDefinition schema)
+        string[] leaf,
+        IReadOnlyDictionary<int, OperationArtifact[]> operationOwners)
     {
         var result = new HashSet<int>();
 
         foreach (var (ownerId, artifacts) in operationOwners)
         {
-            if (artifacts.Any(artifact => ProvidesPath(artifact, leaf, schema)))
+            if (artifacts.Any(artifact => ProvidesPath(artifact, leaf)))
             {
                 result.Add(ownerId);
             }
@@ -598,13 +589,13 @@ internal static class PolicyArtifactBinder
         return result;
     }
 
-    private static List<RequirementLeaf> GetRequirementLeaves(PolicyExecutionTarget target)
+    private static List<string[]> GetRequirementLeaves(PolicyExecutionTarget target)
     {
         var entityPath = target.Kind is PolicyTargetKind.Field
             ? target.Path.Parent ?? SelectionPath.Root
             : target.Path;
-        var leaves = new List<RequirementLeaf>();
-        var path = GetPathSegments(entityPath).ToList();
+        var leaves = new List<string[]>();
+        var path = GetFieldSegments(entityPath).ToList();
 
         foreach (var requirement in target.Requirements)
         {
@@ -616,81 +607,51 @@ internal static class PolicyArtifactBinder
 
     private static void AddRequirementLeaves(
         SelectionSetNode selectionSet,
-        List<RequirementPathSegment> path,
-        List<RequirementLeaf> leaves,
-        List<RequirementPathSegment>? branch = null)
+        List<string> path,
+        List<string[]> leaves)
     {
-        branch ??= [];
-
         foreach (var selection in selectionSet.Selections)
         {
-            if (selection is InlineFragmentNode inlineFragment)
-            {
-                var branchCount = branch.Count;
-                if (inlineFragment.TypeCondition is { } typeCondition)
-                {
-                    branch.Add(new RequirementPathSegment(
-                        SelectionPathSegmentKind.InlineFragment,
-                        typeCondition.Name.Value));
-                }
-
-                AddRequirementLeaves(inlineFragment.SelectionSet, path, leaves, branch);
-                branch.RemoveRange(branchCount, branch.Count - branchCount);
-                continue;
-            }
-
             if (selection is not FieldNode field)
             {
                 continue;
             }
 
-            branch.Add(new RequirementPathSegment(
-                SelectionPathSegmentKind.Field,
-                field.Alias?.Value ?? field.Name.Value));
+            path.Add(field.Alias?.Value ?? field.Name.Value);
             if (field.SelectionSet is { } child)
             {
-                AddRequirementLeaves(child, path, leaves, branch);
+                AddRequirementLeaves(child, path, leaves);
             }
             else
             {
-                leaves.Add(new RequirementLeaf([.. path, .. branch]));
+                leaves.Add(path.ToArray());
             }
 
-            branch.RemoveAt(branch.Count - 1);
+            path.RemoveAt(path.Count - 1);
         }
     }
 
-    private static bool ProvidesPath(
-        OperationArtifact artifact,
-        RequirementLeaf leaf,
-        FusionSchemaDefinition schema)
+    private static bool ProvidesPath(OperationArtifact artifact, string[] path)
     {
-        if (!MatchesPathPrefix(artifact.Target, leaf.Path, schema))
+        var targetFields = GetFieldSegments(artifact.Target);
+        if (targetFields.Length > path.Length
+            || !path.AsSpan(0, targetFields.Length).SequenceEqual(targetFields))
         {
             return false;
         }
 
-        return MatchesOperationPath(
-            artifact.SelectionSet,
-            GetPathSegments(artifact.Source),
-            leaf.Path[artifact.Target.Length..],
-            artifact.Fragments,
-            schema);
-    }
-
-    private static bool MatchesPathPrefix(
-        SelectionPath candidatePath,
-        ReadOnlySpan<RequirementPathSegment> requirementPath,
-        FusionSchemaDefinition schema)
-    {
-        if (candidatePath.Length > requirementPath.Length)
+        var selectionSet = artifact.SelectionSet;
+        foreach (var sourceField in GetFieldSegments(artifact.Source))
         {
-            return false;
+            if (!TryGetFieldSelection(selectionSet, sourceField, artifact.Fragments, out selectionSet))
+            {
+                return false;
+            }
         }
 
-        for (var i = 0; i < candidatePath.Length; i++)
+        for (var i = targetFields.Length; i < path.Length; i++)
         {
-            if (!IsCompatiblePathSegment(candidatePath[i], requirementPath[i], schema))
+            if (!TryGetFieldSelection(selectionSet, path[i], artifact.Fragments, out selectionSet))
             {
                 return false;
             }
@@ -699,221 +660,45 @@ internal static class PolicyArtifactBinder
         return true;
     }
 
-    private static bool IsCompatiblePathSegment(
-        SelectionPath.Segment candidate,
-        RequirementPathSegment requirement,
-        FusionSchemaDefinition schema)
-    {
-        if (candidate.Kind != requirement.Kind)
-        {
-            return false;
-        }
-
-        return candidate.Kind is SelectionPathSegmentKind.Field
-            ? candidate.Name.Equals(requirement.Name, StringComparison.Ordinal)
-            : IsCompatibleTypeCondition(requirement.Name, candidate.Name, schema);
-    }
-
-    private static bool MatchesOperationPath(
+    private static bool TryGetFieldSelection(
         SelectionSetNode selectionSet,
-        RequirementPathSegment[] source,
-        RequirementPathSegment[] targetSuffix,
+        string responseName,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
-        FusionSchemaDefinition schema)
+        out SelectionSetNode childSelectionSet)
     {
-        return MatchSource(selectionSet, index: 0, schema.QueryType);
-
-        bool MatchSource(
-            SelectionSetNode current,
-            int index,
-            IOutputTypeDefinition currentType)
+        foreach (var selection in selectionSet.Selections)
         {
-            if (index == source.Length)
+            switch (selection)
             {
-                var requirementIndex = targetSuffix is
-                    [{ Kind: SelectionPathSegmentKind.InlineFragment } condition, ..]
-                    && IsCompatibleTypeCondition(condition.Name, currentType.Name, schema)
-                        ? 1
-                        : 0;
-                return MatchRequirement(current, targetSuffix, requirementIndex);
+                case FieldNode field
+                    when (field.Alias?.Value ?? field.Name.Value).Equals(responseName, StringComparison.Ordinal):
+                    childSelectionSet = field.SelectionSet!;
+                    return true;
+
+                case InlineFragmentNode fragment
+                    when TryGetFieldSelection(fragment.SelectionSet, responseName, fragments, out childSelectionSet):
+                    return true;
+
+                case FragmentSpreadNode spread
+                    when fragments.TryGetValue(spread.Name.Value, out var fragment)
+                        && TryGetFieldSelection(fragment.SelectionSet, responseName, fragments, out childSelectionSet):
+                    return true;
             }
-
-            var segment = source[index];
-            foreach (var selection in current.Selections)
-            {
-                switch (selection)
-                {
-                    case FieldNode field
-                        when segment.Kind is SelectionPathSegmentKind.Field
-                            && (field.Alias?.Value ?? field.Name.Value).Equals(
-                                segment.Name,
-                                StringComparison.Ordinal)
-                            && field.SelectionSet is { } child
-                            && currentType is FusionComplexTypeDefinition complexType
-                            && complexType.Fields.TryGetField(
-                                field.Name.Value,
-                                allowInaccessibleFields: true,
-                                out var fieldDefinition)
-                            && MatchSource(
-                                child,
-                                index + 1,
-                                fieldDefinition.Type.NamedType<IOutputTypeDefinition>()):
-                        return true;
-
-                    case InlineFragmentNode { TypeCondition: null } fragment
-                        when MatchSource(fragment.SelectionSet, index, currentType):
-                        return true;
-
-                    case InlineFragmentNode { TypeCondition: { } typeCondition } fragment
-                        when segment.Kind is SelectionPathSegmentKind.InlineFragment
-                            && IsCompatibleTypeCondition(
-                                typeCondition.Name.Value,
-                                currentType.Name,
-                                schema)
-                            && IsCompatibleTypeCondition(
-                                segment.Name,
-                                typeCondition.Name.Value,
-                                schema)
-                            && MatchSource(
-                                fragment.SelectionSet,
-                                index + 1,
-                                GetType(typeCondition.Name.Value)):
-                        return true;
-
-                    case FragmentSpreadNode spread
-                        when fragments.TryGetValue(spread.Name.Value, out var fragment)
-                            && fragment.TypeCondition is null
-                            && MatchSource(fragment.SelectionSet, index, currentType):
-                        return true;
-
-                    case FragmentSpreadNode spread
-                        when fragments.TryGetValue(spread.Name.Value, out var fragment)
-                            && fragment.TypeCondition is { } typeCondition
-                            && segment.Kind is SelectionPathSegmentKind.InlineFragment
-                            && IsCompatibleTypeCondition(
-                                typeCondition.Name.Value,
-                                currentType.Name,
-                                schema)
-                            && IsCompatibleTypeCondition(
-                                segment.Name,
-                                typeCondition.Name.Value,
-                                schema)
-                            && MatchSource(
-                                fragment.SelectionSet,
-                                index + 1,
-                                GetType(typeCondition.Name.Value)):
-                        return true;
-                }
-            }
-
-            if (segment.Kind is SelectionPathSegmentKind.InlineFragment
-                && index + 1 == source.Length)
-            {
-                return IsCompatibleTypeCondition(segment.Name, currentType.Name, schema)
-                    && MatchSource(current, index + 1, GetType(segment.Name));
-            }
-
-            return false;
         }
 
-        bool MatchRequirement(
-            SelectionSetNode current,
-            RequirementPathSegment[] suffix,
-            int index)
-        {
-            if (index == suffix.Length)
-            {
-                return true;
-            }
-
-            var segment = suffix[index];
-            foreach (var selection in current.Selections)
-            {
-                switch (selection)
-                {
-                    case FieldNode field
-                        when segment.Kind is SelectionPathSegmentKind.Field
-                            && (field.Alias?.Value ?? field.Name.Value).Equals(
-                                segment.Name,
-                                StringComparison.Ordinal)
-                            && (index + 1 == suffix.Length
-                                || field.SelectionSet is { } child
-                                    && MatchRequirement(child, suffix, index + 1)):
-                        return true;
-
-                    case InlineFragmentNode { TypeCondition: null } fragment
-                        when MatchRequirement(fragment.SelectionSet, suffix, index):
-                        return true;
-
-                    case InlineFragmentNode fragment
-                        when segment.Kind is SelectionPathSegmentKind.InlineFragment
-                            && IsCompatibleTypeCondition(
-                                segment.Name,
-                                fragment.TypeCondition?.Name.Value,
-                                schema)
-                            && MatchRequirement(fragment.SelectionSet, suffix, index + 1):
-                        return true;
-
-                    case FragmentSpreadNode spread
-                        when fragments.TryGetValue(spread.Name.Value, out var fragment)
-                            && fragment.TypeCondition is null
-                            && MatchRequirement(fragment.SelectionSet, suffix, index):
-                        return true;
-
-                    case FragmentSpreadNode spread
-                        when fragments.TryGetValue(spread.Name.Value, out var fragment)
-                            && segment.Kind is SelectionPathSegmentKind.InlineFragment
-                            && IsCompatibleTypeCondition(
-                                segment.Name,
-                                fragment.TypeCondition?.Name.Value,
-                                schema)
-                            && MatchRequirement(fragment.SelectionSet, suffix, index + 1):
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        IOutputTypeDefinition GetType(string typeName)
-            => schema.Types.GetType<IOutputTypeDefinition>(
-                typeName,
-                allowInaccessibleFields: true);
-    }
-
-    private static bool IsCompatibleTypeCondition(
-        string requirementTypeName,
-        string? candidateTypeName,
-        FusionSchemaDefinition schema)
-    {
-        if (candidateTypeName is null
-            || !schema.Types.TryGetType(requirementTypeName, out var requirementType)
-            || !schema.Types.TryGetType(candidateTypeName, out var candidateType))
-        {
-            return false;
-        }
-
-        if (requirementType.Name.Equals(candidateType.Name, StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        var requirementTypes = schema.GetPossibleTypes(requirementType, includeInaccessible: true);
-        var candidateTypes = schema.GetPossibleTypes(candidateType, includeInaccessible: true);
-        return requirementTypes.Any(candidateTypes.Contains);
+        childSelectionSet = default!;
+        return false;
     }
 
     private static int[] FindParentRequirementProviders(
         ReadOnlySpan<PolicyExecutionTarget> targets,
         IReadOnlyDictionary<int, OperationArtifact[]> operationOwners,
-        ParentPlanScope parentScope,
-        FusionSchemaDefinition schema)
+        ParentPlanScope parentScope)
     {
         if (TryFindParentRequirementProviders(
                 targets,
                 operationOwners,
                 parentScope,
-                schema,
                 out var dependencies,
                 out _,
                 out var error))
@@ -928,7 +713,6 @@ internal static class PolicyArtifactBinder
         ReadOnlySpan<PolicyExecutionTarget> targets,
         IReadOnlyDictionary<int, OperationArtifact[]> operationOwners,
         ParentPlanScope parentScope,
-        FusionSchemaDefinition schema,
         out ParentRequirementProviders dependencies,
         out PolicyExecutionTarget? failingTarget,
         out string? error)
@@ -941,7 +725,6 @@ internal static class PolicyArtifactBinder
                     owner.Value)))
             .ToArray();
         var selected = new Dictionary<ParentNodeKey, ExecutionNode>();
-        var visiting = new HashSet<ParentNodeKey>();
         var selectedById = new Dictionary<int, HashSet<int>>();
         var targetDependencies = new List<ParentRequirementProviderTarget>();
         string? failure = null;
@@ -951,13 +734,13 @@ internal static class PolicyArtifactBinder
             var targetSelected = new HashSet<int>();
             foreach (var leaf in GetRequirementLeaves(target))
             {
-                if (FindRequirementProviders(leaf, operationOwners, schema).Count != 0)
+                if (FindRequirementProviders(leaf, operationOwners).Count != 0)
                 {
                     continue;
                 }
 
                 var providers = parentOwners
-                    .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(artifact, leaf, schema)))
+                    .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(artifact, leaf)))
                     .ToArray();
                 if (providers.Length == 0)
                 {
@@ -1016,67 +799,14 @@ internal static class PolicyArtifactBinder
                 return true;
             }
 
-            if (!visiting.Add(key))
-            {
-                failure = "A policy parent requirement provider cannot satisfy its own pre-execution requirements.";
-                return false;
-            }
-
             var nodes = piece.Nodes.Where(node => node.Id == nodeId).ToArray();
             if (nodes.Length != 1)
             {
-                visiting.Remove(key);
                 failure = "A policy parent requirement provider is ambiguous across immediate parent plan pieces.";
                 return false;
             }
 
             var node = nodes[0];
-            if (!node.ParentDependencies.IsEmpty)
-            {
-                visiting.Remove(key);
-                failure = "A policy parent requirement provider cannot reference another parent scope.";
-                return false;
-            }
-
-            foreach (var requirement in GetRequirements(node))
-            {
-                var hasProvider = false;
-                foreach (var leaf in GetRequirementLeaves(requirement))
-                {
-                    var providers = parentOwners
-                        .Where(owner => owner.Piece.Id != piece.Id || owner.NodeId != nodeId)
-                        .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(artifact, leaf, schema)))
-                        .ToArray();
-                    if (providers.Length == 0)
-                    {
-                        visiting.Remove(key);
-                        failure = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
-                        return false;
-                    }
-
-                    hasProvider = true;
-                    foreach (var provider in providers)
-                    {
-                        if (!TryAddParentDependencyClosure(
-                                provider.Piece,
-                                provider.NodeId,
-                                selectedForTarget))
-                        {
-                            visiting.Remove(key);
-                            return false;
-                        }
-                    }
-                }
-
-                if (!hasProvider)
-                {
-                    visiting.Remove(key);
-                    failure = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
-                    return false;
-                }
-            }
-
-            visiting.Remove(key);
             selected.Add(key, node);
             if (!selectedById.TryGetValue(nodeId, out var pieces))
             {
@@ -1085,6 +815,46 @@ internal static class PolicyArtifactBinder
             }
 
             pieces.Add(piece.Id);
+
+            if (!node.ParentDependencies.IsEmpty)
+            {
+                failure = "A policy parent requirement provider cannot reference another parent scope.";
+                return false;
+            }
+
+            foreach (var dependency in node.Dependencies)
+            {
+                if (!TryAddParentDependencyClosure(piece, dependency.Id, selectedForTarget))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var requirement in GetRequirements(node))
+            {
+                var providers = parentOwners
+                    .Where(owner => owner.Artifacts.Any(artifact => ProvidesPath(
+                        artifact,
+                        CreateRequirementPath(requirement))))
+                    .ToArray();
+                if (providers.Length == 0)
+                {
+                    failure = "A policy parent requirement provider cannot be resolved from the immediate parent scope.";
+                    return false;
+                }
+
+                foreach (var provider in providers)
+                {
+                    if (!TryAddParentDependencyClosure(
+                            provider.Piece,
+                            provider.NodeId,
+                            selectedForTarget))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
     }
@@ -1140,30 +910,32 @@ internal static class PolicyArtifactBinder
         return requirements.MoveToImmutable();
     }
 
-    private static List<RequirementLeaf> GetRequirementLeaves(OperationRequirement requirement)
+    private static string[] CreateRequirementPath(OperationRequirement requirement)
     {
-        var path = GetPathSegments(requirement.Path).ToList();
-        var leaves = new List<RequirementLeaf>();
-        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([requirement.Map]);
-        AddRequirementLeaves(selectionSet, path, leaves);
+        var path = GetFieldSegments(requirement.Path).ToList();
+        var map = requirement.Map.ToString();
+        var fieldStart = 0;
 
-        if (requirement.InternalAlias is not null)
+        while (fieldStart < map.Length
+            && !char.IsLetter(map[fieldStart])
+            && map[fieldStart] != '_')
         {
-            var pathLength = path.Count;
-            foreach (var leaf in leaves)
-            {
-                for (var i = pathLength; i < leaf.Path.Length; i++)
-                {
-                    if (leaf.Path[i].Kind is SelectionPathSegmentKind.Field)
-                    {
-                        leaf.Path[i] = leaf.Path[i] with { Name = requirement.InternalAlias };
-                        break;
-                    }
-                }
-            }
+            fieldStart++;
         }
 
-        return leaves;
+        var fieldEnd = fieldStart;
+        while (fieldEnd < map.Length
+            && (char.IsLetterOrDigit(map[fieldEnd]) || map[fieldEnd] == '_'))
+        {
+            fieldEnd++;
+        }
+
+        if (fieldEnd > fieldStart)
+        {
+            path.Add(requirement.InternalAlias ?? map[fieldStart..fieldEnd]);
+        }
+
+        return [.. path];
     }
 
     private static ImmutableArray<OperationArtifact> CreateOperationArtifacts(ExecutionNode node)
@@ -2352,17 +2124,6 @@ internal static class PolicyArtifactBinder
         return fields.ToArray();
     }
 
-    private static RequirementPathSegment[] GetPathSegments(SelectionPath path)
-    {
-        var segments = new RequirementPathSegment[path.Length];
-        for (var i = 0; i < path.Length; i++)
-        {
-            segments[i] = new RequirementPathSegment(path[i].Kind, path[i].Name);
-        }
-
-        return segments;
-    }
-
     private static ImmutableArray<ulong> CanonicalizeMasks(IEnumerable<ulong> masks)
     {
         var ordered = masks.Distinct().Order().ToArray();
@@ -3161,12 +2922,6 @@ internal static class PolicyArtifactBinder
         ParentPlanPiece Piece,
         int NodeId,
         OperationArtifact[] Artifacts);
-
-    private sealed record RequirementLeaf(RequirementPathSegment[] Path);
-
-    private readonly record struct RequirementPathSegment(
-        SelectionPathSegmentKind Kind,
-        string Name);
 
     private readonly record struct ParentNodeKey(int PieceId, int NodeId);
 
