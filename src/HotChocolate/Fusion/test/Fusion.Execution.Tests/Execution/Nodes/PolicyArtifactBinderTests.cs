@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
@@ -29,6 +30,35 @@ public sealed class PolicyArtifactBinderTests
         Assert.Equal([first, second, third], requirements);
     }
 
+    [Fact]
+    public void ProducesCandidate_Should_RequireCompiledSelection_When_ResultChildIsPruned()
+    {
+        // arrange
+        var candidate = SelectionPath.Parse("$.product.rating");
+        var prunedRoot = CreateOperation(
+            id: 4,
+            source: "query { product { id } }",
+            target: SelectionPath.Root,
+            sourcePath: SelectionPath.Root,
+            ResultSelectionSet.Create(Utf8GraphQLParser.Syntax.ParseSelectionSet("{ product }")));
+        var lookup = CreateOperation(
+            id: 5,
+            source: "query { product { rating } }",
+            target: SelectionPath.Parse("$.product"),
+            sourcePath: SelectionPath.Parse("$.product"),
+            ResultSelectionSet.Create(Utf8GraphQLParser.Syntax.ParseSelectionSet("{ rating }")));
+
+        // act
+        var produces = new[]
+        {
+            PolicyArtifactBinder.ProducesCandidate(prunedRoot, candidate),
+            PolicyArtifactBinder.ProducesCandidate(lookup, candidate)
+        };
+
+        // assert
+        Assert.Equal([false, true], produces);
+    }
+
     private static OperationRequirement CreateRequirement(string map)
         => new(
             "requirement",
@@ -39,24 +69,66 @@ public sealed class PolicyArtifactBinderTests
     private static SingleOperationDefinition CreateOperation(
         int id,
         OperationRequirement[] requirements)
+        => CreateOperation(
+            id,
+            "query { product { id } }",
+            SelectionPath.Parse("$.product"),
+            SelectionPath.Parse("$.product"),
+            ResultSelectionSet.CreateFromPlan(
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            requirements);
+
+    private static OperationExecutionNode CreateOperation(
+        int id,
+        string source,
+        SelectionPath target,
+        SelectionPath sourcePath,
+        ResultSelectionSet resultSelectionSet)
     {
-        var source = "query { product { id } }"u8.ToArray();
+        var sourceText = Encoding.UTF8.GetBytes(source);
+
+        return new OperationExecutionNode(
+            id,
+            new OperationSourceText(
+                $"Operation_{id}",
+                OperationType.Query,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            lookupTypeName: null,
+            schemaName: "a",
+            target,
+            sourcePath,
+            requirements: [],
+            forwardedVariables: [],
+            resultSelectionSet,
+            conditions: [],
+            requiresFileUpload: false);
+    }
+
+    private static SingleOperationDefinition CreateOperation(
+        int id,
+        string source,
+        SelectionPath target,
+        SelectionPath sourcePath,
+        ResultSelectionSet resultSelectionSet,
+        OperationRequirement[] requirements)
+    {
+        var sourceText = Encoding.UTF8.GetBytes(source);
 
         return new SingleOperationDefinition(
             id,
             new OperationSourceText(
                 $"Operation_{id}",
                 OperationType.Query,
-                source,
-                OperationSourceTextHash.Compute(source)),
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
             lookupTypeName: null,
             schemaName: "a",
-            SelectionPath.Parse("$.product"),
-            SelectionPath.Parse("$.product"),
+            target,
+            sourcePath,
             requirements,
             forwardedVariables: [],
-            ResultSelectionSet.CreateFromPlan(
-                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            resultSelectionSet,
             conditions: [],
             requiresFileUpload: false);
     }

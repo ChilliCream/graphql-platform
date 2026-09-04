@@ -2096,10 +2096,7 @@ internal static class PolicyArtifactBinder
         OperationArtifact artifact,
         Candidate candidate)
     {
-        if (!ResolvesCandidate(
-            artifact.Target,
-            artifact.ResultSelectionSet,
-            candidate.Path))
+        if (!ProducesCandidate(artifact, candidate.Path))
         {
             return false;
         }
@@ -2109,6 +2106,20 @@ internal static class PolicyArtifactBinder
             || GetFieldSegments(artifact.Target).Length
                 < GetFieldSegments(candidate.Path).Length;
     }
+
+    private static bool ProducesCandidate(
+        OperationArtifact artifact,
+        SelectionPath candidatePath)
+        => ResolvesCandidate(
+            artifact.Target,
+            artifact.ResultSelectionSet,
+            candidatePath)
+            && ProvidesPath(artifact, GetFieldSegments(candidatePath));
+
+    internal static bool ProducesCandidate(
+        ExecutionNode node,
+        SelectionPath candidatePath)
+        => CreateOperationArtifacts(node).Any(artifact => ProducesCandidate(artifact, candidatePath));
 
     private static string[] GetFieldSegments(SelectionPath path)
     {
