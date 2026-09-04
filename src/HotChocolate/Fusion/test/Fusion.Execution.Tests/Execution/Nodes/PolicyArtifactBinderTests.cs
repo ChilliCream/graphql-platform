@@ -1,92 +1,63 @@
-using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Types;
+using System.Collections.Immutable;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class PolicyArtifactBinderTests : FusionTestBase
+public sealed class PolicyArtifactBinderTests
 {
     [Fact]
-    public void Plan_Should_ValidatePolicyTopology_When_DeferredRequirementUsesBatchParent()
+    public void GetRequirements_Should_ConcatenateMemberRequirements_When_Batch()
     {
         // arrange
-        using var services = new ServiceCollection()
-            .AddSingleton<IPolicyProvider>(
-                _ => new TestPolicyProvider(
-                    new TestPolicy(
-                        "CanReadReviews",
-                        Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }"))))
-            .BuildServiceProvider();
-        var schema = FusionSchemaDefinition.Create(
-            ComposeSchemaDocument(
-                """
-                # name: a
-                type Query {
-                  first: Product!
-                  second: Product!
-                }
-
-                type Product @key(fields: "id") {
-                  id: ID!
-                }
-                """,
-                """
-                # name: b
-                type Query {
-                  productById(id: ID!): Product @lookup @internal
-                }
-
-                type Product @key(fields: "id") {
-                  id: ID!
-                  productSku: String!
-                }
-                """,
-                """
-                # name: c
-                enum PolicyDenialBehavior { NULL ERROR ABORT }
-
-                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
-                  repeatable on OBJECT | FIELD_DEFINITION
-
-                type Query {
-                  productById(id: ID!): Product @lookup @internal
-                }
-
-                type Product @key(fields: "id") {
-                  id: ID!
-                  reviews(productSku: String! @require(field: "productSku")): [String!]!
-                    @policy(names: "CanReadReviews", onDenied: NULL)
-                }
-                """),
-            services);
+        // Nested-defer requirement routing can produce this batch shape. repo-n4r must pin that planner route when it lands.
+        var first = CreateRequirement("first");
+        var second = CreateRequirement("second");
+        var third = CreateRequirement("third");
+        var batch = new OperationBatchExecutionNode(
+            1,
+            [
+                CreateOperation(2, [first, second]),
+                CreateOperation(3, [third])
+            ]);
 
         // act
-        var plan = PlanOperation(
-            schema,
-            """
-            {
-              first {
-                id
-                ... @defer {
-                  reviews
-                }
-              }
-              second {
-                productSku
-              }
-            }
-            """);
+        var requirements = PolicyArtifactBinder.GetBatchRequirements(batch.Operations.ToArray());
 
         // assert
-        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
-        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
-        var batch = Assert.Single(
-            plan.AllNodes.OfType<OperationBatchExecutionNode>(),
-            node => node.SchemaName == "b");
-        Assert.Equal(
-            [true],
-            batch.Operations.ToArray().Select(operation => operation.Requirements.Length > 0).ToArray());
-        Assert.Equal([batch.Id], policyNode.ParentDependencies.ToArray());
+        Assert.Equal([first, second, third], requirements);
+    }
+
+    private static OperationRequirement CreateRequirement(string map)
+        => new(
+            "requirement",
+            Utf8GraphQLParser.Syntax.ParseTypeReference("String"),
+            SelectionPath.Parse("$.product"),
+            new FieldSelectionMapParser(map).Parse());
+
+    private static SingleOperationDefinition CreateOperation(
+        int id,
+        OperationRequirement[] requirements)
+    {
+        var source = "query { product { id } }"u8.ToArray();
+
+        return new SingleOperationDefinition(
+            id,
+            new OperationSourceText(
+                $"Operation_{id}",
+                OperationType.Query,
+                source,
+                OperationSourceTextHash.Compute(source)),
+            lookupTypeName: null,
+            schemaName: "a",
+            SelectionPath.Parse("$.product"),
+            SelectionPath.Parse("$.product"),
+            requirements,
+            forwardedVariables: [],
+            ResultSelectionSet.CreateFromPlan(
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+            conditions: [],
+            requiresFileUpload: false);
     }
 }

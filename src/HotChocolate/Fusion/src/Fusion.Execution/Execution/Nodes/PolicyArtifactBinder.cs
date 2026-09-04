@@ -897,7 +897,7 @@ internal static class PolicyArtifactBinder
         }
     }
 
-    private static ImmutableArray<OperationRequirement> GetBatchRequirements(
+    internal static ImmutableArray<OperationRequirement> GetBatchRequirements(
         IReadOnlyList<OperationDefinition> operations)
     {
         var requirements = ImmutableArray.CreateBuilder<OperationRequirement>();
