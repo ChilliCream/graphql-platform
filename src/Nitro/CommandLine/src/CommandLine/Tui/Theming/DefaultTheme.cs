@@ -11,15 +11,15 @@ internal static class DefaultTheme
         ["board.column.border.focused"] = new Style(Color.Aqua),
 
         ["board.column.status.blocked"] = new Style(Color.Red),
-        ["board.column.status.blocked.focused"] = new Style(Color.Red, decoration: Decoration.Bold),
+        ["board.column.status.blocked.focused"] = new Style(Color.Red),
         ["board.column.status.deferred"] = new Style(Color.Yellow),
-        ["board.column.status.deferred.focused"] = new Style(Color.Yellow, decoration: Decoration.Bold),
+        ["board.column.status.deferred.focused"] = new Style(Color.Yellow),
         ["board.column.status.ready"] = new Style(Color.Green),
-        ["board.column.status.ready.focused"] = new Style(Color.Green, decoration: Decoration.Bold),
+        ["board.column.status.ready.focused"] = new Style(Color.Green),
         ["board.column.status.inprogress"] = new Style(Color.Blue),
-        ["board.column.status.inprogress.focused"] = new Style(Color.Blue, decoration: Decoration.Bold),
+        ["board.column.status.inprogress.focused"] = new Style(Color.Blue),
         ["board.column.status.closed"] = new Style(Color.Grey84),
-        ["board.column.status.closed.focused"] = new Style(Color.Grey93, decoration: Decoration.Bold),
+        ["board.column.status.closed.focused"] = new Style(Color.Grey93),
 
         ["badge.priority.p0"] = new Style(Color.Red),
         ["badge.priority.p1"] = new Style(Color.Orange1),
@@ -82,7 +82,7 @@ internal static class DefaultTheme
         ["mail.detail.recipient.read"] = new Style(Color.Grey70),
 
         ["mail.mailbox.workspace.border"] = new Style(Color.Purple),
-        ["mail.mailbox.workspace.border.focused"] = new Style(Color.MediumOrchid1, decoration: Decoration.Bold),
+        ["mail.mailbox.workspace.border.focused"] = new Style(Color.MediumOrchid1),
 
         ["memory.list.type"] = new Style(Color.SkyBlue1),
         ["memory.list.tags"] = new Style(Color.Grey70),

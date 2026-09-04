@@ -424,6 +424,25 @@ public sealed class DependencyTreeViewTests
     }
 
     [Fact]
+    public void Render_Should_AlwaysUseARoundedBorder()
+    {
+        // arrange: this view is the tree mode's only pane - it never loses
+        // focus to a sibling pane - so it deliberately keeps the plain
+        // Rounded box from PaneBorders' shared focus language rather than
+        // the Heavy one; only its accent color marks it as the active view.
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a"));
+        var view = new DependencyTreeView(store, "a");
+        view.OnEnter();
+
+        // act
+        var panel = Assert.IsType<Panel>(view.Render(80, 10));
+
+        // assert
+        Assert.Equal(BoxBorder.Rounded, panel.Border);
+    }
+
+    [Fact]
     public void Render_Should_TruncateHeaderToPanelWidth_When_ContentRowsAreNarrowerThanHeader()
     {
         // arrange: a two-id breadcrumb (53 chars

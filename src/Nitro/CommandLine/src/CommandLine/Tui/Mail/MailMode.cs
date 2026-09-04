@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -1354,11 +1353,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <summary>
     /// Builds the list pane's panel directly, rather than through
     /// <see cref="ColumnPane"/>, so <see cref="ResolveListBorderToken"/> can
-    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent.
-    /// Spectre paints the panel header text with <c>BorderStyle</c>, so the
-    /// header picks up that accent too without any separate styling. Every
-    /// other mailbox resolves to exactly the border tokens
-    /// <see cref="ColumnPane"/> itself uses.
+    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent. The
+    /// border box and header weight still follow the shell's shared
+    /// <see cref="PaneBorders"/> focus language. Every other mailbox
+    /// resolves to exactly the border tokens <see cref="ColumnPane"/> itself
+    /// uses.
     /// </summary>
     private Panel BuildListPanel(string name, int count, IReadOnlyList<string> lines, bool focused)
     {
@@ -1367,12 +1366,12 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             : new Rows(lines.Select(line => (IRenderable)new Markup(line)));
 
         var borderToken = ResolveListBorderToken(_state.Mailbox, focused);
-        var headerText = Markup.Escape($"{name} ({count})");
+        var headerText = PaneBorders.HeaderText(Markup.Escape($"{name} ({count})"), focused);
 
         return new Panel(content)
         {
             Header = new PanelHeader(headerText),
-            Border = BoxBorder.Rounded,
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken)
         };
     }

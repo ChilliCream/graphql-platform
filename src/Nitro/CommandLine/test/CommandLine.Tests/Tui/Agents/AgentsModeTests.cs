@@ -228,6 +228,30 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
+    public void Render_Should_DrawAHeavyDetailFrame_When_DetailPaneIsFocused()
+    {
+        // arrange: PaneBorders' shared focus language - Heavy when focused,
+        // Rounded otherwise - applies to the agent Detail pane too. The
+        // header carries the selected participant's agent name.
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
+        var mode = CreateMode(sessions);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.OpenSelected());
+        Assert.Equal(AgentsFocus.Detail, mode.State.Focus);
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        var textIndex = text.IndexOf("agent-a", StringComparison.Ordinal);
+        Assert.True(textIndex >= 0, "Expected the Detail header to render the agent name.");
+        var corner = text.LastIndexOfAny(['┏', '╭'], textIndex);
+        Assert.True(corner >= 0, "Expected a frame corner before the Detail header.");
+        Assert.Equal('┏', text[corner]);
+    }
+
+    [Fact]
     public void CopySelectedId_Should_ShowSessionIdInToast_When_ParticipantSelected()
     {
         // arrange

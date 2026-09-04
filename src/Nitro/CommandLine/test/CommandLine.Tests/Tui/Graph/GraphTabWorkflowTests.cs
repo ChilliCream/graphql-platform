@@ -178,12 +178,12 @@ public sealed class GraphTabWorkflowTests
             [
                 """
                  [T]asks   [G]raph
-                ╭─orphan-selected Selected orphan task─╮
-                │             No details.              │
-                ╰──────────────────────────────────────╯
-                ╭─Details──────────────────────────────╮
-                │ ○ open                               │
-                ╰──────────────────────────────────────╯
+                ┏━orphan-selected Selected orphan task━┓
+                ┃             No details.              ┃
+                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                ┏━Details━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+                ┃ ○ open                               ┃
+                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
                 esc back  hjkl move  enter open  …  tes…
                 """,
                 """
@@ -234,22 +234,22 @@ public sealed class GraphTabWorkflowTests
             [
                 """
                  [T]asks   [G]raph
-                ╭─board-selected Board selected task───────────────────────────────────────────╮
-                │                                 No details.                                  │
-                ╰──────────────────────────────────────────────────────────────────────────────╯
-                ╭─Details──────────────────────────────────────────────────────────────────────╮
-                │ ○ open                                                                       │
-                ╰──────────────────────────────────────────────────────────────────────────────╯
+                ┏━board-selected Board selected task━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+                ┃                                 No details.                                  ┃
+                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                ┏━Details━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+                ┃ ○ open                                                                       ┃
+                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
                 esc back  hjkl move  enter open  r refresh  y copy id  z zoom  e edit  q quit  …
                 """,
                 """
                  [T]asks   [G]raph
-                ╭─Open (2)─────────────────────────────────────────────────────────────────────╮
-                │ > ○ [T] P0 board-selected Board selected task                                │
-                │   ○ [T] P1 board-companion Board-only companion                              │
-                │                                                                              │
-                │                                                                              │
-                ╰──────────────────────────────────────────────────────────────────────────────╯
+                ┏━Open (2)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+                ┃ > ○ [T] P0 board-selected Board selected task                                ┃
+                ┃   ○ [T] P1 board-companion Board-only companion                              ┃
+                ┃                                                                              ┃
+                ┃                                                                              ┃
+                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
                 hjkl move  enter open  r refresh  y copy id  z zoom  e edit  esc back  q quit  …
                 """
             ]);
