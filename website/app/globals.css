@@ -307,7 +307,7 @@ html[data-smooth-scroll="true"]:has(:target) {
    variables are declared by DocSearch on `:root` (its stylesheet loads
    after this one, so a `:root` override here loses the cascade). Scoping
    to `.DocSearch-Container` beats that with higher specificity and lets
-   descendants inherit via `var()`. @docsearch/css v4 added tokens that fall
+   descendants inherit via `var()`. @docsearch/css v5 added tokens that fall
    back to the light `:root` defaults when unset, so every token the modal
    reads is overridden here. Full token list:
    https://docsearch.algolia.com/docs/styling */
@@ -327,7 +327,6 @@ html[data-smooth-scroll="true"]:has(:target) {
     inset 1px 1px 0 0 rgb(245 241 234 / 0.06), 0 12px 32px 0 rgb(0 0 0 / 0.5);
   --docsearch-searchbox-background: rgb(245 241 234 / 0.05);
   --docsearch-searchbox-focus-background: rgb(245 241 234 / 0.08);
-  --docsearch-searchbox-shadow: inset 0 0 0 2px var(--color-cc-accent);
   --docsearch-hit-color: rgb(245 241 234 / 0.8);
   --docsearch-hit-background: rgb(245 241 234 / 0.04);
   --docsearch-hit-highlight-color: rgb(94 234 212 / 0.12);
