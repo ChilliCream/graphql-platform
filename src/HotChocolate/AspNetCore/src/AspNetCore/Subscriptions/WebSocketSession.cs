@@ -44,7 +44,8 @@ internal sealed class WebSocketSession : ISocketSession
         IRequestExecutor executor,
         ISocketSessionInterceptor interceptor)
     {
-        using var connection = new WebSocketConnection(context);
+        var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
+        using var connection = new WebSocketConnection(context, options.MaxAllowedMessageSize);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,
             connection.ApplicationStopping);
@@ -54,7 +55,6 @@ internal sealed class WebSocketSession : ISocketSession
         if (protocol is not null)
         {
             using var session = new WebSocketSession(connection, protocol, interceptor, executor);
-            var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
 
             try
             {
