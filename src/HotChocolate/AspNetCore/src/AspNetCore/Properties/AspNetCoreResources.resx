@@ -78,6 +78,9 @@
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
   </data>
+  <data name="WebSocketConnection_MessageTooBig" xml:space="preserve">
+    <value>The WebSocket message exceeds the maximum allowed message size.</value>
+  </data>
   <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
     <value>The specified result object is not a valid subscription result.</value>
   </data>
