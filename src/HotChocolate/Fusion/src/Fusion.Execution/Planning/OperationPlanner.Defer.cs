@@ -637,7 +637,7 @@ public sealed partial class OperationPlanner
         // Every remaining step's requirement anchored exactly at the defer's own path is
         // retried against the parent scope; the edge and the now-unconsumed field are
         // cleaned up below once it succeeds.
-        var rerouted = new List<(int ProviderStepId, int DownstreamStepId, string FieldName)>();
+        var rerouted = new List<(int ProviderStepId, int DownstreamStepId, string[] ResponseLeaf)>();
 
         foreach (var step in incrementalPlanSteps)
         {
@@ -701,10 +701,9 @@ public sealed partial class OperationPlanner
 
                 lifted.Add(new LiftedDeferRequirement(requirement, downstreamStep.Id, resolvedId));
 
-                var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-                if (fieldName is not null)
+                foreach (var responseLeaf in GetResponseLeaves(requirement))
                 {
-                    rerouted.Add((providerStep.Id, downstreamStep.Id, fieldName));
+                    rerouted.Add((providerStep.Id, downstreamStep.Id, responseLeaf));
                 }
             }
         }
@@ -1455,15 +1454,19 @@ public sealed partial class OperationPlanner
                 return (current, currentRequirement);
             }
 
-            var neededFieldName =
-                currentRequirement.InternalAlias ?? ExtractRootFieldName(currentRequirement.Map.ToString());
             var upstreamRequirement = provider.Requirements.Values.Single();
-            var upstreamFieldName =
-                upstreamRequirement.InternalAlias ?? ExtractRootFieldName(upstreamRequirement.Map.ToString());
 
-            if (neededFieldName is null
-                || upstreamFieldName is null
-                || !neededFieldName.Equals(upstreamFieldName, StringComparison.Ordinal))
+            var hasMatchingResponseLeaf = false;
+            foreach (var currentLeaf in GetResponseLeaves(currentRequirement))
+            {
+                if (RequirementProvidesResponseLeaf(upstreamRequirement, currentLeaf))
+                {
+                    hasMatchingResponseLeaf = true;
+                    break;
+                }
+            }
+
+            if (!hasMatchingResponseLeaf)
             {
                 return (current, currentRequirement);
             }
@@ -1486,15 +1489,6 @@ public sealed partial class OperationPlanner
         OperationPlanStep consumingStep,
         OperationRequirement requirement)
     {
-        var requirementFieldName =
-            requirement.InternalAlias
-                ?? ExtractRootFieldName(requirement.Map.ToString());
-
-        if (requirementFieldName is null)
-        {
-            return null;
-        }
-
         foreach (var step in incrementalPlanSteps)
         {
             if (step is not OperationPlanStep candidate
@@ -1509,9 +1503,14 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            if (SelectionSetContainsField(candidate.Definition.SelectionSet, requirementFieldName))
+            foreach (var responseLeaf in GetResponseLeaves(
+                candidate.Target,
+                GetStepEntitySelectionSet(candidate)))
             {
-                return candidate;
+                if (RequirementProvidesResponseLeaf(requirement, responseLeaf))
+                {
+                    return candidate;
+                }
             }
         }
 
@@ -1583,15 +1582,16 @@ public sealed partial class OperationPlanner
         OperationPlanStep step,
         ImmutableList<PlanStep> incrementalPlanSteps)
     {
-        var ownFields = new HashSet<string>(StringComparer.Ordinal);
-        CollectLeafFieldNames(step.Definition.SelectionSet, ownFields);
+        var ownResponseLeaves = GetResponseLeaves(step.Target, GetStepEntitySelectionSet(step))
+            .Where(responseLeaf => !responseLeaf[^1].Equals("__typename", StringComparison.Ordinal))
+            .ToArray();
 
-        if (ownFields.Count == 0)
+        if (ownResponseLeaves.Length == 0)
         {
             return false;
         }
 
-        var consumed = new HashSet<string>(StringComparer.Ordinal);
+        var consumedRequirements = new List<OperationRequirement>();
         foreach (var dependentStepId in step.Dependents)
         {
             if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
@@ -1601,18 +1601,13 @@ public sealed partial class OperationPlanner
 
             foreach (var (_, requirement) in dependentStep.Requirements)
             {
-                var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-
-                if (fieldName is not null)
-                {
-                    consumed.Add(fieldName);
-                }
+                consumedRequirements.Add(requirement);
             }
         }
 
-        foreach (var fieldName in ownFields)
+        foreach (var responseLeaf in ownResponseLeaves)
         {
-            if (!consumed.Contains(fieldName))
+            if (!consumedRequirements.Any(requirement => RequirementProvidesResponseLeaf(requirement, responseLeaf)))
             {
                 return false;
             }
@@ -1622,51 +1617,20 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Collects the response names of every leaf field selection within
-    /// <paramref name="selectionSet"/>, descending through composite fields and inline
-    /// fragments (a composite field wraps a lookup or entity boundary, not output of its
-    /// own). The <c>__typename</c> discriminator is ignored; it never satisfies a
-    /// requirement.
-    /// </summary>
-    private static void CollectLeafFieldNames(SelectionSetNode selectionSet, HashSet<string> names)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            switch (selection)
-            {
-                case FieldNode { SelectionSet: { } nested }:
-                    CollectLeafFieldNames(nested, names);
-                    break;
-
-                case FieldNode field:
-                    if (!field.Name.Value.Equals("__typename", StringComparison.Ordinal))
-                    {
-                        names.Add(field.Alias?.Value ?? field.Name.Value);
-                    }
-                    break;
-
-                case InlineFragmentNode fragment:
-                    CollectLeafFieldNames(fragment.SelectionSet, names);
-                    break;
-            }
-        }
-    }
-
-    /// <summary>
     /// Removes each <paramref name="rerouted"/> provider-to-dependent dependency edge, unless
     /// the dependent still has another requirement that resolves back to the same provider,
     /// and drops the provider's rerouted field once no remaining dependent still consumes it.
     /// </summary>
     private static ImmutableList<PlanStep> RemoveReroutedInPlanEdges(
         ImmutableList<PlanStep> incrementalPlanSteps,
-        List<(int ProviderStepId, int DownstreamStepId, string FieldName)> rerouted)
+        List<(int ProviderStepId, int DownstreamStepId, string[] ResponseLeaf)> rerouted)
     {
         if (rerouted.Count == 0)
         {
             return incrementalPlanSteps;
         }
 
-        var removalsByProvider = new Dictionary<int, List<(int DownstreamStepId, string FieldName)>>();
+        var removalsByProvider = new Dictionary<int, List<(int DownstreamStepId, string[] ResponseLeaf)>>();
         foreach (var entry in rerouted)
         {
             if (!removalsByProvider.TryGetValue(entry.ProviderStepId, out var removals))
@@ -1675,7 +1639,7 @@ public sealed partial class OperationPlanner
                 removalsByProvider[entry.ProviderStepId] = removals;
             }
 
-            removals.Add((entry.DownstreamStepId, entry.FieldName));
+            removals.Add((entry.DownstreamStepId, entry.ResponseLeaf));
         }
 
         var updated = ImmutableList.CreateBuilder<PlanStep>();
@@ -1685,27 +1649,27 @@ public sealed partial class OperationPlanner
             if (step is OperationPlanStep providerStep
                 && removalsByProvider.TryGetValue(providerStep.Id, out var removals))
             {
-                var reroutedFieldNamesByDownstream = new Dictionary<int, HashSet<string>>();
-                foreach (var (downstreamStepId, fieldName) in removals)
+                var reroutedResponseLeavesByDownstream = new Dictionary<int, List<string[]>>();
+                foreach (var (downstreamStepId, responseLeaf) in removals)
                 {
-                    if (!reroutedFieldNamesByDownstream.TryGetValue(downstreamStepId, out var fieldNames))
+                    if (!reroutedResponseLeavesByDownstream.TryGetValue(downstreamStepId, out var responseLeaves))
                     {
-                        fieldNames = new HashSet<string>(StringComparer.Ordinal);
-                        reroutedFieldNamesByDownstream[downstreamStepId] = fieldNames;
+                        responseLeaves = [];
+                        reroutedResponseLeavesByDownstream[downstreamStepId] = responseLeaves;
                     }
 
-                    fieldNames.Add(fieldName);
+                    responseLeaves.Add(responseLeaf);
                 }
 
                 var severedDependentIds = new HashSet<int>();
-                foreach (var (downstreamStepId, reroutedFieldNames) in reroutedFieldNamesByDownstream)
+                foreach (var (downstreamStepId, reroutedResponseLeaves) in reroutedResponseLeavesByDownstream)
                 {
                     if (incrementalPlanSteps.ById(downstreamStepId) is OperationPlanStep downstreamStep
                         && DependentStillRequiresProvider(
                             incrementalPlanSteps,
                             downstreamStep,
                             providerStep,
-                            reroutedFieldNames))
+                            reroutedResponseLeaves))
                     {
                         continue;
                     }
@@ -1715,7 +1679,7 @@ public sealed partial class OperationPlanner
 
                 var remainingDependents = providerStep.Dependents.Except(severedDependentIds);
 
-                var stillConsumedFieldNames = new HashSet<string>(StringComparer.Ordinal);
+                var stillConsumedResponseLeaves = new List<string[]>();
                 foreach (var remainingDependentId in remainingDependents)
                 {
                     if (incrementalPlanSteps.ById(remainingDependentId) is not OperationPlanStep remainingStep)
@@ -1723,27 +1687,45 @@ public sealed partial class OperationPlanner
                         continue;
                     }
 
-                    reroutedFieldNamesByDownstream.TryGetValue(remainingDependentId, out var excludedFieldNames);
+                    reroutedResponseLeavesByDownstream.TryGetValue(
+                        remainingDependentId,
+                        out var excludedResponseLeaves);
 
                     foreach (var (_, requirement) in remainingStep.Requirements)
                     {
-                        var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-                        if (fieldName is null || (excludedFieldNames?.Contains(fieldName) ?? false))
+                        foreach (var responseLeaf in GetResponseLeaves(requirement))
                         {
-                            continue;
-                        }
+                            if (excludedResponseLeaves?.Any(
+                                    excludedLeaf => ResponseLeavesEqual(excludedLeaf, responseLeaf)) == true)
+                            {
+                                continue;
+                            }
 
-                        stillConsumedFieldNames.Add(fieldName);
+                            stillConsumedResponseLeaves.Add(responseLeaf);
+                        }
                     }
                 }
 
                 var updatedProviderStep = providerStep with { Dependents = remainingDependents };
 
-                foreach (var fieldName in removals.Select(r => r.FieldName).Distinct(StringComparer.Ordinal))
+                var distinctReroutedResponseLeaves = new List<string[]>();
+                foreach (var (_, responseLeaf) in removals)
                 {
-                    if (!stillConsumedFieldNames.Contains(fieldName))
+                    if (!distinctReroutedResponseLeaves.Any(
+                        existingLeaf => ResponseLeavesEqual(existingLeaf, responseLeaf)))
                     {
-                        updatedProviderStep = RemoveUnconsumedEntityField(updatedProviderStep, fieldName);
+                        distinctReroutedResponseLeaves.Add(responseLeaf);
+                    }
+                }
+
+                foreach (var responseLeaf in distinctReroutedResponseLeaves)
+                {
+                    if (!stillConsumedResponseLeaves.Any(
+                        consumedLeaf => ResponseLeavesEqual(consumedLeaf, responseLeaf)))
+                    {
+                        updatedProviderStep = RemoveUnconsumedEntityResponseLeaf(
+                            updatedProviderStep,
+                            responseLeaf);
                     }
                 }
 
@@ -1760,19 +1742,19 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Determines whether <paramref name="downstreamStep"/> still has a requirement, other
-    /// than those named in <paramref name="reroutedFieldNames"/>, that
+    /// than those represented by <paramref name="reroutedResponseLeaves"/>, that
     /// <see cref="TryFindDeferRequirementProvider"/> resolves back to <paramref name="providerStep"/>.
     /// </summary>
     private static bool DependentStillRequiresProvider(
         ImmutableList<PlanStep> incrementalPlanSteps,
         OperationPlanStep downstreamStep,
         OperationPlanStep providerStep,
-        HashSet<string> reroutedFieldNames)
+        List<string[]> reroutedResponseLeaves)
     {
         foreach (var (_, requirement) in downstreamStep.Requirements)
         {
-            var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-            if (fieldName is not null && reroutedFieldNames.Contains(fieldName))
+            if (GetResponseLeaves(requirement).All(responseLeaf => reroutedResponseLeaves.Any(
+                reroutedResponseLeaf => ResponseLeavesEqual(reroutedResponseLeaf, responseLeaf))))
             {
                 continue;
             }
@@ -1788,35 +1770,100 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Removes a single top-level field from <paramref name="step"/>'s own entity-level
+    /// Removes a single response leaf from <paramref name="step"/>'s own entity-level
     /// selection set (see <see cref="GetStepEntitySelectionSet"/>) once nothing consumes
     /// it any longer, keeping the step's selection-set index in sync.
     /// </summary>
-    private static OperationPlanStep RemoveUnconsumedEntityField(OperationPlanStep step, string fieldName)
+    private static OperationPlanStep RemoveUnconsumedEntityResponseLeaf(
+        OperationPlanStep step,
+        string[] responseLeaf)
     {
         var entitySelectionSet = GetStepEntitySelectionSet(step);
-        var filtered = new List<ISelectionNode>(entitySelectionSet.Selections.Count);
         var removed = false;
+        var targetLength = 0;
 
-        foreach (var selection in entitySelectionSet.Selections)
+        for (var i = 0; i < step.Target.Length; i++)
         {
-            if (!removed
-                && selection is FieldNode field
-                && (field.Alias?.Value ?? field.Name.Value).Equals(fieldName, StringComparison.Ordinal))
+            if (step.Target[i].Kind is SelectionPathSegmentKind.Field)
             {
-                removed = true;
-                continue;
+                targetLength++;
             }
-
-            filtered.Add(selection);
         }
 
-        if (!removed || filtered.Count == 0)
+        var filtered = RemoveResponseLeaf(
+            entitySelectionSet,
+            responseLeaf,
+            targetLength,
+            ref removed);
+
+        if (!removed || filtered.Selections.Count == 0)
         {
             return step;
         }
 
-        return WithEntitySelectionSet(step, new SelectionSetNode(filtered));
+        return WithEntitySelectionSet(step, filtered);
+    }
+
+    private static SelectionSetNode RemoveResponseLeaf(
+        SelectionSetNode selectionSet,
+        string[] responseLeaf,
+        int responseLeafIndex,
+        ref bool removed)
+    {
+        var updated = new List<ISelectionNode>(selectionSet.Selections.Count);
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field
+                    when responseLeafIndex < responseLeaf.Length
+                        && (field.Alias?.Value ?? field.Name.Value).Equals(
+                            responseLeaf[responseLeafIndex],
+                            StringComparison.Ordinal):
+                    if (responseLeafIndex + 1 == responseLeaf.Length)
+                    {
+                        removed = true;
+                        continue;
+                    }
+
+                    if (field.SelectionSet is { } nested)
+                    {
+                        var updatedNested = RemoveResponseLeaf(
+                            nested,
+                            responseLeaf,
+                            responseLeafIndex + 1,
+                            ref removed);
+
+                        if (updatedNested.Selections.Count > 0)
+                        {
+                            updated.Add(field.WithSelectionSet(updatedNested));
+                        }
+
+                        continue;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    var updatedFragment = RemoveResponseLeaf(
+                        fragment.SelectionSet,
+                        responseLeaf,
+                        responseLeafIndex,
+                        ref removed);
+
+                    if (updatedFragment.Selections.Count > 0)
+                    {
+                        updated.Add(fragment.WithSelectionSet(updatedFragment));
+                    }
+
+                    continue;
+            }
+
+            updated.Add(selection);
+        }
+
+        return new SelectionSetNode(updated);
     }
 
     /// <summary>
@@ -2130,6 +2177,88 @@ public sealed partial class OperationPlanner
         }
 
         return currentSet;
+    }
+
+    private static bool RequirementProvidesResponseLeaf(OperationRequirement requirement, string[] responseLeaf)
+        => GetResponseLeaves(requirement).Any(requirementLeaf => ResponseLeavesEqual(requirementLeaf, responseLeaf));
+
+    private static IEnumerable<string[]> GetResponseLeaves(OperationRequirement requirement)
+        => GetResponseLeaves(
+            requirement.Path,
+            ValueSelectionToSelectionSetRewriter.Rewrite([requirement.Map]),
+            requirement.InternalAlias);
+
+    private static IEnumerable<string[]> GetResponseLeaves(
+        SelectionPath selectionPath,
+        SelectionSetNode selectionSet,
+        string? firstMappedFieldResponseName = null)
+    {
+        var segments = new List<string>();
+        for (var i = 0; i < selectionPath.Length; i++)
+        {
+            if (selectionPath[i].Kind is SelectionPathSegmentKind.Field)
+            {
+                segments.Add(selectionPath[i].Name);
+            }
+        }
+
+        var leaves = new List<string[]>();
+        CollectResponseLeaves(selectionSet, segments, segments.Count, firstMappedFieldResponseName, leaves);
+        return leaves;
+    }
+
+    private static void CollectResponseLeaves(
+        SelectionSetNode selectionSet,
+        List<string> segments,
+        int mappedFieldStart,
+        string? firstMappedFieldResponseName,
+        List<string[]> leaves)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    var responseName = segments.Count == mappedFieldStart
+                        && firstMappedFieldResponseName is not null
+                            ? firstMappedFieldResponseName
+                            : field.Alias?.Value ?? field.Name.Value;
+                    segments.Add(responseName);
+                    if (field.SelectionSet is { } nested)
+                    {
+                        CollectResponseLeaves(nested, segments, mappedFieldStart, firstMappedFieldResponseName, leaves);
+                    }
+                    else
+                    {
+                        leaves.Add([.. segments]);
+                    }
+                    segments.RemoveAt(segments.Count - 1);
+                    break;
+
+                case InlineFragmentNode fragment:
+                    CollectResponseLeaves(
+                        fragment.SelectionSet, segments, mappedFieldStart, firstMappedFieldResponseName, leaves);
+                    break;
+            }
+        }
+    }
+
+    private static bool ResponseLeavesEqual(string[] first, string[] second)
+    {
+        if (first.Length != second.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < first.Length; i++)
+        {
+            if (!first[i].Equals(second[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool SelectionSetContainsField(

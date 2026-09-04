@@ -2147,29 +2147,7 @@ public sealed partial class OperationPlanner
 
                 foreach (var requirement in requirements)
                 {
-                    var pathIndex = 0;
-
-                    for (var i = 0; i < requirement.Path.Length; i++)
-                    {
-                        var segment = requirement.Path[i];
-                        if (segment.Kind is SelectionPathSegmentKind.Field)
-                        {
-                            if (pathIndex == requirementPath.Length
-                                || !segment.Name.Equals(requirementPath[pathIndex++], StringComparison.Ordinal))
-                            {
-                                break;
-                            }
-                        }
-                    }
-
-                    if (pathIndex >= requirementPath.Length)
-                    {
-                        continue;
-                    }
-
-                    var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-                    if (fieldName?.Equals(requirementPath[pathIndex], StringComparison.Ordinal) == true
-                        && pathIndex + 1 == requirementPath.Length)
+                    if (RequirementProvidesResponseLeaf(requirement, requirementPath))
                     {
                         return true;
                     }

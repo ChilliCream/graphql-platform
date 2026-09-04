@@ -1295,6 +1295,102 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_UseFullResponsePath_When_ParentProvidesNestedPolicyRequirement()
+    {
+        // arrange
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  description: String!
+                  details: Details!
+                }
+
+                type Details {
+                  code: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(details: DetailsInput! @require(field: "details.{ code }")): [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+
+                input DetailsInput {
+                  code: String!
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ details { code } }")));
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                description
+                ... @defer {
+                  reviews
+                }
+              }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policy = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        var rootB = Assert.Single(
+            plan.AllNodes.OfType<OperationExecutionNode>(),
+            node => node.SchemaName == "b");
+
+        ($"incrementalSchemas={string.Join(',', incrementalPlan.AllNodes.OfType<OperationExecutionNode>().Select(node => node.SchemaName))}; "
+            + $"rootB={Encoding.UTF8.GetString(rootB.Operation.Value.Span)}; "
+            + $"parentDependencies={string.Join(',', policy.ParentDependencies.ToArray())}")
+            .MatchInlineSnapshot(
+                """
+                incrementalSchemas=c; rootB=query Op_123456789101112_2($__fusion_1_id: ID!) {
+                  productById(id: $__fusion_1_id) {
+                    description
+                    details {
+                      code
+                    }
+                  }
+                }; parentDependencies=1,2
+                """);
+    }
+
+    [Fact]
     public void CreatePlan_Should_RejectNestedDeferredPolicy_When_ImmediateParentScopeCannotAuthorizeIt()
     {
         // arrange
