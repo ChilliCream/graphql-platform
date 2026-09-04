@@ -421,6 +421,14 @@ public sealed partial class OperationPlanner
                     policySlots = plan.Value.PolicySlots;
                 }
 
+                if (mainOperationDefinition.Operation is OperationType.Subscription
+                    && planSteps.Any(step => step is PolicyPlanStep))
+                {
+                    throw HotChocolate.Fusion.Execution.ThrowHelper.InvalidOperationPlan(
+                        "Policies with requirements are not supported on subscription root fields; "
+                        + "subscription policies must be requirement-free (evaluated per event).");
+                }
+
                 internalOperationDefinition =
                     AddTypeNameToAbstractSelections(
                         internalOperationDefinition,

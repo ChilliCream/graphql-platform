@@ -6,7 +6,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class PolicyArtifactBinderTests
+public sealed class PolicyArtifactBinderTests : FusionTestBase
 {
     [Fact]
     public void GetRequirements_Should_ConcatenateMemberRequirements_When_Batch()
@@ -106,6 +106,84 @@ public sealed class PolicyArtifactBinderTests
         Assert.Equal(
             "A policy execution node has ambiguous guarded producers at the same target depth.",
             exception.Message);
+    }
+
+    [Theory]
+    [InlineData(
+        "EventStream",
+        "Policies with requirements are not supported on subscription root fields; subscription policies must be requirement-free (evaluated per event).")]
+    [InlineData("Node", "A policy execution node may only depend on operation nodes; node 9 is Node.")]
+    [InlineData(
+        "Introspection",
+        "A policy execution node may only depend on operation nodes; node 9 is Introspection.")]
+    public void ValidatePolicyTopology_Should_RejectNonOperationDependencies_When_PolicyHasNoProducer(
+        string dependencyKind,
+        string expectedMessage)
+    {
+        // arrange
+        IOperationPlanNode dependency = dependencyKind switch
+        {
+            "EventStream" => new EventStreamExecutionNode(
+                9,
+                "onX",
+                SelectionPath.Root,
+                SelectionPath.Root,
+                ResultSelectionSet.CreateFromPlan(
+                    Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")),
+                new EventStreamSource
+                {
+                    SchemaName = "a",
+                    FieldName = "onX",
+                    Topics = ["onX"],
+                    Message = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")
+                },
+                "{ id }",
+                []),
+            "Node" => new NodeFieldExecutionNode(
+                9,
+                "node",
+                new HotChocolate.Language.StringValueNode("account:1"),
+                []),
+            _ => new IntrospectionExecutionNode(
+                9,
+                [.. PlanOperation(CreateCompositeSchema(), "{ __typename }")
+                    .AllNodes.OfType<IntrospectionExecutionNode>()
+                    .Single()
+                    .Selections],
+                [])
+        };
+        var policy = new PolicyExecutionNode(
+            10,
+            [
+                new PolicyExecutionTarget
+                {
+                    Occurrences =
+                    [
+                        new PolicyOccurrenceReference
+                        {
+                            PlanPart = 1,
+                            SelectionSetId = 1,
+                            SelectionId = 1,
+                            OccurrenceOrdinal = 0,
+                            ApplicationOrdinal = 0,
+                            Facet = PolicyOccurrenceFacet.ResidualEvaluation
+                        }
+                    ],
+                    Kind = PolicyTargetKind.Field,
+                    Path = SelectionPath.Parse("$.guarded"),
+                    TypeName = "Query",
+                    Policies = []
+                }
+            ],
+            []);
+        policy.AddDependency(dependency);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PolicyArtifactBinder.ValidatePolicyTopology([policy], planPart: 0));
+
+        // assert
+        Assert.Equal(expectedMessage, exception.Message);
     }
 
     private static OperationRequirement CreateRequirement(string map)

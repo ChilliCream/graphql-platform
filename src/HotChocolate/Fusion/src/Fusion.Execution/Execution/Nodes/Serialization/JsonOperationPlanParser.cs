@@ -1068,6 +1068,21 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             {
                 foreach (var dependencyId in policy.Dependencies)
                 {
+                    var dependency = parsedNodes.FirstOrDefault(node => node.Id == dependencyId);
+                    if (dependency is ParsedEventStreamNodeInfo)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "Policies with requirements are not supported on subscription root fields; "
+                            + "subscription policies must be requirement-free (evaluated per event).");
+                    }
+
+                    if (dependency is not null and not ParsedOperationNodeInfo)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A policy execution node may only depend on operation nodes; "
+                            + $"node {dependencyId} is {GetParsedNodeKind(dependency)}.");
+                    }
+
                     if (rawNodeIndexes.TryGetValue(dependencyId, out var dependencyIndex)
                         && dependencyIndex >= rawNodeIndexes[policy.Id])
                     {
@@ -1105,6 +1120,16 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             }
         }
     }
+
+    private static string GetParsedNodeKind(ParsedNodeInfo node)
+        => node switch
+        {
+            ParsedEventStreamNodeInfo => nameof(ExecutionNodeType.EventStream),
+            ParsedIntrospectionNodeInfo => nameof(ExecutionNodeType.Introspection),
+            ParsedNodeFieldNodeInfo => nameof(ExecutionNodeType.Node),
+            ParsedPolicyNodeInfo => nameof(ExecutionNodeType.Policy),
+            _ => nameof(ExecutionNodeType.Operation)
+        };
 
     private static int CompareOccurrencePosition(
         PolicyOccurrenceReference left,

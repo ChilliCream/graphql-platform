@@ -426,6 +426,29 @@ internal static class PolicyArtifactBinder
 
         foreach (var policyNode in nodes.OfType<PolicyExecutionNode>())
         {
+            foreach (var dependency in policyNode.Dependencies)
+            {
+                if (dependency is EventStreamExecutionNode)
+                {
+                    throw ThrowHelper.InvalidOperationPlan(
+                        "Policies with requirements are not supported on subscription root fields; "
+                        + "subscription policies must be requirement-free (evaluated per event).");
+                }
+
+                if (dependency is not OperationExecutionNode
+                    and not ApolloOperationExecutionNode
+                    and not OperationBatchExecutionNode
+                    and not ApolloOperationBatchExecutionNode)
+                {
+                    var kind = dependency is ExecutionNode executionNode
+                        ? executionNode.Type.ToString()
+                        : dependency.GetType().Name;
+                    throw ThrowHelper.InvalidOperationPlan(
+                        "A policy execution node may only depend on operation nodes; "
+                        + $"node {dependency.Id} is {kind}.");
+                }
+            }
+
             var targets = policyNode.Targets.ToArray();
             var targetCandidates = targets
                 .SelectMany(target => target.Occurrences)

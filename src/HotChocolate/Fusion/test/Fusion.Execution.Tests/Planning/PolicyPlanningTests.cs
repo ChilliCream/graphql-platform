@@ -83,6 +83,81 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_RejectRequirementPolicy_When_SubscriptionRootIsProtected()
+    {
+        // arrange
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                schema {
+                  query: Query
+                  subscription: Subscription
+                }
+
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Subscription {
+                  id: ID!
+                  onX: X @policy(names: "P", onDenied: NULL)
+                }
+
+                type Query {
+                  noop: String
+                }
+
+                type X {
+                  id: ID!
+                }
+                """),
+            new TestPolicy("P", Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "subscription { onX { id } }"));
+
+        // assert
+        Assert.Equal(
+            "Policies with requirements are not supported on subscription root fields; "
+            + "subscription policies must be requirement-free (evaluated per event).",
+            exception.Message);
+    }
+
+    [Theory]
+    [InlineData("Introspection")]
+    [InlineData("Node")]
+    [InlineData("EventStream")]
+    public void JsonParser_Should_RejectNonOperationPolicyDependency_When_ParsedFromJson(
+        string dependencyKind)
+    {
+        // arrange
+        var schema = CreateRequirementPolicySchema();
+        var (json, parser) = SerializePlan(schema, PlanOperation(schema, "{ secret }"));
+        var nodes = json["nodes"]!.AsArray();
+        var policy = nodes
+            .Select(node => node!.AsObject())
+            .Single(node => node["type"]!.GetValue<string>() == "Policy");
+        var dependencyId = policy["dependencies"]!.AsArray()[0]!.GetValue<int>();
+        var dependencyIndex = Enumerable.Range(0, nodes.Count)
+            .Single(index => nodes[index]!.AsObject()["id"]!.GetValue<int>() == dependencyId);
+        nodes[dependencyIndex] = CreateNonOperationNode(dependencyKind, dependencyId);
+        var expectedMessage = dependencyKind is "EventStream"
+            ? "Policies with requirements are not supported on subscription root fields; "
+                + "subscription policies must be requirement-free (evaluated per event)."
+            : $"A policy execution node may only depend on operation nodes; node {dependencyId} is {dependencyKind}.";
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
+
+        // assert
+        Assert.Equal(expectedMessage, exception.Message);
+    }
+
+    [Fact]
     public void JsonParser_Should_RoundTripPolicyNode_When_GuardedProducerIsBatched()
     {
         // arrange
@@ -2921,6 +2996,39 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
         return (JsonNode.Parse(buffer.WrittenSpan)!.AsObject(), new JsonOperationPlanParser(compiler));
     }
+
+    private static JsonObject CreateNonOperationNode(string kind, int id)
+        => kind switch
+        {
+            "Introspection" => new JsonObject
+            {
+                ["id"] = id,
+                ["type"] = "Introspection",
+                ["selections"] = new JsonArray(
+                    new JsonObject { ["responseName"] = "secret" })
+            },
+            "Node" => new JsonObject
+            {
+                ["id"] = id,
+                ["type"] = "Node",
+                ["responseName"] = "secret",
+                ["idValue"] = "\"account:1\"",
+                ["branches"] = new JsonObject(),
+                ["fallback"] = id
+            },
+            _ => new JsonObject
+            {
+                ["id"] = id,
+                ["type"] = "EventStream",
+                ["fieldName"] = "onX",
+                ["resultSelectionSet"] = "{ secret }",
+                ["eventStream"] = new JsonObject
+                {
+                    ["schema"] = "a",
+                    ["message"] = "{ id }"
+                }
+            }
+        };
 
     private static (ImmutableArray<IncrementalPlan> IncrementalPlans, ImmutableArray<PolicyConditionSlot> Slots)
         CreateStrictSplitParentAuthorityFixture(
