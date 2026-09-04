@@ -455,7 +455,7 @@ public sealed class FusionArchive : IDisposable
     /// <param name="version">The Rego policy format version.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">
-    /// Thrown when the policy name, package declaration, or version is invalid.
+    /// Thrown when the policy name, package declaration, requirements prefix, or version is invalid.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the policy or requirements are empty.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
@@ -473,6 +473,11 @@ public sealed class FusionArchive : IDisposable
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(requirements.Length, 0);
         ObjectDisposedException.ThrowIf(_disposed, this);
         EnsureMutable();
+
+        if (!HasRegoPolicyRequirementsPrefix(requirements.Span))
+        {
+            throw ThrowHelper.RegoPolicyRequirementsMustBeSelectionSetOrFragment();
+        }
 
         var conflictingPolicy = ReadRegoPolicyFileSets().FirstOrDefault(
             t => t.Version == version
@@ -2140,6 +2145,49 @@ public sealed class FusionArchive : IDisposable
         segments = parts;
         return true;
     }
+
+    private static bool HasRegoPolicyRequirementsPrefix(ReadOnlySpan<byte> source)
+    {
+        if (source.Length >= 3 && source[0] == 0xEF && source[1] == 0xBB && source[2] == 0xBF)
+        {
+            source = source[3..];
+        }
+
+        var index = 0;
+
+        while (index < source.Length)
+        {
+            var current = source[index];
+
+            if (IsGraphQLWhitespace(current) || current == ',')
+            {
+                index++;
+                continue;
+            }
+
+            if (current == '#')
+            {
+                index++;
+
+                while (index < source.Length && source[index] is not (byte)'\r' and not (byte)'\n')
+                {
+                    index++;
+                }
+
+                continue;
+            }
+
+            return current == '{'
+                || (source[index..].StartsWith("fragment"u8)
+                    && index + "fragment"u8.Length < source.Length
+                    && IsGraphQLWhitespace(source[index + "fragment"u8.Length]));
+        }
+
+        return false;
+    }
+
+    private static bool IsGraphQLWhitespace(byte value)
+        => value is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n';
 
     private static string? ScanRegoPackageToken(string source)
     {

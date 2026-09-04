@@ -169,6 +169,62 @@ public sealed class RegoPolicyIntegrationTests
         Assert.Equal(new Version(1, 0, 0), snapshot.FormatVersion);
     }
 
+    [Fact]
+    public async Task ReadAsync_Should_CreateEquivalentRequirements_When_ArchiveUsesFragmentDefinition()
+    {
+        // arrange
+        using var bareSnapshot = await ReadPolicyContentAsync("{ id }");
+        using var fragmentSnapshot = await ReadPolicyContentAsync(
+            "fragment Requirements on Product { id }");
+
+        // act
+        var report = $"""
+            bare: {bareSnapshot.Policies[0].Requirements.Resource}
+            fragment: {fragmentSnapshot.Policies[0].Requirements.Resource}
+            """;
+
+        // assert
+        report.MatchInlineSnapshot(
+            """
+            bare: {
+              id
+            }
+            fragment: {
+              id
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_Throw_When_RequirementsContainMultipleFragments()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        var ct = TestContext.Current.CancellationToken;
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyAsync(
+                PairName,
+                Encoding.UTF8.GetBytes(GrantAllRego),
+                "fragment First on Product { id } fragment Second on Product { id }"u8.ToArray(),
+                s_version,
+                ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, FusionArchiveMode.Read, leaveOpen: true);
+
+        // act
+        var read = () => PackagePolicyContentReader.ReadAsync(
+            readArchive,
+            WellKnownVersions.LatestRegoPolicyFormatVersion,
+            ct);
+
+        // assert
+        await Assert.ThrowsAsync<InvalidOperationException>(read);
+    }
+
     private static async Task<bool> IsDeniedAsync(
         PolicyCollection registry,
         string productId,
@@ -181,6 +237,30 @@ public sealed class RegoPolicyIntegrationTests
         await policy.EvaluateAsync(context, cancellationToken);
 
         return context.DeniedIndices.Contains(0);
+    }
+
+    private static async Task<PolicyContentSnapshot> ReadPolicyContentAsync(string requirements)
+    {
+        await using var stream = new MemoryStream();
+        var ct = TestContext.Current.CancellationToken;
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyAsync(
+                PairName,
+                Encoding.UTF8.GetBytes(GrantAllRego),
+                Encoding.UTF8.GetBytes(requirements),
+                s_version,
+                ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, FusionArchiveMode.Read, leaveOpen: true);
+        return (await PackagePolicyContentReader.ReadAsync(
+            readArchive,
+            WellKnownVersions.LatestRegoPolicyFormatVersion,
+            ct))!;
     }
 
     private static async Task<FusionConfiguration> BuildConfigurationAsync(

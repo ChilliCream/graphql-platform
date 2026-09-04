@@ -156,6 +156,48 @@ public class FusionArchiveRegoPolicyTests
                 TestContext.Current.CancellationToken));
     }
 
+    [Theory]
+    [InlineData("{ id }")]
+    [InlineData("\uFEFF, # requirements\nfragment Requirements on Product { id }")]
+    public async Task SetRegoPolicy_Should_AcceptRequirements_When_PrefixIsSelectionSetOrFragment(
+        string requirements)
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act
+        await archive.SetRegoPolicyAsync(
+            "CanReadProduct",
+            "package CanReadProduct"u8.ToArray(),
+            Encoding.UTF8.GetBytes(requirements),
+            s_version1,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(["CanReadProduct"], archive.GetRegoPolicyNames(s_version1));
+    }
+
+    [Theory]
+    [InlineData("query { id }")]
+    [InlineData("id")]
+    public async Task SetRegoPolicy_Should_Throw_When_RequirementsAreNotSelectionSetOrFragment(
+        string requirements)
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act & assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SetRegoPolicyAsync(
+                "CanReadProduct",
+                "package CanReadProduct"u8.ToArray(),
+                Encoding.UTF8.GetBytes(requirements),
+                s_version1,
+                TestContext.Current.CancellationToken));
+    }
+
     [Fact]
     public async Task SetRegoPolicy_Should_Throw_When_PolicyNameIsReservedData()
     {

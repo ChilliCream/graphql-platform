@@ -111,11 +111,68 @@ internal static class PackagePolicyContentReader
 
     private static PolicyRequirements ParseRequirements(ReadOnlySpan<byte> requirements)
     {
-        var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements);
+        var selectionSet = HasFragmentRequirementsPrefix(requirements)
+            ? ParseFragmentRequirements(requirements)
+            : Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements);
         return selectionSet.Selections.Count == 0
             ? PolicyRequirements.Empty
             : new PolicyRequirements { Resource = selectionSet };
     }
+
+    private static SelectionSetNode ParseFragmentRequirements(ReadOnlySpan<byte> requirements)
+    {
+        var document = Utf8GraphQLParser.Parse(requirements);
+
+        if (document.Definitions.Count != 1
+            || document.Definitions[0] is not FragmentDefinitionNode fragment)
+        {
+            throw ThrowHelper.PolicyRequirementsMustBeSingleFragmentDefinition();
+        }
+
+        return fragment.SelectionSet;
+    }
+
+    private static bool HasFragmentRequirementsPrefix(ReadOnlySpan<byte> source)
+    {
+        if (source.Length >= 3 && source[0] == 0xEF && source[1] == 0xBB && source[2] == 0xBF)
+        {
+            source = source[3..];
+        }
+
+        var index = 0;
+
+        while (index < source.Length)
+        {
+            var current = source[index];
+
+            if (IsGraphQLWhitespace(current) || current == ',')
+            {
+                index++;
+                continue;
+            }
+
+            if (current == '#')
+            {
+                index++;
+
+                while (index < source.Length && source[index] is not (byte)'\r' and not (byte)'\n')
+                {
+                    index++;
+                }
+
+                continue;
+            }
+
+            return source[index..].StartsWith("fragment"u8)
+                && index + "fragment"u8.Length < source.Length
+                && IsGraphQLWhitespace(source[index + "fragment"u8.Length]);
+        }
+
+        return false;
+    }
+
+    private static bool IsGraphQLWhitespace(byte value)
+        => value is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n';
 
     private static byte[]? TryGetDigest(
         ImmutableSortedDictionary<string, string>? artifacts,

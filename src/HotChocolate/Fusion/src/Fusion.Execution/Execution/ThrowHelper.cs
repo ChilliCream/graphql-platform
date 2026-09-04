@@ -23,6 +23,9 @@ internal static class ThrowHelper
     public static InvalidOperationException PolicyRequirementsChanged(string policyName)
         => new($"Authorization policy '{policyName}' requirements changed after planning.");
 
+    public static InvalidOperationException PolicyRequirementsMustBeSingleFragmentDefinition()
+        => new("Policy requirements must contain exactly one fragment definition.");
+
     public static InvalidOperationException PolicyOperationPlanMissing()
         => new("There is no operation plan available for policy evaluation.");
 
