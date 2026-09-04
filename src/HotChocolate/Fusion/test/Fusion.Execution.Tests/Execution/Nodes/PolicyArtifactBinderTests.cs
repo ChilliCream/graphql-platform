@@ -59,6 +59,55 @@ public sealed class PolicyArtifactBinderTests
         Assert.Equal([false, true], produces);
     }
 
+    [Fact]
+    public void ValidatePolicyTopology_Should_RejectAmbiguousGuardedProducers_When_TargetHasNoCurrentOccurrences()
+    {
+        // arrange
+        var first = CreateOperation(
+            id: 6,
+            source: "query { first }",
+            target: SelectionPath.Root,
+            sourcePath: SelectionPath.Root,
+            ResultSelectionSet.CreateFromPlan(
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ first }")));
+        var second = CreateOperation(
+            id: 7,
+            source: "query { second }",
+            target: SelectionPath.Root,
+            sourcePath: SelectionPath.Root,
+            ResultSelectionSet.CreateFromPlan(
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ second }")));
+        var target = new PolicyExecutionTarget
+        {
+            Occurrences =
+            [
+                new PolicyOccurrenceReference
+                {
+                    PlanPart = 1,
+                    SelectionSetId = 1,
+                    SelectionId = 1,
+                    OccurrenceOrdinal = 0,
+                    ApplicationOrdinal = 0,
+                    Facet = PolicyOccurrenceFacet.ResidualEvaluation
+                }
+            ],
+            Kind = PolicyTargetKind.Field,
+            Path = SelectionPath.Parse("$.guarded"),
+            TypeName = "Query",
+            Policies = []
+        };
+        var policy = new PolicyExecutionNode(8, [target], []);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PolicyArtifactBinder.ValidatePolicyTopology([first, second, policy], planPart: 0));
+
+        // assert
+        Assert.Equal(
+            "A policy execution node has ambiguous guarded producers at the same target depth.",
+            exception.Message);
+    }
+
     private static OperationRequirement CreateRequirement(string map)
         => new(
             "requirement",

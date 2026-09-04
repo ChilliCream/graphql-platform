@@ -405,6 +405,15 @@ internal static class PolicyArtifactBinder
             ?? "nested defer";
     }
 
+    internal static void ValidatePolicyTopology(
+        ImmutableArray<ExecutionNode> nodes,
+        int planPart)
+        => ValidatePolicyTopology(
+            nodes,
+            ParentPlanScope.Empty,
+            planPart,
+            new Dictionary<PolicyOccurrenceReference, Candidate>());
+
     private static void ValidatePolicyTopology(
         ImmutableArray<ExecutionNode> nodes,
         ParentPlanScope parentScope,
@@ -450,12 +459,18 @@ internal static class PolicyArtifactBinder
                         artifact,
                         candidate))))
                 .OrderByDescending(owner => owner.TargetDepth)
-                .ThenBy(owner => owner.OwnerId)
                 .ToArray();
             if (producerOwners.Length == 0)
             {
                 throw ThrowHelper.InvalidOperationPlan(
                     "A policy execution node has no guarded producer.");
+            }
+
+            if (producerOwners.Length > 1
+                && producerOwners[0].TargetDepth == producerOwners[1].TargetDepth)
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    "A policy execution node has ambiguous guarded producers at the same target depth.");
             }
 
             var producerId = producerOwners[0].OwnerId;
