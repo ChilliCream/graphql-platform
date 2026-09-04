@@ -622,6 +622,43 @@ public sealed class BoardModeTests
         Assert.Contains('╰', lines[^1]);
     }
 
+    [Fact]
+    public void Render_Should_KeepEveryColumnFrameIntact_When_LongIdsAtNarrowWidth()
+    {
+        // arrange: BoardView.Default's five columns squeezed into a narrow
+        // total width, each holding a task whose id is longer than the
+        // column could ever show in full - the exact shape of the reported
+        // bug (a row wrapping onto a line the panel never budgeted for).
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("blocked-task-with-a-very-long-identifier", status: TaskStates.Open));
+        store.Blocked["blocked-task-with-a-very-long-identifier"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "deferred-task-with-a-very-long-identifier", status: TaskStates.Deferred));
+        store.Tasks.Add(TaskItemBuilder.Create("ready-task-with-a-very-long-identifier", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "in-progress-task-with-a-very-long-identifier", status: TaskStates.InProgress));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "closed-task-with-a-very-long-identifier", status: TaskStates.Closed, closedAt: Now.AddDays(-1)));
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        const int width = 120;
+        const int height = 20;
+        var console = new TestConsole().Width(width).Height(height);
+
+        // act
+        console.Write(mode.Render(width, height));
+
+        // assert: the grid fills exactly the requested height, every
+        // column's bottom border reaches the last row (no row silently ate
+        // an extra line folding an overlong id out of the panel), and no
+        // output row overruns the console's width.
+        var lines = TrimTrailingNewline(console.Output.Split('\n'));
+        Assert.Equal(height, lines.Length);
+        Assert.Contains('╰', lines[^1]);
+        Assert.All(lines, line => Assert.True(
+            line.Length <= width, $"Expected row width <= {width} but was {line.Length}: '{line}'"));
+    }
+
     /// <summary>
     /// Spectre appends a trailing line break to some renderables (a bare
     /// panel, a stacked rows list) but not others (a grid layout), so

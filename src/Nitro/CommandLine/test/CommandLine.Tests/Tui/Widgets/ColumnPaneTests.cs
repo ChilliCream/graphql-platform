@@ -75,4 +75,36 @@ public sealed class ColumnPaneTests
         // assert
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void Render_Should_NotFoldRowOntoExtraLines_When_LineIsAnOverlongUnbreakableToken()
+    {
+        // arrange: TaskBadge.Render always budgets its line to the column
+        // width, so this only guards a caller that (by mistake, or in the
+        // future) hands ColumnPane a raw, un-budgeted single token with no
+        // spaces to wrap on - the same shape as the reported bug's overlong
+        // task id. Without an overflow mode, Spectre folds such a token
+        // across as many extra lines as it takes, silently pushing the
+        // panel past the height the board budgeted for it.
+        var overlongToken = new string('a', 60);
+        var panel = ColumnPane.Render("Blocked", 1, [overlongToken], focused: false);
+        var console = new TestConsole().Width(20);
+
+        // act
+        console.Write(panel);
+
+        // assert: exactly one content row between the panel's top and
+        // bottom border, ellipsis-cropped rather than wrapped.
+        var lines = TrimTrailingNewline(console.Output.Split('\n'));
+        Assert.Equal(3, lines.Length);
+        Assert.Contains('…', lines[1]);
+    }
+
+    /// <summary>
+    /// Spectre appends a trailing line break after a bare panel, so
+    /// splitting console output on '\n' can leave one extra empty entry at
+    /// the end.
+    /// </summary>
+    private static string[] TrimTrailingNewline(string[] lines) =>
+        lines.Length > 0 && lines[^1].Length == 0 ? lines[..^1] : lines;
 }

@@ -17,7 +17,7 @@ internal static class ColumnPane
     {
         IRenderable content = lines.Count == 0
             ? new Markup(string.Empty)
-            : new Rows(lines.Select(line => (IRenderable)new Markup(line)));
+            : new Rows(lines.Select(line => (IRenderable)new Markup(line).Overflow(Overflow.Ellipsis)));
 
         var borderToken = focused ? "board.column.border.focused" : "board.column.border";
 
