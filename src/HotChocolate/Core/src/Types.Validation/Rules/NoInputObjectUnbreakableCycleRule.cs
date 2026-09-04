@@ -19,88 +19,186 @@ public sealed class NoInputObjectUnbreakableCycleRule
     : IValidationEventHandler<InputObjectTypesEvent>
 {
     /// <summary>
-    /// Checks that there are no cycles in input object type definitions.
+    /// Checks that every Input Object can be provided a finite value.
     /// </summary>
     public void Handle(InputObjectTypesEvent @event, ValidationContext context)
     {
-        var inputObjectTypes = @event.InputObjectTypes;
-        var cycleValidationContext = new CycleValidationContext();
+        var states = @event.InputObjectTypes.Select(t => new InputObjectState(t)).ToList();
+        var finiteStates = CollectEdges(states);
 
-        foreach (var inputObjectType in inputObjectTypes)
-        {
-            InputObjectHasCycle(inputObjectType, cycleValidationContext);
-        }
+        PropagateFiniteValues(finiteStates);
 
-        context.Log.Write(cycleValidationContext.LogEntries);
+        context.Log.Write(ReportCycles(states));
     }
 
-    private static void InputObjectHasCycle(
-        IInputObjectTypeDefinition inputObjectType,
-        CycleValidationContext context)
+    /// <summary>
+    /// Records the fields through which each Input Object requires another Input Object: every
+    /// Input Object field of a OneOf Input Object, and every non-null Input Object field of a
+    /// non-OneOf Input Object. Returns the states that are finite on their own: a OneOf Input
+    /// Object with a field that requires nothing, or a non-OneOf Input Object with no requiring
+    /// field.
+    /// </summary>
+    private static Stack<InputObjectState> CollectEdges(List<InputObjectState> states)
     {
-        if (!context.VisitedTypes.Add(inputObjectType))
+        var statesByType = states.ToDictionary(s => s.Type);
+        var finiteStates = new Stack<InputObjectState>();
+
+        foreach (var state in states)
+        {
+            foreach (var field in state.Type.Fields)
+            {
+                // Only a field that requires another Input Object of this schema forms an edge.
+                if (GetCycleTarget(state.Type.IsOneOf, field.Type) is not { } targetType
+                    || !statesByType.TryGetValue(targetType, out var target))
+                {
+                    continue;
+                }
+
+                state.Edges.Add(new CycleEdge(field, target));
+                target.Dependents.Add(state);
+            }
+
+            var fieldCount = state.Type.Fields.Count;
+
+            // A OneOf Input Object is finite on its own when it has no fields or when any field
+            // forms no edge. A non-OneOf Input Object is finite on its own when no field forms an
+            // edge.
+            if (state.Type.IsOneOf
+                ? fieldCount == 0 || state.Edges.Count < fieldCount
+                : state.Edges.Count == 0)
+            {
+                MarkFinite(state, finiteStates);
+            }
+            else
+            {
+                state.UnresolvedEdgeCount = state.Edges.Count;
+            }
+        }
+
+        return finiteStates;
+    }
+
+    /// <summary>
+    /// Returns the Input Object that a field of the given type requires a value for, or
+    /// <c>null</c> when the field type is an escape: a list, a nullable type on a non-OneOf
+    /// Input Object, or a type other than an Input Object.
+    /// </summary>
+    private static IInputObjectTypeDefinition? GetCycleTarget(bool isOneOf, IType fieldType)
+    {
+        if (fieldType.Kind == TypeKind.NonNull)
+        {
+            fieldType = ((NonNullType)fieldType).NullableType;
+        }
+        else if (!isOneOf)
+        {
+            return null;
+        }
+
+        return fieldType as IInputObjectTypeDefinition;
+    }
+
+    private static void MarkFinite(InputObjectState state, Stack<InputObjectState> finiteStates)
+    {
+        state.HasFiniteValue = true;
+        finiteStates.Push(state);
+    }
+
+    /// <summary>
+    /// Marks as finite every Input Object whose requirement is met by the finite states found
+    /// so far: a OneOf Input Object once any of its required Input Objects is finite, and a
+    /// non-OneOf Input Object once all of them are.
+    /// </summary>
+    private static void PropagateFiniteValues(Stack<InputObjectState> finiteStates)
+    {
+        while (finiteStates.TryPop(out var finiteState))
+        {
+            foreach (var dependent in finiteState.Dependents)
+            {
+                if (dependent.HasFiniteValue)
+                {
+                    continue;
+                }
+
+                if (dependent.Type.IsOneOf || --dependent.UnresolvedEdgeCount == 0)
+                {
+                    MarkFinite(dependent, finiteStates);
+                }
+            }
+        }
+    }
+
+    private static List<LogEntry> ReportCycles(List<InputObjectState> states)
+    {
+        var context = new CycleReportContext();
+
+        foreach (var state in states)
+        {
+            if (!state.HasFiniteValue)
+            {
+                ReportCycles(state, context);
+            }
+        }
+
+        return context.LogEntries;
+    }
+
+    private static void ReportCycles(InputObjectState state, CycleReportContext context)
+    {
+        if (!context.Visited.Add(state))
         {
             return;
         }
 
-        context.FieldPathIndexByType[inputObjectType] = context.FieldPath.Count;
+        context.FieldPathIndex[state] = context.FieldPath.Count;
 
-        foreach (var field in inputObjectType.Fields)
+        foreach (var edge in state.Edges)
         {
-            var unwrappedType = UnwrapCompletelyIfRequired(field.Type);
-            if (unwrappedType is not IInputObjectTypeDefinition innerInputObjectType)
+            if (edge.Target.HasFiniteValue)
             {
                 continue;
             }
 
-            context.FieldPath.Push(field.Coordinate.ToString());
+            context.FieldPath.Push(edge.Field.Coordinate.ToString());
 
-            if (context.FieldPathIndexByType.TryGetValue(innerInputObjectType, out var cycleIndex))
+            if (context.FieldPathIndex.TryGetValue(edge.Target, out var cycleIndex))
             {
                 var cyclePath = context.FieldPath.Skip(cycleIndex);
-                context.LogEntries.Add(
-                    InputObjectUnbreakableCycle(innerInputObjectType, cyclePath));
+                context.LogEntries.Add(InputObjectUnbreakableCycle(edge.Target.Type, cyclePath));
             }
             else
             {
-                InputObjectHasCycle(innerInputObjectType, context);
+                ReportCycles(edge.Target, context);
             }
 
             context.FieldPath.Pop();
         }
 
-        context.FieldPathIndexByType.Remove(inputObjectType);
+        context.FieldPathIndex.Remove(state);
     }
 
-    private static IType? UnwrapCompletelyIfRequired(IType type)
+    private sealed class InputObjectState(IInputObjectTypeDefinition type)
     {
-        while (true)
-        {
-            if (type.Kind == TypeKind.NonNull)
-            {
-                type = ((NonNullType)type).NullableType;
-            }
-            else
-            {
-                return null;
-            }
+        public List<InputObjectState> Dependents { get; } = [];
 
-            return type.Kind switch
-            {
-                TypeKind.List => null,
-                _ => type
-            };
-        }
+        public List<CycleEdge> Edges { get; } = [];
+
+        public bool HasFiniteValue { get; set; }
+
+        public IInputObjectTypeDefinition Type { get; } = type;
+
+        public int UnresolvedEdgeCount { get; set; }
     }
 
-    private sealed class CycleValidationContext
+    private readonly record struct CycleEdge(IInputValueDefinition Field, InputObjectState Target);
+
+    private sealed class CycleReportContext
     {
-        public HashSet<IInputObjectTypeDefinition> VisitedTypes { get; } = [];
-
-        public Dictionary<IInputObjectTypeDefinition, int> FieldPathIndexByType { get; } = [];
-
         public List<string> FieldPath { get; } = [];
 
+        public Dictionary<InputObjectState, int> FieldPathIndex { get; } = [];
+
         public List<LogEntry> LogEntries { get; } = [];
+
+        public HashSet<InputObjectState> Visited { get; } = [];
     }
 }
