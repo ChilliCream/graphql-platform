@@ -938,8 +938,8 @@ public sealed class PolicyPlanningTests : FusionTestBase
     [InlineData("missingTable", "The operation-wide include-condition table is required.")]
     [InlineData("missing", "A client include condition is missing from the operation-wide condition table.")]
     [InlineData("extra", "Every operation-wide include condition must be used by a compiled operation.")]
-    [InlineData("duplicate", "The operation-wide include-condition table must be unique and contain at most 64 entries.")]
-    [InlineData("over64", "The operation-wide include-condition table must be unique and contain at most 64 entries.")]
+    [InlineData("duplicate", "The operation-wide include-condition table must be unique.")]
+    [InlineData("over64", "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.")]
     [InlineData("order", "The operation-wide include-condition table must be in canonical order.")]
     public void JsonParser_Should_RejectMalformedIncludeConditionTable(
         string mutation,

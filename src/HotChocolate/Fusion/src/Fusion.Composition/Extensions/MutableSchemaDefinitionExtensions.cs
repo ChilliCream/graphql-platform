@@ -415,13 +415,12 @@ internal static class MutableSchemaDefinitionExtensions
                 {
                     foreach (var argument in field.Arguments)
                     {
-                        var argumentInnerType = argument.Type.InnerType();
+                        var argumentNamedType = argument.Type.NamedType();
 
                         if ((argument.HasRequireDirective || field.IsLookup)
-                            && argumentInnerType is INameProvider { Name: var name }
-                            && !SpecScalarNames.IsSpecScalar(name))
+                            && !SpecScalarNames.IsSpecScalar(argumentNamedType.Name))
                         {
-                            preservedTypeNames.Add(name);
+                            preservedTypeNames.Add(argumentNamedType.Name);
                         }
                     }
                 }

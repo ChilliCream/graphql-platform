@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -7,13 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Raven;
 
 public abstract class VisitorTestBase : IAsyncLifetime
 {
-    public RavenDBResource<CustomRavenDBOptions> Resource { get; } = new();
+    public RavenDBResource Resource { get; } = new();
 
     public ValueTask InitializeAsync() => Resource.InitializeAsync();
 

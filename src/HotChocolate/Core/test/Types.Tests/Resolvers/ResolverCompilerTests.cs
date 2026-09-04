@@ -485,7 +485,7 @@ public class ResolverCompilerTests
             "abc",
             SelectionPath.Root,
             schema.Types.GetType<ObjectType>("Query").Fields["abc"],
-            [new FieldSelectionNode(fieldSyntax, 1)],
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
             [],
             isProjectionRequirement: false);
 
@@ -529,7 +529,7 @@ public class ResolverCompilerTests
             "abc",
             SelectionPath.Root,
             schema.Types.GetType<ObjectType>("Query").Fields["abc"],
-            [new FieldSelectionNode(fieldSyntax, 1)],
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
             [],
             isProjectionRequirement: false);
 
@@ -631,7 +631,7 @@ public class ResolverCompilerTests
             "a",
             SelectionPath.Root,
             queryType.Fields.First(),
-            [new FieldSelectionNode(fieldSyntax, 1)],
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
             [],
             isProjectionRequirement: false);
 
@@ -676,7 +676,7 @@ public class ResolverCompilerTests
             "a",
             SelectionPath.Root,
             queryType.Fields.First(),
-            [new FieldSelectionNode(fieldSyntax, 1)],
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
             [],
             isProjectionRequirement: false);
 

@@ -400,8 +400,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = """{"data":{"foos":[{"id":"1","bar":{"y":"v"}}]}}"""u8.ToArray();
@@ -483,8 +483,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = """{"data":{"foos":[{"__fusion_internal_id":"1"}]}}"""u8.ToArray();
@@ -3111,8 +3111,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             errorHandler,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -3241,8 +3241,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -3272,8 +3272,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             DefaultErrorHandler.Default,
             operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
         return store;
     }

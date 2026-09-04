@@ -2692,7 +2692,7 @@ internal static class PolicyArtifactBinder
 
             foreach (var deliveryGroup in activeDeliveryGroups)
             {
-                if (selection.HasActiveDeliveryGroup(activeDeferFlags, deliveryGroup))
+                if (selection.HasActiveDeliveryGroup(new ConditionFlags(activeDeferFlags), deliveryGroup))
                 {
                     return true;
                 }

@@ -427,6 +427,7 @@ public sealed record OperationPlan : IOperationPlan
             policySlots,
             policies,
             allNodes);
+        ValidateWidePolicyCombination(operation, policySlots);
         ValidateIncludeConditions(operation, incrementalPlans, includeConditions);
         ValidatePolicyArtifacts(operation, policyExpressions, policySlots, policies, allNodes, incrementalPlans);
 
@@ -461,6 +462,7 @@ public sealed record OperationPlan : IOperationPlan
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
+        ValidateWidePolicyCombination(operation, policySlots);
         ValidateIncludeConditions(operation, incrementalPlans, includeConditions);
         ValidatePolicyArtifacts(operation, policyExpressions, policySlots, policies, allNodes, incrementalPlans);
         PolicyArtifactBinder.Validate(
@@ -565,6 +567,7 @@ public sealed record OperationPlan : IOperationPlan
             policies,
             allNodes,
             policySnapshot);
+        ValidateWidePolicyCombination(operation, policySlots);
         ValidateIncludeConditions(operation, incrementalPlans, includeConditions);
         ValidatePolicyArtifacts(operation, policyExpressions, policySlots, policies, allNodes, incrementalPlans);
 
@@ -611,13 +614,13 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<IncrementalPlan> incrementalPlans,
         ImmutableArray<OperationIncludeCondition> includeConditions)
     {
-        if (includeConditions.IsDefault || includeConditions.Length > 64)
+        if (includeConditions.IsDefault)
         {
             throw ThrowHelper.InvalidOperationPlan(
                 "The operation-wide include-condition table is invalid.");
         }
 
-        var expected = IncludeConditionCollection.Create(includeConditions);
+        var expected = IncludeConditionCollection.Create(includeConditions, int.MaxValue);
         if (expected.Count != includeConditions.Length)
         {
             throw ThrowHelper.InvalidOperationPlan(
@@ -687,8 +690,23 @@ public sealed record OperationPlan : IOperationPlan
 
         static HashSet<IncludeCondition> CreateWitnessedConditions(OperationDefinitionNode definition)
         {
-            var conditions = OperationCompiler.CreateIncludeConditionCollection(definition);
+            var conditions = OperationCompiler.CreateIncludeConditionCollection(
+                definition,
+                int.MaxValue,
+                includeDeferConditions: true);
             return [.. conditions];
+        }
+    }
+
+    private static void ValidateWidePolicyCombination(
+        Operation operation,
+        ImmutableArray<PolicyConditionSlot> policySlots)
+    {
+        if ((operation.HasWideIncludeFlags || operation.HasWideDeferFlags)
+            && !policySlots.IsDefaultOrEmpty)
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.");
         }
     }
 

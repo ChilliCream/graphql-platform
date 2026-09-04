@@ -16,8 +16,9 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public static class HotChocolateExecutionSelectionExtensions
 {
-    // Treats every conditional selection as included. This is safe because include
-    // conditions are capped at 64 bits, so ulong.MaxValue satisfies every condition bit.
+    // Treats every conditional selection as included. For narrow operations
+    // ulong.MaxValue satisfies every condition bit; wide operations additionally
+    // need all-ones overflow words (see CreateIncludeAllWideFlags).
     private const ulong IncludeAllFlags = ulong.MaxValue;
     private static readonly SelectionExpressionBuilder s_builder = new();
 
@@ -50,9 +51,29 @@ public static class HotChocolateExecutionSelectionExtensions
     /// Creates a selector expression from a GraphQL selection and projects exactly
     /// the fields included by the runtime @skip/@include flags.
     /// </summary>
+    [Obsolete("Use AsSelector<TValue>(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this ISelection selection,
         ulong includeFlags)
+    {
+        if (selection is not Selection casted)
+        {
+            throw new ArgumentException(
+                $"Expected {typeof(Selection).FullName}.",
+                nameof(selection));
+        }
+
+        EnsureNarrowIncludeFlags(casted);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(casted, includeFlags);
+    }
+
+    /// <summary>
+    /// Creates a selector expression from a GraphQL selection and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
+    /// </summary>
+    public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
+        this ISelection selection,
+        ConditionFlags includeFlags)
     {
         if (selection is not Selection casted)
         {
@@ -78,14 +99,32 @@ public static class HotChocolateExecutionSelectionExtensions
     /// </returns>
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection)
-        => AsSelector<TValue>(selection, IncludeAllFlags);
+    {
+        ArgumentNullException.ThrowIfNull(selection);
 
+        if (selection.DeclaringOperation.HasWideIncludeFlags)
+        {
+            var includeFlags = GetIncludeAllConditionFlags(selection.DeclaringOperation);
+            return GetOrCreateSelectorExpression<TValue>(selection, includeFlags).Expression;
+        }
+
+        return AsSelectorWithNarrowIncludeFlags<TValue>(selection, IncludeAllFlags);
+    }
+
+    [Obsolete("Use AsSelector<TValue>(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(selection);
+        EnsureNarrowIncludeFlags(selection);
+        return AsSelectorWithNarrowIncludeFlags<TValue>(selection, includeFlags);
+    }
 
+    private static Expression<Func<TValue, TValue>> AsSelectorWithNarrowIncludeFlags<TValue>(
+        Selection selection,
+        ulong includeFlags)
+    {
         var selectorExpression = GetOrCreateSelectorExpression<TValue>(selection);
         var conditionMask = selectorExpression.ConditionMask;
         var maskedFlags = includeFlags & conditionMask;
@@ -110,11 +149,65 @@ public static class HotChocolateExecutionSelectionExtensions
         return selectorExpression.Expression;
     }
 
+    /// <summary>
+    /// Creates a selector expression from a GraphQL selection and projects exactly
+    /// the fields included by the runtime @skip/@include flags.
+    /// </summary>
+    public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
+        this Selection selection,
+        ConditionFlags includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+
+        if (!selection.DeclaringOperation.HasWideIncludeFlags)
+        {
+            return AsSelectorWithNarrowIncludeFlags<TValue>(selection, includeFlags.Word0);
+        }
+
+        var operation = selection.DeclaringOperation;
+        var cache = operation.Features.GetOrSetSafe(
+            static o => o.Schema.Services.GetRequiredService<ProjectionSelectorCache>(),
+            operation);
+
+        return cache.GetOrCreate(
+            selection,
+            includeFlags,
+            static (selection, flags) => CreateSelectorExpression<TValue>(
+                selection,
+                flags.Word0,
+                flags.Overflow)).Expression;
+    }
+
+    private static void EnsureNarrowIncludeFlags(Selection selection)
+    {
+        if (selection.DeclaringOperation.HasWideIncludeFlags)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this projection requires "
+                + "the wide include flags. Use AsSelector<TValue>(ConditionFlags).");
+        }
+    }
+
+    private static ConditionFlags GetIncludeAllConditionFlags(Operation operation)
+        => operation.Features.GetOrSetSafe(
+            static operation => new IncludeAllConditionFlags(operation.IncludeConditionCount),
+            operation).Flags;
+
     private static SelectorExpression<TValue> GetOrCreateSelectorExpression<TValue>(
         Selection selection)
         => selection.Features.GetOrSetSafe(
             static selection => CreateSelectorExpression<TValue>(selection),
             selection);
+
+    private static SelectorExpression<TValue> GetOrCreateSelectorExpression<TValue>(
+        Selection selection,
+        ConditionFlags includeFlags)
+        => selection.Features.GetOrSetSafe(
+            static state => CreateSelectorExpression<TValue>(
+                state.Selection,
+                state.IncludeFlags.Word0,
+                state.IncludeFlags.Overflow),
+            (Selection: selection, IncludeFlags: includeFlags));
 
     private static SelectorExpression<TValue> CreateSelectorExpression<TValue>(
         Selection selection)
@@ -123,6 +216,12 @@ public static class HotChocolateExecutionSelectionExtensions
     private static SelectorExpression<TValue> CreateSelectorExpression<TValue>(
         Selection selection,
         ulong includeFlags)
+        => CreateSelectorExpression<TValue>(selection, includeFlags, wideIncludeFlags: null);
+
+    private static SelectorExpression<TValue> CreateSelectorExpression<TValue>(
+        Selection selection,
+        ulong includeFlags,
+        ulong[]? wideIncludeFlags)
     {
         var flags = selection.Field.Flags;
 
@@ -131,6 +230,7 @@ public static class HotChocolateExecutionSelectionExtensions
             return CreateCompositeSelectorExpression<TValue>(
                 selection,
                 includeFlags,
+                wideIncludeFlags,
                 GetConnectionSelections);
         }
 
@@ -139,6 +239,7 @@ public static class HotChocolateExecutionSelectionExtensions
             return CreateCompositeSelectorExpression<TValue>(
                 selection,
                 includeFlags,
+                wideIncludeFlags,
                 GetCollectionSelections);
         }
 
@@ -147,6 +248,7 @@ public static class HotChocolateExecutionSelectionExtensions
             return CreateCompositeSelectorExpression<TValue>(
                 selection,
                 includeFlags,
+                wideIncludeFlags,
                 GetMutationPayloadSelections);
         }
 
@@ -156,11 +258,13 @@ public static class HotChocolateExecutionSelectionExtensions
         if ((flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
             || (flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField)
         {
-            expression = s_builder.BuildNodeExpression<TValue>(selection, includeFlags, out conditionMask);
+            expression = s_builder.BuildNodeExpression<TValue>(
+                selection, includeFlags, wideIncludeFlags, out conditionMask);
         }
         else
         {
-            expression = s_builder.BuildExpression<TValue>(selection, includeFlags, out conditionMask);
+            expression = s_builder.BuildExpression<TValue>(
+                selection, includeFlags, wideIncludeFlags, out conditionMask);
         }
 
         return new SelectorExpression<TValue>(includeFlags, conditionMask, expression);
@@ -169,6 +273,7 @@ public static class HotChocolateExecutionSelectionExtensions
     private static SelectorExpression<TValue> CreateCompositeSelectorExpression<TValue>(
         Selection selection,
         ulong includeFlags,
+        ulong[]? wideIncludeFlags,
         SelectionCollector collectSelections)
     {
         var builder = new DefaultSelectorBuilder();
@@ -181,6 +286,15 @@ public static class HotChocolateExecutionSelectionExtensions
             for (var i = 0; i < count; i++)
             {
                 var child = buffer[i];
+
+                if (wideIncludeFlags is not null)
+                {
+                    // The cached selector key includes the overflow words, while the
+                    // selection cache only stores an all-inclusive selector.
+                    builder.Add(CreateSelectorExpression<TValue>(child, includeFlags, wideIncludeFlags).Expression);
+                    continue;
+                }
+
                 var childSelectorExpression = GetOrCreateSelectorExpression<TValue>(child);
                 conditionMask |= childSelectorExpression.ConditionMask;
 
@@ -207,6 +321,18 @@ public static class HotChocolateExecutionSelectionExtensions
     {
         var parameter = Expression.Parameter(typeof(TValue), "root");
         return Expression.Lambda<Func<TValue, TValue>>(parameter, parameter);
+    }
+
+    private sealed class IncludeAllConditionFlags
+    {
+        public IncludeAllConditionFlags(int conditionCount)
+        {
+            var overflow = new ulong[(conditionCount - 1) >> 6];
+            Array.Fill(overflow, ulong.MaxValue);
+            Flags = new ConditionFlags(IncludeAllFlags, overflow);
+        }
+
+        public ConditionFlags Flags { get; }
     }
 
     private static int GetConnectionSelections(Selection selection, Span<Selection> buffer)

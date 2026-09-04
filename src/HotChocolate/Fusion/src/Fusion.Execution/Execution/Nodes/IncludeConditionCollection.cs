@@ -6,6 +6,12 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 internal class IncludeConditionCollection : ICollection<IncludeCondition>
 {
     private readonly OrderedDictionary<IncludeCondition, int> _dictionary = [];
+    private readonly int _maxAllowedConditions;
+
+    public IncludeConditionCollection(int maxAllowedConditions)
+    {
+        _maxAllowedConditions = maxAllowedConditions;
+    }
 
     public IncludeCondition this[int index]
         => _dictionary.GetAt(index).Key;
@@ -29,9 +35,10 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
     }
 
     public static IncludeConditionCollection Create(
-        ImmutableArray<OperationIncludeCondition> conditions)
+        ImmutableArray<OperationIncludeCondition> conditions,
+        int maxAllowedConditions)
     {
-        var collection = new IncludeConditionCollection();
+        var collection = new IncludeConditionCollection(maxAllowedConditions);
 
         foreach (var condition in conditions)
         {
@@ -47,13 +54,22 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
 
     public bool Add(IncludeCondition item)
     {
-        if (_dictionary.Count == 64)
+        if (!_dictionary.TryAdd(item, _dictionary.Count))
         {
-            throw new InvalidOperationException(
-                "The maximum number of include conditions has been reached.");
+            return false;
         }
 
-        return _dictionary.TryAdd(item, _dictionary.Count);
+        if (_dictionary.Count > _maxAllowedConditions)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The operation exceeds the maximum allowed number of "
+                        + $"include conditions ({_maxAllowedConditions}).")
+                    .Build());
+        }
+
+        return true;
     }
 
     void ICollection<IncludeCondition>.Add(IncludeCondition item)

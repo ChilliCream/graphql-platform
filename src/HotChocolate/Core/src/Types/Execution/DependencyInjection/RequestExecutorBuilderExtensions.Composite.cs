@@ -31,6 +31,8 @@ public static partial class RequestExecutorBuilderExtensions
         {
             o.ApplyShareableToConnections = true;
             o.ApplyShareableToPageInfo = true;
+            o.ApplyShareableToCollectionSegments = true;
+            o.ApplyShareableToCollectionSegmentInfo = true;
             o.ApplyShareableToNodeFields = true;
             o.ApplySerializeAsToScalars = true;
             o.InferKeysFromLookups = true;

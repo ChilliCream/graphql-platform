@@ -3192,7 +3192,7 @@ public sealed partial class OperationPlanner
 
     private static bool DoVariablesContainUploadScalar(
         IReadOnlyList<VariableDefinitionNode> variables,
-        ISchemaDefinition schema)
+        FusionSchemaDefinition schema)
     {
         var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
         var visited = new HashSet<IInputObjectTypeDefinition>(ReferenceEqualityComparer.Instance);
@@ -3200,7 +3200,11 @@ public sealed partial class OperationPlanner
         foreach (var variable in variables)
         {
             var variableTypeName = variable.Type.NamedType().Name.Value;
-            var variableType = schema.Types[variableTypeName];
+
+            if (!schema.Types.TryGetType(variableTypeName, allowInaccessibleFields: true, out var variableType))
+            {
+                continue;
+            }
 
             if (variableType is IScalarTypeDefinition { Name: UploadScalarName })
             {

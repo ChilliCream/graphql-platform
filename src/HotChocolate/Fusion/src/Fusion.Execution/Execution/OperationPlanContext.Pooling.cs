@@ -70,11 +70,11 @@ public sealed partial class OperationPlanContext
                 break;
         }
 
-        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+        IncludeConditionFlags = operationPlan.Operation.CreateIncludeConditionFlags(variables);
         PolicyDenyFlags = variables is PolicyVariableValueCollection policyVariables
             ? policyVariables.DenyFlags
             : 0;
-        DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
+        DeferConditionFlags = operationPlan.Operation.CreateDeferConditionFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
@@ -85,8 +85,8 @@ public sealed partial class OperationPlanContext
             _errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
-            IncludeFlags,
-            DeferFlags,
+            IncludeConditionFlags,
+            DeferConditionFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
         _resultStore.SetPolicyExecutionState(
             operationPlan as OperationPlan ?? _policyRequestState?.OperationPlan,
@@ -183,9 +183,9 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
-        IncludeFlags = 0;
+        IncludeConditionFlags = default;
         PolicyDenyFlags = 0;
-        DeferFlags = 0;
+        DeferConditionFlags = default;
         // if a custom scope is used we cannot reuse it and have to null it.
         if (_clientScope is not DefaultSourceSchemaClientScope)
         {

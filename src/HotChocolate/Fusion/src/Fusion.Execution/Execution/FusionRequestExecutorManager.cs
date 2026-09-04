@@ -496,9 +496,15 @@ internal sealed class FusionRequestExecutorManager
             static sp => sp.GetRequiredService<OperationPlanCache>().Current);
 
         services.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<FusionSchemaDefinition>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+            static sp =>
+            {
+                var requestOptions = sp.GetRequiredService<FusionRequestOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<FusionSchemaDefinition>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    requestOptions.MaxAllowedIncludeConditions,
+                    requestOptions.MaxAllowedDeferConditions);
+            });
 
         services.AddSingleton(plannerOptions);
 

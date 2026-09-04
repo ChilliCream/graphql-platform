@@ -50,10 +50,25 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
 
         var includeConditions = ParseIncludeConditions(includeConditionsElement);
-        var compiledIncludeConditions = IncludeConditionCollection.Create(includeConditions);
+        var hasPolicyCandidates = rootElement.TryGetProperty("policySlots", out var policySlotsElement)
+            && policySlotsElement.GetArrayLength() > 0;
+        if (includeConditions.Length > 64 && hasPolicyCandidates)
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.");
+        }
+
+        var compiledIncludeConditions = IncludeConditionCollection.Create(includeConditions, int.MaxValue);
         var operation = ParseOperation(
             rootElement.GetProperty("operation"),
             compiledIncludeConditions);
+
+        if ((operation.HasWideIncludeFlags || operation.HasWideDeferFlags)
+            && hasPolicyCandidates)
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.");
+        }
 
         if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
         {
@@ -92,7 +107,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var policySlots = ImmutableArray<PolicyConditionSlot>.Empty;
 
-        if (rootElement.TryGetProperty("policySlots", out var policySlotsElement))
+        if (rootElement.TryGetProperty("policySlots", out policySlotsElement))
         {
             policySlots = ParsePolicySlots(policySlotsElement);
         }
@@ -156,11 +171,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
 
         var conditions = builder.ToImmutable();
-        if (conditions.Length > 64
-            || conditions.Distinct().Count() != conditions.Length)
+        if (conditions.Distinct().Count() != conditions.Length)
         {
             throw ThrowHelper.InvalidOperationPlan(
-                "The operation-wide include-condition table must be unique and contain at most 64 entries.");
+                "The operation-wide include-condition table must be unique.");
         }
 
         return conditions;

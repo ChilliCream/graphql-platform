@@ -1,6 +1,8 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Options;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
@@ -18,12 +20,16 @@ public sealed partial class OperationCompiler
     private readonly OperationCompilerOptimizers _optimizers;
     private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
+    private readonly int _maxAllowedIncludeConditions;
+    private readonly int _maxAllowedDeferConditions;
 
     internal OperationCompiler(
         Schema schema,
         InputParser inputValueParser,
         ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool,
-        OperationCompilerOptimizers optimizers)
+        OperationCompilerOptimizers optimizers,
+        int maxAllowedIncludeConditions,
+        int maxAllowedDeferConditions)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(fieldsPool);
@@ -36,6 +42,8 @@ public sealed partial class OperationCompiler
             removeStaticallyExcludedSelections: true,
             includeTypeNameToEmptySelectionSets: false);
         _optimizers = optimizers;
+        _maxAllowedIncludeConditions = maxAllowedIncludeConditions;
+        _maxAllowedDeferConditions = maxAllowedDeferConditions;
     }
 
     public static Operation Compile(
@@ -65,7 +73,9 @@ public sealed partial class OperationCompiler
             new InputParser(),
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()),
-            new OperationCompilerOptimizers())
+            new OperationCompilerOptimizers(),
+            RequestExecutorOptions.DefaultMaxAllowedConditions,
+            RequestExecutorOptions.DefaultMaxAllowedConditions)
             .Compile(id, hash, operationName, document, context ?? EmptyFeatureProvider.Instance);
 
     public Operation Compile(
@@ -85,8 +95,8 @@ public sealed partial class OperationCompiler
         document = result.Document;
         var operationDefinition = document.GetOperation(operationName);
 
-        var includeConditions = new IncludeConditionCollection();
-        var deferConditions = new DeferConditionCollection();
+        var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
+        var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
         DeferConditionVisitor.Instance.Visit(operationDefinition, deferConditions);
         var fields = _fieldsPool.Get();
@@ -96,11 +106,15 @@ public sealed partial class OperationCompiler
         try
         {
             var lastId = 0;
-            const ulong parentIncludeFlags = 0ul;
             var rootType = _schema.GetOperationType(operationDefinition.Operation);
 
+            // The condition visitors have seen the whole operation, so the mask width
+            // per kind is final before any field is collected.
+            var hasWideIncludeFlags = includeConditions.Count > 64;
+            var hasWideDeferFlags = deferConditions.Count > 64;
+
             CollectFields(
-                parentIncludeFlags,
+                default,
                 operationDefinition.SelectionSet.Selections,
                 rootType,
                 fields,
@@ -116,6 +130,9 @@ public sealed partial class OperationCompiler
                 _optimizers.SelectionSetOptimizers,
                 parentIsInternal: false,
                 parentIsProjectionRequirement: false,
+                hasWideIncludeFlags,
+                includeConditions.Count,
+                hasWideDeferFlags,
                 ref lastId);
 
             compilationContext.Register(selectionSet, selectionSet.Id);
@@ -174,9 +191,11 @@ public sealed partial class OperationCompiler
         {
             var nodes = selection.SyntaxNodes;
             var first = nodes[0];
+            var hasWideIncludeFlags = operation.HasWideIncludeFlags;
+            var hasWideDeferFlags = operation.HasWideDeferFlags;
 
             CollectFields(
-                first.PathIncludeFlags,
+                new PathIncludeFlagsBuilder(first.PathConditionFlags.Word0, first.PathConditionFlags.Overflow),
                 first.Node.SelectionSet!.Selections,
                 objectType,
                 fields,
@@ -191,13 +210,13 @@ public sealed partial class OperationCompiler
                     var node = nodes[i];
 
                     CollectFields(
-                        node.PathIncludeFlags,
+                        new PathIncludeFlagsBuilder(node.PathConditionFlags.Word0, node.PathConditionFlags.Overflow),
                         node.Node.SelectionSet!.Selections,
                         objectType,
                         fields,
                         includeConditions,
                         deferConditions,
-                        parentDeferUsage: nodes[i].DeferUsage);
+                        parentDeferUsage: node.DeferUsage);
                 }
             }
 
@@ -209,6 +228,9 @@ public sealed partial class OperationCompiler
                 optimizers,
                 selection.IsInternal,
                 selection.IsProjectionRequirement,
+                hasWideIncludeFlags,
+                includeConditions.Count,
+                hasWideDeferFlags,
                 ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
@@ -222,7 +244,7 @@ public sealed partial class OperationCompiler
     }
 
     private void CollectFields(
-        ulong parentIncludeFlags,
+        PathIncludeFlagsBuilder parentIncludeFlags,
         IReadOnlyList<ISelectionNode> selections,
         IObjectTypeDefinition typeContext,
         OrderedDictionary<string, List<FieldSelectionNode>> fields,
@@ -248,10 +270,14 @@ public sealed partial class OperationCompiler
                 if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
                 {
                     var index = includeConditions.IndexOf(includeCondition);
-                    pathIncludeFlags |= 1ul << index;
+                    pathIncludeFlags = pathIncludeFlags.Add(index);
                 }
 
-                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags, parentDeferUsage));
+                nodes.Add(
+                    new FieldSelectionNode(
+                        fieldNode,
+                        new ConditionFlags(pathIncludeFlags.Word0, pathIncludeFlags.Overflow),
+                        parentDeferUsage));
             }
             else if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
@@ -261,7 +287,7 @@ public sealed partial class OperationCompiler
                 if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
                 {
                     var index = includeConditions.IndexOf(includeCondition);
-                    pathIncludeFlags |= 1ul << index;
+                    pathIncludeFlags = pathIncludeFlags.Add(index);
                 }
 
                 var newDeferUsage = parentDeferUsage;
@@ -271,7 +297,7 @@ public sealed partial class OperationCompiler
                     deferConditions.Add(deferCondition);
                     var deferIndex = deferConditions.IndexOf(deferCondition);
                     var label = GetDeferLabel(inlineFragmentNode);
-                    newDeferUsage = new DeferUsage(label, parentDeferUsage, (byte)deferIndex);
+                    newDeferUsage = new DeferUsage(label, parentDeferUsage, deferIndex);
                 }
 
                 CollectFields(
@@ -294,6 +320,9 @@ public sealed partial class OperationCompiler
         ImmutableArray<ISelectionSetOptimizer> optimizers,
         bool parentIsInternal,
         bool parentIsProjectionRequirement,
+        bool hasWideIncludeFlags,
+        int includeConditionCount,
+        bool hasWideDeferFlags,
         ref int lastId)
     {
         var i = 0;
@@ -301,14 +330,19 @@ public sealed partial class OperationCompiler
         var isConditional = false;
         var hasDeferredSelections = false;
         var includeFlags = new List<ulong>();
+        // Aligned with includeFlags per path; only materialized for wide operations.
+        var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
+        var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
         var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
         foreach (var (responseName, nodes) in fieldMap)
         {
             includeFlags.Clear();
+            wideIncludeFlags?.Clear();
             deferUsages.Clear();
 
             var alwaysIncluded = false;
+            var hasOverflowIncludeFlags = false;
             var first = nodes[0];
             // A selection nested inside an internal selection is itself internal: the
             // whole subtree exists only for engine-internal purposes (for example the
@@ -317,13 +351,19 @@ public sealed partial class OperationCompiler
             var isProjectionRequirement = parentIsProjectionRequirement;
             var hasNonDeferredNode = first.DeferUsage is null;
 
-            if (first.PathIncludeFlags == 0)
+            if (first.PathConditionFlags.Word0 == 0 && IsOverflowEmpty(first.PathConditionFlags.Overflow))
             {
                 alwaysIncluded = true;
             }
             else
             {
                 includeFlags.Add(first.PathIncludeFlags);
+                if (wideIncludeFlags is not null)
+                {
+                    var overflow = first.PathConditionFlags.Overflow;
+                    wideIncludeFlags.Add(overflow ?? []);
+                    hasOverflowIncludeFlags = !IsOverflowEmpty(overflow);
+                }
             }
 
             if (first.DeferUsage is not null)
@@ -343,17 +383,25 @@ public sealed partial class OperationCompiler
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
 
-                    if (next.PathIncludeFlags == 0)
+                    if (next.PathConditionFlags.Word0 == 0 && IsOverflowEmpty(next.PathConditionFlags.Overflow))
                     {
                         alwaysIncluded = true;
                         if (includeFlags.Count > 0)
                         {
                             includeFlags.Clear();
+                            wideIncludeFlags?.Clear();
+                            hasOverflowIncludeFlags = false;
                         }
                     }
                     else if (!alwaysIncluded)
                     {
                         includeFlags.Add(next.PathIncludeFlags);
+                        if (wideIncludeFlags is not null)
+                        {
+                            var overflow = next.PathConditionFlags.Overflow;
+                            wideIncludeFlags.Add(overflow ?? []);
+                            hasOverflowIncludeFlags |= !IsOverflowEmpty(overflow);
+                        }
                     }
 
                     if (next.DeferUsage is null)
@@ -372,15 +420,31 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            if (includeFlags.Count > 1)
+            if (includeFlags.Count > 1 && wideIncludeFlags is null)
             {
+                // Collapsing is a dedup optimization on single-word masks. Wide path
+                // masks skip it; a word-aware subsumption check is not worth the cost.
                 CollapseIncludeFlags(includeFlags);
+            }
+
+            ulong[]? flatWideIncludeFlags = null;
+            if (hasOverflowIncludeFlags && wideIncludeFlags is { Count: > 0 })
+            {
+                flatWideIncludeFlags = new ulong[wideIncludeFlags.Count * wideIncludeFlagsStride];
+
+                for (var j = 0; j < wideIncludeFlags.Count; j++)
+                {
+                    var pathOverflow = wideIncludeFlags[j];
+                    pathOverflow.AsSpan().CopyTo(
+                        flatWideIncludeFlags.AsSpan(j * wideIncludeFlagsStride, pathOverflow.Length));
+                }
             }
 
             // If any field node is not inside a deferred fragment, the selection
             // is not deferred — it must be included in the initial response.
             DeferUsage[]? finalDeferUsage = null;
             ulong deferMask = 0;
+            ulong[]? wideDeferMask = null;
 
             if (!hasNonDeferredNode && deferUsages.Count > 0)
             {
@@ -403,10 +467,22 @@ public sealed partial class OperationCompiler
                 }
 
                 finalDeferUsage = deferUsages.ToArray();
-                foreach (var usage in deferUsages)
+
+                if (!hasWideDeferFlags)
                 {
-                    deferMask |= 1ul << usage.DeferConditionIndex;
+                    foreach (var usage in deferUsages)
+                    {
+                        // This path only runs for operations with at most 64 defer
+                        // conditions, so the shift cannot wrap.
+                        Debug.Assert((uint)usage.DeferConditionIndex < 64);
+                        deferMask |= 1ul << usage.DeferConditionIndex;
+                    }
                 }
+                else
+                {
+                    (deferMask, wideDeferMask) = BuildWideDeferMask(deferUsages);
+                }
+
                 hasDeferredSelections = true;
             }
 
@@ -433,8 +509,11 @@ public sealed partial class OperationCompiler
                 nodes.ToArray(),
                 includeFlags.Count > 0 ? includeFlags.ToArray() : [],
                 isProjectionRequirement,
+                wideIncludeFlags: flatWideIncludeFlags,
+                wideIncludeFlagsStride: wideIncludeFlagsStride,
                 deferUsage: finalDeferUsage,
                 deferMask: deferMask,
+                wideDeferMask: wideDeferMask,
                 isInternal: isInternal,
                 arguments: arguments,
                 resolverPipeline: fieldDelegate,
@@ -506,6 +585,59 @@ public sealed partial class OperationCompiler
 
         selections = ImmutableCollectionsMarshal.AsArray(rewritten)!;
         return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
+    }
+
+    private static bool IsOverflowEmpty(ulong[]? overflow)
+    {
+        if (overflow is null)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < overflow.Length; i++)
+        {
+            if (overflow[i] != 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static (ulong Word0, ulong[]? Overflow) BuildWideDeferMask(List<DeferUsage> deferUsages)
+    {
+        var word0 = 0ul;
+        var maxWord = 0;
+
+        foreach (var usage in deferUsages)
+        {
+            var word = usage.DeferConditionIndex >> 6;
+
+            if (word > maxWord)
+            {
+                maxWord = word;
+            }
+        }
+
+        var overflow = maxWord > 0 ? new ulong[maxWord] : null;
+
+        foreach (var usage in deferUsages)
+        {
+            var index = usage.DeferConditionIndex;
+            var word = index >> 6;
+
+            if (word == 0)
+            {
+                word0 |= 1ul << index;
+            }
+            else
+            {
+                overflow![word - 1] |= 1ul << (index & 63);
+            }
+        }
+
+        return (word0, overflow);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
