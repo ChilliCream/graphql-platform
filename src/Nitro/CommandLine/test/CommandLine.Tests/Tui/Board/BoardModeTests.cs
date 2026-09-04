@@ -657,6 +657,32 @@ public sealed class BoardModeTests
         Assert.Contains('╰', lines[^1]);
         Assert.All(lines, line => Assert.True(
             line.Length <= width, $"Expected row width <= {width} but was {line.Length}: '{line}'"));
+
+        // assert: each of the five 24-cell-wide panels carries exactly one
+        // non-blank interior row (the single task row, truncated to fit)
+        // rather than folding the overlong id onto a second interior row
+        // that eats into the panel's budgeted height.
+        const int columnWidth = 24;
+        for (var i = 0; i < 5; i++)
+        {
+            var start = i * columnWidth + 1;
+            var nonBlankInteriorRows = 0;
+            for (var r = 1; r < height - 1; r++)
+            {
+                var interior = lines[r].Substring(start, columnWidth - 2);
+                if (!string.IsNullOrWhiteSpace(interior))
+                {
+                    nonBlankInteriorRows++;
+                }
+            }
+
+            Assert.True(
+                nonBlankInteriorRows == 1,
+                $"Expected exactly one non-blank interior row in panel {i} but found {nonBlankInteriorRows}");
+
+            var taskRow = lines[1].Substring(start, columnWidth - 2);
+            Assert.EndsWith("…", taskRow.TrimEnd());
+        }
     }
 
     /// <summary>

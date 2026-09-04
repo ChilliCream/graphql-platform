@@ -388,7 +388,7 @@ public sealed class DependencyTreeViewTests
     [InlineData(64, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa > z · blocking · depends on")]
     [InlineData(44, "aaaaaaaa…aaa > z · blocking · depends on")]
     [InlineData(24, "aaa…> z · depends on")]
-    [InlineData(10, "aaa… z")]
+    [InlineData(10, "aa… z")]
     public void Render_Should_DegradeBreadcrumbHeader_When_PanelIsNarrow(int width, string expectedHeader)
     {
         // arrange: a two-id breadcrumb (a pushed root plus the current root)
