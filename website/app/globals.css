@@ -338,6 +338,27 @@ html[data-smooth-scroll="true"]:has(:target) {
   --docsearch-footer-shadow:
     0 -1px 0 0 rgb(245 241 234 / 0.1), 0 -3px 6px 0 rgb(0 0 0 / 0.2);
   --docsearch-logo-color: var(--color-cc-ink-dim);
+  --docsearch-hit-focus-background: rgb(245 241 234 / 0.09);
+  --docsearch-hit-shadow: none;
+  --docsearch-dropdown-menu-background: var(--color-cc-surface);
+  --docsearch-dropdown-menu-item-hover-background: rgb(245 241 234 / 0.09);
+  --docsearch-popover-background: var(--color-cc-surface);
+  --docsearch-popover-arrow-color: rgb(245 241 234 / 0.12);
+  --docsearch-popover-shadow:
+    inset 1px 1px 0 0 rgb(245 241 234 / 0.06), 0 12px 32px 0 rgb(0 0 0 / 0.5);
+  --docsearch-search-button-background: rgb(245 241 234 / 0.05);
+  --docsearch-search-button-text-color: var(--color-cc-ink-dim);
+  --docsearch-primary-dark-color: var(--color-cc-accent-hover);
+  --docsearch-chip-background: rgb(22 185 228 / 0.16);
+  --docsearch-chip-text-color: var(--color-cc-accent-hover);
+  --docsearch-menu-trigger-active-background: rgb(245 241 234 / 0.09);
+  --docsearch-menu-trigger-active-text-color: var(--color-cc-ink);
+  --docsearch-code-block-background: rgb(5 8 15 / 0.6);
+  --docsearch-muted-color-darker: rgb(245 241 234 / 0.28);
+  --docsearch-error-color: #ef5350;
+  --docsearch-error-soft-color: rgb(239 83 80 / 0.16);
+  --docsearch-error-text-color: #febdc5;
+  --docsearch-success-color: #34d399;
 }
 
 .DocSearch-Container .DocSearch-Modal {
