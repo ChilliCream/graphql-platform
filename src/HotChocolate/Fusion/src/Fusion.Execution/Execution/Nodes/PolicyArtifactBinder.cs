@@ -226,7 +226,9 @@ internal static class PolicyArtifactBinder
                 previousCoordinate = (firstOccurrence, coordinate);
                 var expectedLiveMasks = CanonicalizeMasks(
                     matchingCandidates.Select(candidate => candidate.GuardMask));
-                if (!coordinate.LiveGuardMasks.SequenceEqual(expectedLiveMasks))
+                if (!PolicyGuardMasks.SequenceEqual(
+                    coordinate.LiveGuardMasks,
+                    expectedLiveMasks))
                 {
                     throw ThrowHelper.InvalidOperationPlan(
                         "A policy gate coordinate liveness masks do not match its compiled occurrences.");
@@ -266,7 +268,9 @@ internal static class PolicyArtifactBinder
                 var expectedGateMasks = CanonicalizeMasks(gateCandidates
                     .Where(candidate => candidate.GateEligible)
                     .Select(candidate => candidate.GuardMask));
-                if (!coordinate.GateGuardMasks.SequenceEqual(expectedGateMasks))
+                if (!PolicyGuardMasks.SequenceEqual(
+                    coordinate.GateGuardMasks,
+                    expectedGateMasks))
                 {
                     throw ThrowHelper.InvalidOperationPlan(
                         "A policy gate coordinate fetch-gate masks do not match its compiled operations.");
@@ -1540,15 +1544,15 @@ internal static class PolicyArtifactBinder
         }
 
         var conditions = new List<ExecutionNodeCondition>();
-        var guardMask = ulong.MaxValue;
-        foreach (var candidate in candidates)
+        var guardMask = candidates[0].GuardMask;
+        for (var i = 1; i < candidates.Count; i++)
         {
-            guardMask &= candidate.GuardMask;
+            guardMask = PolicyGuardMasks.Intersect(guardMask, candidates[i].GuardMask);
         }
 
         for (var i = 0; i < operation.IncludeConditions.Count; i++)
         {
-            if ((guardMask & (1UL << i)) == 0)
+            if (!PolicyGuardMasks.Contains(guardMask, i))
             {
                 continue;
             }
@@ -1908,7 +1912,7 @@ internal static class PolicyArtifactBinder
         {
             if (condition.PassingValue
                 && condition.VariableName.Equals(variableName, StringComparison.Ordinal)
-                && (candidate.GuardMask & operationGuardMask) == operationGuardMask)
+                && PolicyGuardMasks.IsSubsetOf(operationGuardMask, candidate.GuardMask))
             {
                 return true;
             }
@@ -1941,7 +1945,7 @@ internal static class PolicyArtifactBinder
         SelectionPath target,
         Candidate candidate,
         string policyVariable,
-        ulong operationGuardMask,
+        ConditionFlags operationGuardMask,
         IncludeConditionCollection includeConditions)
     {
         var targetFields = GetFieldSegments(target);
@@ -1967,13 +1971,13 @@ internal static class PolicyArtifactBinder
 
         bool VisitSelectionSet(
             SelectionSetNode selectionSet,
-            ulong inheritedMask,
+            ConditionFlags inheritedMask,
             bool policyGateActive)
         {
             if (policyGateActive
                 && candidate.Kind is PolicyTargetKind.Object
                 && MatchesRelativePath(path, sourceFields, relativeCandidate)
-                && inheritedMask == candidate.GuardMask)
+                && PolicyGuardMasks.Equals(inheritedMask, candidate.GuardMask))
             {
                 return true;
             }
@@ -1992,7 +1996,7 @@ internal static class PolicyArtifactBinder
                         var matches = active
                             && candidate.Kind is PolicyTargetKind.Field
                             && MatchesRelativePath(path, sourceFields, relativeCandidate)
-                            && mask == candidate.GuardMask;
+                            && PolicyGuardMasks.Equals(mask, candidate.GuardMask);
                         if (!matches
                             && field.SelectionSet is { } childSelectionSet)
                         {
@@ -2043,9 +2047,9 @@ internal static class PolicyArtifactBinder
             return false;
         }
 
-        (ulong Mask, bool Active) ApplyDirectives(
+        (ConditionFlags Mask, bool Active) ApplyDirectives(
             IReadOnlyList<DirectiveNode> directives,
-            ulong inheritedMask,
+            ConditionFlags inheritedMask,
             bool policyGateActive)
         {
             var mask = inheritedMask;
@@ -2078,7 +2082,7 @@ internal static class PolicyArtifactBinder
                                 variable.Name.Value,
                                 StringComparison.Ordinal) == true))
                     {
-                        mask |= 1UL << i;
+                        mask = PolicyGuardMasks.Or(mask, PolicyGuardMasks.FromIndex(i));
                     }
                 }
             }
@@ -2196,25 +2200,9 @@ internal static class PolicyArtifactBinder
         return fields.ToArray();
     }
 
-    private static ImmutableArray<ulong> CanonicalizeMasks(IEnumerable<ulong> masks)
-    {
-        var ordered = masks.Distinct().Order().ToArray();
-        if (Array.IndexOf(ordered, 0UL) >= 0)
-        {
-            return [0];
-        }
-
-        var builder = ImmutableArray.CreateBuilder<ulong>(ordered.Length);
-        for (var i = 0; i < ordered.Length; i++)
-        {
-            if (!ordered.Any(other => other != ordered[i] && (ordered[i] & other) == other))
-            {
-                builder.Add(ordered[i]);
-            }
-        }
-
-        return builder.ToImmutable();
-    }
+    private static ImmutableArray<ConditionFlags> CanonicalizeMasks(
+        IEnumerable<ConditionFlags> masks)
+        => PolicyGuardMasks.Canonicalize(masks);
 
     private static bool Contains(ReadOnlySpan<string> values, string value)
     {
@@ -2238,11 +2226,12 @@ internal static class PolicyArtifactBinder
                 GetFieldPathKey(candidate.Path),
                 StringComparison.Ordinal);
 
-    private static ulong CreateGuardMask(
+    private static ConditionFlags CreateGuardMask(
         ReadOnlySpan<ExecutionNodeCondition> conditions,
         IncludeConditionCollection includeConditions)
     {
-        var mask = 0UL;
+        var word0 = 0UL;
+        ulong[]? overflow = null;
 
         foreach (var condition in conditions)
         {
@@ -2263,12 +2252,20 @@ internal static class PolicyArtifactBinder
                             condition.VariableName,
                             StringComparison.Ordinal) == true))
                 {
-                    mask |= 1UL << i;
+                    if (i < 64)
+                    {
+                        word0 |= 1UL << i;
+                    }
+                    else
+                    {
+                        overflow ??= new ulong[(includeConditions.Count - 1) >> 6];
+                        overflow[(i >> 6) - 1] |= 1UL << (i & 63);
+                    }
                 }
             }
         }
 
-        return mask;
+        return PolicyGuardMasks.Normalize(new ConditionFlags(word0, overflow));
     }
 
     private static ImmutableArray<Candidate> CreateCandidates(
@@ -2459,6 +2456,20 @@ internal static class PolicyArtifactBinder
                 candidate.Policy.OnDenied)),
             rmax);
 
+    internal static ConditionFlags CreateActiveDeferFlags(
+        ImmutableArray<DeliveryGroup> deliveryGroups)
+    {
+        var flags = default(ConditionFlags);
+        foreach (var deliveryGroup in deliveryGroups)
+        {
+            flags = PolicyGuardMasks.Or(
+                flags,
+                PolicyGuardMasks.FromIndex(deliveryGroup.DeferConditionIndex));
+        }
+
+        return flags;
+    }
+
     private static void AddOperation(
         Operation operation,
         int planPart,
@@ -2467,11 +2478,7 @@ internal static class PolicyArtifactBinder
         ImmutableArray<DeliveryGroup> activeDeliveryGroups,
         ImmutableArray<Candidate>.Builder builder)
     {
-        var activeDeferFlags = 0UL;
-        foreach (var deliveryGroup in activeDeliveryGroups)
-        {
-            activeDeferFlags |= 1UL << deliveryGroup.DeferConditionIndex;
-        }
+        var activeDeferFlags = CreateActiveDeferFlags(activeDeliveryGroups);
 
         var visited = new HashSet<int>();
         VisitSelectionSet(
@@ -2493,7 +2500,7 @@ internal static class PolicyArtifactBinder
 
             var objectMasks = selectionSet.DeclaringSelection is { } declaringSelection
                 ? GetMasks(declaringSelection)
-                : new ulong[] { 0 };
+                : new ConditionFlags[] { default };
             if (selectionSet.Type is FusionObjectTypeDefinition
                 {
                     PolicyApplications.IsDefaultOrEmpty: false
@@ -2610,7 +2617,7 @@ internal static class PolicyArtifactBinder
 
         void AddApplications(
             ImmutableArray<PolicyApplication> applications,
-            ulong guardMask,
+            ConditionFlags guardMask,
             PolicyTargetKind kind,
             SelectionPath path,
             string typeName,
@@ -2680,8 +2687,31 @@ internal static class PolicyArtifactBinder
                     requiresFetchGateWitness));
         }
 
-        static ulong[] GetMasks(Selection selection)
-            => selection.IncludeFlags.IsEmpty ? [0] : selection.IncludeFlags.ToArray();
+        static ConditionFlags[] GetMasks(Selection selection)
+        {
+            var word0 = selection.IncludeFlags;
+            if (word0.Length == 0)
+            {
+                return [default];
+            }
+
+            var masks = new ConditionFlags[word0.Length];
+            for (var i = 0; i < word0.Length; i++)
+            {
+                var overflow = selection.GetIncludeOverflow(i);
+                var length = overflow.Length;
+                while (length > 0 && overflow[length - 1] == 0)
+                {
+                    length--;
+                }
+
+                masks[i] = new ConditionFlags(
+                    word0[i],
+                    length == 0 ? null : overflow[..length].ToArray());
+            }
+
+            return masks;
+        }
 
         bool IsInOwningPlanScope(Selection selection)
         {
@@ -2692,7 +2722,7 @@ internal static class PolicyArtifactBinder
 
             foreach (var deliveryGroup in activeDeliveryGroups)
             {
-                if (selection.HasActiveDeliveryGroup(new ConditionFlags(activeDeferFlags), deliveryGroup))
+                if (selection.HasActiveDeliveryGroup(activeDeferFlags, deliveryGroup))
                 {
                     return true;
                 }
@@ -2934,7 +2964,7 @@ internal static class PolicyArtifactBinder
 
     private sealed record Candidate(
         PolicyOccurrenceReference Reference,
-        ulong GuardMask,
+        ConditionFlags GuardMask,
         PolicyTargetKind Kind,
         SelectionPath Path,
         string TypeName,

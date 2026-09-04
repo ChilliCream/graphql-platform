@@ -377,7 +377,8 @@ public sealed partial class PolicyExecutionNodeTests
             """;
         var plan = PlanOperation(Assert.IsType<FusionSchemaDefinition>(executor.Schema), operation);
         var slot = Assert.Single(plan.PolicySlots);
-        Assert.Equal(new ulong[] { 1 }, slot.GuardMasks);
+        var guardMask = Assert.Single(slot.GuardMasks);
+        $"{guardMask.Word0}|{guardMask.Overflow is null}".MatchInlineSnapshot("1|True");
         Assert.Equal(2, slot.Coordinates.Length);
         var request = OperationRequestBuilder.New()
             .SetDocument(operation)

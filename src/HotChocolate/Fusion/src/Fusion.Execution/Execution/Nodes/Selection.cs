@@ -165,6 +165,13 @@ public sealed class Selection : ISelection
 
     internal ReadOnlySpan<ulong> IncludeFlags => _includeFlags;
 
+    internal ReadOnlySpan<ulong> GetIncludeOverflow(int pathIndex)
+        => _wideIncludeFlags is null
+            ? []
+            : _wideIncludeFlags.AsSpan(
+                pathIndex * _wideIncludeFlagsStride,
+                _wideIncludeFlagsStride);
+
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 

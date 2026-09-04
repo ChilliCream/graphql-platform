@@ -402,12 +402,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteStringValue(slot.Rmax.ToString());
 
             jsonWriter.WritePropertyName("guardMasks");
-            jsonWriter.WriteStartArray();
-            foreach (var guardMask in slot.GuardMasks)
-            {
-                jsonWriter.WriteNumberValue(guardMask);
-            }
-            jsonWriter.WriteEndArray();
+            WriteConditionMasks(jsonWriter, slot.GuardMasks);
 
             jsonWriter.WritePropertyName("coordinates");
             jsonWriter.WriteStartArray();
@@ -456,25 +451,56 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 jsonWriter.WritePropertyName("isRoot");
                 jsonWriter.WriteBooleanValue(coordinate.IsRoot);
                 jsonWriter.WritePropertyName("liveGuardMasks");
-                jsonWriter.WriteStartArray();
-                foreach (var guardMask in coordinate.LiveGuardMasks)
-                {
-                    jsonWriter.WriteNumberValue(guardMask);
-                }
-                jsonWriter.WriteEndArray();
+                WriteConditionMasks(jsonWriter, coordinate.LiveGuardMasks);
                 jsonWriter.WritePropertyName("gateGuardMasks");
-                jsonWriter.WriteStartArray();
-                foreach (var guardMask in coordinate.GateGuardMasks)
-                {
-                    jsonWriter.WriteNumberValue(guardMask);
-                }
-                jsonWriter.WriteEndArray();
+                WriteConditionMasks(jsonWriter, coordinate.GateGuardMasks);
                 jsonWriter.WriteEndObject();
             }
 
             jsonWriter.WriteEndArray();
 
             jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteConditionMasks(
+        JsonWriter jsonWriter,
+        ImmutableArray<ConditionFlags> masks)
+    {
+        jsonWriter.WriteStartArray();
+
+        foreach (var mask in masks)
+        {
+            WriteConditionMask(jsonWriter, mask);
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteConditionMask(JsonWriter jsonWriter, ConditionFlags mask)
+    {
+        var overflow = mask.Overflow;
+        var lastWord = overflow?.Length ?? 0;
+
+        while (lastWord > 0 && overflow![lastWord - 1] == 0)
+        {
+            lastWord--;
+        }
+
+        if (lastWord == 0)
+        {
+            jsonWriter.WriteNumberValue(mask.Word0);
+            return;
+        }
+
+        jsonWriter.WriteStartArray();
+        jsonWriter.WriteNumberValue(mask.Word0);
+
+        for (var i = 0; i < lastWord; i++)
+        {
+            jsonWriter.WriteNumberValue(overflow![i]);
         }
 
         jsonWriter.WriteEndArray();

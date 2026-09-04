@@ -233,6 +233,76 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_DenyField_When_WidePolicyGuardIsLive()
+    {
+        // arrange
+        var policy = new TogglePolicy("CanReadSecret") { IsDenied = true };
+        var client = new RecordingClient("""{"data":{"secret":"classified"}}""");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  public: String
+                  secret: String @policy(names: "CanReadSecret", onDenied: NULL)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            CreateWideConditionRequest(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, policy.EvaluationCount);
+        Assert.Equal(1, client.ExecuteCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_AllowField_When_WidePolicyGuardIsLive()
+    {
+        // arrange
+        var policy = new TogglePolicy("CanReadSecret");
+        var client = new RecordingClient("""{"data":{"secret":"classified"}}""");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  public: String
+                  secret: String @policy(names: "CanReadSecret", onDenied: NULL)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            CreateWideConditionRequest(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, policy.EvaluationCount);
+        Assert.Equal(1, client.ExecuteCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_PreserveListCardinality_When_EachObjectPolicyDenies()
     {
         // arrange
@@ -794,6 +864,27 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
                     ? new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Role, "reader")], "test"))
                     : new ClaimsPrincipal(new ClaimsIdentity()))
             .Build();
+
+    private static IOperationRequest CreateWideConditionRequest()
+    {
+        var variableDefinitions = string.Join(
+            ", ",
+            Enumerable.Range(0, 71).Select(index => $"$condition{index:D2}: Boolean!"));
+        var selections = string.Join(
+            "\n",
+            Enumerable.Range(0, 70)
+                .Select(index => $"field{index:D2}: public @include(if: $condition{index:D2})")
+                .Append("secret @include(if: $condition70)"));
+        var variableValues = Enumerable.Range(0, 71)
+            .ToDictionary(
+                index => $"condition{index:D2}",
+                index => (object?)(index is 70));
+
+        return OperationRequestBuilder.New()
+            .SetDocument($"query({variableDefinitions}) {{\n{selections}\n}}")
+            .SetVariableValues(variableValues)
+            .Build();
+    }
 
     private static async Task<IRequestExecutor> CreateExecutorAsync(
         string schema,

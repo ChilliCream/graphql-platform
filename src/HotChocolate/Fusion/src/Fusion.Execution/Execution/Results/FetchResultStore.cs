@@ -571,12 +571,13 @@ internal sealed partial class FetchResultStore : IDisposable
         ulong denyFlags,
         out PolicySlotDenial denial)
     {
+        var includeFlags = new ConditionFlags(_includeFlags, _wideIncludeFlags);
         var found = false;
         denial = default;
         foreach (var entry in entries)
         {
             if ((denyFlags & (1UL << entry.SlotOrdinal)) == 0
-                || !IsLive(entry.LiveGuardMasks, _includeFlags))
+                || !IsLive(entry.LiveGuardMasks, includeFlags))
             {
                 continue;
             }
@@ -599,11 +600,13 @@ internal sealed partial class FetchResultStore : IDisposable
         return found;
     }
 
-    private static bool IsLive(ImmutableArray<ulong> guardMasks, ulong includeFlags)
+    private static bool IsLive(
+        ImmutableArray<ConditionFlags> guardMasks,
+        ConditionFlags includeFlags)
     {
         foreach (var guardMask in guardMasks)
         {
-            if ((includeFlags & guardMask) == guardMask)
+            if (PolicyGuardMasks.IsSubsetOf(guardMask, includeFlags))
             {
                 return true;
             }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
@@ -199,7 +200,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.Unindent();
         writer.WriteLine("rmax: {0}", slot.Rmax.ToString());
-        writer.WriteLine("guardMasks: [{0}]", string.Join(", ", slot.GuardMasks));
+        writer.WriteLine("guardMasks: [{0}]", FormatConditionMasks(slot.GuardMasks));
         writer.WriteLine("coordinates:");
         writer.Indent();
 
@@ -223,14 +224,46 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             }
             writer.Unindent();
             writer.WriteLine("isRoot: {0}", coordinate.IsRoot.ToString().ToLowerInvariant());
-            writer.WriteLine("liveGuardMasks: [{0}]", string.Join(", ", coordinate.LiveGuardMasks));
-            writer.WriteLine("gateGuardMasks: [{0}]", string.Join(", ", coordinate.GateGuardMasks));
+            writer.WriteLine("liveGuardMasks: [{0}]", FormatConditionMasks(coordinate.LiveGuardMasks));
+            writer.WriteLine("gateGuardMasks: [{0}]", FormatConditionMasks(coordinate.GateGuardMasks));
             writer.Unindent();
         }
 
         writer.Unindent();
 
         writer.Unindent();
+    }
+
+    private static string FormatConditionMasks(ImmutableArray<ConditionFlags> masks)
+        => string.Join(", ", masks.Select(FormatConditionMask));
+
+    private static string FormatConditionMask(ConditionFlags mask)
+    {
+        var overflow = mask.Overflow;
+        var lastWord = overflow?.Length ?? 0;
+
+        while (lastWord > 0 && overflow![lastWord - 1] == 0)
+        {
+            lastWord--;
+        }
+
+        if (lastWord == 0)
+        {
+            return mask.Word0.ToString(CultureInfo.InvariantCulture);
+        }
+
+        var builder = new StringBuilder();
+        builder.Append('[');
+        builder.Append(mask.Word0.ToString(CultureInfo.InvariantCulture));
+
+        for (var i = 0; i < lastWord; i++)
+        {
+            builder.Append(", ");
+            builder.Append(overflow![i].ToString(CultureInfo.InvariantCulture));
+        }
+
+        builder.Append(']');
+        return builder.ToString();
     }
 
     private static void WriteNode(ExecutionNode node, ExecutionNodeTrace? nodeTrace, CodeWriter writer)

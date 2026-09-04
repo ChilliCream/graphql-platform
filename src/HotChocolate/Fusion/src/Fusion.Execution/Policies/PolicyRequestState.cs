@@ -196,7 +196,7 @@ internal sealed class PolicyRequestState
         IVariableValueCollection variables,
         CancellationToken cancellationToken)
     {
-        var includeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+        var includeFlags = operationPlan.Operation.CreateIncludeConditionFlags(variables);
         var user = _requestContext.Features.Get<UserState>()?.User ?? new ClaimsPrincipal();
 
         var denyFlags = 0UL;
@@ -426,11 +426,11 @@ internal sealed class PolicyRequestState
         return new PolicyDecision(true, reason);
     }
 
-    private static bool IsLive(ImmutableArray<ulong> guardMasks, ulong includeFlags)
+    private static bool IsLive(ImmutableArray<ConditionFlags> guardMasks, ConditionFlags includeFlags)
     {
         foreach (var guardMask in guardMasks)
         {
-            if ((includeFlags & guardMask) == guardMask)
+            if (PolicyGuardMasks.IsSubsetOf(guardMask, includeFlags))
             {
                 return true;
             }

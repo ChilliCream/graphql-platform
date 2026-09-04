@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -939,7 +940,6 @@ public sealed class PolicyPlanningTests : FusionTestBase
     [InlineData("missing", "A client include condition is missing from the operation-wide condition table.")]
     [InlineData("extra", "Every operation-wide include condition must be used by a compiled operation.")]
     [InlineData("duplicate", "The operation-wide include-condition table must be unique.")]
-    [InlineData("over64", "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.")]
     [InlineData("order", "The operation-wide include-condition table must be in canonical order.")]
     public void JsonParser_Should_RejectMalformedIncludeConditionTable(
         string mutation,
@@ -967,13 +967,6 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 break;
             case "duplicate":
                 conditions.Add(conditions[0]!.DeepClone());
-                break;
-            case "over64":
-                conditions.Clear();
-                for (var i = 0; i < 65; i++)
-                {
-                    conditions.Add(new JsonObject { ["includeVariable"] = $"v{i:D2}" });
-                }
                 break;
             case "order":
                 var first = conditions[0]!.DeepClone();
@@ -1008,9 +1001,44 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         // assert
         var gate = Assert.Single(plan.PolicySlots);
-        Assert.Equal(new ulong[] { 1, 2 }, gate.GuardMasks);
+        Assert.Equal("1,2", FormatGuardMasks(gate.GuardMasks));
         Assert.Single(plan.PolicyExpressions);
         Assert.Single(plan.Policies);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_CreateWideGuardForDataBearingPolicy_When_ConditionOrdinalIs70()
+    {
+        // arrange
+        var schema = CreateMixedApplicationSchema();
+        var variableDefinitions = string.Join(
+            ", ",
+            Enumerable.Range(0, 135).Select(i => $"$condition{i:D3}: Boolean!"));
+        var selections = string.Join(
+            "\n",
+            Enumerable.Range(0, 135).Select(i => i == 70
+                ? "secret @include(if: $condition070)"
+                : $"field{i:D3}: public @include(if: $condition{i:D3})"));
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            $"query({variableDefinitions}) {{\n{selections}\n}}");
+
+        // assert
+        var slot = Assert.Single(plan.PolicySlots);
+        Assert.Single(slot.GuardMasks);
+        Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>());
+        $"""
+            includeConditionCount: {plan.Operation.IncludeConditions.Count}
+            hasWideIncludeFlags: {plan.Operation.HasWideIncludeFlags}
+            guardMasks: [{FormatGuardMasks(slot.GuardMasks)}]
+            """.MatchInlineSnapshot(
+                """
+                includeConditionCount: 135
+                hasWideIncludeFlags: True
+                guardMasks: [[0, 64]]
+                """);
     }
 
     [Fact]
@@ -1030,7 +1058,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
             """);
 
         // assert
-        Assert.Equal(new ulong[] { 0 }, Assert.Single(plan.PolicySlots).GuardMasks);
+        Assert.Equal("0", FormatGuardMasks(Assert.Single(plan.PolicySlots).GuardMasks));
     }
 
     [Fact]
@@ -1051,7 +1079,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         // assert
         var coordinate = Assert.Single(Assert.Single(plan.PolicySlots).Coordinates);
-        Assert.Equal(new ulong[] { 0 }, coordinate.LiveGuardMasks);
+        Assert.Equal("0", FormatGuardMasks(coordinate.LiveGuardMasks));
     }
 
     [Fact]
@@ -1072,7 +1100,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         // assert
         var coordinate = Assert.Single(Assert.Single(plan.PolicySlots).Coordinates);
-        Assert.Equal(new ulong[] { 1, 2 }, coordinate.LiveGuardMasks);
+        Assert.Equal("1,2", FormatGuardMasks(coordinate.LiveGuardMasks));
         Assert.Equal(new[] { "secret" }, coordinate.ResponseNames);
     }
 
@@ -1095,7 +1123,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
         // assert
         var slot = Assert.Single(plan.PolicySlots);
         var coordinate = Assert.Single(slot.Coordinates);
-        $"slot={string.Join(',', slot.GuardMasks)}; coordinate={string.Join(',', coordinate.LiveGuardMasks)}"
+        $"slot={FormatGuardMasks(slot.GuardMasks)}; coordinate={FormatGuardMasks(coordinate.LiveGuardMasks)}"
             .MatchInlineSnapshot("slot=0; coordinate=0");
     }
 
@@ -1114,7 +1142,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         // assert
         var coordinate = Assert.Single(Assert.Single(plan.PolicySlots).Coordinates);
-        $"live={string.Join(',', coordinate.LiveGuardMasks)}; gate={string.Join(',', coordinate.GateGuardMasks)}"
+        $"live={FormatGuardMasks(coordinate.LiveGuardMasks)}; gate={FormatGuardMasks(coordinate.GateGuardMasks)}"
             .MatchInlineSnapshot("live=1,2; gate=2");
     }
 
@@ -1133,7 +1161,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         // assert
         var coordinate = Assert.Single(Assert.Single(plan.PolicySlots).Coordinates);
-        $"live={string.Join(',', coordinate.LiveGuardMasks)}; gate={string.Join(',', coordinate.GateGuardMasks)}"
+        $"live={FormatGuardMasks(coordinate.LiveGuardMasks)}; gate={FormatGuardMasks(coordinate.GateGuardMasks)}"
             .MatchInlineSnapshot("live=0; gate=1");
     }
 
@@ -1163,7 +1191,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
             .Single();
 
         // assert
-        ($"slots={string.Join(',', plan.PolicySlots.Select(gate => $"{gate.Ordinal}:{string.Join(',', gate.GuardMasks)}"))}; "
+        ($"slots={string.Join(',', plan.PolicySlots.Select(gate => $"{gate.Ordinal}:{FormatGuardMasks(gate.GuardMasks)}"))}; "
             + $"deferred={string.Join(',', deferredNode.Conditions.ToArray().Select(condition => condition.VariableName))}; "
             + $"policies={string.Join(',', plan.Policies.Select(policy => policy.PolicyName))}; "
             + $"roundTrip={new JsonOperationPlanFormatter().Format(plan) == new JsonOperationPlanFormatter().Format(parsedPlan)}")
@@ -2049,7 +2077,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
             + $"inventory={string.Join(',', plan.Policies.Select(policy => policy.PolicyName))}; "
             + $"expressions={string.Join(',', plan.PolicyExpressions.Select(expression => expression.Format()))}; "
             + $"slots={plan.PolicySlots.Length}; "
-            + $"masks={string.Join(';', plan.PolicySlots.Select(gate => string.Join(',', gate.GuardMasks)))}; "
+            + $"masks={string.Join(';', plan.PolicySlots.Select(gate => FormatGuardMasks(gate.GuardMasks)))}; "
             + $"residuals={plan.AllNodes.OfType<PolicyExecutionNode>().Count()}")
             .MatchInlineSnapshot(
                 """
@@ -2995,6 +3023,17 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
         return (JsonNode.Parse(buffer.WrittenSpan)!.AsObject(), new JsonOperationPlanParser(compiler));
+    }
+
+    private static string FormatGuardMasks(IEnumerable<ConditionFlags> masks)
+        => string.Join(",", masks.Select(FormatGuardMask));
+
+    private static string FormatGuardMask(ConditionFlags mask)
+    {
+        var word0 = mask.Word0.ToString(CultureInfo.InvariantCulture);
+        return mask.Overflow is { Length: > 0 } overflow
+            ? $"[{word0}, {string.Join(", ", overflow.Select(word => word.ToString(CultureInfo.InvariantCulture)))}]"
+            : word0;
     }
 
     private static JsonObject CreateNonOperationNode(string kind, int id)

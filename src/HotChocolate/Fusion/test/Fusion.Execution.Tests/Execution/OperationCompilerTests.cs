@@ -279,6 +279,54 @@ public class OperationCompilerTests : FusionTestBase
     }
 
     [Fact]
+    public void Compile_Should_ExposeFullIncludePathMask_When_ConditionIndexExceeds63()
+    {
+        // arrange
+        var sourceText = new StringBuilder("query Wide(");
+        for (var i = 0; i < 71; i++)
+        {
+            if (i > 0)
+            {
+                sourceText.Append(", ");
+            }
+
+            sourceText.Append("$if");
+            sourceText.Append(i.ToString("D2"));
+            sourceText.Append(": Boolean!");
+        }
+
+        sourceText.AppendLine(") {");
+        for (var i = 0; i < 71; i++)
+        {
+            sourceText.Append('f');
+            sourceText.Append(i.ToString("D2"));
+            sourceText.Append(": product @include(if: $if");
+            sourceText.Append(i.ToString("D2"));
+            sourceText.AppendLine(") { id }");
+        }
+
+        sourceText.Append('}');
+        var document = Utf8GraphQLParser.Parse(sourceText.ToString());
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schema = CreateSchema();
+
+        // act
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+        var selection = GetSelection(operation.RootSelectionSet, "f70");
+        var compiledWord0 = selection.IncludeFlags[0];
+        var compiledOverflow = selection.GetIncludeOverflow(0);
+        var pathFlags = selection.SyntaxNodes[0].PathConditionFlags;
+
+        // assert
+        Assert.Equal(pathFlags.Word0, compiledWord0);
+        Assert.True(pathFlags.Overflow.AsSpan().SequenceEqual(compiledOverflow));
+        Assert.Equal(0UL, compiledWord0);
+        Assert.Equal([64UL], compiledOverflow.ToArray());
+        Assert.True(selection.IsIncluded(new ConditionFlags(0, [64])));
+    }
+
+    [Fact]
     public void Selection_HasPolicy_Should_BeTrue_When_FieldItselfCarriesPolicy()
     {
         // arrange

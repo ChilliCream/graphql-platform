@@ -14,6 +14,20 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class PolicyArtifactBinderTests : FusionTestBase
 {
     [Fact]
+    public void CreateActiveDeferFlags_Should_SetOverflowBit_When_IndexExceeds63()
+    {
+        // arrange
+        var deliveryGroup = new DeliveryGroup(null, null, DeferConditionIndex: 70);
+
+        // act
+        var flags = PolicyArtifactBinder.CreateActiveDeferFlags([deliveryGroup]);
+
+        // assert
+        $"{flags.Word0}|{string.Join(',', flags.Overflow ?? [])}"
+            .MatchInlineSnapshot("0|64");
+    }
+
+    [Fact]
     public void GetRequirements_Should_ConcatenateMemberRequirements_When_Batch()
     {
         // arrange

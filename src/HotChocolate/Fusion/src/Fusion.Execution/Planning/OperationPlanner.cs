@@ -104,14 +104,14 @@ public sealed partial class OperationPlanner
     private sealed class ClientIncludeConditionRegistry
     {
         private readonly IncludeConditionCollection _conditions;
-        private readonly Dictionary<DirectiveNode, ulong> _masksByDirective;
+        private readonly Dictionary<DirectiveNode, int> _indexesByDirective;
 
         private ClientIncludeConditionRegistry(
             IncludeConditionCollection conditions,
-            Dictionary<DirectiveNode, ulong> masksByDirective)
+            Dictionary<DirectiveNode, int> indexesByDirective)
         {
             _conditions = conditions;
-            _masksByDirective = masksByDirective;
+            _indexesByDirective = indexesByDirective;
         }
 
         public IncludeConditionCollection Conditions => _conditions;
@@ -124,44 +124,96 @@ public sealed partial class OperationPlanner
                 operation,
                 maxAllowedConditions,
                 includeDeferConditions: true);
-            var masksByDirective = new Dictionary<DirectiveNode, ulong>(ReferenceEqualityComparer.Instance);
+            var indexesByDirective =
+                new Dictionary<DirectiveNode, int>(ReferenceEqualityComparer.Instance);
             ClientIncludeConditionVisitor.Instance.Visit(
                 operation,
-                new ClientIncludeConditionVisitor.Context(conditions, masksByDirective));
-            return new ClientIncludeConditionRegistry(conditions, masksByDirective);
+                new ClientIncludeConditionVisitor.Context(conditions, indexesByDirective));
+            return new ClientIncludeConditionRegistry(conditions, indexesByDirective);
         }
 
-        public ulong CreateGuardMask(ExecutionNodeCondition[] conditions)
+        public ConditionFlags CreateGuardMask(ExecutionNodeCondition[] conditions)
         {
-            var mask = 0UL;
+            var word0 = 0UL;
+            var highestWideIndex = -1;
 
             foreach (var condition in conditions)
             {
                 if (condition.Directive is { } directive
-                    && _masksByDirective.TryGetValue(directive, out var directiveMask))
+                    && _indexesByDirective.TryGetValue(directive, out var directiveIndex))
                 {
-                    mask |= directiveMask;
+                    CollectIndex(directiveIndex);
                     continue;
                 }
 
                 for (var i = 0; i < _conditions.Count; i++)
                 {
                     var includeCondition = _conditions[i];
-                    if ((condition.PassingValue
-                            && includeCondition.Include?.Equals(
-                                condition.VariableName,
-                                StringComparison.Ordinal) == true)
-                        || (!condition.PassingValue
-                            && includeCondition.Skip?.Equals(
-                                condition.VariableName,
-                                StringComparison.Ordinal) == true))
+                    if (Matches(condition, includeCondition))
                     {
-                        mask |= 1UL << i;
+                        CollectIndex(i);
                     }
                 }
             }
 
-            return mask;
+            if (highestWideIndex < 64)
+            {
+                return new ConditionFlags(word0);
+            }
+
+            var overflow = new ulong[highestWideIndex >> 6];
+            foreach (var condition in conditions)
+            {
+                if (condition.Directive is { } directive
+                    && _indexesByDirective.TryGetValue(directive, out var directiveIndex))
+                {
+                    AddWideIndex(directiveIndex);
+                    continue;
+                }
+
+                for (var i = 64; i < _conditions.Count; i++)
+                {
+                    if (Matches(condition, _conditions[i]))
+                    {
+                        AddWideIndex(i);
+                    }
+                }
+            }
+
+            return new ConditionFlags(word0, overflow);
+
+            void CollectIndex(int index)
+            {
+                if (index < 64)
+                {
+                    word0 |= 1UL << index;
+                    return;
+                }
+
+                highestWideIndex = Math.Max(highestWideIndex, index);
+            }
+
+            void AddWideIndex(int index)
+            {
+                if (index < 64)
+                {
+                    return;
+                }
+
+                overflow[(index >> 6) - 1] |= 1UL << (index & 63);
+            }
+
+            static bool Matches(
+                ExecutionNodeCondition condition,
+                IncludeCondition includeCondition)
+                => (condition.PassingValue
+                        && includeCondition.Include?.Equals(
+                            condition.VariableName,
+                            StringComparison.Ordinal) == true)
+                    || (!condition.PassingValue
+                        && includeCondition.Skip?.Equals(
+                            condition.VariableName,
+                            StringComparison.Ordinal) == true);
         }
 
         private sealed class ClientIncludeConditionVisitor
@@ -187,7 +239,7 @@ public sealed partial class OperationPlanner
 
             internal sealed class Context(
                 IncludeConditionCollection conditions,
-                Dictionary<DirectiveNode, ulong> masksByDirective)
+                Dictionary<DirectiveNode, int> indexesByDirective)
             {
                 public void Register(ISyntaxNode node, IReadOnlyList<DirectiveNode> directives)
                 {
@@ -211,12 +263,11 @@ public sealed partial class OperationPlanner
                             "A client include condition is missing from the operation-wide condition universe.");
                     }
 
-                    var mask = 1UL << index;
                     foreach (var directive in directives)
                     {
                         if (directive.Name.Value is "skip" or "include")
                         {
-                            masksByDirective[directive] = mask;
+                            indexesByDirective[directive] = index;
                         }
                     }
                 }
@@ -5100,10 +5151,10 @@ public sealed partial class OperationPlanner
 
         private static PolicyConditionSlot AddGuardMasks(
             PolicyConditionSlot slot,
-            ImmutableArray<ulong> guardMasks)
+            ImmutableArray<ConditionFlags> guardMasks)
         {
             var canonical = CanonicalizeGuardMasks(slot.GuardMasks.AddRange(guardMasks));
-            if (slot.GuardMasks.SequenceEqual(canonical))
+            if (PolicyGuardMasks.SequenceEqual(slot.GuardMasks, canonical))
             {
                 return slot;
             }
@@ -5140,8 +5191,8 @@ public sealed partial class OperationPlanner
                     current.LiveGuardMasks.AddRange(coordinate.LiveGuardMasks));
                 var gateGuardMasks = CanonicalizeGuardMasks(
                     current.GateGuardMasks.AddRange(coordinate.GateGuardMasks));
-                if (current.LiveGuardMasks.SequenceEqual(liveGuardMasks)
-                    && current.GateGuardMasks.SequenceEqual(gateGuardMasks)
+                if (PolicyGuardMasks.SequenceEqual(current.LiveGuardMasks, liveGuardMasks)
+                    && PolicyGuardMasks.SequenceEqual(current.GateGuardMasks, gateGuardMasks)
                     && !responseNamesChanged)
                 {
                     return slot;
@@ -5164,31 +5215,9 @@ public sealed partial class OperationPlanner
             return slot with { Coordinates = slot.Coordinates.Add(coordinate) };
         }
 
-        private static ImmutableArray<ulong> CanonicalizeGuardMasks(
-            ImmutableArray<ulong> guardMasks)
-        {
-            if (guardMasks.IsDefaultOrEmpty)
-            {
-                return [];
-            }
-
-            if (guardMasks.Contains(0))
-            {
-                return [0];
-            }
-
-            var ordered = guardMasks.Distinct().Order().ToArray();
-            var canonical = ImmutableArray.CreateBuilder<ulong>(ordered.Length);
-            foreach (var mask in ordered)
-            {
-                if (!canonical.Any(existing => (mask & existing) == existing))
-                {
-                    canonical.Add(mask);
-                }
-            }
-
-            return canonical.ToImmutable();
-        }
+        private static ImmutableArray<ConditionFlags> CanonicalizeGuardMasks(
+            ImmutableArray<ConditionFlags> guardMasks)
+            => PolicyGuardMasks.Canonicalize(guardMasks);
     }
 
     private static bool HasArgumentConflict(

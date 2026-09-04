@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -427,7 +428,6 @@ public sealed record OperationPlan : IOperationPlan
             policySlots,
             policies,
             allNodes);
-        ValidateWidePolicyCombination(operation, policySlots);
         ValidateIncludeConditions(operation, incrementalPlans, includeConditions);
         ValidatePolicyArtifacts(operation, policyExpressions, policySlots, policies, allNodes, incrementalPlans);
 
@@ -462,7 +462,6 @@ public sealed record OperationPlan : IOperationPlan
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
-        ValidateWidePolicyCombination(operation, policySlots);
         ValidateIncludeConditions(operation, incrementalPlans, includeConditions);
         ValidatePolicyArtifacts(operation, policyExpressions, policySlots, policies, allNodes, incrementalPlans);
         PolicyArtifactBinder.Validate(
@@ -567,7 +566,6 @@ public sealed record OperationPlan : IOperationPlan
             policies,
             allNodes,
             policySnapshot);
-        ValidateWidePolicyCombination(operation, policySlots);
         ValidateIncludeConditions(operation, incrementalPlans, includeConditions);
         ValidatePolicyArtifacts(operation, policyExpressions, policySlots, policies, allNodes, incrementalPlans);
 
@@ -698,18 +696,6 @@ public sealed record OperationPlan : IOperationPlan
         }
     }
 
-    private static void ValidateWidePolicyCombination(
-        Operation operation,
-        ImmutableArray<PolicyConditionSlot> policySlots)
-    {
-        if ((operation.HasWideIncludeFlags || operation.HasWideDeferFlags)
-            && !policySlots.IsDefaultOrEmpty)
-        {
-            throw ThrowHelper.InvalidOperationPlan(
-                "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.");
-        }
-    }
-
     private static void ValidatePolicyArtifacts(
         Operation operation,
         ImmutableArray<PolicyConditionExpression> expressions,
@@ -772,9 +758,7 @@ public sealed record OperationPlan : IOperationPlan
 
         var gateIdentities = new HashSet<string>(StringComparer.Ordinal);
         var referencedExpressions = new bool[expressions.Length];
-        var includeConditionMask = operation.IncludeConditionCount == 64
-            ? ulong.MaxValue
-            : (1UL << operation.IncludeConditionCount) - 1;
+        var includeConditionMask = PolicyGuardMasks.CreateAllSet(operation.IncludeConditionCount);
 
         for (var i = 0; i < slots.Length; i++)
         {
@@ -806,7 +790,8 @@ public sealed record OperationPlan : IOperationPlan
             }
 
             if (!AreCanonicalGuardMasks(slot.GuardMasks, allowEmpty: false)
-                || slot.GuardMasks.Any(mask => (mask & ~includeConditionMask) != 0))
+                || slot.GuardMasks.Any(mask =>
+                    !PolicyGuardMasks.IsSubsetOf(mask, includeConditionMask)))
             {
                 throw ThrowHelper.InvalidOperationPlan(
                     "Policy gate guard masks must be canonical and reference defined include conditions.");
@@ -814,7 +799,7 @@ public sealed record OperationPlan : IOperationPlan
 
             var coordinateKeys = new HashSet<(string TypeName, string? FieldName, bool IsRoot)>();
             var slotApplicationSet = slot.Applications.ToHashSet();
-            var coordinateLiveMasks = ImmutableArray.CreateBuilder<ulong>();
+            var coordinateLiveMasks = ImmutableArray.CreateBuilder<ConditionFlags>();
             foreach (var coordinate in slot.Coordinates)
             {
                 if (string.IsNullOrWhiteSpace(coordinate.TypeName)
@@ -874,14 +859,16 @@ public sealed record OperationPlan : IOperationPlan
                 }
 
                 if (!AreCanonicalGuardMasks(coordinate.LiveGuardMasks, allowEmpty: false)
-                    || coordinate.LiveGuardMasks.Any(mask => (mask & ~includeConditionMask) != 0))
+                    || coordinate.LiveGuardMasks.Any(mask =>
+                        !PolicyGuardMasks.IsSubsetOf(mask, includeConditionMask)))
                 {
                     throw ThrowHelper.InvalidOperationPlan(
                         "Policy gate coordinate live guard masks must be canonical and reference defined include conditions.");
                 }
 
                 if (!AreCanonicalGuardMasks(coordinate.GateGuardMasks, allowEmpty: true)
-                    || coordinate.GateGuardMasks.Any(mask => (mask & ~includeConditionMask) != 0))
+                    || coordinate.GateGuardMasks.Any(mask =>
+                        !PolicyGuardMasks.IsSubsetOf(mask, includeConditionMask)))
                 {
                     throw ThrowHelper.InvalidOperationPlan(
                         "Policy gate coordinate fetch-gate guard masks must be canonical and reference defined include conditions.");
@@ -900,7 +887,7 @@ public sealed record OperationPlan : IOperationPlan
             }
 
             var expectedGuardMasks = CanonicalizeGuardMasks(coordinateLiveMasks.ToImmutable());
-            if (!slot.GuardMasks.SequenceEqual(expectedGuardMasks))
+            if (!PolicyGuardMasks.SequenceEqual(slot.GuardMasks, expectedGuardMasks))
             {
                 throw ThrowHelper.InvalidOperationPlan(
                     "Policy gate guard masks must exactly match the coordinate guard masks.");
@@ -952,7 +939,9 @@ public sealed record OperationPlan : IOperationPlan
             }
         }
 
-        static bool AreCanonicalGuardMasks(ImmutableArray<ulong> masks, bool allowEmpty)
+        static bool AreCanonicalGuardMasks(
+            ImmutableArray<ConditionFlags> masks,
+            bool allowEmpty)
         {
             if (masks.IsDefault || (masks.IsEmpty && !allowEmpty))
             {
@@ -964,21 +953,27 @@ public sealed record OperationPlan : IOperationPlan
                 return true;
             }
 
-            if (masks[0] == 0)
+            if (!PolicyGuardMasks.IsCanonical(masks[0]))
+            {
+                return false;
+            }
+
+            if (PolicyGuardMasks.IsEmpty(masks[0]))
             {
                 return masks.Length == 1;
             }
 
             for (var i = 0; i < masks.Length; i++)
             {
-                if (i > 0 && masks[i] <= masks[i - 1])
+                if (!PolicyGuardMasks.IsCanonical(masks[i])
+                    || (i > 0 && PolicyGuardMasks.Compare(masks[i - 1], masks[i]) >= 0))
                 {
                     return false;
                 }
 
                 for (var j = 0; j < masks.Length; j++)
                 {
-                    if (i != j && (masks[i] & masks[j]) == masks[j])
+                    if (i != j && PolicyGuardMasks.IsSubsetOf(masks[j], masks[i]))
                     {
                         return false;
                     }
@@ -988,27 +983,15 @@ public sealed record OperationPlan : IOperationPlan
             return true;
         }
 
-        static bool IsMaskCoveredBy(ulong mask, ImmutableArray<ulong> coveringMasks)
-            => coveringMasks.Any(coveringMask => (mask & coveringMask) == coveringMask);
+        static bool IsMaskCoveredBy(
+            ConditionFlags mask,
+            ImmutableArray<ConditionFlags> coveringMasks)
+            => coveringMasks.Any(coveringMask =>
+                PolicyGuardMasks.IsSubsetOf(coveringMask, mask));
 
-        static ImmutableArray<ulong> CanonicalizeGuardMasks(ImmutableArray<ulong> masks)
-        {
-            if (masks.Contains(0))
-            {
-                return [0];
-            }
-
-            var canonical = ImmutableArray.CreateBuilder<ulong>();
-            foreach (var mask in masks.Distinct().Order())
-            {
-                if (!canonical.Any(existing => (mask & existing) == existing))
-                {
-                    canonical.Add(mask);
-                }
-            }
-
-            return canonical.ToImmutable();
-        }
+        static ImmutableArray<ConditionFlags> CanonicalizeGuardMasks(
+            ImmutableArray<ConditionFlags> masks)
+            => PolicyGuardMasks.Canonicalize(masks);
 
         if (referencedExpressions.Any(referenced => !referenced))
         {
@@ -1263,4 +1246,4 @@ internal readonly record struct PolicyOccurrenceLocation(
 internal readonly record struct PolicyDenialLookupEntry(
     int SlotOrdinal,
     int CoordinateOrdinal,
-    ImmutableArray<ulong> LiveGuardMasks);
+    ImmutableArray<ConditionFlags> LiveGuardMasks);

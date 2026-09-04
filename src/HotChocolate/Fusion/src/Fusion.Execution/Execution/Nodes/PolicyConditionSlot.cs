@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -158,12 +159,12 @@ public sealed record PolicyConditionCoordinate
     /// <summary>
     /// Gets the client include-condition masks that can make this coordinate live.
     /// </summary>
-    public required ImmutableArray<ulong> LiveGuardMasks { get; init; }
+    public required ImmutableArray<ConditionFlags> LiveGuardMasks { get; init; }
 
     /// <summary>
     /// Gets the client include-condition masks that permit a denied decision to gate source fetches.
     /// </summary>
-    public required ImmutableArray<ulong> GateGuardMasks { get; init; }
+    public required ImmutableArray<ConditionFlags> GateGuardMasks { get; init; }
 
     /// <inheritdoc />
     public bool Equals(PolicyConditionCoordinate? other)
@@ -175,8 +176,8 @@ public sealed record PolicyConditionCoordinate
                 && Occurrences.SequenceEqual(other.Occurrences)
                 && ResponseNames.SequenceEqual(other.ResponseNames, StringComparer.Ordinal)
                 && Applications.SequenceEqual(other.Applications)
-                && LiveGuardMasks.SequenceEqual(other.LiveGuardMasks)
-                && GateGuardMasks.SequenceEqual(other.GateGuardMasks));
+                && PolicyGuardMasks.SequenceEqual(LiveGuardMasks, other.LiveGuardMasks)
+                && PolicyGuardMasks.SequenceEqual(GateGuardMasks, other.GateGuardMasks));
 
     /// <inheritdoc />
     public override int GetHashCode()
@@ -201,12 +202,12 @@ public sealed record PolicyConditionCoordinate
 
         foreach (var guardMask in LiveGuardMasks)
         {
-            hash.Add(guardMask);
+            PolicyGuardMasks.AddHashCode(ref hash, guardMask);
         }
 
         foreach (var guardMask in GateGuardMasks)
         {
-            hash.Add(guardMask);
+            PolicyGuardMasks.AddHashCode(ref hash, guardMask);
         }
 
         return hash.ToHashCode();
@@ -236,7 +237,7 @@ public sealed record PolicyConditionSlot
     /// <summary>
     /// Gets the canonical DNF masks of client include conditions that can make this gate live.
     /// </summary>
-    public required ImmutableArray<ulong> GuardMasks { get; init; }
+    public required ImmutableArray<ConditionFlags> GuardMasks { get; init; }
 
     /// <summary>
     /// Gets the operation coordinates controlled by this gate.
@@ -255,7 +256,7 @@ public sealed record PolicyConditionSlot
                 && Ordinal == other.Ordinal
                 && Rmax == other.Rmax
                 && Applications.SequenceEqual(other.Applications)
-                && GuardMasks.SequenceEqual(other.GuardMasks)
+                && PolicyGuardMasks.SequenceEqual(GuardMasks, other.GuardMasks)
                 && Coordinates.SequenceEqual(other.Coordinates));
 
     /// <inheritdoc />
@@ -271,7 +272,7 @@ public sealed record PolicyConditionSlot
 
         foreach (var guardMask in GuardMasks)
         {
-            hash.Add(guardMask);
+            PolicyGuardMasks.AddHashCode(ref hash, guardMask);
         }
 
         foreach (var coordinate in Coordinates)
@@ -280,5 +281,259 @@ public sealed record PolicyConditionSlot
         }
 
         return hash.ToHashCode();
+    }
+}
+
+internal static class PolicyGuardMasks
+{
+    public static bool Equals(ConditionFlags left, ConditionFlags right)
+    {
+        if (left.Word0 != right.Word0)
+        {
+            return false;
+        }
+
+        var leftLength = GetOverflowLength(left.Overflow);
+        var rightLength = GetOverflowLength(right.Overflow);
+        return leftLength == rightLength
+            && left.Overflow.AsSpan(0, leftLength).SequenceEqual(
+                right.Overflow.AsSpan(0, rightLength));
+    }
+
+    public static int Compare(ConditionFlags left, ConditionFlags right)
+    {
+        var comparison = left.Word0.CompareTo(right.Word0);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        var leftLength = GetOverflowLength(left.Overflow);
+        var rightLength = GetOverflowLength(right.Overflow);
+        var length = Math.Min(leftLength, rightLength);
+
+        for (var i = 0; i < length; i++)
+        {
+            comparison = left.Overflow![i].CompareTo(right.Overflow![i]);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+        }
+
+        return leftLength.CompareTo(rightLength);
+    }
+
+    public static bool SequenceEqual(ImmutableArray<ConditionFlags> left, ImmutableArray<ConditionFlags> right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            if (!Equals(left[i], right[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool IsSubsetOf(ConditionFlags subset, ConditionFlags superset)
+    {
+        if ((subset.Word0 & superset.Word0) != subset.Word0)
+        {
+            return false;
+        }
+
+        var subsetLength = GetOverflowLength(subset.Overflow);
+        var supersetLength = superset.Overflow?.Length ?? 0;
+        for (var i = 0; i < subsetLength; i++)
+        {
+            var subsetWord = subset.Overflow![i];
+            var supersetWord = i < supersetLength ? superset.Overflow![i] : 0UL;
+            if ((subsetWord & supersetWord) != subsetWord)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool IsEmpty(ConditionFlags mask)
+        => mask.Word0 == 0 && GetOverflowLength(mask.Overflow) == 0;
+
+    public static bool IsCanonical(ConditionFlags mask)
+        => mask.Overflow is null
+            || (mask.Overflow.Length > 0 && mask.Overflow[^1] != 0);
+
+    public static bool Contains(ConditionFlags mask, int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        if (index < 64)
+        {
+            return (mask.Word0 & (1UL << index)) != 0;
+        }
+
+        var overflowIndex = (index >> 6) - 1;
+        return mask.Overflow is { } overflow
+            && overflowIndex < overflow.Length
+            && (overflow[overflowIndex] & (1UL << (index & 63))) != 0;
+    }
+
+    public static ConditionFlags FromIndex(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+        if (index < 64)
+        {
+            return new ConditionFlags(1UL << index);
+        }
+
+        var overflowIndex = (index >> 6) - 1;
+        var overflow = new ulong[overflowIndex + 1];
+        overflow[overflowIndex] = 1UL << (index & 63);
+        return new ConditionFlags(0, overflow);
+    }
+
+    public static ConditionFlags CreateAllSet(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+
+        if (count == 0)
+        {
+            return default;
+        }
+
+        var word0 = count >= 64
+            ? ulong.MaxValue
+            : (1UL << count) - 1;
+        if (count <= 64)
+        {
+            return new ConditionFlags(word0);
+        }
+
+        var overflow = new ulong[(count - 1) >> 6];
+        Array.Fill(overflow, ulong.MaxValue);
+        var finalWordBitCount = count & 63;
+        if (finalWordBitCount != 0)
+        {
+            overflow[^1] = (1UL << finalWordBitCount) - 1;
+        }
+
+        return new ConditionFlags(word0, overflow);
+    }
+
+    public static ConditionFlags Or(ConditionFlags left, ConditionFlags right)
+    {
+        var leftLength = GetOverflowLength(left.Overflow);
+        var rightLength = GetOverflowLength(right.Overflow);
+        var length = Math.Max(leftLength, rightLength);
+        if (length == 0)
+        {
+            return new ConditionFlags(left.Word0 | right.Word0);
+        }
+
+        var overflow = new ulong[length];
+        for (var i = 0; i < length; i++)
+        {
+            var leftWord = i < leftLength ? left.Overflow![i] : 0UL;
+            var rightWord = i < rightLength ? right.Overflow![i] : 0UL;
+            overflow[i] = leftWord | rightWord;
+        }
+
+        return new ConditionFlags(left.Word0 | right.Word0, overflow);
+    }
+
+    public static ConditionFlags Intersect(ConditionFlags left, ConditionFlags right)
+    {
+        var length = Math.Min(
+            GetOverflowLength(left.Overflow),
+            GetOverflowLength(right.Overflow));
+        if (length == 0)
+        {
+            return new ConditionFlags(left.Word0 & right.Word0);
+        }
+
+        var overflow = new ulong[length];
+        for (var i = 0; i < length; i++)
+        {
+            overflow[i] = left.Overflow![i] & right.Overflow![i];
+        }
+
+        return Normalize(new ConditionFlags(left.Word0 & right.Word0, overflow));
+    }
+
+    public static ConditionFlags Normalize(ConditionFlags mask)
+    {
+        var length = GetOverflowLength(mask.Overflow);
+        if (length == 0)
+        {
+            return new ConditionFlags(mask.Word0);
+        }
+
+        if (length == mask.Overflow!.Length)
+        {
+            return mask;
+        }
+
+        return new ConditionFlags(mask.Word0, mask.Overflow.AsSpan(0, length).ToArray());
+    }
+
+    public static ImmutableArray<ConditionFlags> Canonicalize(IEnumerable<ConditionFlags> masks)
+    {
+        var ordered = masks.Select(Normalize).ToArray();
+        Array.Sort(ordered, Compare);
+
+        if (ordered.Length == 0)
+        {
+            return [];
+        }
+
+        if (IsEmpty(ordered[0]))
+        {
+            return [default];
+        }
+
+        var canonical = ImmutableArray.CreateBuilder<ConditionFlags>(ordered.Length);
+        foreach (var mask in ordered)
+        {
+            if ((canonical.Count > 0 && Equals(mask, canonical[^1]))
+                || canonical.Any(existing => IsSubsetOf(existing, mask)))
+            {
+                continue;
+            }
+
+            canonical.Add(mask);
+        }
+
+        return canonical.ToImmutable();
+    }
+
+    public static void AddHashCode(ref HashCode hash, ConditionFlags mask)
+    {
+        hash.Add(mask.Word0);
+        var length = GetOverflowLength(mask.Overflow);
+        hash.Add(length);
+        for (var i = 0; i < length; i++)
+        {
+            hash.Add(mask.Overflow![i]);
+        }
+    }
+
+    private static int GetOverflowLength(ulong[]? overflow)
+    {
+        var length = overflow?.Length ?? 0;
+        while (length > 0 && overflow![length - 1] == 0)
+        {
+            length--;
+        }
+
+        return length;
     }
 }

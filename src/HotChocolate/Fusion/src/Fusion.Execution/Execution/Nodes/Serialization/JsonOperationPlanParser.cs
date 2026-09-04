@@ -50,25 +50,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
 
         var includeConditions = ParseIncludeConditions(includeConditionsElement);
-        var hasPolicyCandidates = rootElement.TryGetProperty("policySlots", out var policySlotsElement)
-            && policySlotsElement.GetArrayLength() > 0;
-        if (includeConditions.Length > 64 && hasPolicyCandidates)
-        {
-            throw ThrowHelper.InvalidOperationPlan(
-                "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.");
-        }
-
         var compiledIncludeConditions = IncludeConditionCollection.Create(includeConditions, int.MaxValue);
         var operation = ParseOperation(
             rootElement.GetProperty("operation"),
             compiledIncludeConditions);
-
-        if ((operation.HasWideIncludeFlags || operation.HasWideDeferFlags)
-            && hasPolicyCandidates)
-        {
-            throw ThrowHelper.InvalidOperationPlan(
-                "An operation plan with policy candidates cannot contain more than 64 include or defer conditions.");
-        }
 
         if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
         {
@@ -107,7 +92,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var policySlots = ImmutableArray<PolicyConditionSlot>.Empty;
 
-        if (rootElement.TryGetProperty("policySlots", out policySlotsElement))
+        if (rootElement.TryGetProperty("policySlots", out var policySlotsElement))
         {
             policySlots = ParsePolicySlots(policySlotsElement);
         }
@@ -259,7 +244,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
             var masksElement = slotElement.GetProperty("guardMasks");
             RequireArray(masksElement, "policy gate guardMasks");
-            var masks = masksElement.EnumerateArray().Select(element => element.GetUInt64()).ToImmutableArray();
+            var masks = masksElement
+                .EnumerateArray()
+                .Select(element => ParseConditionMask(element, "policy gate guard mask"))
+                .ToImmutableArray();
             var rmax = ParseDefinedEnum<PolicyDenialBehavior>(
                 slotElement.GetProperty("rmax"),
                 "policy gate residual denial behavior");
@@ -320,11 +308,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     IsRoot = coordinateElement.GetProperty("isRoot").GetBoolean(),
                     LiveGuardMasks = liveMasksElement
                         .EnumerateArray()
-                        .Select(element => element.GetUInt64())
+                        .Select(element => ParseConditionMask(element, "policy gate coordinate live guard mask"))
                         .ToImmutableArray(),
                     GateGuardMasks = gateMasksElement
                         .EnumerateArray()
-                        .Select(element => element.GetUInt64())
+                        .Select(element => ParseConditionMask(element, "policy gate coordinate gate guard mask"))
                         .ToImmutableArray()
                 });
             }
@@ -385,6 +373,52 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             throw ThrowHelper.InvalidOperationPlan($"The {description} must be an array.");
         }
+    }
+
+    private static ConditionFlags ParseConditionMask(JsonElement element, string description)
+    {
+        if (element.ValueKind is JsonValueKind.Number && element.TryGetUInt64(out var word0))
+        {
+            return new ConditionFlags(word0);
+        }
+
+        if (element.ValueKind is not JsonValueKind.Array)
+        {
+            throw ThrowHelper.InvalidOperationPlan($"The {description} must be a number or an array.");
+        }
+
+        var words = new List<ulong>();
+
+        foreach (var wordElement in element.EnumerateArray())
+        {
+            if (wordElement.ValueKind is not JsonValueKind.Number
+                || !wordElement.TryGetUInt64(out var word))
+            {
+                throw ThrowHelper.InvalidOperationPlan(
+                    $"Every word in the {description} must be an unsigned integer.");
+            }
+
+            words.Add(word);
+        }
+
+        if (words.Count == 0)
+        {
+            throw ThrowHelper.InvalidOperationPlan($"The {description} word array must not be empty.");
+        }
+
+        if (words.Count == 1)
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                $"The {description} must use a scalar number when it has one word.");
+        }
+
+        if (words[^1] == 0)
+        {
+            throw ThrowHelper.InvalidOperationPlan(
+                $"The {description} word array must not end with zero.");
+        }
+
+        return new ConditionFlags(words[0], words.Skip(1).ToArray());
     }
 
     private static void ValidateProperties(
