@@ -82,7 +82,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         {
             if (fullPath.Equals(e.FullPath, StringComparison.Ordinal))
             {
-                _schemaUpdateEvents.Writer.TryWrite(true);
+                SignalChange();
             }
         };
 
@@ -90,17 +90,22 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         {
             if (fullPath.Equals(e.FullPath, StringComparison.Ordinal))
             {
-                _schemaUpdateEvents.Writer.TryWrite(true);
+                SignalChange();
             }
         };
 
         _watcher.EnableRaisingEvents = true;
-        _schemaUpdateEvents.Writer.TryWrite(true);
+        SignalChange();
 
         SchemaUpdateProcessorAsync(_cts.Token).FireAndForget();
     }
 
     public FusionConfiguration? Configuration { get; private set; }
+
+    internal void SignalChange()
+    {
+        _schemaUpdateEvents.Writer.TryWrite(true);
+    }
 
     public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
     {

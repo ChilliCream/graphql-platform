@@ -72,8 +72,8 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
     {
         // arrange
         // The package hash must only be committed once the archive has been read
-        // successfully. Otherwise, rewriting the exact same malformed bytes a second
-        // time would be treated as already handled and silently skipped forever.
+        // successfully. Otherwise, a second signal for the unchanged malformed bytes
+        // would be treated as already handled and silently skipped forever.
         var fileName = IOPath.Combine(_directory, "gateway.far");
         var malformedBytes = "this is not a fusion archive"u8.ToArray();
         await File.WriteAllBytesAsync(fileName, malformedBytes, TestContext.Current.CancellationToken);
@@ -83,12 +83,11 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
         await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents);
         var firstError = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationReadErrors.Reader);
 
-        await File.WriteAllBytesAsync(fileName, malformedBytes, TestContext.Current.CancellationToken);
+        provider.SignalChange();
         var secondError = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationReadErrors.Reader);
 
         // assert
-        Assert.NotNull(firstError);
-        Assert.NotNull(secondError);
+        Assert.Equal(firstError.GetType(), secondError.GetType());
         Assert.Null(provider.Configuration);
     }
 
@@ -97,24 +96,21 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
     {
         // arrange
         // The package hash must only be committed once the schema, settings, and policy
-        // content have all been read and parsed successfully. Otherwise, rewriting the exact
-        // same malformed bytes a second time would be treated as already handled and silently
-        // skipped forever, even though the archive itself opens without error.
+        // content have all been read and parsed successfully. Otherwise, a second signal for
+        // unchanged malformed bytes would be treated as already handled and silently skipped.
         var fileName = IOPath.Combine(_directory, "gateway.far");
         await CreateArchiveWithMalformedSchemaAsync(fileName);
-        var malformedBytes = await File.ReadAllBytesAsync(fileName, TestContext.Current.CancellationToken);
         var diagnosticEvents = new RecordingDiagnosticEvents();
 
         // act
         await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents);
         var firstError = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationReadErrors.Reader);
 
-        await File.WriteAllBytesAsync(fileName, malformedBytes, TestContext.Current.CancellationToken);
+        provider.SignalChange();
         var secondError = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationReadErrors.Reader);
 
         // assert
-        Assert.NotNull(firstError);
-        Assert.NotNull(secondError);
+        Assert.Equal(firstError.GetType(), secondError.GetType());
         Assert.Null(provider.Configuration);
     }
 
@@ -136,18 +132,10 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
         return await tcs.Task;
     }
 
-    private static async Task<Exception?> ReadWithTimeoutAsync(ChannelReader<Exception> reader)
+    private static async Task<Exception> ReadWithTimeoutAsync(ChannelReader<Exception> reader)
     {
         using var cts = new CancellationTokenSource(s_timeout);
-
-        try
-        {
-            return await reader.ReadAsync(cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            return null;
-        }
+        return await reader.ReadAsync(cts.Token);
     }
 
     private static async Task CreateValidArchiveAsync(string fileName)
