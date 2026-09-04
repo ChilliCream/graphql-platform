@@ -907,7 +907,7 @@ internal static class PolicyArtifactBinder
             requirements.AddRange(operation.GetRequirementsArray());
         }
 
-        return requirements.MoveToImmutable();
+        return requirements.ToImmutable();
     }
 
     private static string[] CreateRequirementPath(OperationRequirement requirement)
