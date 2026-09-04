@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Configuration.Validation;
 
 namespace HotChocolate.Types.Validation;
@@ -132,6 +133,208 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
+    public void AcceptsOneOfWithScalarField()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              a: Int
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfWithRecursiveListField()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              a: [A!]
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfReferencingFiniteInputObject()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+          }
+
+          input B {
+              x: Int
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfReferencingEarlierDeclaredInputObject()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input B {
+              value: Int
+          }
+
+          input A @oneOf {
+              b: B
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfWithMultipleAcyclicInputObjectFields()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+              c: C
+          }
+
+          input B {
+              value: Int
+          }
+
+          input C {
+              value: Int
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfCycleWithScalarEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+              escape: Int
+          }
+
+          input B @oneOf {
+              a: A
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfAndNonOneOfCycleWithNullableEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+          }
+
+          input B {
+              a: A
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfAndNonOneOfCycleWithScalarEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+              escape: Int
+          }
+
+          input B {
+              a: A!
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsNonOneOfCycleWithNullableEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A {
+              b: B!
+          }
+
+          input B {
+              a: A
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsNonOneOfCycleWithNonNullListEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A {
+              b: [B!]!
+          }
+
+          input B {
+              a: A!
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfEscapeThroughTypeWithRepeatedFiniteField()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+              x: X
+          }
+
+          input B {
+              a: A!
+          }
+
+          input X {
+              f1: F!
+              f2: F!
+          }
+
+          input F {
+              v: Int
+          }
+        """);
+    }
+
+    [Fact]
+    public void AcceptsOneOfWithEnumEscape()
+    {
+        ExpectValid("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              self: A
+              kind: Kind
+          }
+
+          enum Kind {
+              X
+          }
+        """);
+    }
+
+    [Fact]
     public void RejectsNonBreakableDirectCircularReference()
     {
         ExpectError("""
@@ -181,6 +384,171 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
               closeSecondLoop: AnotherInputObject!
               nonNullSelf: YetAnotherInputObject!
           }
+        """);
+    }
+
+    [Fact]
+    public void RejectsSelfReferencingOneOf()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              self: A
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsNonOneOfRequiringUnbreakableOneOf()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input T @oneOf {
+              self: T
+          }
+
+          input A {
+              t: T!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsOneOfAndNonOneOfCycleWithoutEscape()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+          }
+
+          input B {
+              a: A!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsMultipleOneOfBranchesWithoutEscape()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+              c: C
+          }
+
+          input B {
+              a: A!
+          }
+
+          input C {
+              a: A!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsNonOneOfCycleBesideFiniteRequiredFields()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A {
+              list: [B]!
+              finite: Finite!
+              b: B!
+          }
+
+          input B {
+              value: Int!
+              a: A!
+          }
+
+          input Finite {
+              value: Int!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsThreeTypeMixedCycleWithoutEscape()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              b: B
+          }
+
+          input B {
+              c: C!
+          }
+
+          input C @oneOf {
+              a: A
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsOneOfWithNonNullSelfReference()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              self: A!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsSharedUnbreakableOneOfSubgraph()
+    {
+        // arrange
+        // T0 references itself; every T(n) has two fields into T(n-1), so 2^16 paths reach T0.
+        var sdl = new StringBuilder(
+            """
+            type Query { stub: String }
+
+            input T0 @oneOf {
+                self: T0
+            }
+            """);
+
+        for (var i = 1; i <= 16; i++)
+        {
+            sdl.AppendLine();
+            sdl.Append(
+                $$"""
+                input T{{i}} @oneOf {
+                    a: T{{i - 1}}
+                    b: T{{i - 1}}
+                }
+                """);
+        }
+
+        // act & assert
+        ExpectError(sdl.ToString());
+    }
+
+    [Fact]
+    public void RejectsEmptyOneOfEscapeWithoutCycleError()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          input A @oneOf {
+              self: A
+              e: E
+          }
+
+          input E @oneOf {}
         """);
     }
 

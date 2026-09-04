@@ -1,59 +1,34 @@
+using HotChocolate.Events;
+using HotChocolate.Events.Contracts;
 using HotChocolate.Language;
+using HotChocolate.Logging;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.Utilities.ErrorHelper;
+using static HotChocolate.Logging.LogEntryHelper;
 
-namespace HotChocolate.Configuration.Validation;
+namespace HotChocolate.Rules;
 
-internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
+/// <summary>
+/// An Input Object must not reference itself through a cycle that cannot be broken. A field
+/// breaks a cycle when its type is a list, a nullable type on a non-OneOf Input Object, a type
+/// other than an Input Object, or an Input Object that can itself be provided a finite value.
+/// </summary>
+/// <seealso href="https://github.com/graphql/graphql-spec/pull/1211">
+/// Specification proposal
+/// </seealso>
+public sealed class NoInputObjectUnbreakableCycleRule
+    : IValidationEventHandler<InputObjectTypesEvent>
 {
-    public void Validate(
-        IDescriptorContext context,
-        ISchemaDefinition schema,
-        ICollection<ISchemaError> errors)
-    {
-        if (!context.Options.StrictValidation)
-        {
-            return;
-        }
-
-        List<string>? names = null;
-        var inputTypes = new List<InputObjectType>();
-
-        foreach (var type in schema.Types)
-        {
-            if (type is not InputObjectType inputType)
-            {
-                continue;
-            }
-
-            EnsureTypeHasFields(inputType, errors);
-            EnsureFieldNamesAreValid(inputType, errors);
-            EnsureOneOfFieldsAreValid(inputType, errors, ref names);
-            EnsureFieldDeprecationIsValid(inputType, errors);
-            EnsureDefaultValuesAreValid(inputType, errors);
-
-            inputTypes.Add(inputType);
-        }
-
-        EnsureNoUnbreakableCycles(inputTypes, errors);
-    }
-
     /// <summary>
-    /// Reports each unbreakable cycle among the Input Objects once. A OneOf Input Object
-    /// requires every Input Object field; a non-OneOf Input Object requires only its non-null
-    /// Input Object fields.
+    /// Checks that every Input Object can be provided a finite value.
     /// </summary>
-    private static void EnsureNoUnbreakableCycles(
-        List<InputObjectType> inputTypes,
-        ICollection<ISchemaError> errors)
+    public void Handle(InputObjectTypesEvent @event, ValidationContext context)
     {
-        var states = inputTypes.ConvertAll(t => new InputObjectState(t));
+        var states = @event.InputObjectTypes.Select(t => new InputObjectState(t)).ToList();
         var finiteStates = CollectEdges(states);
 
         PropagateFiniteValues(finiteStates);
-        ReportCycles(states, errors);
+
+        context.Log.Write(ReportCycles(states));
     }
 
     /// <summary>
@@ -105,7 +80,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
     /// <c>null</c> when the field type is an escape: a list, a nullable type on a non-OneOf
     /// Input Object, or a type other than an Input Object.
     /// </summary>
-    private static InputObjectType? GetCycleTarget(bool isOneOf, IType fieldType)
+    private static IInputObjectTypeDefinition? GetCycleTarget(bool isOneOf, IType fieldType)
     {
         if (fieldType.Kind == TypeKind.NonNull)
         {
@@ -116,7 +91,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             return null;
         }
 
-        return fieldType as InputObjectType;
+        return fieldType as IInputObjectTypeDefinition;
     }
 
     private static void MarkFinite(InputObjectState state, Stack<InputObjectState> finiteStates)
@@ -149,11 +124,9 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         }
     }
 
-    private static void ReportCycles(
-        List<InputObjectState> states,
-        ICollection<ISchemaError> errors)
+    private static List<LogEntry> ReportCycles(List<InputObjectState> states)
     {
-        var context = new CycleReportContext(errors);
+        var context = new CycleReportContext();
 
         foreach (var state in states)
         {
@@ -162,6 +135,8 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
                 ReportCycles(state, context);
             }
         }
+
+        return context.LogEntries;
     }
 
     private static void ReportCycles(InputObjectState state, CycleReportContext context)
@@ -185,8 +160,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             if (context.FieldPathIndex.TryGetValue(edge.Target, out var cycleIndex))
             {
                 var cyclePath = context.FieldPath.Skip(cycleIndex);
-                context.Errors.Add(
-                    InputObjectMustNotHaveUnbreakableCycle(edge.Target.Type, cyclePath));
+                context.LogEntries.Add(InputObjectUnbreakableCycle(edge.Target.Type, cyclePath));
             }
             else
             {
@@ -199,42 +173,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         context.FieldPathIndex.Remove(state);
     }
 
-    private static void EnsureOneOfFieldsAreValid(
-        InputObjectType type,
-        ICollection<ISchemaError> errors,
-        ref List<string>? temp)
-    {
-        if (!type.Directives.ContainsDirective(DirectiveNames.OneOf.Name))
-        {
-            return;
-        }
-
-        temp ??= [];
-
-        foreach (var field in type.Fields)
-        {
-            if (field.Type.Kind is TypeKind.NonNull || field.DefaultValue is not null)
-            {
-                temp.Add(field.Name);
-            }
-        }
-
-        if (temp.Count == 0)
-        {
-            return;
-        }
-
-        var fieldNames = new string[temp.Count];
-        for (var i = 0; i < temp.Count; i++)
-        {
-            fieldNames[i] = temp[i];
-        }
-
-        temp.Clear();
-        errors.Add(OneOfInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
-    }
-
-    private sealed class InputObjectState(InputObjectType type)
+    private sealed class InputObjectState(IInputObjectTypeDefinition type)
     {
         public List<InputObjectState> Dependents { get; } = [];
 
@@ -242,20 +181,20 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 
         public bool HasFiniteValue { get; set; }
 
-        public InputObjectType Type { get; } = type;
+        public IInputObjectTypeDefinition Type { get; } = type;
 
         public int UnresolvedEdgeCount { get; set; }
     }
 
-    private readonly record struct CycleEdge(InputField Field, InputObjectState Target);
+    private readonly record struct CycleEdge(IInputValueDefinition Field, InputObjectState Target);
 
-    private sealed class CycleReportContext(ICollection<ISchemaError> errors)
+    private sealed class CycleReportContext
     {
-        public ICollection<ISchemaError> Errors { get; } = errors;
-
         public List<string> FieldPath { get; } = [];
 
         public Dictionary<InputObjectState, int> FieldPathIndex { get; } = [];
+
+        public List<LogEntry> LogEntries { get; } = [];
 
         public HashSet<InputObjectState> Visited { get; } = [];
     }

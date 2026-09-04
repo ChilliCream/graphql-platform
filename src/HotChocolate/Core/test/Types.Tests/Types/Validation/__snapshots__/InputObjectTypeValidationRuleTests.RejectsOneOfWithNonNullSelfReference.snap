@@ -1,0 +1,17 @@
+{
+  "message": "OneOf Input Object `A` must only have nullable fields without default values. Edit your type and make the field `self` nullable and remove any defaults.",
+  "type": "A",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/825",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "Input Object 'A' cannot be provided a finite value because it references itself through fields: 'A.self'.",
+  "type": "A",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
+  }
+}
+
