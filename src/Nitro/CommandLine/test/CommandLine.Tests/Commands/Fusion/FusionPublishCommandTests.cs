@@ -1334,6 +1334,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -1387,6 +1390,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -1425,6 +1431,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -1478,6 +1487,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -4043,6 +4055,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -4096,6 +4111,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -4134,6 +4152,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -4187,6 +4208,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);
@@ -5165,6 +5189,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               SOURCE_SCHEMA
             }
 
+            enum fusion__PolicyDenialBehavior {
+              NULL
+              ERROR
+              ABORT
+            }
+
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               PRODUCTS @fusion__schema_metadata(name: "products")
@@ -5314,6 +5344,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
 
+            directive @fusion__policy(
+              names: [[String!]!]!
+              onDenied: fusion__PolicyDenialBehavior!
+            ) repeatable on OBJECT | FIELD_DEFINITION
+
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
               "The GraphQL field definition in the source schema that this field depends on."
@@ -5370,6 +5405,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
+            }
+
+            enum fusion__PolicyDenialBehavior {
+              NULL
+              ERROR
+              ABORT
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
@@ -5511,6 +5552,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            directive @fusion__policy(
+              names: [[String!]!]!
+              onDenied: fusion__PolicyDenialBehavior!
+            ) repeatable on OBJECT | FIELD_DEFINITION
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
@@ -5667,6 +5713,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               SOURCE_SCHEMA
             }
 
+            enum fusion__PolicyDenialBehavior {
+              NULL
+              ERROR
+              ABORT
+            }
+
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
               PRODUCTS @fusion__schema_metadata(name: "products")
@@ -5815,6 +5867,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            directive @fusion__policy(
+              names: [[String!]!]!
+              onDenied: fusion__PolicyDenialBehavior!
+            ) repeatable on OBJECT | FIELD_DEFINITION
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(

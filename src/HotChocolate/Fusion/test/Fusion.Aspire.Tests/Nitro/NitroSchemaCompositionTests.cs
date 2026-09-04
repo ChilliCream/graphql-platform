@@ -198,6 +198,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);

@@ -245,6 +245,9 @@ public sealed class AspireCompositionHelperTests
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": true,
                 "shareableFieldRuntimeTypeRouting": "CommonRuntimeTypes"
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);

@@ -947,6 +947,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": true,
                 "shareableFieldRuntimeTypeRouting": "CommonRuntimeTypes"
+              },
+              "authorization": {
+                "onDenied": null
               }
             }
             """);

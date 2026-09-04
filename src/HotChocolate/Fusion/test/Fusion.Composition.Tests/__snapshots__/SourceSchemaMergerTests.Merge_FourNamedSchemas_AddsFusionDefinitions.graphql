@@ -3,6 +3,12 @@ enum fusion__NodeResolution {
   SOURCE_SCHEMA
 }
 
+enum fusion__PolicyDenialBehavior {
+  NULL
+  ERROR
+  ABORT
+}
+
 "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
 enum fusion__Schema {
   EXAMPLE_FOUR_FIVE @fusion__schema_metadata(name: "ExampleFourFive")
@@ -145,6 +151,11 @@ directive @fusion__lookup(
   "The name of the source schema where the annotated entity type can be looked up from."
   schema: fusion__Schema!
 ) repeatable on OBJECT | INTERFACE | UNION
+
+directive @fusion__policy(
+  names: [[String!]!]!
+  onDenied: fusion__PolicyDenialBehavior!
+) repeatable on OBJECT | FIELD_DEFINITION
 
 "The @fusion__requires directive specifies if a field has requirements on a source schema."
 directive @fusion__requires(

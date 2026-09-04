@@ -1074,6 +1074,8 @@ public sealed class SchemaComposerTests
                 "LookupReturnsNonNullableTypeRule",
                 "OverrideFromSelfRule",
                 "OverrideOnInterfaceRule",
+                "PolicyDefinitionInvalidRule",
+                "PolicyOnInterfaceRule",
                 "ProvidesDirectiveInFieldsArgumentRule",
                 "ProvidesFieldsHasArgumentsRule",
                 "ProvidesFieldsMissingExternalRule",
