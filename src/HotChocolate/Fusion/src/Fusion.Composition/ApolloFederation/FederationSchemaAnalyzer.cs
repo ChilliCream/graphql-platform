@@ -15,14 +15,12 @@ internal static class FederationSchemaAnalyzer
 {
     internal const string FederationUrlPrefix = "specs.apollo.dev/federation";
 
-    // @policy is intentionally absent: it is accepted and translated to Fusion's @policy(names:)
-    // by RemoveFederationInfrastructure instead of being rejected here. @authenticated and
-    // @requiresScopes stay unsupported; mapping them to Fusion policies is a separate decision.
+    // @policy is accepted and translated to Fusion's @policy(names:) by
+    // RemoveFederationInfrastructure. @authenticated and @requiresScopes are intentionally
+    // dropped without diagnostics until they are mapped to Fusion policies.
     private static readonly HashSet<string> s_unsupportedDirectives =
     [
-        FederationDirectiveNames.ComposeDirective,
-        FederationDirectiveNames.Authenticated,
-        FederationDirectiveNames.RequiresScopes
+        FederationDirectiveNames.ComposeDirective
     ];
 
     /// <summary>
