@@ -20,6 +20,7 @@ namespace Mocha.Sagas.EfCore;
 internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDisposable
 {
     private readonly object _lock = new();
+    private readonly List<JsonDocument> _documents = [];
     private PooledArrayWriter? _arrayWriter;
     private List<byte[]>? _buffers;
 
@@ -71,6 +72,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
             .FirstOrDefaultAsync(cancellationToken);
 
         var document = ToJsonDocument(saga, state);
+        _documents.Add(document);
 
         if (sagaState is null)
         {
@@ -131,7 +133,8 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     public async Task<T?> LoadAsync<T>(Saga saga, Guid id, CancellationToken cancellationToken)
     {
         // The state is loaded tracked so the save that follows checks the version observed here.
-        // Its document stays with the tracked entity and is released when a save replaces it.
+        // Its document stays with the tracked entity and is released when a save replaces it or
+        // when this store is disposed.
         var sageState = await context
             .Set<SagaState>()
             .AsTracking()
@@ -143,6 +146,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
             return default;
         }
 
+        _documents.Add(document);
         return FromJsonDocument<T>(saga, document);
     }
 
@@ -196,10 +200,16 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     }
 
     /// <summary>
-    /// Releases the pooled array writer and returns all rented byte buffers to the pool.
+    /// Releases the documents held by tracked saga states, the pooled array writer, and all rented byte buffers.
     /// </summary>
     public void Dispose()
     {
+        foreach (var document in _documents)
+        {
+            document.Dispose();
+        }
+
+        _documents.Clear();
         _arrayWriter?.Dispose();
         if (_buffers is not null)
         {

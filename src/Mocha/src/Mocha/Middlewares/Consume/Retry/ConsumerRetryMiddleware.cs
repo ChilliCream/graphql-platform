@@ -60,11 +60,10 @@ internal sealed class ConsumerRetryMiddleware(
 
         try
         {
-            // The attempt reads the delivery's features through its clone, but needs its own
-            // consumer feature: a pooled clone may still carry a reset one from its previous use
-            // that would shadow the delivery's, and CurrentConsumer must be set for this attempt
-            // without touching the delivery's consumer set. Set() initializes pooled features,
-            // which clears CurrentConsumer, so it is assigned after the feature is added.
+            // The attempt reads the receive context's features through its clone, but needs its
+            // own consumer feature so CurrentConsumer can be set for this attempt without touching
+            // the receive context's consumer set. Set() initializes pooled features, which clears
+            // CurrentConsumer, so it is assigned after the feature is added.
             var consumerFeature = new ReceiveConsumerFeature();
             attempt.Features.Set(consumerFeature);
             consumerFeature.CurrentConsumer = consumer;
