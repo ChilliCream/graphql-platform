@@ -5,7 +5,7 @@ namespace Mocha.Sagas;
 /// <summary>
 /// A pooled feature that provides access to the saga store during saga event processing.
 /// </summary>
-public class SagaFeature : IPooledFeature, IScopeBoundFeature
+public class SagaFeature : IPooledFeature
 {
     /// <summary>
     /// Gets or sets the saga store used for persisting saga state.
@@ -20,12 +20,6 @@ public class SagaFeature : IPooledFeature, IScopeBoundFeature
 
     /// <inheritdoc />
     public void Reset()
-    {
-        Store = null!;
-    }
-
-    /// <inheritdoc />
-    public void ResetScope()
     {
         Store = null!;
     }

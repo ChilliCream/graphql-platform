@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.ExceptionServices;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -64,7 +66,12 @@ public static class EntityFrameworkCoreBuilderExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseResilience(this IEntityFrameworkCoreBuilder builder)
     {
-        builder.HostBuilder.ConfigureMessageBus(x => x.UseConsume(EntityFrameworkResilienceConsumeMiddleware.Create()));
+        builder.HostBuilder.ConfigureMessageBus(x =>
+            x.ConfigureFeature(f =>
+                f.Set(new ConsumerExecutionStrategyFeature
+                {
+                    Strategy = new EntityFrameworkConsumerExecutionStrategy(builder.ContextType)
+                })));
 
         return builder;
     }
@@ -89,55 +96,32 @@ internal sealed class EntityFrameworkConfigurationFeature
     public Type? ContextType { get; set; }
 }
 
-internal sealed class EntityFrameworkResilienceConsumeMiddleware(Type contextType)
+internal sealed class EntityFrameworkConsumerExecutionStrategy(Type contextType) : IConsumerExecutionStrategy
 {
-    public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
+    public async ValueTask ExecuteAsync(IConsumeContext context, Func<CancellationToken, ValueTask> executeAttempt)
     {
-        var dbContext = (DbContext)context.Services.GetRequiredService(contextType);
+        await using var scope = context.Services.CreateAsyncScope();
+        var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
         var strategy = dbContext.Database.CreateExecutionStrategy();
 
         if (!strategy.RetriesOnFailure)
         {
-            await next(context);
+            await executeAttempt(context.CancellationToken);
             return;
         }
 
-        var originalServices = context.Services;
-
-        await strategy.ExecuteAsync(async () =>
+        try
         {
-            await using var scope = originalServices.CreateAsyncScope();
-            context.Services = scope.ServiceProvider;
-
-            try
-            {
-                await next(context);
-            }
-            finally
-            {
-                context.Services = originalServices;
-            }
-        });
+            await strategy.ExecuteAsync(
+                executeAttemptToken => executeAttempt(executeAttemptToken).AsTask(),
+                context.CancellationToken);
+        }
+        catch (RetryLimitExceededException exception) when (exception.InnerException is not null)
+        {
+            ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
+            throw;
+        }
     }
-
-    public static ConsumerMiddlewareConfiguration Create()
-        => new(
-            static (context, next) =>
-            {
-                var contextType =
-                    context
-                        .Services.GetRequiredService<IFeatureCollection>()
-                        .Get<EntityFrameworkConfigurationFeature>()
-                        ?.ContextType
-                    ?? throw new InvalidOperationException(
-                        "No Entity Framework Core DbContext type has been configured. "
-                        + "Call AddEntityFramework<TContext>() on the message bus host builder "
-                        + "before using UseResilience().");
-
-                var middleware = new EntityFrameworkResilienceConsumeMiddleware(contextType);
-                return ctx => middleware.InvokeAsync(ctx, next);
-            },
-            "EntityFrameworkResilience");
 }
 
 internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextType)

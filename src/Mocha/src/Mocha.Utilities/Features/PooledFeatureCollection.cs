@@ -151,6 +151,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// </summary>
     public void Reset()
     {
+        _defaults = null;
         foreach (var item in _features)
         {
             if (item.Value is IPooledFeature pooledFeature)
