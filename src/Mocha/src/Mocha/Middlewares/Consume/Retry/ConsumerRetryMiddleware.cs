@@ -60,13 +60,17 @@ internal sealed class ConsumerRetryMiddleware(
 
         try
         {
-            // The attempt reads the receive context's features through its clone, but needs its
-            // own consumer feature so CurrentConsumer can be set for this attempt without touching
-            // the receive context's consumer set. Set() initializes pooled features, which clears
+            // The receive pipeline sets CurrentConsumer on the receive context's consumer feature,
+            // which the attempt reads through its clone. A batch context has no consumer feature,
+            // so the attempt gets one of its own. Set() initializes pooled features, which clears
             // CurrentConsumer, so it is assigned after the feature is added.
-            var consumerFeature = new ReceiveConsumerFeature();
-            attempt.Features.Set(consumerFeature);
-            consumerFeature.CurrentConsumer = consumer;
+            if (attempt.Features.Get<ReceiveConsumerFeature>() is null)
+            {
+                var consumerFeature = new ReceiveConsumerFeature();
+                attempt.Features.Set(consumerFeature);
+                consumerFeature.CurrentConsumer = consumer;
+            }
+
             attempt.CancellationToken = cancellationToken;
             accessor.Context = attempt;
             await next(attempt);
