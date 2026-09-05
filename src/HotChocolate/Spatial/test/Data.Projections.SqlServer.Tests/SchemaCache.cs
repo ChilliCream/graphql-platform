@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
-using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
-public class SchemaCache(PostgreSqlResource<PostgisConfig> resource)
+public class SchemaCache(PostgisResource resource)
     : ProjectionVisitorTestBase(resource)
     , IDisposable
 {

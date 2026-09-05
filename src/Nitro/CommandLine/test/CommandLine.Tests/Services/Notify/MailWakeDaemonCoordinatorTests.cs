@@ -827,7 +827,7 @@ internal sealed class BusyReleaseLeaderStore(
 /// its own cancellation callback, then returns a pending, access-denied
 /// receipt; every other actor hangs until its <see cref="CancellationToken"/>
 /// fires, recording <c>"{actor}-cancelled"</c> into <paramref name="events"/>
-/// from that callback, before observing the cancellation itself.
+/// from that callback, and returns only after the callback has run.
 /// </summary>
 internal sealed class DeniedThenHangingDispatcher(string deniedActor, ConcurrentQueue<string> events)
     : IActorWakeDispatcher
@@ -852,7 +852,13 @@ internal sealed class DeniedThenHangingDispatcher(string deniedActor, Concurrent
                 [new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, "access-denied")]);
         }
 
-        await using var registration = cancellationToken.Register(() => events.Enqueue($"{actor}-cancelled"));
+        var cancelled = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var registration = cancellationToken.Register(() =>
+        {
+            events.Enqueue($"{actor}-cancelled");
+            cancelled.TrySetResult();
+        });
         _hungRegistered.TrySetResult();
 
         try
@@ -862,6 +868,9 @@ internal sealed class DeniedThenHangingDispatcher(string deniedActor, Concurrent
         catch (OperationCanceledException)
         {
         }
+
+        // Keep the registration alive until its callback has recorded the event.
+        await cancelled.Task;
 
         return null;
     }

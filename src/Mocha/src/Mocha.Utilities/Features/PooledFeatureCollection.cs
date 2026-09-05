@@ -131,11 +131,17 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// Initializes the feature collection with the specified defaults.
     /// </summary>
     /// <param name="defaults">
-    /// The defaults for the feature collection.
+    /// The defaults for the feature collection. When specified, pooled features retained from a
+    /// previous use stay parked so that they do not shadow the defaults.
     /// </param>
     public void Initialize(IFeatureCollection? defaults = null)
     {
         _defaults = defaults;
+
+        if (defaults is not null)
+        {
+            return;
+        }
 
         foreach (var pooledFeature in _pooledFeatures)
         {
@@ -151,16 +157,34 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// </summary>
     public void Reset()
     {
+        _defaults = null;
         foreach (var item in _features)
         {
             if (item.Value is IPooledFeature pooledFeature)
             {
-                _pooledFeatures.Add(item);
                 pooledFeature.Reset();
+
+                if (!IsParked(item.Key))
+                {
+                    _pooledFeatures.Add(item);
+                }
             }
         }
 
         _features.Clear();
+    }
+
+    private bool IsParked(Type key)
+    {
+        foreach (var parked in _pooledFeatures)
+        {
+            if (parked.Key == key)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <inheritdoc />

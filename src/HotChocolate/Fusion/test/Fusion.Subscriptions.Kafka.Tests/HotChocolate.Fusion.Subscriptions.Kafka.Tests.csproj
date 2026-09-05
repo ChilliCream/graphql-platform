@@ -14,12 +14,12 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate.Language\CookieCrumble.HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Kafka\CookieCrumble.Resources.Kafka.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="Confluent.Kafka" />
-    <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
 </Project>

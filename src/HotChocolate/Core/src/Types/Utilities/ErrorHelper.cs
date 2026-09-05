@@ -197,16 +197,16 @@ internal static class ErrorHelper
             .SetSpecifiedBy(type.Kind, rfc: 825)
             .Build();
 
-    public static ISchemaError InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf(
+    public static ISchemaError InputObjectMustNotHaveUnbreakableCycle(
         InputObjectType type,
         IEnumerable<string> path)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf,
+                ErrorHelper_InputObjectMustNotHaveUnbreakableCycle,
                 type.Name,
-                string.Join(" --> ", path))
+                string.Join(", ", path.Select(i => $"'{i}'")))
             .SetType(type)
-            .SetSpecifiedBy(type.Kind, rfc: 445)
+            .SetRfc(1211)
             .Build();
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
@@ -440,6 +440,13 @@ internal static class ErrorHelper
         IInputValueDefinition field)
         => errorBuilder.SetField(field, "implementedArgument");
 
+    private static SchemaErrorBuilder SetRfc(
+        this SchemaErrorBuilder errorBuilder,
+        int pullRequest)
+        => errorBuilder.SetExtension(
+            "rfc",
+            "https://github.com/graphql/graphql-spec/pull/" + pullRequest);
+
     private static SchemaErrorBuilder SetSpecifiedBy(
         this SchemaErrorBuilder errorBuilder,
         TypeKind kind,
@@ -454,9 +461,7 @@ internal static class ErrorHelper
 
         if (rfc.HasValue)
         {
-            errorBuilder.SetExtension(
-                "rfc",
-                "https://github.com/graphql/graphql-spec/pull/" + rfc.Value);
+            errorBuilder.SetRfc(rfc.Value);
         }
 
         return errorBuilder;

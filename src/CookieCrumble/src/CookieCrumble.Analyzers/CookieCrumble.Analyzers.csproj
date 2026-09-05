@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(AnalyzerTargetFramework)</TargetFrameworks>
+    <TargetFramework>$(AnalyzerTargetFramework)</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <IncludeSymbols>false</IncludeSymbols>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>

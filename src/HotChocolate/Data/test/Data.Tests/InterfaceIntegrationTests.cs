@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Collections.Immutable;
 using GreenDonut;
 using GreenDonut.Data;
@@ -9,7 +10,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
