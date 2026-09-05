@@ -86,10 +86,14 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
         }
         else
         {
+            // The tracked entity owns its document; the one being replaced is released here rather
+            // than on load, so the entity never holds a disposed document while it is tracked.
+            var previous = sagaState.State;
             sagaState.State = document;
             sagaState.UpdatedAt = DateTimeOffset.UtcNow;
             sagaState.Version = NewVersion();
             set.Entry(sagaState).Property(x => x.State).IsModified = true;
+            previous.Dispose();
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -126,7 +130,8 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     /// <returns>The deserialized saga state, or <c>default</c> if no state is found for the given identifier.</returns>
     public async Task<T?> LoadAsync<T>(Saga saga, Guid id, CancellationToken cancellationToken)
     {
-        // as the state is scoped we load the whole saga state into memory for the concurrency check
+        // The state is loaded tracked so the save that follows checks the version observed here.
+        // Its document stays with the tracked entity and is released when a save replaces it.
         var sageState = await context
             .Set<SagaState>()
             .AsTracking()
@@ -138,14 +143,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
             return default;
         }
 
-        try
-        {
-            return FromJsonDocument<T>(saga, document);
-        }
-        finally
-        {
-            document.Dispose();
-        }
+        return FromJsonDocument<T>(saga, document);
     }
 
     private JsonDocument ToJsonDocument(Saga saga, SagaStateBase state)

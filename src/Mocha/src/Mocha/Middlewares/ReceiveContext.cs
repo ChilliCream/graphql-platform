@@ -148,6 +148,44 @@ public sealed class ReceiveContext : IReceiveContext, IConsumeContext
     /// </summary>
     public CancellationToken CancellationToken { get; set; }
 
+    /// <inheritdoc />
+    public IConsumeContext Clone(IServiceProvider services)
+        => CopyTo(new ReceiveContext(), services);
+
+    /// <summary>
+    /// Copies this context into <paramref name="clone"/> using the specified services.
+    /// </summary>
+    /// <param name="clone">The target context, typically taken from a pool.</param>
+    /// <param name="services">The service provider for the cloned execution.</param>
+    /// <returns>The <paramref name="clone"/> instance.</returns>
+    public ReceiveContext CopyTo(ReceiveContext clone, IServiceProvider services)
+    {
+        clone.Services = services;
+        clone.Runtime = Runtime;
+        clone.Transport = Transport;
+        clone.Endpoint = Endpoint;
+        clone.Envelope = Envelope is { } envelope ? new MessageEnvelope(envelope) : null;
+        clone.ContentType = ContentType;
+        clone.MessageType = MessageType;
+        clone.MessageId = MessageId;
+        clone.CorrelationId = CorrelationId;
+        clone.ConversationId = ConversationId;
+        clone.CausationId = CausationId;
+        clone.SourceAddress = SourceAddress;
+        clone.DestinationAddress = DestinationAddress;
+        clone.ResponseAddress = ResponseAddress;
+        clone.FaultAddress = FaultAddress;
+        clone.SentAt = SentAt;
+        clone.DeliverBy = DeliverBy;
+        clone.DeliveryCount = DeliveryCount;
+        clone.Body = Body;
+        clone.Host = Host;
+        clone.CancellationToken = CancellationToken;
+        clone._features.Initialize(_features);
+        clone.Headers.AddRange(Headers);
+        return clone;
+    }
+
     /// <summary>
     /// Resets all properties, headers, features, and the body to their default state
     /// so the instance can be returned to the object pool.

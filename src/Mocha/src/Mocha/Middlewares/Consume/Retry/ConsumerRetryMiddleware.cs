@@ -1,14 +1,19 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
+using Mocha.Middlewares;
 
 namespace Mocha;
 
 /// <summary>
 /// A consumer middleware that implements in-process retry with configurable backoff strategies
-/// when transient failures occur.
+/// when transient failures occur. Each execution uses a fresh service scope and context,
+/// while retry state is shared across the operation.
 /// </summary>
-internal sealed class ConsumerRetryMiddleware(ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules)
+internal sealed class ConsumerRetryMiddleware(
+    ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules,
+    Consumer consumer,
+    IConsumerExecutionStrategy executionStrategy)
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
@@ -27,10 +32,61 @@ internal sealed class ConsumerRetryMiddleware(ImmutableArray<ExceptionPolicyRule
 
         await RetryExecutor.ExecuteAsync(
             exceptionPolicyRules,
-            (next, context, retryState),
-            static (s) => s.next(s.context),
-            static (s, attempts) => s.retryState.ImmediateRetryCount = attempts,
+            (next, context, retryState, consumer, executionStrategy),
+            static (s) => s.executionStrategy.ExecuteAsync(
+                s.context,
+                ct => ExecuteAttemptAsync(s.next, s.context, s.retryState, s.consumer, ct)),
+            onRetry: null,
             context.CancellationToken);
+    }
+
+    /// <summary>
+    /// Executes one consumer attempt on a clone of the context in a new service scope.
+    /// </summary>
+    private static async ValueTask ExecuteAttemptAsync(
+        ConsumerDelegate next,
+        IConsumeContext context,
+        RetryFeature retryState,
+        Consumer consumer,
+        CancellationToken cancellationToken)
+    {
+        await using var scope = context.Services.CreateAsyncScope();
+        var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
+        var pool = scope.ServiceProvider.GetRequiredService<IMessagingPools>().ReceiveContext;
+        ReceiveContext? pooledContext = null;
+        var attempt = context is ReceiveContext receiveContext
+            ? pooledContext = receiveContext.CopyTo(pool.Get(), scope.ServiceProvider)
+            : context.Clone(scope.ServiceProvider);
+
+        try
+        {
+            // The attempt reads the delivery's features through its clone, but needs its own
+            // consumer feature: a pooled clone may still carry a reset one from its previous use
+            // that would shadow the delivery's, and CurrentConsumer must be set for this attempt
+            // without touching the delivery's consumer set. Set() initializes pooled features,
+            // which clears CurrentConsumer, so it is assigned after the feature is added.
+            var consumerFeature = new ReceiveConsumerFeature();
+            attempt.Features.Set(consumerFeature);
+            consumerFeature.CurrentConsumer = consumer;
+            attempt.CancellationToken = cancellationToken;
+            accessor.Context = attempt;
+            await next(attempt);
+        }
+        catch
+        {
+            // Counts every failed attempt, including the ones the execution strategy repeats.
+            retryState.ImmediateRetryCount++;
+            throw;
+        }
+        finally
+        {
+            accessor.Context = null;
+
+            if (pooledContext is not null)
+            {
+                pool.Return(pooledContext);
+            }
+        }
     }
 
     public static ConsumerMiddlewareConfiguration Create()
@@ -38,14 +94,10 @@ internal sealed class ConsumerRetryMiddleware(ImmutableArray<ExceptionPolicyRule
             static (context, next) =>
             {
                 var feature = context.GetExceptionPolicyFeature();
-
-                if (feature is null)
-                {
-                    // No exception policy configured - skip retry middleware entirely.
-                    return next;
-                }
-
-                var middleware = new ConsumerRetryMiddleware(feature.Rules.ToImmutableArray());
+                var middleware = new ConsumerRetryMiddleware(
+                    feature?.Rules.ToImmutableArray() ?? ImmutableArray<ExceptionPolicyRule>.Empty,
+                    context.Consumer,
+                    context.GetConsumerExecutionStrategy());
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
@@ -67,5 +119,16 @@ file static class Extensions
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Resolves the bus-level consumer execution strategy, falling back to direct execution.
+    /// </summary>
+    public static IConsumerExecutionStrategy GetConsumerExecutionStrategy(this ConsumerMiddlewareFactoryContext context)
+    {
+        var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
+
+        return busFeatures.Get<ConsumerExecutionStrategyFeature>()?.Strategy
+            ?? DirectConsumerExecutionStrategy.Instance;
     }
 }

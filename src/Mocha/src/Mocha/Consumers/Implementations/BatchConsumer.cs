@@ -93,32 +93,15 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
         try
         {
             _logger.DispatchingBatch(batch.Count, batch.CompletionMode);
-
-            await using var scope = _applicationServices.CreateAsyncScope();
-
             var batchContext = new BatchConsumeContext<TEvent>(
                 batch,
-                scope.ServiceProvider,
+                _applicationServices,
                 batch.GetContext(0),
                 Guid.NewGuid().ToString(),
                 _itemMessageType,
                 cancellationToken);
 
-            var consumerFeature = batchContext.Features.GetOrSet<ReceiveConsumerFeature>();
-            consumerFeature.CurrentConsumer = this;
-
-            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
-            var previousContext = accessor.Context;
-            accessor.Context = batchContext;
-
-            try
-            {
-                await Pipeline(batchContext);
-            }
-            finally
-            {
-                accessor.Context = previousContext;
-            }
+            await Pipeline(batchContext);
 
             foreach (var entry in batch.Entries)
             {

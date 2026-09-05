@@ -262,6 +262,9 @@ public sealed class BatchCollectorTests
         public IMessagingRuntime Runtime { get; set; } = null!;
         public CancellationToken CancellationToken { get; set; }
         public IServiceProvider Services { get; set; } = null!;
+
+        public IConsumeContext Clone(IServiceProvider services)
+            => new StubConsumeContext(message, MessageId) { Services = services };
     }
 
     /// <summary>
