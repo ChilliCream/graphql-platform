@@ -2,6 +2,10 @@
 
 This file provides guidance to coding agents when working with this repository.
 
+## Attribution
+
+- Do not add `Co-authored-by` trailers or other co-author attribution for agents.
+
 ## Build
 
 ### Website

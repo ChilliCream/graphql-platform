@@ -9,7 +9,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Squadron.PostgreSql" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore.Postgres\Mocha.EntityFrameworkCore.Postgres.csproj" />
@@ -18,5 +17,6 @@
     <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Outbox\Mocha.Outbox.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Inbox\Mocha.Inbox.csproj" />
+    <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Resources.PostgreSql\CookieCrumble.Resources.PostgreSql.csproj" />
   </ItemGroup>
 </Project>

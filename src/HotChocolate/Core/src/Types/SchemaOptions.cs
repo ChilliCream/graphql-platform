@@ -192,6 +192,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToConnections"/>
     public bool ApplyShareableToConnections { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToCollectionSegments"/>
+    public bool ApplyShareableToCollectionSegments { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToCollectionSegmentInfo"/>
+    public bool ApplyShareableToCollectionSegmentInfo { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
     public bool ApplyShareableToNodeFields { get; set; }
 
@@ -244,6 +250,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             OperationDocumentCacheSize = options.OperationDocumentCacheSize,
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
+            ApplyShareableToCollectionSegments = options.ApplyShareableToCollectionSegments,
+            ApplyShareableToCollectionSegmentInfo = options.ApplyShareableToCollectionSegmentInfo,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
             ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
             InferKeysFromLookups = options.InferKeysFromLookups

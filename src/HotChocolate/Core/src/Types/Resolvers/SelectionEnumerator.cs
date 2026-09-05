@@ -1,4 +1,5 @@
 using System.Collections;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Resolvers;
@@ -10,6 +11,7 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
 {
     private readonly SelectionSet _selectionSet;
     private readonly ulong _includeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
     private int _position = -1;
 
     /// <summary>
@@ -21,10 +23,26 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
     /// <param name="includeFlags">
     /// The include flags representing the selections that shall be included.
     /// </param>
+    [Obsolete("Use SelectionEnumerator(SelectionSet, ConditionFlags) instead. This constructor throws for operations with more than 64 conditions.")]
     public SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags)
     {
-        _selectionSet = selectionSet;
+        if (selectionSet?.DeclaringOperation.HasWideIncludeFlags == true)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this enumerator "
+                + "requires the wide include flags. Use IResolverContext.GetSelections.");
+        }
+
+        _selectionSet = selectionSet!;
         _includeFlags = includeFlags;
+        Current = null!;
+    }
+
+    public SelectionEnumerator(SelectionSet selectionSet, ConditionFlags includeFlags)
+    {
+        _selectionSet = selectionSet;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
         Current = null!;
     }
 
@@ -48,6 +66,11 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
             return false;
         }
 
+        if (_wideIncludeFlags is not null)
+        {
+            return MoveNextWide();
+        }
+
         var length = _selectionSet.Selections.Length;
 
         while (_position < length)
@@ -60,7 +83,32 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
             }
 
             var selection = _selectionSet.Selections[_position];
-            if (selection.IsIncluded(_includeFlags))
+            if (selection.IsIncludedUnchecked(_includeFlags))
+            {
+                Current = selection;
+                return true;
+            }
+        }
+
+        Current = null!;
+        return false;
+    }
+
+    private bool MoveNextWide()
+    {
+        var length = _selectionSet.Selections.Length;
+
+        while (_position < length)
+        {
+            _position++;
+
+            if (_position >= length)
+            {
+                break;
+            }
+
+            var selection = _selectionSet.Selections[_position];
+            if (selection.IsIncludedWide(_includeFlags, _wideIncludeFlags))
             {
                 Current = selection;
                 return true;

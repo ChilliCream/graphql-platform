@@ -11,10 +11,7 @@
     <ProjectReference Include="..\..\src\Subscriptions.Redis\HotChocolate.Subscriptions.Redis.csproj" />
     <ProjectReference Include="..\Subscriptions.Tests\HotChocolate.Subscriptions.Tests.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.Redis" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Redis\CookieCrumble.Resources.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

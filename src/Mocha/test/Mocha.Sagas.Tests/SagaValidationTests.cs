@@ -167,6 +167,25 @@ public class SagaValidationTests
         Assert.Equal("The following states cannot reach a final state: Cycle", exception.Message);
     }
 
+    [Fact]
+    public void Initialize_Should_PassValidation_When_StateHandlesAnyReplyWithoutFault()
+    {
+        // arrange & act
+        var saga = Saga.Create<TestState>(descriptor =>
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StartEvent>()
+                .TransitionTo("Awaiting")
+                .StateFactory(_ => new TestState(Guid.NewGuid(), "Awaiting"));
+            descriptor.During("Awaiting").OnAnyReply().TransitionTo("Success");
+            descriptor.Finally("Success");
+        });
+
+        // assert - should not throw
+        saga.Initialize(_context);
+    }
+
     private class TestState(Guid id, string state) : SagaStateBase(id, state);
 
     private sealed class StartEvent;
@@ -174,6 +193,4 @@ public class SagaValidationTests
     private sealed class TriggerEvent;
 
     private sealed class CancelEvent;
-
-    private sealed record TestMessage(Guid Id);
 }

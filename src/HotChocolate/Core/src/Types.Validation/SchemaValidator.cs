@@ -56,8 +56,8 @@ public sealed class SchemaValidator
         _rules.Add(new DirectiveIsInValidLocationRule());
         _rules.Add(new DirectiveIsUniqueRule());
         _rules.Add(new EnumValueIsDefinedRule());
-        _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
+        _rules.Add(new NoInputObjectUnbreakableCycleRule());
         _rules.Add(new NonEmptyEnumTypeRule());
         _rules.Add(new NonEmptyInputObjectTypeRule());
         _rules.Add(new NonEmptyInterfaceTypeRule());

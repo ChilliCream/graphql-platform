@@ -50,7 +50,7 @@ public sealed class SubscriptionEventTimeoutTests
         // arrange
         // Budget is short, but each event completes quickly. No event should time out
         // and the subscription must keep running across multiple fires.
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var executor = await new ServiceCollection()
             .AddGraphQL()

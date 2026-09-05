@@ -93,7 +93,7 @@ internal sealed class __Field : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 
@@ -101,7 +101,7 @@ internal sealed class __Field : ITypeResolverInterceptor
     {
         var field = context.Parent<IOutputFieldDefinition>();
         context.AddRuntimeResult(field.Type);
-        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+        context.FieldResult.CreateObjectValue(context.Selection);
     }
 
     public static void IsDeprecated(FieldContext context)
@@ -148,7 +148,7 @@ internal sealed class __Field : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 

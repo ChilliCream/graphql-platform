@@ -9,6 +9,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Text.Json;
@@ -75,8 +76,8 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
 
     // The document under test is created with neither @include/@skip variables
     // nor @defer, matching CompositeResultDocument._includeFlags/_deferFlags = 0.
-    private const ulong IncludeFlags = 0;
-    private const ulong DeferFlags = 0;
+    private static readonly ConditionFlags IncludeFlags = default;
+    private static readonly ConditionFlags DeferFlags = default;
 
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     private FusionOperation _operation = null!;

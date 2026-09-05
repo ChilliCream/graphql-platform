@@ -209,6 +209,105 @@ public sealed class SatisfiabilityFactsBuilderTests
         Assert.True(facts.IsFieldAccessible(product, sku, "A"));
     }
 
+    [Fact]
+    public void FieldResolvable_Should_BeFalse_When_RequiringSchemaHasNoLookupForType()
+    {
+        // arrange
+        var schema = CreateMergedSchema(
+        [
+            """
+            # Schema A
+            type Query {
+                cart: Cart
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Cart {
+                items: [CartItem!]
+            }
+
+            type CartItem {
+                id: ID!
+                product: Product!
+                unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+                id: ID! @shareable
+                discountedPrice: Float!
+            }
+            """
+        ]);
+        var cartItem = GetObjectType(schema, "CartItem");
+        var unitPrice = cartItem.Fields["unitPrice"];
+
+        // act
+        var facts = BuildFacts(schema);
+
+        // assert
+        Assert.False(facts.IsFieldResolvableOn(cartItem, unitPrice, "A"));
+    }
+
+    [Fact]
+    public void FieldResolvable_Should_BeTrue_When_RequiringSchemaHasLookupForType()
+    {
+        // arrange
+        var schema = CreateMergedSchema(
+        [
+            """
+            # Schema A
+            type Query {
+                cart: Cart
+                cartItemById(id: ID!): CartItem @lookup @internal
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Cart {
+                items: [CartItem!]
+            }
+
+            type CartItem {
+                id: ID!
+                product: Product!
+                unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+                id: ID! @shareable
+                discountedPrice: Float!
+            }
+            """
+        ]);
+        var cartItem = GetObjectType(schema, "CartItem");
+        var unitPrice = cartItem.Fields["unitPrice"];
+
+        // act
+        var facts = BuildFacts(schema);
+
+        // assert
+        Assert.True(facts.IsFieldResolvableOn(cartItem, unitPrice, "A"));
+    }
+
     private static SatisfiabilityFacts BuildFacts(MutableSchemaDefinition schema)
         => new SatisfiabilityFactsBuilder(schema, new FusionLookupDirectiveCache(schema)).Build();
 

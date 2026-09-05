@@ -35,6 +35,8 @@
   "OperationDocumentCacheSize": 256,
   "ApplyShareableToPageInfo": false,
   "ApplyShareableToConnections": false,
+  "ApplyShareableToCollectionSegments": false,
+  "ApplyShareableToCollectionSegmentInfo": false,
   "ApplyShareableToNodeFields": false,
   "ApplySerializeAsToScalars": false,
   "InferKeysFromLookups": false

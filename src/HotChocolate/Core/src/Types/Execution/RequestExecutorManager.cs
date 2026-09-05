@@ -299,11 +299,17 @@ internal sealed partial class RequestExecutorManager
             static sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
 
         serviceCollection.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<Schema>(),
-                sp.GetRequiredService<InputParser>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
-                sp.GetRequiredService<OperationCompilerOptimizers>()));
+            static sp =>
+            {
+                var options = sp.GetRequiredService<RequestExecutorOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<Schema>(),
+                    sp.GetRequiredService<InputParser>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    sp.GetRequiredService<OperationCompilerOptimizers>(),
+                    options.MaxAllowedIncludeConditions,
+                    options.MaxAllowedDeferConditions);
+            });
 
         serviceCollection.AddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());

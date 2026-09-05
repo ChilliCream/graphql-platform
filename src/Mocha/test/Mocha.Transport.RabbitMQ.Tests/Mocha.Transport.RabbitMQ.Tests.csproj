@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Moq" />
-    <PackageReference Include="Squadron.RabbitMQ" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +25,9 @@
     <ProjectReference
       Include="..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj"
       OutputItemType="Analyzer"
+    />
+    <ProjectReference
+      Include="..\..\..\CookieCrumble\src\CookieCrumble.Resources.RabbitMQ\CookieCrumble.Resources.RabbitMQ.csproj"
     />
   </ItemGroup>
 </Project>
