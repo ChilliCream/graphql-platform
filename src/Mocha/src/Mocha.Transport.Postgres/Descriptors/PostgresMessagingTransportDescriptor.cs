@@ -295,13 +295,10 @@ public sealed class PostgresMessagingTransportDescriptor
             }
 
             DeclareTopic(topicName);
-            var subscription = DeclareSubscription(topicName, configuration.Name!);
+            var subscriptionConfiguration = DeclareSubscription(topicName, configuration.Name!).Extend().Configuration;
 
-            // The subscription belongs to the queue that declared it, so it follows the binding's
-            // own opt-in, then the queue's, unless the subscription was configured explicitly.
-            // The source topic is left alone: it is owned elsewhere.
-            subscription.Extend().Configuration.AutoProvision ??=
-                source.AutoProvision ?? configuration.Queue.AutoProvision;
+            // Keep AutoProvision if DeclareSubscription set it, otherwise take it from BindFrom, then from the queue.
+            subscriptionConfiguration.AutoProvision ??= source.AutoProvision ?? configuration.Queue.AutoProvision;
         }
     }
 

@@ -280,10 +280,8 @@ public sealed class RabbitMQMessagingTransportDescriptor
             DeclareExchange(exchangeName);
             var descriptor = DeclareBinding(exchangeName, configuration.Name!);
 
-            // The binding belongs to the queue that declared it, so it follows the binding's own
-            // opt-in, then the queue's. The source exchange is left alone: it is owned elsewhere,
-            // and a deny-by-default host must not start declaring foreign exchanges.
-            descriptor.Extend().Configuration.AutoProvision ??= binding.AutoProvision ?? configuration.Queue.AutoProvision;
+            // Take AutoProvision from BindFrom, otherwise from the queue.
+            descriptor.Extend().Configuration.AutoProvision = binding.AutoProvision ?? configuration.Queue.AutoProvision;
 
             if (binding.RoutingKey is not null)
             {
