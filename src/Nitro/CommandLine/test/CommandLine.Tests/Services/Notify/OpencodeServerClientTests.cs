@@ -12,7 +12,9 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_PreserveTextAndMarkTheTextPart_When_ServerAcceptsTheMessage()
     {
-        // arrange
+        // arrange: the caller, not this client, prepends the reserved
+        // OpencodeHookProtocol.PushedPromptPrefix to text when it wants the
+        // turn recognized as Nitro-pushed - this client sends text verbatim.
         HttpRequestMessage? capturedRequest = null;
         string? capturedBody = null;
         var client = CreateClient(async (request, _) =>
@@ -21,14 +23,11 @@ public sealed class OpencodeServerClientTests
             capturedBody = await request.Content!.ReadAsStringAsync();
             return new HttpResponseMessage(HttpStatusCode.OK);
         });
+        const string text = OpencodeHookProtocol.PushedPromptPrefix + "user-authored text";
 
         // act
         var result = await client.PushMessageAsync(
-            "http://localhost:4096",
-            "ses_123",
-            "[[nitro:pushed]] user-authored text",
-            secret: null,
-            TestContext.Current.CancellationToken);
+            "http://localhost:4096", "ses_123", text, secret: null, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(AgentPingResult.Ok, result);
@@ -36,15 +35,7 @@ public sealed class OpencodeServerClientTests
         Assert.Equal("/session/ses_123/message", capturedRequest.RequestUri!.AbsolutePath);
         using var body = JsonDocument.Parse(capturedBody!);
         Assert.Equal("text", body.RootElement.GetProperty("parts")[0].GetProperty("type").GetString());
-        Assert.Equal(
-            "[[nitro:pushed]] user-authored text",
-            body.RootElement.GetProperty("parts")[0].GetProperty("text").GetString());
-        Assert.Equal(
-            OpencodeHookProtocol.PushedPromptMetadataValue,
-            body.RootElement.GetProperty("parts")[0]
-                .GetProperty("metadata")
-                .GetProperty(OpencodeHookProtocol.PushedPromptMetadataKey)
-                .GetString());
+        Assert.Equal(text, body.RootElement.GetProperty("parts")[0].GetProperty("text").GetString());
     }
 
     [Fact]

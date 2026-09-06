@@ -1,4 +1,5 @@
-using ChilliCream.Nitro.CommandLine.Services;
+using System.Diagnostics;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Extensions.Time.Testing;
@@ -128,7 +129,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     [Fact]
-    public void Build_Should_DetectTheExactPushedMetadataWithoutMutatingText()
+    public void Build_Should_EmbedTheReservedPushedPromptPrefix()
     {
         // arrange
         var descriptor = new LaunchDescriptor("nitro", []);
@@ -137,14 +138,124 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         var template = OpencodeHooksTemplate.Build(descriptor);
 
         // assert
-        Assert.Contains(
-            $"const nitroPushedMetadataKey = \"{OpencodeHookProtocol.PushedPromptMetadataKey}\"",
-            template);
-        Assert.Contains(
-            $"part?.metadata?.[nitroPushedMetadataKey] === \"{OpencodeHookProtocol.PushedPromptMetadataValue}\"",
-            template);
-        Assert.Contains("function isNitroPushed(parts)", template);
+        Assert.Contains($"const nitroPushedPrefix = \"{OpencodeHookProtocol.PushedPromptPrefix}\"", template);
+        Assert.Contains("function stripNitroPushedPrefix(parts)", template);
         Assert.Contains("nitroPushed,", template);
+    }
+
+    /// <summary>
+    /// Regression for a prior generated-shim defect: the pushed-prompt
+    /// prefix must be detected and stripped from <c>output.parts</c> (the
+    /// message opencode actually delivers to the model), not
+    /// <c>input.parts</c>. Runs the generated JavaScript itself under Node,
+    /// with <c>Bun.spawn</c> stubbed to capture the payload the shim sends
+    /// to the hook process instead of a real CLI process, so the regression
+    /// is caught even though the two objects would look identical to a
+    /// purely textual assertion on the template source.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_StripThePrefixFromOutputPartsOnly_When_TheGeneratedShimRunsAChatMessage()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-regression.mjs");
+        await File.WriteAllTextAsync(scriptPath, template + BuildChatMessageDriverScript(), ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.Equal("real prompt", result.GetProperty("outputText").GetString());
+        Assert.True(result.GetProperty("nitroPushed").GetBoolean());
+    }
+
+    /// <summary>
+    /// A driver appended to the generated shim module: stubs
+    /// <c>Bun.spawn</c> so <c>chat.message</c> can run under plain Node,
+    /// then feeds it an <c>input.parts</c> WITHOUT the pushed prefix and an
+    /// <c>output.parts</c> WITH it, printing the stripped output text and
+    /// the <c>nitroPushed</c> flag the shim sent to the hook process.
+    /// </summary>
+    private static string BuildChatMessageDriverScript()
+        => """
+
+
+        globalThis.Bun = {
+          spawn() {
+            return {
+              stdin: { write: (chunk) => { globalThis.__capturedStdin = chunk; }, end() {} },
+              stdout: "",
+              exited: Promise.resolve(1),
+            };
+          },
+        };
+
+        const hooks = await nitroHooks({ serverUrl: "http://127.0.0.1:4096" });
+        const input = { sessionID: "ses_1", parts: [{ type: "text", text: "should not be read" }] };
+        const output = { parts: [{ type: "text", text: __PREFIX__ + "real prompt" }] };
+
+        await hooks["chat.message"](input, output);
+
+        console.log(JSON.stringify({
+          outputText: output.parts[0].text,
+          nitroPushed: JSON.parse(globalThis.__capturedStdin).nitroPushed,
+        }));
+        """.Replace("__PREFIX__", JsonSerializer.Serialize(OpencodeHookProtocol.PushedPromptPrefix), StringComparison.Ordinal);
+
+    private static async Task<(int ExitCode, string StdOut, string StdErr)> RunNodeAsync(
+        string nodePath, string scriptPath, CancellationToken cancellationToken)
+    {
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo(nodePath)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            }
+        };
+        process.StartInfo.ArgumentList.Add(scriptPath);
+        process.Start();
+
+        var stdOutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var stdErrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+
+        return (process.ExitCode, await stdOutTask, await stdErrTask);
+    }
+
+    private static string? FindNode()
+    {
+        var pathVariable = Environment.GetEnvironmentVariable("PATH");
+
+        if (string.IsNullOrEmpty(pathVariable))
+        {
+            return null;
+        }
+
+        var exeName = OperatingSystem.IsWindows() ? "node.exe" : "node";
+
+        foreach (var directory in pathVariable.Split(Path.PathSeparator))
+        {
+            var candidate = Path.Combine(directory, exeName);
+
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     private OpencodeHooksInstallerService CreateService() => new(

@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using HotChocolate.Buffers;
 
@@ -125,6 +124,14 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
     }
 
+    /// <summary>
+    /// Builds the opencode message body for <paramref name="text"/> verbatim.
+    /// A caller that wants the delivered turn recognized and skipped by
+    /// Nitro's opencode hooks prepends the reserved
+    /// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.OpencodeHookProtocol.PushedPromptPrefix"/> to
+    /// <paramref name="text"/> itself; this client has no opinion on the
+    /// text's shape.
+    /// </summary>
     private static HttpContent CreateMessageContent(string text)
     {
         byte[] bytes;
@@ -139,12 +146,6 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
             writer.WriteStartObject();
             writer.WriteString("type", "text");
             writer.WriteString("text", text);
-            writer.WritePropertyName("metadata");
-            writer.WriteStartObject();
-            writer.WriteString(
-                OpencodeHookProtocol.PushedPromptMetadataKey,
-                OpencodeHookProtocol.PushedPromptMetadataValue);
-            writer.WriteEndObject();
             writer.WriteEndObject();
             writer.WriteEndArray();
             writer.WriteEndObject();

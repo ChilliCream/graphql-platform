@@ -6,12 +6,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal static class OpencodeHookProtocol
 {
     /// <summary>
-    /// The namespaced metadata key that marks a prompt pushed by Nitro.
+    /// The reserved text prefix Nitro's HTTP push prepends to a message it
+    /// delivers directly into an opencode session (the push side, see the
+    /// wake/ping dispatcher). The generated shim strips this exact prefix
+    /// from the delivered text part before the model ever sees it, and
+    /// marks the hook payload <c>nitroPushed</c> for the turn so the
+    /// handler skips rearm and re-injection.
     /// </summary>
-    public const string PushedPromptMetadataKey = "com.chillicream.nitro.pushed";
-
-    /// <summary>
-    /// The exact metadata value that marks a prompt pushed by Nitro.
-    /// </summary>
-    public const string PushedPromptMetadataValue = "true";
+    public const string PushedPromptPrefix = "[[nitro:pushed]] ";
 }
