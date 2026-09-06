@@ -596,7 +596,12 @@ public sealed partial class OperationPlanner
                         scopeState,
                         out var parentStepId))
                     {
-                        lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, parentStepId));
+                        lifted.Add(
+                            new LiftedDeferRequirement(
+                                requirement,
+                                downstreamStepId,
+                                parentStepId,
+                                scopeState));
                         resolved = true;
                         break;
                     }
@@ -613,7 +618,12 @@ public sealed partial class OperationPlanner
                     if (newStepId is { } resolvedStepId)
                     {
                         scopeState.Steps = stepsAfterPromotion;
-                        lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, resolvedStepId));
+                        lifted.Add(
+                            new LiftedDeferRequirement(
+                                requirement,
+                                downstreamStepId,
+                                resolvedStepId,
+                                scopeState));
 
                         if (promotedIncrementalPlanStepId is { } pid)
                         {
@@ -705,7 +715,12 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                lifted.Add(new LiftedDeferRequirement(requirement, downstreamStep.Id, resolvedId));
+                lifted.Add(
+                    new LiftedDeferRequirement(
+                        requirement,
+                        downstreamStep.Id,
+                        resolvedId,
+                        scopeState));
 
                 foreach (var responseLeaf in GetResponseLeaves(requirement))
                 {
@@ -736,7 +751,8 @@ public sealed partial class OperationPlanner
         var rewrittenIncrementalPlan = RewriteIncrementalPlanAfterDeferRequirementRouting(
             incrementalPlanSteps,
             lifted,
-            droppedStepIds);
+            droppedStepIds,
+            ScopeStateFor(parentContext));
 
         // Record the parent-scope requirements on the descriptor.
         foreach (var step in rewrittenIncrementalPlan)
@@ -888,7 +904,8 @@ public sealed partial class OperationPlanner
         return RewriteIncrementalPlanAfterDeferRequirementRouting(
             rewiredSteps.ToImmutable(),
             [],
-            relays.Keys.ToHashSet());
+            relays.Keys.ToHashSet(),
+            immediateParentScope: null);
     }
 
     private static bool StepProvidesResponseLeaf(OperationPlanStep step, string[] responseLeaf)
@@ -2033,7 +2050,8 @@ public sealed partial class OperationPlanner
     private static ImmutableList<PlanStep> RewriteIncrementalPlanAfterDeferRequirementRouting(
         ImmutableList<PlanStep> incrementalPlanSteps,
         List<LiftedDeferRequirement> lifted,
-        HashSet<int> droppedStepIds)
+        HashSet<int> droppedStepIds,
+        ScopeState? immediateParentScope)
     {
         var parentRefsByStepId = new Dictionary<int, ImmutableHashSet<ParentStepRef>.Builder>();
         foreach (var entry in lifted)
@@ -2084,18 +2102,13 @@ public sealed partial class OperationPlanner
             }
             else if (step is PolicyPlanStep policyStep)
             {
-                var parentDependencies = policyStep.ParentDependencies;
-
-                foreach (var pairedOperationStep in incrementalPlanSteps.OfType<OperationPlanStep>())
-                {
-                    if (!pairedOperationStep.Dependents.Contains(step.Id)
-                        || !parentRefsByStepId.TryGetValue(pairedOperationStep.Id, out var parentRefBuilder))
-                    {
-                        continue;
-                    }
-
-                    parentDependencies = parentDependencies.Union(parentRefBuilder.ToImmutable());
-                }
+                var parentDependencies = GetPolicyParentDependencies(
+                    policyStep,
+                    incrementalPlanSteps,
+                    survivors,
+                    lifted,
+                    parentRefsByStepId,
+                    immediateParentScope);
 
                 rewritten.Add(policyStep with
                 {
@@ -2110,6 +2123,152 @@ public sealed partial class OperationPlanner
         }
 
         return rewritten.ToImmutable();
+    }
+
+    // Mirrors PolicyArtifactBinder.TryAddParentDependencyClosure for the supported
+    // operation-artifact topology. Only OperationPlanStep providers and dependencies
+    // participate in this planner representation.
+    private static ImmutableHashSet<ParentStepRef> GetPolicyParentDependencies(
+        PolicyPlanStep policyStep,
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        List<PlanStep> survivingPlanSteps,
+        List<LiftedDeferRequirement> lifted,
+        Dictionary<int, ImmutableHashSet<ParentStepRef>.Builder> parentRefsByStepId,
+        ScopeState? immediateParentScope)
+    {
+        var pairedOperationSteps = incrementalPlanSteps
+            .OfType<OperationPlanStep>()
+            .Where(step => step.Dependents.Contains(policyStep.Id))
+            .ToArray();
+        var broadParentDependencies = policyStep.ParentDependencies;
+
+        foreach (var pairedOperationStep in pairedOperationSteps)
+        {
+            if (parentRefsByStepId.TryGetValue(pairedOperationStep.Id, out var parentRefBuilder))
+            {
+                broadParentDependencies = broadParentDependencies.Union(parentRefBuilder.ToImmutable());
+            }
+        }
+
+        if (immediateParentScope is null)
+        {
+            return broadParentDependencies;
+        }
+
+        var pairedStepIds = pairedOperationSteps.Select(step => step.Id).ToHashSet();
+        var parentDependencies = policyStep.ParentDependencies.ToBuilder();
+        var visited = new HashSet<(ScopeState Scope, int StepId)>();
+
+        foreach (var policyRequirementLeaf in GetPolicyRequirementLeaves(policyStep))
+        {
+            if (survivingPlanSteps
+                .OfType<OperationPlanStep>()
+                .Any(step => StepProvidesResponseLeaf(step, policyRequirementLeaf)))
+            {
+                continue;
+            }
+
+            var hasMatchingLift = lifted.Any(
+                entry => pairedStepIds.Contains(entry.DownstreamStepId)
+                    && ReferenceEquals(entry.ParentScope, immediateParentScope)
+                    && RequirementProvidesResponseLeaf(entry.Requirement, policyRequirementLeaf));
+            if (!hasMatchingLift)
+            {
+                return broadParentDependencies;
+            }
+
+            var hasProvider = false;
+            foreach (var provider in immediateParentScope.Steps.OfType<OperationPlanStep>())
+            {
+                if (!StepProvidesResponseLeaf(provider, policyRequirementLeaf))
+                {
+                    continue;
+                }
+
+                hasProvider = true;
+                if (!TryAddParentDependencyClosure(immediateParentScope, provider))
+                {
+                    return broadParentDependencies;
+                }
+            }
+
+            if (!hasProvider)
+            {
+                return broadParentDependencies;
+            }
+        }
+
+        return parentDependencies.ToImmutable();
+
+        bool TryAddParentDependencyClosure(ScopeState scope, OperationPlanStep step)
+        {
+            if (!visited.Add((scope, step.Id)))
+            {
+                return true;
+            }
+
+            if (!step.ParentDependencies.IsEmpty)
+            {
+                return false;
+            }
+
+            parentDependencies.Add(new ParentStepRef(step.Id));
+
+            foreach (var dependency in scope.Steps.OfType<OperationPlanStep>())
+            {
+                if (dependency.Dependents.Contains(step.Id)
+                    && !TryAddParentDependencyClosure(scope, dependency))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var requirement in step.Requirements.Values)
+            {
+                foreach (var requirementLeaf in GetResponseLeaves(requirement))
+                {
+                    var hasRequirementProvider = false;
+                    foreach (var provider in scope.Steps.OfType<OperationPlanStep>())
+                    {
+                        if (!StepProvidesResponseLeaf(provider, requirementLeaf))
+                        {
+                            continue;
+                        }
+
+                        hasRequirementProvider = true;
+                        if (!TryAddParentDependencyClosure(scope, provider))
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (!hasRequirementProvider)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private static IEnumerable<string[]> GetPolicyRequirementLeaves(PolicyPlanStep policyStep)
+    {
+        foreach (var target in policyStep.Targets)
+        {
+            var entityPath = target.Kind is PolicyTargetKind.Field
+                ? target.Path.Parent ?? SelectionPath.Root
+                : target.Path;
+
+            foreach (var requirement in target.Requirements)
+            {
+                foreach (var leaf in GetResponseLeaves(entityPath, requirement.SelectionSet))
+                {
+                    yield return leaf;
+                }
+            }
+        }
     }
 
     private static ImmutableHashSet<int> RenumberDeferDependents(
@@ -2461,7 +2620,8 @@ public sealed partial class OperationPlanner
     private readonly record struct LiftedDeferRequirement(
         OperationRequirement Requirement,
         int DownstreamStepId,
-        int ParentStepId);
+        int ParentStepId,
+        ScopeState ParentScope);
 
     /// <summary>
     /// Builds execution nodes for an incremental plan's plan steps.

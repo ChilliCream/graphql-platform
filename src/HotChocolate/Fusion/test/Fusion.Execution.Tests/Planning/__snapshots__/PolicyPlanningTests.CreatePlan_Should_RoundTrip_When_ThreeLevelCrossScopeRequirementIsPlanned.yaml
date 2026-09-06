@@ -1,0 +1,140 @@
+operation:
+  - document: |
+      {
+        product(id: "1") {
+          name
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product(id: "1") {
+          name
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.product
+    label: outer
+  - id: 1
+    path: $.product
+    label: inner
+    parentId: 0
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_2($__fusion_2_code: String!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              description(code: $__fusion_2_code)
+              details {
+                code
+              }
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_code
+            selectionMap: >-
+              code
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 2
+          - id: 3
+      - id: 2
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_3($__fusion_4_id: ID!) {
+            product(id: $__fusion_4_id) {
+              code
+              id
+            }
+          }
+        source: $.product
+        target: $.product
+        requirements:
+          - name: __fusion_4_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 3
+      - id: 3
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_5 {
+            product(id: "1") {
+              id
+            }
+          }
+  - deliveryGroupIds:
+      - 1
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_3_details
+        selectionMap: >-
+          details.{
+            code
+          }
+    nodes:
+      - id: 1
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_2($__fusion_2_id: ID!, $__fusion_3_details: DetailsInput!) {
+            productById(id: $__fusion_2_id) {
+              reviews(details: $__fusion_3_details)
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_id
+            selectionMap: >-
+              id
+          - name: __fusion_3_details
+            selectionMap: >-
+              details.{
+                code
+              }
+        dependencies:
+          - parentNodeId: 1
+          - parentNodeId: 2
+      - id: 2
+        type: Policy
+        targets:
+          - kind: Field
+            path: $.product.reviews
+            typeName: Product
+            policies:
+              - names: [["CanReadReviews"]]
+                onDenied: Null
+            requirements:
+              - name: CanReadReviews
+                selectionSet: { details { code } }
+        dependencies:
+          - id: 1
+          - parentNodeId: 1
+          - parentNodeId: 2
+          - parentNodeId: 3
+policies:
+  - name: CanReadReviews
+    requirementHash: 13091404698679336241

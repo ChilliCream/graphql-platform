@@ -1515,6 +1515,129 @@ public sealed class PolicyPlanningTests : FusionTestBase
         AssertNestedPolicyParentDependenciesResolveInImmediateScope(parsedPlan, ["a", "b"]);
     }
 
+    [Fact]
+    public void CreatePlan_Should_UsePolicyParentDependencyClosure_When_NestedRequirementsOverlap()
+    {
+        // arrange
+        var (schema, plan) = CreateNestedPolicyWithOverlappingRequirementPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var childPlan = plan.IncrementalPlans[^1];
+        var policyNode = Assert.Single(childPlan.AllNodes.OfType<PolicyExecutionNode>());
+        var parentGroupId = childPlan.DeliveryGroups.Single().Parent!.Id;
+        var immediateParentPlan = plan.IncrementalPlans.Single(
+            candidate => candidate.DeliveryGroups.Any(group => group.Id == parentGroupId));
+        var groundingProvider = immediateParentPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "a");
+        var policyFeedProvider = immediateParentPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "b");
+        var nonPolicyFeedProvider = immediateParentPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "d");
+        var guardedOperation = childPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "c");
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.Equal(
+            new[] { groundingProvider.Id, policyFeedProvider.Id, nonPolicyFeedProvider.Id }.Order().ToArray(),
+            guardedOperation.ParentDependencies.ToArray().Order().ToArray());
+        Assert.Equal(
+            new[] { groundingProvider.Id, policyFeedProvider.Id }.Order().ToArray(),
+            policyNode.ParentDependencies.ToArray().Order().ToArray());
+        Assert.Equal(
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_UsePolicyParentDependencyClosure_When_SingleLevelRequirementsOverlap()
+    {
+        // arrange
+        var (schema, plan) = CreateSingleLevelPolicyWithOverlappingRequirementPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        var groundingProvider = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "a");
+        var policyFeedProvider = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "b");
+        var nonPolicyFeedProvider = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "d");
+        var guardedOperation = incrementalPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "c");
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.Equal(
+            new[] { groundingProvider.Id, policyFeedProvider.Id, nonPolicyFeedProvider.Id }.Order().ToArray(),
+            guardedOperation.ParentDependencies.ToArray().Order().ToArray());
+        Assert.Equal(
+            new[] { groundingProvider.Id, policyFeedProvider.Id }.Order().ToArray(),
+            policyNode.ParentDependencies.ToArray().Order().ToArray());
+        Assert.Equal(
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RoundTrip_When_ThreeLevelCrossScopeRequirementIsPlanned()
+    {
+        // arrange
+        var (schema, plan) = CreateThreeLevelCrossScopePolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        MatchSnapshot(plan);
+        Assert.Equal(
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RejectPolicyParentDependencyFallback_When_PolicyFeedIsLiftedForAnotherOperation()
+    {
+        // arrange
+        // repo-ctf.17 tracks this pre-existing paired-step limitation.
+        var schema = CreatePolicyFeedLiftedForAnotherOperationSchema();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(
+                schema,
+                """
+                {
+                  product(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                      ... @defer(label: "inner") {
+                        reviews
+                        categoryLabel
+                      }
+                    }
+                  }
+                }
+                """));
+
+        // assert
+        Assert.Equal(
+            "The deferred policy target 'Product.reviews' in nested scope 'inner' cannot be authorized from its immediate parent scope.",
+            exception.Message);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -3560,6 +3683,268 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new TestPolicy(
                 "CanReadSummary",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
+
+    private (FusionSchemaDefinition Schema, OperationPlan Plan) CreateNestedPolicyWithOverlappingRequirementPlan()
+    {
+        var schema = CreatePolicyWithOverlappingRequirementSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer(label: "outer") {
+                  description
+                  ... @defer(label: "middle") {
+                    details {
+                      code
+                    }
+                    code
+                    ... @defer(label: "inner") {
+                      reviews
+                      categoryLabel
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        return (schema, plan);
+    }
+
+    private (FusionSchemaDefinition Schema, OperationPlan Plan) CreateSingleLevelPolicyWithOverlappingRequirementPlan()
+    {
+        var schema = CreatePolicyWithOverlappingRequirementSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer {
+                  description
+                  details {
+                    code
+                  }
+                  code
+                  reviews
+                  categoryLabel
+                }
+              }
+            }
+            """);
+
+        return (schema, plan);
+    }
+
+    private FusionSchemaDefinition CreatePolicyWithOverlappingRequirementSchema()
+        => CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  description: String!
+                  details: Details!
+                }
+
+                type Details {
+                  code: String!
+                }
+                """,
+                """
+                # name: d
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  code: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(details: DetailsInput! @require(field: "details.{ code }")): [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                  categoryLabel(code: String! @require(field: "code")): String!
+                }
+
+                input DetailsInput {
+                  code: String!
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ details { code } }")));
+
+    private FusionSchemaDefinition CreatePolicyFeedLiftedForAnotherOperationSchema()
+        => CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  details: Details!
+                }
+
+                type Details {
+                  code: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews: [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+
+                """,
+                """
+                # name: d
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  categoryLabel(details: DetailsInput! @require(field: "details.{ code }")): String!
+                }
+
+                input DetailsInput {
+                  code: String!
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ details { code } }")));
+
+    private (FusionSchemaDefinition Schema, OperationPlan Plan) CreateThreeLevelCrossScopePolicyPlan()
+    {
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                  code: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  description(code: String! @require(field: "code")): String!
+                  details: Details!
+                }
+
+                type Details {
+                  code: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(details: DetailsInput! @require(field: "details.{ code }")): [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+
+                input DetailsInput {
+                  code: String!
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ details { code } }")));
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer(label: "outer") {
+                  description
+                  ... @defer(label: "inner") {
+                    reviews
+                  }
+                }
+              }
+            }
+            """);
+
+        return (schema, plan);
+    }
 
     private static FusionSchemaDefinition CreateRootConditionSlotSchema()
         => CreateSchema(
