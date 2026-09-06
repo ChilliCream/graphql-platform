@@ -11,13 +11,18 @@ const STICKY_CLASS =
 
 const OVERLAY_CLASS = "fixed inset-x-0 top-0 z-40 bg-transparent";
 
+const OVERLAY_PATHS = new Set([
+  "/products/nitro",
+  "/platform/graphql-federation",
+]);
+
 interface HeaderShellProps {
   readonly children: ReactNode;
 }
 
 export function HeaderShell({ children }: HeaderShellProps) {
   const pathname = usePathname();
-  const overlay = pathname === "/products/nitro";
+  const overlay = OVERLAY_PATHS.has(pathname);
 
   return (
     <header
