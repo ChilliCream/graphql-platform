@@ -86,8 +86,11 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
     /// <inheritdoc />
     protected override async ValueTask ConsumeAsync(IConsumeContext context)
     {
-        var sagaFeature = context.Features.GetOrSet<SagaFeature>();
-        sagaFeature.Store ??= context.Services.GetRequiredService<ISagaStore>();
+        // The store is scoped to this attempt, so the feature is created here rather than read
+        // through the attempt's fallback to the receive context, where a previous attempt's
+        // instance would still be visible.
+        var sagaFeature = new SagaFeature { Store = context.Services.GetRequiredService<ISagaStore>() };
+        context.Features.Set(sagaFeature);
 
         var ct = context.CancellationToken;
 

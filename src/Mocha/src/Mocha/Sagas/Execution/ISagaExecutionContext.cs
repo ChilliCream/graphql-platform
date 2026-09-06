@@ -3,26 +3,15 @@ using Mocha.Features;
 namespace Mocha.Sagas;
 
 /// <summary>
-/// A pooled feature that provides access to the saga store during saga event processing.
+/// Carries the saga store for the current consume attempt. It is created on the attempt's own
+/// feature collection and is never shared with the receive context or pooled.
 /// </summary>
-public class SagaFeature : IPooledFeature
+public class SagaFeature
 {
     /// <summary>
     /// Gets or sets the saga store used for persisting saga state.
     /// </summary>
     public ISagaStore Store { get; set; } = null!;
-
-    /// <inheritdoc />
-    public void Initialize(object state)
-    {
-        Store = null!;
-    }
-
-    /// <inheritdoc />
-    public void Reset()
-    {
-        Store = null!;
-    }
 }
 
 internal static class ConsumeContextSagaExtensions
