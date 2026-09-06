@@ -1391,7 +1391,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_RejectNestedDeferredPolicy_When_ImmediateParentScopeCannotAuthorizeIt()
+    public void CreatePlan_Should_RouteNestedDeferredPolicyAuthorityThroughImmediateParentScopes()
     {
         // arrange
         var schema = CreateSchema(
@@ -1440,30 +1440,79 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 "CanReadReviews",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
 
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => PlanOperation(
-                schema,
-                """
-                {
-                  product(id: "1") {
-                    name
-                    ... @defer(label: "outer") {
-                      description
-                      productSku
-                      ... @defer(label: "inner") {
-                        reviews
-                      }
-                    }
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer(label: "outer") {
+                  description
+                  productSku
+                  ... @defer(label: "inner") {
+                    reviews
                   }
                 }
-                """));
+              }
+            }
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
 
         // assert
-        Assert.Equal(
-            "The deferred policy target 'Product.reviews' in nested scope 'inner' "
-            + "cannot be authorized from its immediate parent scope.",
-            exception.Message);
+        Assert.Equal(2, parsedPlan.IncrementalPlans.Length);
+        Assert.Single(parsedPlan.IncrementalPlans[^1].AllNodes.OfType<PolicyExecutionNode>());
+        AssertNestedPolicyParentDependenciesResolveInImmediateScope(parsedPlan, ["a", "b"]);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_MaterializeEveryNestedPolicyRequirementFeedInImmediateScope()
+    {
+        // arrange
+        var (schema, plan) = CreateThreeScopeDeferredPolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.Equal(3, parsedPlan.IncrementalPlans.Length);
+        Assert.Single(parsedPlan.IncrementalPlans[^1].AllNodes.OfType<PolicyExecutionNode>());
+        AssertNestedPolicyParentDependenciesResolveInImmediateScope(parsedPlan, ["a", "b", "d"]);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RouteNestedPolicy_When_OuterRequirementNeedsRelayCollapse()
+    {
+        // arrange
+        var schema = CreateOuterRequirementNestedPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer(label: "outer") {
+                  reviews
+                  ... @defer(label: "inner") {
+                    summary
+                  }
+                }
+              }
+            }
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.Equal(2, parsedPlan.IncrementalPlans.Length);
+        Assert.Single(parsedPlan.IncrementalPlans[^1].AllNodes.OfType<PolicyExecutionNode>());
+        AssertNestedPolicyParentDependenciesResolveInImmediateScope(parsedPlan, ["a", "b"]);
     }
 
     [Theory]
@@ -1807,6 +1856,57 @@ public sealed class PolicyPlanningTests : FusionTestBase
             _ => "A policy execution node parent dependencies must exactly match its parent requirement providers."
         };
         Assert.Equal(expectedMessage, exception.Message);
+    }
+
+    [Theory]
+    [InlineData("stripped")]
+    [InlineData("extra")]
+    [InlineData("swapped")]
+    public void JsonParser_Should_RejectNestedPolicyParentDependencies_When_ParentReferencesAreMutated(
+        string mutation)
+    {
+        // arrange
+        var (schema, plan) = CreateThreeScopeDeferredPolicyPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+        var policy = json["incrementalPlans"]!.AsArray()[^1]!["nodes"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(node => node["type"]!.GetValue<string>() == "Policy");
+        var policyId = policy["id"]!.GetValue<int>();
+        var dependencies = policy["dependencies"]!.AsArray();
+        var parentDependencies = dependencies
+            .Where(dependency => dependency is JsonObject)
+            .ToArray();
+        Assert.Equal(3, parentDependencies.Length);
+
+        switch (mutation)
+        {
+            case "stripped":
+                dependencies.Remove(parentDependencies[0]);
+                break;
+
+            case "extra":
+                dependencies.Add(new JsonObject { ["parentNodeId"] = 999 });
+                break;
+
+            case "swapped":
+                var firstIndex = dependencies.IndexOf(parentDependencies[0]);
+                var secondIndex = dependencies.IndexOf(parentDependencies[1]);
+                var first = dependencies[firstIndex]!.DeepClone();
+                dependencies[firstIndex] = dependencies[secondIndex]!.DeepClone();
+                dependencies[secondIndex] = first;
+                break;
+        }
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
+
+        // assert
+        Assert.Equal(
+            mutation is "swapped"
+                ? $"Policy execution node {policyId} parent dependencies must be in canonical order."
+                : "A policy execution node parent dependencies must exactly match its parent requirement providers.",
+            exception.Message);
     }
 
     [Fact]
@@ -3165,6 +3265,50 @@ public sealed class PolicyPlanningTests : FusionTestBase
             }
         };
 
+    private static void AssertNestedPolicyParentDependenciesResolveInImmediateScope(
+        OperationPlan plan,
+        string[] expectedProviderSchemas)
+    {
+        foreach (var childPlan in plan.IncrementalPlans)
+        {
+            var parentGroupIds = childPlan.DeliveryGroups
+                .Where(group => group.Parent is not null)
+                .Select(group => group.Parent!.Id)
+                .Distinct()
+                .ToArray();
+
+            if (parentGroupIds.Length == 0)
+            {
+                continue;
+            }
+
+            var parentPlans = plan.IncrementalPlans
+                .Where(candidate => !ReferenceEquals(candidate, childPlan)
+                    && candidate.DeliveryGroups.Any(group => group.Id == parentGroupIds[0]))
+                .ToArray();
+            var providersById = parentPlans
+                .SelectMany(parentPlan => parentPlan.AllNodes.OfType<OperationExecutionNode>())
+                .ToDictionary(provider => provider.Id);
+
+            foreach (var policyNode in childPlan.AllNodes.OfType<PolicyExecutionNode>())
+            {
+                Assert.Equal(expectedProviderSchemas.Length, policyNode.ParentDependencies.Length);
+
+                var providerSchemas = policyNode.ParentDependencies.ToArray()
+                    .Select(dependency => providersById[dependency].SchemaName)
+                    .Order(StringComparer.Ordinal)
+                    .ToArray();
+                Assert.Equal(expectedProviderSchemas.Order(StringComparer.Ordinal), providerSchemas);
+
+                foreach (var dependency in policyNode.ParentDependencies)
+                {
+                    Assert.True(providersById.TryGetValue(dependency, out var provider));
+                    Assert.True(provider!.ParentDependencies.IsEmpty);
+                }
+            }
+        }
+    }
+
     private static (ImmutableArray<IncrementalPlan> IncrementalPlans, ImmutableArray<PolicyConditionSlot> Slots)
         CreateStrictSplitParentAuthorityFixture(
             FusionSchemaDefinition schema,
@@ -3285,6 +3429,137 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         return (schema, plan);
     }
+
+    private (FusionSchemaDefinition Schema, OperationPlan Plan) CreateThreeScopeDeferredPolicyPlan()
+    {
+        var schema = CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  description: String!
+                  productSku: String!
+                }
+                """,
+                """
+                # name: d
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  productCategory: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(
+                    productSku: String! @require(field: "productSku")
+                    productCategory: String! @require(field: "productCategory")):
+                    [String!]!
+                    @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku productCategory }")));
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer(label: "outer") {
+                  description
+                  ... @defer(label: "middle") {
+                    productSku
+                    productCategory
+                    ... @defer(label: "inner") {
+                      reviews
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        return (schema, plan);
+    }
+
+    private static FusionSchemaDefinition CreateOuterRequirementNestedPolicySchema()
+        => CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product(id: ID!): Product @lookup
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  productSku: String!
+                }
+                """,
+                """
+                # name: c
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  reviews(productSku: String! @require(field: "productSku")): [String!]!
+                  summary(productSku: String! @require(field: "productSku")): String!
+                    @policy(names: "CanReadSummary", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadSummary",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
 
     private static FusionSchemaDefinition CreateRootConditionSlotSchema()
         => CreateSchema(

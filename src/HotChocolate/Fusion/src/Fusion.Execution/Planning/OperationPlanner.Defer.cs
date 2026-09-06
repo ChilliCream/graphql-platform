@@ -63,11 +63,17 @@ public sealed partial class OperationPlanner
 
             policySlots = incrementalPlanResult.PolicySlots;
 
-            var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
-                descriptor,
-                incrementalPlanResult.Steps,
-                parentContext,
-                contextGraph);
+            var rewrittenIncrementalPlan =
+                descriptor.Operation.Operation is OperationType.Query
+                    && descriptorsWithChildren.Contains(descriptor)
+                        ? CollapseSameScopeDeferRequirementRelays(
+                            incrementalPlanResult.Steps,
+                            descriptor.Path)
+                        : ApplyDeferRequirementsToParent(
+                            descriptor,
+                            incrementalPlanResult.Steps,
+                            parentContext,
+                            contextGraph);
 
             // A mutation-typed step surviving ApplyDeferRequirementsToParent carries real
             // deferred output of its own, meaning the only way to have produced it was to
@@ -759,6 +765,135 @@ public sealed partial class OperationPlanner
 
         return rewrittenIncrementalPlan;
     }
+
+    /// <summary>
+    /// Collapses pure same-scope requirement relays onto the in-plan step that grounds
+    /// their requirement when that step can satisfy every relayed consumer requirement.
+    /// </summary>
+    private static ImmutableList<PlanStep> CollapseSameScopeDeferRequirementRelays(
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
+    {
+        var producers = FindDeferRequirementProducers(incrementalPlanSteps, anchorPath);
+        if (producers.IsEmpty)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var relayCandidates = producers
+            .Where(producer => producer.Requirements.Count == 1)
+            .Where(producer =>
+            {
+                var relayRequirement = producer.Requirements.Values.Single();
+                var ownResponseLeaves = GetResponseLeaves(
+                        producer.Target,
+                        GetStepEntitySelectionSet(producer))
+                    .Where(responseLeaf => !responseLeaf[^1].Equals("__typename", StringComparison.Ordinal));
+
+                return ownResponseLeaves.Any()
+                    && ownResponseLeaves.All(
+                        responseLeaf => RequirementProvidesResponseLeaf(relayRequirement, responseLeaf));
+            })
+            .ToImmutableArray();
+
+        if (relayCandidates.IsEmpty)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var relayIds = relayCandidates.Select(relay => relay.Id).ToHashSet();
+        var relays = new Dictionary<int, (OperationPlanStep GroundingStep, ImmutableHashSet<int> Consumers)>();
+
+        foreach (var producer in relayCandidates)
+        {
+            var relayRequirement = producer.Requirements.Values.Single();
+            var (sourceStep, sourceRequirement) = ResolveDeferRequirementSource(
+                incrementalPlanSteps,
+                producer,
+                relayRequirement,
+                relayIds);
+            var groundingStep = sourceStep is null
+                ? null
+                : TryFindDeferRequirementProvider(incrementalPlanSteps, sourceStep, sourceRequirement);
+
+            if (groundingStep is null || relayIds.Contains(groundingStep.Id))
+            {
+                continue;
+            }
+
+            var consumers = ImmutableHashSet.CreateBuilder<int>();
+            var canCollapse = true;
+
+            foreach (var dependentStepId in producer.Dependents)
+            {
+                if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
+                {
+                    canCollapse = false;
+                    break;
+                }
+
+                var consumedResponseLeaves = new List<string[]>();
+                foreach (var (_, requirement) in dependentStep.Requirements)
+                {
+                    if (TryFindDeferRequirementProvider(incrementalPlanSteps, dependentStep, requirement)?.Id
+                        == producer.Id)
+                    {
+                        consumedResponseLeaves.AddRange(GetResponseLeaves(requirement));
+                    }
+                }
+
+                if (consumedResponseLeaves.Count == 0
+                    || consumedResponseLeaves.Any(
+                        responseLeaf => !StepProvidesResponseLeaf(groundingStep, responseLeaf)))
+                {
+                    canCollapse = false;
+                    break;
+                }
+
+                consumers.Add(dependentStep.Id);
+            }
+
+            if (canCollapse && consumers.Count > 0)
+            {
+                relays.Add(producer.Id, (groundingStep, consumers.ToImmutable()));
+            }
+        }
+
+        if (relays.Count == 0)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var rewiredSteps = ImmutableList.CreateBuilder<PlanStep>();
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is not OperationPlanStep operationStep)
+            {
+                rewiredSteps.Add(step);
+                continue;
+            }
+
+            var dependents = operationStep.Dependents;
+            foreach (var (_, relay) in relays)
+            {
+                if (relay.GroundingStep.Id == operationStep.Id)
+                {
+                    dependents = dependents.Union(relay.Consumers);
+                }
+            }
+
+            rewiredSteps.Add(operationStep with { Dependents = dependents });
+        }
+
+        return RewriteIncrementalPlanAfterDeferRequirementRouting(
+            rewiredSteps.ToImmutable(),
+            [],
+            relays.Keys.ToHashSet());
+    }
+
+    private static bool StepProvidesResponseLeaf(OperationPlanStep step, string[] responseLeaf)
+        => GetResponseLeaves(step.Target, GetStepEntitySelectionSet(step))
+            .Any(stepLeaf => ResponseLeavesEqual(stepLeaf, responseLeaf));
 
     /// <summary>
     /// Detects an incremental plan whose entire deferred output is already available from

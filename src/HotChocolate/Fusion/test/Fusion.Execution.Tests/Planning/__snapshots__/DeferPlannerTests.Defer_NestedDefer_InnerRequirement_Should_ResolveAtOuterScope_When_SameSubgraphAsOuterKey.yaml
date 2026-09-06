@@ -3,7 +3,6 @@ operation:
       {
         user(id: "1") {
           name
-          id @fusion__requirement
         }
       }
     hash: 123456789101112
@@ -17,7 +16,6 @@ nodes:
       query Op_123456789101112_1 {
         user(id: "1") {
           name
-          id
         }
       }
 deliveryGroups:
@@ -32,10 +30,6 @@ incrementalPlans:
   - deliveryGroupIds:
       - 0
     parentNodeId: 1
-    requirements:
-      - name: __fusion_1_id
-        selectionMap: >-
-          id
     nodes:
       - id: 1
         type: Operation
@@ -53,12 +47,12 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - parentNodeId: 1
+          - id: 2
       - id: 2
         type: Operation
         schema: a
         operation: |
-          query Op_defer_5 {
+          query Op_defer_2 {
             user(id: "1") {
               id
               preferences
