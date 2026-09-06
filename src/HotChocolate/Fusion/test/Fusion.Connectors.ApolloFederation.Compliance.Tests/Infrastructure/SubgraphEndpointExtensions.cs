@@ -17,6 +17,7 @@ internal static class SubgraphEndpointExtensions
     /// required.
     /// </summary>
     /// <param name="app">The subgraph web application.</param>
+    /// <param name="enableBatching">Whether the endpoint allows HTTP batching.</param>
     public static void MapSubgraph(this WebApplication app, bool enableBatching = false)
     {
         ArgumentNullException.ThrowIfNull(app);
