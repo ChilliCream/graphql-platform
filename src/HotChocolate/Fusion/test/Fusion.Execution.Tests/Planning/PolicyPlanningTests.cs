@@ -65,7 +65,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
         var compiler = new OperationCompiler(
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -188,14 +188,12 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_RejectSiblingDeferredBatchedPolicyTargets()
+    public void JsonParser_Should_RoundTripPolicyTargets_When_SiblingSelectionsAreDeferred()
     {
         // arrange
         var schema = CreateBatchedPolicySchema();
 
-        // act
-        // repo-ias owns support for this combined deferred batch shape.
-        var exception = Assert.Throws<InvalidOperationException>(() => PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -212,11 +210,89 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 }
               }
             }
-            """));
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        MatchSnapshot(plan);
+        Assert.Equal(
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void JsonParser_Should_RoundTripPolicyAuthority_When_DeferredPolicyUsesRegularBatch()
+    {
+        // arrange
+        var schema = CreateDeferredBatchedPolicySchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              before
+              ... @defer {
+                first {
+                  id
+                  rating
+                }
+                second {
+                  id
+                  rating
+                }
+              }
+            }
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        MatchSnapshot(plan);
+        var incrementalPlan = Assert.Single(parsedPlan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        var batchNode = Assert.Single(incrementalPlan.AllNodes.OfType<OperationBatchExecutionNode>());
+        Assert.Contains(batchNode.Id, policyNode.Dependencies.ToArray().Select(dependency => dependency.Id));
+        Assert.Equal(
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_KeepPolicyRequirements_When_DeferredSelectionsSplitIntoSiblingPlans()
+    {
+        // arrange
+        var (_, plan) = CreateDeferredSiblingPolicyRequirementPlan();
+
+        // act
+        var policyPlans = plan.IncrementalPlans
+            .Where(incrementalPlan => incrementalPlan.AllNodes.OfType<PolicyExecutionNode>().Any())
+            .ToArray();
+
+        // assert
+        MatchSnapshot(plan);
+        Assert.Equal(2, policyPlans.Length);
+        Assert.All(policyPlans, plan => Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>()));
+    }
+
+    [Fact]
+    public void JsonParser_Should_RejectPolicyAuthority_When_DeferredRequirementProviderFollowsPolicy()
+    {
+        // arrange
+        // repo-ctf.22 tracks this persisted-plan parser limitation.
+        var (schema, plan) = CreateDeferredSiblingPolicyRequirementPlan();
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
 
         // assert
         Assert.Equal(
-            "Every required compiled policy occurrence facet must be claimed exactly once.",
+            "A policy execution node must follow its guarded producer and requirement providers.",
             exception.Message);
     }
 
@@ -226,7 +302,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
         // arrange
         var schema = CreateRequirementPolicySchema();
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var operationDocument = Utf8GraphQLParser.Parse(
             """
             {
@@ -371,7 +447,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
             services);
 
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var compiler = new OperationCompiler(schema, pool);
         var planner = new OperationPlanner(schema, compiler);
 
@@ -473,7 +549,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
         var compiler = new OperationCompiler(
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -792,7 +868,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
         // arrange
         var schema = CreateRootConditionSlotSchema();
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var plan = PlanOperation(
             schema,
             """
@@ -3340,7 +3416,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
         var compiler = new OperationCompiler(
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         return (JsonNode.Parse(buffer.WrittenSpan)!.AsObject(), new JsonOperationPlanParser(compiler));
     }
 
@@ -4799,6 +4875,104 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new TestPolicy(
                 "CanReadRating",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+    private static FusionSchemaDefinition CreateDeferredBatchedPolicySchema()
+        => CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  before: String
+                  first: Product
+                  second: Product
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                }
+                """,
+                """
+                # name: b
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  rating: Int! @policy(names: "CanReadRating")
+                }
+                """),
+            new TestPolicy(
+                "CanReadRating",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+    private static FusionSchemaDefinition CreateDeferredSiblingPolicyRequirementSchema()
+        => CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  first: Product
+                  second: Product
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  name: String!
+                }
+                """,
+                """
+                # name: b
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  productById(id: ID! @is(field: "id")): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  rating: Int! @policy(names: "CanReadRating")
+                }
+                """),
+            new TestPolicy(
+                "CanReadRating",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ name }")));
+
+    private (FusionSchemaDefinition Schema, OperationPlan Plan)
+        CreateDeferredSiblingPolicyRequirementPlan()
+    {
+        var schema = CreateDeferredSiblingPolicyRequirementSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              first {
+                id
+              }
+              second {
+                id
+              }
+              ... @defer {
+                first {
+                  rating
+                }
+                second {
+                  rating
+                }
+              }
+            }
+            """);
+
+        return (schema, plan);
+    }
 
     private static FusionSchemaDefinition CreateSchema(
         string schemaText,

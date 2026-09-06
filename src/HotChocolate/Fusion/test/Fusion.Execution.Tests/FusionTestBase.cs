@@ -499,7 +499,7 @@ public abstract class FusionTestBase : IDisposable
         OperationPlannerOptions? options = null)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
