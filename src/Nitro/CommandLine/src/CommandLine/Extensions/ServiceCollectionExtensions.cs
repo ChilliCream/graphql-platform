@@ -63,6 +63,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
         services.TryAddSingleton<ICodexHookHandler, CodexHookHandler>();
+        services.TryAddSingleton<IOpencodeHookHandler, OpencodeHookHandler>();
         services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
         services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
         services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
