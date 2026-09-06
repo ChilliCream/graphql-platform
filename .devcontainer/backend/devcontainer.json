@@ -12,7 +12,8 @@
     }
   },
   "containerEnv": {
-    "DOTNET_LOCAL_DEV": "1",
+    "DOTNET_LOCAL_DEV": "${localEnv:DOTNET_LOCAL_DEV:1}",
+    "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "${localEnv:DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK:0}",
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
     "HISTFILE": "/home/vscode/.commandhistory/.zsh_history"
   },
