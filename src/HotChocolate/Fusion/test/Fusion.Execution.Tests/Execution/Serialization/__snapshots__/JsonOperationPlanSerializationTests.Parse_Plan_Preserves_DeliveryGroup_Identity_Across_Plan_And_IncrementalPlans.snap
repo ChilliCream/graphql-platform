@@ -1,8 +1,8 @@
 {
-  "id": "85c01518d432648ea22264fe1d855e0c7ed46fdbedd9698ae63c0e162aaabb54",
+  "id": "78f7115078600cb30e08aeb9551256d8755aac8bd4934970bc1510050188981c",
   "operation": {
     "kind": "Query",
-    "document": "{\n  user(id: \"1\") {\n    name\n    id @fusion__requirement\n  }\n}",
+    "document": "{\n  user(id: \"1\") {\n    name\n  }\n}",
     "id": "123456789101112",
     "hash": "123456789101112",
     "shortHash": "123456789101112"
@@ -17,10 +17,10 @@
       "operation": {
         "name": "Op_123456789101112_1",
         "kind": "Query",
-        "document": "query Op_123456789101112_1 {\n  user(id: \"1\") {\n    name\n    id\n  }\n}",
-        "hash": "0c7c2bd3f37f66343f01b669dfab23ff06380e580c789ec14a0c77068974ac15",
-        "shortHash": "0c7c2bd3",
-        "xxHash": 1740725156838332406
+        "document": "query Op_123456789101112_1 {\n  user(id: \"1\") {\n    name\n  }\n}",
+        "hash": "167b5bb497f34e9c7516ec2d4598ae6d7f0fd73a9a9a329156910e99e5db4ec3",
+        "shortHash": "167b5bb4",
+        "xxHash": 3591422175736984938
       },
       "resultSelectionSet": "{ user }"
     }
@@ -50,14 +50,6 @@
         2
       ],
       "parentNodeId": 1,
-      "requirements": [
-        {
-          "name": "__fusion_1_id",
-          "type": "ID!",
-          "path": "$.user",
-          "selectionMap": "id"
-        }
-      ],
       "operation": {
         "kind": "Query",
         "document": "{\n  user(id: \"1\") {\n    email\n    id @fusion__requirement\n  }\n}",
@@ -91,9 +83,7 @@
             }
           ],
           "dependencies": [
-            {
-              "parentNodeId": 1
-            }
+            2
           ]
         },
         {
