@@ -20,7 +20,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 12;
+    public const int CurrentVersion = 13;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -34,8 +34,10 @@ internal sealed class AgentDatabase
     /// and <c>session_ping_gates</c>' <c>harness</c> CHECK constraints, and
     /// <c>agent_sessions</c>' <c>endpoint_kind</c> CHECK constraint, accepted
     /// the v8 <c>nitro-board</c> and <c>db-watch</c> values), v8, v9, v10,
-    /// and v11 (before the v12 <c>opencode</c> harness, its endpoint kind,
-    /// and the endpoint credential column). A v3 database's
+    /// v11 (before the v12 <c>opencode</c> harness, its endpoint kind, and
+    /// the endpoint credential column), and v12 (before the v13
+    /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns). A v3
+    /// database's
     /// agents table already carries every column
     /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
     /// means applying the new v4 tables and bumping the stamped version. A
@@ -61,7 +63,10 @@ internal sealed class AgentDatabase
     /// memory store found beside the workspace into them; see
     /// <see cref="MemoryMarkdownImport"/>. The v11-to-v12 upgrade adds the
     /// opencode harness and endpoint constraints and the nullable endpoint
-    /// credential. The
+    /// credential. The v12-to-v13 upgrade adds the <c>announcement_pending</c>
+    /// and <c>idle_push_armed</c> columns
+    /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> also carries
+    /// forward for a database that predates them. The
     /// v9-to-v10 upgrade drops the <c>pid</c> and <c>proc_start</c> columns
     /// (and <c>agent_sessions</c>' <c>process_scope</c> and
     /// <c>proc_start_legacy</c>) from all three tables that carried them:
@@ -71,7 +76,7 @@ internal sealed class AgentDatabase
     /// constraint also triggers on a surviving <c>pid</c> column and copies
     /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -308,6 +313,22 @@ internal sealed class AgentDatabase
         {
             await connection.ExecuteAsync(
                 "ALTER TABLE agent_sessions ADD COLUMN endpoint_secret TEXT NULL;",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("announcement_pending"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN announcement_pending INTEGER NOT NULL DEFAULT 0 "
+                + "CHECK (announcement_pending IN (0, 1));",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("idle_push_armed"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN idle_push_armed INTEGER NOT NULL DEFAULT 0 "
+                + "CHECK (idle_push_armed IN (0, 1));",
                 transaction: transaction);
         }
     }

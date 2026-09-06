@@ -292,4 +292,46 @@ internal interface IAgentSessionRegistry
         string result,
         string? detail,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Arms the announcement-pending marker for the row matching <paramref
+    /// name="generation"/> exactly, so the next successful <see
+    /// cref="ClaimAnnouncementAsync"/> call announces the actor once. A
+    /// generation that matches no row is a no-op. Implementations that do
+    /// not support the marker leave it a no-op.
+    /// </summary>
+    Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => Task.CompletedTask;
+
+    /// <summary>
+    /// Atomically claims the announcement-pending marker for the row
+    /// matching <paramref name="generation"/> exactly: true only the first
+    /// call after <see cref="ArmAnnouncementAsync"/> last armed it, false on
+    /// every later call or when no row matches. Implementations that do not
+    /// support the marker always return false.
+    /// </summary>
+    Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => Task.FromResult(false);
+
+    /// <summary>
+    /// Arms the idle-push marker for the row matching <paramref
+    /// name="generation"/> exactly, so the next successful <see
+    /// cref="ClaimIdlePushAsync"/> call is allowed to push once. A
+    /// generation that matches no row is a no-op. Implementations that do
+    /// not support the marker leave it a no-op.
+    /// </summary>
+    Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => Task.CompletedTask;
+
+    /// <summary>
+    /// Atomically claims the idle-push marker for the row matching
+    /// <paramref name="generation"/> exactly: true only when <see
+    /// cref="RearmIdlePushAsync"/> armed it since the last successful claim
+    /// (suppressing every idle transition after the first until an
+    /// ordinary, non-pushed prompt rearms it again), false when no row
+    /// matches. Implementations that do not support the marker always
+    /// return false.
+    /// </summary>
+    Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => Task.FromResult(false);
 }

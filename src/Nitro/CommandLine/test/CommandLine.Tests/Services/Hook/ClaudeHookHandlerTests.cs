@@ -757,11 +757,4 @@ internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedg
         LastMessageIds = messageIds;
         return inner.ReserveAsync(generation, messageIds, channel, deliveredAt, cancellationToken);
     }
-
-    public Task ReleaseAsync(
-        AgentSessionGeneration generation,
-        string messageId,
-        string channel,
-        CancellationToken cancellationToken)
-        => inner.ReleaseAsync(generation, messageId, channel, cancellationToken);
 }

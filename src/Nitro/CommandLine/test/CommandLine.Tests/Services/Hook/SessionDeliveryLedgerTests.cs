@@ -124,49 +124,25 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     }
 
     [Fact]
-    public async Task ReleaseAsync_Should_RemoveOnlyTheExactClaim()
+    public async Task ReserveAsync_Should_ExcludeAStaleGeneration_When_TheSessionHostWasReplaced()
     {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAndSessionAsync(cancellationToken);
-        await _ledger.ReserveAsync(
-            s_generation, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
-        await _ledger.ReserveAsync(
-            s_generation, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
-
-        // act
-        await _ledger.ReleaseAsync(s_generation, "m-1", "gate", cancellationToken);
-        var gate = await _ledger.ReserveAsync(
-            s_generation, ["m-1", "m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
-        var digest = await _ledger.ReserveAsync(
-            s_generation, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
-
-        // assert
-        Assert.Equal(["m-1"], gate);
-        Assert.Empty(digest);
-    }
-
-    [Fact]
-    public async Task ReserveAndReleaseAsync_Should_NotAffectReplacementReservation_When_GenerationIsStale()
-    {
-        // arrange
+        // arrange: a row's host changes when a new process replaces the one
+        // the row remembered (see AgentSessionRegistry.StartAsync); the old
+        // generation must never reserve against the replacement's row.
         var cancellationToken = TestContext.Current.CancellationToken;
         var replacement = new AgentSessionGeneration(Harness, SessionId, "host-2");
         await InitializeWorkspaceAndSessionAsync(cancellationToken);
         await ReplaceSessionHostAsync(replacement.Host, cancellationToken);
-        await _ledger.ReserveAsync(
-            replacement, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
 
         // act
         var staleReserved = await _ledger.ReserveAsync(
-            s_generation, ["m-2"], "gate", DateTimeOffset.UtcNow, cancellationToken);
-        await _ledger.ReleaseAsync(s_generation, "m-1", "gate", cancellationToken);
+            s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
         var replacementReserved = await _ledger.ReserveAsync(
             replacement, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Empty(staleReserved);
-        Assert.Empty(replacementReserved);
+        Assert.Equal(["m-1"], replacementReserved);
     }
 
     private async Task InitializeWorkspaceAndSessionAsync(CancellationToken cancellationToken)

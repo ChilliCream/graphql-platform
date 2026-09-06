@@ -141,7 +141,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                                host = generation.Host,
+                        host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -161,7 +161,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                                host = generation.Host,
+                        host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -1210,6 +1210,71 @@ internal sealed class AgentSessionRegistry(
             + "WHERE harness = @harness AND session_id = @sessionId "
             + "AND host = @host";
         command.Parameters.AddWithValue("@role", normalizedRole);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => SetSessionFlagAsync(generation, "announcement_pending", value: true, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => ClaimSessionFlagAsync(generation, "announcement_pending", cancellationToken);
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => SetSessionFlagAsync(generation, "idle_push_armed", value: true, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => ClaimSessionFlagAsync(generation, "idle_push_armed", cancellationToken);
+
+    /// <summary>
+    /// Sets a boolean <c>agent_sessions</c> column named literally by
+    /// <paramref name="column"/> for the row matching <paramref
+    /// name="generation"/> exactly. <paramref name="column"/> is always one
+    /// of this file's own hard-coded column names, never caller input, so
+    /// interpolating it into the command text carries no injection risk.
+    /// </summary>
+    private async Task SetSessionFlagAsync(
+        AgentSessionGeneration generation, string column, bool value, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agent_sessions SET {column} = @value "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND host = @host";
+        command.Parameters.AddWithValue("@value", value ? 1 : 0);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Atomically clears a boolean <c>agent_sessions</c> column named
+    /// literally by <paramref name="column"/> for the row matching
+    /// <paramref name="generation"/> exactly, only when it is currently set:
+    /// the single UPDATE's WHERE clause is the claim, so a racing caller can
+    /// never both observe the column set. Returns whether this call was the
+    /// one that cleared it. <paramref name="column"/> is always one of this
+    /// file's own hard-coded column names, never caller input.
+    /// </summary>
+    private async Task<bool> ClaimSessionFlagAsync(
+        AgentSessionGeneration generation, string column, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agent_sessions SET {column} = 0 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + $"AND host = @host AND {column} = 1";
         command.Parameters.AddWithValue("@harness", generation.Harness);
         command.Parameters.AddWithValue("@sessionId", generation.SessionId);
         command.Parameters.AddWithValue("@host", generation.Host);

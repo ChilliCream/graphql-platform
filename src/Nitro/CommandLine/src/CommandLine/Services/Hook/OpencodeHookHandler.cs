@@ -23,12 +23,6 @@ internal sealed class OpencodeHookHandler(
     /// </summary>
     public const int MaxDigestMessages = 10;
 
-    // Reserved internal marker for an actor announcement, never a Nitro mail id.
-    private const string FirstPromptAnnouncementId = "__nitro_internal:opencode:first-prompt-announcement";
-
-    // Reserved internal marker for the current idle period, never a Nitro mail id.
-    private const string IdleTransitionId = "__nitro_internal:opencode:idle-transition";
-
     public async Task<OpencodeHookOutcome> HandleSessionCreatedAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
@@ -55,6 +49,12 @@ internal sealed class OpencodeHookHandler(
                 resolved.Generation, payload.HarnessVersion, cancellationToken);
         }
 
+        // Arms the first-prompt announcement and the idle-push gate so a
+        // session that goes idle before its first chat message still pushes
+        // once, exactly as a session with prior chat activity would.
+        await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
+        await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+
         return OpencodeHookOutcome.Neutral;
     }
 
@@ -75,10 +75,14 @@ internal sealed class OpencodeHookHandler(
 
         if (payload.NitroPushed)
         {
+            // A marked, Nitro-pushed turn never rearms the idle-push gate
+            // and never receives the announcement or digest injection this
+            // method exists to add: it is Nitro's own delivery, not a
+            // genuine prompt from the user.
             return OpencodeHookOutcome.Neutral;
         }
 
-        await ReleaseAsync(resolved.Generation, IdleTransitionId, AgentSessionChannel.Gate, cancellationToken);
+        await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
@@ -92,14 +96,8 @@ internal sealed class OpencodeHookHandler(
 
         try
         {
-            // Reserves the durable, atomic first-prompt marker for this session.
-            var announcement = await ReserveAsync(
-                resolved.Generation,
-                [FirstPromptAnnouncementId],
-                AgentSessionChannel.Digest,
-                cancellationToken);
-
-            if (announcement.Count > 0)
+            // Claims the durable, atomic first-prompt marker for this session.
+            if (await sessionRegistry.ClaimAnnouncementAsync(resolved.Generation, cancellationToken))
             {
                 parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
             }
@@ -158,13 +156,10 @@ internal sealed class OpencodeHookHandler(
                 return OpencodeHookOutcome.Neutral;
             }
 
-            var transition = await ReserveAsync(
-                resolved.Generation,
-                [IdleTransitionId],
-                AgentSessionChannel.Gate,
-                cancellationToken);
-
-            if (transition.Count == 0)
+            // Claims the durable, atomic one-push-per-idle-transition gate:
+            // false means an earlier idle event in this same transition
+            // already claimed it, so this event is suppressed.
+            if (!await sessionRegistry.ClaimIdlePushAsync(resolved.Generation, cancellationToken))
             {
                 return OpencodeHookOutcome.Neutral;
             }
@@ -177,7 +172,10 @@ internal sealed class OpencodeHookHandler(
                 return new OpencodeHookOutcome { IdleDelivery = digest };
             }
 
-            await ReleaseAsync(resolved.Generation, IdleTransitionId, AgentSessionChannel.Gate, cancellationToken);
+            // Nothing was actually reserved (every unread id was already
+            // claimed on the gate channel by another path) - rearm so a
+            // later idle event with fresh mail can still push.
+            await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
             return OpencodeHookOutcome.Neutral;
         }
         catch (SessionRemovedDuringDeliveryException)
@@ -250,17 +248,6 @@ internal sealed class OpencodeHookHandler(
             throw;
         }
     }
-
-    private Task ReleaseAsync(
-        AgentSessionGeneration generation,
-        string messageId,
-        string channel,
-        CancellationToken cancellationToken)
-        => ledger.ReleaseAsync(
-            generation,
-            messageId,
-            channel,
-            cancellationToken);
 
     private async Task<ResolvedGeneration?> ResolveAsync(
         OpencodeHookPayload payload,

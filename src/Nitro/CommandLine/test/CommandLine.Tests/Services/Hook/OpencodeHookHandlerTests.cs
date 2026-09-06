@@ -247,10 +247,14 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleChatMessageAsync_Should_RemainNeutral_When_TheSessionIsDeletedBeforeReservation()
     {
-        // arrange
+        // arrange: the first chat message already claimed the announcement,
+        // so only the unread-mail digest reservation is left to race the
+        // session's deletion below.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
         var handler = CreateHandler(new SessionDeletingDeliveryLedger(_ledger, _sessions, CurrentGeneration()));
 
         // act
@@ -419,7 +423,7 @@ internal sealed class SessionDeletingDeliveryLedger(
     private bool _deleted;
 
     public async Task<IReadOnlyList<string>> ReserveAsync(
-        AgentSessionGeneration generation,
+        AgentSessionGeneration reserveGeneration,
         IReadOnlyList<string> messageIds,
         string channel,
         DateTimeOffset deliveredAt,
@@ -432,19 +436,12 @@ internal sealed class SessionDeletingDeliveryLedger(
         }
 
         return await inner.ReserveAsync(
-            generation,
+            reserveGeneration,
             messageIds,
             channel,
             deliveredAt,
             cancellationToken);
     }
-
-    public Task ReleaseAsync(
-        AgentSessionGeneration generation,
-        string messageId,
-        string channel,
-        CancellationToken cancellationToken)
-        => inner.ReleaseAsync(generation, messageId, channel, cancellationToken);
 }
 
 internal static class OpencodeHookFixtures

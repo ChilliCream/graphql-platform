@@ -24,7 +24,11 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// <c>pid</c>, <c>proc_start</c>, <c>process_scope</c> and
 /// <c>proc_start_legacy</c> columns: a hook event names its own session, so
 /// (harness, session_id, host) identifies a row exactly and no process
-/// identity is recorded or compared.
+/// identity is recorded or compared. v13 adds <c>announcement_pending</c>
+/// and <c>idle_push_armed</c>: the opencode hook handler's durable,
+/// atomically claimed markers for the first-prompt actor announcement and
+/// the one-push-per-idle-transition gate, replacing an earlier
+/// <c>session_deliveries</c> sentinel-based approach for both.
 /// </summary>
 internal static class AgentSessionSchema
 {
@@ -59,6 +63,8 @@ internal static class AgentSessionSchema
             last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
             role TEXT NOT NULL DEFAULT '',
             harness_version TEXT NOT NULL DEFAULT '',
+            announcement_pending INTEGER NOT NULL DEFAULT 0 CHECK (announcement_pending IN (0, 1)),
+            idle_push_armed INTEGER NOT NULL DEFAULT 0 CHECK (idle_push_armed IN (0, 1)),
             -- Table-level CHECK constraints must follow every column
             -- definition (SQLite rejects one interleaved between columns),
             -- so both cross-column checks live here instead of next to the
