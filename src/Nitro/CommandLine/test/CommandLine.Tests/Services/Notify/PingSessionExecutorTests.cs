@@ -489,7 +489,6 @@ public sealed class PingSessionExecutorTests : IDisposable
         // act
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, "s3cret",
-            previousPingResult: null, previousPingDetail: null,
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
@@ -515,7 +514,6 @@ public sealed class PingSessionExecutorTests : IDisposable
         // act
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            previousPingResult: null, previousPingDetail: null,
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
@@ -542,7 +540,6 @@ public sealed class PingSessionExecutorTests : IDisposable
         // act
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            previousPingResult: null, previousPingDetail: null,
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
@@ -569,7 +566,6 @@ public sealed class PingSessionExecutorTests : IDisposable
         // act
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            previousPingResult: null, previousPingDetail: null,
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
@@ -596,7 +592,6 @@ public sealed class PingSessionExecutorTests : IDisposable
         // act
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            previousPingResult: null, previousPingDetail: null,
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
@@ -605,7 +600,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     [Fact]
-    public async Task ExecuteOpencodeServerAsync_Should_SkipTheWrite_When_TheHealthOnlyPingRepeatsTheRowsOwnState()
+    public async Task ExecuteOpencodeServerAsync_Should_RewriteTheRow_When_TheHealthOnlyPingRepeatsThePriorOutcome()
     {
         // arrange: an earlier health-only ping already recorded ok/health-only.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -616,30 +611,26 @@ public sealed class PingSessionExecutorTests : IDisposable
         var executor = CreateExecutor();
         await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            previousPingResult: null, previousPingDetail: null,
             firstAttemptId, firstSlot!.Value, FarFutureDeadline(), cancellationToken);
-        var seeded = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
 
         // act: a fresh claim (which nulls the row's result/detail, the same
         // as any new attempt's claim does) followed by a health-only ping
-        // told the row's pre-claim state already matched what it is about
-        // to report again.
+        // that reports the same outcome as before.
         _timeProvider.Advance(TimeSpan.FromSeconds(61));
         var secondAttemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
         var secondSlot = await _leases.TryAcquireAsync(
             secondAttemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            seeded!.LastPingResult, seeded.LastPingDetail,
             secondAttemptId, secondSlot!.Value, FarFutureDeadline(), cancellationToken);
 
-        // assert: the outcome still reports the unchanged health-only
-        // result, but the skipped write leaves the row exactly as the claim
-        // above left it (nulled), instead of restoring the unchanged value.
+        // assert: the outcome reports the repeated health-only result, and
+        // the row is rewritten to that same outcome rather than left nulled
+        // by the claim.
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var row = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
-        Assert.Null(row!.LastPingResult);
-        Assert.Null(row.LastPingDetail);
+        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+        Assert.Equal(PingSessionExecutor.HealthOnlyDetail, row.LastPingDetail);
     }
 
     [Fact]
@@ -656,7 +647,6 @@ public sealed class PingSessionExecutorTests : IDisposable
         // act
         var outcome = await executor.ExecuteOpencodeServerAsync(
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
-            previousPingResult: null, previousPingDetail: null,
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert: the first health-only ping always writes, since there is

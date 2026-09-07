@@ -583,6 +583,69 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task DispatchAsync_Should_PersistTheHealthOnlyResult_When_TheOpencodeSessionWakesTwice()
+    {
+        // arrange: the real PingSessionExecutor (not the scriptable fake)
+        // proves an opencode session's health-only outcome is durably
+        // recorded via the wake path, across two separate wakes, not
+        // merely held in the in-memory receipt. The executor is wired to a
+        // mail store that always reports no unread mail, deterministically
+        // reproducing the production race the health-only branch exists
+        // for (the mail a wake targeted got read out from under it) while
+        // the dispatcher's own outstanding-mail gate keeps seeing the real,
+        // still-unread state so each wake actually reaches the executor.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var executor = new PingSessionExecutor(
+            new NoUnreadMailStoreDecorator(_mail), new FakeCodexQueueClient(), new NoopClaudePeerClient(),
+            _sessions, _leases, _timeProvider, new NoopOpencodeServerClient());
+        var dispatcher = new ActorWakeDispatcher(
+            _batches,
+            _sessions,
+            _gateCoordinator,
+            executor,
+            _mail,
+            _instanceIdProvider,
+            _globalConfigDirectoryProvider,
+            _timeProvider);
+
+        // act: first wake - unread mail exists, so the dispatcher reaches
+        // the executor, whose own digest lookup finds nothing to push.
+        var firstReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var firstRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+
+        // assert
+        Assert.NotNull(firstRow!.LastPingAttempt);
+        Assert.Equal(
+            (MailWakeTargetStatus.Delivered, AgentPingResult.Ok, PingSessionExecutor.HealthOnlyDetail),
+            (firstReceipt?.Status, firstRow.LastPingResult, firstRow.LastPingDetail));
+
+        // act: second wake - a genuine idle transition rearms the one-shot
+        // claim (already rearmed by the first health-only outcome, done
+        // again for clarity), the gate's post-success cooldown has passed,
+        // and a fresh unread message drives another real attempt. This is
+        // exactly the claim-then-execute sequence that used to erase the
+        // row on alternate wakes.
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
+        await SendEnqueuedMailAsync(cancellationToken);
+        var secondReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var secondRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+
+        // assert: the row still durably carries the attempt id and the
+        // health-only outcome after the second wake, instead of going back
+        // to null.
+        Assert.NotNull(secondRow!.LastPingAttempt);
+        Assert.Equal(
+            (MailWakeTargetStatus.Delivered, AgentPingResult.Ok, PingSessionExecutor.HealthOnlyDetail),
+            (secondReceipt?.Status, secondRow.LastPingResult, secondRow.LastPingDetail));
+    }
+
+    [Fact]
     public async Task DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed()
     {
         // arrange: RearmIdlePushAsync stands in for the genuine prompt (or
@@ -1005,8 +1068,6 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         string actorName,
         string endpointAddr,
         string? endpointSecret,
-        string? previousPingResult,
-        string? previousPingDetail,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
@@ -1355,4 +1416,81 @@ internal sealed class RacingAcceptanceMailWakeBatchStoreDecorator(
             batchId, target, ownerId, attemptId, status, offeredGeneration, acceptedGeneration_, lastError, now,
             cancellationToken);
     }
+}
+
+/// <summary>
+/// Delegates every <see cref="IMailStore"/> member to <paramref
+/// name="inner"/> except <see cref="QueryInboxAsync"/> and <see
+/// cref="CountUnreadAsync"/>, which always report no unread mail: wiring
+/// this into <see cref="PingSessionExecutor"/>'s own digest lookup, while
+/// <see cref="ActorWakeDispatcher"/> keeps the real <paramref name="inner"/>
+/// for its own outstanding-mail gate, deterministically reproduces the
+/// health-only race the executor's opencode branch handles (the mail a wake
+/// targeted got read out from under it by the time the digest was built).
+/// </summary>
+internal sealed class NoUnreadMailStoreDecorator(IMailStore inner) : IMailStore
+{
+    public string? FindWorkspaceDirectory() => inner.FindWorkspaceDirectory();
+
+    public Task InitializeWorkspaceAsync(string workspaceDirectory, CancellationToken cancellationToken)
+        => inner.InitializeWorkspaceAsync(workspaceDirectory, cancellationToken);
+
+    public Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
+        => inner.SendMessageAsync(creation, cancellationToken);
+
+    public Task<MailMessage> ReplyMessageAsync(
+        string inReplyToId, string sender, string body, MailWakePolicy wakePolicy,
+        CancellationToken cancellationToken)
+        => inner.ReplyMessageAsync(inReplyToId, sender, body, wakePolicy, cancellationToken);
+
+    public Task<MailMessage?> GetMessageAsync(string id, CancellationToken cancellationToken)
+        => inner.GetMessageAsync(id, cancellationToken);
+
+    public Task<MailMessage> GetRequiredMessageAsync(string id, CancellationToken cancellationToken)
+        => inner.GetRequiredMessageAsync(id, cancellationToken);
+
+    public Task<IReadOnlyList<MailMessage>> GetThreadMessagesAsync(
+        string threadId, CancellationToken cancellationToken)
+        => inner.GetThreadMessagesAsync(threadId, cancellationToken);
+
+    public Task<IReadOnlyList<MailMessage>> QueryInboxAsync(MailInboxFilter filter, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<MailMessage>>([]);
+
+    public Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(
+        MailWorkspaceFilter filter, CancellationToken cancellationToken)
+        => inner.QueryWorkspaceMessagesAsync(filter, cancellationToken);
+
+    public Task MarkReadAsync(IReadOnlyList<string> messageIds, string actor, CancellationToken cancellationToken)
+        => inner.MarkReadAsync(messageIds, actor, cancellationToken);
+
+    public Task MarkUnreadAsync(IReadOnlyList<string> messageIds, string actor, CancellationToken cancellationToken)
+        => inner.MarkUnreadAsync(messageIds, actor, cancellationToken);
+
+    public Task ArchiveAsync(IReadOnlyList<string> messageIds, string actor, CancellationToken cancellationToken)
+        => inner.ArchiveAsync(messageIds, actor, cancellationToken);
+
+    public Task<IReadOnlyList<MailThreadSummary>> QueryThreadsAsync(string actor, CancellationToken cancellationToken)
+        => inner.QueryThreadsAsync(actor, cancellationToken);
+
+    public Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
+        string actor, bool includeArchived, CancellationToken cancellationToken)
+        => inner.QueryInboxThreadsAsync(actor, includeArchived, cancellationToken);
+
+    public Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
+        string actor, CancellationToken cancellationToken)
+        => inner.QuerySentThreadsAsync(actor, cancellationToken);
+
+    public Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
+        string? agent, CancellationToken cancellationToken)
+        => inner.QueryWorkspaceThreadsAsync(agent, cancellationToken);
+
+    public Task<IReadOnlyList<MailMessage>> SearchAsync(string actor, string text, CancellationToken cancellationToken)
+        => inner.SearchAsync(actor, text, cancellationToken);
+
+    public Task<int> CountUnreadAsync(string actor, CancellationToken cancellationToken)
+        => Task.FromResult(0);
+
+    public Task<IReadOnlyList<MailMessage>> QuerySentAsync(
+        string sender, int? limit, CancellationToken cancellationToken)
+        => inner.QuerySentAsync(sender, limit, cancellationToken);
 }
