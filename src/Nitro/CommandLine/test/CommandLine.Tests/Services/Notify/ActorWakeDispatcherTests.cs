@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
@@ -517,7 +518,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         var queueClient = new FakeCodexQueueClient();
         var executor = new PingSessionExecutor(
-            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
+            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
+            new NoopOpencodeServerClient());
         var dispatcher = new ActorWakeDispatcher(
             _batches,
             _sessions,
@@ -540,6 +542,99 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var call = Assert.Single(queueClient.Calls);
         Assert.Equal("thread-1", call.ThreadId);
         Assert.Contains("1 unread nitro message.", call.Message);
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed()
+    {
+        // arrange: RearmIdlePushAsync stands in for the genuine prompt (or
+        // session-created event) that would have armed the gate in
+        // production, per OpencodeHookHandler.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var executor = new FakePingSessionExecutor();
+        var dispatcher = CreateDispatcher(executor);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(receipt);
+        Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
+        var call = Assert.Single(executor.Calls);
+        Assert.True(call.IsOpencodeServer);
+
+        // the one-shot claim is now spent: a second wake targeting the same
+        // idle transition (no fresh rearm in between) is suppressed rather
+        // than pushed again.
+        await SendEnqueuedMailAsync(cancellationToken);
+        var suppressedExecutor = new FakePingSessionExecutor();
+        var suppressedDispatcher = CreateDispatcher(suppressedExecutor);
+        var suppressedReceipt = await suppressedDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        Assert.NotNull(suppressedReceipt);
+        var suppressedTarget = Assert.Single(suppressedReceipt.Targets);
+        Assert.Equal(MailWakeTargetStatus.Pending, suppressedTarget.Status);
+        Assert.Equal("idle-not-armed", suppressedTarget.LastError);
+        Assert.Empty(suppressedExecutor.Calls);
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_OfferTheTarget_When_TheOpencodeSessionIsNotIdleArmed()
+    {
+        // arrange: a session that never had its idle-push gate armed (a
+        // nitro-pushed turn is still active, or nothing rearmed it since the
+        // last claim) - mail must wait for the next genuine idle transition.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var executor = new FakePingSessionExecutor();
+        var dispatcher = CreateDispatcher(executor);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert: offered, not failed, and no transport was ever attempted.
+        Assert.NotNull(receipt);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
+        Assert.Equal("idle-not-armed", target.LastError);
+        Assert.Empty(executor.Calls);
+
+        // once a genuine prompt rearms the gate and the retry becomes due,
+        // the same still-unread mail is delivered.
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
+        var rearmedExecutor = new FakePingSessionExecutor();
+        var rearmedDispatcher = CreateDispatcher(rearmedExecutor);
+        var rearmedReceipt = await rearmedDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        Assert.NotNull(rearmedReceipt);
+        Assert.Equal(MailWakeTargetStatus.Delivered, rearmedReceipt.Status);
+        Assert.Single(rearmedExecutor.Calls);
+    }
+
+    [Fact]
+    public void AddNitroServices_Should_ResolveActorWakeDispatcher_When_BuiltFromTheServiceCollection()
+    {
+        // arrange: proves the whole composition graph (including the
+        // additive IOpencodeServerClient registration IPingSessionExecutor
+        // now depends on) resolves end to end.
+        var services = new ServiceCollection();
+        services.AddNitroServices();
+
+        // act
+        using var provider = services.BuildServiceProvider();
+        var dispatcher = provider.GetRequiredService<IActorWakeDispatcher>();
+
+        // assert
+        Assert.IsType<ActorWakeDispatcher>(dispatcher);
     }
 
     private static async Task<long> ScalarCountAsync(
@@ -587,9 +682,12 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     {
         // A genuinely alive pid/proc_start: dispatch resolves live sessions
         // through FindLiveClaimedByAgentNameAsync, which reaps dead
-        var harness = endpointKind == AgentSessionEndpointKind.ClaudePeer
-            ? AgentSessionHarness.ClaudeCode
-            : AgentSessionHarness.Codex;
+        var harness = endpointKind switch
+        {
+            AgentSessionEndpointKind.ClaudePeer => AgentSessionHarness.ClaudeCode,
+            AgentSessionEndpointKind.OpencodeServer => AgentSessionHarness.Opencode,
+            _ => AgentSessionHarness.Codex
+        };
         var generation = new AgentSessionGeneration(harness, sessionId, InstanceId);
 
         await _sessions.StartAsync(
@@ -612,7 +710,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             cancellationToken);
 }
 
-internal sealed record FakePingSessionExecutorCall(string Harness, string SessionId, bool IsClaudePeer);
+internal sealed record FakePingSessionExecutorCall(
+    string Harness, string SessionId, bool IsClaudePeer, bool IsOpencodeServer = false);
 
 /// <summary>
 /// A scriptable <see cref="IPingSessionExecutor"/>: returns
@@ -656,7 +755,8 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         CancellationToken cancellationToken)
     {
         RecordedDeadlines.Add(deadline);
-        return ExecuteAsync(harness, sessionId, attemptId, isClaudePeer: false, cancellationToken);
+        return ExecuteAsync(
+            harness, sessionId, attemptId, isClaudePeer: false, isOpencodeServer: false, cancellationToken);
     }
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
@@ -669,13 +769,35 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         CancellationToken cancellationToken)
     {
         RecordedDeadlines.Add(deadline);
-        return ExecuteAsync(harness, sessionId, attemptId, isClaudePeer: true, cancellationToken);
+        return ExecuteAsync(
+            harness, sessionId, attemptId, isClaudePeer: true, isOpencodeServer: false, cancellationToken);
+    }
+
+    public Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        string endpointAddr,
+        string? endpointSecret,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken)
+    {
+        RecordedDeadlines.Add(deadline);
+        return ExecuteAsync(
+            harness, sessionId, attemptId, isClaudePeer: false, isOpencodeServer: true, cancellationToken);
     }
 
     private async Task<PingAttemptOutcome> ExecuteAsync(
-        string harness, string sessionId, string attemptId, bool isClaudePeer, CancellationToken cancellationToken)
+        string harness,
+        string sessionId,
+        string attemptId,
+        bool isClaudePeer,
+        bool isOpencodeServer,
+        CancellationToken cancellationToken)
     {
-        Calls.Add(new FakePingSessionExecutorCall(harness, sessionId, isClaudePeer));
+        Calls.Add(new FakePingSessionExecutorCall(harness, sessionId, isClaudePeer, isOpencodeServer));
         Entered.TrySetResult();
 
         var observed = Interlocked.Increment(ref _concurrent);

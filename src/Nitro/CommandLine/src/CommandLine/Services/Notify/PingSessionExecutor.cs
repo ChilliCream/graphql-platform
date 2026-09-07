@@ -10,7 +10,8 @@ internal sealed class PingSessionExecutor(
     IClaudePeerClient claudePeerClient,
     IAgentSessionRegistry sessionRegistry,
     IPingLeaseStore leaseStore,
-    TimeProvider timeProvider) : IPingSessionExecutor
+    TimeProvider timeProvider,
+    IOpencodeServerClient opencodeServerClient) : IPingSessionExecutor
 {
     public Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
         string harness,
@@ -49,6 +50,85 @@ internal sealed class PingSessionExecutor(
             async (digest, token) => MapClaudePeerResult(
                 await claudePeerClient.SendAsync(sessionId, digest, token)),
             cancellationToken);
+
+    public async Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        string endpointAddr,
+        string? endpointSecret,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken)
+    {
+        var remaining = ClampRemaining(deadline);
+
+        if (remaining <= TimeSpan.Zero)
+        {
+            try
+            {
+                return await WriteResultAsync(harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
+            }
+            finally
+            {
+                await ReleaseLeaseAsync(slot, attemptId);
+            }
+        }
+
+        using var timeoutSource = new CancellationTokenSource(remaining);
+        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, timeoutSource.Token);
+
+        try
+        {
+            string? digest;
+
+            try
+            {
+                digest = await BuildDigestAsync(actorName, linkedSource.Token);
+            }
+            catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
+            {
+                return await WriteResultAsync(
+                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
+            }
+
+            TransportOutcome transportOutcome;
+
+            try
+            {
+                transportOutcome = digest is null
+                    ? MapOpencodeResult(
+                        await opencodeServerClient.PingAsync(
+                            endpointAddr, sessionId, endpointSecret, linkedSource.Token))
+                    : MapOpencodeResult(
+                        await opencodeServerClient.PushMessageAsync(
+                            endpointAddr,
+                            sessionId,
+                            OpencodeHookProtocol.PushedPromptPrefix + digest,
+                            endpointSecret,
+                            linkedSource.Token));
+            }
+            catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
+            {
+                return await WriteResultAsync(
+                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
+            }
+
+            return await WriteResultAsync(
+                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return await WriteResultAsync(
+                harness, sessionId, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
+        }
+        finally
+        {
+            await ReleaseLeaseAsync(slot, attemptId);
+        }
+    }
 
     private async Task<PingAttemptOutcome> ExecuteAsync(
         string harness,
@@ -233,6 +313,22 @@ internal sealed class PingSessionExecutor(
         // other nonzero exit; the subprocess's raw stderr never reaches
         // this layer, so there is no detail to attach.
         _ => new TransportOutcome(PingAttemptReason.TransportError, null)
+    };
+
+    /// <summary>
+    /// Maps one <see cref="IOpencodeServerClient"/> result string (the
+    /// <c>agent_sessions.last_ping_result</c> vocabulary it reuses) to a
+    /// <see cref="TransportOutcome"/>: <see cref="AgentPingResult.Ok"/> and
+    /// <see cref="AgentPingResult.Timeout"/> map directly, everything else
+    /// (including <see cref="AgentPingResult.EndpointGone"/>) collapses to
+    /// <see cref="PingAttemptReason.EndpointGone"/>, since that is the only
+    /// failure shape the client itself ever returns.
+    /// </summary>
+    private static TransportOutcome MapOpencodeResult(string result) => result switch
+    {
+        AgentPingResult.Ok => new TransportOutcome(PingAttemptReason.Ok, null),
+        AgentPingResult.Timeout => new TransportOutcome(PingAttemptReason.Timeout, null),
+        _ => new TransportOutcome(PingAttemptReason.EndpointGone, null)
     };
 
     private static TransportOutcome MapClaudePeerResult(ClaudePeerSendOutcome outcome) => new(

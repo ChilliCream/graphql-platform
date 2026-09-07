@@ -47,6 +47,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
+        services.TryAddSingleton<IOpencodeServerClient, OpencodeServerClient>();
         services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
         services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
         services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();

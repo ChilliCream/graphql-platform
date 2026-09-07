@@ -281,9 +281,24 @@ internal sealed class ActorWakeDispatcher(
             }
 
             if (session.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
-                and not AgentSessionEndpointKind.CodexThread)
+                and not AgentSessionEndpointKind.CodexThread
+                and not AgentSessionEndpointKind.OpencodeServer)
             {
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "unsupported");
+            }
+
+            if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                && !await sessionRegistry.ClaimIdlePushAsync(target, dispatchToken))
+            {
+                // Not currently idle-armed: a nitro-pushed turn is still
+                // active, or an earlier idle transition already used its one
+                // push (see IAgentSessionRegistry.ClaimIdlePushAsync, the
+                // same gate OpencodeHookHandler.HandleSessionIdleAsync
+                // consumes). Offer the target so the next idle transition,
+                // once a genuine prompt rearms it, gets a fresh attempt
+                // instead of failing outright.
+                return await RecordOfferedAsync(
+                    batchId, target, ownerId, batchAttemptId, claimedGeneration, "idle-not-armed");
             }
 
             var now = timeProvider.GetUtcNow();
@@ -303,13 +318,18 @@ internal sealed class ActorWakeDispatcher(
             {
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
-                var outcome = session.EndpointKind == AgentSessionEndpointKind.ClaudePeer
-                    ? await executor.ExecuteClaudePeerAsync(
+                var outcome = session.EndpointKind switch
+                {
+                    AgentSessionEndpointKind.ClaudePeer => await executor.ExecuteClaudePeerAsync(
                         session.Harness, session.SessionId, actor, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken)
-                    : await executor.ExecuteCodexThreadAsync(
+                        attemptDeadline, dispatchToken),
+                    AgentSessionEndpointKind.CodexThread => await executor.ExecuteCodexThreadAsync(
                         session.Harness, session.SessionId, actor, session.EndpointAddr, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken);
+                        attemptDeadline, dispatchToken),
+                    _ => await executor.ExecuteOpencodeServerAsync(
+                        session.Harness, session.SessionId, actor, session.EndpointAddr, session.EndpointSecret,
+                        pingAttemptId, held.Slot, attemptDeadline, dispatchToken)
+                };
 
                 if (outcome.Reason == PingAttemptReason.AccessDenied)
                 {

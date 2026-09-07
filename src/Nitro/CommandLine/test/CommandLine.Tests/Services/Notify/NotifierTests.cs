@@ -113,7 +113,8 @@ public sealed class NotifierTests
             var gateCoordinator = new SessionGateCoordinator(gates, leases);
             var queueClient = new FakeCodexQueueClient();
             var executor = new PingSessionExecutor(
-                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider);
+                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider,
+                new NoopOpencodeServerClient());
             var dispatcher = new ActorWakeDispatcher(
                 batches,
                 sessions,
@@ -195,4 +196,19 @@ internal sealed class NoopClaudePeerClient : IClaudePeerClient
     public Task<ClaudePeerSendOutcome> SendAsync(
         string sessionId, string message, CancellationToken cancellationToken)
         => Task.FromResult(ClaudePeerSendOutcome.Ok);
+}
+
+/// <summary>
+/// Never reached by the codex-thread end-to-end smoke test, but required to
+/// satisfy <see cref="PingSessionExecutor"/>'s constructor.
+/// </summary>
+internal sealed class NoopOpencodeServerClient : IOpencodeServerClient
+{
+    public Task<string> PushMessageAsync(
+        string serverUrl, string sessionId, string text, string? secret, CancellationToken cancellationToken)
+        => Task.FromResult(AgentPingResult.Ok);
+
+    public Task<string> PingAsync(
+        string serverUrl, string sessionId, string? secret, CancellationToken cancellationToken)
+        => Task.FromResult(AgentPingResult.Ok);
 }
