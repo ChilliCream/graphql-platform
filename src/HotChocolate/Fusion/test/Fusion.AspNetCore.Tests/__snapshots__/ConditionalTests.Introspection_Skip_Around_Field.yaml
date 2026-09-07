@@ -53,3 +53,6 @@ operationPlan:
         - id: 3
           responseName: __type
           fieldName: __type
+  includeConditions:
+    -
+      skipVariable: skip

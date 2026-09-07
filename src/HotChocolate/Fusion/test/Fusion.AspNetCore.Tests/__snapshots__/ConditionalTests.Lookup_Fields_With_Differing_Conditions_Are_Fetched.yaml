@@ -137,3 +137,8 @@ operationPlan:
         - f
       dependencies:
         - id: 1
+  includeConditions:
+    -
+      includeVariable: f
+    -
+      skipVariable: f

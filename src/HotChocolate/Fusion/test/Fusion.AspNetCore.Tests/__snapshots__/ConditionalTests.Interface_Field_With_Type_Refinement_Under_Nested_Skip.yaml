@@ -372,3 +372,8 @@ operationPlan:
             id
       dependencies:
         - id: 1
+  includeConditions:
+    -
+      skipVariable: skip1
+    -
+      skipVariable: skip2

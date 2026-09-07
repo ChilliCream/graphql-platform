@@ -75,3 +75,9 @@ operationPlan:
           passingValue: false
       forwardedVariables:
         - x
+  includeConditions:
+    -
+      skipVariable: s
+    -
+      skipVariable: s
+      includeVariable: x

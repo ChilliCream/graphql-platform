@@ -133,7 +133,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "c65b858b9af88e768303fcf545289c618cb4731b94d8f3be2038585c2a8d9a43"
+                  "Value": "2560f26b3e5bb3e99c9772d3b9d8491a9963bab6dd88204a4e3b90509b44942c"
                 },
                 {
                   "Key": "graphql.source_schema.name",
@@ -252,7 +252,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "c65b858b9af88e768303fcf545289c618cb4731b94d8f3be2038585c2a8d9a43"
+                  "Value": "2560f26b3e5bb3e99c9772d3b9d8491a9963bab6dd88204a4e3b90509b44942c"
                 },
                 {
                   "Key": "graphql.source_schema.name",
