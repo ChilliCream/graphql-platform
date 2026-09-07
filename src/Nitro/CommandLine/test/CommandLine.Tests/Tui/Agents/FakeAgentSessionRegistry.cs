@@ -101,4 +101,16 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         string? detail,
         CancellationToken cancellationToken)
         => throw new NotSupportedException();
+
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 }

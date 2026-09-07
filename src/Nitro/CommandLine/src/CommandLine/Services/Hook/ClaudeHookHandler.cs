@@ -1,4 +1,3 @@
-using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -160,7 +159,8 @@ internal sealed class ClaudeHookHandler(
         }
 
         var reserved = await ledger.ReserveAsync(
-            resolved.Generation,
+            resolved.Generation.Harness,
+            resolved.Generation.SessionId,
             unread.Select(m => m.Id).ToList(),
             AgentSessionChannel.Gate,
             timeProvider.GetUtcNow(),
@@ -216,7 +216,8 @@ internal sealed class ClaudeHookHandler(
         }
 
         var reserved = await ledger.ReserveAsync(
-            generation,
+            generation.Harness,
+            generation.SessionId,
             unread.Select(m => m.Id).ToList(),
             AgentSessionChannel.Digest,
             timeProvider.GetUtcNow(),

@@ -1079,6 +1079,18 @@ internal sealed class AlwaysGoneSessionRegistryDecorator(IAgentSessionRegistry i
         AgentSessionGeneration generation, string actor, string role, string client, bool forceRebind,
         CancellationToken cancellationToken)
         => inner.RegisterAsync(generation, actor, role, client, forceRebind, cancellationToken);
+
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ArmAnnouncementAsync(generation, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ClaimAnnouncementAsync(generation, cancellationToken);
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.RearmIdlePushAsync(generation, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ClaimIdlePushAsync(generation, cancellationToken);
 }
 
 /// <summary>
@@ -1171,6 +1183,18 @@ internal sealed class ReboundOnFindSessionRegistryDecorator(
         AgentSessionGeneration generation, string actor2, string role, string client, bool forceRebind,
         CancellationToken cancellationToken)
         => inner.RegisterAsync(generation, actor2, role, client, forceRebind, cancellationToken);
+
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ArmAnnouncementAsync(generation, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ClaimAnnouncementAsync(generation, cancellationToken);
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.RearmIdlePushAsync(generation, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ClaimIdlePushAsync(generation, cancellationToken);
 }
 
 /// <summary>

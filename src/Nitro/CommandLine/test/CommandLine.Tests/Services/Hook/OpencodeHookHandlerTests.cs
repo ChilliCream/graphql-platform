@@ -422,6 +422,15 @@ internal sealed class SessionDeletingDeliveryLedger(
 {
     private bool _deleted;
 
+    public Task<IReadOnlyList<string>> ReserveAsync(
+        string harness,
+        string sessionId,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        DateTimeOffset deliveredAt,
+        CancellationToken cancellationToken)
+        => inner.ReserveAsync(harness, sessionId, messageIds, channel, deliveredAt, cancellationToken);
+
     public async Task<IReadOnlyList<string>> ReserveAsync(
         AgentSessionGeneration reserveGeneration,
         IReadOnlyList<string> messageIds,

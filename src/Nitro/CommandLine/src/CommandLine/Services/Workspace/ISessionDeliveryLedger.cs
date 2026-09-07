@@ -12,11 +12,27 @@ internal interface ISessionDeliveryLedger
 {
     /// <summary>
     /// Atomically claims each of <paramref name="messageIds"/> for
-    /// <paramref name="channel"/> on the given session. Returns the subset
+    /// <paramref name="channel"/> on the session identified by <paramref
+    /// name="harness"/> and <paramref name="sessionId"/>. Returns the subset
     /// that was newly claimed by this call, in the order given; a message id
     /// already reserved for this session and channel (by this call or an
     /// earlier one) is silently excluded, never reserved twice. An empty
     /// input returns an empty result without opening a connection.
+    /// </summary>
+    Task<IReadOnlyList<string>> ReserveAsync(
+        string harness,
+        string sessionId,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        DateTimeOffset deliveredAt,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Same claim as the <c>(harness, sessionId, ...)</c> overload, but also
+    /// conditioned on <paramref name="generation"/>'s host: a session row
+    /// for the same harness and session id recorded by a different host
+    /// reserves nothing. Used where more than one host can race the same
+    /// session identity.
     /// </summary>
     Task<IReadOnlyList<string>> ReserveAsync(
         AgentSessionGeneration generation,

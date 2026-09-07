@@ -736,6 +736,18 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
         string? detail,
         CancellationToken cancellationToken)
         => inner.WritePingResultAsync(harness, sessionId, attemptId, result, detail, cancellationToken);
+
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ArmAnnouncementAsync(generation, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ClaimAnnouncementAsync(generation, cancellationToken);
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.RearmIdlePushAsync(generation, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => inner.ClaimIdlePushAsync(generation, cancellationToken);
 }
 
 /// <summary>
@@ -746,6 +758,18 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
 internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
 {
     public IReadOnlyList<string>? LastMessageIds { get; private set; }
+
+    public Task<IReadOnlyList<string>> ReserveAsync(
+        string harness,
+        string sessionId,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        DateTimeOffset deliveredAt,
+        CancellationToken cancellationToken)
+    {
+        LastMessageIds = messageIds;
+        return inner.ReserveAsync(harness, sessionId, messageIds, channel, deliveredAt, cancellationToken);
+    }
 
     public Task<IReadOnlyList<string>> ReserveAsync(
         AgentSessionGeneration generation,
