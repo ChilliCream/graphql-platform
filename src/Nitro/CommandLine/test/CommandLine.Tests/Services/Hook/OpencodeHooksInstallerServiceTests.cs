@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 public sealed class OpencodeHooksInstallerServiceTests : IDisposable
 {
-    private static readonly LaunchDescriptor Descriptor = new("nitro", []);
+    private static readonly LaunchDescriptor s_descriptor = new("nitro", []);
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _hooksPath;
@@ -268,7 +268,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     private OpencodeHooksInstallerService CreateService() => new(
         _fileSystem,
         new FixedOpencodePathResolver(_hooksPath),
-        new FixedLaunchDescriptorResolver(Descriptor),
+        new FixedLaunchDescriptorResolver(s_descriptor),
         new OpencodeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
         _timeProvider);
 

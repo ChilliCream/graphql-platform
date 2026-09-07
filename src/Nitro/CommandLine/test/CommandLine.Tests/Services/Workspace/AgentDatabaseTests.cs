@@ -295,6 +295,16 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Contains("announcement_pending", columns);
         Assert.Contains("idle_push_armed", columns);
 
+        var survivingIdentity = await QueryScalarStringAsync(
+            upgraded,
+            """
+            SELECT agent_name || '|' || host || '|' || endpoint_addr
+            FROM agent_sessions
+            WHERE session_id = 'session-v12'
+            """,
+            cancellationToken);
+        Assert.Equal("maya|host-a|http://127.0.0.1:4096", survivingIdentity);
+
         var armedFlags = await QueryScalarLongAsync(
             upgraded,
             "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v12'",
