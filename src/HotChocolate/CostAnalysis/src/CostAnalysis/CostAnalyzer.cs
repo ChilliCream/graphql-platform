@@ -25,7 +25,8 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        context.GetFieldSets().Clear();
+        var costContext = context.Features.GetOrSet<CostContext>();
+        costContext.FieldSets.Clear();
         context.SelectionSets.Clear();
 
         return base.Enter(node, context);
