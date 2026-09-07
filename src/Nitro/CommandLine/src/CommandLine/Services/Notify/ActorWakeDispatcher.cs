@@ -333,6 +333,23 @@ internal sealed class ActorWakeDispatcher(
                     idlePushClaimed = true;
                 }
 
+                // Durably stamps pingAttemptId onto the row's own
+                // last_ping_attempt, exactly as the retired manual ping
+                // command used to before every dispatch. With no cooldown of
+                // its own (the gate reservation above already owns cooldown)
+                // this only fences the executor's later result write against
+                // a stale completion; a false return means the exact session
+                // generation no longer matches a row (ended or rebound since
+                // this attempt reserved the gate), so no transport call
+                // follows and nothing is left to durably record.
+                var stamped = await sessionRegistry.TryClaimPingCooldownAsync(
+                    session, pingAttemptId, now, TimeSpan.Zero, dispatchToken);
+
+                if (!stamped)
+                {
+                    return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "session-gone");
+                }
+
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
                 var outcome = session.EndpointKind switch
