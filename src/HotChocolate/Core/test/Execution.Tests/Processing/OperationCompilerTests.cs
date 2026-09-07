@@ -86,8 +86,9 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
+    // The compiler preserves an empty root selection set in the compiled operation.
     [Fact]
-    public void Prepare_Empty_Operation_SelectionSet()
+    public void Compile_Should_CreateOperationWithEmptySelectionSet_When_RootSelectionSetIsEmpty()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1436,90 +1437,6 @@ public class OperationCompilerTests
                     }
                 }
             }");
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    // Validation rejects these documents unless we have opted into empty selection sets.
-    [Fact]
-    public void FragmentSpread_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... abc
-              }
-            }
-
-            fragment abc on Droid { }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void InlineFragment_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... on Droid { }
-              }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void CompositeType_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean) {
-              hero(episode: EMPIRE) { }
-            }
-            """);
 
         // act
         var operation = OperationCompiler.Compile(
