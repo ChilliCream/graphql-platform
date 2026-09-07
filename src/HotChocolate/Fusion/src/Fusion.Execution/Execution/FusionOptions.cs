@@ -202,8 +202,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
-    /// Enables empty selection sets per GraphQL specification PR 1227 (RFC stage 2). The default
-    /// changes in the next major version after the RFC merges.
+    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields and in query and mutation operations.
     /// </summary>
     public bool EnableEmptySelectionSets
     {
