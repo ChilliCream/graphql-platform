@@ -152,7 +152,11 @@ internal static partial class ValueCompletion
         operationContext.ReportError(error, resolverContext);
     }
 
-    internal static void PropagateNullValues(ResultElement result)
+    /// <summary>
+    /// Propagates a null from <paramref name="result"/> upwards and returns the element the
+    /// null landed on.
+    /// </summary>
+    internal static ResultElement PropagateNullValues(ResultElement result)
     {
         result.SetNullValue();
 
@@ -163,10 +167,12 @@ internal static partial class ValueCompletion
             if (result.IsNullable)
             {
                 result.SetNullValue();
-                return;
+                return result;
             }
 
             result.Invalidate();
         } while (result.Parent is { ValueKind: not JsonValueKind.Undefined, IsInvalidated: false });
+
+        return result;
     }
 }

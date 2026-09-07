@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -89,6 +90,18 @@ internal static class OperationContextExtensions
             };
 
             return result;
+        }
+
+        /// <summary>
+        /// Collects the errors of the current streamed item, including its non-null violations.
+        /// </summary>
+        public ImmutableList<IError> BuildStreamItemErrors()
+        {
+            var resultBuilder = context.Result;
+
+            ReportNonNullViolations(resultBuilder);
+
+            return resultBuilder.Errors;
         }
 
         public OperationResult BuildResult()

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.DependencyInjection;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -41,36 +42,78 @@ internal sealed class StreamTask : ExecutionTask
         var item = _lookAheadItem;
         var index = _nextIndex;
         var hasItem = true;
+        IReadOnlyList<IError>? completionErrors = null;
 
         // the look-ahead item was pulled by the resolver task and is not needed after this point.
         _lookAheadItem = null;
+
+        // the stream ends as soon as the request is aborted or the branch this task delivers to
+        // was aborted because the data it was rooted in was removed from the response.
+        using var streamAborted = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            coordinator.GetStreamAbortToken(_executionBranchId));
+        var streamToken = streamAborted.Token;
 
         try
         {
             // Items are processed strictly sequentially: the next item is only pulled once the
             // subtree of the current item has completed and its chunk was enqueued.
-            while (hasItem && !cancellationToken.IsCancellationRequested)
+            while (hasItem && !streamToken.IsCancellationRequested)
             {
                 streamContext.InitializeStreamItem(_selection, _path.Append(index));
 
-                CompleteItem(streamContext, item);
+                var itemValue = streamContext.Result.Data.Data;
+
+                CompleteItem(streamContext, itemValue, item);
 
                 await scheduler.WaitForCompletionAsync(_executionBranchId).ConfigureAwait(false);
+
+                if (streamToken.IsCancellationRequested)
+                {
+                    // there is no consumer left for this chunk, so it is dropped.
+                    streamContext.Result.Data.Dispose();
+                    break;
+                }
+
+                if (HasNullBubbledOutOfItem(streamContext, itemValue))
+                {
+                    // the null bubbled out of the item, so the chunk is never delivered and its
+                    // errors move to the completed entry that ends the stream.
+                    completionErrors = streamContext.BuildStreamItemErrors();
+                    streamContext.Result.Data.Dispose();
+                    break;
+                }
+
                 await coordinator
                     .EnqueueStreamItem(streamContext.BuildStreamItemResult(), _executionBranchId)
                     .ConfigureAwait(false);
 
                 index++;
-                hasItem = await _enumerator.MoveNextAsync().ConfigureAwait(false);
-                item = hasItem ? _enumerator.Current : null;
+
+                try
+                {
+                    hasItem = await _enumerator.MoveNextAsync().ConfigureAwait(false);
+                    item = hasItem ? _enumerator.Current : null;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    // a failing source ends the stream in any error handling mode.
+                    completionErrors = CreateSourceErrors(streamContext, ex);
+                    hasItem = false;
+                }
             }
         }
         finally
         {
-            // when the request was aborted nothing is emitted anymore as there is no consumer left.
-            if (!cancellationToken.IsCancellationRequested)
+            // when the request or the branch was aborted nothing is emitted anymore
+            // as there is no consumer left.
+            if (!streamToken.IsCancellationRequested)
             {
-                coordinator.CompleteStream(_executionBranchId);
+                coordinator.CompleteStream(_executionBranchId, completionErrors);
             }
 
             await _enumerator.DisposeAsync().ConfigureAwait(false);
@@ -78,10 +121,34 @@ internal sealed class StreamTask : ExecutionTask
         }
     }
 
-    private void CompleteItem(OperationContext streamContext, object? item)
+    /// <summary>
+    /// Determines whether the null of the completed item bubbled out of the item and therefore
+    /// removed the item from the streamed list.
+    /// </summary>
+    private static bool HasNullBubbledOutOfItem(OperationContext streamContext, ResultElement itemValue)
     {
-        var itemValue = streamContext.Result.Data.Data;
+        // a null that was propagated into the item leaves the item value itself null, while a null
+        // that was propagated out of a completed item object invalidates that object.
+        return streamContext.PropagateNullValues
+            && itemValue is { IsNullable: false }
+            && (itemValue.IsNullOrInvalidated || itemValue.IsInvalidated);
+    }
 
+    /// <summary>
+    /// Reports the source failure on the list path through the standard error pipeline and
+    /// returns the errors that end the stream.
+    /// </summary>
+    private IReadOnlyList<IError> CreateSourceErrors(OperationContext streamContext, Exception exception)
+    {
+        // the errors of the last item were delivered with its chunk, so the result builder is
+        // reset to collect the source errors on their own.
+        streamContext.Result.Reset();
+        streamContext.ReportError(exception, _itemContext, _selection, _path);
+        return streamContext.Result.Errors;
+    }
+
+    private void CompleteItem(OperationContext streamContext, ResultElement itemValue, object? item)
+    {
         // the item context is reused for every item, so we reset it before we rebind it
         // to the result slot of the current item.
         _itemContext.Clean();
@@ -102,6 +169,24 @@ internal sealed class StreamTask : ExecutionTask
         {
             streamContext.ReportError(ex, _itemContext, _selection, itemValue.Path);
             itemValue.SetNullValue();
+        }
+
+        if (itemValue is { IsNullable: false, IsNullOrInvalidated: true })
+        {
+            var itemPath = itemValue.Path;
+
+            if (streamContext.PropagateNullValues)
+            {
+                ValueCompletion.PropagateNullValues(itemValue);
+            }
+            else
+            {
+                itemValue.SetNullValue();
+            }
+
+            streamContext.Result.AddNonNullViolation(itemPath);
+            _taskBuffer.Clear();
+            return;
         }
 
         switch (_taskBuffer.Count)

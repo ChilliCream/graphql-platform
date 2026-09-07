@@ -14,7 +14,7 @@ internal sealed partial class ResolverTask
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
-                CompleteValue(success, cancellationToken);
+                var nulledPath = CompleteValue(success, cancellationToken);
 
                 if (_streamEnumerator is not null)
                 {
@@ -34,6 +34,13 @@ internal sealed partial class ResolverTask
                         _operationContext.Scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
                         break;
+                }
+
+                if (nulledPath is not null && !cancellationToken.IsCancellationRequested)
+                {
+                    // the propagated null removed the result data that pending deferred or
+                    // streamed branches were rooted in, so those branches are aborted.
+                    await AbortBranchesAsync(nulledPath).ConfigureAwait(false);
                 }
             }
 

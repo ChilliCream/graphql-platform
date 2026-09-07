@@ -280,32 +280,69 @@ internal sealed partial class DeferExecutionCoordinator
     }
 
     /// <summary>
-    /// Aborts all pending branches at or below <paramref name="path"/>.
+    /// Gets the token that is signaled when the specified stream branch is aborted.
+    /// A branch that is unknown or already completed yields an already canceled token.
+    /// </summary>
+    public CancellationToken GetStreamAbortToken(int branchId)
+    {
+        AssertInitialized();
+
+        lock (_sync)
+        {
+            ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+            if (Unsafe.IsNullRef(ref branch)
+                || branch.Kind != BranchKind.Stream
+                || _completedBranches.Contains(branchId))
+            {
+                return new CancellationToken(canceled: true);
+            }
+
+            return (branch.Cancellation ??= new CancellationTokenSource()).Token;
+        }
+    }
+
+    /// <summary>
+    /// Aborts the pending branches at or below <paramref name="path"/>. When
+    /// <paramref name="originBranchId"/> is set, only the branches nested inside that branch are
+    /// aborted, as a sibling branch delivers data that the origin branch cannot invalidate.
     /// Announced branches receive a failed completion while branches that were not announced are dropped.
     /// </summary>
-    public async ValueTask AbortBranchesAsync(Path path, IReadOnlyList<IError> errors)
+    public async ValueTask AbortBranchesAsync(
+        Path path,
+        IReadOnlyList<IError> errors,
+        int originBranchId = -1)
     {
         AssertInitialized();
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(errors);
 
         List<OperationResult>? cleanup = null;
+        List<CancellationTokenSource>? cancellations = null;
 
         lock (_sync)
         {
             OperationResult? payload = null;
             var isNewPayload = false;
+            var abortedBranches = 0;
 
             foreach (var branchId in _branchLookup.Keys)
             {
                 ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
 
-                if (_completedBranches.Contains(branchId) || !IsAtOrBelow(path, branch.Path))
+                if (_completedBranches.Contains(branchId)
+                    || !IsAtOrBelow(path, branch.Path)
+                    || (originBranchId >= 0 && !IsNestedInUnsafe(branchId, originBranchId)))
                 {
                     continue;
                 }
 
                 DetachBranchResultsUnsafe(branchId, ref cleanup);
+
+                if (branch.Cancellation is { } cancellation)
+                {
+                    (cancellations ??= []).Add(cancellation);
+                }
 
                 if (_announced.Contains(branchId))
                 {
@@ -314,6 +351,7 @@ internal sealed partial class DeferExecutionCoordinator
                 }
 
                 CompleteBranchUnsafe(branchId);
+                abortedBranches++;
             }
 
             if (payload is not null)
@@ -322,12 +360,22 @@ internal sealed partial class DeferExecutionCoordinator
                 cleanup = null;
                 CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
             }
-            else if (_announced.Contains(_mainBranchId) && _pendingBranches == 0)
+            else if (abortedBranches > 0 && _announced.Contains(_mainBranchId) && _pendingBranches == 0)
             {
                 payload = GetPayloadUnsafe(null, out isNewPayload);
                 RegisterCleanupUnsafe(payload, cleanup);
                 cleanup = null;
                 CommitPayloadUnsafe(payload, isNewPayload, isPayloadIncremental: isNewPayload);
+            }
+        }
+
+        // the in-flight work of an aborted stream branch is signaled outside of the lock so that
+        // the cancellation callbacks never run while the coordinator state is locked.
+        if (cancellations is not null)
+        {
+            foreach (var cancellation in cancellations)
+            {
+                await cancellation.CancelAsync().ConfigureAwait(false);
             }
         }
 
@@ -440,7 +488,9 @@ internal sealed partial class DeferExecutionCoordinator
 
         foreach (var childId in children)
         {
-            if (!_announced.Add(childId))
+            // a branch that was aborted before its parent revealed it is dropped and is
+            // therefore never announced to the client.
+            if (_completedBranches.Contains(childId) || !_announced.Add(childId))
             {
                 continue;
             }
@@ -642,7 +692,37 @@ internal sealed partial class DeferExecutionCoordinator
         }
     }
 
-    private static bool IsAtOrBelow(Path ancestor, Path path)
+    /// <summary>
+    /// Determines whether <paramref name="branchId"/> is nested inside
+    /// <paramref name="ancestorBranchId"/> in the branch hierarchy.
+    /// </summary>
+    private bool IsNestedInUnsafe(int branchId, int ancestorBranchId)
+    {
+        var currentId = branchId;
+
+        while (true)
+        {
+            ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, currentId);
+
+            if (Unsafe.IsNullRef(ref branch))
+            {
+                return false;
+            }
+
+            if (branch.ParentBranchId == ancestorBranchId)
+            {
+                return true;
+            }
+
+            currentId = branch.ParentBranchId;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="path"/> is <paramref name="ancestor"/> itself
+    /// or nested below it.
+    /// </summary>
+    internal static bool IsAtOrBelow(Path ancestor, Path path)
     {
         if (path.Length < ancestor.Length)
         {
@@ -692,6 +772,7 @@ internal sealed partial class DeferExecutionCoordinator
         public HashSet<int>? Children { get; set; }
         public List<OperationResult>? Results { get; set; }
         public IReadOnlyList<IError>? CompletionErrors { get; set; }
+        public CancellationTokenSource? Cancellation { get; set; }
         public bool IsStreamComplete { get; set; }
     }
 

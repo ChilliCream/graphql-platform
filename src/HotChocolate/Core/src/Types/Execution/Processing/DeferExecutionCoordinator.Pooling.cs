@@ -104,6 +104,11 @@ internal sealed partial class DeferExecutionCoordinator
 
     private void ResetUnsafe()
     {
+        foreach (var branch in _branchLookup.Values)
+        {
+            branch.Cancellation?.Dispose();
+        }
+
         _branchIdLookup.Clear();
         _streamBranchIdLookup.Clear();
         _branchLookup.Clear();
