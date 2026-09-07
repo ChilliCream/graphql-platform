@@ -69,8 +69,6 @@ internal sealed class PingSessionExecutor(
         string actorName,
         string endpointAddr,
         string? endpointSecret,
-        string? previousPingResult,
-        string? previousPingDetail,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
@@ -98,17 +96,7 @@ internal sealed class PingSessionExecutor(
                 var pingOutcome = MapOpencodeResult(
                     await opencodeServerClient.PingAsync(endpointAddr, sessionId, endpointSecret, token));
 
-                // A health-only ping that repeats the row's own last
-                // recorded ok/health-only state says nothing new: skip the
-                // write so a session idling with nothing to deliver does
-                // not churn last_ping_result/last_ping_detail every poll.
-                // Any other reason (a fresh timeout or gone endpoint) still
-                // always persists.
-                var unchanged = pingOutcome.Reason == PingAttemptReason.Ok
-                    && previousPingResult == AgentPingResult.Ok
-                    && previousPingDetail == HealthOnlyDetail;
-
-                return pingOutcome with { Detail = HealthOnlyDetail, Persist = !unchanged };
+                return pingOutcome with { Detail = HealthOnlyDetail };
             },
             cancellationToken);
 
@@ -180,8 +168,7 @@ internal sealed class PingSessionExecutor(
             }
 
             return await WriteResultAsync(
-                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail),
-                transportOutcome.Persist);
+                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -215,29 +202,22 @@ internal sealed class PingSessionExecutor(
     /// <summary>
     /// Always writes on an uncancellable token: the caller's own
     /// cancellation or hard-timeout token must not prevent the outcome it
-    /// just decided from actually being recorded. <paramref name="persist"/>
-    /// false skips the write entirely (the row already reflects this exact
-    /// outcome) while still returning the typed result a caller reasons
-    /// about.
+    /// just decided from actually being recorded.
     /// </summary>
     private async Task<PingAttemptOutcome> WriteResultAsync(
-        string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail,
-        bool persist = true)
+        string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail)
     {
         var result = ToResult(reason);
 
-        if (persist)
+        try
         {
-            try
-            {
-                await sessionRegistry.WritePingResultAsync(
-                    harness, sessionId, attemptId, result, detail, CancellationToken.None);
-            }
-            catch
-            {
-                // Recording the outcome is itself best effort; a failed write
-                // is a non-event like every other ping failure.
-            }
+            await sessionRegistry.WritePingResultAsync(
+                harness, sessionId, attemptId, result, detail, CancellationToken.None);
+        }
+        catch
+        {
+            // Recording the outcome is itself best effort; a failed write
+            // is a non-event like every other ping failure.
         }
 
         return new PingAttemptOutcome(
@@ -350,11 +330,5 @@ internal sealed class PingSessionExecutor(
         return remaining > PingPolicy.HardTimeout ? PingPolicy.HardTimeout : remaining;
     }
 
-    /// <summary>
-    /// <paramref name="Persist"/> true (the default) writes this outcome to
-    /// the row as usual; false skips the write because the row already
-    /// reflects it (see <see cref="ExecuteOpencodeServerAsync"/>'s
-    /// unchanged-health-only-ping case).
-    /// </summary>
-    private readonly record struct TransportOutcome(PingAttemptReason Reason, string? Detail, bool Persist = true);
+    private readonly record struct TransportOutcome(PingAttemptReason Reason, string? Detail);
 }

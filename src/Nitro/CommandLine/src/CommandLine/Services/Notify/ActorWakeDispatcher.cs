@@ -338,10 +338,10 @@ internal sealed class ActorWakeDispatcher(
                 // command used to before every dispatch. With no cooldown of
                 // its own (the gate reservation above already owns cooldown)
                 // this only fences the executor's later result write against
-                // a stale completion; a false return means the exact session
-                // generation no longer matches a row (ended or rebound since
-                // this attempt reserved the gate), so no transport call
-                // follows and nothing is left to durably record.
+                // a stale completion; a false return means the row for this
+                // harness/session/host is gone or its last_ping_at is ahead
+                // of now, so no transport call follows and nothing is left
+                // to durably record.
                 var stamped = await sessionRegistry.TryClaimPingCooldownAsync(
                     session, pingAttemptId, now, TimeSpan.Zero, dispatchToken);
 
@@ -362,7 +362,6 @@ internal sealed class ActorWakeDispatcher(
                         attemptDeadline, dispatchToken),
                     AgentSessionEndpointKind.OpencodeServer => await executor.ExecuteOpencodeServerAsync(
                         session.Harness, session.SessionId, actor, session.EndpointAddr, session.EndpointSecret,
-                        session.LastPingResult, session.LastPingDetail,
                         pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
                     _ => throw new UnreachableException(
                         $"Endpoint kind '{session.EndpointKind}' passed the earlier supported-kind guard.")
