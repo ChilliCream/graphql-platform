@@ -161,7 +161,16 @@ Show whether Nitro's Opencode plugin is missing, current, or outdated.
 nitro agent hooks opencode status
 ```
 
+### Options
+
 Same `--scope` and `--output` options as `install`.
+
+### Examples
+
+```shell
+nitro agent hooks opencode status
+nitro agent hooks opencode status --scope project
+```
 
 ## `nitro agent hooks opencode uninstall`
 
@@ -171,7 +180,16 @@ Remove Nitro's Opencode teammate-context plugin.
 nitro agent hooks opencode uninstall
 ```
 
+### Options
+
 Same `--scope` and `--output` options as `install`.
+
+### Examples
+
+```shell
+nitro agent hooks opencode uninstall
+nitro agent hooks opencode uninstall --scope project
+```
 
 # Caveats
 
