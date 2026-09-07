@@ -466,6 +466,11 @@ public sealed partial class OperationCompiler
             }
         }
 
+        if (hasStreamSelections)
+        {
+            hasStreamSelections = ApplyConnectionStreamHonorRule(selections);
+        }
+
         // if there are no optimizers registered for this selection we exit early.
         if (optimizers.Length == 0)
         {
@@ -536,6 +541,72 @@ public sealed partial class OperationCompiler
                 isConditional,
                 hasDeferredSelections,
                 hasStreamSelections);
+    }
+
+    /// <summary>
+    /// Applies the honor rule for streamed connections and returns whether the selection set
+    /// still contains a streamed selection.
+    /// </summary>
+    private static bool ApplyConnectionStreamHonorRule(Selection[] selections)
+    {
+        const CoreFieldFlags itemSourceFields =
+            CoreFieldFlags.ConnectionEdgesField | CoreFieldFlags.ConnectionNodesField;
+
+        var streamSelections = 0;
+        var itemSourceSelections = 0;
+        var streamedItemSourceSelections = 0;
+        var blockingSelections = 0;
+
+        foreach (var selection in selections)
+        {
+            if (selection.IsStream)
+            {
+                streamSelections++;
+            }
+
+            if ((selection.Field.Flags & itemSourceFields) != CoreFieldFlags.None)
+            {
+                itemSourceSelections++;
+
+                if (selection.IsStream)
+                {
+                    streamedItemSourceSelections++;
+                }
+
+                continue;
+            }
+
+            // a deferred sibling is delivered after the stream completed, an internal selection
+            // is never part of the response and an introspection field needs no source data.
+            if (selection.IsInternal
+                || selection.HasDeferUsage
+                || selection.Field.IsIntrospectionField)
+            {
+                continue;
+            }
+
+            blockingSelections++;
+        }
+
+        if (streamedItemSourceSelections == 0
+            || (itemSourceSelections == 1 && blockingSelections == 0))
+        {
+            return streamSelections > 0;
+        }
+
+        // the connection item source is one-shot, so a second consumer or a sibling that is
+        // delivered with the initial response falls back to a fully inlined connection.
+        foreach (var selection in selections)
+        {
+            if (selection.IsStream
+                && (selection.Field.Flags & itemSourceFields) != CoreFieldFlags.None)
+            {
+                selection.ClearStream();
+                streamSelections--;
+            }
+        }
+
+        return streamSelections > 0;
     }
 
     private bool HasStreamSelections(

@@ -12,6 +12,7 @@ namespace HotChocolate.Types.Pagination;
 /// <typeparam name="TPageInfo">
 /// The type of the pagination information.
 /// </typeparam>
+[StreamConnection]
 public abstract class StreamConnection<TNode, TEdge, TPageInfo>
     where TEdge : IEdge<TNode>
     where TPageInfo : IPageInfo

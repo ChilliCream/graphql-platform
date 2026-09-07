@@ -177,6 +177,11 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     internal bool IsStream => (_flags & Flags.Stream) == Flags.Stream;
 
+    /// <summary>
+    /// Clears the stream flag so that this selection is delivered inline.
+    /// </summary>
+    internal void ClearStream() => _flags &= ~Flags.Stream;
+
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
