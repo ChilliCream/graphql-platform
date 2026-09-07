@@ -13,6 +13,15 @@ internal sealed class PingSessionExecutor(
     TimeProvider timeProvider,
     IOpencodeServerClient opencodeServerClient) : IPingSessionExecutor
 {
+    /// <summary>
+    /// The <see cref="PingAttemptOutcome.Detail"/> value written when
+    /// <see cref="ExecuteOpencodeServerAsync"/> found no unread mail left to
+    /// push and issued a plain health ping instead. Lets a caller tell a
+    /// health check apart from a delivered digest push even though both
+    /// report <see cref="PingAttemptReason.Ok"/>.
+    /// </summary>
+    internal const string HealthOnlyDetail = "health-only";
+
     public Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
         string harness,
         string sessionId,
@@ -101,7 +110,10 @@ internal sealed class PingSessionExecutor(
                 transportOutcome = digest is null
                     ? MapOpencodeResult(
                         await opencodeServerClient.PingAsync(
-                            endpointAddr, sessionId, endpointSecret, linkedSource.Token))
+                            endpointAddr, sessionId, endpointSecret, linkedSource.Token)) with
+                    {
+                        Detail = HealthOnlyDetail
+                    }
                     : MapOpencodeResult(
                         await opencodeServerClient.PushMessageAsync(
                             endpointAddr,

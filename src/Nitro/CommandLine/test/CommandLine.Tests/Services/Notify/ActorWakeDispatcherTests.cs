@@ -570,7 +570,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // the one-shot claim is now spent: a second wake targeting the same
         // idle transition (no fresh rearm in between) is suppressed rather
-        // than pushed again.
+        // than pushed again. Advance past the session gate's own
+        // post-success cooldown first, so this second dispatch reaches the
+        // idle-push claim instead of being offered as merely gate-busy.
+        _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(cancellationToken);
         var suppressedExecutor = new FakePingSessionExecutor();
         var suppressedDispatcher = CreateDispatcher(suppressedExecutor);
@@ -618,6 +621,113 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.NotNull(rearmedReceipt);
         Assert.Equal(MailWakeTargetStatus.Delivered, rearmedReceipt.Status);
         Assert.Single(rearmedExecutor.Calls);
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_LeaveTheIdlePushClaimArmed_When_TheOpencodeSessionGateWasBusy()
+    {
+        // arrange: the session ping gate is held by an unrelated attempt, so
+        // the very first dispatch is rejected before it ever reaches the
+        // idle-push claim - a busy gate must not spend the one-shot claim.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        await _gates.TryAcquireAsync(
+            generation, "external-holder", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var busyExecutor = new FakePingSessionExecutor();
+
+        // act: the gate is busy, so the target is offered rather than
+        // failed, and no transport is ever attempted.
+        var busyReceipt = await CreateDispatcher(busyExecutor).DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal("busy", Assert.Single(busyReceipt!.Targets).LastError);
+        Assert.Empty(busyExecutor.Calls);
+
+        // act: release the gate and let the offered retry become due - the
+        // claim was never spent by the busy attempt, so the still-armed
+        // session delivers on the very next dispatch.
+        await _gates.ReleaseAsync(generation, "external-holder", cancellationToken);
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
+        var deliveredExecutor = new FakePingSessionExecutor();
+        var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
+            .DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
+        Assert.Single(deliveredExecutor.Calls);
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_RearmTheIdlePushClaim_When_TheOpencodeTransportFailsOutright()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var failingExecutor = new FakePingSessionExecutor { NextReason = PingAttemptReason.EndpointGone };
+
+        // act: the transport fails outright.
+        var failedReceipt = await CreateDispatcher(failingExecutor).DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeTargetStatus.Failed, failedReceipt?.Status);
+
+        // act: new mail arrives - the failed attempt already rearmed the
+        // claim, so this delivers on the very next dispatch without waiting
+        // for a genuine prompt to rearm it by hand.
+        await SendEnqueuedMailAsync(cancellationToken);
+        var deliveredExecutor = new FakePingSessionExecutor();
+        var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
+            .DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
+        Assert.Single(deliveredExecutor.Calls);
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_RearmTheIdlePushClaim_When_TheOpencodeAttemptWasHealthOnly()
+    {
+        // arrange: the executor reports a successful ping that pushed
+        // nothing (PingSessionExecutor.HealthOnlyDetail) - the unread mail
+        // it targeted raced away before the transport call ran, so the
+        // claim taken for this attempt must be handed back rather than
+        // treated as spent.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var healthOnlyExecutor = new FakePingSessionExecutor { NextDetail = PingSessionExecutor.HealthOnlyDetail };
+
+        // act
+        var healthOnlyReceipt = await CreateDispatcher(healthOnlyExecutor)
+            .DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeTargetStatus.Delivered, healthOnlyReceipt?.Status);
+
+        // act: mail still unread; the rearmed claim lets a later dispatch
+        // push it rather than being told the session is not idle-armed.
+        // Advance past the session gate's own post-success cooldown first,
+        // so this dispatch reaches the transport instead of being offered
+        // as merely gate-busy.
+        _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
+        await SendEnqueuedMailAsync(cancellationToken);
+        var pushExecutor = new FakePingSessionExecutor();
+        var pushReceipt = await CreateDispatcher(pushExecutor).DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeTargetStatus.Delivered, pushReceipt?.Status);
+        Assert.Single(pushExecutor.Calls);
     }
 
     [Fact]
@@ -732,6 +842,8 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
 
     public PingAttemptReason NextReason { get; set; } = PingAttemptReason.Ok;
 
+    public string? NextDetail { get; set; }
+
     public ConcurrentDictionary<string, PingAttemptReason> ReasonBySessionId { get; } = new();
 
     public TimeSpan ConcurrentDelay { get; set; } = TimeSpan.Zero;
@@ -825,7 +937,7 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
             reason == PingAttemptReason.Ok ? AgentPingResult.Ok : AgentPingResult.Error,
             reason,
             Retryable: reason is PingAttemptReason.Timeout or PingAttemptReason.TransportError,
-            Detail: null,
+            Detail: NextDetail,
             harness,
             sessionId,
             attemptId,
