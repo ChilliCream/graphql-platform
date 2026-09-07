@@ -489,6 +489,7 @@ If a request is rejected because it lacks the required preflight header, the ser
 
 # Next Steps
 
+- [Streaming Lists](./streaming.md) for the `@stream` directive, streamed connections and the streamed error model.
 - [Endpoints](./endpoints.md) for configuring the GraphQL middleware and per-endpoint options.
 - [Batching](./batching.md) for details on variable batching and request batching.
 - [Subscriptions](../defining-a-schema/subscriptions.md) for defining subscription types and event publishing.

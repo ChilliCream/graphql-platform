@@ -6,6 +6,8 @@ items:
     title: Endpoints
   - path: http-transport
     title: Transports
+  - path: streaming
+    title: Streaming Lists
   - path: cache-control
     title: Cache Control
   - path: interceptors
