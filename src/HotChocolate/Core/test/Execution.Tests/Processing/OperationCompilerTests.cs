@@ -1447,7 +1447,7 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
-    // Validation now rejects these documents unless the flag is on.
+    // Validation rejects these documents unless we have opted into empty selection sets.
     [Fact]
     public void FragmentSpread_SelectionsSet_Empty()
     {
