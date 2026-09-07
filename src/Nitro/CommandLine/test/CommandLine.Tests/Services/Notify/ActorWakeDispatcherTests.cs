@@ -545,6 +545,44 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task DispatchAsync_Should_PersistLastPingAttemptAndResult_When_TheRealExecutorDispatches()
+    {
+        // arrange: the real PingSessionExecutor (not the scriptable fake)
+        // proves the wake path's own attempt stamp on agent_sessions lets
+        // its later last_ping_result write actually match the row, instead
+        // of silently matching zero rows the way it did before this fix.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var queueClient = new FakeCodexQueueClient();
+        var executor = new PingSessionExecutor(
+            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
+            new NoopOpencodeServerClient());
+        var dispatcher = new ActorWakeDispatcher(
+            _batches,
+            _sessions,
+            _gateCoordinator,
+            executor,
+            _mail,
+            _instanceIdProvider,
+            _globalConfigDirectoryProvider,
+            _timeProvider);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert: delivered, and the session row durably carries both the
+        // attempt id and the result the wake path recorded, not merely the
+        // in-memory receipt.
+        Assert.NotNull(receipt);
+        Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
+        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        Assert.NotNull(row!.LastPingAttempt);
+        Assert.Equal(AgentPingResult.Ok, row.LastPingResult);
+    }
+
+    [Fact]
     public async Task DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed()
     {
         // arrange: RearmIdlePushAsync stands in for the genuine prompt (or
