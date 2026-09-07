@@ -10,6 +10,8 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Rewriters;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -259,6 +261,124 @@ public sealed class PolicyPlanningTests : FusionTestBase
         Assert.Equal(
             new JsonOperationPlanFormatter().Format(plan),
             new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void JsonParser_Should_RoundTripPolicyAuthority_When_DeferredParentUsesApolloBatch()
+    {
+        // arrange
+        var schema = CreateApolloDeferredBatchedPolicySchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              before
+              ... @defer {
+                first {
+                  id
+                  rating
+                }
+                second {
+                  id
+                  rating
+                }
+              }
+            }
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        MatchSnapshot(plan);
+        var incrementalPlan = Assert.Single(parsedPlan.IncrementalPlans);
+        Assert.Single(incrementalPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        Assert.Empty(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>().Single().ParentDependencies.ToArray());
+        Assert.Equal(
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_PlanApolloPolicy_When_EntityBatchIsNotDeferred()
+    {
+        // arrange
+        var schema = CreateApolloDeferredBatchedPolicySchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              before
+              first {
+                id
+                rating
+              }
+              second {
+                id
+                rating
+              }
+            }
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        MatchSnapshot(plan);
+        Assert.Single(parsedPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        Assert.Equal(new JsonOperationPlanFormatter().Format(plan), new JsonOperationPlanFormatter().Format(parsedPlan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_PlanNonApolloPolicy_When_EntityBatchIsNotDeferred()
+    {
+        // arrange
+        var schema = CreateBatchedPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              first {
+                rating
+              }
+              second {
+                rating
+              }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.AllNodes.OfType<OperationBatchExecutionNode>());
+    }
+
+    [Fact]
+    public void CreatePlan_Should_PlanApolloPolicy_When_OneEntityIsDeferred()
+    {
+        // arrange
+        var schema = CreateApolloDeferredBatchedPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              before
+              ... @defer {
+                first {
+                  id
+                  rating
+                }
+              }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Single(incrementalPlan.AllNodes.OfType<ApolloOperationExecutionNode>());
     }
 
     [Fact]
@@ -4910,6 +5030,92 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new TestPolicy(
                 "CanReadRating",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+    private static FusionSchemaDefinition CreateApolloDeferredBatchedPolicySchema()
+    {
+        const string sourceSchemaA =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Query {
+              before: String
+              first: Product
+              second: Product
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+
+            type _Service { sdl: String! }
+            union _Entity = Product
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        const string sourceSchemaB =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+              repeatable on OBJECT | FIELD_DEFINITION
+
+            type Query {
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              rating: Int! @policy(names: "CanReadRating")
+            }
+
+            type _Service { sdl: String! }
+            union _Entity = Product
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        var sourceTexts = new[]
+        {
+            new SourceSchemaText("a", sourceSchemaA),
+            new SourceSchemaText("b", sourceSchemaB)
+        };
+        var composerOptions = new SchemaComposerOptions();
+
+        foreach (var sourceText in sourceTexts)
+        {
+            composerOptions.SourceSchemas[sourceText.Name] = new SourceSchemaOptions
+            {
+                Preprocessor = new SourceSchemaPreprocessorOptions
+                {
+                    InferKeysFromLookups = false
+                }
+            };
+        }
+
+        var result = new SchemaComposer(sourceTexts, composerOptions, new CompositionLog()).Compose();
+
+        Assert.True(result.IsSuccess, string.Join(Environment.NewLine, result.Errors.Select(error => error.Message)));
+
+        return CreateSchema(
+            result.Value.ToSyntaxNode(),
+            new TestPolicy(
+                "CanReadRating",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+    }
 
     private static FusionSchemaDefinition CreateDeferredSiblingPolicyRequirementSchema()
         => CreateSchema(

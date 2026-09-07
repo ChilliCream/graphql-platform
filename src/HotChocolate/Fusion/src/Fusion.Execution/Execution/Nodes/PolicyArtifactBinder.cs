@@ -1053,13 +1053,14 @@ internal static class PolicyArtifactBinder
                 }
                 break;
             case ApolloOperationBatchExecutionNode batch:
-                foreach (var operation in batch.Operations)
+                for (var i = 0; i < batch.Operations.Length; i++)
                 {
+                    var operation = batch.Operations[i];
                     artifacts.Add(CreateOperationArtifact(
                         node,
                         operation.Target,
                         operation.Source,
-                        operation.SourceText.Value,
+                        batch.Lookups[i].Operation.Value,
                         operation.ResultSelectionSet));
                 }
                 break;
