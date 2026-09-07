@@ -113,7 +113,8 @@ public sealed class NotifierTests
             var gateCoordinator = new SessionGateCoordinator(gates, leases);
             var queueClient = new FakeCodexQueueClient();
             var executor = new PingSessionExecutor(
-                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider);
+                mail, queueClient, new NoopClaudePeerClient(), sessions,
+                new SessionDeliveryLedger(fileSystem, database), leases, timeProvider);
             var dispatcher = new ActorWakeDispatcher(
                 batches,
                 sessions,

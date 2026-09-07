@@ -7,8 +7,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal sealed class MailNudge(
     IAgentSessionRegistry sessions,
     IMailStore mail,
+    ISessionDeliveryLedger ledger,
     IClaudePeerClient claudePeerClient,
-    ICodexQueueClient codexQueueClient) : IMailNudge
+    ICodexQueueClient codexQueueClient,
+    TimeProvider timeProvider) : IMailNudge
 {
     public async Task NudgeAsync(IReadOnlyList<string> actors, CancellationToken cancellationToken)
     {
@@ -17,35 +19,63 @@ internal sealed class MailNudge(
             return;
         }
 
-        var participants = await sessions.ListParticipantsAsync(cancellationToken);
-
         foreach (var actor in actors.Distinct(StringComparer.Ordinal))
         {
-            // No liveness check: the nudge is best effort, so trying and
-            // failing costs the same as asking first and is never stale.
-            var targets = participants
-                .Where(participant => participant.Session.AgentName == actor)
-                .ToArray();
+            var target = await ResolveTargetAsync(actor, cancellationToken);
 
-            if (targets.Length == 0)
+            if (target is null)
             {
                 continue;
             }
 
-            var unread = await mail.CountUnreadAsync(actor, cancellationToken);
+            var unread = await mail.QueryInboxAsync(
+                new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = PingPolicy.MaxDigestMessages },
+                cancellationToken);
 
-            if (unread == 0)
+            if (unread.Count == 0)
             {
                 continue;
             }
 
-            var text = MailNudgeText.Format(actor, unread);
+            // Reserve-then-emit on the shared ping channel: the wake daemon
+            // dispatches the same nudge for the same message, and only one of
+            // the two may claim it.
+            var reserved = await ledger.ReserveAsync(
+                target.Harness,
+                target.SessionId,
+                unread.Select(message => message.Id).ToList(),
+                AgentSessionChannel.Ping,
+                timeProvider.GetUtcNow(),
+                cancellationToken);
 
-            foreach (var target in targets)
+            if (reserved.Count == 0)
             {
-                await SendAsync(target.Session, text, cancellationToken);
+                continue;
             }
+
+            await SendAsync(
+                target,
+                MailNudgeText.Format(actor, await mail.CountUnreadAsync(actor, cancellationToken)),
+                cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// The single session this nudge fires at: the most recently seen live
+    /// coding session bound to <paramref name="actor"/> that advertises a
+    /// push endpoint, or null when the actor has none.
+    /// </summary>
+    private async Task<AgentSessionRecord?> ResolveTargetAsync(
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var live = await sessions.FindLiveClaimedByAgentNameAsync(actor, cancellationToken);
+
+        return live
+            .Where(session => session.Harness != AgentSessionHarness.NitroBoard)
+            .Where(session => session.EndpointKind
+                is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.CodexThread)
+            .MaxBy(session => session.LastBeatAt);
     }
 
     /// <summary>
