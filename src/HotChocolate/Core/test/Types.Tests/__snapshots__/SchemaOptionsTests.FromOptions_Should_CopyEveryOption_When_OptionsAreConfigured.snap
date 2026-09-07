@@ -23,6 +23,7 @@
   "EnableFlagEnums": true,
   "EnableDefer": false,
   "EnableStream": false,
+  "EnableEmptySelectionSets": false,
   "StripLeadingIFromInterface": false,
   "EnableTag": true,
   "EnableOptInFeatures": false,

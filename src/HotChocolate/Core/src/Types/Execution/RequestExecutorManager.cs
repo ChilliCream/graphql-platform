@@ -445,11 +445,14 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton(sp =>
         {
             var rootServices = sp.GetRootServiceProvider();
+            // The document validator is resolved after the schema is assigned to LazySchema.
+            var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
 
             var builder =
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
-                    .AddDefaultRules();
+                    .AddDefaultRules()
+                    .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
             foreach (var hook in hooks)
             {
