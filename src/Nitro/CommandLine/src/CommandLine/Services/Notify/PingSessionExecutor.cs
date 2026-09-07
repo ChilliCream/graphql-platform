@@ -38,7 +38,9 @@ internal sealed class PingSessionExecutor(
             attemptId,
             slot,
             deadline,
-            async (digest, token) => MapQueueResult(await queueClient.QueueAsync(endpointAddr, digest, token)),
+            async (digest, token) => digest is null
+                ? new TransportOutcome(PingAttemptReason.Ok, null)
+                : MapQueueResult(await queueClient.QueueAsync(endpointAddr, digest, token)),
             cancellationToken);
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
@@ -56,92 +58,68 @@ internal sealed class PingSessionExecutor(
             attemptId,
             slot,
             deadline,
-            async (digest, token) => MapClaudePeerResult(
-                await claudePeerClient.SendAsync(sessionId, digest, token)),
+            async (digest, token) => digest is null
+                ? new TransportOutcome(PingAttemptReason.Ok, null)
+                : MapClaudePeerResult(await claudePeerClient.SendAsync(sessionId, digest, token)),
             cancellationToken);
 
-    public async Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
+    public Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
         string harness,
         string sessionId,
         string actorName,
         string endpointAddr,
         string? endpointSecret,
+        string? previousPingResult,
+        string? previousPingDetail,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
         CancellationToken cancellationToken)
-    {
-        var remaining = ClampRemaining(deadline);
-
-        if (remaining <= TimeSpan.Zero)
-        {
-            try
+        => ExecuteAsync(
+            harness,
+            sessionId,
+            actorName,
+            attemptId,
+            slot,
+            deadline,
+            async (digest, token) =>
             {
-                return await WriteResultAsync(harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
-            }
-            finally
-            {
-                await ReleaseLeaseAsync(slot, attemptId);
-            }
-        }
-
-        using var timeoutSource = new CancellationTokenSource(remaining);
-        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken, timeoutSource.Token);
-
-        try
-        {
-            string? digest;
-
-            try
-            {
-                digest = await BuildDigestAsync(actorName, linkedSource.Token);
-            }
-            catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
-            {
-                return await WriteResultAsync(
-                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
-            }
-
-            TransportOutcome transportOutcome;
-
-            try
-            {
-                transportOutcome = digest is null
-                    ? MapOpencodeResult(
-                        await opencodeServerClient.PingAsync(
-                            endpointAddr, sessionId, endpointSecret, linkedSource.Token)) with
-                    {
-                        Detail = HealthOnlyDetail
-                    }
-                    : MapOpencodeResult(
+                if (digest is not null)
+                {
+                    return MapOpencodeResult(
                         await opencodeServerClient.PushMessageAsync(
                             endpointAddr,
                             sessionId,
                             OpencodeHookProtocol.PushedPromptPrefix + digest,
                             endpointSecret,
-                            linkedSource.Token));
-            }
-            catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
-            {
-                return await WriteResultAsync(
-                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
-            }
+                            token));
+                }
 
-            return await WriteResultAsync(
-                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            return await WriteResultAsync(
-                harness, sessionId, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
-        }
-        finally
-        {
-            await ReleaseLeaseAsync(slot, attemptId);
-        }
-    }
+                var pingOutcome = MapOpencodeResult(
+                    await opencodeServerClient.PingAsync(endpointAddr, sessionId, endpointSecret, token));
 
+                // A health-only ping that repeats the row's own last
+                // recorded ok/health-only state says nothing new: skip the
+                // write so a session idling with nothing to deliver does
+                // not churn last_ping_result/last_ping_detail every poll.
+                // Any other reason (a fresh timeout or gone endpoint) still
+                // always persists.
+                var unchanged = pingOutcome.Reason == PingAttemptReason.Ok
+                    && previousPingResult == AgentPingResult.Ok
+                    && previousPingDetail == HealthOnlyDetail;
+
+                return pingOutcome with { Detail = HealthOnlyDetail, Persist = !unchanged };
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Shared attempt shape for every endpoint kind: clamps the deadline,
+    /// builds the digest, invokes <paramref name="sendAsync"/> with it (null
+    /// when no unread mail remains, letting the caller decide whether that
+    /// still requires a transport call, as the opencode health ping does),
+    /// and always writes the outcome and releases the lease, however the
+    /// attempt ends.
+    /// </summary>
     private async Task<PingAttemptOutcome> ExecuteAsync(
         string harness,
         string sessionId,
@@ -149,7 +127,7 @@ internal sealed class PingSessionExecutor(
         string attemptId,
         int slot,
         DateTimeOffset deadline,
-        Func<string, CancellationToken, Task<TransportOutcome>> sendAsync,
+        Func<string?, CancellationToken, Task<TransportOutcome>> sendAsync,
         CancellationToken cancellationToken)
     {
         var remaining = ClampRemaining(deadline);
@@ -189,15 +167,6 @@ internal sealed class PingSessionExecutor(
                     harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
             }
 
-            if (digest is null)
-            {
-                // The unread mail that triggered this ping was already read
-                // by the time the attempt actually ran (a benign race, not
-                // a failure): nothing left to say, so this is a success
-                // with no transport call.
-                return await WriteResultAsync(harness, sessionId, attemptId, PingAttemptReason.Ok, null);
-            }
-
             TransportOutcome transportOutcome;
 
             try
@@ -211,7 +180,8 @@ internal sealed class PingSessionExecutor(
             }
 
             return await WriteResultAsync(
-                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
+                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail),
+                transportOutcome.Persist);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -245,22 +215,29 @@ internal sealed class PingSessionExecutor(
     /// <summary>
     /// Always writes on an uncancellable token: the caller's own
     /// cancellation or hard-timeout token must not prevent the outcome it
-    /// just decided from actually being recorded.
+    /// just decided from actually being recorded. <paramref name="persist"/>
+    /// false skips the write entirely (the row already reflects this exact
+    /// outcome) while still returning the typed result a caller reasons
+    /// about.
     /// </summary>
     private async Task<PingAttemptOutcome> WriteResultAsync(
-        string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail)
+        string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail,
+        bool persist = true)
     {
         var result = ToResult(reason);
 
-        try
+        if (persist)
         {
-            await sessionRegistry.WritePingResultAsync(
-                harness, sessionId, attemptId, result, detail, CancellationToken.None);
-        }
-        catch
-        {
-            // Recording the outcome is itself best effort; a failed write
-            // is a non-event like every other ping failure.
+            try
+            {
+                await sessionRegistry.WritePingResultAsync(
+                    harness, sessionId, attemptId, result, detail, CancellationToken.None);
+            }
+            catch
+            {
+                // Recording the outcome is itself best effort; a failed write
+                // is a non-event like every other ping failure.
+            }
         }
 
         return new PingAttemptOutcome(
@@ -373,5 +350,11 @@ internal sealed class PingSessionExecutor(
         return remaining > PingPolicy.HardTimeout ? PingPolicy.HardTimeout : remaining;
     }
 
-    private readonly record struct TransportOutcome(PingAttemptReason Reason, string? Detail);
+    /// <summary>
+    /// <paramref name="Persist"/> true (the default) writes this outcome to
+    /// the row as usual; false skips the write because the row already
+    /// reflects it (see <see cref="ExecuteOpencodeServerAsync"/>'s
+    /// unchanged-health-only-ping case).
+    /// </summary>
+    private readonly record struct TransportOutcome(PingAttemptReason Reason, string? Detail, bool Persist = true);
 }

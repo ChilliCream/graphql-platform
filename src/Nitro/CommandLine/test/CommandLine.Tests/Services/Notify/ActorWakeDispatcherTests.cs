@@ -567,18 +567,32 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
         var call = Assert.Single(executor.Calls);
         Assert.True(call.IsOpencodeServer);
+    }
 
-        // the one-shot claim is now spent: a second wake targeting the same
-        // idle transition (no fresh rearm in between) is suppressed rather
-        // than pushed again. Advance past the session gate's own
-        // post-success cooldown first, so this second dispatch reaches the
+    [Fact]
+    public async Task DispatchAsync_Should_SuppressTheSecondPush_When_TheOpencodeIdleTransitionWasNeverRearmed()
+    {
+        // arrange: a first dispatch already spent the one-shot idle-push
+        // claim (see DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // act: a second wake targeting the same idle transition (no fresh
+        // rearm in between) arrives. Advance past the session gate's own
+        // post-success cooldown first, so this dispatch reaches the
         // idle-push claim instead of being offered as merely gate-busy.
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(cancellationToken);
         var suppressedExecutor = new FakePingSessionExecutor();
-        var suppressedDispatcher = CreateDispatcher(suppressedExecutor);
-        var suppressedReceipt = await suppressedDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var suppressedReceipt = await CreateDispatcher(suppressedExecutor)
+            .DispatchAsync(Actor, Deadline(), cancellationToken);
 
+        // assert: suppressed rather than pushed again.
         Assert.NotNull(suppressedReceipt);
         var suppressedTarget = Assert.Single(suppressedReceipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, suppressedTarget.Status);
@@ -594,7 +608,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // last claim) - mail must wait for the next genuine idle transition.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
         await SendEnqueuedMailAsync(cancellationToken);
         var executor = new FakePingSessionExecutor();
@@ -609,15 +623,30 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
         Assert.Equal("idle-not-armed", target.LastError);
         Assert.Empty(executor.Calls);
+    }
 
-        // once a genuine prompt rearms the gate and the retry becomes due,
-        // the same still-unread mail is delivered.
+    [Fact]
+    public async Task DispatchAsync_Should_DeliverTheOfferedTarget_When_TheIdleTransitionIsLaterRearmed()
+    {
+        // arrange: a first dispatch already offered the target as
+        // idle-not-armed (see
+        // DispatchAsync_Should_OfferTheTarget_When_TheOpencodeSessionIsNotIdleArmed).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // act: once a genuine prompt rearms the gate and the retry becomes
+        // due, the same still-unread mail is delivered.
         await _sessions.RearmIdlePushAsync(generation, cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var rearmedExecutor = new FakePingSessionExecutor();
-        var rearmedDispatcher = CreateDispatcher(rearmedExecutor);
-        var rearmedReceipt = await rearmedDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var rearmedReceipt = await CreateDispatcher(rearmedExecutor)
+            .DispatchAsync(Actor, Deadline(), cancellationToken);
 
+        // assert
         Assert.NotNull(rearmedReceipt);
         Assert.Equal(MailWakeTargetStatus.Delivered, rearmedReceipt.Status);
         Assert.Single(rearmedExecutor.Calls);
@@ -938,6 +967,8 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         string actorName,
         string endpointAddr,
         string? endpointSecret,
+        string? previousPingResult,
+        string? previousPingDetail,
         string attemptId,
         int slot,
         DateTimeOffset deadline,

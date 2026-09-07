@@ -345,6 +345,7 @@ internal sealed class ActorWakeDispatcher(
                         attemptDeadline, dispatchToken),
                     AgentSessionEndpointKind.OpencodeServer => await executor.ExecuteOpencodeServerAsync(
                         session.Harness, session.SessionId, actor, session.EndpointAddr, session.EndpointSecret,
+                        session.LastPingResult, session.LastPingDetail,
                         pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
                     _ => throw new UnreachableException(
                         $"Endpoint kind '{session.EndpointKind}' passed the earlier supported-kind guard.")

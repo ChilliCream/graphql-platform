@@ -52,7 +52,12 @@ internal interface IPingSessionExecutor
     /// real prompt when unread mail remains, or performs a health-only ping
     /// against <paramref name="endpointAddr"/> when it does not, so a
     /// session with nothing left to deliver still surfaces a gone or timed
-    /// out endpoint instead of a blind <c>ok</c>.
+    /// out endpoint instead of a blind <c>ok</c>. <paramref
+    /// name="previousPingResult"/> and <paramref name="previousPingDetail"/>
+    /// are the row's own <c>last_ping_result</c>/<c>last_ping_detail</c>
+    /// before this attempt started (null when unknown): a health-only ping
+    /// whose outcome exactly repeats them is never rewritten, so a session
+    /// idling with nothing to deliver does not churn the row every poll.
     /// </summary>
     Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
         string harness,
@@ -60,6 +65,8 @@ internal interface IPingSessionExecutor
         string actorName,
         string endpointAddr,
         string? endpointSecret,
+        string? previousPingResult,
+        string? previousPingDetail,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
