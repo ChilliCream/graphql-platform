@@ -71,6 +71,28 @@ public sealed partial class ResultDocument : IDisposable
         Data = CreateObject(Cursor.CreateZero(), selectionSet, includeFlags, deferFlags, deferUsage);
     }
 
+    internal ResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        Selection streamedSelection,
+        Path itemPath,
+        ulong includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(streamedSelection);
+        ArgumentNullException.ThrowIfNull(itemPath);
+
+        _arena = arena;
+        _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
+        _operation = operation;
+        _includeFlags = includeFlags;
+        _rootPath = itemPath;
+
+        Data = CreateStreamItem(streamedSelection);
+    }
+
     private static MemorySegment[] RentDataChunks()
     {
         var data = s_arrayPool.Rent(4);
@@ -191,8 +213,10 @@ public sealed partial class ResultDocument : IDisposable
 
     internal Path CreatePath(Cursor current)
     {
-        // Stop at root via IsRoot flag.
-        if ((_metaDb.GetFlags(current) & ElementFlags.IsRoot) == ElementFlags.IsRoot)
+        var root = Data.Cursor;
+
+        // Stop at the root element of this document.
+        if (current.Equals(root))
         {
             return _rootPath;
         }
@@ -206,7 +230,7 @@ public sealed partial class ResultDocument : IDisposable
             chain[written++] = c;
 
             var parent = _metaDb.GetParentCursor(c);
-            if (parent.IsZero)
+            if (parent.IsZero || c.Equals(root))
             {
                 break;
             }
@@ -527,6 +551,28 @@ public sealed partial class ResultDocument : IDisposable
 
             return new ResultElement(this, startObjectCursor);
         }
+    }
+
+    /// <summary>
+    /// Creates the value slot for a single streamed list item. The slot is anchored as the
+    /// element of the streamed list field so that it carries the element type, the nullability
+    /// and the selection of the streamed list.
+    /// </summary>
+    private ResultElement CreateStreamItem(Selection streamedSelection)
+    {
+        ResultElement listValue;
+
+        lock (_dataChunkLock)
+        {
+            var startObjectCursor = WriteStartObject(Cursor.CreateZero(), isSelectionSet: false);
+            WriteEmptyProperty(startObjectCursor, streamedSelection);
+            WriteEndObject(startObjectCursor, 1);
+
+            listValue = new ResultElement(this, startObjectCursor.AddRows(2));
+        }
+
+        listValue.SetArrayValue(1);
+        return listValue[0];
     }
 
     internal ResultElement CreateArray(Cursor parent, int length)

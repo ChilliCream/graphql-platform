@@ -15,17 +15,15 @@ public sealed partial class ResultDocument : IRawJsonFormatter
     {
         public void Write()
         {
-            var root = Cursor.CreateZero();
-            var row = document._metaDb.Get(root);
+            var root = document.Data.Cursor;
 
-            if (row.TokenType is ElementTokenType.Null
-                || (ElementFlags.IsInvalidated & row.Flags) == ElementFlags.IsInvalidated)
+            if (document.IsNullOrInvalidated(root))
             {
                 writer.WriteNullValue();
             }
             else
             {
-                WriteObject(root, row);
+                WriteValue(root, document._metaDb.Get(root));
             }
         }
 
