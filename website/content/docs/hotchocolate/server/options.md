@@ -56,7 +56,7 @@ builder
 
 The default remains `false` until [RFC PR 1227](https://github.com/graphql/graphql-spec/pull/1227) merges into the specification draft and is planned to change to `true` in the next major release.
 
-Options applied only to a prebuilt `Schema` or directly to a custom `ISchemaBuilder` are not copied into request validation. Configure the `IRequestExecutorBuilder` with `ModifyOptions`, or use `ConfigureValidation` when intentionally configuring only validation.
+The `EnableEmptySelectionSets` option is read from the built schema, so it applies however you configure schema options. `ConfigureValidation((_, b) => b.ModifyOptions(o => o.EnableEmptySelectionSets = ...))` overrides the option for validation only.
 
 # Request Options (ModifyRequestOptions)
 
