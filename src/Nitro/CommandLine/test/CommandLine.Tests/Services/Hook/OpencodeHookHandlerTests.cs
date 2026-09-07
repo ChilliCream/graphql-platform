@@ -133,27 +133,23 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionIdleAsync_Should_DeliverOnlyOnceUntilAnOrdinaryChatMessageRearmsTheTransition()
+    public async Task HandleSessionIdleAsync_Should_NotSpendTheIdlePushArmedFlag_When_ItArrivesBeforeTheDaemon()
     {
-        // arrange
+        // arrange: HandleSessionCreatedAsync already armed the idle-push
+        // gate; ActorWakeDispatcher (not this hook) is its sole claimant.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
 
-        // act
-        var first = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        var second = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("carol", actor, cancellationToken);
-        var third = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        var fourth = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        // act: the opencode-generated idle event reaches this hook before
+        // ActorWakeDispatcher's own poll does.
+        var outcome = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        // assert
-        Assert.NotNull(first.IdleDelivery);
-        Assert.Equal(OpencodeHookOutcome.Neutral, second);
-        Assert.Equal(OpencodeHookOutcome.Neutral, third);
-        Assert.NotNull(fourth.IdleDelivery);
+        // assert: a neutral response (the shim discards it either way), and
+        // the one-shot claim is still there for the dispatcher to spend.
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        Assert.True(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
     }
 
     [Fact]
@@ -182,66 +178,30 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionIdleAsync_Should_ClaimOneDelivery_When_ConcurrentIdleEventsRace()
+    public async Task HandleSessionIdleAsync_Should_SkipTheHeartbeatTouch_When_HooksAreSuppressed()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
-
-        // act
-        var outcomes = await Task.WhenAll(
-            _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken),
-            _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken));
-
-        // assert
-        Assert.Equal(1, outcomes.Count(static outcome => outcome.IdleDelivery is not null));
-    }
-
-    [Fact]
-    public async Task HandleSessionIdleAsync_Should_RearmTheTransition_When_NoMailDigestWasReserved()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var actor = await StartAndGetActorAsync(cancellationToken);
-        var firstMail = await SendMailAsync("bob", actor, cancellationToken);
-        await _ledger.ReserveAsync(
-            CurrentGeneration(),
-            [firstMail.Id],
-            AgentSessionChannel.Gate,
-            _timeProvider.GetUtcNow(),
-            cancellationToken);
-
-        // act
-        var first = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("carol", actor, cancellationToken);
-        var second = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, first);
-        Assert.NotNull(second.IdleDelivery);
-    }
-
-    [Fact]
-    public async Task HandleSessionIdleAsync_Should_NotReserveDelivery_When_HooksAreSuppressed()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        await StartAndGetActorAsync(cancellationToken);
+        var beforeSuppressed = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         _environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
 
         // act
         var suppressed = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert: the suppressed call never reaches the heartbeat touch.
+        Assert.Equal(OpencodeHookOutcome.Neutral, suppressed);
+        Assert.Equal(beforeSuppressed, (await FindRowAsync(cancellationToken))!.LastBeatAt);
+
+        // act: unsuppressed, the same event does touch the heartbeat.
         _environmentVariables.Set("NITRO_HOOK_SUPPRESS", "0");
         var resumed = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, suppressed);
-        Assert.NotNull(resumed.IdleDelivery);
+        Assert.Equal(OpencodeHookOutcome.Neutral, resumed);
+        Assert.Equal(_timeProvider.GetUtcNow(), (await FindRowAsync(cancellationToken))!.LastBeatAt);
     }
 
     [Fact]
@@ -311,24 +271,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
 
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
-    }
-
-    [Fact]
-    public async Task HandleSessionIdleAsync_Should_RemainNeutral_When_TheSessionIsDeletedBeforeReservation()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
-        var handler = CreateHandler(new SessionDeletingDeliveryLedger(_ledger, _sessions, CurrentGeneration()));
-
-        // act
-        var outcome = await handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
-        Assert.Null(await FindRowAsync(cancellationToken));
     }
 
     [Fact]

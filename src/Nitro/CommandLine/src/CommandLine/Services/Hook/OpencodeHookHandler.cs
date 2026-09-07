@@ -134,47 +134,16 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        if (!await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken))
-        {
-            return OpencodeHookOutcome.Neutral;
-        }
+        // Heartbeat/presence only: ActorWakeDispatcher is the idle-push
+        // gate's sole claimant (see IAgentSessionRegistry.ClaimIdlePushAsync).
+        // This event's own response is discarded by the shim (opencode's
+        // session-idle hook has no output channel;
+        // OpencodeHookExecutor.ToResponse never reads anything beyond
+        // Parts), so claiming the gate or reserving a delivery here would
+        // only race the dispatcher for the same one-shot push with nothing
+        // to show for it - see the hc-10-5n6.2 planner ruling.
+        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
 
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
-
-        if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
-        {
-            return OpencodeHookOutcome.Neutral;
-        }
-
-        var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
-            cancellationToken);
-
-        if (unread.Count == 0)
-        {
-            return OpencodeHookOutcome.Neutral;
-        }
-
-        // Claims the durable, atomic one-push-per-idle-transition gate:
-        // false means an earlier idle event in this same transition
-        // already claimed it, so this event is suppressed.
-        if (!await sessionRegistry.ClaimIdlePushAsync(resolved.Generation, cancellationToken))
-        {
-            return OpencodeHookOutcome.Neutral;
-        }
-
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
-
-        if (digest is not null)
-        {
-            return new OpencodeHookOutcome { IdleDelivery = digest };
-        }
-
-        // Nothing was actually reserved (every unread id was already
-        // claimed on the gate channel by another path) - rearm so a
-        // later idle event with fresh mail can still push.
-        await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
         return OpencodeHookOutcome.Neutral;
     }
 

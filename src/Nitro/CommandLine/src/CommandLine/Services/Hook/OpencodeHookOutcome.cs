@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal sealed record OpencodeHookOutcome
 {
     /// <summary>
-    /// A neutral result that appends no parts and authorizes no idle delivery.
+    /// A neutral result that appends no parts.
     /// </summary>
     public static readonly OpencodeHookOutcome Neutral = new();
 
@@ -14,9 +14,4 @@ internal sealed record OpencodeHookOutcome
     /// Text parts for the shim to append to the current chat response.
     /// </summary>
     public IReadOnlyList<string> Parts { get; init; } = [];
-
-    /// <summary>
-    /// The nudge reserved for the idle channel, or null when no push is due.
-    /// </summary>
-    public string? IdleDelivery { get; init; }
 }
