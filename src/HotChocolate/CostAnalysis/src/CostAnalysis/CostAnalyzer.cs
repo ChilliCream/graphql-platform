@@ -14,8 +14,6 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 {
     public CostMetrics Analyze(OperationDefinitionNode operation, DocumentValidatorContext context)
     {
-        var feature = context.Features.GetOrSet<CostContext>();
-
         Visit(operation, context);
 
         var summary = context.GetSelectionSetCost(operation.SelectionSet);

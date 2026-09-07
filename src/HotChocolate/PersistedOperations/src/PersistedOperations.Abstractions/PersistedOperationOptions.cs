@@ -23,8 +23,8 @@ public sealed class PersistedOperationOptions
     public bool AllowDocumentBody { get; set; }
 
     /// <summary>
-    /// Specifies whether persisted operation documents bypass validation.
-    /// Skipping validation also bypasses the empty-selection-set gate.
+    /// Specifies if persisted operation documents
+    /// need to be validated.
     /// </summary>
     public bool SkipPersistedDocumentValidation { get; set; }
 
