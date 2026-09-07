@@ -300,6 +300,8 @@ internal sealed class ActorWakeDispatcher(
 
             var held = reservation.Reservation;
             var success = false;
+            var idlePushClaimed = false;
+            var idlePushSettled = false;
 
             try
             {
@@ -320,6 +322,15 @@ internal sealed class ActorWakeDispatcher(
                     // rather than starting a cooldown.
                     return await RecordOfferedAsync(
                         batchId, target, ownerId, batchAttemptId, claimedGeneration, "idle-not-armed");
+                }
+
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
+                {
+                    // ClaimIdlePushAsync returned true above (the branch that
+                    // spends a failed claim already returned): this attempt
+                    // now owns the one-shot idle-push claim and must hand it
+                    // back if it never reaches the outcome-based rearm below.
+                    idlePushClaimed = true;
                 }
 
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
@@ -356,6 +367,8 @@ internal sealed class ActorWakeDispatcher(
                     await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
                 }
 
+                idlePushSettled = true;
+
                 if (outcome.Reason == PingAttemptReason.AccessDenied)
                 {
                     return await RecordOfferedAsync(
@@ -377,6 +390,16 @@ internal sealed class ActorWakeDispatcher(
             }
             finally
             {
+                if (idlePushClaimed && !idlePushSettled)
+                {
+                    // The dispatch aborted mid-flight (lost lease renewal or
+                    // caller shutdown) before the outcome-based rearm above
+                    // ever ran: hand the claim back rather than stranding the
+                    // session unarmed. This accepts a possible double push on
+                    // the next idle transition, per the policy stated above.
+                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                }
+
                 // Never on dispatchToken: the reservation this attempt holds
                 // must be released (or extended into cooldown) even when
                 // dispatchToken itself is the reason the transport call just

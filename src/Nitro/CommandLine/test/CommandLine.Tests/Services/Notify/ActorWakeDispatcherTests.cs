@@ -731,6 +731,53 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task DispatchAsync_Should_RearmTheIdlePushClaim_When_TheOpencodeDispatchIsCancelledMidTransport()
+    {
+        // arrange: the idle-push claim is spent before the transport call
+        // hangs, standing in for a dispatch aborted mid-flight (lost lease
+        // renewal or caller shutdown) after ClaimIdlePushAsync already
+        // succeeded but before the outcome-based rearm ever ran.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var generation = await SeedLiveSessionAsync(
+            AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
+        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken);
+        var hangingExecutor = new FakePingSessionExecutor { HangUntilCancelled = true };
+        var dispatcher = CreateDispatcher(hangingExecutor);
+
+        // act: start the dispatch, wait until it has actually entered the
+        // transport call, then advance the clock well past both the batch's
+        // lease duration and its renew interval in one jump, so the
+        // renewal loop's very first attempt already finds its own lease
+        // expired and cancels dispatchToken out from under the hanging
+        // transport call mid-flight.
+        var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+        _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
+        var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+
+        // assert: never asserted delivered or failed, and the idle-push
+        // claim spent above was handed back by the finally's rearm instead
+        // of being left stranded.
+        Assert.NotNull(receipt);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
+
+        // act: new mail arrives - the aborted attempt already rearmed the
+        // claim, so this delivers on the very next dispatch without waiting
+        // for a genuine prompt to rearm it by hand.
+        await SendEnqueuedMailAsync(cancellationToken);
+        var deliveredExecutor = new FakePingSessionExecutor();
+        var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
+            .DispatchAsync(Actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
+        Assert.Single(deliveredExecutor.Calls);
+    }
+
+    [Fact]
     public void AddNitroServices_Should_ResolveActorWakeDispatcher_When_BuiltFromTheServiceCollection()
     {
         // arrange: proves the whole composition graph (including the
