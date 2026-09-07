@@ -299,4 +299,100 @@ public class AutoProvisionTests
             .BuildRuntime();
         return runtime;
     }
+
+    [Fact]
+    public void Subscription_AutoProvision_Should_InheritFromQueue_When_QueueOptsIn()
+    {
+        // arrange & act
+        // With the transport deny-by-default, a queue that opts in to provisioning must carry that
+        // opt-in onto the subscription its BindFrom derives; the foreign source topic stays opted out.
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.Queue("orders").AutoProvision(true).BindFrom(new Uri("topic:incoming-orders"));
+        });
+
+        // assert
+        var subscription = topology.Subscriptions.Single();
+        Assert.True(subscription.AutoProvision);
+        Assert.Null(topology.Topics.Single(e => e.Name == "incoming-orders").AutoProvision);
+    }
+
+    [Fact]
+    public void Subscription_AutoProvision_Should_BeNull_When_QueueDoesNotOptIn()
+    {
+        // arrange & act
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(
+            t => t.Queue("orders").BindFrom(new Uri("topic:incoming-orders")));
+
+        // assert
+        var subscription = topology.Subscriptions.Single();
+        Assert.Null(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Subscription_AutoProvision_Should_KeepExplicitValue_When_QueueOptsIn()
+    {
+        // arrange & act
+        // DeclareSubscription is get-or-add, so an explicitly configured subscription must not be
+        // overridden by the inheritance a later BindFrom applies.
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.DeclareSubscription("incoming-orders", "orders").AutoProvision(false);
+            t.Queue("orders").AutoProvision(true).BindFrom(new Uri("topic:incoming-orders"));
+        });
+
+        // assert
+        var subscription = topology.Subscriptions.Single();
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Subscription_AutoProvision_Should_KeepBindingOptOut_When_QueueOptsIn()
+    {
+        // arrange & act
+        // A binding can opt out of provisioning individually even though its queue opts in.
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.Queue("orders")
+                .AutoProvision(true)
+                .BindFrom(new Uri("topic:incoming-orders"), autoProvision: false);
+        });
+
+        // assert
+        var subscription = topology.Subscriptions.Single();
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Subscription_AutoProvision_Should_BeTrue_When_OnlyBindingOptsIn()
+    {
+        // arrange & act
+        // A binding can opt in individually even though its queue does not.
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.Queue("orders").BindFrom(new Uri("topic:incoming-orders"), autoProvision: true);
+        });
+
+        // assert
+        var subscription = topology.Subscriptions.Single();
+        Assert.True(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Subscription_AutoProvision_Should_InheritQueueOptOut_When_TransportProvisionsByDefault()
+    {
+        // arrange & act
+        // Inheritance also carries an opt-out: a queue that is managed externally drags its
+        // BindFrom subscription out of provisioning even though the transport provisions by default.
+        var (_, _, topology) = PostgresBusFixture.CreateTopologyWithTransport(
+            t => t.Queue("orders").AutoProvision(false).BindFrom(new Uri("topic:incoming-orders")));
+
+        // assert
+        var subscription = topology.Subscriptions.Single();
+        Assert.False(subscription.AutoProvision);
+    }
 }

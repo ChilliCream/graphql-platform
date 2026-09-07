@@ -20,6 +20,7 @@ namespace Mocha.Sagas.EfCore;
 internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDisposable
 {
     private readonly object _lock = new();
+    private readonly List<JsonDocument> _documents = [];
     private PooledArrayWriter? _arrayWriter;
     private List<byte[]>? _buffers;
 
@@ -71,6 +72,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
             .FirstOrDefaultAsync(cancellationToken);
 
         var document = ToJsonDocument(saga, state);
+        _documents.Add(document);
 
         if (sagaState is null)
         {
@@ -86,10 +88,14 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
         }
         else
         {
+            // The tracked entity owns its document; the one being replaced is released here rather
+            // than on load, so the entity never holds a disposed document while it is tracked.
+            var previous = sagaState.State;
             sagaState.State = document;
             sagaState.UpdatedAt = DateTimeOffset.UtcNow;
             sagaState.Version = NewVersion();
             set.Entry(sagaState).Property(x => x.State).IsModified = true;
+            previous.Dispose();
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -126,7 +132,9 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     /// <returns>The deserialized saga state, or <c>default</c> if no state is found for the given identifier.</returns>
     public async Task<T?> LoadAsync<T>(Saga saga, Guid id, CancellationToken cancellationToken)
     {
-        // as the state is scoped we load the whole saga state into memory for the concurrency check
+        // The state is loaded tracked so the save that follows checks the version observed here.
+        // Its document stays with the tracked entity and is released when a save replaces it or
+        // when this store is disposed.
         var sageState = await context
             .Set<SagaState>()
             .AsTracking()
@@ -138,14 +146,8 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
             return default;
         }
 
-        try
-        {
-            return FromJsonDocument<T>(saga, document);
-        }
-        finally
-        {
-            document.Dispose();
-        }
+        _documents.Add(document);
+        return FromJsonDocument<T>(saga, document);
     }
 
     private JsonDocument ToJsonDocument(Saga saga, SagaStateBase state)
@@ -198,10 +200,16 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
     }
 
     /// <summary>
-    /// Releases the pooled array writer and returns all rented byte buffers to the pool.
+    /// Releases the documents held by tracked saga states, the pooled array writer, and all rented byte buffers.
     /// </summary>
     public void Dispose()
     {
+        foreach (var document in _documents)
+        {
+            document.Dispose();
+        }
+
+        _documents.Clear();
         _arrayWriter?.Dispose();
         if (_buffers is not null)
         {

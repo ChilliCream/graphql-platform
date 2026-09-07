@@ -1,5 +1,5 @@
 # Use the base image specified in the devcontainer.json
-FROM mcr.microsoft.com/devcontainers/base:bullseye
+FROM mcr.microsoft.com/devcontainers/base:bookworm
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \

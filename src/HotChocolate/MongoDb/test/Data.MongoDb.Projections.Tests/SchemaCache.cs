@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
