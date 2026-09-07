@@ -62,32 +62,40 @@ internal static class OperationContextExtensions
             return context;
         }
 
+        /// <summary>
+        /// Builds the result of a single streamed list item.
+        /// </summary>
+        public OperationResult BuildStreamItemResult()
+        {
+            var resultBuilder = context.Result;
+
+            ReportNonNullViolations(resultBuilder);
+
+            // A streamed item is delivered as an entry of the `items` array of an incremental
+            // payload, so the item value is always attached, even when it completes to null.
+            var result = new OperationResult(
+                new OperationResultData(
+                    resultBuilder.Data,
+                    isValueNull: false,
+                    resultBuilder.Data,
+                    resultBuilder.Data),
+                resultBuilder.Errors,
+                resultBuilder.Extensions)
+            {
+                RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : null,
+                VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : null,
+                Document = context.Operation.Document,
+                ContextData = resultBuilder.ContextData
+            };
+
+            return result;
+        }
+
         public OperationResult BuildResult()
         {
             var resultBuilder = context.Result;
 
-            if (!resultBuilder.NonNullViolations.IsEmpty)
-            {
-                var errorPaths = new HashSet<Path>();
-
-                foreach (var error in resultBuilder.Errors)
-                {
-                    if (error.Path is not null)
-                    {
-                        errorPaths.Add(error.Path);
-                    }
-                }
-
-                if (!errorPaths.IsProperSupersetOf(resultBuilder.NonNullViolations))
-                {
-                    var errorBuilder = ErrorHelper.NonNullOutputFieldViolation();
-
-                    foreach (var path in resultBuilder.NonNullViolations.Except(errorPaths))
-                    {
-                        resultBuilder.AddError(errorBuilder.SetPath(path).Build());
-                    }
-                }
-            }
+            ReportNonNullViolations(resultBuilder);
 
             var result = new OperationResult(
                 new OperationResultData(
@@ -122,6 +130,34 @@ internal static class OperationContextExtensions
             }
 
             return result;
+        }
+    }
+
+    private static void ReportNonNullViolations(OperationResultBuilder resultBuilder)
+    {
+        if (resultBuilder.NonNullViolations.IsEmpty)
+        {
+            return;
+        }
+
+        var errorPaths = new HashSet<Path>();
+
+        foreach (var error in resultBuilder.Errors)
+        {
+            if (error.Path is not null)
+            {
+                errorPaths.Add(error.Path);
+            }
+        }
+
+        if (!errorPaths.IsProperSupersetOf(resultBuilder.NonNullViolations))
+        {
+            var errorBuilder = ErrorHelper.NonNullOutputFieldViolation();
+
+            foreach (var path in resultBuilder.NonNullViolations.Except(errorPaths))
+            {
+                resultBuilder.AddError(errorBuilder.SetPath(path).Build());
+            }
         }
     }
 

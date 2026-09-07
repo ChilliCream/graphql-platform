@@ -1,6 +1,7 @@
-using HotChocolate.Execution.Internal;
-using HotChocolate.Types;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Internal;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -14,6 +15,11 @@ internal sealed partial class ResolverTask
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
+
+                if (_streamEnumerator is not null)
+                {
+                    RegisterStream();
+                }
 
                 switch (_taskBuffer.Count)
                 {
@@ -51,6 +57,13 @@ internal sealed partial class ResolverTask
         {
             try
             {
+                // if the stream was not handed over to a stream task we own the enumerator.
+                if (_streamEnumerator is { } enumerator)
+                {
+                    _streamEnumerator = null;
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
+
                 if (_context.HasCleanupTasks)
                 {
                     await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
@@ -157,80 +170,197 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        // TODO: DEFER
-        // if (_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
-        // {
-        //    var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
-        //    _context.Result = await CreateStreamResultAsync(stream).ConfigureAwait(false);
-        //    return;
-        // }
+        // The stream flag is set at compile time on statically streamable fields; the directive
+        // arguments can still depend on variables and are therefore resolved here.
+        if (_selection.IsStream && TryGetStreamArguments(out var initialCount, out var label))
+        {
+            _context.Result =
+                await CreateStreamResultAsync(postProcessor, result, initialCount, label, cancellationToken)
+                    .ConfigureAwait(false);
+            return;
+        }
 
         _context.Result = await postProcessor.ToCompletionResultAsync(result, cancellationToken).ConfigureAwait(false);
     }
 
-    // TODO : DEFER
-    /*
-    private async ValueTask<List<object?>> CreateStreamResultAsync(IAsyncEnumerable<object?> stream)
+    /// <summary>
+    /// Completes the initial slice of a streamed list inline and takes ownership of the
+    /// enumerator when the source has more items than the initial slice.
+    /// </summary>
+    private async ValueTask<object?> CreateStreamResultAsync(
+        IResolverResultPostProcessor postProcessor,
+        object result,
+        int initialCount,
+        string? label,
+        CancellationToken cancellationToken)
     {
-        var streamDirective = _selection.GetStreamDirective(_context.Variables)!;
-        var enumerator = stream.GetAsyncEnumerator(_context.RequestAborted);
-        var next = true;
+        var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
+        var enumerator = stream.GetAsyncEnumerator(cancellationToken);
+        var items = new List<object?>();
+        var hasMoreItems = true;
 
         try
         {
-            var list = new List<object?>();
-            var initialCount = streamDirective.InitialCount;
-            var count = 0;
-
-            if (initialCount > 0)
+            // We read one item beyond the initial slice. If the source is exhausted at or before
+            // the initial count the whole list is completed inline and no stream is registered.
+            while (items.Count <= initialCount)
             {
-                while (next)
+                if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    count++;
-                    next = await enumerator.MoveNextAsync().ConfigureAwait(false);
-                    if (next)
-                    {
-                        list.Add(enumerator.Current);
-                    }
-
-                    if (count >= initialCount)
-                    {
-                        break;
-                    }
+                    hasMoreItems = false;
+                    break;
                 }
-            }
 
-            if (next)
-            {
-                // TODO : DEFER
-                // if the stream has more items than the initial requested items then we will
-                // defer the rest of the stream.
-                _operationContext.DeferredScheduler.Register(
-                    new DeferredStream(
-                        Selection,
-                        streamDirective.Label,
-                        _context.Path,
-                        _context.Parent<object>(),
-                        count - 1,
-                        enumerator,
-                        _context.ScopedContextData),
-                    _context.ParentResult);
+                items.Add(enumerator.Current);
             }
-
-            return list;
         }
-        finally
+        catch
         {
-            if (!next)
+            await enumerator.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
+
+        if (!hasMoreItems)
+        {
+            await enumerator.DisposeAsync().ConfigureAwait(false);
+            return items;
+        }
+
+        // the look-ahead item is not part of the initial slice and is handed
+        // over to the stream task together with the enumerator.
+        _streamLookAheadItem = items[^1];
+        items.RemoveAt(items.Count - 1);
+        _streamEnumerator = enumerator;
+        _streamLabel = label;
+        _streamNextIndex = items.Count;
+
+        return items;
+    }
+
+    /// <summary>
+    /// Registers the stream branch and hands the enumerator plus the resolver cleanup tasks
+    /// over to a stream task.
+    /// </summary>
+    private void RegisterStream()
+    {
+        var enumerator = _streamEnumerator!;
+
+        if (_completionStatus is not ExecutionTaskStatus.Completed
+            || _context.ResultValue.IsNullOrInvalidated)
+        {
+            // the streamed field did not complete, so there is nothing to append to.
+            return;
+        }
+
+        _streamEnumerator = null;
+
+        var path = _context.Path;
+        var branchId = _operationContext.DeferExecutionCoordinator
+            .RegisterStreamBranch(BranchId, path, _streamLabel);
+
+        _taskBuffer.Add(
+            _operationContext.CreateStreamTask(
+                _context.Parent<object?>(),
+                _selection,
+                path,
+                _context.ScopedContextData,
+                DeferUsage,
+                branchId,
+                enumerator,
+                _streamLookAheadItem,
+                _streamNextIndex,
+                _context.DetachCleanupTasks()));
+
+        _streamLookAheadItem = null;
+    }
+
+    /// <summary>
+    /// Resolves the arguments of the stream directive and returns <c>false</c>
+    /// when the stream is disabled through its if argument.
+    /// </summary>
+    private bool TryGetStreamArguments(out int initialCount, out string? label)
+    {
+        initialCount = 0;
+        label = null;
+
+        var directive = _selection.SyntaxNodes[0].Node.GetStreamDirective();
+
+        if (directive is null)
+        {
+            return false;
+        }
+
+        var variables = _context.Variables;
+
+        for (var i = 0; i < directive.Arguments.Count; i++)
+        {
+            var argument = directive.Arguments[i];
+
+            switch (argument.Name.Value)
             {
-                // if there is no deferred work we will just dispose the enumerator.
-                // in the case we have deferred work, the deferred stream handler is
-                // responsible for disposing.
-                await enumerator.DisposeAsync().ConfigureAwait(false);
+                case DirectiveNames.Stream.Arguments.If:
+                    if (!GetBooleanValue(variables, argument.Value, defaultValue: true))
+                    {
+                        return false;
+                    }
+                    break;
+
+                case DirectiveNames.Stream.Arguments.InitialCount:
+                    initialCount = Math.Max(GetIntValue(variables, argument.Value, defaultValue: 0), 0);
+                    break;
+
+                case DirectiveNames.Stream.Arguments.Label:
+                    label = GetStringValue(variables, argument.Value);
+                    break;
             }
         }
+
+        return true;
     }
-    */
+
+    private static bool GetBooleanValue(
+        IVariableValueCollection variables,
+        IValueNode value,
+        bool defaultValue)
+    {
+        if (value is VariableNode variable)
+        {
+            return variables.TryGetValue<BooleanValueNode>(variable.Name.Value, out var variableValue)
+                ? variableValue.Value
+                : defaultValue;
+        }
+
+        return value is BooleanValueNode booleanValue ? booleanValue.Value : defaultValue;
+    }
+
+    private static int GetIntValue(
+        IVariableValueCollection variables,
+        IValueNode value,
+        int defaultValue)
+    {
+        if (value is VariableNode variable)
+        {
+            return variables.TryGetValue<IntValueNode>(variable.Name.Value, out var variableValue)
+                ? variableValue.ToInt32()
+                : defaultValue;
+        }
+
+        return value is IntValueNode intValue ? intValue.ToInt32() : defaultValue;
+    }
+
+    private static string? GetStringValue(
+        IVariableValueCollection variables,
+        IValueNode value)
+    {
+        if (value is VariableNode variable)
+        {
+            return variables.TryGetValue<StringValueNode>(variable.Name.Value, out var variableValue)
+                ? variableValue.Value
+                : null;
+        }
+
+        return value is StringValueNode stringValue ? stringValue.Value : null;
+    }
 
     /// <summary>
     /// <para>

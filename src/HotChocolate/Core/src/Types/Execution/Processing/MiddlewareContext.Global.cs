@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -198,6 +199,22 @@ internal partial class MiddlewareContext : IMiddlewareContext
         {
             _cleanupTasks.Add(action);
         }
+    }
+
+    /// <summary>
+    /// Detaches the registered resolver cleanup tasks so that another execution task
+    /// can take over their execution.
+    /// </summary>
+    internal ImmutableArray<Func<ValueTask>> DetachCleanupTasks()
+    {
+        if (_cleanupTasks.Count == 0)
+        {
+            return [];
+        }
+
+        var cleanupTasks = _cleanupTasks.ToImmutableArray();
+        _cleanupTasks.Clear();
+        return cleanupTasks;
     }
 
     public async ValueTask ExecuteCleanupTasksAsync()

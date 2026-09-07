@@ -183,6 +183,53 @@ internal sealed partial class OperationContext
         Result.VariableIndex = context._variableIndex;
     }
 
+    /// <summary>
+    /// Initializes this context as the execution context of a stream branch.
+    /// The item result document is created per item through <see cref="InitializeStreamItem"/>.
+    /// </summary>
+    public void InitializeStreamContext(OperationContext context, int executionBranchId)
+    {
+        _requestContext = context._requestContext;
+        _schema = context._schema;
+        _errorHandler = context._errorHandler;
+        _resolvers = context._resolvers;
+        _diagnosticEvents = context._diagnosticEvents;
+        _contextData = context.ContextData;
+        _requestAborted = context._requestAborted;
+        _operation = context._operation;
+        _variables = context._variables;
+        _services = context._services;
+        _inputParser = context._inputParser;
+        _rootValue = context._rootValue;
+        _resolveQueryRootValue = context._resolveQueryRootValue;
+        _batchDispatcher = context._batchDispatcher;
+        _memory = context._memory;
+        _currentBranchTracker = context._currentBranchTracker;
+        _currentWorkScheduler = context._currentWorkScheduler;
+        _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
+        _propagateNullValues = context._propagateNullValues;
+        _variableIndex = context._variableIndex;
+        _branchId = executionBranchId;
+        _isInitialized = true;
+
+        IncludeFlags = context.IncludeFlags;
+        DeferFlags = context.DeferFlags;
+    }
+
+    /// <summary>
+    /// Prepares this stream context for the next streamed item of
+    /// <paramref name="streamedSelection"/> at <paramref name="itemPath"/>.
+    /// </summary>
+    public void InitializeStreamItem(Selection streamedSelection, Path itemPath)
+    {
+        AssertInitialized();
+
+        Result.Reset();
+        Result.Data = new ResultDocument(_memory!, _operation, streamedSelection, itemPath, IncludeFlags);
+        Result.RequestIndex = _requestContext.RequestIndex;
+        Result.VariableIndex = _variableIndex;
+    }
+
     public void InitializeWorkSchedulerFrom(OperationContext context)
     {
         Debug.Assert(_isInitialized);

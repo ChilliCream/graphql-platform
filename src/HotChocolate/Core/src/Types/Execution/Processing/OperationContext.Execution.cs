@@ -85,6 +85,38 @@ internal sealed partial class OperationContext
         return batchTask;
     }
 
+    public StreamTask CreateStreamTask(
+        object? parent,
+        Selection selection,
+        Path path,
+        IImmutableDictionary<string, object?> scopedContextData,
+        DeferUsage? deferUsage,
+        int executionBranchId,
+        IAsyncEnumerator<object?> enumerator,
+        object? lookAheadItem,
+        int nextIndex,
+        ImmutableArray<Func<ValueTask>> cleanupTasks)
+    {
+        AssertInitialized();
+
+        var streamTask = new StreamTask();
+
+        streamTask.Initialize(
+            this,
+            parent,
+            selection,
+            path,
+            scopedContextData,
+            deferUsage,
+            executionBranchId,
+            enumerator,
+            lookAheadItem,
+            nextIndex,
+            cleanupTasks);
+
+        return streamTask;
+    }
+
     public DeferTask CreateDeferTask(
         SelectionSet selectionSet,
         Path selectionPath,
