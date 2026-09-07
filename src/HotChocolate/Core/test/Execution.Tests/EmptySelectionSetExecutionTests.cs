@@ -5,146 +5,72 @@ namespace HotChocolate.Execution;
 
 public sealed class EmptySelectionSetExecutionTests
 {
-    [Fact]
-    public async Task Execute_Should_ReturnEmptyData_When_EmptySelectionSetsAreEnabled()
-    {
-        // arrange
-        var executor = await CreateRequestExecutorAsync(enableEmptySelectionSets: true);
-
-        // act
-        var results = new[]
+    public static TheoryData<string, string, Dictionary<string, object?>?> Shapes =>
+        new()
         {
-            await executor.ExecuteAsync("{ }", TestContext.Current.CancellationToken),
-            await executor.ExecuteAsync("query Q { }", TestContext.Current.CancellationToken),
-            await executor.ExecuteAsync("mutation { }", TestContext.Current.CancellationToken),
-            await executor.ExecuteAsync("{ hero(episode: NEW_HOPE) { } }", TestContext.Current.CancellationToken),
-            await executor.ExecuteAsync("{ heroes { } }", TestContext.Current.CancellationToken),
-            await executor.ExecuteAsync(
-                "{ hero(episode: NEW_HOPE) { ... on Droid { } } }",
-                TestContext.Current.CancellationToken)
+            { "EmptyQuery", "{ }", null },
+            { "EmptyNamedQuery", "query Q { }", null },
+            { "EmptyMutation", "mutation { }", null },
+            { "EmptySubscription", "subscription { }", null },
+            { "EmptyCompositeField", "{ hero(episode: NEW_HOPE) { } }", null },
+            { "EmptyListItems", "{ heroes { } }", null },
+            { "EmptyInlineFragment", "{ hero(episode: NEW_HOPE) { ... on Droid { } } }", null },
+            { "EmptyInlineFragmentUntyped", "{ hero(episode: NEW_HOPE) { ... { } } }", null },
+            {
+                "EmptyNamedFragment",
+                "{ hero(episode: NEW_HOPE) { ...abc } } fragment abc on Droid { }",
+                null
+            },
+            {
+                "EmptyNamedFragmentBesideIncludedField_IncludeTrue",
+                "query foo($v: Boolean!) { hero(episode: NEW_HOPE) { name @include(if: $v) ...abc } } fragment abc on Droid { }",
+                new Dictionary<string, object?> { ["v"] = true }
+            },
+            {
+                "EmptyNamedFragmentBesideIncludedField_IncludeFalse",
+                "query foo($v: Boolean!) { hero(episode: NEW_HOPE) { name @include(if: $v) ...abc } } fragment abc on Droid { }",
+                new Dictionary<string, object?> { ["v"] = false }
+            },
+            {
+                "EmptyInlineFragmentBesideIncludedField_IncludeTrue",
+                "query foo($v: Boolean!) { hero(episode: NEW_HOPE) { name @include(if: $v) ... on Droid { } } }",
+                new Dictionary<string, object?> { ["v"] = true }
+            },
+            {
+                "EmptyInlineFragmentBesideIncludedField_IncludeFalse",
+                "query foo($v: Boolean!) { hero(episode: NEW_HOPE) { name @include(if: $v) ... on Droid { } } }",
+                new Dictionary<string, object?> { ["v"] = false }
+            }
         };
 
-        // assert
-        results.Select(t => t.ToJson()).MatchInlineSnapshots(
-        [
-            """
-            {
-              "data": {}
-            }
-            """,
-            """
-            {
-              "data": {}
-            }
-            """,
-            """
-            {
-              "data": {}
-            }
-            """,
-            """
-            {
-              "data": {
-                "hero": {}
-              }
-            }
-            """,
-            """
-            {
-              "data": {
-                "heroes": [
-                  {},
-                  {}
-                ]
-              }
-            }
-            """,
-            """
-            {
-              "data": {
-                "hero": {}
-              }
-            }
-            """
-        ]);
-    }
-
-    [Fact]
-    public async Task Execute_Should_ReturnValidationErrors_When_SubscriptionSelectionSetIsEmpty()
+    [Theory]
+    [MemberData(nameof(Shapes))]
+    public async Task Execute_Should_MatchSnapshot_When_EmptySelectionSet(
+        string name,
+        string document,
+        Dictionary<string, object?>? variables)
     {
         // arrange
-        var executor = await CreateRequestExecutorAsync(enableEmptySelectionSets: true);
+        var enabledExecutor = await CreateRequestExecutorAsync(enableEmptySelectionSets: true);
+        var disabledExecutor = await CreateRequestExecutorAsync(enableEmptySelectionSets: false);
 
         // act
-        var result = await executor.ExecuteAsync("subscription { }", TestContext.Current.CancellationToken);
+        var enabledResult = await enabledExecutor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(document)
+                .SetVariableValues(variables)
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var disabledResult = await disabledExecutor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(document)
+                .SetVariableValues(variables)
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 1
-                    }
-                  ],
-                  "extensions": {
-                    "operation": "Unnamed",
-                    "type": "Subscription",
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
-                  }
-                },
-                {
-                  "message": "Subscription operations must have exactly one root field.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 1
-                    }
-                  ],
-                  "extensions": {
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Single-Root-Field"
-                  }
-                }
-              ]
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task Execute_Should_ReturnValidationError_When_EmptySelectionSetsAreDisabled()
-    {
-        // arrange
-        var executor = await CreateRequestExecutorAsync(enableEmptySelectionSets: false);
-
-        // act
-        var result = await executor.ExecuteAsync("{ }", TestContext.Current.CancellationToken);
-
-        // assert
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 1
-                    }
-                  ],
-                  "extensions": {
-                    "operation": "Unnamed",
-                    "type": "Query",
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
-                  }
-                }
-              ]
-            }
-            """);
+        enabledResult.ToJson().MatchSnapshot(postFix: $"{name}_Enabled");
+        disabledResult.ToJson().MatchSnapshot(postFix: $"{name}_Disabled");
     }
 
     private static ValueTask<IRequestExecutor> CreateRequestExecutorAsync(bool enableEmptySelectionSets)
