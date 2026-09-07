@@ -6,7 +6,6 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -17,6 +16,7 @@ public sealed class EmptySelectionSetTests : FusionTestBase
         """
         type Query {
           me: User
+          character: Character
         }
 
         type Mutation {
@@ -27,99 +27,83 @@ public sealed class EmptySelectionSetTests : FusionTestBase
           onMessage: User
         }
 
-        type User {
+        interface Character {
+          name: String
+        }
+
+        type User implements Character {
+          name: String
+        }
+
+        type Bot implements Character {
           name: String
         }
         """;
 
-    [Fact]
-    public async Task ExecuteAsync_Should_InjectAndHideTypeName_When_CompositeFieldSelectionSetIsEmpty()
-    {
-        // arrange
-        var client = new RecordingClient();
-        var executor = await CreateExecutorAsync(client, enableEmptySelectionSets: true);
-
-        // act
-        await using var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New().SetDocument("{ me { } }").Build(),
-            TestContext.Current.CancellationToken);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
+    public static TheoryData<string, string, Dictionary<string, object?>?> Shapes =>
+        new()
+        {
+            { "EmptyQuery", "query { }", null },
+            { "EmptyMutation", "mutation { }", null },
+            { "EmptySubscription", "subscription { }", null },
+            { "EmptyCompositeField", "{ me { } }", null },
+            { "EmptyInlineFragment", "{ me { ... on User { } } }", null },
+            { "EmptyInlineFragmentUntyped", "{ me { ... { } } }", null },
+            { "EmptyNamedFragment", "{ me { ...f } } fragment f on User { }", null },
+            { "EmptyInlineFragmentOnAbstract", "{ character { ... on Bot { } } }", null },
             {
-              "data": {
-                "me": {}
-              }
+                "EmptyNamedFragmentBesideIncludedFieldTrue",
+                "query($v: Boolean!) { me { name @include(if: $v) ...f } } fragment f on User { }",
+                new Dictionary<string, object?> { ["v"] = true }
+            },
+            {
+                "EmptyNamedFragmentBesideIncludedFieldFalse",
+                "query($v: Boolean!) { me { name @include(if: $v) ...f } } fragment f on User { }",
+                new Dictionary<string, object?> { ["v"] = false }
+            },
+            {
+                "EmptyInlineFragmentBesideIncludedFieldTrue",
+                "query($v: Boolean!) { me { name @include(if: $v) ... on User { } } }",
+                new Dictionary<string, object?> { ["v"] = true }
+            },
+            {
+                "EmptyInlineFragmentBesideIncludedFieldFalse",
+                "query($v: Boolean!) { me { name @include(if: $v) ... on User { } } }",
+                new Dictionary<string, object?> { ["v"] = false }
             }
-            """);
-        Assert.Equal("__typename", GetOnlyNestedSelectionName(Assert.Single(client.Requests)));
-    }
+        };
 
     [Theory]
-    [InlineData("query { }")]
-    [InlineData("mutation { }")]
-    public async Task ExecuteAsync_Should_ReturnEmptyDataWithoutSourceRequests_When_RootSelectionSetIsEmpty(
-        string document)
+    [MemberData(nameof(Shapes))]
+    public async Task ExecuteAsync_Should_MatchSnapshot_When_EmptySelectionSet(
+        string name,
+        string document,
+        Dictionary<string, object?>? variables)
     {
         // arrange
-        var client = new RecordingClient();
-        var executor = await CreateExecutorAsync(client, enableEmptySelectionSets: true);
+        var enabledClient = new RecordingClient();
+        var enabledExecutor = await CreateExecutorAsync(enabledClient, enableEmptySelectionSets: true);
+        var disabledClient = new RecordingClient();
+        var disabledExecutor = await CreateExecutorAsync(disabledClient, enableEmptySelectionSets: false);
+        var request = OperationRequestBuilder.New()
+            .SetDocument(document)
+            .SetVariableValues(variables)
+            .Build();
 
         // act
-        await using var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New().SetDocument(document).Build(),
+        await using var enabledResult = await enabledExecutor.ExecuteAsync(
+            request,
             TestContext.Current.CancellationToken);
+        var enabledSnapshot = CreateSnapshot(enabledResult, enabledClient);
+
+        await using var disabledResult = await disabledExecutor.ExecuteAsync(
+            request,
+            TestContext.Current.CancellationToken);
+        var disabledSnapshot = CreateSnapshot(disabledResult, disabledClient);
 
         // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {}
-            }
-            """);
-        Assert.Empty(client.Requests);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_Should_ReturnValidationErrorWithoutSourceRequests_When_EmptySubscriptionIsEnabled()
-    {
-        // arrange
-        var client = new RecordingClient();
-        var executor = await CreateExecutorAsync(client, enableEmptySelectionSets: true);
-
-        // act
-        await using var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New().SetDocument("subscription { }").Build(),
-            TestContext.Current.CancellationToken);
-
-        // assert
-        GetErrorMessages(result).MatchInlineSnapshots(
-        [
-            "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
-            "Subscription operations must have exactly one root field."
-        ]);
-        Assert.Empty(client.Requests);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_Should_ReturnValidationErrorWithoutSourceRequests_When_EmptySelectionSetsAreDisabled()
-    {
-        // arrange
-        var client = new RecordingClient();
-        var executor = await CreateExecutorAsync(client, enableEmptySelectionSets: false);
-
-        // act
-        await using var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New().SetDocument("{ me { } }").Build(),
-            TestContext.Current.CancellationToken);
-
-        // assert
-        GetErrorMessages(result).MatchInlineSnapshots(
-        [
-            "Field \"me\" of type \"User\" must have a selection of subfields. Did you mean \"me { ... }\"?"
-        ]);
-        Assert.Empty(client.Requests);
+        enabledSnapshot.MatchSnapshot(postFix: $"{name}_Enabled");
+        disabledSnapshot.MatchSnapshot(postFix: $"{name}_Disabled");
     }
 
     [Fact]
@@ -138,10 +122,7 @@ public sealed class EmptySelectionSetTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        GetErrorMessages(result).MatchInlineSnapshots(
-        [
-            "Field \"me\" of type \"User\" must have a selection of subfields. Did you mean \"me { ... }\"?"
-        ]);
+        result.ToJson().MatchSnapshot(postFix: "ValidationOverride");
         Assert.Empty(client.Requests);
     }
 
@@ -173,35 +154,22 @@ public sealed class EmptySelectionSetTests : FusionTestBase
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 
-    private static string GetOnlyNestedSelectionName(SourceSchemaClientRequest request)
+    private static string CreateSnapshot(IExecutionResult result, RecordingClient client)
     {
-        var rootSelections = new List<Utf8SelectionNode>();
+        var sourceRequests = string.Join(
+            "\n\n",
+            client.Requests.Select(
+                request => Encoding.UTF8.GetString(request.OperationSourceText.Value.Span)));
 
-        foreach (var operation in request.OperationDocument.GetOperations())
-        {
-            foreach (var selection in operation.SelectionSet.GetSelections())
-            {
-                rootSelections.Add(selection);
-            }
-        }
-
-        var rootField = Assert.Single(rootSelections).GetField();
-        var nestedSelections = new List<Utf8SelectionNode>();
-
-        foreach (var selection in rootField.SelectionSet.GetSelections())
-        {
-            nestedSelections.Add(selection);
-        }
-
-        return Encoding.UTF8.GetString(Assert.Single(nestedSelections).GetField().Utf8Name);
+        return $"{result.ToJson()}\n--- source requests ---\n{sourceRequests}";
     }
-
-    private static IEnumerable<string> GetErrorMessages(IExecutionResult result)
-        => result.ExpectOperationResult().Errors!.Select(error => error.Message);
 
     private sealed class RecordingClient : ISourceSchemaClient
     {
-        private static readonly byte[] s_response = """{"data":{"me":{"__typename":"User"}}}"""u8.ToArray();
+        private static readonly byte[] s_meResponse =
+            """{"data":{"me":{"__typename":"User","name":"Luke"}}}"""u8.ToArray();
+        private static readonly byte[] s_characterResponse =
+            """{"data":{"character":{"__typename":"Bot","name":"Bender"}}}"""u8.ToArray();
         private readonly List<SourceSchemaClientRequest> _requests = [];
 
         public IReadOnlyList<SourceSchemaClientRequest> Requests => _requests;
@@ -216,10 +184,12 @@ public sealed class EmptySelectionSetTests : FusionTestBase
             _requests.Add(request);
             await Task.Yield();
 
+            var response = GetResponse(request);
+
             var document = SourceResultDocument.Parse(
                 context.MemorySource.GetNextArena(),
-                s_response,
-                s_response.Length);
+                response,
+                response.Length);
 
             yield return new SourceSchemaResult(CompactPath.Root, document);
         }
@@ -237,6 +207,22 @@ public sealed class EmptySelectionSetTests : FusionTestBase
             => throw new NotSupportedException();
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        private static byte[] GetResponse(SourceSchemaClientRequest request)
+        {
+            foreach (var operation in request.OperationDocument.GetOperations())
+            {
+                foreach (var selection in operation.SelectionSet.GetSelections())
+                {
+                    if (selection.GetField().Utf8Name.SequenceEqual("character"u8))
+                    {
+                        return s_characterResponse;
+                    }
+                }
+            }
+
+            return s_meResponse;
+        }
     }
 
     private sealed class RecordingClientFactory(RecordingClient client) : ISourceSchemaClientFactory
