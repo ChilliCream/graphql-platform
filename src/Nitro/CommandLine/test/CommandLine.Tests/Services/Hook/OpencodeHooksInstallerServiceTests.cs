@@ -151,7 +151,9 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     /// with <c>Bun.spawn</c> stubbed to capture the payload the shim sends
     /// to the hook process instead of a real CLI process, so the regression
     /// is caught even though the two objects would look identical to a
-    /// purely textual assertion on the template source.
+    /// purely textual assertion on the template source. Fails when
+    /// <c>CI_BUILD</c> is set and node is not found; skips when node is not
+    /// found and <c>CI_BUILD</c> is not set.
     /// </summary>
     [Fact]
     public async Task Build_Should_StripThePrefixFromOutputPartsOnly_When_TheGeneratedShimRunsAChatMessage()
@@ -161,6 +163,11 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
 
         if (node is null)
         {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
             Assert.Skip("node was not found on PATH.");
         }
 
