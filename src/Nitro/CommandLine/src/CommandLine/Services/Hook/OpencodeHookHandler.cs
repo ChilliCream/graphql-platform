@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
@@ -26,6 +25,11 @@ internal sealed class OpencodeHookHandler(
     public async Task<OpencodeHookOutcome> HandleSessionCreatedAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
+        // dryRun has no effect here: unlike ClaudeHookHandler, opencode has
+        // no session-file side channel to skip in a dry run. Retained for
+        // interface parity with the Claude and Codex hook handlers.
+        _ = dryRun;
+
         var resolved = await ResolveAsync(payload, cancellationToken);
 
         if (resolved is null)
@@ -61,6 +65,8 @@ internal sealed class OpencodeHookHandler(
     public async Task<OpencodeHookOutcome> HandleChatMessageAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
+        _ = dryRun; // see HandleSessionCreatedAsync
+
         var resolved = await ResolveAsync(payload, cancellationToken);
 
         if (resolved is null)
@@ -94,33 +100,28 @@ internal sealed class OpencodeHookHandler(
 
         var parts = new List<string>(2);
 
-        try
+        // Claims the durable, atomic first-prompt marker for this session.
+        if (await sessionRegistry.ClaimAnnouncementAsync(resolved.Generation, cancellationToken))
         {
-            // Claims the durable, atomic first-prompt marker for this session.
-            if (await sessionRegistry.ClaimAnnouncementAsync(resolved.Generation, cancellationToken))
-            {
-                parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
-            }
-
-            var digest = await BuildDigestAsync(
-                resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
-
-            if (digest is not null)
-            {
-                parts.Add(digest);
-            }
-
-            return parts.Count == 0 ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { Parts = parts };
+            parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
         }
-        catch (SessionRemovedDuringDeliveryException)
+
+        var digest = await BuildDigestAsync(
+            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
+
+        if (digest is not null)
         {
-            return OpencodeHookOutcome.Neutral;
+            parts.Add(digest);
         }
+
+        return parts.Count == 0 ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { Parts = parts };
     }
 
     public async Task<OpencodeHookOutcome> HandleSessionIdleAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
+        _ = dryRun; // see HandleSessionCreatedAsync
+
         if (environmentVariableProvider.GetEnvironmentVariable("NITRO_HOOK_SUPPRESS") is "1" or "true")
         {
             return OpencodeHookOutcome.Neutral;
@@ -145,48 +146,43 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        try
-        {
-            var unread = await mailStore.QueryInboxAsync(
-                new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
-                cancellationToken);
+        var unread = await mailStore.QueryInboxAsync(
+            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
+            cancellationToken);
 
-            if (unread.Count == 0)
-            {
-                return OpencodeHookOutcome.Neutral;
-            }
-
-            // Claims the durable, atomic one-push-per-idle-transition gate:
-            // false means an earlier idle event in this same transition
-            // already claimed it, so this event is suppressed.
-            if (!await sessionRegistry.ClaimIdlePushAsync(resolved.Generation, cancellationToken))
-            {
-                return OpencodeHookOutcome.Neutral;
-            }
-
-            var digest = await BuildDigestAsync(
-                resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
-
-            if (digest is not null)
-            {
-                return new OpencodeHookOutcome { IdleDelivery = digest };
-            }
-
-            // Nothing was actually reserved (every unread id was already
-            // claimed on the gate channel by another path) - rearm so a
-            // later idle event with fresh mail can still push.
-            await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
-            return OpencodeHookOutcome.Neutral;
-        }
-        catch (SessionRemovedDuringDeliveryException)
+        if (unread.Count == 0)
         {
             return OpencodeHookOutcome.Neutral;
         }
+
+        // Claims the durable, atomic one-push-per-idle-transition gate:
+        // false means an earlier idle event in this same transition
+        // already claimed it, so this event is suppressed.
+        if (!await sessionRegistry.ClaimIdlePushAsync(resolved.Generation, cancellationToken))
+        {
+            return OpencodeHookOutcome.Neutral;
+        }
+
+        var digest = await BuildDigestAsync(
+            resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
+
+        if (digest is not null)
+        {
+            return new OpencodeHookOutcome { IdleDelivery = digest };
+        }
+
+        // Nothing was actually reserved (every unread id was already
+        // claimed on the gate channel by another path) - rearm so a
+        // later idle event with fresh mail can still push.
+        await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+        return OpencodeHookOutcome.Neutral;
     }
 
     public async Task<OpencodeHookOutcome> HandleSessionDeletedAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
+        _ = dryRun; // see HandleSessionCreatedAsync
+
         var resolved = await ResolveAsync(payload, cancellationToken);
 
         if (resolved is not null)
@@ -212,41 +208,21 @@ internal sealed class OpencodeHookHandler(
             return null;
         }
 
-        var reserved = await ReserveAsync(
+        // The reserving INSERT itself is conditioned on the session row
+        // still existing (see SessionDeliveryLedger.ReserveAsync), so a
+        // session deleted concurrently reserves nothing here rather than
+        // raising a foreign-key violation: an empty result reads exactly
+        // like every other already-reserved case below.
+        var reserved = await ledger.ReserveAsync(
             generation,
             unread.Select(static message => message.Id).ToList(),
             channel,
+            timeProvider.GetUtcNow(),
             cancellationToken);
 
         return reserved.Count == 0
             ? null
             : MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
-    }
-
-    private async Task<IReadOnlyList<string>> ReserveAsync(
-        AgentSessionGeneration generation,
-        IReadOnlyList<string> messageIds,
-        string channel,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await ledger.ReserveAsync(
-                generation,
-                messageIds,
-                channel,
-                timeProvider.GetUtcNow(),
-                cancellationToken);
-        }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19 && ex.SqliteExtendedErrorCode == 787)
-        {
-            if (await sessionRegistry.FindByGenerationAsync(generation, cancellationToken) is null)
-            {
-                throw new SessionRemovedDuringDeliveryException();
-            }
-
-            throw;
-        }
     }
 
     private async Task<ResolvedGeneration?> ResolveAsync(
@@ -282,6 +258,4 @@ internal sealed class OpencodeHookHandler(
         AgentSessionGeneration Generation,
         string Cwd,
         string WorkspaceDirectory);
-
-    private sealed class SessionRemovedDuringDeliveryException : Exception;
 }
