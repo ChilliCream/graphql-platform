@@ -404,10 +404,7 @@ internal sealed partial class RequestExecutorManager
 
         OnConfigureSchemaServices(context, serviceCollection, setup);
 
-        BuildDocumentValidator(
-            serviceCollection,
-            setup.CreateSchemaOptions().EnableEmptySelectionSets,
-            setup.OnBuildDocumentValidatorHooks);
+        BuildDocumentValidator(serviceCollection, setup.OnBuildDocumentValidatorHooks);
 
         SchemaBuilder.AddCoreSchemaServices(serviceCollection, lazy);
 
@@ -443,18 +440,19 @@ internal sealed partial class RequestExecutorManager
 
     private static void BuildDocumentValidator(
         IServiceCollection serviceCollection,
-        bool enableEmptySelectionSets,
         IList<Action<IServiceProvider, DocumentValidatorBuilder>> hooks)
     {
         serviceCollection.AddSingleton(sp =>
         {
             var rootServices = sp.GetRootServiceProvider();
+            // The document validator is resolved after the schema is assigned to LazySchema.
+            var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
 
             var builder =
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
                     .AddDefaultRules()
-                    .ModifyOptions(o => o.EnableEmptySelectionSets = enableEmptySelectionSets);
+                    .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
             foreach (var hook in hooks)
             {
