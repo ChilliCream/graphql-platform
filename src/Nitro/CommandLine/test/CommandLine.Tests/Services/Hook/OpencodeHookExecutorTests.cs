@@ -411,4 +411,32 @@ public sealed class OpencodeHookExecutorTests
         Assert.Equal(expectedServerPassword, captured.ServerPassword);
         Assert.Equal(expectedHarnessVersion, captured.HarnessVersion);
     }
+
+    [Fact]
+    public async Task RunAsync_Should_ParseNitroPushed_When_TheFixtureMarksAPushedTurn()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var input = new StringReader(OpencodeHookFixtures.Read("chat-message-pushed.json"));
+        var output = new StringWriter();
+        var error = new StringWriter();
+        OpencodeHookPayload? captured = null;
+
+        // act
+        await OpencodeHookExecutor.RunAsync(
+            new FixedEnvironmentVariableProvider(),
+            input,
+            output,
+            error,
+            (payload, _) =>
+            {
+                captured = payload;
+                return Task.FromResult(OpencodeHookOutcome.Neutral);
+            },
+            cancellationToken);
+
+        // assert
+        Assert.NotNull(captured);
+        Assert.True(captured.NitroPushed);
+    }
 }
