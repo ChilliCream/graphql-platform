@@ -113,6 +113,7 @@ internal sealed partial class DeferExecutionCoordinator
         _completedBranches.Clear();
         _rejectedResultCleanups?.Clear();
         _results.Clear();
+        _isLastResultIncremental = false;
         _branchTracker = null!;
         _hasBranches = false;
         _isComplete = false;

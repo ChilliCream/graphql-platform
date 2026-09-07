@@ -21,8 +21,11 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal(
             [
-                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
-                (Pending: 0, Incremental: 2, Completed: 1, HasNext: false)
+                (Pending: $"{streamBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: "",
+                    Incremental: $"{streamBranchId},{streamBranchId}",
+                    Completed: $"{streamBranchId}",
+                    HasNext: false)
             ],
             DescribePayloads(results));
     }
@@ -48,8 +51,11 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal(
             [
-                (Pending: 2, Incremental: 0, Completed: 0, HasNext: true),
-                (Pending: 0, Incremental: 1, Completed: 2, HasNext: false)
+                (Pending: $"{streamBranchId},{deferBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: "",
+                    Incremental: $"{deferBranchId}",
+                    Completed: $"{streamBranchId},{deferBranchId}",
+                    HasNext: false)
             ],
             DescribePayloads(results));
     }
@@ -124,8 +130,11 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal(
             [
-                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
-                (Pending: 1, Incremental: 2, Completed: 2, HasNext: false)
+                (Pending: $"{streamBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: $"{deferredBranchId}",
+                    Incremental: $"{streamBranchId},{deferredBranchId}",
+                    Completed: $"{deferredBranchId},{streamBranchId}",
+                    HasNext: false)
             ],
             DescribePayloads(results));
     }
@@ -147,8 +156,11 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal(
             [
-                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
-                (Pending: 0, Incremental: 2, Completed: 1, HasNext: false)
+                (Pending: $"{streamBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: "",
+                    Incremental: $"{streamBranchId},{streamBranchId}",
+                    Completed: $"{streamBranchId}",
+                    HasNext: false)
             ],
             DescribePayloads(results));
     }
@@ -171,8 +183,8 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal(
             [
-                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
-                (Pending: 0, Incremental: 0, Completed: 1, HasNext: false)
+                (Pending: $"{streamBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: "", Incremental: "", Completed: $"{streamBranchId}", HasNext: false)
             ],
             DescribePayloads(results));
         var completed = Assert.Single(results[1].Completed);
@@ -204,8 +216,8 @@ public sealed class DeferExecutionCoordinatorTests
         // assert
         Assert.Equal(
             [
-                (Pending: 1, Incremental: 0, Completed: 0, HasNext: true),
-                (Pending: 0, Incremental: 0, Completed: 1, HasNext: false)
+                (Pending: $"{streamBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: "", Incremental: "", Completed: $"{streamBranchId}", HasNext: false)
             ],
             DescribePayloads(results));
     }
@@ -354,6 +366,29 @@ public sealed class DeferExecutionCoordinatorTests
         Assert.Equal(1, lateCleanup.DisposeCount);
     }
 
+    [Fact]
+    public async Task EnqueueResult_Should_DeliverSeparateIncrementalPayload_When_InitialResultIsErrorsOnly()
+    {
+        // arrange
+        var coordinator = CreateCoordinator(out var mainBranchId);
+        var deferBranchId = coordinator.Branch(mainBranchId, Path.Root.Append("details"), new DeferUsage(null, null, 0));
+        var initialResult = new OperationResult([ErrorBuilder.New().SetMessage("boom").Build()]);
+
+        // act
+        coordinator.EnqueueResult(initialResult);
+        await coordinator.EnqueueResult(CreateResult(), deferBranchId);
+        var results = await ReadResultsAsync(coordinator);
+
+        // assert
+        Assert.Equal(
+            [
+                (Pending: $"{deferBranchId}", Incremental: "", Completed: "", HasNext: true),
+                (Pending: "", Incremental: $"{deferBranchId}", Completed: $"{deferBranchId}", HasNext: false)
+            ],
+            DescribePayloads(results));
+        Assert.Null(results[0].Data);
+    }
+
     private static DeferExecutionCoordinator CreateCoordinator(out int mainBranchId)
     {
         var branchTracker = new BranchTracker();
@@ -375,9 +410,13 @@ public sealed class DeferExecutionCoordinatorTests
         return results;
     }
 
-    private static IEnumerable<(int Pending, int Incremental, int Completed, bool? HasNext)> DescribePayloads(
-        IEnumerable<OperationResult> results)
-        => results.Select(t => (t.Pending.Count, t.Incremental.Count, t.Completed.Count, t.HasNext));
+    private static IEnumerable<(string Pending, string Incremental, string Completed, bool? HasNext)>
+        DescribePayloads(IEnumerable<OperationResult> results)
+        => results.Select(
+            t => (string.Join(",", t.Pending.Select(p => p.Id)),
+                string.Join(",", t.Incremental.Select(i => i.Id)),
+                string.Join(",", t.Completed.Select(c => c.Id)),
+                t.HasNext));
 
     private static OperationResult CreateResult(IDisposable? memoryHolder = null)
         => new(

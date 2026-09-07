@@ -26,6 +26,7 @@ internal sealed partial class DeferExecutionCoordinator
     private int _mainBranchId;
     private volatile bool _hasBranches;
     private volatile bool _isComplete;
+    private bool _isLastResultIncremental;
     private int _pendingBranches;
 
 #pragma warning disable IDE0052 // Remove unread private members
@@ -368,6 +369,7 @@ internal sealed partial class DeferExecutionCoordinator
                 snapshot.Clear();
                 snapshot.AddRange(_results);
                 _results.Clear();
+                _isLastResultIncremental = false;
                 isComplete = _isComplete;
             }
 
@@ -600,7 +602,7 @@ internal sealed partial class DeferExecutionCoordinator
 
     private OperationResult GetPayloadUnsafe(OperationResult? streamResult, out bool isNewPayload)
     {
-        if (_results.Count > 0 && _results[^1].Data is null)
+        if (_results.Count > 0 && _isLastResultIncremental)
         {
             isNewPayload = false;
             return _results[^1];
@@ -625,6 +627,7 @@ internal sealed partial class DeferExecutionCoordinator
         if (isNewPayload)
         {
             _results.Add(result);
+            _isLastResultIncremental = isPayloadIncremental;
         }
 
         _isComplete = isComplete;
