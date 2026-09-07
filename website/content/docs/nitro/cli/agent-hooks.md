@@ -129,7 +129,7 @@ Same `--output` option as `install`.
 
 # Opencode
 
-The Opencode integration is a single generated JavaScript plugin, `nitro-hooks.js`, that Opencode auto-loads from its plugin folder. The shim spawns `nitro agent hook opencode <event>` (`session-created`, `session-deleted`, `session-idle`, `chat-message`) as Opencode raises the matching `session.created`, `session.deleted`, and `chat.message` events, and applies the parts the command returns to the current chat output. `session-idle` also fires on a `session.status` event whose `status.type` is `idle`, so either event shape triggers the same delivery.
+The Opencode integration is a single generated JavaScript plugin, `nitro-hooks.js`, that Opencode auto-loads from its plugin folder. The shim spawns `nitro agent hook opencode <event>` (`session-created`, `session-deleted`, `session-idle`, `chat-message`) as Opencode raises the matching `session.created`, `session.deleted`, `session.idle`, and `chat.message` events, and applies the parts the command returns to the current chat output. `session-idle` also fires on a `session.status` event whose `status.type` is `idle`, so either event shape triggers the same delivery.
 
 ## `nitro agent hooks opencode install`
 
