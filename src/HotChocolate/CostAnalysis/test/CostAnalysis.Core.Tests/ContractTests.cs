@@ -4,29 +4,14 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Verifies the cost engine's public contract compiles and every member is
-/// published as a <see cref="NotImplementedException"/> shell, per
-/// hc-3-r2l.1, until a follow-up task fills the implementation.
+/// Verifies the cost engine's public contract compiles and every remaining
+/// unimplemented member is published as a <see cref="NotImplementedException"/>
+/// shell, per hc-3-r2l.1, until a follow-up task fills it in.
+/// <see cref="CostSchemaSnapshot"/> is implemented (hc-3-r2l.2) and covered
+/// by its own Snapshot test suite instead.
 /// </summary>
 public class ContractTests
 {
-    [Fact]
-    public void CostSchemaSnapshot_Should_ThrowNotImplemented_When_Members_Are_Invoked()
-    {
-        // arrange
-        var schema = SchemaParser.Parse("type Query { field: String }");
-        var options = new CostEngineOptions();
-        var snapshot = new CostSchemaSnapshot();
-
-        // act
-        void Create() => CostSchemaSnapshot.Create(schema, options);
-        void Options() => _ = snapshot.Options;
-
-        // assert
-        Assert.Throws<NotImplementedException>(Create);
-        Assert.Throws<NotImplementedException>(Options);
-    }
-
     [Fact]
     public void CostPlan_Should_ThrowNotImplemented_When_Members_Are_Invoked()
     {
@@ -52,7 +37,8 @@ public class ContractTests
     public void CostPlanCompiler_Compile_Should_ThrowNotImplemented_When_Called()
     {
         // arrange
-        var snapshot = new CostSchemaSnapshot();
+        var schema = SchemaParser.Parse("type Query { field: String }");
+        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
         var document = Utf8GraphQLParser.Parse("{ field }");
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
 

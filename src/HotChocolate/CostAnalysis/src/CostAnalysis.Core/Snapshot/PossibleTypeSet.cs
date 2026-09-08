@@ -1,0 +1,97 @@
+using System.Numerics;
+
+namespace HotChocolate.CostAnalysis;
+
+/// <summary>
+/// An order-independent set of object types, represented as a bitset over the
+/// snapshot's dense object-type index, with a fingerprint computed from the
+/// final bit content rather than from insertion order.
+/// </summary>
+internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
+{
+    private readonly ulong[] _words;
+
+    private PossibleTypeSet(ulong[] words, int count, ulong fingerprint)
+    {
+        _words = words;
+        Count = count;
+        Fingerprint = fingerprint;
+    }
+
+    /// <summary>
+    /// Gets the number of object types in this set.
+    /// </summary>
+    public int Count { get; }
+
+    /// <summary>
+    /// Gets a fingerprint over this set's content. Two sets with the same
+    /// members over the same dense index have the same fingerprint,
+    /// regardless of the order their members were supplied in.
+    /// </summary>
+    public ulong Fingerprint { get; }
+
+    /// <summary>
+    /// Determines whether the object type at <paramref name="objectTypeIndex"/>
+    /// (the snapshot's own dense index) belongs to this set.
+    /// </summary>
+    public bool Contains(int objectTypeIndex)
+    {
+        var wordIndex = objectTypeIndex >> 6;
+        return wordIndex < _words.Length
+            && (_words[wordIndex] & (1UL << (objectTypeIndex & 63))) != 0;
+    }
+
+    /// <inheritdoc />
+    public bool Equals(PossibleTypeSet other)
+        => Fingerprint == other.Fingerprint && _words.AsSpan().SequenceEqual(other._words);
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+        => obj is PossibleTypeSet other && Equals(other);
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        => Fingerprint.GetHashCode();
+
+    /// <summary>
+    /// Builds a <see cref="PossibleTypeSet"/> over an object-type dense index
+    /// of size <paramref name="objectTypeCount"/> from the given member
+    /// indices. The result does not depend on the order of
+    /// <paramref name="memberIndices"/>.
+    /// </summary>
+    internal static PossibleTypeSet Create(int objectTypeCount, ReadOnlySpan<int> memberIndices)
+    {
+        var wordCount = (objectTypeCount + 63) >> 6;
+        var words = wordCount == 0 ? [] : new ulong[wordCount];
+
+        foreach (var index in memberIndices)
+        {
+            words[index >> 6] |= 1UL << (index & 63);
+        }
+
+        var count = 0;
+
+        foreach (var word in words)
+        {
+            count += BitOperations.PopCount(word);
+        }
+
+        return new PossibleTypeSet(words, count, ComputeFingerprint(words));
+    }
+
+    private static ulong ComputeFingerprint(ReadOnlySpan<ulong> words)
+    {
+        // FNV-1a over the final word content: a pure function of set
+        // membership, independent of the order bits were set in.
+        const ulong offsetBasis = 14695981039346656037UL;
+        const ulong prime = 1099511628211UL;
+        var hash = offsetBasis;
+
+        foreach (var word in words)
+        {
+            hash = (hash ^ word) * prime;
+        }
+
+        return hash;
+    }
+}
