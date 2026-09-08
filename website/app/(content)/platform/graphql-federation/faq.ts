@@ -50,7 +50,7 @@ export const FEDERATION_FAQ_ITEMS: readonly FederationFaqItem[] = [
     question:
       "Does GraphQL Federation cause N+1 requests between the gateway and subgraphs?",
     answer:
-      "It does not have to. The executor plans a query once, calls independent subgraphs in parallel, and treats batching as a transport concern: variable batching, being added to the GraphQL over HTTP specification, sends one query with a list of variable sets, so a hundred products become one request rather than a hundred lookups. What remains is one extra hop and a plan that most gateways cache after the first request.",
+      "It does not have to. The executor plans a query once, calls independent subgraphs in parallel, and treats batching as a transport concern: variable batching for GraphQL over HTTP sends one query with a list of variable sets, so a hundred products become one request rather than a hundred lookups. What remains is one extra hop and a plan that most gateways cache after the first request.",
   },
   {
     question: "Is GraphQL Federation overkill for a small team?",
