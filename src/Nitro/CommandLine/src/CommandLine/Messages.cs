@@ -92,6 +92,65 @@ internal static class Messages
 
     public const string ForcePushEnabled = "Force push is enabled.";
 
+    public const string ForceUnpublishEnabled = "Force unpublish is enabled.";
+
+    public static string ClientVersionProtected(
+        string tag,
+        IReadOnlyList<ClientUnpublishProtectionRuleKind> protectedBy)
+    {
+        var reasons = protectedBy.Count == 0
+            ? "."
+            : $": {string.Join(", ", protectedBy.Select(ProtectionReason))}.";
+
+        return $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish "
+            + $"is marked as protected{reasons} "
+            + $"Use '{OptionalForceOption.OptionName}' to unpublish it anyway.";
+    }
+
+    public static string ClientRecentTrafficProtectionNotEvaluable(
+        string tag,
+        TimeSpan clientTrafficRequiredWithin)
+        => $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish is protected "
+            + "by a rule that checks that the version no longer receives traffic. The client "
+            + "received no traffic for any version within the last "
+            + $"{FormatDuration(clientTrafficRequiredWithin)}, so the rule could not be evaluated. "
+            + $"Use '{OptionalForceOption.OptionName}' to unpublish it anyway.";
+
+    private static string ProtectionReason(ClientUnpublishProtectionRuleKind kind)
+        => kind switch
+        {
+            ClientUnpublishProtectionRuleKind.MinAge
+                => "it has not yet reached the minimum age",
+            ClientUnpublishProtectionRuleKind.NewestVersions
+                => "it is among the newest published versions",
+            ClientUnpublishProtectionRuleKind.RecentTraffic
+                => "it has received traffic recently",
+            _ => "it is protected by a rule this CLI does not know about"
+        };
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration >= TimeSpan.FromDays(1))
+        {
+            return Pluralize((int)duration.TotalDays, "day");
+        }
+
+        if (duration >= TimeSpan.FromHours(1))
+        {
+            return Pluralize((int)duration.TotalHours, "hour");
+        }
+
+        if (duration >= TimeSpan.FromMinutes(1))
+        {
+            return Pluralize((int)duration.TotalMinutes, "minute");
+        }
+
+        return Pluralize((int)duration.TotalSeconds, "second");
+    }
+
+    private static string Pluralize(int value, string unit)
+        => value == 1 ? $"{value} {unit}" : $"{value} {unit}s";
+
     public const string Validating = "Validating...";
 
     public const string ValidationPassed = "Passed validation.";
