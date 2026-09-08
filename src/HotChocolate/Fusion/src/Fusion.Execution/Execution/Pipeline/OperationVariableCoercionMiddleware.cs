@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
@@ -22,20 +24,42 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationPlan();
-
-        if (operationExecutionPlan is null)
+        if (!context.TryGetNormalizedOperation(out var operation))
         {
             context.Result = ErrorHelper.StateInvalidForVariableCoercion();
             return default;
         }
 
+        // Warmup requests carry no real variable values, and a GraphQL-Cost validate request
+        // that supplies no variables is analyzed with the static-bound path. In both cases
+        // coercion is skipped and the request context's variable values stay empty.
+        if (context.IsWarmupRequest() || IsCostValidationWithoutVariables(context))
+        {
+            return next(context);
+        }
+
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.VariableDefinitions,
+            operation.VariableDefinitions,
             _diagnosticEvents)
             ? next(context)
             : default;
+    }
+
+    private static bool IsCostValidationWithoutVariables(RequestContext context)
+        => context.Request is OperationRequest operationRequest
+            && context.ContextData.ContainsKey(ExecutionContextData.ValidateCost)
+            && HasNoVariableValues(operationRequest.VariableValues);
+
+    private static bool HasNoVariableValues(JsonDocumentOwner? variableValues)
+    {
+        if (variableValues is null)
+        {
+            return true;
+        }
+
+        var root = variableValues.Document.RootElement;
+        return root.ValueKind is not JsonValueKind.Object || root.GetPropertyCount() == 0;
     }
 
     private static bool TryCoerceVariables(

@@ -33,7 +33,7 @@ internal static class ErrorHelper
     public static OperationResult StateInvalidForVariableCoercion()
         => OperationResult.FromError(
             ErrorBuilder.New()
-                .SetMessage("The variable coercion requires an operation execution plan.")
+                .SetMessage("The variable coercion requires a normalized operation document.")
                 .Build());
 
     public static IError InvalidNodeIdFormat(string originalValue)
