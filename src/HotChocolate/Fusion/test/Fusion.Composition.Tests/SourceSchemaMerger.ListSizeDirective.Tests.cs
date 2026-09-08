@@ -368,6 +368,58 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
+    // R-REQUIRE-ONE-DEFAULT: an omitted requireOneSlicingArgument usage contributes the source
+    // definition's own declared default (true here), which then folds true-if-any against a
+    // source that explicitly opts out.
+    [Fact]
+    public void Merge_ListSizeDirectiveRequireOneSlicingArgument_SourceDefaultAppliesBeforeFold_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+
+                directive @listSize(
+                    assumedSize: Int
+                    slicingArguments: [String!]
+                    sizedFields: [String!]
+                    requireOneSlicingArgument: Boolean = true
+                    slicingArgumentDefaultValue: Int
+                ) on FIELD_DEFINITION
+                """,
+                $$"""
+                # Schema B
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5, requireOneSlicingArgument: false)
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 5, requireOneSlicingArgument: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+                @fusion__listSize(
+                  schema: B
+                  assumedSize: 5
+                  requireOneSlicingArgument: false
+                )
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
     private static readonly ListSizeMutableDirectiveDefinition s_listSizeDirective
         = new(BuiltIns.Int.Create(), BuiltIns.String.Create(), BuiltIns.Boolean.Create());
 
