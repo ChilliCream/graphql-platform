@@ -48,8 +48,9 @@ internal sealed class SatisfiabilityFacts
 
     /// <summary>
     /// Determines whether <paramref name="field"/> is resolvable as the entity's own field on
-    /// <paramref name="sourceSchema"/>, that is the field exists there, is not partial, and its
-    /// <c>@require</c> is satisfied. This does not account for reaching
+    /// <paramref name="sourceSchema"/>, that is the field exists there, is not partial, its
+    /// <c>@require</c> is satisfied, and the schema can be re-entered at the type through a
+    /// lookup once the required data has been fetched. This does not account for reaching
     /// <paramref name="sourceSchema"/>; see <see cref="CanTransition"/> for that.
     /// </summary>
     /// <param name="type">The object type declaring the field.</param>

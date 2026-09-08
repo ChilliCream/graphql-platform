@@ -373,7 +373,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
-        AddDocumentValidator(setup, schemaServices);
+        AddDocumentValidator(setup, schemaServices, options);
         AddDiagnosticEvents(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
@@ -457,9 +457,15 @@ internal sealed class FusionRequestExecutorManager
             });
 
         services.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<FusionSchemaDefinition>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+            static sp =>
+            {
+                var requestOptions = sp.GetRequiredService<FusionRequestOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<FusionSchemaDefinition>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    requestOptions.MaxAllowedIncludeConditions,
+                    requestOptions.MaxAllowedDeferConditions);
+            });
 
         services.AddSingleton(plannerOptions);
 
@@ -478,12 +484,14 @@ internal sealed class FusionRequestExecutorManager
 
     private void AddDocumentValidator(
         FusionGatewaySetup setup,
-        IServiceCollection services)
+        IServiceCollection services,
+        FusionOptions options)
     {
         var builder =
             DocumentValidatorBuilder.New()
                 .SetServices(_applicationServices)
-                .AddDefaultRules();
+                .AddDefaultRules()
+                .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
         foreach (var modifier in setup.DocumentValidatorBuilderModifiers)
         {

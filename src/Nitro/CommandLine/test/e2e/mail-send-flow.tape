@@ -23,7 +23,10 @@
 # when the next command starts typing, producing a stray leading character
 # that differs between recordings -- non-determinism this tier exists to
 # avoid, seen even on short single-line commands during this flow's own
-# development. Message ids are minted from wall-clock time
+# development. Each Wait pattern must match text only the just-run command
+# produces: text already on screen (a typed argument, an earlier command's
+# output) satisfies the Wait instantly, and the next Type then races the
+# still-pending output. Message ids are minted from wall-clock time
 # (MailStore.CreateMessageIdAsync) and dates are real `now`, both
 # non-deterministic across recordings; run.sh's mail-send SCRUBS entry
 # normalizes both before diffing. Needs no auth: mail commands do not call
@@ -81,7 +84,7 @@ Wait+Screen@30s /Sent '/
 Sleep 500ms
 
 Type `nitro agent mail inbox --actor bob` Enter
-Wait+Screen@30s /Status/
+Wait+Screen@30s /message\(s\)/
 Sleep 500ms
 
 # Captures the id from bob's own inbox listing (its first column, see
@@ -93,7 +96,7 @@ Wait+Screen@30s /captured m-/
 Sleep 500ms
 
 Type `nitro agent mail reply --message "$MSG_ID" --actor bob --body Thanks-noted` Enter
-Wait+Screen@30s /Sent '/
+Wait+Screen@30s /Sent '[^']+' to alice\./
 Sleep 500ms
 
 # Read as alice (the original sender, and a recipient of bob's reply
@@ -101,7 +104,7 @@ Sleep 500ms
 # oldest first, marks alice's copy of the reply read, and shows alice's
 # "reviewer" role in the first message's From header.
 Type `nitro agent mail read --message "$MSG_ID" --thread --actor alice` Enter
-Wait+Screen@30s /Thanks-noted/
+Wait+Screen@30s /From: bob[\s\S]*Thanks-noted/
 
 Sleep 1500ms
 Screenshot mail-send-flow-final.png

@@ -68,7 +68,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             CombinedEdgeField,
             SelectionPath.Root,
             nodesField,
-            [new FieldSelectionNode(combinedField, 0)],
+            [new FieldSelectionNode(combinedField, default(ConditionFlags))],
             [],
             isProjectionRequirement: false,
             isInternal: true,

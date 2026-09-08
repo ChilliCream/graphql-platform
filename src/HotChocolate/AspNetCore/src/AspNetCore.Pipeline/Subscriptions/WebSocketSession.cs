@@ -42,7 +42,10 @@ internal sealed class WebSocketSession : ISocketSession
         ExecutorSession executorSession,
         GraphQLServerOptions serverOptions)
     {
-        using var connection = new WebSocketConnection(context, executorSession);
+        using var connection = new WebSocketConnection(
+            context,
+            executorSession,
+            serverOptions.Sockets.MaxAllowedMessageSize);
         connection.Features.Set(serverOptions);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,

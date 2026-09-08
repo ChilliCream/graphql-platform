@@ -1355,7 +1355,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "global::{0}.AsSelector<{1}>(args{2}_selection, contexts[0].IncludeFlags),",
+                                "global::{0}.AsSelector<{1}>(args{2}_selection, contexts[0].IncludeConditionFlags),",
                                 WellKnownTypes.HotChocolateExecutionSelectionExtensions,
                                 entityType,
                                 i);
@@ -1849,7 +1849,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     using (Writer.IncreaseIndent())
                     {
                         Writer.WriteIndentedLine(
-                            "global::{0}.AsSelector<{1}>(args{2}_selection, context.IncludeFlags),",
+                            "global::{0}.AsSelector<{1}>(args{2}_selection, context.IncludeConditionFlags),",
                             WellKnownTypes.HotChocolateExecutionSelectionExtensions,
                             entityType,
                             i);

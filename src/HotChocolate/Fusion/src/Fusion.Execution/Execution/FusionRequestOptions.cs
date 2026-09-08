@@ -6,6 +6,7 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class FusionRequestOptions : ICloneable
 {
+    internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private bool _isReadOnly;
 
@@ -108,6 +109,40 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@skip</c>/<c>@include</c>
+    /// conditions an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedIncludeConditions
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = DefaultMaxAllowedConditions;
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
+    /// an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedDeferConditions
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = DefaultMaxAllowedConditions;
+
+    /// <summary>
     /// Gets or sets the persisted operation options.
     /// </summary>
     public PersistedOperationOptions PersistedOperations
@@ -161,6 +196,8 @@ public sealed class FusionRequestOptions : ICloneable
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
             AllowOperationPlanRequests = AllowOperationPlanRequests,
+            MaxAllowedIncludeConditions = MaxAllowedIncludeConditions,
+            MaxAllowedDeferConditions = MaxAllowedDeferConditions,
             PersistedOperations = PersistedOperations,
             IncludeExceptionDetails = IncludeExceptionDetails
         };

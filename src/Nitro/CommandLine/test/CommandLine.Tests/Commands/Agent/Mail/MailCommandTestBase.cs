@@ -53,7 +53,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// additionally wired with the instance id and global config directory
     /// providers <see cref="MailWakePolicy.Enqueue"/> requires, pinned to
     /// <paramref name="instanceId"/> so a directly-enqueued generation lines
-    /// up with a command run under the matching <see cref="SetupInstanceId"/>.
+    /// up with a command run under the matching <see cref="CommandTestBase.SetupInstanceId"/>.
     /// </summary>
     internal MailStore CreateWakeStore(string instanceId)
         => new(
@@ -112,7 +112,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// <summary>
     /// Seeds an alive, explicitly-claimed <c>codex-thread</c> session for
     /// <paramref name="agentName"/> directly against the workspace database,
-    /// on the host id <see cref="SetupInstanceId"/> was pointed at (a test
+    /// on the host id <see cref="CommandTestBase.SetupInstanceId"/> was pointed at (a test
     /// calling this must call that first, so the notifier's own host
     /// resolution matches this row). Used to exercise auto-ping through the
     /// CLI without a live harness process.
@@ -143,7 +143,7 @@ public abstract class MailCommandTestBase : CommandTestBase
 
     /// <summary>
     /// Seeds an alive <c>agent_sessions</c> row directly against the
-    /// workspace database, on the host id <see cref="SetupInstanceId"/> was
+    /// workspace database, on the host id <see cref="CommandTestBase.SetupInstanceId"/> was
     /// pointed at (a test calling this must call that first, so the
     /// notifier's own host resolution matches this row). A null
     /// <paramref name="agentName"/> seeds an unbound row. Used to exercise

@@ -47,7 +47,13 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// <summary>
     /// Gets the selection include flags.
     /// </summary>
+    [Obsolete("Use IncludeConditionFlags instead. This property cannot represent operations with more than 64 conditions.")]
     ulong IncludeFlags { get; }
+
+    /// <summary>
+    /// Gets the include condition flags.
+    /// </summary>
+    ConditionFlags IncludeConditionFlags { get; }
 
     /// <summary>
     /// Gets the previous (parent) resolver result.

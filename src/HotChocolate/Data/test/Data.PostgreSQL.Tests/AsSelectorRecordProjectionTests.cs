@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Linq.Expressions;
 using System.Text.Json;
 using GreenDonut.Data;
@@ -6,7 +7,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 

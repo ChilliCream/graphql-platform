@@ -55,18 +55,32 @@ internal sealed class SelectionExpressionBuilder
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
         Selection selection,
         ulong includeFlags)
-        => BuildExpression<TRoot>(selection, includeFlags, out _);
+        => BuildExpression<TRoot>(selection, includeFlags, wideIncludeFlags: null, out _);
 
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
         Selection selection,
         ulong includeFlags,
+        out ulong dependencyMask)
+        => BuildExpression<TRoot>(selection, includeFlags, wideIncludeFlags: null, out dependencyMask);
+
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags,
+        ulong[]? wideIncludeFlags,
         out ulong dependencyMask)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
         var mask = new DependencyMask();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags, mask);
+        var context = new Context(
+            parameter,
+            rootType,
+            requirements,
+            new NullabilityInfoContext(),
+            includeFlags,
+            wideIncludeFlags,
+            mask);
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -85,18 +99,32 @@ internal sealed class SelectionExpressionBuilder
     public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
         Selection selection,
         ulong includeFlags)
-        => BuildNodeExpression<TRoot>(selection, includeFlags, out _);
+        => BuildNodeExpression<TRoot>(selection, includeFlags, wideIncludeFlags: null, out _);
 
     public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
         Selection selection,
         ulong includeFlags,
+        out ulong dependencyMask)
+        => BuildNodeExpression<TRoot>(selection, includeFlags, wideIncludeFlags: null, out dependencyMask);
+
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags,
+        ulong[]? wideIncludeFlags,
         out ulong dependencyMask)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
         var mask = new DependencyMask();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags, mask);
+        var context = new Context(
+            parameter,
+            rootType,
+            requirements,
+            new NullabilityInfoContext(),
+            includeFlags,
+            wideIncludeFlags,
+            mask);
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -579,7 +607,11 @@ internal sealed class SelectionExpressionBuilder
             // This is the only place that checks include flags.
             // If another check is added, its condition bits must be added to the mask too.
             // Otherwise the selector cache may reuse the wrong expression.
-            if (!selection.IsIncluded(context.IncludeFlags))
+            // Wide operations carry their overflow words in the context and never enter
+            // the selector cache; without them the narrow check throws for wide operations.
+            if (context.WideIncludeFlags is null
+                ? !selection.IsIncludedNarrow(context.IncludeFlags)
+                : !selection.IsIncluded(context.IncludeFlags, context.WideIncludeFlags))
             {
                 continue;
             }
@@ -818,6 +850,7 @@ internal sealed class SelectionExpressionBuilder
         FieldRequirementsMetadata Requirements,
         NullabilityInfoContext NullabilityInfoContext,
         ulong IncludeFlags,
+        ulong[]? WideIncludeFlags,
         DependencyMask Mask)
     {
         public TypeNode? GetRequirements(Selection selection)

@@ -187,7 +187,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -230,7 +230,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -247,7 +247,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             {
                 var type = complexType.Implements[index++];
                 context.AddRuntimeResult(type);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                element.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -265,7 +265,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             {
                 var type = possibleTypes[index++];
                 context.AddRuntimeResult(type);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                element.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -296,7 +296,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(type);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -325,7 +325,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -360,7 +360,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -389,7 +389,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -424,7 +424,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -434,12 +434,12 @@ internal sealed class __Type : ITypeResolverInterceptor
         switch (context.Parent<IType>())
         {
             case ListType lt:
-                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+                context.FieldResult.CreateObjectValue(context.Selection);
                 context.AddRuntimeResult(lt.ElementType);
                 break;
 
             case NonNullType nnt:
-                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+                context.FieldResult.CreateObjectValue(context.Selection);
                 context.AddRuntimeResult(nnt.NullableType);
                 break;
         }

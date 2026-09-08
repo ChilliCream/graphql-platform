@@ -165,6 +165,12 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string WebSocketConnection_MessageTooBig {
+            get {
+                return ResourceManager.GetString("WebSocketConnection_MessageTooBig", resourceCulture);
+            }
+        }
+        
         internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
             get {
                 return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);

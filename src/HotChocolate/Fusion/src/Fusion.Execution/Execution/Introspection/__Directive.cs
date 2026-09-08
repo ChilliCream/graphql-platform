@@ -191,7 +191,7 @@ internal sealed class __Directive : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 
@@ -224,7 +224,7 @@ internal sealed class __Directive : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 

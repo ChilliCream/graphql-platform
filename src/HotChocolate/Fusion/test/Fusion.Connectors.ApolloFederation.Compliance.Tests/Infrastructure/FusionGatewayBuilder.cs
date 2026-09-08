@@ -144,6 +144,12 @@ internal static class FusionGatewayBuilder
     /// <param name="nodeResolution">
     /// Determines how the gateway resolves the <c>Query.node</c> field.
     /// </param>
+    /// <param name="allowNonResolvableInterfaceObjects">
+    /// Allows <c>@interfaceObject</c> stand-ins whose keys are not resolvable.
+    /// </param>
+    /// <param name="shareableFieldRuntimeTypeRouting">
+    /// Determines how runtime types are routed for shareable fields with an abstract result type.
+    /// </param>
     /// <param name="subgraphs">Named subgraph factories.</param>
     public static Task<FusionGateway> ComposeAsync(
         SubgraphRequestCapture? capture,

@@ -1,5 +1,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -57,7 +58,28 @@ public static class HotChocolateDataQueryableExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="selection"/> is <c>null</c>.
     /// </exception>
+    [Obsolete("Use Select<T>(Selection, ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static IQueryable<T> Select<T>(this IQueryable<T> queryable, Selection selection, ulong includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+
+        if (selection.DeclaringOperation.HasWideIncludeFlags)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this projection requires "
+                + "the wide include flags. Use Select<T>(Selection, ConditionFlags).");
+        }
+
+        return Select(queryable, selection, new ConditionFlags(includeFlags));
+    }
+
+    /// <summary>
+    /// Applies a selection to the queryable using runtime condition flags.
+    /// </summary>
+    public static IQueryable<T> Select<T>(
+        this IQueryable<T> queryable,
+        Selection selection,
+        ConditionFlags includeFlags)
     {
         ArgumentNullException.ThrowIfNull(selection);
         return queryable.Select(selection.AsSelector<T>(includeFlags));

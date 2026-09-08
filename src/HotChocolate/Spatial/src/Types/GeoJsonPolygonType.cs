@@ -43,7 +43,7 @@ public sealed class GeoJsonPolygonType
 
             for (var i = 0; i < polygon.InteriorRings.Length; i++)
             {
-                coordinates[i] = polygon.InteriorRings[i].Coordinates;
+                coordinates[i + 1] = polygon.InteriorRings[i].Coordinates;
             }
 
             return coordinates;

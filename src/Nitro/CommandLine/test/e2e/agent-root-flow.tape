@@ -54,7 +54,9 @@ Type "y"
 Sleep 500ms
 Type `echo "agent-root-flow: back at the shell"` Enter
 
-Wait+Screen@30s /agent-root-flow: back at the shell/
+# The typed command line itself contains the sentinel, so the wait requires
+# a second occurrence: the echo's own output line.
+Wait+Screen@30s /agent-root-flow: back at the shell[\s\S]*agent-root-flow/
 Sleep 1500ms
 Screenshot agent-root-flow-final.png
 Sleep 500ms

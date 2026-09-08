@@ -348,24 +348,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid circular reference. The Input Object &apos;{0}&apos; references itself in the non-null field &apos;{1}&apos;..
-        /// </summary>
-        internal static string LogEntryHelper_InputObjectCycle_Direct {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InputObjectCycle_Direct", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid circular reference. The Input Object &apos;{0}&apos; references itself via the non-null fields: {1}..
-        /// </summary>
-        internal static string LogEntryHelper_InputObjectCycle_Indirect {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InputObjectCycle_Indirect", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid circular reference. The default value of Input Object field &apos;{0}&apos; references itself..
         /// </summary>
         internal static string LogEntryHelper_InputObjectDefaultValueCycle_Direct {
@@ -380,6 +362,15 @@ namespace HotChocolate.Properties {
         internal static string LogEntryHelper_InputObjectDefaultValueCycle_Indirect {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InputObjectDefaultValueCycle_Indirect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input Object &apos;{0}&apos; cannot be provided a finite value because it references itself through fields: {1}..
+        /// </summary>
+        internal static string LogEntryHelper_InputObjectUnbreakableCycle {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputObjectUnbreakableCycle", resourceCulture);
             }
         }
         
