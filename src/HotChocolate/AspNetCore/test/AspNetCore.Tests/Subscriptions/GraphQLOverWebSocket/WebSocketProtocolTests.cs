@@ -45,6 +45,36 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             });
 
     [Fact]
+    public async Task Send_Connect_With_Payload_Should_Persist_Payload_In_Connection_Features()
+    {
+        JsonElement payload = default;
+
+        await TryTest(
+            async ct =>
+            {
+                // arrange
+                var interceptor = new ConnectionInitPayloadInterceptor();
+                using var testServer = CreateStarWarsServer(
+                    configureServices: s => s
+                        .AddGraphQLServer()
+                        .AddSocketSessionInterceptor(_ => interceptor));
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+                // act
+                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc" }, ct);
+                await WaitForMessage(webSocket, Messages.ConnectionAccept, ct);
+                await webSocket.SendPingAsync(ct);
+                await WaitForMessage(webSocket, Messages.Pong, ct);
+
+                // assert
+                payload = interceptor.Session!.Connection.Features.Get<JsonElement>();
+            });
+
+        payload.GetRawText().MatchInlineSnapshot("""{"token":"abc"}""");
+    }
+
+    [Fact]
     public Task Send_Multiple_Connect_Messages_Close_Connection()
         => TryTest(
             async ct =>
@@ -1157,6 +1187,26 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
         {
             [JsonPropertyName("token")]
             public string? Token { get; init; }
+        }
+    }
+
+    private sealed class ConnectionInitPayloadInterceptor : DefaultSocketSessionInterceptor
+    {
+        public ISocketSession? Session { get; private set; }
+
+        public override ValueTask<ConnectionStatus> OnConnectAsync(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage,
+            CancellationToken cancellationToken = default)
+        {
+            Session = session;
+
+            if (connectionInitMessage.Payload is { } payload)
+            {
+                session.Connection.Features.Set(payload);
+            }
+
+            return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
         }
     }
 

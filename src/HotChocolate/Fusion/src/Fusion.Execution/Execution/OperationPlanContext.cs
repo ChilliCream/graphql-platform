@@ -47,6 +47,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     private ISourceSchemaClientScope _clientScope = default!;
 #pragma warning restore IDE0370 // Remove unnecessary suppression
+    private ISourceSchemaClientScope? _borrowedClientScope;
     private string? _traceId;
     private long _start;
     private long _clientScopeCreatedAt;
@@ -89,7 +90,24 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.
     /// </summary>
-    public ISourceSchemaClientScope ClientScope => _clientScope;
+    public ISourceSchemaClientScope ClientScope => _borrowedClientScope ?? _clientScope;
+
+    /// <summary>
+    /// Borrows a subscription-owned source schema client scope for the current subscription
+    /// lifetime. The context does not reset or dispose a borrowed scope.
+    /// </summary>
+    internal IDisposable BorrowClientScope(ISourceSchemaClientScope clientScope)
+    {
+        ArgumentNullException.ThrowIfNull(clientScope);
+
+        if (_borrowedClientScope is not null)
+        {
+            throw ThrowHelper.ClientScopeAlreadyBorrowed();
+        }
+
+        _borrowedClientScope = clientScope;
+        return new ClientScopeBorrow(this, clientScope);
+    }
 
     /// <summary>
     /// Gets the memory arena that backs the documents produced during this operation plan execution.
@@ -857,7 +875,9 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         // Reuse the child-fetch scope until it ages out; dispose the retired scope with
         // the last result it served.
-        if (reusable && Stopwatch.GetElapsedTime(_clientScopeCreatedAt) >= s_clientScopeMaxAge)
+        if (_borrowedClientScope is null
+            && reusable
+            && Stopwatch.GetElapsedTime(_clientScopeCreatedAt) >= s_clientScopeMaxAge)
         {
             operationResult.RegisterForCleanup(_clientScope);
             _clientScope = RequestContext.CreateClientScope();
@@ -910,6 +930,30 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
         return ClientScope.GetClient(schemaName, operationType);
+    }
+
+    private void ReturnBorrowedClientScope(ISourceSchemaClientScope clientScope)
+    {
+        if (!ReferenceEquals(_borrowedClientScope, clientScope))
+        {
+            throw ThrowHelper.ClientScopeBorrowNotFound();
+        }
+
+        _borrowedClientScope = null;
+    }
+
+    private sealed class ClientScopeBorrow(
+        OperationPlanContext context,
+        ISourceSchemaClientScope clientScope) : IDisposable
+    {
+        private OperationPlanContext? _context = context;
+        private readonly ISourceSchemaClientScope _clientScope = clientScope;
+
+        public void Dispose()
+        {
+            var context = Interlocked.Exchange(ref _context, null);
+            context?.ReturnBorrowedClientScope(_clientScope);
+        }
     }
 
     /// <summary>

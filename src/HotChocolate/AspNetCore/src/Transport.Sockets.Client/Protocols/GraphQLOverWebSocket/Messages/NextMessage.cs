@@ -1,9 +1,35 @@
+#if FUSION
+using System.Buffers;
+#else
 using System.Buffers;
 using System.Text.Json;
 using HotChocolate.Buffers;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#endif
 
+#if FUSION
+internal sealed class NextMessage(
+    string id,
+    PooledSocketPayload payload) : FusionDataMessage(id, payload)
+{
+    public override string Type => Messages.Next;
+
+    public static NextMessage From(
+        WebSocketMessageLocation location,
+        ArrayPool<byte> pool)
+    {
+        var id = location.Id ?? throw ThrowHelper.MessageHasNoId();
+        return new NextMessage(
+            id,
+            WebSocketMessageParser.CopyPayload(location, pool));
+    }
+}
+#else
 internal sealed class NextMessage : IDataMessage
 {
     private NextMessage(string id, OperationResult payload)
@@ -60,3 +86,4 @@ internal sealed class NextMessage : IDataMessage
             ? property.GetInt32()
             : null;
 }
+#endif

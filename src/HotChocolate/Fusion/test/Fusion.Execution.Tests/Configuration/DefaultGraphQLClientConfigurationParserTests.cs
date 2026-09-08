@@ -16,7 +16,7 @@ namespace HotChocolate.Fusion.Configuration;
 public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 {
     [Fact]
-    public void DefaultGraphQLClientConfigurationParser_Should_Return_False_When_Http_Transport_Missing()
+    public void DefaultGraphQLClientConfigurationParser_Should_Return_False_When_Supported_Transport_Missing()
     {
         // arrange
         var schema = CreateCompositeSchema();
@@ -26,7 +26,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
                 "sourceSchemas": {
                     "a": {
                         "transports": {
-                            "websockets": { "url": "ws://localhost:5000/graphql" }
+                            "xyz": { "url": "xyz://localhost:5000/graphql" }
                         }
                     }
                 }
@@ -81,6 +81,168 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
             Capabilities: Default
             OnError: <null>
             """);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Split_Default_Operations_Between_Http_And_WebSockets()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql"
+                            },
+                            "websockets": {
+                                "url": "ws://localhost:5000/graphql"
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        Assert.Equal(2, configurations!.Length);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configurations![0]);
+        var webSockets = Assert.IsType<WebSocketSourceSchemaClientConfiguration>(configurations[1]);
+        new[] { Summarize(http), Summarize(webSockets) }.MatchInlineSnapshots(
+            [
+                """
+                Name: products
+                HttpClientName: fusion
+                BaseAddress: http://localhost:5000/graphql
+                SupportedOperations: Query, Mutation
+                Capabilities: Default
+                OnError: <null>
+                """,
+                """
+                Name: products
+                Url: ws://localhost:5000/graphql
+                SupportedOperations: Subscription
+                Capabilities: Default
+                """
+            ]);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Default_WebSocketsOnly_Transport_To_All_Operations()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "websockets": {
+                                "url": "ws://localhost:5000/graphql"
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var webSockets = Assert.IsType<WebSocketSourceSchemaClientConfiguration>(
+            Assert.Single(configurations!));
+        Summarize(webSockets).MatchInlineSnapshot(
+            """
+            Name: products
+            Url: ws://localhost:5000/graphql
+            SupportedOperations: All
+            Capabilities: Default
+            """);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Honor_Declared_Operations_And_Batching_Capabilities()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "query": { "supported": false },
+                                "mutation": { "supported": false },
+                                "subscriptions": { "supported": true },
+                                "capabilities": {
+                                    "batching": {
+                                        "variableBatching": false,
+                                        "requestBatching": false,
+                                        "aliasBatching": true
+                                    }
+                                }
+                            },
+                            "websockets": {
+                                "url": "ws://localhost:5000/graphql",
+                                "query": { "supported": true },
+                                "mutation": { "supported": true },
+                                "subscriptions": { "supported": false },
+                                "capabilities": {
+                                    "batching": {
+                                        "variableBatching": true,
+                                        "requestBatching": false,
+                                        "aliasBatching": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        Assert.Equal(2, configurations!.Length);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(configurations![0]);
+        var webSockets = Assert.IsType<WebSocketSourceSchemaClientConfiguration>(configurations[1]);
+        new[] { Summarize(http), Summarize(webSockets) }.MatchInlineSnapshots(
+            [
+                """
+                Name: products
+                HttpClientName: fusion
+                BaseAddress: http://localhost:5000/graphql
+                SupportedOperations: Subscription
+                Capabilities: AliasBatching
+                OnError: <null>
+                """,
+                """
+                Name: products
+                Url: ws://localhost:5000/graphql
+                SupportedOperations: Query, Mutation
+                Capabilities: VariableBatching, AliasBatching
+                """
+            ]);
     }
 
     [Fact]
@@ -591,6 +753,45 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
     }
 
     [Fact]
+    public async Task CreateClientConfigurations_Should_Create_WebSocket_Configuration_When_Http_Transport_Missing()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "websockets": {
+                                "url": "ws://localhost:5000/graphql"
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+        var webSockets = Assert.IsType<WebSocketSourceSchemaClientConfiguration>(queryConfig);
+        Assert.Equal(new Uri("ws://localhost:5000/graphql"), webSockets.Url);
+    }
+
+    [Fact]
     public async Task CreateClientConfigurations_Should_Prefer_User_Parser_Over_Builtin()
     {
         // arrange
@@ -711,6 +912,16 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
             SupportedOperations: {configuration.SupportedOperations}
             Capabilities: {configuration.Capabilities}
             OnError: {configuration.OnError?.ToString() ?? "<null>"}
+            """;
+    }
+
+    private static string Summarize(WebSocketSourceSchemaClientConfiguration configuration)
+    {
+        return $"""
+            Name: {configuration.Name}
+            Url: {configuration.Url}
+            SupportedOperations: {configuration.SupportedOperations}
+            Capabilities: {configuration.Capabilities}
             """;
     }
 

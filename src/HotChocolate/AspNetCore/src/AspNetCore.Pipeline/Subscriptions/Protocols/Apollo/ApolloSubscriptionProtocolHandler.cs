@@ -101,7 +101,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
-                    ? new InitializeConnectionMessage(payload)
+                    ? new InitializeConnectionMessage(payload.Clone())
                     : InitializeConnectionMessage.Default;
 
             var connectionStatus =

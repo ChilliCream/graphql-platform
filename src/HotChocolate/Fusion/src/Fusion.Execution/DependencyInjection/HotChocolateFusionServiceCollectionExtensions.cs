@@ -78,6 +78,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
         services.AddSingleton<ISourceSchemaClientFactory>(
             static sp => new HttpSourceSchemaClientFactory(
                 sp.GetRequiredService<IHttpClientFactory>()));
+        services.AddSingleton<ISourceSchemaClientFactory, WebSocketSourceSchemaClientFactory>();
 
         services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
             static sp => new DefaultSourceSchemaClientScopeFactory(

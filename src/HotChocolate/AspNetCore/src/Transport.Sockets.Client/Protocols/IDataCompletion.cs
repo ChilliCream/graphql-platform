@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 /// <summary>
 /// Represents an abstraction for marking a data stream as completed and sending a data complete
@@ -15,4 +19,10 @@ internal interface IDataCompletion
     /// Tries to send a data complete message to the server.
     /// </summary>
     void TrySendCompleteMessage();
+#if FUSION
+    /// <summary>
+    /// Tries to send a data complete message to the server and waits until it has been sent.
+    /// </summary>
+    ValueTask TrySendCompleteMessageAsync();
+#endif
 }

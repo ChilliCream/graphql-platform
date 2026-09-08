@@ -1,7 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets;
+#else
 namespace HotChocolate.Transport.Sockets;
+#endif
 
 public static class WebSocketExtensions
 {
