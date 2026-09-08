@@ -25,6 +25,29 @@ public sealed class RegoDataProviderIntegrationTests
         allow if {
         """;
 
+    // Textually distinct from FeatureGatedPolicy (an extra "or" branch), so a compile against
+    // this source is only ever mistaken for FeatureGatedPolicy if a stale candidate is used.
+    private const string OverrideGatedPolicy =
+        """
+        package p1
+        import rego.v1
+
+        default allow := false
+        allow if { data.feature.enabled }
+        allow if { data.override.on }
+        """;
+
+    // Only cares about data.a.x, so a two-provider scenario can prove that a rejected candidate
+    // from a different, colliding provider never affects the served result.
+    private const string AGatedPolicy =
+        """
+        package p1
+        import rego.v1
+
+        default allow := false
+        allow if { data.a.x == 1 }
+        """;
+
     [Fact]
     public async Task Startup_Should_StayUnavailable_When_ProviderHasNotCompletedInitialLoad()
     {
@@ -197,6 +220,186 @@ public sealed class RegoDataProviderIntegrationTests
             diagnostics.UpdateErrors.Count + diagnostics.CompilationErrors.Count);
     }
 
+    [Fact]
+    public async Task Startup_Should_StayUnavailableAndReportError_When_ProviderThrowsOnInitialLoad()
+    {
+        // arrange
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":false}}""");
+        provider.Handler = _ => throw new InvalidOperationException("boom");
+        var diagnostics = new TestDiagnosticEvents();
+        var aggregator = CreateAggregator(provider, diagnostics);
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+
+        // act
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+
+        // assert: the provider's first load failed, so the policy set stays unavailable (fail
+        // closed) and the failure is reported through the diagnostics contract.
+        Assert.Null(observer.Current("p1.allow"));
+        var reported = Assert.Single(diagnostics.UpdateErrors);
+        var providerError = Assert.IsType<RegoDataProviderException>(reported);
+        Assert.Equal("feature", providerError.ProviderName);
+    }
+
+    [Fact]
+    public async Task Merge_Should_RecompileWithoutFarRepublish_When_ProviderDataStopsColliding()
+    {
+        // arrange
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":true}}""");
+        var aggregator = CreateAggregator(provider);
+        var diagnostics = new TestDiagnosticEvents();
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+        var beforeCollision = observer.Current("p1.allow")!;
+
+        // act: a FAR data document that collides with the provider's top-level key is kept
+        // pending rather than dropped.
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy, farData: """{"feature":{}}"""));
+        Assert.Same(beforeCollision, observer.Current("p1.allow"));
+        var errorsAfterCollision = diagnostics.UpdateErrors.Count;
+        Assert.True(errorsAfterCollision > 0);
+
+        // act: the provider republishes data that no longer defines the colliding "feature" key,
+        // resolving the collision without the FAR content ever being republished.
+        provider.Publish("""{"orders":{"open":true}}""", "v2");
+
+        // assert: the pending FAR candidate is recompiled against the fixed provider data.
+        var resolved = observer.Current("p1.allow")!;
+        Assert.NotSame(beforeCollision, resolved);
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await resolved.EvaluateAsync(context, TestContext.Current.CancellationToken);
+        Assert.Single(context.DeniedIndices);
+        Assert.Equal(errorsAfterCollision, diagnostics.UpdateErrors.Count);
+    }
+
+    [Fact]
+    public async Task Merge_Should_Recompile_When_FarRepublishNoLongerCollides()
+    {
+        // arrange
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":true}}""");
+        var aggregator = CreateAggregator(provider);
+        var diagnostics = new TestDiagnosticEvents();
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+        var beforeCollision = observer.Current("p1.allow");
+        Assert.NotNull(beforeCollision);
+
+        // act: a FAR data document that collides with the provider's top-level key is kept
+        // pending rather than dropped.
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy, farData: """{"feature":{}}""", digest: "d2"));
+        Assert.NotEmpty(diagnostics.UpdateErrors);
+        Assert.Same(beforeCollision, observer.Current("p1.allow"));
+
+        // act: a fresh FAR publish that no longer collides replaces the pending candidate.
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy, farData: "{}", digest: "d3"));
+
+        // assert
+        var resolved = observer.Current("p1.allow")!;
+        Assert.NotSame(beforeCollision, resolved);
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await resolved.EvaluateAsync(context, TestContext.Current.CancellationToken);
+        Assert.Empty(context.DeniedIndices);
+    }
+
+    [Fact]
+    public async Task Merge_Should_KeepProviderLastGood_When_ItsRefreshCollidesWithAnotherProvider()
+    {
+        // arrange: two providers, each contributing a distinct top-level key that does not
+        // collide with the other or with the (empty) FAR data document.
+        var providerA = new InMemoryRegoDataProvider("""{"a":{"x":1}}""");
+        var providerB = new InMemoryRegoDataProvider("""{"b":{"y":1}}""");
+        var diagnostics = new TestDiagnosticEvents();
+        var aggregator = CreateAggregator(
+            [
+                new RegoDataProviderRegistration("a", _ => providerA, ownsInstance: false),
+                new RegoDataProviderRegistration("b", _ => providerB, ownsInstance: false)
+            ],
+            diagnostics);
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        // The initial data merges cleanly: provider "a" contributes x == 1, so the policy allows.
+        policyProvider.OnNext(Snapshot(AGatedPolicy));
+
+        // act: provider "a" republishes data that redefines its own key AND collides with
+        // provider "b"'s top-level key.
+        providerA.Publish("""{"a":{"x":2},"b":{"conflict":true}}""", "v2");
+
+        // assert: the collision is reported against provider "a", and its last-good snapshot
+        // (x == 1) stays in use - the whole colliding candidate is rejected, not merged partially.
+        var reported = Assert.Single(diagnostics.UpdateErrors);
+        Assert.Equal("a", ((RegoDataProviderException)reported).ProviderName);
+
+        var afterCollision = observer.Current("p1.allow")!;
+        var afterCollisionContext =
+            new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await afterCollision.EvaluateAsync(afterCollisionContext, TestContext.Current.CancellationToken);
+        Assert.Empty(afterCollisionContext.DeniedIndices);
+
+        // act: provider "a" fixes its data so it no longer collides with provider "b".
+        providerA.Publish("""{"a":{"x":2}}""", "v3");
+
+        // assert: the new (non-colliding) data is now in effect.
+        var resolved = observer.Current("p1.allow")!;
+        var resolvedContext = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await resolved.EvaluateAsync(resolvedContext, TestContext.Current.CancellationToken);
+        Assert.Single(resolvedContext.DeniedIndices);
+        Assert.Single(diagnostics.UpdateErrors);
+    }
+
+    [Fact]
+    public async Task Invariant_Should_ServeNewestCleanlyMergedCombination_When_FarAndProviderCandidatesInterleave()
+    {
+        // arrange
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":true}}""");
+        var aggregator = CreateAggregator(provider);
+        var diagnostics = new TestDiagnosticEvents();
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+
+        // V1: FAR is the feature-gated policy, the provider enables the feature.
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+        var v1 = observer.Current("p1.allow")!;
+
+        // act: a FAR candidate that fails to compile is dropped; the last-good (V1's code) stays
+        // published.
+        policyProvider.OnNext(Snapshot(BrokenPolicy, digest: "broken"));
+        Assert.Same(v1, observer.Current("p1.allow"));
+
+        // act: a provider refresh recompiles the LAST-GOOD FAR code against fresh data - never
+        // the dropped broken candidate.
+        provider.Publish("""{"feature":{"enabled":false}}""", "v2");
+        var v2 = observer.Current("p1.allow")!;
+        Assert.NotSame(v1, v2);
+
+        // act: a new, textually distinct FAR candidate (adds an "override" rule) compiles cleanly
+        // but its data collides with the provider's current top-level key; it is kept pending and
+        // the served set stays on V2.
+        policyProvider.OnNext(Snapshot(OverrideGatedPolicy, farData: """{"feature":{}}""", digest: "p2"));
+        Assert.Same(v2, observer.Current("p1.allow"));
+
+        // act: the provider then republishes data that no longer collides. The served set must
+        // reflect the NEWEST valid combination - the pending "override" FAR candidate merged with
+        // the provider's newest data - never V1's code (already superseded) or the provider's
+        // earlier data.
+        provider.Publish("""{"override":{"on":true}}""", "v3");
+
+        // assert: a stale candidate (V1/V2's code, which has no "override" rule, or the provider's
+        // earlier data, which would still collide with "feature") could never produce this result.
+        var v3 = observer.Current("p1.allow")!;
+        Assert.NotSame(v2, v3);
+        var v3Context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await v3.EvaluateAsync(v3Context, TestContext.Current.CancellationToken);
+        Assert.Empty(v3Context.DeniedIndices);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
@@ -214,12 +417,21 @@ public sealed class RegoDataProviderIntegrationTests
         throw new TimeoutException("The condition was not met in time.");
     }
 
-    private static RegoDataAggregator CreateAggregator(IRegoDataProvider provider)
+    private static RegoDataAggregator CreateAggregator(
+        IRegoDataProvider provider,
+        TestDiagnosticEvents? diagnostics = null)
+        => CreateAggregator(
+            [new RegoDataProviderRegistration("feature", _ => provider, ownsInstance: false)],
+            diagnostics);
+
+    private static RegoDataAggregator CreateAggregator(
+        IReadOnlyList<RegoDataProviderRegistration> registrations,
+        TestDiagnosticEvents? diagnostics = null)
     {
         var aggregator = new RegoDataAggregator(
-            [new RegoDataProviderRegistration("feature", _ => provider, ownsInstance: false)],
+            registrations,
             EmptyServiceProvider.Instance,
-            new TestDiagnosticEvents(),
+            diagnostics ?? new TestDiagnosticEvents(),
             Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
         aggregator.Start();
         return aggregator;

@@ -40,12 +40,15 @@ public sealed class RegoPolicyProvider
     private byte[]? _data;
 
     // The candidate a rebuild attempt is currently working towards. Set at the start of every
-    // rebuild attempt and retained only while it is still waiting on a data provider's initial
-    // load, so a provider-driven retry (once every provider has finished loading) resumes with
-    // the same FAR content the attempt was started with, rather than the last committed one. A
-    // candidate that fails to merge or compile is cleared immediately: it never survives across a
-    // failed attempt, so the next provider update recompiles the last committed pair against the
-    // fresh data instead of re-reporting the same broken candidate.
+    // rebuild attempt. It is retained (kept pending) while it is still waiting on a data
+    // provider's initial load, or once its data (merged before compiling) collides with the
+    // current provider data: a provider-driven retry or the next FAR publish (which replaces this
+    // candidate) then re-attempts the merge against fresh data, so a provider-side fix resolves
+    // the collision without a FAR republish, and the last-good set keeps serving meanwhile. A
+    // candidate that fails to COMPILE is cleared immediately instead: it never survives across a
+    // failed compile, so a provider refresh recompiles the last committed (last-good) FAR content
+    // rather than the broken one, and an identical FAR re-send is retried rather than silently
+    // suppressed.
     private Dictionary<string, PolicyContent>? _pendingContents;
     private byte[]? _pendingData;
 
@@ -233,9 +236,12 @@ public sealed class RegoPolicyProvider
                     return;
 
                 case RegoDataMergeStatus.Failed:
+                    // The candidate's data collides with the current provider data: keep it
+                    // pending rather than dropping it, so a provider-side fix (on its next
+                    // refresh) or the next FAR publish (which replaces this candidate) retries
+                    // the merge. Every failed attempt is reported here, so the diagnostic is
+                    // never suppressed.
                     _diagnosticEvents.PolicyUpdateError(mergeError!);
-                    _pendingContents = null;
-                    _pendingData = null;
                     return;
 
                 case RegoDataMergeStatus.Ready:
