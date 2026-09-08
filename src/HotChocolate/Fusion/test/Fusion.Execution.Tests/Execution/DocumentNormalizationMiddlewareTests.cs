@@ -121,4 +121,67 @@ public class DocumentNormalizationMiddlewareTests : FusionTestBase
         Assert.Equal(3, normalizedDocuments.Count);
         Assert.Same(normalizedDocuments[1], normalizedDocuments[2]);
     }
+
+    [Fact]
+    public async Task Normalized_Body_Should_Be_Rewritten_When_Document_Has_Multiple_Operations()
+    {
+        // arrange
+        var normalizedDocuments = new List<DocumentNode>();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .UseRequest(
+                (_, _) => context =>
+                {
+                    // capture the normalized operation once it survived document normalization,
+                    // the plan cache lookup and planning, then short-circuit before execution
+                    // reaches out to a (non-existent) source schema client.
+                    normalizedDocuments.Add(context.GetNormalizedDocument());
+                    context.Result =
+                        new OperationResult(ImmutableOrderedDictionary<string, object?>.Empty.Add("probe", true));
+                    return ValueTask.CompletedTask;
+                },
+                before: WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                      bar: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var documentHash = new OperationDocumentHash("multi-op-hash", "test", HashFormat.Hex);
+
+        IOperationRequest CreateRequest(string operationName)
+            => OperationRequestBuilder.New()
+                .SetDocument("query A { foo } query B { bar }")
+                .SetDocumentHash(documentHash)
+                .SetOperationName(operationName)
+                .Build();
+
+        // act
+        // requests for operation A must never leak a cached normalized body into a later
+        // request for operation B on the same (multi-operation) document.
+        var resultA1 = await executor.ExecuteAsync(CreateRequest("A"), TestContext.Current.CancellationToken);
+        var resultA2 = await executor.ExecuteAsync(CreateRequest("A"), TestContext.Current.CancellationToken);
+        var resultB = await executor.ExecuteAsync(CreateRequest("B"), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(resultA1.ExpectOperationResult().Errors ?? []);
+        Assert.Empty(resultA2.ExpectOperationResult().Errors ?? []);
+        Assert.Empty(resultB.ExpectOperationResult().Errors ?? []);
+        Assert.Equal(3, normalizedDocuments.Count);
+        normalizedDocuments[2].MatchInlineSnapshot(
+            """
+            query B {
+              bar
+            }
+            """);
+    }
 }
