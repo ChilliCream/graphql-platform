@@ -31,13 +31,12 @@ internal static class ListSizeResolver
     /// </summary>
     /// <param name="isListField">
     /// Whether the field's own return type is a list. A non-list field
-    /// always resolves to 1.0 without consulting <paramref name="metadata"/>,
-    /// an annotation never sizes its own field when that field is not
-    /// itself a list.
+    /// always resolves to 1.0.
     /// </param>
     /// <param name="metadata">
     /// The field's own <c>@listSize</c> metadata, or <see langword="null"/>
-    /// when the field carries no usage.
+    /// when the field carries no usage. An annotation whose
+    /// <c>sizedFields</c> is non-empty never sizes its own field.
     /// </param>
     /// <param name="inheritedSizes">
     /// The sizes inherited from every possible parent object type whose
@@ -52,7 +51,8 @@ internal static class ListSizeResolver
     /// <param name="variableValues">
     /// Resolves a slicing argument's coerced variable value, or
     /// <see langword="null"/> for the static bound, where a variable-bound
-    /// slicing argument is never resolved.
+    /// slicing argument reads its <c>assumedSize</c>, else the default list
+    /// size, instead of being coerced.
     /// </param>
     /// <param name="defaultListSize">
     /// The engine's fallback list size.
@@ -93,10 +93,18 @@ internal static class ListSizeResolver
             return defaultListSize;
         }
 
+        if (metadata.SizedFields.Length > 0)
+        {
+            return defaultListSize;
+        }
+
+        var staticFallback = metadata.AssumedSize ?? defaultListSize;
+
         if (TryResolveSlicingArgumentValue(
                 metadata.SlicingArguments,
                 slicingArguments,
                 variableValues,
+                staticFallback,
                 out var slicingValue))
         {
             return Clamp0(slicingValue);
@@ -119,6 +127,7 @@ internal static class ListSizeResolver
         ImmutableArray<string> slicingArgumentNames,
         IReadOnlyDictionary<string, SlicingArgumentValue> slicingArguments,
         ICostVariableValues? variableValues,
+        double staticFallback,
         out double value)
     {
         var found = false;
@@ -127,7 +136,7 @@ internal static class ListSizeResolver
         foreach (var name in slicingArgumentNames)
         {
             if (!slicingArguments.TryGetValue(name, out var argument)
-                || !TryResolveArgumentValue(argument, variableValues, out var argumentValue))
+                || !TryResolveArgumentValue(argument, variableValues, staticFallback, out var argumentValue))
             {
                 continue;
             }
@@ -148,11 +157,15 @@ internal static class ListSizeResolver
     /// Resolves one slicing argument's numeric value after coercion. An
     /// omitted argument or an undefined variable falls back to the schema
     /// default; an explicit null, literal or variable-bound, is present but
-    /// not numeric and so suppresses that fallback (R-NULL-VARIABLE).
+    /// not numeric and so suppresses that fallback (R-NULL-VARIABLE). A
+    /// variable-bound slicing argument reads <paramref name="staticFallback"/>
+    /// on the static path, where <paramref name="variableValues"/> is
+    /// <see langword="null"/>, instead of the schema default.
     /// </summary>
     private static bool TryResolveArgumentValue(
         SlicingArgumentValue argument,
         ICostVariableValues? variableValues,
+        double staticFallback,
         out double value)
     {
         var effective = argument.SuppliedValue;
@@ -163,10 +176,15 @@ internal static class ListSizeResolver
         }
         else if (effective is VariableNode variable)
         {
-            effective = variableValues is not null
-                && variableValues.TryGetValue(variable.Name.Value, out var coerced)
-                    ? coerced
-                    : argument.SchemaDefaultValue;
+            if (variableValues is null)
+            {
+                value = staticFallback;
+                return true;
+            }
+
+            effective = variableValues.TryGetValue(variable.Name.Value, out var coerced)
+                ? coerced
+                : argument.SchemaDefaultValue;
         }
 
         return TryReadNumber(effective, out value);
