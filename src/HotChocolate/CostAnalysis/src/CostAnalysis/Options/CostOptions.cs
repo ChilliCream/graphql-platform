@@ -75,4 +75,28 @@ public sealed class CostOptions
     /// Gets the cost defaults for sorting.
     /// </summary>
     public SortCostOptions Sorting { get; } = new();
+
+    /// <summary>
+    /// Gets or sets the assumed size of a list field that has no applicable
+    /// <c>@listSize</c> information. <see cref="double.PositiveInfinity"/> by default.
+    /// </summary>
+    public double DefaultListSize { get; set; } = double.PositiveInfinity;
+
+    /// <summary>
+    /// Gets or sets the maximum number of compiled cost plans cached per schema.
+    /// <c>256</c> by default.
+    /// </summary>
+    public int CostPlanCacheSize { get; set; } = 256;
+
+    /// <summary>
+    /// Gets or sets the maximum allowed response size. <c>null</c> disables the check.
+    /// <c>null</c> by default.
+    /// </summary>
+    public double? MaxResponseSize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of exact cases the cost engine evaluates
+    /// for a single operation. <c>null</c> uses the cost engine's default budget.
+    /// </summary>
+    public int? CaseBudget { get; set; }
 }
