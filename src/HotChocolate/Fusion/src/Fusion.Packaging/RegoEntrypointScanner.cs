@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Packaging;
 /// provider (which uses it to derive the decisions a compiled module exposes), so decision discovery
 /// is defined in exactly one place.
 /// </summary>
-public static class RegoEntrypointScanner
+internal static class RegoEntrypointScanner
 {
     public static List<string> Scan(string source)
     {

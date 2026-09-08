@@ -459,7 +459,9 @@ public sealed class FusionArchive : IDisposable
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the policy or requirements are empty.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only or the format version is already a manifest-indexed bundle.
+    /// </exception>
     public async Task SetRegoPolicyAsync(
         string policyName,
         ReadOnlyMemory<byte> policy,
@@ -473,6 +475,11 @@ public sealed class FusionArchive : IDisposable
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(requirements.Length, 0);
         ObjectDisposedException.ThrowIf(_disposed, this);
         EnsureMutable();
+
+        if (ReadRegoPolicyBundleVersions().Contains(version))
+        {
+            throw ThrowHelper.RegoPolicyPairVersionIsBundle(version);
+        }
 
         if (!HasRegoPolicyRequirementsPrefix(requirements.Span))
         {
@@ -993,7 +1000,7 @@ public sealed class FusionArchive : IDisposable
 
                 if (!referencedPaths.Add(modulePath))
                 {
-                    throw ThrowHelper.RegoPolicyBundlePathCollision(modulePath);
+                    throw ThrowHelper.RegoPolicyBundleManifestPathCollision(modulePath);
                 }
 
                 expectedHashKeys.Add(modulePath);
@@ -1059,7 +1066,7 @@ public sealed class FusionArchive : IDisposable
 
                 if (!referencedPaths.Add(requirementsPath))
                 {
-                    throw ThrowHelper.RegoPolicyBundlePathCollision(requirementsPath);
+                    throw ThrowHelper.RegoPolicyBundleManifestPathCollision(requirementsPath);
                 }
 
                 expectedHashKeys.Add(requirementsPath);
@@ -1111,7 +1118,7 @@ public sealed class FusionArchive : IDisposable
 
             if (!referencedPaths.Add(library.Path))
             {
-                throw ThrowHelper.RegoPolicyBundlePathCollision(library.Path);
+                throw ThrowHelper.RegoPolicyBundleManifestPathCollision(library.Path);
             }
 
             var sha256 = ImmutableSortedDictionary.CreateRange(
@@ -1341,7 +1348,8 @@ public sealed class FusionArchive : IDisposable
     /// </exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when the archive is read-only or the mount conflicts with an existing mount.
+    /// Thrown when the archive is read-only, the format version is already a manifest-indexed bundle,
+    /// or the mount conflicts with an existing mount.
     /// </exception>
     public async Task SetRegoDataAsync(
         string mountPath,
@@ -1366,6 +1374,11 @@ public sealed class FusionArchive : IDisposable
 
         var segments = ValidateRegoDataMountPath(mountPath);
         EnsureMutable();
+
+        if (ReadRegoPolicyBundleVersions().Contains(formatVersion))
+        {
+            throw ThrowHelper.RegoPolicyPairVersionIsBundle(formatVersion);
+        }
 
         using var document = ParseRegoDataObject(data);
         await EnsureNoRegoDataConflictAsync(

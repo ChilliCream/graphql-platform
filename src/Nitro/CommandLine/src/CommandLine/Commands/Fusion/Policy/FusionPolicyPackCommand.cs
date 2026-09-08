@@ -76,7 +76,7 @@ internal sealed class FusionPolicyPackCommand : Command
         }
         else
         {
-            ExtractBundleToDirectory(farPath, outPath, WellKnownVersions.RegoPolicyBundleFormatVersion);
+            ExtractBundleToDirectory(fileSystem, farPath, outPath, WellKnownVersions.RegoPolicyBundleFormatVersion);
             fileSystem.DeleteFile(farPath);
 
             console.Success(
@@ -143,10 +143,17 @@ internal sealed class FusionPolicyPackCommand : Command
                     await fileSystem.ReadAllBytesAsync(file, cancellationToken)));
             }
 
+            // Assigning the ternary's byte[] branch straight into a ReadOnlyMemory<byte>? would take the
+            // implicit byte[]-to-ReadOnlyMemory<byte> conversion on the null branch too, producing a
+            // "has value" empty memory instead of an actually-absent value; the requirements are only
+            // ever wrapped once the file is known to exist.
             var requirementsFile = Path.Combine(root, package + ".graphql");
-            ReadOnlyMemory<byte>? requirements = fileSystem.FileExists(requirementsFile)
-                ? await fileSystem.ReadAllBytesAsync(requirementsFile, cancellationToken)
-                : null;
+            ReadOnlyMemory<byte>? requirements = null;
+
+            if (fileSystem.FileExists(requirementsFile))
+            {
+                requirements = await fileSystem.ReadAllBytesAsync(requirementsFile, cancellationToken);
+            }
 
             packages.Add(new RegoPolicyBundlePackage(package, modules.ToImmutable(), requirements));
         }
@@ -169,12 +176,14 @@ internal sealed class FusionPolicyPackCommand : Command
 
     // Extracts the bundle's packaged tree (policies/rego/<version>/**) from the .far this command just
     // built into a plain directory, reusing the exact bytes SetRegoPolicyBundleAsync wrote rather than
-    // re-deriving the manifest, so there is no second, possibly diverging, packaging code path.
-    private static void ExtractBundleToDirectory(string farPath, string outputDirectory, Version version)
+    // re-deriving the manifest, so there is no second, possibly diverging, packaging code path. Every
+    // directory and file write goes through IFileSystem so the command stays testable against a fake.
+    private static void ExtractBundleToDirectory(
+        IFileSystem fileSystem, string farPath, string outputDirectory, Version version)
     {
         var prefix = $"policies/rego/{version}/";
 
-        using var fileStream = File.OpenRead(farPath);
+        using var fileStream = fileSystem.OpenReadStream(farPath);
         using var zip = new ZipArchive(fileStream, ZipArchiveMode.Read);
 
         foreach (var entry in zip.Entries)
@@ -189,12 +198,14 @@ internal sealed class FusionPolicyPackCommand : Command
             var destination = Path.Combine(outputDirectory, relative.Replace('/', Path.DirectorySeparatorChar));
             var destinationDirectory = Path.GetDirectoryName(destination);
 
-            if (!string.IsNullOrEmpty(destinationDirectory))
+            if (!string.IsNullOrEmpty(destinationDirectory) && !fileSystem.DirectoryExists(destinationDirectory))
             {
-                Directory.CreateDirectory(destinationDirectory);
+                fileSystem.CreateDirectory(destinationDirectory);
             }
 
-            entry.ExtractToFile(destination, overwrite: true);
+            using var entryStream = entry.Open();
+            using var destinationStream = fileSystem.CreateFile(destination);
+            entryStream.CopyTo(destinationStream);
         }
     }
 

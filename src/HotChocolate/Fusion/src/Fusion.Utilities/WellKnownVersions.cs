@@ -5,12 +5,6 @@ public static class WellKnownVersions
     public static readonly Version LatestGatewayFormatVersion = new(2, 0, 0);
 
     /// <summary>
-    /// The flat policy-pair Rego format: one <c>&lt;name&gt;.rego</c> / <c>&lt;name&gt;.graphql</c>
-    /// pair per policy, with no manifest.
-    /// </summary>
-    public static readonly Version RegoPolicyPairFormatVersion = new(1, 0, 0);
-
-    /// <summary>
     /// The manifest-indexed Rego bundle format: <c>policies/rego/2.0.0/manifest.json</c> plus
     /// package modules, shared library modules, and a single root data mount.
     /// </summary>

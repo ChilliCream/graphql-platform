@@ -32,7 +32,7 @@ public class PackagePolicyContentReaderTests
     }
 
     [Fact]
-    public async Task ReadAsync_Should_ReadBundle_When_ArchiveHasBundleFormat()
+    public async Task ReadAsync_Should_ReadBundlePolicy_When_ArchiveHasBundleFormat()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
@@ -48,7 +48,22 @@ public class PackagePolicyContentReaderTests
         var policy = Assert.Single(snapshot.Policies);
         Assert.Equal("cart", policy.Name);
         Assert.Equal(CartAllowSource, Encoding.UTF8.GetString(policy.Source.Span));
-        var library = Assert.Single(snapshot.Libraries);
+        snapshot.Dispose();
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_ReadBundleLibrary_When_ArchiveHasBundleFormat()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        await using var stream = await BuildBundleArchiveAsync(ct);
+        using var archive = FusionArchive.Open(stream, leaveOpen: true);
+
+        // act
+        var snapshot = await PackagePolicyContentReader.ReadAsync(archive, s_bundleVersion, ct);
+
+        // assert
+        var library = Assert.Single(snapshot!.Libraries);
         Assert.Equal("lib/rbac.rego", library.Name);
         snapshot.Dispose();
     }

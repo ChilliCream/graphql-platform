@@ -89,14 +89,13 @@ internal static class RegoPolicyBundleManifestSerializer
             throw new JsonException("Invalid Rego policy bundle manifest format.");
         }
 
-        var formatVersionProp = root.GetProperty("formatVersion");
-        if (formatVersionProp.ValueKind is not JsonValueKind.Number)
+        if (!root.TryGetProperty("formatVersion", out var formatVersionProp)
+            || formatVersionProp.ValueKind is not JsonValueKind.Number)
         {
             throw new JsonException("The Rego policy bundle manifest must contain a formatVersion property.");
         }
 
-        var policiesProp = root.GetProperty("policies");
-        if (policiesProp.ValueKind is not JsonValueKind.Array)
+        if (!root.TryGetProperty("policies", out var policiesProp) || policiesProp.ValueKind is not JsonValueKind.Array)
         {
             throw new JsonException("The Rego policy bundle manifest must contain a policies array.");
         }
@@ -108,8 +107,8 @@ internal static class RegoPolicyBundleManifestSerializer
             policies.Add(ParsePolicy(policyElement));
         }
 
-        var librariesProp = root.GetProperty("libraries");
-        if (librariesProp.ValueKind is not JsonValueKind.Array)
+        if (!root.TryGetProperty("libraries", out var librariesProp)
+            || librariesProp.ValueKind is not JsonValueKind.Array)
         {
             throw new JsonException("The Rego policy bundle manifest must contain a libraries array.");
         }
@@ -148,8 +147,7 @@ internal static class RegoPolicyBundleManifestSerializer
         var package = GetRequiredString(element, "package");
         var entrypoint = GetRequiredString(element, "entrypoint");
 
-        var modulesProp = element.GetProperty("modules");
-        if (modulesProp.ValueKind is not JsonValueKind.Array)
+        if (!element.TryGetProperty("modules", out var modulesProp) || modulesProp.ValueKind is not JsonValueKind.Array)
         {
             throw new JsonException($"The Rego policy bundle manifest policy '{name}' must contain a modules array.");
         }
@@ -168,8 +166,7 @@ internal static class RegoPolicyBundleManifestSerializer
                 ?? throw new JsonException("Invalid requirements path.");
         }
 
-        var sha256Prop = element.GetProperty("sha256");
-        if (sha256Prop.ValueKind is not JsonValueKind.Object)
+        if (!element.TryGetProperty("sha256", out var sha256Prop) || sha256Prop.ValueKind is not JsonValueKind.Object)
         {
             throw new JsonException($"The Rego policy bundle manifest policy '{name}' must contain a sha256 object.");
         }
@@ -177,7 +174,17 @@ internal static class RegoPolicyBundleManifestSerializer
         var sha256 = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
         foreach (var entry in sha256Prop.EnumerateObject())
         {
-            sha256.Add(entry.Name, entry.Value.GetString() ?? throw new JsonException("Invalid digest."));
+            var digest = entry.Value.GetString() ?? throw new JsonException("Invalid digest.");
+
+            if (!sha256.ContainsKey(entry.Name))
+            {
+                sha256.Add(entry.Name, digest);
+                continue;
+            }
+
+            throw new JsonException(
+                $"The Rego policy bundle manifest policy '{name}' lists the sha256 key '{entry.Name}' "
+                + "more than once.");
         }
 
         return new RegoPolicyBundleManifestPolicy
@@ -207,9 +214,7 @@ internal static class RegoPolicyBundleManifestSerializer
 
     private static string GetRequiredString(JsonElement element, string propertyName)
     {
-        var prop = element.GetProperty(propertyName);
-
-        if (prop.ValueKind is not JsonValueKind.String)
+        if (!element.TryGetProperty(propertyName, out var prop) || prop.ValueKind is not JsonValueKind.String)
         {
             throw new JsonException($"The '{propertyName}' property must be a string.");
         }

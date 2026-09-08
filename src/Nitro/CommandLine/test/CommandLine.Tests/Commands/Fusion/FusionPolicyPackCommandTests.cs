@@ -96,6 +96,48 @@ public sealed class FusionPolicyPackCommandTests : FusionCommandTestBase
     }
 
     [Fact]
+    public async Task Pack_Should_WriteUnpackedBundle_When_OutIsDirectory()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var root = Path.Combine(_workingDirectory, "policies");
+        Directory.CreateDirectory(Path.Combine(root, "cart"));
+        Directory.CreateDirectory(Path.Combine(root, "lib"));
+
+        await File.WriteAllTextAsync(
+            Path.Combine(root, "cart", "allow.rego"),
+            """
+            package cart
+            import rego.v1
+            import data.lib
+            # METADATA
+            # entrypoint: true
+            default allow := false
+            allow if lib.is_admin(data.role)
+            """,
+            ct);
+        await File.WriteAllTextAsync(
+            Path.Combine(root, "lib", "rbac.rego"),
+            """
+            package lib
+            import rego.v1
+            is_admin(role) if role == "admin"
+            """,
+            ct);
+
+        var outDirectory = Path.Combine(_workingDirectory, "unpacked");
+
+        // act
+        var result = await ExecuteCommandAsync("fusion", "policy", "pack", root, "--out", outDirectory);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(File.Exists(Path.Combine(outDirectory, "manifest.json")));
+        Assert.True(File.Exists(Path.Combine(outDirectory, "cart", "allow.rego")));
+        Assert.True(File.Exists(Path.Combine(outDirectory, "lib", "rbac.rego")));
+    }
+
+    [Fact]
     public async Task Pack_Should_ReturnError_When_RootDoesNotExist()
     {
         // arrange

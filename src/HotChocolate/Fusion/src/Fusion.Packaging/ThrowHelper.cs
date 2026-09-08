@@ -66,6 +66,11 @@ internal static class ThrowHelper
     public static ArgumentException RegoPolicyBundlePathCollision(string path)
         => new($"The Rego policy bundle path '{path}' is used by more than one payload.", "bundle");
 
+    public static InvalidOperationException RegoPolicyPairVersionIsBundle(Version version)
+        => new(
+            $"The Rego policy format '{version}' is a manifest-indexed bundle (it has a manifest.json). "
+            + "Flat policy-pair writes are not allowed for this version; use SetRegoPolicyBundleAsync instead.");
+
     public static InvalidDataException RegoPolicyBundleManifestMissing(Version version)
         => new($"The Rego policy bundle format '{version}' is missing its manifest.json.");
 
@@ -87,6 +92,9 @@ internal static class ThrowHelper
 
     public static InvalidDataException RegoPolicyBundlePathUnlisted(string path)
         => new($"The Rego policy bundle contains the path '{path}', which is not listed in its manifest.");
+
+    public static InvalidDataException RegoPolicyBundleManifestPathCollision(string path)
+        => new($"The Rego policy bundle manifest references the path '{path}' from more than one payload.");
 
     public static InvalidDataException RegoPolicyBundleHashMismatch(string path)
         => new($"The Rego policy bundle path '{path}' does not match the digest recorded in its manifest.");
