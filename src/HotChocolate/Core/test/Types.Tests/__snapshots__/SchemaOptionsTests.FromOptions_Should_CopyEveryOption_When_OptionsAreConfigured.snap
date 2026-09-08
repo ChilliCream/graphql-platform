@@ -23,6 +23,7 @@
   "EnableFlagEnums": true,
   "EnableDefer": false,
   "EnableStream": false,
+  "EnableEmptySelectionSets": false,
   "StripLeadingIFromInterface": false,
   "EnableTag": true,
   "EnableOptInFeatures": false,
@@ -35,6 +36,8 @@
   "OperationDocumentCacheSize": 256,
   "ApplyShareableToPageInfo": false,
   "ApplyShareableToConnections": false,
+  "ApplyShareableToCollectionSegments": false,
+  "ApplyShareableToCollectionSegmentInfo": false,
   "ApplyShareableToNodeFields": false,
   "ApplySerializeAsToScalars": false,
   "InferKeysFromLookups": false

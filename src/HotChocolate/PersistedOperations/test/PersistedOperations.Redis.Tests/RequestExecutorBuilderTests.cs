@@ -1,10 +1,10 @@
+using CookieCrumble.Resources;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.PersistedOperations.Redis;
 
-public class RequestExecutorBuilderTests : IClassFixture<RedisResource>
+public class RequestExecutorBuilderTests
 {
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly IDatabase _database;

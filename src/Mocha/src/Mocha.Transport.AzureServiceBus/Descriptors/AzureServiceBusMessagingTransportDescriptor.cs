@@ -327,14 +327,17 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
         var schema = Configuration.Schema ?? AzureServiceBusTransportConfiguration.DefaultSchema;
         foreach (var source in configuration.SourceTopics)
         {
-            if (!AzureServiceBusDestinations.TryResolveSourceTopic(schema, source, out var topicName))
+            if (!AzureServiceBusDestinations.TryResolveSourceTopic(schema, source.Source, out var topicName))
             {
                 throw new InvalidOperationException(
-                    $"BindFrom source '{source}' could not be resolved to an Azure Service Bus topic name.");
+                    $"BindFrom source '{source.Source}' could not be resolved to an Azure Service Bus topic name.");
             }
 
             DeclareTopic(topicName);
-            DeclareSubscription(topicName, configuration.Name);
+            var subscriptionConfiguration = DeclareSubscription(topicName, configuration.Name).Extend().Configuration;
+
+            // Keep AutoProvision if DeclareSubscription set it, otherwise take it from BindFrom, then from the queue.
+            subscriptionConfiguration.AutoProvision ??= source.AutoProvision ?? configuration.Queue.AutoProvision;
         }
     }
 

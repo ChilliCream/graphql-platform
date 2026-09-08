@@ -119,7 +119,7 @@ internal sealed class FakeMailStore : IMailStore
     /// <see cref="MailWakePolicy.Enqueue"/>, every recipient gets a
     /// <see cref="MailWakeReceipt"/> (an incrementing generation, mirroring
     /// the real store's own per-recipient counter), matching the shape
-    /// <see cref="Commands.Mail.MailWakeDispatch.RunAsync"/> expects.
+    /// <see cref="MailMessage.WakeReceipts"/> carries.
     /// </summary>
     public async Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
     {

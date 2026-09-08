@@ -1,12 +1,11 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresPubSubIntegrationTests
     : SubscriptionIntegrationTestBase
-    , IClassFixture<PostgreSqlResource>
     , IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource;

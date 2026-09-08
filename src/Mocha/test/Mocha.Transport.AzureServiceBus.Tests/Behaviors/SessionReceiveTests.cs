@@ -448,7 +448,7 @@ public class SessionReceiveTests
 }
 
 /// <summary>
-/// Pure unit tests for the session-receive surface. These do not need the Squadron emulator and
+/// Pure unit tests for the session-receive surface. These do not need the Service Bus emulator and
 /// run in the default (non-collection) test context.
 /// </summary>
 public class SessionReceiveUnitTests

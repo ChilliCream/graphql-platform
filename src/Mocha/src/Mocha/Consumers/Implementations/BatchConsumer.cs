@@ -94,6 +94,8 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
         {
             _logger.DispatchingBatch(batch.Count, batch.CompletionMode);
 
+            // The batch has no receive scope of its own, so it gets one here, mirroring the scope
+            // ReceiveEndpoint creates per receive context. Each consumer attempt then runs in a child scope.
             await using var scope = _applicationServices.CreateAsyncScope();
 
             var batchContext = new BatchConsumeContext<TEvent>(
@@ -104,21 +106,7 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
                 _itemMessageType,
                 cancellationToken);
 
-            var consumerFeature = batchContext.Features.GetOrSet<ReceiveConsumerFeature>();
-            consumerFeature.CurrentConsumer = this;
-
-            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
-            var previousContext = accessor.Context;
-            accessor.Context = batchContext;
-
-            try
-            {
-                await Pipeline(batchContext);
-            }
-            finally
-            {
-                accessor.Context = previousContext;
-            }
+            await Pipeline(batchContext);
 
             foreach (var entry in batch.Entries)
             {

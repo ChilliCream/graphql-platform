@@ -433,7 +433,7 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
     /// Advances the fake clock by one second at a time, on a short real
     /// interval, until the watch command's task completes. The real delay
     /// only paces test synchronization; the simulated one-second poll
-    /// cadence and any --timeout are driven entirely by <see cref="FakeTime"/>.
+    /// cadence and any --timeout are driven entirely by <see cref="CommandTestBase.FakeTime"/>.
     /// </summary>
     private async Task<CommandResult> AdvanceUntilCompleteAsync(
         Task<CommandResult> runTask,

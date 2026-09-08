@@ -1,10 +1,10 @@
 using Azure.Storage.Blobs;
+using CookieCrumble.Resources;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
-public class RequestExecutorBuilderTests : IClassFixture<AzureStorageBlobResource>
+public class RequestExecutorBuilderTests
 {
     private readonly BlobContainerClient _client;
 
