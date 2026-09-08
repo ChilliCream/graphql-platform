@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Linq;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -76,6 +77,13 @@ public sealed class CostSchemaSnapshot
     /// as a bitset over the snapshot's dense object-type index.
     /// </summary>
     internal PossibleTypeSet GetPossibleTypeSet(string typeName) => _possibleTypes[typeName];
+
+    /// <summary>
+    /// Gets the name of the one object type a single-member
+    /// <see cref="PossibleTypeSet"/> contains.
+    /// </summary>
+    internal string GetSingletonObjectTypeName(PossibleTypeSet singleton)
+        => _objectTypeIndex.First(pair => singleton.Contains(pair.Value)).Key;
 
     /// <summary>
     /// Gets a named type's own weight (<c>returnTypeWeight</c>): an object,

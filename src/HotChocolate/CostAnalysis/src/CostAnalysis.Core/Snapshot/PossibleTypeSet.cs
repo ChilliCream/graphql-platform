@@ -41,6 +41,25 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
             && (_words[wordIndex] & (1UL << (objectTypeIndex & 63))) != 0;
     }
 
+    /// <summary>
+    /// Returns the set of object types that belong to both this set and
+    /// <paramref name="other"/>.
+    /// </summary>
+    internal PossibleTypeSet Intersect(PossibleTypeSet other)
+    {
+        var wordCount = Math.Min(_words.Length, other._words.Length);
+        var words = wordCount == 0 ? [] : new ulong[wordCount];
+        var count = 0;
+
+        for (var i = 0; i < wordCount; i++)
+        {
+            words[i] = _words[i] & other._words[i];
+            count += BitOperations.PopCount(words[i]);
+        }
+
+        return new PossibleTypeSet(words, count, ComputeFingerprint(words));
+    }
+
     /// <inheritdoc />
     public bool Equals(PossibleTypeSet other)
         => Fingerprint == other.Fingerprint && _words.AsSpan().SequenceEqual(other._words);
