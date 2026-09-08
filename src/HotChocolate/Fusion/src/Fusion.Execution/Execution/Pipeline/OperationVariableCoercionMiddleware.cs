@@ -59,7 +59,22 @@ internal sealed class OperationVariableCoercionMiddleware
         }
 
         var root = variableValues.Document.RootElement;
-        return root.ValueKind is not JsonValueKind.Object || root.GetPropertyCount() == 0;
+
+        if (root.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return true;
+        }
+
+        if (root.ValueKind is not JsonValueKind.Object)
+        {
+            return false;
+        }
+
+#if NET10_0_OR_GREATER
+        return root.GetPropertyCount() == 0;
+#else
+        return !root.EnumerateObject().MoveNext();
+#endif
     }
 
     private static bool TryCoerceVariables(
