@@ -81,13 +81,10 @@ internal sealed class CostAnalyzerMiddleware(
         {
             if (!cache.TryGetCostMetrics(operationId, out costMetrics))
             {
-                // we check if the operation was already resolved by another middleware,
-                // if not we resolve the operation.
-                if (!context.TryGetOperationDefinition(out var operationDefinition))
-                {
-                    operationDefinition = document.GetOperation(context.Request.OperationName);
-                    context.SetOperationDefinition(operationDefinition);
-                }
+                // The analyzer always walks the operation as originally parsed rather than the
+                // compiled operation's de-fragmentized definition, since the latter has its
+                // source locations stripped and would produce location-less errors.
+                var operationDefinition = document.GetOperation(context.Request.OperationName);
 
                 validatorContext = contextPool.Get();
                 validatorContext.Initialize(

@@ -13,9 +13,13 @@ sequenceDiagram
     Validation->>Cache Operation: Document! and IsValid
     Cache Operation->>Resolve Operation: IPreparedOperation?
     Resolve Operation->>Coerce Variables: IPreparedOperation
-    Coerce Variables->>Execute Operation: IVariableCollection
+    Coerce Variables->>Cost Analysis: IVariableCollection
+    Cost Analysis->>Skip Warmup: OperationCost
+    Skip Warmup->>Execute Operation: IPreparedOperation
 
-    Execute Operation-->>Coerce Variables: IExecutionResult
+    Execute Operation-->>Skip Warmup: IExecutionResult
+    Skip Warmup-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Coerce Variables: IExecutionResult
     Coerce Variables-->>Resolve Operation: IExecutionResult
     Resolve Operation-->>Cache Operation: IExecutionResult
     Cache Operation-->>Cache Operation: Cache Operation
@@ -39,9 +43,13 @@ sequenceDiagram
     Validation->>Cache Operation: Document! and IsValid
     Cache Operation->>Resolve Operation: IPreparedOperation?
     Resolve Operation->>Coerce Variables: IPreparedOperation
-    Coerce Variables->>Execute Operation: IVariableCollection
+    Coerce Variables->>Cost Analysis: IVariableCollection
+    Cost Analysis->>Skip Warmup: OperationCost
+    Skip Warmup->>Execute Operation: IPreparedOperation
 
-    Execute Operation-->>Coerce Variables: IExecutionResult
+    Execute Operation-->>Skip Warmup: IExecutionResult
+    Skip Warmup-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Coerce Variables: IExecutionResult
     Coerce Variables-->>Resolve Operation: IExecutionResult
     Resolve Operation-->>Cache Operation: IExecutionResult
     Cache Operation-->>Cache Operation: Cache Operation

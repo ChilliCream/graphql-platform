@@ -66,7 +66,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
             .UseRequest(
                 CostAnalyzerMiddleware.Create(),
-                after: WellKnownRequestMiddleware.DocumentValidationMiddleware);
+                after: WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
     }
 
     /// <summary>
