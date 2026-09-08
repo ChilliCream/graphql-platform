@@ -165,33 +165,51 @@ public sealed class StaticQueryAnalysisTests
                 """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
                 "examples(limit: 10) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (null limit in query).
+            // @listSize directive with slicing arguments (null limit in query,
+            // with requireOneSlicingArgument: false).
             {
                 3,
-                """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
+                """
+                examples(limit: Int): [Example!]!
+                    @listSize(slicingArguments: ["limit"], requireOneSlicingArgument: false)
+                """,
                 "examples(limit: null) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (no limit in query).
+            // @listSize directive with slicing arguments (no limit in query,
+            // with requireOneSlicingArgument: false).
             {
                 4,
-                """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
+                """
+                examples(limit: Int): [Example!]!
+                    @listSize(slicingArguments: ["limit"], requireOneSlicingArgument: false)
+                """,
                 "examples { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (null limit in query, with assumedSize).
+            // @listSize directive with slicing arguments (null limit in query, with assumedSize
+            // and requireOneSlicingArgument: false).
             {
                 5,
                 """
                 examples(limit: Int): [Example!]!
-                    @listSize(slicingArguments: ["limit"], assumedSize: 10)
+                    @listSize(
+                        slicingArguments: ["limit"],
+                        assumedSize: 10,
+                        requireOneSlicingArgument: false
+                    )
                 """,
                 "examples(limit: null) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (no limit in query, with assumedSize).
+            // @listSize directive with slicing arguments (no limit in query, with assumedSize
+            // and requireOneSlicingArgument: false).
             {
                 6,
                 """
                 examples(limit: Int): [Example!]!
-                    @listSize(slicingArguments: ["limit"], assumedSize: 10)
+                    @listSize(
+                        slicingArguments: ["limit"],
+                        assumedSize: 10,
+                        requireOneSlicingArgument: false
+                    )
                 """,
                 "examples { field1, field2 }"
             },
@@ -232,6 +250,14 @@ public sealed class StaticQueryAnalysisTests
                         slicingArgumentDefaultValue: 42
                     )
                 """,
+                "examples { field1, field2 }"
+            },
+            // @listSize directive with slicing arguments, requireOneSlicingArgument omitted.
+            // (no limit in query; the omitted default is `true`, so exactly one slicing
+            // argument is required and none is present).
+            {
+                10,
+                """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
                 "examples { field1, field2 }"
             }
         };
