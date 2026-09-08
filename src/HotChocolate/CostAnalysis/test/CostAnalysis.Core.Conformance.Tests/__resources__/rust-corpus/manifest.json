@@ -1,0 +1,8 @@
+{
+  "matrixSize": 15840,
+  "exactCostRows": 1980,
+  "emitted": 1013,
+  "excludedInvalidVariables": 427,
+  "deduplicated": 540,
+  "sourceCommit": "fec57fd7a980b5399637fa464a9bdce0781d91dd"
+}
