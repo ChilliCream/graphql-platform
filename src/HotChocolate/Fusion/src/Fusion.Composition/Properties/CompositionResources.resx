@@ -366,6 +366,9 @@
   <data name="LogEntryHelper_EventCursorMarkerOnNonSubscriptionField" xml:space="preserve">
     <value>The @eventCursor marker '{0}' in schema '{1}' must be reachable from an @eventStream subscription field.</value>
   </data>
+  <data name="LogEntryHelper_FederationAuthDirectiveLocationNotSupported" xml:space="preserve">
+    <value>The type '{0}' in schema '{2}' is annotated with the @{1} directive. Fusion's @policy directive supports only the OBJECT and FIELD_DEFINITION locations.</value>
+  </data>
   <data name="LogEntryHelper_FederationPolicyLocationNotSupported" xml:space="preserve">
     <value>The type '{0}' in schema '{1}' is annotated with the @policy directive. Fusion's @policy directive supports only the OBJECT and FIELD_DEFINITION locations.</value>
   </data>

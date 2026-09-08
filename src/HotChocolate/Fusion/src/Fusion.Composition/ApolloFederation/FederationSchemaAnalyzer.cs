@@ -15,9 +15,8 @@ internal static class FederationSchemaAnalyzer
 {
     internal const string FederationUrlPrefix = "specs.apollo.dev/federation";
 
-    // @policy is accepted and translated to Fusion's @policy(names:) by
-    // RemoveFederationInfrastructure. @authenticated and @requiresScopes are intentionally
-    // dropped without diagnostics until they are mapped to Fusion policies.
+    // @policy, @authenticated, and @requiresScopes are accepted and translated to Fusion's
+    // @policy(names:) by RemoveFederationInfrastructure.
     private static readonly HashSet<string> s_unsupportedDirectives =
     [
         FederationDirectiveNames.ComposeDirective
@@ -43,6 +42,7 @@ internal static class FederationSchemaAnalyzer
         ValidateFederationVersion(schema, log);
         ValidateUnsupportedDirectives(schema, log);
         ValidatePolicyLocations(schema, log);
+        ValidateAuthDirectiveLocations(schema, log);
 
         // Pre-existing entries on the log are not ours to report on; this run reports
         // failure only when it wrote new entries (all of which are errors) of its own.
@@ -147,6 +147,51 @@ internal static class FederationSchemaAnalyzer
                 && type.Directives.ContainsName(localName))
             {
                 log.Write(FederationPolicyLocationNotSupported(type, schema));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fusion's canonical <c>@policy</c> directive only allows the OBJECT and FIELD_DEFINITION
+    /// locations, so an Apollo <c>@authenticated</c> or <c>@requiresScopes</c> application on a
+    /// scalar or enum type cannot be carried over by <see cref="RemoveFederationInfrastructure"/>.
+    /// Reporting that here, before the rewrite runs, turns what would otherwise be a silently
+    /// dropped authorization requirement into a composition error. An application on an interface
+    /// type or field is left untouched here: it is translated like any other location and then
+    /// reported by <c>PolicyOnInterfaceRule</c> once composition reaches the resulting Fusion
+    /// <c>@policy</c> application.
+    /// </summary>
+    private static void ValidateAuthDirectiveLocations(
+        MutableSchemaDefinition schema,
+        ICompositionLog log)
+    {
+        var authenticatedLocalName = RemoveFederationInfrastructure.ResolveAuthenticatedLocalName(schema);
+        var requiresScopesLocalName = RemoveFederationInfrastructure.ResolveRequiresScopesLocalName(schema);
+
+        if (authenticatedLocalName is null && requiresScopesLocalName is null)
+        {
+            return;
+        }
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not (MutableScalarTypeDefinition or MutableEnumTypeDefinition))
+            {
+                continue;
+            }
+
+            if (authenticatedLocalName is not null && type.Directives.ContainsName(authenticatedLocalName))
+            {
+                log.Write(
+                    FederationAuthDirectiveLocationNotSupported(
+                        type, FederationDirectiveNames.Authenticated, schema));
+            }
+
+            if (requiresScopesLocalName is not null && type.Directives.ContainsName(requiresScopesLocalName))
+            {
+                log.Write(
+                    FederationAuthDirectiveLocationNotSupported(
+                        type, FederationDirectiveNames.RequiresScopes, schema));
             }
         }
     }

@@ -8,4 +8,5 @@ internal static class FederationTypeNames
     public const string FieldSet = "FieldSet";
     public const string LegacyFieldSet = "_FieldSet";
     public const string Policy = "federation__Policy";
+    public const string Scope = "federation__Scope";
 }

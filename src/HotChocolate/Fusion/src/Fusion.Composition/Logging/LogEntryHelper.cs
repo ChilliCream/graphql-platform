@@ -464,6 +464,24 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry FederationAuthDirectiveLocationNotSupported(
+        ITypeDefinition type,
+        string directiveName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_FederationAuthDirectiveLocationNotSupported,
+                type.Name,
+                directiveName,
+                schema.Name)
+            .SetCode(LogEntryCodes.FederationAuthDirectiveLocationNotSupported)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(type)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry FieldArgumentTypesNotMergeable(
         MutableInputFieldDefinition argument,
         MutableSchemaDefinition schemaA,

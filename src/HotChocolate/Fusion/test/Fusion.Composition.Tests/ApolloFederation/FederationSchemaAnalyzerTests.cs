@@ -6,8 +6,10 @@ namespace HotChocolate.Fusion.ApolloFederation;
 
 public sealed class FederationSchemaAnalyzerTests
 {
+    // Ruling repo-ctf.24 (comment 704) supersedes repo-8fh's silent drop now that @authenticated
+    // and @requiresScopes translate into built-in Fusion policies.
     [Fact]
-    public void Compose_Should_SilentlyDropAuthenticationDirectives_When_Federation25SchemaUsesThem()
+    public void Compose_Should_TranslateAuthenticationDirectives_When_Federation25SchemaUsesThem()
     {
         // arrange
         var log = new CompositionLog();
@@ -69,10 +71,15 @@ public sealed class FederationSchemaAnalyzerTests
         types.ToString().MatchInlineSnapshot(
             """
             type Query @fusion__type(schema: PRODUCTS) {
-              product: Product @fusion__field(schema: PRODUCTS)
+              product: Product
+                @fusion__field(schema: PRODUCTS)
+                @fusion__policy(names: "fusion.authenticated", onDenied: ERROR)
+                @fusion__policy(names: "fusion.scope:a:read", onDenied: ERROR)
             }
 
-            type Product @fusion__type(schema: PRODUCTS) {
+            type Product
+              @fusion__type(schema: PRODUCTS)
+              @fusion__policy(names: "fusion.authenticated", onDenied: ERROR) {
               id: ID! @fusion__field(schema: PRODUCTS)
             }
             """);

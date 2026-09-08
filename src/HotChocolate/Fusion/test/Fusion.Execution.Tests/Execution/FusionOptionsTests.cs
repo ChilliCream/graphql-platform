@@ -68,7 +68,11 @@ public class FusionOptionsTests : FusionTestBase
               "EnableDefer": false,
               "EnableObjectDeprecation": true,
               "EnableOptInFeatures": false,
-              "EnableSemanticIntrospection": true
+              "EnableSemanticIntrospection": true,
+              "ScopeClaimTypes": [
+                "scope",
+                "scp"
+              ]
             }
             """);
     }

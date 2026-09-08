@@ -641,7 +641,7 @@ internal static class CompositeSchemaBuilder
         context.RegisterForCompletion(nodeFallbackLookup);
         features.Set(nodeFallbackLookup);
 
-        var policies = CreatePolicies(context.Services);
+        var policies = CreatePolicies(context.Services, context.TypeDefinitions);
 
         FusionSchemaDefinition schema;
 
@@ -685,16 +685,25 @@ internal static class CompositeSchemaBuilder
     }
 
     private static PolicyCollection CreatePolicies(
-        IServiceProvider services)
+        IServiceProvider services,
+        ImmutableArray<IFusionTypeDefinition> typeDefinitions)
     {
         var provider = services.GetService<IPolicyProvider>();
+        var builtInNames = CollectReferencedBuiltInPolicyNames(typeDefinitions);
 
-        if (provider is null)
+        // A schema that references no built-in policy name behaves exactly as before built-in
+        // policies existed: no user provider means no policies at all.
+        if (provider is null && builtInNames.Count == 0)
         {
             return PolicyCollection.Empty;
         }
 
-        var policies = new PolicyCollection(provider);
+        var scopeClaimTypes = services.GetService<FusionOptions>()?.ScopeClaimTypes
+            ?? BuiltInPolicySet.DefaultScopeClaimTypes;
+        var builtIns = BuiltInPolicySet.Create(builtInNames, scopeClaimTypes);
+        var composite = new CompositePolicyProvider(provider, builtIns);
+
+        var policies = new PolicyCollection(composite);
 
         try
         {
@@ -707,6 +716,61 @@ internal static class CompositeSchemaBuilder
         }
 
         return policies;
+    }
+
+    /// <summary>
+    /// Collects every distinct built-in policy name (<see cref="BuiltInPolicyNames.Authenticated"/>
+    /// or a <see cref="BuiltInPolicyNames.ScopePrefix"/> prefixed name) referenced by any
+    /// <c>@fusion__policy</c> application in the schema, so that <see cref="BuiltInPolicySet"/>
+    /// materializes exactly the built-in policies this schema needs and no others, before Seal
+    /// resolves policy references.
+    /// </summary>
+    private static HashSet<string> CollectReferencedBuiltInPolicyNames(
+        ImmutableArray<IFusionTypeDefinition> typeDefinitions)
+    {
+        HashSet<string>? names = null;
+
+        foreach (var type in typeDefinitions)
+        {
+            if (type is not FusionObjectTypeDefinition objectType)
+            {
+                continue;
+            }
+
+            CollectReferencedBuiltInPolicyNames(objectType.PolicyApplications, ref names);
+
+            foreach (var field in objectType.Fields.AsEnumerable())
+            {
+                CollectReferencedBuiltInPolicyNames(field.PolicyApplications, ref names);
+            }
+        }
+
+        return names ?? [];
+    }
+
+    private static void CollectReferencedBuiltInPolicyNames(
+        ImmutableArray<PolicyApplication> applications,
+        ref HashSet<string>? names)
+    {
+        if (applications.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        foreach (var application in applications)
+        {
+            foreach (var group in application.Groups)
+            {
+                foreach (var name in group)
+                {
+                    if (name.Equals(BuiltInPolicyNames.Authenticated, StringComparison.Ordinal)
+                        || name.StartsWith(BuiltInPolicyNames.ScopePrefix, StringComparison.Ordinal))
+                    {
+                        (names ??= new HashSet<string>(StringComparer.Ordinal)).Add(name);
+                    }
+                }
+            }
+        }
     }
 
     private static ExecutionSettings ParseExecutionSettings(DocumentNode document)
