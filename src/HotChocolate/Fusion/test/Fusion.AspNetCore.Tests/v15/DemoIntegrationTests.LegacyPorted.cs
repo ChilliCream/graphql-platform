@@ -92,12 +92,14 @@ public partial class DemoIntegrationTests
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "Cost reporting request options are not wired for this v15 harness yet.")]
+    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
     public async Task Authors_And_Reviews_Query_GetUserReviews_Report_Cost()
     {
         // arrange
-        using var gateway = await CreateDemoGatewayAsync(
-            DemoSubgraphs.Accounts | DemoSubgraphs.Reviews2);
+        using var accounts = CreateSourceSchema("A", CostAnnotatedAccountsSchema);
+        using var reviews = CreateSourceSchema("B", CostAnnotatedReviews2Schema);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", accounts), ("B", reviews)]);
 
         var request = new OperationRequest(
             """
@@ -114,11 +116,16 @@ public partial class DemoIntegrationTests
             }
             """);
 
+        var httpRequest = new GraphQLHttpRequest(request, s_graphQLEndpoint)
+        {
+            OnMessageCreated = (_, message, _) => message.Headers.Add("GraphQL-Cost", "report")
+        };
+
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var result = await client.PostAsync(request, s_graphQLEndpoint, TestContext.Current.CancellationToken);
+        using var result = await client.SendAsync(httpRequest, TestContext.Current.CancellationToken);
 
-        // assert
+        // assert - extensions.operationCost { fieldCost, typeCost } is attached alongside data
         await MatchSnapshotAsync(gateway, request, result);
     }
 
@@ -1228,6 +1235,64 @@ public partial class DemoIntegrationTests
           name: String!
           username: String!
           birthdate: String!
+        }
+        """;
+
+    /// <summary>
+    /// A cost-annotated slice of <see cref="AccountsSchema"/>, scoped to the fields
+    /// Authors_And_Reviews_Query_GetUserReviews_Report_Cost selects, for the GraphQL-Cost:
+    /// report scenario. Kept separate from the shared demo schema constants so annotating it
+    /// does not churn the snapshots of the other Demo* tests that reuse those constants.
+    /// </summary>
+    private const string CostAnnotatedAccountsSchema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          node(id: ID!): Node @lookup @shareable
+          nodes(ids: [ID!]!): [Node]! @shareable
+          users: [User!]! @listSize(assumedSize: 10)
+        }
+
+        interface Node {
+          id: ID!
+        }
+
+        type User implements Node @cost(weight: "2") {
+          id: ID!
+          name: String! @cost(weight: "1")
+        }
+        """;
+
+    /// <summary>
+    /// A cost-annotated slice of <see cref="Reviews2Schema"/>, scoped to the fields
+    /// Authors_And_Reviews_Query_GetUserReviews_Report_Cost selects. See
+    /// <see cref="CostAnnotatedAccountsSchema"/> for why it is kept separate.
+    /// </summary>
+    private const string CostAnnotatedReviews2Schema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          node(id: ID!): Node @lookup @shareable
+          nodes(ids: [ID!]!): [Node]! @shareable
+        }
+
+        interface Node {
+          id: ID!
+        }
+
+        type Review implements Node @cost(weight: "3") {
+          id: ID!
+          body: String! @cost(weight: "1")
+          author: User!
+        }
+
+        type User implements Node {
+          id: ID!
+          reviews: [Review!]! @listSize(assumedSize: 5)
         }
         """;
 

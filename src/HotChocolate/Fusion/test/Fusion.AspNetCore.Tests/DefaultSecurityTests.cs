@@ -32,6 +32,22 @@ public class DefaultSecurityTests : FusionTestBase
         }
         """;
 
+    private const string CostlySchema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          expensive: Expensive
+        }
+
+        type Expensive @cost(weight: "2000") {
+          value: String
+        }
+        """;
+
+    private const string CostlyQuery = "{ expensive { value } }";
+
     [Fact]
     public async Task DefaultSecurity_InProduction_IntrospectionIsDisabled()
     {
@@ -240,6 +256,57 @@ public class DefaultSecurityTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert - query passes validation and executes (no HC0087 error)
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+        Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
+    }
+
+    [Theory(Skip = "enabled by fusion-cost-middleware")]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public async Task DefaultSecurity_CostIsEnforced(string environment)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", CostlySchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>(),
+            environmentName: environment);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            CostlyQuery,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert - the over-cost query is rejected with HC0047 regardless of environment
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchSnapshot(postFix: environment);
+    }
+
+    [Fact(Skip = "enabled by fusion-cost-middleware")]
+    public async Task DefaultSecurity_Disabled_CostIsNotEnforced()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema("A", CostlySchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>(),
+            disableDefaultSecurity: true);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            CostlyQuery,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert - query passes validation and executes (no HC0047 error)
         using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);

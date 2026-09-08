@@ -1,0 +1,146 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace HotChocolate.Fusion;
+
+/// <summary>
+/// Runs the six graphql-lean/IBM cost-precision article cases against a single-source Fusion
+/// gateway, reading the same fixtures as CostAnalysis.Core.Conformance.Tests and
+/// HotChocolate.CostAnalysis.Tests so the corpus has one source of truth. Every fixture composes
+/// to one SDL-only source schema; the gateway is asked to validate the fixture's operation and
+/// must report the fixture's expected typeCost/fieldCost.
+/// </summary>
+public class ArticleCasesTests : FusionTestBase
+{
+    private const string CostHeader = "GraphQL-Cost";
+    private const string ValidateCost = "validate";
+
+    public static TheoryData<string> FixturePaths => ArticleCaseFixture.DiscoverPaths();
+
+    [Theory(Skip = "enabled by fusion-cost-middleware")]
+    [MemberData(nameof(FixturePaths))]
+    public async Task Fixture_Should_ReportExpectedCost_When_Validated(string path)
+    {
+        // arrange
+        var fixture = ArticleCaseFixture.Load(path);
+        using var server = CreateSourceSchema("A", fixture.Sdl);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.DefaultListSize = fixture.DefaultListSize));
+
+        var request = new OperationRequest(
+            fixture.Operation,
+            operationName: fixture.OperationName,
+            variables: fixture.Variables);
+
+        var httpRequest = new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+        {
+            OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ValidateCost)
+        };
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(httpRequest, TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: fixture.Id);
+    }
+
+    /// <summary>
+    /// One article conformance fixture, deserialized from the JSON files linked from
+    /// CostAnalysis.Core.Conformance.Tests's <c>__resources__/article</c> directory. Mirrors the
+    /// shape of that project's internal Fixture record; kept local because a test project cannot
+    /// reference another test project's internal types.
+    /// </summary>
+    private sealed record ArticleCaseFixtureData(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("sdl")] string Sdl,
+        [property: JsonPropertyName("operation")] string Operation,
+        [property: JsonPropertyName("operationName")] string? OperationName,
+        [property: JsonPropertyName("variables")] JsonElement? Variables,
+        [property: JsonPropertyName("defaultListSize")] JsonElement DefaultListSizeValue);
+
+    /// <summary>
+    /// The article fixture resolved into the shapes this test needs to build a gateway request:
+    /// the raw JSON's <c>defaultListSize</c> ("Infinity" or a number) resolved to a
+    /// <see cref="double"/>, and its <c>variables</c> object resolved to a plain dictionary. The
+    /// expected typeCost/fieldCost pair is not read here: it is what the recorded snapshot pins.
+    /// </summary>
+    private sealed class ArticleCaseFixture
+    {
+        private const string ResourcesDirectoryName = "__resources__";
+        private const string ArticleDirectoryName = "article";
+
+        private ArticleCaseFixture(
+            string id,
+            string sdl,
+            string operation,
+            string? operationName,
+            IReadOnlyDictionary<string, object?>? variables,
+            double defaultListSize)
+        {
+            Id = id;
+            Sdl = sdl;
+            Operation = operation;
+            OperationName = operationName;
+            Variables = variables;
+            DefaultListSize = defaultListSize;
+        }
+
+        public string Id { get; }
+
+        public string Sdl { get; }
+
+        public string Operation { get; }
+
+        public string? OperationName { get; }
+
+        public IReadOnlyDictionary<string, object?>? Variables { get; }
+
+        public double DefaultListSize { get; }
+
+        public static TheoryData<string> DiscoverPaths()
+        {
+            var data = new TheoryData<string>();
+            var directory = System.IO.Path.Combine(ResourcesDirectoryName, ArticleDirectoryName);
+
+            foreach (var path in Directory
+                .EnumerateFiles(directory, "*.json")
+                .OrderBy(path => path, StringComparer.Ordinal))
+            {
+                data.Add(path);
+            }
+
+            return data;
+        }
+
+        public static ArticleCaseFixture Load(string path)
+        {
+            var json = File.ReadAllText(path);
+            var data = JsonSerializer.Deserialize<ArticleCaseFixtureData>(json)
+                ?? throw new InvalidOperationException($"Fixture '{path}' deserialized to null.");
+
+            return new ArticleCaseFixture(
+                data.Id,
+                data.Sdl,
+                data.Operation,
+                data.OperationName,
+                ToVariables(data.Variables),
+                ToDefaultListSize(data.DefaultListSizeValue));
+        }
+
+        private static IReadOnlyDictionary<string, object?>? ToVariables(JsonElement? variables)
+            => variables is null
+                ? null
+                : JsonSerializer.Deserialize<Dictionary<string, object?>>(variables.Value.GetRawText());
+
+        private static double ToDefaultListSize(JsonElement value)
+            => value.ValueKind == JsonValueKind.String
+                ? double.PositiveInfinity
+                : value.GetDouble();
+    }
+}
