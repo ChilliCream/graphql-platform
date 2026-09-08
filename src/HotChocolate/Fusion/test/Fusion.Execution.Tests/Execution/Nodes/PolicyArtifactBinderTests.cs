@@ -528,6 +528,46 @@ public sealed class PolicyArtifactBinderTests : FusionTestBase
         Assert.Equal(("Product.secured", "inner"), (coordinate, scope));
     }
 
+    [Fact]
+    public void TryFindNestedParentAuthorityGap_Should_ResolveParentScope_When_PlanMixesRootAndNestedDeliveryGroups()
+    {
+        // arrange
+        // An incremental plan's own delivery groups can list a root-adjacent
+        // group (Parent null) ahead of a nested group whose Parent is
+        // non-null. Resolving the immediate parent group id must skip the
+        // root-adjacent group's null Parent rather than dereference it
+        // (repo-ctf.17 follow-up).
+        var operation = CreateMatrixOperation();
+        var provider = CreateMatrixOperationNode(1, "query { product { sku } }");
+        var rootGroup = new DeliveryGroup(null, null, DeferConditionIndex: 0) { Id = 0 };
+        var middleGroup = new DeliveryGroup("middle", null, DeferConditionIndex: 1) { Id = 1 };
+        var nestedGroup = new DeliveryGroup("inner", middleGroup, DeferConditionIndex: 2) { Id = 2 };
+        var policy = CreateMatrixPolicyNode([1]);
+        var siblingPlan = new IncrementalPlan(
+            operation,
+            [provider],
+            [provider],
+            deliveryGroups: [middleGroup],
+            requirements: []);
+        var incrementalPlan = new IncrementalPlan(
+            operation,
+            [policy],
+            [policy],
+            deliveryGroups: [rootGroup, nestedGroup],
+            requirements: []);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [siblingPlan, incrementalPlan],
+            [],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.False(hasGap);
+        Assert.Equal((string.Empty, string.Empty), (coordinate, scope));
+    }
+
     private static Operation CreateMatrixOperation()
     {
         var schema = ComposeSchema(

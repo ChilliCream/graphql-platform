@@ -380,8 +380,9 @@ internal static class PolicyArtifactBinder
 
         var parentGroupId = parentGroupIds[0];
         var parentGroup = incrementalPlan.DeliveryGroups
-            .Select(deliveryGroup => deliveryGroup.Parent)
-            .First(candidate => candidate!.Id == parentGroupId)!;
+            .Where(deliveryGroup => deliveryGroup.Parent is not null)
+            .Select(deliveryGroup => deliveryGroup.Parent!)
+            .First(candidate => candidate.Id == parentGroupId);
         var candidatePlans = incrementalPlans
             .Where(candidate => !ReferenceEquals(candidate, incrementalPlan)
                 && candidate.DeliveryGroups.Any(group => group.Id == parentGroupId))
