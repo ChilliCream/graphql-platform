@@ -35,6 +35,7 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
 
         var member = group.Member;
         return ResponseSizeFieldRule.Field(
+            member.Field.Type,
             ResolveListMultiplier(member.ParentType.Name, member.Field.Name, member.Field, field.Arguments, group.InheritedSize),
             child);
     }

@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
@@ -14,8 +16,20 @@ internal static class ResponseSizeFieldRule
     /// <summary>
     /// Computes a field's response-size contribution.
     /// </summary>
-    public static double Field(double listMultiplier, double child)
-        => 1.0 + Scale(listMultiplier, child);
+    public static double Field(IType outputType, double listMultiplier, double child)
+    {
+        while (outputType is IWrapperType wrapper)
+        {
+            if (outputType is ListType)
+            {
+                child = Scale(listMultiplier, child);
+            }
+
+            outputType = wrapper.InnerType;
+        }
+
+        return 1.0 + child;
+    }
 
     /// <summary>
     /// Combines fields selected together.
@@ -28,5 +42,5 @@ internal static class ResponseSizeFieldRule
     public static double Join(double left, double right) => double.MaxNumber(left, right);
 
     private static double Scale(double listMultiplier, double child)
-        => child == 0.0 ? 0.0 : listMultiplier * child;
+        => listMultiplier == 0.0 || child == 0.0 ? 0.0 : listMultiplier * child;
 }
