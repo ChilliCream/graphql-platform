@@ -45,11 +45,17 @@ public sealed class RegoPolicyBundleContent
 /// read no resource.
 /// </param>
 /// <param name="Digest">The content digest of the package, taken from the bundle manifest.</param>
+/// <param name="Input">
+/// The package's uniform <c>custom.input</c> declaration, re-derived from its entrypoints' METADATA
+/// and verified to agree with the bundle manifest, or <c>null</c> when the package declares none. The
+/// only value the runtime understands is <c>"action"</c>.
+/// </param>
 public sealed record RegoPolicyBundlePackageContent(
     string Package,
     ReadOnlyMemory<byte> Source,
     ReadOnlyMemory<byte>? Requirements,
-    ReadOnlyMemory<byte> Digest);
+    ReadOnlyMemory<byte> Digest,
+    string? Input);
 
 /// <summary>
 /// A shared Rego module that is compiled alongside every policy set but never becomes a decision:

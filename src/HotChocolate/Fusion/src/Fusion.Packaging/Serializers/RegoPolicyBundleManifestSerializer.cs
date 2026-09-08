@@ -41,6 +41,15 @@ internal static class RegoPolicyBundleManifestSerializer
                 jsonWriter.WriteString("requirements", policy.Requirements);
             }
 
+            if (policy.Input is null)
+            {
+                jsonWriter.WriteNull("input");
+            }
+            else
+            {
+                jsonWriter.WriteString("input", policy.Input);
+            }
+
             jsonWriter.WriteStartObject("sha256");
             foreach (var entry in policy.Sha256.OrderBy(t => t.Key, StringComparer.Ordinal))
             {
@@ -166,6 +175,14 @@ internal static class RegoPolicyBundleManifestSerializer
                 ?? throw new JsonException("Invalid requirements path.");
         }
 
+        string? input = null;
+        if (element.TryGetProperty("input", out var inputProp)
+            && inputProp.ValueKind is not JsonValueKind.Null)
+        {
+            input = inputProp.GetString()
+                ?? throw new JsonException("Invalid input value.");
+        }
+
         if (!element.TryGetProperty("sha256", out var sha256Prop) || sha256Prop.ValueKind is not JsonValueKind.Object)
         {
             throw new JsonException($"The Rego policy bundle manifest policy '{name}' must contain a sha256 object.");
@@ -194,6 +211,7 @@ internal static class RegoPolicyBundleManifestSerializer
             Entrypoint = entrypoint,
             Modules = modules.ToImmutable(),
             Requirements = requirements,
+            Input = input,
             Sha256 = sha256.ToImmutable()
         };
     }

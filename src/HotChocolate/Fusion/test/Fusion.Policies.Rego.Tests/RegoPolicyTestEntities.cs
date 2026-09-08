@@ -101,9 +101,11 @@ internal static class RegoPolicyTestEntities
         public TestPolicyContext(
             ClaimsPrincipal? user = null,
             ISelection? selection = null,
-            ReadOnlyMemory<CompositeResultElement> entities = default)
+            ReadOnlyMemory<CompositeResultElement> entities = default,
+            PolicyAction? action = null)
         {
             User = user ?? new ClaimsPrincipal();
+            Action = action;
 
             if (!entities.IsEmpty)
             {
@@ -118,6 +120,8 @@ internal static class RegoPolicyTestEntities
         public IReadOnlyList<int> DeniedIndices => [.. Denials.Select(static d => d.Index)];
 
         public PolicySelection? Selection => _selection;
+
+        public PolicyAction? Action { get; }
 
         public ClaimsPrincipal User { get; }
 

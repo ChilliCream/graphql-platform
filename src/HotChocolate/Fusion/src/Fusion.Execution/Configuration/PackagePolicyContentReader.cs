@@ -80,6 +80,17 @@ internal static class PackagePolicyContentReader
                 requirements = await ReadBytesAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 
+            // A v1 pair has no manifest, so it has no place to declare (and no reader to agree on)
+            // a 'custom.input' value; a v1 policy that declares one anyway is rejected outright
+            // rather than silently ignored.
+            var declaredInput = RegoEntrypointScanner.Scan(Encoding.UTF8.GetString(source))
+                .FirstOrDefault(entrypoint => entrypoint.Input is not null);
+
+            if (declaredInput.Input is not null)
+            {
+                throw ThrowHelper.RegoPolicyPairCannotDeclareActionInput(configuration.Name);
+            }
+
             var key = $"policies/{RegoLanguage}/{version}/{configuration.Name}";
             var digest = TryGetDigest(artifacts, key)
                 ?? ComputeDigest(source, requirements);
@@ -144,6 +155,17 @@ internal static class PackagePolicyContentReader
             var requirements = package.Requirements is { } requirementsBytes
                 ? ParseRequirements(requirementsBytes.Span)
                 : PolicyRequirements.Empty;
+
+            if (package.Input is not null)
+            {
+                // FusionArchive.GetRegoPolicyBundleAsync already rejects an "action" package that
+                // also carries a resource requirement, so Resource is guaranteed null here.
+                requirements = new PolicyRequirements
+                {
+                    Resource = requirements.Resource,
+                    Kind = PolicyEvaluationKind.ActionOccurrence
+                };
+            }
 
             policies.Add(new PolicyContent(
                 package.Package,

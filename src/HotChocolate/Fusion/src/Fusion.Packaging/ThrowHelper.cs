@@ -107,4 +107,30 @@ internal static class ThrowHelper
 
     public static InvalidDataException RegoPolicyBundleIdentityMismatch(string name, string reason)
         => new($"The Rego policy bundle manifest entry '{name}' does not match its scanned module: {reason}");
+
+    public static ArgumentException RegoPolicyBundleActionInputConflicting(string package)
+        => new(
+            $"The Rego policy bundle package '{package}' declares conflicting 'custom.input' values "
+            + "across its entrypoint decisions. Every decision in a package must declare the same "
+            + "value, or none.",
+            "bundle");
+
+    public static ArgumentException RegoPolicyBundleActionInputInvalidValue(string package, string value)
+        => new(
+            $"The Rego policy bundle package '{package}' declares 'custom.input: {value}', which is "
+            + "not a supported value. The only supported value is 'action'.",
+            "bundle");
+
+    public static ArgumentException RegoPolicyBundleActionWithResourceRequirements(string package)
+        => new(
+            $"The Rego policy bundle package '{package}' declares 'custom.input: action' and a "
+            + "non-empty resource requirement selection. An action policy must not declare a resource "
+            + "requirement.",
+            "bundle");
+
+    public static InvalidDataException RegoPolicyBundleActionWithResourceRequirementsAtRead(string package)
+        => new(
+            $"The Rego policy bundle package '{package}' declares 'custom.input: action' and a "
+            + "non-empty resource requirement selection, which publishing must reject. The archive is "
+            + "invalid or was modified after packaging.");
 }

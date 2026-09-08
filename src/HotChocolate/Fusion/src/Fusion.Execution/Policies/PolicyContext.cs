@@ -15,6 +15,7 @@ internal sealed class PolicyContext : IPolicyContext
     private readonly IFeatureCollection? _features;
     private readonly PolicySelection _selection = new();
     private bool _hasSelection;
+    private PolicyAction? _action;
     private ClaimsPrincipal _user = null!;
     private bool[] _denied = [];
     private string?[] _reasons = [];
@@ -36,6 +37,8 @@ internal sealed class PolicyContext : IPolicyContext
 
     public PolicySelection? Selection => _hasSelection ? _selection : null;
 
+    public PolicyAction? Action => _action;
+
     public IFeatureCollection Features => _features ?? _operationContext!.Features;
 
     public void Deny(int index, string? reason = null)
@@ -56,6 +59,21 @@ internal sealed class PolicyContext : IPolicyContext
     {
         _user = user;
         _hasSelection = false;
+        _action = null;
+        EnsureCapacity(1);
+        _denied[0] = false;
+        _reasons[0] = null;
+        _count = 1;
+    }
+
+    /// <summary>
+    /// Resets this context for an action evaluation of one guarded field occurrence.
+    /// </summary>
+    internal void ResetForAction(ClaimsPrincipal user, PolicyAction action)
+    {
+        _user = user;
+        _hasSelection = false;
+        _action = action;
         EnsureCapacity(1);
         _denied[0] = false;
         _reasons[0] = null;
@@ -74,6 +92,7 @@ internal sealed class PolicyContext : IPolicyContext
     {
         _user = user;
         _hasSelection = true;
+        _action = null;
         _selection.Reset(type, selection, variables, entities);
         var count = entities.Length;
         EnsureCapacity(count);
@@ -90,6 +109,7 @@ internal sealed class PolicyContext : IPolicyContext
         _selection.Clear();
         _user = null!;
         _hasSelection = false;
+        _action = null;
         _count = 0;
     }
 

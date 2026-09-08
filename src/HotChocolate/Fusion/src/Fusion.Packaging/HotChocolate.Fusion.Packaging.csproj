@@ -8,6 +8,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
   </ItemGroup>
 
   <ItemGroup>

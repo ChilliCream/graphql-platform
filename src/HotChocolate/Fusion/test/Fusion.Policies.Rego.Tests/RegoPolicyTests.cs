@@ -165,6 +165,83 @@ public sealed class RegoPolicyTests
         handle.Dispose();
     }
 
+    [Fact]
+    public async Task EvaluateAsync_Should_WriteActionEnvelope_When_ContextCarriesAction()
+    {
+        // arrange
+        var (policy, handle) = CreateActionPolicy(
+            """
+            package fusion_test
+            import rego.v1
+
+            default allow := false
+            allow if {
+                input.action.name == "Mutation.deleteOrder"
+                input.action.arguments.id == 1
+                input.action.arguments.force == false
+                not input.resource
+            }
+            """);
+        var action = new PolicyAction(
+            "Mutation.deleteOrder",
+            new ObjectValueNode(
+                new ObjectFieldNode("id", new IntValueNode(1)),
+                new ObjectFieldNode("force", new BooleanValueNode(false))));
+        var context = new RegoPolicyTestEntities.TestPolicyContext(action: action);
+
+        // act
+        await policy.EvaluateAsync(context, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(context.DeniedIndices);
+        handle.Dispose();
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_Should_FailClosed_When_ActionInputExceedsByteCap()
+    {
+        // arrange
+        var (policy, handle) = CreateActionPolicy(
+            """
+            package fusion_test
+            import rego.v1
+
+            default allow := true
+            """,
+            actionInputByteCap: 16);
+        var action = new PolicyAction(
+            "Mutation.deleteOrder",
+            new ObjectValueNode(
+                new ObjectFieldNode("reason", new StringValueNode(new string('x', 256)))));
+        var context = new RegoPolicyTestEntities.TestPolicyContext(action: action);
+
+        // act
+        var evaluate = () => policy.EvaluateAsync(context, TestContext.Current.CancellationToken).AsTask();
+
+        // assert
+        await Assert.ThrowsAsync<InvalidOperationException>(evaluate);
+        handle.Dispose();
+    }
+
+    private static (RegoPolicy Policy, PolicySetHandle Handle) CreateActionPolicy(
+        string rego,
+        int actionInputByteCap = RegoPolicyProvider.DefaultActionInputByteCap)
+    {
+        const string entryPoint = "data.fusion_test.allow";
+        var set = CompiledPolicySet.Compile(
+            "{}"u8.ToArray(),
+            [new PolicyModule("fusion_test.rego", rego)],
+            [entryPoint]);
+        var handle = new PolicySetHandle(set);
+        var policy = new RegoPolicy(
+            "CanDeleteOrder.allow",
+            new PolicyRequirements { Kind = PolicyEvaluationKind.ActionOccurrence },
+            handle,
+            set.GetEntryPointIndex(entryPoint),
+            actionInputByteCap);
+        return (policy, handle);
+    }
+
     private static (RegoPolicy Policy, PolicySetHandle Handle) CreatePolicy(
         SelectionSetNode? requirements,
         string rego)
@@ -187,7 +264,8 @@ public sealed class RegoPolicyTests
                 ? PolicyRequirements.Empty
                 : new PolicyRequirements { Resource = requirements },
             handle,
-            set.GetEntryPointIndex(entryPoint));
+            set.GetEntryPointIndex(entryPoint),
+            RegoPolicyProvider.DefaultActionInputByteCap);
         return (policy, handle);
     }
 }

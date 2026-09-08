@@ -93,6 +93,7 @@ public sealed partial class OperationPlanner
         ImmutableArray<IPolicy> Source,
         Dictionary<string, SelectionSetNode> Requirements,
         Dictionary<string, bool> RequestCacheability,
+        Dictionary<string, bool> IsAction,
         Dictionary<string, ulong> RequirementHashes);
 
     private sealed record PolicyPlanningSession(
@@ -583,6 +584,7 @@ public sealed partial class OperationPlanner
                 policySlots.Policies,
                 new PolicyArtifactPolicySnapshot(
                     planningSession.Policies.RequestCacheability,
+                    planningSession.Policies.IsAction,
                     planningSession.Policies.Requirements,
                     planningSession.Policies.RequirementHashes),
                 searchSpace,
@@ -1707,6 +1709,15 @@ public sealed partial class OperationPlanner
             var policyTarget = coordinates[coordinateIndex];
             var coordinate = policyTarget.Target;
             slots = slots.AddInventory(coordinate.Policies, planningSession.Policies);
+
+            // An action policy's decision depends on its own occurrence's arguments, so this
+            // coordinate must never be merged with another occurrence that happens to share the
+            // same type, field, and root-ness (see PolicySlotRegistry.AddCoordinate).
+            var isActionSlot = coordinate.Policies.Any(application =>
+                application.Groups.Any(group =>
+                    group.Any(name =>
+                        planningSession.Policies.IsAction.TryGetValue(name, out var isAction) && isAction)));
+
             var slotApplications = ImmutableArray.CreateBuilder<PolicyGateApplication>();
             var slotApplicationClasses = ImmutableArray.CreateBuilder<PolicySlotApplicationClass>();
             var residualApplications = new List<PolicyApplication>();
@@ -1820,6 +1831,7 @@ public sealed partial class OperationPlanner
                                 StringComparer.Ordinal)]
                             : []
                     },
+                    isActionSlot,
                     out slot,
                     out var updatedSlots))
                 {
@@ -4873,7 +4885,8 @@ public sealed partial class OperationPlanner
         public PolicySlotAllocationResult Visit(
             ImmutableArray<PolicyGateApplication> applications,
             PolicyDenialBehavior rmax,
-            ImmutableArray<PolicySlotApplicationClass> applicationClasses)
+            ImmutableArray<PolicySlotApplicationClass> applicationClasses,
+            string? occurrenceDisambiguator = null)
         {
             if (applications.Length != applicationClasses.Length)
             {
@@ -4882,7 +4895,7 @@ public sealed partial class OperationPlanner
                     nameof(applicationClasses));
             }
 
-            var identity = CreateIdentity(applications, rmax);
+            var identity = CreateIdentity(applications, rmax, occurrenceDisambiguator);
             var isAllocated = VisitIdentity(identity);
             var facets = ImmutableArray.CreateBuilder<PolicySlotApplicationFacets>(
                 applicationClasses.Length);
@@ -4931,14 +4944,21 @@ public sealed partial class OperationPlanner
 
         internal static string CreateIdentity(
             IEnumerable<PolicyGateApplication> applications,
-            PolicyDenialBehavior rmax)
-            => CreateKey(CanonicalizeApplications([.. applications]), rmax);
+            PolicyDenialBehavior rmax,
+            string? occurrenceDisambiguator = null)
+            => CreateKey(CanonicalizeApplications([.. applications]), rmax, occurrenceDisambiguator);
 
         private static string CreateKey(
             ImmutableArray<PolicyGateApplication> applications,
-            PolicyDenialBehavior rmax)
+            PolicyDenialBehavior rmax,
+            string? occurrenceDisambiguator)
         {
-            var parts = new string[applications.Length + 1];
+            // An action policy's decision depends on its own occurrence's arguments, so every
+            // occurrence must allocate its own gate identity (never reuse an existing one, even
+            // when the policy formula and Rmax match): a shared identity would mean a shared gate
+            // variable, gating every occurrence through one boolean.
+            var hasDisambiguator = occurrenceDisambiguator is not null;
+            var parts = new string[applications.Length + 1 + (hasDisambiguator ? 1 : 0)];
             parts[0] = ((int)rmax).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             for (var i = 0; i < applications.Length; i++)
@@ -4951,6 +4971,11 @@ public sealed partial class OperationPlanner
                     expressionKey.Length.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ":",
                     expressionKey);
+            }
+
+            if (hasDisambiguator)
+            {
+                parts[^1] = $"occurrence:{occurrenceDisambiguator}";
             }
 
             return string.Join('|', parts);
@@ -5075,6 +5100,7 @@ public sealed partial class OperationPlanner
             ImmutableArray<PolicySlotApplicationClass> applicationClasses,
             PolicyDenialBehavior rmax,
             PolicyConditionCoordinate coordinate,
+            bool isActionSlot,
             out PolicyConditionSlot slot,
             out PolicySlotRegistry registry)
         {
@@ -5108,10 +5134,18 @@ public sealed partial class OperationPlanner
             }
 
             coordinate = coordinate with { Applications = orderedReferences.ToImmutable() };
+
+            // One action slot per compiled selection occurrence: never let this occurrence share a
+            // gate identity with another, even when the policy formula and Rmax match, since a
+            // shared identity means a shared boolean gate variable for every occurrence it covers.
+            var occurrenceDisambiguator = isActionSlot
+                ? $"{coordinate.TypeName}.{coordinate.FieldName}#{string.Join(",", coordinate.ResponseNames)}#{_entries.Length}"
+                : null;
+
             var canonicalApplications = PolicySlotAllocationWalk.CanonicalizeApplications(applications);
-            var key = CreateIdentity(canonicalApplications, rmax);
+            var key = CreateIdentity(canonicalApplications, rmax, occurrenceDisambiguator);
             var allocationWalk = new PolicySlotAllocationWalk(_gateKeys, _overflowedGateKeys);
-            var allocation = allocationWalk.Visit(applications, rmax, applicationClasses);
+            var allocation = allocationWalk.Visit(applications, rmax, applicationClasses, occurrenceDisambiguator);
 
             if (!allocation.IsAllocated)
             {
@@ -5133,7 +5167,10 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                slot = AddCoordinate(AddGuardMasks(_entries[i], coordinate.LiveGuardMasks), coordinate);
+                slot = AddCoordinate(
+                    AddGuardMasks(_entries[i], coordinate.LiveGuardMasks),
+                    coordinate,
+                    isActionSlot);
                 var entries = ReferenceEquals(slot, _entries[i])
                     ? _entries
                     : _entries.SetItem(i, slot);
@@ -5191,8 +5228,9 @@ public sealed partial class OperationPlanner
 
         internal static string CreateIdentity(
             IEnumerable<PolicyGateApplication> applications,
-            PolicyDenialBehavior rmax)
-            => PolicySlotAllocationWalk.CreateIdentity(applications, rmax);
+            PolicyDenialBehavior rmax,
+            string? occurrenceDisambiguator = null)
+            => PolicySlotAllocationWalk.CreateIdentity(applications, rmax, occurrenceDisambiguator);
 
         private static PolicyConditionSlot AddGuardMasks(
             PolicyConditionSlot slot,
@@ -5209,7 +5247,8 @@ public sealed partial class OperationPlanner
 
         private static PolicyConditionSlot AddCoordinate(
             PolicyConditionSlot slot,
-            PolicyConditionCoordinate coordinate)
+            PolicyConditionCoordinate coordinate,
+            bool isActionSlot)
         {
             for (var i = 0; i < slot.Coordinates.Length; i++)
             {
@@ -5217,6 +5256,17 @@ public sealed partial class OperationPlanner
                 if (!current.TypeName.Equals(coordinate.TypeName, StringComparison.Ordinal)
                     || !string.Equals(current.FieldName, coordinate.FieldName, StringComparison.Ordinal)
                     || current.IsRoot != coordinate.IsRoot)
+                {
+                    continue;
+                }
+
+                // An action policy's decision depends on its own occurrence's arguments, so two
+                // occurrences that would otherwise share a coordinate (same type, field, and
+                // root-ness) must stay distinct unless they are the very same field occurrence
+                // (matched by response name) seen again, for example under a different guard mask.
+                if (isActionSlot
+                    && !coordinate.ResponseNames.All(
+                        name => current.ResponseNames.Contains(name, StringComparer.Ordinal)))
                 {
                     continue;
                 }

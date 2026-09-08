@@ -47,6 +47,12 @@ internal sealed record RegoPolicyBundleManifestPolicy
     public string? Requirements { get; init; }
 
     /// <summary>
+    /// The package's uniform <c>custom.input</c> METADATA declaration, or <c>null</c> when the
+    /// package declares none. The only value the runtime understands is <c>"action"</c>.
+    /// </summary>
+    public string? Input { get; init; }
+
+    /// <summary>
     /// The sha256 digest, formatted <c>sha256:&lt;lowercase hex&gt;</c>, of every path this entry
     /// references (its modules and, when present, its requirements), keyed by that path.
     /// </summary>

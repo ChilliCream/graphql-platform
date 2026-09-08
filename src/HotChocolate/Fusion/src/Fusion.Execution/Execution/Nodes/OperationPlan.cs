@@ -797,7 +797,12 @@ public sealed record OperationPlan : IOperationPlan
                     "Policy gate guard masks must be canonical and reference defined include conditions.");
             }
 
-            var coordinateKeys = new HashSet<(string TypeName, string? FieldName, bool IsRoot)>();
+            // An object coordinate (no field name) must be unique per (type, root-ness). A field
+            // coordinate is keyed by response name instead: an action policy's decision depends on
+            // its own occurrence's arguments, so the same field may legitimately appear as more
+            // than one coordinate (one per alias) as long as no response name is claimed twice.
+            var objectCoordinateKeys = new HashSet<(string TypeName, bool IsRoot)>();
+            var fieldCoordinateResponseKeys = new HashSet<(string TypeName, string FieldName, string ResponseName)>();
             var slotApplicationSet = slot.Applications.ToHashSet();
             var coordinateLiveMasks = ImmutableArray.CreateBuilder<ConditionFlags>();
             foreach (var coordinate in slot.Coordinates)
@@ -812,10 +817,10 @@ public sealed record OperationPlan : IOperationPlan
                     || coordinate.Applications.IsDefaultOrEmpty
                     || coordinate.LiveGuardMasks.IsDefaultOrEmpty
                     || coordinate.GateGuardMasks.IsDefault
-                    || !coordinateKeys.Add((
-                        coordinate.TypeName,
-                        coordinate.FieldName,
-                        coordinate.IsRoot)))
+                    || (coordinate.FieldName is null
+                        ? !objectCoordinateKeys.Add((coordinate.TypeName, coordinate.IsRoot))
+                        : coordinate.ResponseNames.Any(responseName => !fieldCoordinateResponseKeys.Add(
+                            (coordinate.TypeName, coordinate.FieldName, responseName)))))
                 {
                     throw ThrowHelper.InvalidOperationPlan("A policy gate coordinate is malformed.");
                 }
@@ -931,6 +936,22 @@ public sealed record OperationPlan : IOperationPlan
                 identity.Append(application.ExpressionOrdinal);
                 identity.Append(':');
                 identity.Append((int)application.OnDenied);
+            }
+
+            // Two slots that happen to share the same policy formula and Rmax are only truly
+            // duplicate identities when they also gate the same coordinates: an action policy's
+            // decision depends on its own occurrence's arguments, so it legitimately allocates one
+            // slot per occurrence even though every such slot shares the same formula and Rmax.
+            foreach (var coordinate in slot.Coordinates)
+            {
+                identity.Append("|c:");
+                identity.Append(coordinate.TypeName);
+                identity.Append(':');
+                identity.Append(coordinate.FieldName);
+                identity.Append(':');
+                identity.Append(coordinate.IsRoot);
+                identity.Append(':');
+                identity.Append(string.Join(",", coordinate.ResponseNames));
             }
 
             if (!gateIdentities.Add(identity.ToString()))

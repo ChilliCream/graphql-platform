@@ -18,6 +18,14 @@ public sealed class RegoPolicyProvider
 {
     private const string RegoLanguage = "rego";
 
+    /// <summary>
+    /// The default maximum size, in bytes, of the input envelope written for an action policy
+    /// evaluation.
+    /// </summary>
+    public const int DefaultActionInputByteCap = 1_048_576;
+
+    private readonly int _actionInputByteCap;
+
 #if NET9_0_OR_GREATER
     private readonly Lock _publishSync = new();
 #else
@@ -76,8 +84,16 @@ public sealed class RegoPolicyProvider
     /// <summary>
     /// Initializes a new instance of <see cref="RegoPolicyProvider"/>.
     /// </summary>
-    public RegoPolicyProvider(IFusionExecutionDiagnosticEvents diagnosticEvents)
-        : this(diagnosticEvents, dataAggregator: null)
+    /// <param name="diagnosticEvents">The diagnostic events sink.</param>
+    /// <param name="actionInputByteCap">
+    /// The maximum size, in bytes, of the input envelope written for an action policy evaluation;
+    /// exceeding it fails the evaluation closed. Defaults to
+    /// <see cref="DefaultActionInputByteCap"/>.
+    /// </param>
+    public RegoPolicyProvider(
+        IFusionExecutionDiagnosticEvents diagnosticEvents,
+        int actionInputByteCap = DefaultActionInputByteCap)
+        : this(diagnosticEvents, dataAggregator: null, actionInputByteCap: actionInputByteCap)
     {
     }
 
@@ -89,7 +105,8 @@ public sealed class RegoPolicyProvider
     internal RegoPolicyProvider(
         IFusionExecutionDiagnosticEvents diagnosticEvents,
         RegoDataAggregator? dataAggregator,
-        Func<byte[], IReadOnlyList<PolicyModule>, IReadOnlyList<string>, CompiledPolicySet>? compiler = null)
+        Func<byte[], IReadOnlyList<PolicyModule>, IReadOnlyList<string>, CompiledPolicySet>? compiler = null,
+        int actionInputByteCap = DefaultActionInputByteCap)
     {
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
@@ -97,6 +114,7 @@ public sealed class RegoPolicyProvider
         _dataAggregator = dataAggregator;
         _compiler = compiler ?? (static (data, modules, entryPoints) =>
             CompiledPolicySet.Compile(data, modules, entryPoints));
+        _actionInputByteCap = actionInputByteCap;
 
         if (_dataAggregator is not null)
         {
@@ -458,7 +476,7 @@ public sealed class RegoPolicyProvider
                 foreach (var rule in rules)
                 {
                     policies.Add(new PolicyDefinition(
-                        $"{content.Name}.{rule}",
+                        $"{content.Name}.{rule.Name}",
                         content.Name,
                         content.Requirements));
                 }
@@ -513,7 +531,8 @@ public sealed class RegoPolicyProvider
                 policies[i].Name,
                 policies[i].Requirements,
                 handle,
-                set.GetEntryPointIndex(entryPoints[i])));
+                set.GetEntryPointIndex(entryPoints[i]),
+                _actionInputByteCap));
         }
 
         _currentHandle = handle;

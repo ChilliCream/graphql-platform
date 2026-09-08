@@ -32,6 +32,18 @@ public interface IPolicyContext : IFeatureProvider
     PolicySelection? Selection { get; }
 
     /// <summary>
+    /// Gets the guarded field occurrence's name and coerced arguments, or <c>null</c> when the
+    /// evaluation is not an action evaluation.
+    /// </summary>
+    /// <remarks>
+    /// Set only for a policy whose <see cref="IPolicy.Requirements"/> declares
+    /// <see cref="PolicyEvaluationKind.ActionOccurrence"/>; mutually exclusive with
+    /// <see cref="Selection"/>. When non-<c>null</c>, this evaluation produces a single decision for
+    /// this occurrence: deny it, if at all, through <c>Deny(0, …)</c>.
+    /// </remarks>
+    PolicyAction? Action { get; }
+
+    /// <summary>
     /// Denies access to a single entity.
     /// </summary>
     /// <param name="index">

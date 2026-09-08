@@ -35,6 +35,17 @@ internal static class ThrowHelper
             + "archive is rejected rather than served with no policies. A runtime built before this "
             + "check instead returns no policies for such an archive, which does not apply here.");
 
+    public static InvalidOperationException RegoPolicyPairCannotDeclareActionInput(string policyName)
+        => new(
+            $"The Rego policy pair '{policyName}' declares 'custom.input: action' on one of its "
+            + "entrypoints. Action policies require the manifest-indexed Rego policy bundle format "
+            + "(version 2 and above); a flat policy pair cannot carry an action policy.");
+
+    public static InvalidOperationException PolicyActionOnNonFieldCoordinate(string typeName)
+        => new(
+            $"An action policy was applied to the object coordinate '{typeName}', which has no field "
+            + "name or arguments to evaluate. Action policies are only valid on field occurrences.");
+
     public static InvalidOperationException PolicyOperationPlanMissing()
         => new("There is no operation plan available for policy evaluation.");
 

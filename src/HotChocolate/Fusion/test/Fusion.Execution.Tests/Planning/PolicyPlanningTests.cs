@@ -3515,8 +3515,13 @@ public sealed class PolicyPlanningTests : FusionTestBase
             () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString())));
 
         // assert
+        // The policy gate identity check now folds each slot's coordinates into its identity (an
+        // action policy legitimately allocates one slot per occurrence, sharing a formula and Rmax
+        // with other such slots), so this malformed split of one cacheable coordinate's gate across
+        // two slots no longer collides there; it is still rejected, now by the earlier compiled
+        // occurrence facet reconciliation in PolicyArtifactBinder.Validate.
         Assert.Equal(
-            "An operation plan contains duplicate policy gate identities.",
+            "A compiled policy occurrence fetch-gate realization does not match its required facet.",
             exception.Message);
     }
 
@@ -4280,6 +4285,64 @@ public sealed class PolicyPlanningTests : FusionTestBase
             """,
             new TestPolicy("CanReadQuery"),
             new TestPolicy("CanAudit"));
+
+    [Fact]
+    public void JsonParser_Should_RoundTripActionPolicySlot_When_PlanIsValid()
+    {
+        // arrange
+        var schema = CreateActionPolicySchema();
+        var plan = PlanOperation(schema, "mutation { write(value: 1) }");
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsed = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.False(parsed.PolicySlots.IsDefaultOrEmpty);
+    }
+
+    [Fact]
+    public void JsonParser_Should_RejectActionCoordinate_When_OccurrenceSelectionIdIsTampered()
+    {
+        // arrange: action target/arguments are reconstructed from the compiled operation and the
+        // occurrence reference alone, never read from a serialized plan value, so pointing the
+        // occurrence reference itself at a different compiled selection must be rejected.
+        var schema = CreateActionPolicySchema();
+        var plan = PlanOperation(schema, "mutation { a: write(value: 1) b: write(value: 2) }");
+        var (json, parser) = SerializePlan(schema, plan);
+        var occurrence = json["policySlots"]![0]!["coordinates"]![0]!["occurrences"]![0]!;
+        occurrence["selectionId"] = occurrence["selectionId"]!.GetValue<int>() + 999;
+
+        // act
+        var read = () => parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.Throws<InvalidOperationException>(read);
+    }
+
+    private static FusionSchemaDefinition CreateActionPolicySchema()
+        => CreateSchema(
+            """
+            schema {
+              query: Query
+              mutation: Mutation
+            }
+
+            type Query @fusion__type(schema: A) {
+              placeholder: String @fusion__field(schema: A)
+            }
+
+            type Mutation @fusion__type(schema: A) {
+              write(value: Int!): String
+                @fusion__field(schema: A)
+                @fusion__policy(names: "CanWrite", onDenied: NULL)
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """,
+            new TestPolicy("CanWrite", new PolicyRequirements { Kind = PolicyEvaluationKind.ActionOccurrence }));
 
     private static FusionSchemaDefinition CreateLivenessPolicySchema()
         => CreateSchema(

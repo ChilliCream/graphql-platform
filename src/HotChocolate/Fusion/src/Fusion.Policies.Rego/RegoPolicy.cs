@@ -31,6 +31,7 @@ public sealed class RegoPolicy : IPolicy
 {
     private readonly PolicySetHandle _handle;
     private readonly int _entryPoint;
+    private readonly int _actionInputByteCap;
 
     /// <summary>
     /// Initializes a new instance of <see cref="RegoPolicy"/>.
@@ -39,16 +40,23 @@ public sealed class RegoPolicy : IPolicy
     /// <param name="requirements">The parts of the evaluation input the policy reads.</param>
     /// <param name="handle">The handle of the shared compiled policy set backing this policy.</param>
     /// <param name="entryPoint">The entrypoint index of this policy within the shared set.</param>
+    /// <param name="actionInputByteCap">
+    /// The maximum size, in bytes, of the input envelope written for an action evaluation
+    /// (<see cref="PolicyRequirements.Kind"/> is <see cref="PolicyEvaluationKind.ActionOccurrence"/>).
+    /// Exceeding it fails the evaluation closed.
+    /// </param>
     internal RegoPolicy(
         string name,
         PolicyRequirements requirements,
         PolicySetHandle handle,
-        int entryPoint)
+        int entryPoint,
+        int actionInputByteCap)
     {
         Name = name;
         Requirements = requirements;
         _handle = handle;
         _entryPoint = entryPoint;
+        _actionInputByteCap = actionInputByteCap;
     }
 
     /// <inheritdoc />
@@ -75,6 +83,32 @@ public sealed class RegoPolicy : IPolicy
 
         var policySet = _handle.PolicySet;
         var inputWriter = new JsonWriter(inputBuffer, new JsonWriterOptions { Indented = false });
+
+        if (context.Action is { } action)
+        {
+            inputWriter.Reset(inputBuffer);
+            WriteActionInput(inputWriter, valueBuffer, subjectBuffer.WrittenSpan, action);
+
+            if (inputBuffer.WrittenSpan.Length > _actionInputByteCap)
+            {
+                throw InvalidInput(
+                    $"The action input for this evaluation is {inputBuffer.WrittenSpan.Length} bytes, "
+                    + $"which exceeds the configured limit of {_actionInputByteCap} bytes.");
+            }
+
+            var actionResult = policySet.EvalBooleanWithInput(_entryPoint, inputBuffer.WrittenSpan);
+
+            if (actionResult.IsUndefined)
+            {
+                context.Deny(0, "The policy did not produce a decision.");
+            }
+            else if (!actionResult.Allowed)
+            {
+                context.Deny(0);
+            }
+
+            return ValueTask.CompletedTask;
+        }
 
         // A null selection is a request-constant evaluation: it produces exactly one decision,
         // regardless of how many entities a resource-bearing evaluation would carry.
@@ -104,6 +138,23 @@ public sealed class RegoPolicy : IPolicy
         }
 
         return ValueTask.CompletedTask;
+    }
+
+    private static void WriteActionInput(
+        JsonWriter writer,
+        PooledArrayWriter valueBuffer,
+        ReadOnlySpan<byte> subject,
+        PolicyAction action)
+    {
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("subject");
+        writer.WriteRawValue(subject);
+
+        writer.WritePropertyName("action");
+        PolicyInputWriter.WriteAction(writer, valueBuffer, action);
+
+        writer.WriteEndObject();
     }
 
     private void WriteInput(

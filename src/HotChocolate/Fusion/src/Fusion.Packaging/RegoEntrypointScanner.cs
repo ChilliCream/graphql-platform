@@ -1,6 +1,17 @@
 namespace HotChocolate.Fusion.Packaging;
 
 /// <summary>
+/// One entrypoint decision discovered by <see cref="RegoEntrypointScanner"/>.
+/// </summary>
+/// <param name="Name">The rule name, without the package prefix.</param>
+/// <param name="Input">
+/// The entrypoint's declared <c>custom.input</c> METADATA value, or <c>null</c> when the entrypoint
+/// declares none. The only value the runtime understands is <c>"action"</c>; any other value is
+/// rejected by the caller.
+/// </param>
+internal readonly record struct RegoEntrypoint(string Name, string? Input);
+
+/// <summary>
 /// Scans a single Rego module for its declared entrypoint decisions: rules annotated
 /// <c># METADATA</c> / <c>entrypoint: true</c>. Shared by the archive packaging tools (which use it
 /// to validate a Rego policy bundle manifest against the modules it indexes) and the Rego policy
@@ -9,14 +20,16 @@ namespace HotChocolate.Fusion.Packaging;
 /// </summary>
 internal static class RegoEntrypointScanner
 {
-    public static List<string> Scan(string source)
+    public static List<RegoEntrypoint> Scan(string source)
     {
-        var entryPoints = new List<string>();
+        var entryPoints = new List<RegoEntrypoint>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var state = new LexicalState();
         var packageSeen = false;
         var metadataPending = false;
         var entrypointPending = false;
+        var customPending = false;
+        string? pendingInput = null;
 
         foreach (var line in source.AsSpan().EnumerateLines())
         {
@@ -38,10 +51,23 @@ internal static class RegoEntrypointScanner
                 {
                     metadataPending = true;
                     entrypointPending = false;
+                    customPending = false;
+                    pendingInput = null;
                 }
                 else if (metadataPending && IsEntrypointMetadata(content))
                 {
                     entrypointPending = true;
+                    customPending = false;
+                }
+                else if (metadataPending && IsCustomMetadataStart(content))
+                {
+                    customPending = true;
+                }
+                else if (metadataPending
+                    && customPending
+                    && TryGetCustomInputValue(content, out var inputValue))
+                {
+                    pendingInput = inputValue;
                 }
 
                 continue;
@@ -57,11 +83,13 @@ internal static class RegoEntrypointScanner
             {
                 if (entrypointPending && TryGetRuleName(content, out var name) && seen.Add(name))
                 {
-                    entryPoints.Add(name);
+                    entryPoints.Add(new RegoEntrypoint(name, pendingInput));
                 }
 
                 metadataPending = false;
                 entrypointPending = false;
+                customPending = false;
+                pendingInput = null;
             }
         }
 
@@ -170,6 +198,38 @@ internal static class RegoEntrypointScanner
 
     private static bool IsEntrypointMetadata(ReadOnlySpan<char> line)
         => line[1..].TrimStart().SequenceEqual("entrypoint: true");
+
+    private static bool IsCustomMetadataStart(ReadOnlySpan<char> line)
+        => line[1..].TrimStart().SequenceEqual("custom:");
+
+    private static bool TryGetCustomInputValue(ReadOnlySpan<char> line, out string value)
+    {
+        var rest = line[1..].TrimStart();
+
+        if (!rest.StartsWith("input:", StringComparison.Ordinal))
+        {
+            value = string.Empty;
+            return false;
+        }
+
+        var rawValue = rest["input:".Length..].Trim();
+
+        if (rawValue.Length >= 2
+            && (rawValue[0] is '"' or '\'')
+            && rawValue[^1] == rawValue[0])
+        {
+            rawValue = rawValue[1..^1];
+        }
+
+        if (rawValue.IsEmpty)
+        {
+            value = string.Empty;
+            return false;
+        }
+
+        value = rawValue.ToString();
+        return true;
+    }
 
     private static bool IsPackageDeclaration(ReadOnlySpan<char> line)
         => StartsWithKeyword(line, "package");

@@ -262,11 +262,20 @@ internal sealed class PolicyRequestState
             foreach (var application in slot.Applications)
             {
                 var expressionOrdinal = application.ExpressionOrdinal;
+                var expression = operationPlan.PolicyExpressions[expressionOrdinal];
+
+                if (IsActionExpression(expression))
+                {
+                    // An action expression's decision depends on its coordinate's own occurrence
+                    // (arguments), so it is evaluated per coordinate below and never cached here.
+                    continue;
+                }
+
                 if (!_evaluatedExpressions[expressionOrdinal])
                 {
                     _expressionDecisions[expressionOrdinal] =
                         await EvaluateExpressionAsync(
-                            operationPlan.PolicyExpressions[expressionOrdinal],
+                            expression,
                             user,
                             cancellationToken,
                             eventContext,
@@ -296,7 +305,17 @@ internal sealed class PolicyRequestState
 
                 foreach (var application in coordinate.Applications)
                 {
-                    var expressionDecision = _expressionDecisions[application.ExpressionOrdinal];
+                    var expression = operationPlan.PolicyExpressions[application.ExpressionOrdinal];
+                    var expressionDecision = IsActionExpression(expression)
+                        ? await EvaluateActionExpressionAsync(
+                            operationPlan,
+                            expression,
+                            coordinate,
+                            variables,
+                            user,
+                            cancellationToken)
+                            .ConfigureAwait(false)
+                        : _expressionDecisions[application.ExpressionOrdinal];
                     if (!expressionDecision.IsDenied)
                     {
                         continue;
@@ -544,6 +563,153 @@ internal sealed class PolicyRequestState
         }
 
         return new PolicyDecision(true, reason);
+    }
+
+    /// <summary>
+    /// Gets whether any policy name referenced by <paramref name="expression"/> is an action policy
+    /// (<see cref="PolicyEvaluationKind.ActionOccurrence"/>). Such an expression is never cached at
+    /// the expression level: its decision depends on the coordinate's own occurrence.
+    /// </summary>
+    private bool IsActionExpression(PolicyConditionExpression expression)
+    {
+        foreach (var group in expression.Groups)
+        {
+            foreach (var name in group)
+            {
+                if (ResolvePolicy(name).Requirements.Kind == PolicyEvaluationKind.ActionOccurrence)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Evaluates an action expression for one coordinate's own occurrence: the guarded field's
+    /// name and coerced arguments are reconstructed from the compiled operation and the request's
+    /// coerced variables, never read from a serialized plan value. Every named policy is evaluated
+    /// fresh; no decision is cached, so distinct occurrences (aliases, or the same occurrence across
+    /// a variable batch) never share a decision.
+    /// </summary>
+    private async ValueTask<PolicyDecision> EvaluateActionExpressionAsync(
+        OperationPlan operationPlan,
+        PolicyConditionExpression expression,
+        PolicyConditionCoordinate coordinate,
+        IVariableValueCollection variables,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        if (coordinate.Occurrences.IsDefaultOrEmpty)
+        {
+            // No compiled occurrence is live for this coordinate in this plan part.
+            return default;
+        }
+
+        if (coordinate.FieldName is null)
+        {
+            throw ThrowHelper.PolicyActionOnNonFieldCoordinate(coordinate.TypeName);
+        }
+
+        var selection = ResolveOccurrenceSelection(operationPlan, coordinate.Occurrences[0]);
+        var action = PolicyActionCoercion.BuildAction(
+            coordinate.TypeName,
+            coordinate.FieldName,
+            selection,
+            variables);
+
+        string? reason = null;
+
+        foreach (var group in expression.Groups)
+        {
+            var groupDenied = false;
+
+            foreach (var name in group)
+            {
+                var decision = await EvaluateActionPolicyAsync(
+                    ResolvePolicy(name),
+                    user,
+                    action,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+                if (decision.IsDenied)
+                {
+                    groupDenied = true;
+                    reason ??= decision.Reason;
+                }
+            }
+
+            if (!groupDenied)
+            {
+                return default;
+            }
+        }
+
+        return new PolicyDecision(true, reason);
+    }
+
+    /// <summary>
+    /// Evaluates one action policy against one occurrence's action, bypassing every request-level
+    /// decision cache: an action policy's decision must never be reused across occurrences or
+    /// variable-batch items.
+    /// </summary>
+    private async ValueTask<PolicyDecision> EvaluateActionPolicyAsync(
+        IPolicy policy,
+        ClaimsPrincipal user,
+        PolicyAction action,
+        CancellationToken cancellationToken)
+    {
+        await _evaluationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var start = Stopwatch.GetTimestamp();
+        var outcome = PolicyEvaluationOutcome.Error;
+        var evaluationStarted = false;
+
+        try
+        {
+            _policyContext.ResetForAction(user, action);
+            evaluationStarted = true;
+            await policy.EvaluateAsync(_policyContext, cancellationToken).ConfigureAwait(false);
+            var decision = _policyContext.GetDecision(0);
+            outcome = decision.IsDenied
+                ? PolicyEvaluationOutcome.Denied
+                : PolicyEvaluationOutcome.Allowed;
+            return decision;
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = PolicyEvaluationOutcome.Cancelled;
+            throw;
+        }
+        finally
+        {
+            if (evaluationStarted)
+            {
+                _diagnosticEvents.PolicyEvaluated(
+                    _requestContext,
+                    policy.Name,
+                    outcome,
+                    Stopwatch.GetElapsedTime(start));
+            }
+
+            _policyContext.Clear();
+            _evaluationLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Resolves the compiled selection an occurrence reference points to, from the same operation
+    /// that ends up on the final plan; an occurrence reference is never resolved from a serialized
+    /// plan value.
+    /// </summary>
+    private static Selection ResolveOccurrenceSelection(
+        OperationPlan operationPlan,
+        PolicyOccurrenceReference occurrence)
+    {
+        var operation = occurrence.PlanPart == 0
+            ? operationPlan.Operation
+            : operationPlan.IncrementalPlans[occurrence.PlanPart - 1].Operation;
+        return operation.GetSelectionById(occurrence.SelectionId);
     }
 
     private static bool IsLive(ImmutableArray<ConditionFlags> guardMasks, ConditionFlags includeFlags)

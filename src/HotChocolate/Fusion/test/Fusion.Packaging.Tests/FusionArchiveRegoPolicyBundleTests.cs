@@ -26,6 +26,38 @@ public class FusionArchiveRegoPolicyBundleTests
     private const string RbacLibrarySource =
         "package rbac\nimport rego.v1\nis_admin(role) if role == \"admin\"\n";
 
+    private const string CartActionSource =
+        "package cart\n"
+        + "import rego.v1\n"
+        + "# METADATA\n"
+        + "# entrypoint: true\n"
+        + "# custom:\n"
+        + "#   input: action\n"
+        + "default allow := false\n";
+
+    private const string CartConflictingActionSource =
+        "package cart\n"
+        + "import rego.v1\n"
+        + "# METADATA\n"
+        + "# entrypoint: true\n"
+        + "# custom:\n"
+        + "#   input: action\n"
+        + "default allow := false\n"
+        + "# METADATA\n"
+        + "# entrypoint: true\n"
+        + "# custom:\n"
+        + "#   input: resource\n"
+        + "default deny := false\n";
+
+    private const string CartInvalidInputSource =
+        "package cart\n"
+        + "import rego.v1\n"
+        + "# METADATA\n"
+        + "# entrypoint: true\n"
+        + "# custom:\n"
+        + "#   input: resource\n"
+        + "default allow := false\n";
+
     [Fact]
     public async Task GetRegoPolicyBundle_Should_RoundTripPackage_When_BundleIsValid()
     {
@@ -353,6 +385,134 @@ public class FusionArchiveRegoPolicyBundleTests
 
         // assert
         await Assert.ThrowsAsync<ArgumentException>(write);
+    }
+
+    [Fact]
+    public async Task GetRegoPolicyBundle_Should_ExposeActionInput_When_PackageDeclaresCustomInputAction()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [new RegoPolicyBundleModule("allow", Encoding.UTF8.GetBytes(CartActionSource))],
+                    Requirements: null)
+            ]
+        };
+        await using var stream = await BuildArchiveAsync(bundle, ct);
+        using var archive = FusionArchive.Open(stream, leaveOpen: true);
+
+        // act
+        var content = await archive.GetRegoPolicyBundleAsync(s_bundleVersion, ct);
+
+        // assert
+        var package = Assert.Single(content.Packages);
+        Assert.Equal("action", package.Input);
+        Assert.Null(package.Requirements);
+    }
+
+    [Fact]
+    public async Task SetRegoPolicyBundleAsync_Should_Throw_When_ActionPackageHasResourceRequirements()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [new RegoPolicyBundleModule("allow", Encoding.UTF8.GetBytes(CartActionSource))],
+                    Encoding.UTF8.GetBytes("{ id }"))
+            ]
+        };
+
+        // act
+        var write = () => archive.SetRegoPolicyBundleAsync(bundle, s_bundleVersion, TestContext.Current.CancellationToken);
+
+        // assert
+        await Assert.ThrowsAsync<ArgumentException>(write);
+    }
+
+    [Fact]
+    public async Task SetRegoPolicyBundleAsync_Should_Throw_When_EntrypointsDeclareConflictingCustomInput()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [new RegoPolicyBundleModule("allow", Encoding.UTF8.GetBytes(CartConflictingActionSource))],
+                    Requirements: null)
+            ]
+        };
+
+        // act
+        var write = () => archive.SetRegoPolicyBundleAsync(bundle, s_bundleVersion, TestContext.Current.CancellationToken);
+
+        // assert
+        await Assert.ThrowsAsync<ArgumentException>(write);
+    }
+
+    [Fact]
+    public async Task SetRegoPolicyBundleAsync_Should_Throw_When_CustomInputValueIsNotAction()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [new RegoPolicyBundleModule("allow", Encoding.UTF8.GetBytes(CartInvalidInputSource))],
+                    Requirements: null)
+            ]
+        };
+
+        // act
+        var write = () => archive.SetRegoPolicyBundleAsync(bundle, s_bundleVersion, TestContext.Current.CancellationToken);
+
+        // assert
+        await Assert.ThrowsAsync<ArgumentException>(write);
+    }
+
+    [Fact]
+    public async Task GetRegoPolicyBundle_Should_Throw_When_ManifestInputDisagreesWithScannedModule()
+    {
+        // arrange: the manifest is hand-edited after packaging to disagree with what the untouched
+        // module's own METADATA still declares, simulating a tampered or hand-crafted archive.
+        var ct = TestContext.Current.CancellationToken;
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [new RegoPolicyBundleModule("allow", Encoding.UTF8.GetBytes(CartActionSource))],
+                    Requirements: null)
+            ]
+        };
+        await using var built = await BuildArchiveAsync(bundle, ct);
+        await using var tampered = await EditManifestAsync(
+            built,
+            manifest => manifest["policies"]![0]!["input"] = null);
+        using var archive = FusionArchive.Open(tampered, leaveOpen: true);
+
+        // act
+        var read = () => archive.GetRegoPolicyBundleAsync(s_bundleVersion, ct);
+
+        // assert
+        await Assert.ThrowsAsync<InvalidDataException>(read);
     }
 
     [Fact]

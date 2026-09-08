@@ -172,7 +172,7 @@ internal static class PolicyArtifactBinder
                 foreach (var occurrence in coordinate.Occurrences)
                 {
                     if (!candidateByReference.TryGetValue(occurrence, out var candidate)
-                        || !MatchesCoordinate(coordinate, expressions, candidate))
+                        || !MatchesCoordinate(coordinate, expressions, candidate, policySnapshot))
                     {
                         throw ThrowHelper.InvalidOperationPlan(
                             "A policy gate coordinate does not match its compiled occurrence.");
@@ -186,7 +186,7 @@ internal static class PolicyArtifactBinder
                 }
 
                 var expectedOccurrences = candidates
-                    .Where(candidate => MatchesCoordinate(coordinate, expressions, candidate))
+                    .Where(candidate => MatchesCoordinate(coordinate, expressions, candidate, policySnapshot))
                     .Select(candidate => candidate.Reference)
                     .OrderBy(reference => reference.PlanPart)
                     .ThenBy(reference => reference.SelectionSetId)
@@ -252,7 +252,7 @@ internal static class PolicyArtifactBinder
                 var expectedRmax = candidates
                     .Where(candidate =>
                         candidate.Reference.Facet is PolicyOccurrenceFacet.ResidualEvaluation
-                        && MatchesCoordinatePosition(coordinate, candidate))
+                        && MatchesCoordinatePosition(coordinate, candidate, expressions, policySnapshot))
                     .Select(candidate => candidate.Policy.OnDenied)
                     .DefaultIfEmpty(PolicyDenialBehavior.Null)
                     .Max();
@@ -265,7 +265,7 @@ internal static class PolicyArtifactBinder
                 var gateCandidates = candidates
                     .Where(candidate =>
                         candidate.Reference.Facet is PolicyOccurrenceFacet.SlotGate
-                        && MatchesCoordinatePosition(coordinate, candidate))
+                        && MatchesCoordinatePosition(coordinate, candidate, expressions, policySnapshot))
                     .ToArray();
                 var expectedGateMasks = CanonicalizeMasks(gateCandidates
                     .Where(candidate => candidate.GateEligible)
@@ -1156,9 +1156,7 @@ internal static class PolicyArtifactBinder
 
         foreach (var occurrence in positions)
         {
-            var slotCandidates = occurrence.Candidates.Where(candidate =>
-                candidate.Reference.Facet is PolicyOccurrenceFacet.SlotGate);
-            var key = CreateGateKey(slotCandidates, GetRmax(occurrence.Candidates));
+            var key = ComputeOccurrenceGateKey(occurrence, policySnapshot);
             if (!gateKeys.Contains(key, StringComparer.Ordinal))
             {
                 gateKeys.Add(key);
@@ -1170,10 +1168,7 @@ internal static class PolicyArtifactBinder
         {
             var gateKey = gateKeys[slotOrdinal];
             var slotOccurrences = positions.Where(occurrence =>
-                CreateGateKey(
-                    occurrence.Candidates.Where(candidate =>
-                        candidate.Reference.Facet is PolicyOccurrenceFacet.SlotGate),
-                    GetRmax(occurrence.Candidates)).Equals(gateKey, StringComparison.Ordinal))
+                ComputeOccurrenceGateKey(occurrence, policySnapshot).Equals(gateKey, StringComparison.Ordinal))
                 .ToArray();
             var slotCandidates = slotOccurrences
                 .SelectMany(occurrence => occurrence.Candidates)
@@ -1181,6 +1176,15 @@ internal static class PolicyArtifactBinder
                     candidate.Reference.Facet is PolicyOccurrenceFacet.SlotGate)
                 .ToArray();
             var rmax = GetRmax(slotOccurrences[0].Candidates);
+
+            // An action policy's decision depends on its occurrence's own arguments, so two
+            // occurrences that would otherwise share a coordinate (same type, field, and root-ness)
+            // must stay distinct when any policy name in this slot is an action policy; every other
+            // slot keeps the existing, occurrence-independent coordinate compaction.
+            var isActionSlot = slotCandidates.Any(candidate =>
+                candidate.Policy.Groups.Any(group =>
+                    group.Any(name => policySnapshot.IsAction.TryGetValue(name, out var action) && action)));
+
             var applications = slotCandidates
                 .Select(candidate => new PolicyConditionApplication
                 {
@@ -1202,7 +1206,9 @@ internal static class PolicyArtifactBinder
                     return new CoordinateKey(
                         candidate.TypeName,
                         candidate.FieldName,
-                        candidate.IsRoot);
+                        candidate.IsRoot,
+                        isActionSlot ? candidate.Reference.PlanPart : 0,
+                        isActionSlot ? candidate.Reference.SelectionId : 0);
                 })
                 .OrderBy(group => group.Min(occurrence => occurrence.Position.PlanPart))
                 .ThenBy(group => group.Min(occurrence => occurrence.Position.SelectionSetId))
@@ -1283,15 +1289,15 @@ internal static class PolicyArtifactBinder
         }
 
         return new ReconstructedArtifacts(expressions, slots.ToImmutable());
-
-        static PolicyDenialBehavior GetRmax(ImmutableArray<Candidate> occurrenceCandidates)
-            => occurrenceCandidates
-                .Where(candidate =>
-                    candidate.Reference.Facet is PolicyOccurrenceFacet.ResidualEvaluation)
-                .Select(candidate => candidate.Policy.OnDenied)
-                .DefaultIfEmpty(PolicyDenialBehavior.Null)
-                .Max();
     }
+
+    private static PolicyDenialBehavior GetRmax(ImmutableArray<Candidate> occurrenceCandidates)
+        => occurrenceCandidates
+            .Where(candidate =>
+                candidate.Reference.Facet is PolicyOccurrenceFacet.ResidualEvaluation)
+            .Select(candidate => candidate.Policy.OnDenied)
+            .DefaultIfEmpty(PolicyDenialBehavior.Null)
+            .Max();
 
     private static void ValidateArtifactTables(
         ImmutableArray<PolicyConditionExpression> expressions,
@@ -1782,7 +1788,8 @@ internal static class PolicyArtifactBinder
     private static bool MatchesCoordinate(
         PolicyConditionCoordinate coordinate,
         ImmutableArray<PolicyConditionExpression> expressions,
-        Candidate candidate)
+        Candidate candidate,
+        PolicyArtifactPolicySnapshot policySnapshot)
     {
         if ((candidate.Kind is PolicyTargetKind.Object) != (coordinate.FieldName is null)
             || !candidate.TypeName.Equals(coordinate.TypeName, StringComparison.Ordinal)
@@ -1798,16 +1805,59 @@ internal static class PolicyArtifactBinder
                 expressions[application.ExpressionOrdinal].Groups,
                 application.OnDenied))
             .ToArray();
-        return applications.Any(application => application.Matches(candidate.Policy));
+
+        if (!applications.Any(application => application.Matches(candidate.Policy)))
+        {
+            return false;
+        }
+
+        // An action policy's decision depends on its own occurrence's arguments, so two
+        // occurrences that share this coordinate's shape (same type, field, and root-ness) are
+        // only the SAME coordinate when they are literally the same field occurrence (matched by
+        // response name); every other candidate with a matching shape belongs to a distinct
+        // coordinate instead of being aggregated into this one.
+        if (IsActionCoordinate(coordinate, expressions, policySnapshot))
+        {
+            return candidate.ResponseName is not null
+                && coordinate.ResponseNames.Contains(candidate.ResponseName, StringComparer.Ordinal);
+        }
+
+        return true;
     }
+
+    private static bool IsActionCoordinate(
+        PolicyConditionCoordinate coordinate,
+        ImmutableArray<PolicyConditionExpression> expressions,
+        PolicyArtifactPolicySnapshot policySnapshot)
+        => coordinate.Applications.Any(application =>
+            expressions[application.ExpressionOrdinal].Groups.Any(group =>
+                group.Any(name =>
+                    policySnapshot.IsAction.TryGetValue(name, out var isAction) && isAction)));
 
     private static bool MatchesCoordinatePosition(
         PolicyConditionCoordinate coordinate,
-        Candidate candidate)
-        => (candidate.Kind is PolicyTargetKind.Object) == (coordinate.FieldName is null)
-            && candidate.TypeName.Equals(coordinate.TypeName, StringComparison.Ordinal)
-            && string.Equals(candidate.FieldName, coordinate.FieldName, StringComparison.Ordinal)
-            && coordinate.IsRoot == candidate.IsRoot;
+        Candidate candidate,
+        ImmutableArray<PolicyConditionExpression> expressions,
+        PolicyArtifactPolicySnapshot policySnapshot)
+    {
+        if ((candidate.Kind is PolicyTargetKind.Object) != (coordinate.FieldName is null)
+            || !candidate.TypeName.Equals(coordinate.TypeName, StringComparison.Ordinal)
+            || !string.Equals(candidate.FieldName, coordinate.FieldName, StringComparison.Ordinal)
+            || coordinate.IsRoot != candidate.IsRoot)
+        {
+            return false;
+        }
+
+        // As in MatchesCoordinate: an action coordinate never aggregates another occurrence's
+        // candidates just because they share its shape.
+        if (IsActionCoordinate(coordinate, expressions, policySnapshot))
+        {
+            return candidate.ResponseName is not null
+                && coordinate.ResponseNames.Contains(candidate.ResponseName, StringComparer.Ordinal);
+        }
+
+        return true;
+    }
 
     private static bool IsFetchGated(
         Candidate candidate,
@@ -2395,13 +2445,20 @@ internal static class PolicyArtifactBinder
     {
         var policies = ((FusionSchemaDefinition)operation.Schema).Policies.GetSnapshot();
         var requestCacheability = new Dictionary<string, bool>(StringComparer.Ordinal);
+        var isAction = new Dictionary<string, bool>(StringComparer.Ordinal);
         var requirements = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
         var requirementHashes = new Dictionary<string, ulong>(StringComparer.Ordinal);
 
         foreach (var policy in policies)
         {
             var policyRequirements = policy.Requirements;
-            requestCacheability.Add(policy.Name, policyRequirements.IsRequestCacheable);
+
+            // "Cacheable" here means slot-eligible (no PolicyExecutionNode needed), not necessarily
+            // request-constant: an action policy also reads no resource, so it rides the slot too,
+            // even though its decision is re-evaluated per occurrence. IsAction distinguishes the two
+            // so occurrences that share a coordinate shape are only merged when doing so is safe.
+            requestCacheability.Add(policy.Name, policyRequirements.Resource is null);
+            isAction.Add(policy.Name, policyRequirements.Kind == PolicyEvaluationKind.ActionOccurrence);
             requirementHashes.Add(
                 policy.Name,
                 PolicyPlanEntry.ComputeRequirementHash(policyRequirements.Resource));
@@ -2413,6 +2470,7 @@ internal static class PolicyArtifactBinder
 
         return new PolicyArtifactPolicySnapshot(
             requestCacheability,
+            isAction,
             requirements,
             requirementHashes);
     }
@@ -2505,13 +2563,40 @@ internal static class PolicyArtifactBinder
 
     private static string CreateGateKey(
         IEnumerable<Candidate> candidates,
-        PolicyDenialBehavior rmax)
+        PolicyDenialBehavior rmax,
+        string? occurrenceDisambiguator = null)
         => OperationPlanner.PolicySlotRegistry.CreateIdentity(
             candidates
             .Select(candidate => new OperationPlanner.PolicyGateApplication(
                 candidate.Policy.Groups,
                 candidate.Policy.OnDenied)),
-            rmax);
+            rmax,
+            occurrenceDisambiguator);
+
+    /// <summary>
+    /// Computes one occurrence's gate identity for slot grouping. An action policy's decision
+    /// depends on its own occurrence's arguments, so every occurrence with an action policy
+    /// application allocates its own gate identity (never shares one with another occurrence, even
+    /// when the policy formula and Rmax match): a shared identity means a shared boolean gate
+    /// variable for every occurrence it covers.
+    /// </summary>
+    private static string ComputeOccurrenceGateKey(
+        ReconstructedOccurrence occurrence,
+        PolicyArtifactPolicySnapshot policySnapshot)
+    {
+        var slotCandidates = occurrence.Candidates
+            .Where(candidate => candidate.Reference.Facet is PolicyOccurrenceFacet.SlotGate)
+            .ToArray();
+        var isActionOccurrence = slotCandidates.Any(candidate =>
+            candidate.Policy.Groups.Any(group =>
+                group.Any(name => policySnapshot.IsAction.TryGetValue(name, out var action) && action)));
+        var occurrenceDisambiguator = isActionOccurrence
+            ? $"{occurrence.Position.PlanPart}:{occurrence.Position.SelectionSetId}:"
+                + $"{occurrence.Position.SelectionId}:{occurrence.Position.OccurrenceOrdinal}"
+            : null;
+
+        return CreateGateKey(slotCandidates, GetRmax(occurrence.Candidates), occurrenceDisambiguator);
+    }
 
     internal static ConditionFlags CreateActiveDeferFlags(
         ImmutableArray<DeliveryGroup> deliveryGroups)
@@ -3226,7 +3311,9 @@ internal static class PolicyArtifactBinder
     private readonly record struct CoordinateKey(
         string TypeName,
         string? FieldName,
-        bool IsRoot);
+        bool IsRoot,
+        int OccurrencePlanPart,
+        int OccurrenceSelectionId);
 
     private sealed record ReconstructedOccurrence(
         PolicyOccurrencePosition Position,
@@ -3295,5 +3382,6 @@ internal static class PolicyArtifactBinder
 
 internal sealed record PolicyArtifactPolicySnapshot(
     IReadOnlyDictionary<string, bool> RequestCacheability,
+    IReadOnlyDictionary<string, bool> IsAction,
     IReadOnlyDictionary<string, SelectionSetNode> Requirements,
     IReadOnlyDictionary<string, ulong> RequirementHashes);

@@ -310,7 +310,7 @@ public sealed class RegoPolicyProviderTests
         var entryPoints = RegoEntrypointScanner.Scan(source);
 
         // assert
-        Assert.Equal(new[] { "read" }, entryPoints);
+        Assert.Equal(new[] { "read" }, entryPoints.Select(e => e.Name));
     }
 
     [Fact]
@@ -334,7 +334,7 @@ public sealed class RegoPolicyProviderTests
         var entryPoints = RegoEntrypointScanner.Scan(source);
 
         // assert
-        Assert.Equal(new[] { "read" }, entryPoints);
+        Assert.Equal(new[] { "read" }, entryPoints.Select(e => e.Name));
     }
 
     [Fact]
@@ -359,7 +359,37 @@ public sealed class RegoPolicyProviderTests
         var entryPoints = RegoEntrypointScanner.Scan(source);
 
         // assert
-        Assert.Equal(new[] { "read", "write" }, entryPoints);
+        Assert.Equal(new[] { "read", "write" }, entryPoints.Select(e => e.Name));
+    }
+
+    [Fact]
+    public void Scanner_Should_ReadCustomInputValue_When_EntrypointDeclaresIt()
+    {
+        // arrange
+        const string source =
+            """
+            package p1
+            import rego.v1
+
+            # METADATA
+            # entrypoint: true
+            # custom:
+            #   input: action
+            default write := true
+
+            # METADATA
+            # entrypoint: true
+            default read := true
+            """;
+
+        // act
+        var entryPoints = RegoEntrypointScanner.Scan(source);
+
+        // assert
+        var write = Assert.Single(entryPoints, entrypoint => entrypoint.Name == "write");
+        var read = Assert.Single(entryPoints, entrypoint => entrypoint.Name == "read");
+        Assert.Equal("action", write.Input);
+        Assert.Null(read.Input);
     }
 
     [Fact]

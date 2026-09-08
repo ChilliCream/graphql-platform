@@ -720,7 +720,7 @@ public sealed class FusionArchive : IDisposable
             var modulePaths = ImmutableArray.CreateBuilder<string>(package.Modules.Length);
             var moduleSha256 = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
             string? entrypointRelativePath = null;
-            List<string>? entrypointRules = null;
+            List<RegoEntrypoint>? entrypointRules = null;
 
             foreach (var module in package.Modules)
             {
@@ -793,10 +793,16 @@ public sealed class FusionArchive : IDisposable
 
             var sortedModulePaths = modulePaths.ToImmutable().Sort(StringComparer.Ordinal);
             var sha256 = moduleSha256.ToImmutable();
+            var packageInput = ResolvePackageInput(package.Package, entrypointRules!);
+
+            if (packageInput is not null && requirementsRelativePath is not null)
+            {
+                throw ThrowHelper.RegoPolicyBundleActionWithResourceRequirements(package.Package);
+            }
 
             foreach (var rule in entrypointRules!)
             {
-                var name = $"{package.Package}.{rule}";
+                var name = $"{package.Package}.{rule.Name}";
 
                 manifestPolicies.Add(new RegoPolicyBundleManifestPolicy
                 {
@@ -805,6 +811,7 @@ public sealed class FusionArchive : IDisposable
                     Entrypoint = $"data.{name}",
                     Modules = sortedModulePaths,
                     Requirements = requirementsRelativePath,
+                    Input = packageInput,
                     Sha256 = sha256
                 });
             }
@@ -883,6 +890,77 @@ public sealed class FusionArchive : IDisposable
         {
             await manifestStream.WriteAsync(manifestBuffer.WrittenMemory, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Derives one package's uniform <c>custom.input</c> declaration from its scanned entrypoints:
+    /// every decision must declare the same value, or none, and the only value the runtime
+    /// understands is <c>"action"</c>.
+    /// </summary>
+    private static string? ResolvePackageInput(string package, IReadOnlyList<RegoEntrypoint> rules)
+    {
+        string? input = null;
+
+        foreach (var rule in rules)
+        {
+            if (rule.Input is null)
+            {
+                continue;
+            }
+
+            if (input is null)
+            {
+                input = rule.Input;
+            }
+            else if (!input.Equals(rule.Input, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleActionInputConflicting(package);
+            }
+        }
+
+        if (input?.Equals("action", StringComparison.Ordinal) == false)
+        {
+            throw ThrowHelper.RegoPolicyBundleActionInputInvalidValue(package, input);
+        }
+
+        return input;
+    }
+
+    /// <summary>
+    /// The read-time counterpart of <see cref="ResolvePackageInput"/>: derives a package's uniform
+    /// <c>custom.input</c> declaration without throwing, so the caller can report a scan-time
+    /// disagreement as an archive identity mismatch rather than a publish-time argument error.
+    /// </summary>
+    private static bool TryResolveScannedPackageInput(IReadOnlyList<RegoEntrypoint> rules, out string? input)
+    {
+        string? resolved = null;
+
+        foreach (var rule in rules)
+        {
+            if (rule.Input is null)
+            {
+                continue;
+            }
+
+            if (resolved is null)
+            {
+                resolved = rule.Input;
+            }
+            else if (!resolved.Equals(rule.Input, StringComparison.Ordinal))
+            {
+                input = null;
+                return false;
+            }
+        }
+
+        if (resolved?.Equals("action", StringComparison.Ordinal) == false)
+        {
+            input = null;
+            return false;
+        }
+
+        input = resolved;
+        return true;
     }
 
     /// <summary>
@@ -982,6 +1060,7 @@ public sealed class FusionArchive : IDisposable
             {
                 if (!entry.Modules.SequenceEqual(first.Modules, StringComparer.Ordinal)
                     || entry.Requirements != first.Requirements
+                    || entry.Input != first.Input
                     || !SameEntries(entry.Sha256, first.Sha256))
                 {
                     throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
@@ -1034,12 +1113,36 @@ public sealed class FusionArchive : IDisposable
                         entries.Select(e => e.Name[(package.Length + 1)..]),
                         StringComparer.Ordinal);
 
-                    if (!expectedRules.SetEquals(rules))
+                    if (!expectedRules.SetEquals(rules.Select(rule => rule.Name)))
                     {
                         throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
                             first.Name,
                             $"the module '{modulePath}' declares a different set of entrypoint decisions "
                             + "than the manifest lists for this package.");
+                    }
+
+                    // The manifest's persisted 'input' declaration must still agree with what the
+                    // module's own METADATA declares today; a disagreement means the archive was
+                    // tampered with after packaging, or the manifest was hand-edited.
+                    if (!TryResolveScannedPackageInput(rules, out var scannedInput))
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"the module '{modulePath}' declares an invalid or conflicting "
+                            + "'custom.input' value across its entrypoint decisions.");
+                    }
+
+                    if (scannedInput != first.Input)
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"the module '{modulePath}' declares a different 'custom.input' value than "
+                            + "the manifest lists for this package.");
+                    }
+
+                    if (scannedInput is not null && first.Requirements is not null)
+                    {
+                        throw ThrowHelper.RegoPolicyBundleActionWithResourceRequirementsAtRead(package);
                     }
                 }
                 else
@@ -1093,7 +1196,8 @@ public sealed class FusionArchive : IDisposable
                 package,
                 primarySource,
                 requirements is null ? null : (ReadOnlyMemory<byte>?)requirements,
-                ComputeRegoBundlePackageDigest(first.Sha256)));
+                ComputeRegoBundlePackageDigest(first.Sha256),
+                first.Input));
         }
 
         var declaredLibraryPaths = new HashSet<string>(StringComparer.Ordinal);

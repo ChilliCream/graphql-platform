@@ -17,12 +17,19 @@ public sealed partial class OperationPlanner
     {
         var requirements = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
         var cacheability = new Dictionary<string, bool>(StringComparer.Ordinal);
+        var isAction = new Dictionary<string, bool>(StringComparer.Ordinal);
         var hashes = new Dictionary<string, ulong>(StringComparer.Ordinal);
 
         foreach (var policy in policies)
         {
             var policyRequirements = policy.Requirements;
-            cacheability[policy.Name] = policyRequirements.IsRequestCacheable;
+
+            // "Cacheable" here means slot-eligible (no PolicyExecutionNode needed), not necessarily
+            // request-constant: an action policy (Kind == ActionOccurrence) also reads no resource,
+            // so it rides the slot too, even though its decision is re-evaluated per occurrence
+            // rather than reused across the whole request.
+            cacheability[policy.Name] = policyRequirements.Resource is null;
+            isAction[policy.Name] = policyRequirements.Kind == PolicyEvaluationKind.ActionOccurrence;
             hashes[policy.Name] = PolicyPlanEntry.ComputeRequirementHash(policyRequirements.Resource);
 
             if (policyRequirements.Resource is not { } selectionSet)
@@ -33,7 +40,7 @@ public sealed partial class OperationPlanner
             requirements.Add(policy.Name, selectionSet);
         }
 
-        return new PolicyPlanningState(policies, requirements, cacheability, hashes);
+        return new PolicyPlanningState(policies, requirements, cacheability, isAction, hashes);
     }
 
     private ImmutableHashSet<string> CreatePolicyRequirementFeedPaths(
