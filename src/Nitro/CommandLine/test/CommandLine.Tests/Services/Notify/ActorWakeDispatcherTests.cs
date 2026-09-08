@@ -517,7 +517,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         var queueClient = new FakeCodexQueueClient();
         var executor = new PingSessionExecutor(
-            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider);
+            _mail, queueClient, new NoopClaudePeerClient(), _sessions,
+            new SessionDeliveryLedger(_fileSystem, _database), _leases, _timeProvider);
         var dispatcher = new ActorWakeDispatcher(
             _batches,
             _sessions,
