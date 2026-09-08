@@ -52,7 +52,17 @@ internal static class SchemaFileExporter
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
             cancellationToken);
 
-        await WriteSettingsFile(settingsFileName, executor.Schema.Name, cancellationToken);
+        var capabilities = executor.Schema
+            .GetRootServiceProvider()
+            .GetService<ITransportCapabilitiesProvider>()
+            ?.GetCapabilities(executor.Schema.Name)
+            ?? new TransportCapabilities(VariableBatching: true, RequestBatching: true);
+
+        await WriteSettingsFile(
+            settingsFileName,
+            executor.Schema.Name,
+            capabilities,
+            cancellationToken);
 
         return new SchemaFileInfo(schemaFileName, settingsFileName);
     }
@@ -60,11 +70,12 @@ internal static class SchemaFileExporter
     private static async Task WriteSettingsFile(
         string fileName,
         string schemaName,
+        TransportCapabilities capabilities,
         CancellationToken cancellationToken)
     {
         if (!await TryUpdateSettingsFile(fileName, schemaName, cancellationToken))
         {
-            await CreateNewSettingsFile(fileName, schemaName, cancellationToken);
+            await CreateNewSettingsFile(fileName, schemaName, capabilities, cancellationToken);
         }
     }
 
@@ -109,6 +120,7 @@ internal static class SchemaFileExporter
     private static async Task CreateNewSettingsFile(
         string fileName,
         string schemaName,
+        TransportCapabilities capabilities,
         CancellationToken cancellationToken)
     {
         await using var settingsFileStream = File.Create(fileName);
@@ -124,13 +136,13 @@ internal static class SchemaFileExporter
 
         jsonWriter.WriteString("url", "http://localhost:5000/graphql");
 
-        // A Hot Chocolate source schema knows which transport extensions it implements, so the
-        // exported template declares them instead of leaving the gateway on the defaults.
+        // The exported template declares the transport extensions the server accepts
+        // instead of leaving the gateway on the defaults.
         jsonWriter.WriteStartObject("capabilities");
 
         jsonWriter.WriteStartObject("batching");
-        jsonWriter.WriteBoolean("variableBatching", true);
-        jsonWriter.WriteBoolean("requestBatching", true);
+        jsonWriter.WriteBoolean("variableBatching", capabilities.VariableBatching);
+        jsonWriter.WriteBoolean("requestBatching", capabilities.RequestBatching);
         jsonWriter.WriteBoolean("aliasBatching", true);
         jsonWriter.WriteEndObject();
 
