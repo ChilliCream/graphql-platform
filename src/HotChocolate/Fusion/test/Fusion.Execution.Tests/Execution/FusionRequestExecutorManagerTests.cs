@@ -369,6 +369,40 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         Assert.IsType<AuthenticatedPolicy>(policy);
     }
 
+    // Regression for repo-ctf.24 review cycle 1 (comment 742, R2): DecoratePolicyProvider must
+    // not treat a keyed IPolicyProvider registration as the ambient user provider it decorates.
+    // Before the fix, the descriptor was matched by ServiceType alone, removed, and then read
+    // through ServiceDescriptor.ImplementationInstance, which throws for a keyed descriptor.
+    [Fact]
+    public async Task GetExecutorAsync_Should_IgnoreKeyedPolicyProvider_When_DecoratingProvider()
+    {
+        // arrange
+        var keyedProvider = new PolicyContentSink();
+        var configProvider = new TestFusionConfigurationProvider(CreateConfiguration());
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices(
+                    (_, schemaServices) =>
+                        schemaServices.AddKeyedSingleton<IPolicyProvider>("custom", keyedProvider))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert: the executor was created without the keyed descriptor being touched, and it is
+        // still resolvable through its key exactly as registered.
+        Assert.NotNull(executor);
+        Assert.Same(
+            keyedProvider,
+            executor.Schema.Services.GetRequiredKeyedService<IPolicyProvider>("custom"));
+    }
+
     private sealed class PolicyContentSink
         : IPolicyProvider
         , IObserver<PolicyContentSnapshot?>

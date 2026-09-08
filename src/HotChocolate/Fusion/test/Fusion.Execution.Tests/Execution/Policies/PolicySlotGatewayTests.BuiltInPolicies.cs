@@ -54,6 +54,131 @@ public sealed partial class PolicySlotGatewayTests
             """);
     }
 
+    // Ruling repo-ctf.24 (comment 734, F1/F4): the built-in fusion.deny policy always denies,
+    // regardless of authentication state, once it is referenced by a field.
+    [Fact]
+    public async Task ExecuteAsync_Should_DenyWithError_When_DenyPolicyIsReferencedAndUserIsAuthenticated()
+    {
+        // arrange
+        var executor = await CreateBuiltInPolicyExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  secret: String @policy(names: "fusion.deny", onDenied: ERROR)
+                }
+                """),
+            new RecordingClient("""{"data":{"secret":"classified"}}"""));
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ secret }")
+            .SetUser(new ClaimsPrincipal(new ClaimsIdentity([], "test")))
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "path": [
+                    "secret"
+                  ],
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
+    // Ruling repo-ctf.24 (comment 734, F4): @requiresScopes(scopes: [[]]) (one empty inner group)
+    // translates to the authenticated application only, with no scope application at all. This
+    // proves that shape's runtime behavior end to end: an authenticated user is allowed.
+    [Fact]
+    public async Task ExecuteAsync_Should_Allow_When_AuthenticatedOnlyScopePolicyAndUserIsAuthenticated()
+    {
+        // arrange
+        var executor = await CreateBuiltInPolicyExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  secret: String @policy(names: [["fusion.authenticated"]], onDenied: ERROR)
+                }
+                """),
+            new RecordingClient("""{"data":{"secret":"classified"}}"""));
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ secret }")
+            .SetUser(new ClaimsPrincipal(new ClaimsIdentity([], "test")))
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
+    // Ruling repo-ctf.24 (comment 734, F4): the same authenticated-only shape denies an
+    // anonymous user, mirroring Apollo's own @requiresScopes(scopes: [[]]) semantics (AND over
+    // zero scopes is satisfied by any subject, but the subject must still be authenticated).
+    [Fact]
+    public async Task ExecuteAsync_Should_DenyWithError_When_AuthenticatedOnlyScopePolicyDeniesAnonymousUser()
+    {
+        // arrange
+        var executor = await CreateBuiltInPolicyExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  secret: String @policy(names: [["fusion.authenticated"]], onDenied: ERROR)
+                }
+                """),
+            new RecordingClient("""{"data":{"secret":"classified"}}"""));
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ secret }")
+            .SetUser(new ClaimsPrincipal(new ClaimsIdentity()))
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "path": [
+                    "secret"
+                  ],
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": {
+                "secret": null
+              }
+            }
+            """);
+    }
+
     [Fact]
     public async Task ExecuteAsync_Should_Allow_When_AuthenticatedPolicyAndUserIsAuthenticated()
     {

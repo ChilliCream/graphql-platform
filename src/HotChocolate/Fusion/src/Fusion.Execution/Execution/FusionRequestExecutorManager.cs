@@ -423,7 +423,12 @@ internal sealed class FusionRequestExecutorManager
     /// and registers that composite as the schema services' own <see cref="IPolicyProvider"/>, so
     /// every resolution (both the policy content sink this manager resolves and the one
     /// <c>CompositeSchemaBuilder</c> configures with the schema's built-ins) reaches the same
-    /// instance instead of the composite being a throwaway built only for policy evaluation.
+    /// instance instead of the composite being a throwaway built only for policy evaluation. A
+    /// keyed <see cref="IPolicyProvider"/> registration is left untouched: it is not the ambient
+    /// provider the schema resolves and its descriptor cannot be read the same way an unkeyed
+    /// one can. The composite itself is always registered as a singleton, regardless of the
+    /// lifetime the wrapped user provider was registered with; see the remarks on
+    /// <see cref="IPolicyProvider"/>.
     /// </summary>
     private static void DecoratePolicyProvider(IServiceCollection services)
     {
@@ -431,7 +436,7 @@ internal sealed class FusionRequestExecutorManager
 
         for (var i = services.Count - 1; i >= 0; i--)
         {
-            if (services[i].ServiceType == typeof(IPolicyProvider))
+            if (services[i].ServiceType == typeof(IPolicyProvider) && !services[i].IsKeyedService)
             {
                 userProviderDescriptor = services[i];
                 services.RemoveAt(i);
