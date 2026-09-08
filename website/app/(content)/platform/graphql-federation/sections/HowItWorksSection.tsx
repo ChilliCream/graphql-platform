@@ -366,12 +366,11 @@ export function HowItWorksSection() {
                 The rule that the server stays as it is also covers batching: it
                 is solved in the transport, not in the schema. Ask for a hundred
                 products and the executor would send a hundred lookups into
-                Shipping, each the same query with different arguments. So the
-                specification&apos;s working group at the GraphQL Foundation is
-                adding variable batching to the GraphQL over HTTP specification:
-                one query sent with a list of variable sets, which a server can
-                fold into a single execution. The source schema does not change
-                to get it.
+                Shipping, each the same query with different arguments. So
+                variable batching, an open proposal to the GraphQL over HTTP
+                specification, sends one query with a list of variable sets,
+                which a server can fold into a single execution. The source
+                schema does not change to get it.
               </p>
             </div>
           </div>
