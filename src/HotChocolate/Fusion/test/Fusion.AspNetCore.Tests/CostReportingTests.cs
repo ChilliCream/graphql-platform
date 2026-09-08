@@ -154,9 +154,10 @@ public class CostReportingTests : FusionTestBase
             },
             TestContext.Current.CancellationToken);
 
-        // assert - each batch result carries its own operationCost; the n=1000 result fails
+        // assert - every result carries HC0047 and its own operationCost; the n=1000 set fails the whole request
         var errorKinds = new List<JsonValueKind>();
         var hasCost = new List<bool>();
+        var hasNoData = new List<bool>();
         await foreach (var result in response.ReadAsResultStreamAsync()
             .WithCancellation(TestContext.Current.CancellationToken))
         {
@@ -164,12 +165,13 @@ public class CostReportingTests : FusionTestBase
             {
                 errorKinds.Add(result.Errors.ValueKind);
                 hasCost.Add(result.Extensions.TryGetProperty("operationCost", out _));
+                hasNoData.Add(result.Data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null);
             }
         }
 
         Assert.Equal(2, errorKinds.Count);
-        Assert.Equal(JsonValueKind.Undefined, errorKinds[0]);
-        Assert.NotEqual(JsonValueKind.Undefined, errorKinds[1]);
+        Assert.All(errorKinds, k => Assert.NotEqual(JsonValueKind.Undefined, k));
+        Assert.All(hasNoData, Assert.True);
         Assert.All(hasCost, Assert.True);
     }
 
@@ -180,7 +182,12 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxResponseSize = 100));
+            configureGatewayBuilder: b => b.ModifyCostOptions(o =>
+            {
+                o.MaxFieldCost = double.PositiveInfinity;
+                o.MaxTypeCost = double.PositiveInfinity;
+                o.MaxResponseSize = 100;
+            }));
         var request = new OperationRequest(ItemsQuery, variables: new Dictionary<string, object?> { ["n"] = 1000 });
 
         // act
@@ -188,7 +195,16 @@ public class CostReportingTests : FusionTestBase
         using var response = await client.PostAsync(request, s_endpoint, TestContext.Current.CancellationToken);
 
         // assert - HC0047 { maxResponseSize, maxAllowedResponseSize: 100 }
-        await MatchSnapshotAsync(gateway, request, response);
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results =>
+            {
+                var extensions = Assert.Single(results).Errors[0].GetProperty("extensions");
+                Assert.True(extensions.TryGetProperty("maxResponseSize", out _));
+                Assert.Equal(100, extensions.GetProperty("maxAllowedResponseSize").GetDouble());
+            });
     }
 
     [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
