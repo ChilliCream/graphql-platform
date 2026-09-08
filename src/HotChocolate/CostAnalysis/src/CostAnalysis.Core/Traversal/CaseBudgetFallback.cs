@@ -27,9 +27,10 @@ internal static class CaseBudgetFallback
         CaseBudget budget,
         PossibleTypeSet region,
         int representative,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
         => BooleanDecision<TSummary>.Leaf(
-            EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment));
+            EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext));
 
     /// <summary>
     /// Evaluates one region's boundary in envelope mode: every Boolean edge
@@ -44,12 +45,13 @@ internal static class CaseBudgetFallback
         CaseBudget budget,
         PossibleTypeSet region,
         int representative,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         var visited = new List<int>();
         var visitedSet = new HashSet<int>();
         CollectReachableWildcard(tree, representative, assignment, tree.RootNodeId, visited, visitedSet);
-        return CollectAndWeighEnvelope(snapshot, fragments, algebra, budget, region, assignment, tree, visited);
+        return CollectAndWeighEnvelope(snapshot, fragments, algebra, budget, region, assignment, tree, visited, parentSizeContext);
     }
 
     /// <summary>
@@ -62,7 +64,8 @@ internal static class CaseBudgetFallback
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, ExactCasesTraversal.CollectTypeConditions(tree));
         TSummary? combined = default;
@@ -76,7 +79,7 @@ internal static class CaseBudgetFallback
             }
 
             var representative = ExactCasesTraversal.FirstIndex(region);
-            var value = EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment);
+            var value = EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext);
             combined = hasCombined ? algebra.Join(combined!, value) : value;
             hasCombined = true;
         }
@@ -92,7 +95,8 @@ internal static class CaseBudgetFallback
         PossibleTypeSet region,
         BooleanAssignment assignment,
         ConditionTree tree,
-        List<int> visited)
+        List<int> visited,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         TSummary? combined = default;
         var hasCombined = false;
@@ -107,12 +111,14 @@ internal static class CaseBudgetFallback
                 continue;
             }
 
+            var inheritedSizes = InheritedListSizes.InheritedSizesFor(parentSizeContext, fieldName);
+            var childSizeContext = InheritedListSizes.Resolve(snapshot, members, fields[0].Arguments);
             var childSelections = FieldGroupMerger.MergedSelections(fields);
             var childValue = childSelections.Count == 0
                 ? algebra.Empty
-                : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, members, childSelections);
+                : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, members, childSelections, childSizeContext);
             var groupValue = algebra.Field(
-                new CollectedFieldGroup(responseName, members, listMultiplier: 1.0, fields[0].Arguments, fields[0].Directives),
+                new CollectedFieldGroup(responseName, members, inheritedSizes, fields),
                 childValue);
 
             combined = hasCombined ? algebra.Combine(combined!, groupValue) : groupValue;
@@ -133,7 +139,8 @@ internal static class CaseBudgetFallback
         CaseBudget budget,
         BooleanAssignment assignment,
         CollectedFieldGroupMember[] members,
-        IReadOnlyList<ISelectionNode> childSelections)
+        IReadOnlyList<ISelectionNode> childSelections,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         TSummary? combined = default;
         var hasCombined = false;
@@ -142,7 +149,7 @@ internal static class CaseBudgetFallback
         {
             var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
             var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-            var childValue = EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment);
+            var childValue = EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
             combined = hasCombined ? algebra.Join(combined!, childValue) : childValue;
             hasCombined = true;
         }

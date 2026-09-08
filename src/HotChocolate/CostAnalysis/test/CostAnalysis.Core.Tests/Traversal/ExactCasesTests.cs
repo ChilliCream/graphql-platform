@@ -206,6 +206,32 @@ public class ExactCasesTests
     }
 
     [Fact]
+    public void Evaluate_Should_ApplyParentSizedFields_When_CostAlgebraResolvesAChildList()
+    {
+        // arrange: oracle sized_fields_apply_a_parent_slice_to_a_child_list, a literal first: 3
+        // slices items' own edges list through the parent's sizedFields, not edges' own (absent)
+        // @listSize, and is threaded through the real CostAlgebra rather than the test double
+        const string sdl =
+            """
+            type Edge { node: String }
+            type Connection { edges: [Edge] }
+            type Query {
+              items(first: Int): Connection @listSize(slicingArguments: ["first"], sizedFields: ["edges"])
+            }
+            """;
+        const string operation = "{ items(first: 3) { edges { node } } }";
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
+
+        // assert: typeCost 5 = Query's own root weight (1, applied once by the Root hook) + items'
+        // contribution (4, edges sized to 3 by items' sizedFields); fieldCost 2 = items' own weight
+        // (1) + edges' field call cost (1), paid once regardless of the multiplier
+        Assert.Equal(new CostEstimate(2.0, 5.0, null), decision.Resolve(_ => false));
+    }
+
+    [Fact]
     public void Evaluate_Should_Not_Crash_When_Selecting_Typename_Inside_An_Interface_Typed_Boundary()
     {
         // arrange: __typename selected under an interface-typed field, still absent everywhere

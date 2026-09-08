@@ -277,11 +277,25 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("value", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            new CollectedFieldGroup("value", members, inheritedSizes: default, [field]),
             algebra.Empty);
 
         // assert: 5 (field weight) - 1 (tolerance's own weight, charged once) = 4
         Assert.Equal(4.0, estimate.FieldCost);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_ReturnEmpty_When_GroupIsDefault()
+    {
+        // arrange
+        var snapshot = CostSchemaSnapshot.Create(SchemaParser.Parse("type Query { value: Int }"), new CostEngineOptions());
+        var algebra = new CostAlgebra(snapshot);
+
+        // act
+        var estimate = algebra.Field(default, algebra.Empty);
+
+        // assert
+        Assert.Equal(algebra.Empty, estimate);
     }
 
     [Fact]
@@ -298,7 +312,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("items", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            new CollectedFieldGroup("items", members, inheritedSizes: default, [field]),
             valueField);
 
         // assert
@@ -314,7 +328,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("names", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            new CollectedFieldGroup("names", members, inheritedSizes: default, [field]),
             algebra.Empty);
 
         // assert
@@ -335,11 +349,89 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("items", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            new CollectedFieldGroup("items", members, inheritedSizes: default, [field]),
             valueField);
 
         // assert: n = 4, items' own weight 1 (default) + 4 * value's fieldCost 3
         Assert.Equal(13.0, estimate.FieldCost);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_UseInheritedSize_When_ParentSizedFieldsNamesTheField()
+    {
+        // arrange: rank 1 of the locked list-size priority chain, inherited sizedFields beats the
+        // child field's own (absent) @listSize
+        const string sdl =
+            """
+            type Node { id: ID }
+            type Connection { nodes: [Node] }
+            type Query { conn(first: Int): Connection @listSize(slicingArguments: ["first"], sizedFields: ["nodes"]) }
+            """;
+        var (algebra, members, field) = ParseRootField(sdl, "{ nodes { id } }", "Connection", "nodes");
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("nodes", members, [10.0], [field]),
+            algebra.Empty);
+
+        // assert: n = 10 (inherited from the parent's first: 10), typeCost = 10 * Node's own weight 1
+        Assert.Equal(10.0, estimate.TypeCost);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_PriceOmittedDirectiveArgument_When_DefinitionDeclaresDefault()
+    {
+        // arrange: estimator.rs custom_directive_argument_weights_affect_field_cost, an omitted
+        // directive argument still charges its own weight when the definition declares a default
+        // (R-DIRECTIVE-ARG-COST)
+        const string sdl =
+            """
+            directive @approx(tolerance: Float = 1 @cost(weight: "-1.0")) on FIELD
+            type Query { value: Int @cost(weight: "5") }
+            """;
+        var (algebra, members, field) = ParseRootField(sdl, "{ value @approx }", "Query", "value");
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("value", members, inheritedSizes: default, [field]),
+            algebra.Empty);
+
+        // assert: 5 (field weight) - 1 (tolerance's own weight, charged from its declared default) = 4
+        Assert.Equal(4.0, estimate.FieldCost);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_JoinOutputs_When_ParentTypesHaveDifferentArgumentWeights()
+    {
+        // arrange
+        const string sdl =
+            """
+            type A { value(a: Int @cost(weight: "-10")): Int @cost(weight: "5") }
+            type B { value(a: Int): Int @cost(weight: "1") }
+            type Query { placeholder: Int }
+            """;
+        var snapshot = CostSchemaSnapshot.Create(SchemaParser.Parse(sdl), new CostEngineOptions());
+        var document = Utf8GraphQLParser.Parse("{ value(a: 1) }");
+        var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var field = (FieldNode)operation.SelectionSet.Selections[0];
+        var members = new CollectedFieldGroupMember[]
+        {
+            new(
+                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("A")),
+                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("A")).Fields["value"]),
+            new(
+                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("B")),
+                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("B")).Fields["value"])
+        };
+        var algebra = new CostAlgebra(snapshot);
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("value", members, inheritedSizes: default, [field]),
+            algebra.Empty);
+
+        // assert
+        Assert.Equal(new CostEstimate(1.0, 0.0, null), estimate);
     }
 
     /// <summary>

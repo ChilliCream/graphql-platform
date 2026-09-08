@@ -20,7 +20,8 @@ public interface ICostVariableValues
     /// explicit <c>null</c>.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> when the variable is defined; otherwise
+    /// <see langword="true"/> when the variable is defined, including an
+    /// operation-level default when no value was supplied; otherwise
     /// <see langword="false"/>.
     /// </returns>
     bool TryGetValue(string name, out IValueNode? value);

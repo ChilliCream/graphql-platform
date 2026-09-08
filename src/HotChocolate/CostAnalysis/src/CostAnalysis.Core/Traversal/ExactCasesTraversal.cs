@@ -44,7 +44,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget)
     {
-        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty);
+        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty, InheritedListSizes.None);
         var rootTypeName = snapshot.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
         var rootTypeWeight = snapshot.GetTypeWeight(rootTypeName);
         return MapRoot(algebra, rootTypeWeight, selection);
@@ -82,7 +82,8 @@ internal static class ExactCasesTraversal
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, CollectTypeConditions(tree));
         BooleanDecision<TSummary>? combined = null;
@@ -95,7 +96,7 @@ internal static class ExactCasesTraversal
             }
 
             var representative = FirstIndex(region);
-            var regionResult = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment);
+            var regionResult = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext);
             combined = combined is null
                 ? regionResult
                 : BooleanDecision<TSummary>.ZipWith(combined, regionResult, algebra.Join, algebra.Join, budget);
@@ -118,7 +119,8 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         PossibleTypeSet region,
         int representative,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         var visited = new List<int>();
         var visitedSet = new HashSet<int>();
@@ -127,7 +129,7 @@ internal static class ExactCasesTraversal
 
         if (pending.Count == 0)
         {
-            return CollectAndWeigh(snapshot, fragments, tree, algebra, budget, region, assignment, visited);
+            return CollectAndWeigh(snapshot, fragments, tree, algebra, budget, region, assignment, visited, parentSizeContext);
         }
 
         var variable = PickCanonicalVariable(pending);
@@ -142,11 +144,12 @@ internal static class ExactCasesTraversal
                 budget,
                 region,
                 representative,
-                assignment);
+                assignment,
+                parentSizeContext);
         }
 
-        var whenFalse = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false));
-        var whenTrue = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, true));
+        var whenFalse = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false), parentSizeContext);
+        var whenTrue = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, true), parentSizeContext);
         return BooleanDecision<TSummary>.Split(variable, whenFalse, whenTrue);
     }
 
@@ -215,7 +218,8 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         PossibleTypeSet region,
         BooleanAssignment assignment,
-        List<int> visited)
+        List<int> visited,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         BooleanDecision<TSummary>? combined = null;
 
@@ -229,11 +233,13 @@ internal static class ExactCasesTraversal
                 continue;
             }
 
+            var inheritedSizes = InheritedListSizes.InheritedSizesFor(parentSizeContext, fieldName);
+            var childSizeContext = InheritedListSizes.Resolve(snapshot, members, fields[0].Arguments);
             var childSelections = FieldGroupMerger.MergedSelections(fields);
             var childDecision = childSelections.Count == 0
                 ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
-                : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members, childSelections);
-            var groupDecision = MapField(algebra, responseName, members, fields[0].Arguments, fields[0].Directives, childDecision);
+                : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members, childSelections, childSizeContext);
+            var groupDecision = MapField(algebra, responseName, members, inheritedSizes, fields, childDecision);
 
             combined = combined is null
                 ? groupDecision
@@ -256,7 +262,8 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         BooleanAssignment assignment,
         CollectedFieldGroupMember[] members,
-        IReadOnlyList<ISelectionNode> childSelections)
+        IReadOnlyList<ISelectionNode> childSelections,
+        IReadOnlyList<SizedFieldContext> parentSizeContext)
     {
         BooleanDecision<TSummary>? combined = null;
 
@@ -264,7 +271,7 @@ internal static class ExactCasesTraversal
         {
             var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
             var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-            var childValue = EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment);
+            var childValue = EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
 
             combined = combined is null
                 ? childValue
@@ -303,23 +310,23 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         string responseName,
         CollectedFieldGroupMember[] members,
-        IReadOnlyList<ArgumentNode> arguments,
-        IReadOnlyList<DirectiveNode> directives,
+        double[] inheritedSizes,
+        IReadOnlyList<FieldNode> fields,
         BooleanDecision<TSummary> child)
     {
         if (child is LeafDecision<TSummary> leaf)
         {
             return BooleanDecision<TSummary>.Leaf(
                 algebra.Field(
-                    new CollectedFieldGroup(responseName, members, listMultiplier: 1.0, arguments, directives),
+                    new CollectedFieldGroup(responseName, members, inheritedSizes, fields),
                     leaf.Value));
         }
 
         var split = (SplitDecision<TSummary>)child;
         return BooleanDecision<TSummary>.Split(
             split.Variable,
-            MapField(algebra, responseName, members, arguments, directives, split.WhenFalse),
-            MapField(algebra, responseName, members, arguments, directives, split.WhenTrue));
+            MapField(algebra, responseName, members, inheritedSizes, fields, split.WhenFalse),
+            MapField(algebra, responseName, members, inheritedSizes, fields, split.WhenTrue));
     }
 
     /// <summary>

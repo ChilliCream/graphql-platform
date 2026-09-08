@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
@@ -17,7 +18,7 @@ public sealed class CostSchemaSnapshot
     private readonly FrozenDictionary<FieldKey, ListSizeMetadata> _listSizeMetadata;
     private readonly FrozenDictionary<ArgumentKey, double> _argumentWeights;
     private readonly FrozenDictionary<FieldKey, double> _inputFieldWeights;
-    private readonly FrozenDictionary<DirectiveArgumentKey, double> _directiveArgumentWeights;
+    private readonly FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> _directiveArguments;
 
     internal CostSchemaSnapshot(
         CostEngineOptions options,
@@ -29,7 +30,7 @@ public sealed class CostSchemaSnapshot
         FrozenDictionary<FieldKey, ListSizeMetadata> listSizeMetadata,
         FrozenDictionary<ArgumentKey, double> argumentWeights,
         FrozenDictionary<FieldKey, double> inputFieldWeights,
-        FrozenDictionary<DirectiveArgumentKey, double> directiveArgumentWeights)
+        FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> directiveArguments)
     {
         Options = options;
         _objectTypeIndex = objectTypeIndex;
@@ -40,7 +41,7 @@ public sealed class CostSchemaSnapshot
         _listSizeMetadata = listSizeMetadata;
         _argumentWeights = argumentWeights;
         _inputFieldWeights = inputFieldWeights;
-        _directiveArgumentWeights = directiveArgumentWeights;
+        _directiveArguments = directiveArguments;
     }
 
     /// <summary>
@@ -148,13 +149,10 @@ public sealed class CostSchemaSnapshot
         => _inputFieldWeights[new FieldKey(inputTypeName, fieldName)];
 
     /// <summary>
-    /// Gets a directive definition argument's own weight, or 0.0 when the
-    /// directive or the argument is not defined in this schema.
+    /// Gets a directive definition's own arguments, in declaration order, or
+    /// <see langword="false"/> when the directive is not defined in this
+    /// schema.
     /// </summary>
-    internal double GetDirectiveArgumentWeight(string directiveName, string argumentName)
-        => _directiveArgumentWeights.TryGetValue(
-            new DirectiveArgumentKey(directiveName, argumentName),
-            out var weight)
-            ? weight
-            : 0.0;
+    internal bool TryGetDirectiveArguments(string directiveName, out ImmutableArray<DirectiveArgumentDefinition> arguments)
+        => _directiveArguments.TryGetValue(directiveName, out arguments);
 }

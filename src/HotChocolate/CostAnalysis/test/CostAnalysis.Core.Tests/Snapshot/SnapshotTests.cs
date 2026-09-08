@@ -194,7 +194,7 @@ public class SnapshotTests
     // -- Directive-definition argument weight (R-DIRECTIVE-ARG-COST) ----------------------------
 
     [Fact]
-    public void GetDirectiveArgumentWeight_Should_Use_Cost_Directive_When_Present()
+    public void TryGetDirectiveArguments_Should_ReturnDeclaredArguments_When_DirectiveIsDefined()
     {
         // arrange
         var snapshot = BuildSnapshot(
@@ -205,16 +205,21 @@ public class SnapshotTests
             """);
 
         // act
-        var annotated = snapshot.GetDirectiveArgumentWeight("custom", "factor");
-        var defaulted = snapshot.GetDirectiveArgumentWeight("custom", "label");
+        var found = snapshot.TryGetDirectiveArguments("custom", out var arguments);
 
         // assert
-        Assert.Equal(4.0, annotated);
-        Assert.Equal(0.0, defaulted);
+        Assert.True(found);
+        Assert.Equal(
+            new DirectiveArgumentDefinition[]
+            {
+                new("factor", 4.0, HasDefaultValue: false),
+                new("label", 0.0, HasDefaultValue: false)
+            },
+            arguments);
     }
 
     [Fact]
-    public void GetDirectiveArgumentWeight_Should_Return_Zero_When_Directive_Or_Argument_Unknown()
+    public void TryGetDirectiveArguments_Should_ReturnFalse_When_DirectiveIsUnknown()
     {
         // arrange
         var snapshot = BuildSnapshot(
@@ -224,10 +229,11 @@ public class SnapshotTests
             """);
 
         // act
-        var weight = snapshot.GetDirectiveArgumentWeight("doesNotExist", "arg");
+        var found = snapshot.TryGetDirectiveArguments("doesNotExist", out var arguments);
 
         // assert
-        Assert.Equal(0.0, weight);
+        Assert.False(found);
+        Assert.True(arguments.IsDefault);
     }
 
     // -- @listSize metadata -----------------------------------------------------------------

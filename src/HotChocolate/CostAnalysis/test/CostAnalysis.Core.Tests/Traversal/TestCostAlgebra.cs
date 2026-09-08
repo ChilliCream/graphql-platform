@@ -27,7 +27,7 @@ internal sealed class TestCostAlgebra : IAnalysisAlgebra<(double TypeCost, doubl
             fieldWeight = Math.Max(fieldWeight, ReadWeight(member.Field.Directives, DefaultWeight(returnType.Kind)));
         }
 
-        var n = group.ListMultiplier;
+        var n = MaxOrDefault(group.InheritedSizes);
         var typeCost = ClampZero(n * (typeWeight + child.TypeCost));
         var fieldCost = ClampZero(fieldWeight) + n * child.FieldCost;
         return (typeCost, fieldCost);
@@ -45,6 +45,26 @@ internal sealed class TestCostAlgebra : IAnalysisAlgebra<(double TypeCost, doubl
 
     public (double TypeCost, double FieldCost) Root(double rootTypeWeight, (double TypeCost, double FieldCost) selection)
         => (ClampZero(rootTypeWeight + selection.TypeCost), selection.FieldCost);
+
+    private static double MaxOrDefault(ReadOnlySpan<double> inheritedSizes)
+    {
+        if (inheritedSizes.Length == 0)
+        {
+            return 1.0;
+        }
+
+        var max = inheritedSizes[0];
+
+        for (var i = 1; i < inheritedSizes.Length; i++)
+        {
+            if (inheritedSizes[i] > max)
+            {
+                max = inheritedSizes[i];
+            }
+        }
+
+        return max;
+    }
 
     private static double DefaultWeight(TypeKind kind)
         => kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union ? 1.0 : 0.0;
