@@ -274,4 +274,51 @@ public class ExactCasesTests
         // assert
         Assert.Equal(new CostEstimate(103.0, 103.0, null), decision.Resolve(_ => false));
     }
+
+    [Fact]
+    public void Evaluate_Should_ClampOpposingInfiniteArgumentAndDirectiveSums_When_WeightsAreFinite()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @negative(
+              x: Int @cost(weight: "-1.7976931348623157E+308")
+              y: Int @cost(weight: "-1.7976931348623157E+308")
+            ) on FIELD
+            type Query {
+              value(
+                a: Int @cost(weight: "1.7976931348623157E+308")
+                b: Int @cost(weight: "1.7976931348623157E+308")
+              ): Int
+            }
+            """;
+        const string operation = "{ value(a: 1, b: 1) @negative(x: 1, y: 1) }";
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
+
+        // assert
+        Assert.Equal(new CostEstimate(0.0, 1.0, null), decision.Resolve(_ => false));
+    }
+
+    [Fact]
+    public void Evaluate_Should_JoinZeroWithOuterListResult_When_ZeroMultiplierMeetsInfiniteChildCost()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Child { value: Int @cost(weight: "1") }
+            type Outer { children: [Child] }
+            type Query { outer: [Outer] @listSize(assumedSize: 0) }
+            """;
+        const string operation = "{ outer { children { value } } }";
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
+
+        // assert
+        Assert.Equal(new CostEstimate(0.0, 1.0, null), decision.Resolve(_ => false));
+    }
 }

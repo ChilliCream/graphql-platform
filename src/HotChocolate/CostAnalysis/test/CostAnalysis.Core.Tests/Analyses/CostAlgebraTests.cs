@@ -50,6 +50,35 @@ public class CostAlgebraTests
         Assert.Equal(new CostEstimate(5.0, 9.0, null), joined);
     }
 
+    [Fact]
+    public void Join_Should_UseMaximumNumberSemantics_When_AnOperandIsNaN()
+    {
+        // arrange
+        var left = new CostEstimate(double.NaN, 2.0, null);
+        var right = new CostEstimate(3.0, double.NaN, null);
+
+        // act
+        var joined = CostFieldRule.Join(left, right);
+
+        // assert
+        Assert.Equal(new CostEstimate(3.0, 2.0, null), joined);
+    }
+
+    [Fact]
+    public void Combine_Should_PropagateNaN_When_AnOperandIsNaN()
+    {
+        // arrange
+        var left = new CostEstimate(double.NaN, 1.0, null);
+        var right = new CostEstimate(2.0, 3.0, null);
+
+        // act
+        var combined = CostFieldRule.Combine(left, right);
+
+        // assert
+        Assert.True(double.IsNaN(combined.FieldCost));
+        Assert.Equal(4.0, combined.TypeCost);
+    }
+
     // -- Scale: the 0 * Infinity guard -------------------------------------------------------
 
     [Fact]
@@ -82,6 +111,16 @@ public class CostAlgebraTests
         Assert.Equal(double.PositiveInfinity, scaled);
     }
 
+    [Fact]
+    public void Scale_Should_PropagateNaN_When_ZeroMultiplierAndInfiniteCost()
+    {
+        // act
+        var scaled = CostFieldRule.Scale(0.0, double.PositiveInfinity);
+
+        // assert
+        Assert.True(double.IsNaN(scaled));
+    }
+
     // -- Clamp0 --------------------------------------------------------------------------------
 
     [Fact]
@@ -102,6 +141,16 @@ public class CostAlgebraTests
 
         // assert
         Assert.Equal(4.0, clamped);
+    }
+
+    [Fact]
+    public void Clamp0_Should_ReturnPositiveZero_When_ValueIsNaN()
+    {
+        // act
+        var clamped = CostFieldRule.Clamp0(double.NaN);
+
+        // assert
+        Assert.Equal(0L, BitConverter.DoubleToInt64Bits(clamped));
     }
 
     // -- Field: whole-call clamping and signed weights ------------------------------------------

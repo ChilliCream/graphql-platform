@@ -29,10 +29,13 @@ internal static class CostFieldRule
     /// <summary>
     /// Computes the upper bound of two estimates from mutually exclusive
     /// type regions or Boolean-decision branches as a componentwise
-    /// maximum.
+    /// maximum-number.
     /// </summary>
     public static CostEstimate Join(CostEstimate left, CostEstimate right)
-        => new(Math.Max(left.FieldCost, right.FieldCost), Math.Max(left.TypeCost, right.TypeCost), null);
+        => new(
+            double.MaxNumber(left.FieldCost, right.FieldCost),
+            double.MaxNumber(left.TypeCost, right.TypeCost),
+            null);
 
     /// <summary>
     /// Multiplies <paramref name="cost"/> by <paramref name="n"/>, treating
@@ -46,7 +49,7 @@ internal static class CostFieldRule
     /// Clamps a negative value to zero and returns a non-negative value
     /// unchanged.
     /// </summary>
-    public static double Clamp0(double value) => value < 0.0 ? 0.0 : value;
+    public static double Clamp0(double value) => double.MaxNumber(value, 0.0);
 
     /// <summary>
     /// Computes one field call's contribution to its selection boundary.

@@ -48,13 +48,15 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
         var typeName = member.ParentType.Name;
         var fieldName = member.Field.Name;
         var returnTypeName = member.Field.Type.NamedType().Name;
-        return CostFieldRule.Field(
+        var estimate = CostFieldRule.Field(
             ResolveListMultiplier(typeName, fieldName, member.Field, field.Arguments, group.InheritedSize),
             _snapshot.GetFieldWeight(typeName, fieldName),
             ComputeArgumentsCost(typeName, member.Field, field.Arguments),
             ComputeDirectiveArgumentsCost(field.Directives),
             _snapshot.GetTypeWeight(returnTypeName),
             child);
+
+        return CostFieldRule.Join(CostFieldRule.Empty, estimate);
     }
 
     /// <inheritdoc />
