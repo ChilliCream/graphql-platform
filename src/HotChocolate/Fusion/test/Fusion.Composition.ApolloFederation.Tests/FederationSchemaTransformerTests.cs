@@ -1629,4 +1629,101 @@ public sealed class FederationSchemaTransformerTests
             .Add(string.Join(Environment.NewLine, result.Errors.Select(e => e.Message)), "Errors")
             .MatchMarkdownSnapshot();
     }
+
+    // Regression for repo-ctf.24 review cycle 1 (comment 727, F1): a source schema that links
+    // Apollo's policy spec and imports @policy, but never applies it, still leaves Apollo's own
+    // @policy directive definition on the schema. Translating @authenticated must not throw when
+    // installing the canonical Fusion @policy definition under that same name.
+    [Fact]
+    public void Transform_Should_TranslateAuthenticated_When_PolicySpecLinkedButUnapplied()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.6"
+                import: ["@key", "@authenticated"]
+              )
+              @link(url: "https://specs.apollo.dev/policy/v0.1", import: ["@policy"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") @authenticated {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              product(id: ID!): Product
+            }
+
+            scalar FieldSet
+            scalar federation__Policy
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            directive @authenticated on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            directive @policy(policies: [[federation__Policy!]!]!) repeatable
+              on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    // Regression for repo-ctf.24 review cycle 1 (comment 727, F1): a source schema that never
+    // links Apollo's policy spec at all, but still carries a raw `directive @policy` definition
+    // under the unaliased name, must not crash when translating @authenticated installs the
+    // canonical Fusion @policy definition under that same name.
+    [Fact]
+    public void Transform_Should_TranslateAuthenticated_When_UnlinkedPolicyDefinitionPresent()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.6"
+                import: ["@key", "@authenticated"]
+              ) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") @authenticated {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              product(id: ID!): Product
+            }
+
+            scalar FieldSet
+            scalar federation__Policy
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            directive @authenticated on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            directive @policy(policies: [[federation__Policy!]!]!) repeatable
+              on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
 }

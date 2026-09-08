@@ -284,7 +284,8 @@ internal static class RemoveFederationInfrastructure
     /// schema by an earlier translation in this same <see cref="Apply"/> call, or creates and
     /// installs it. <paramref name="fusionPolicyDefinition"/> is the sole source of truth for
     /// reuse: querying the schema's directive definitions by name is unsafe here, since Apollo's
-    /// own (not yet removed) <c>@policy</c> definition can share the same unaliased name.
+    /// own (not yet removed) <c>@policy</c> definition can share the same unaliased name. Any
+    /// such leftover Apollo definition under that name is replaced with the canonical one.
     /// </summary>
     private static MutableDirectiveDefinition GetOrCreateFusionPolicyDefinition(
         MutableSchemaDefinition schema,
@@ -309,6 +310,7 @@ internal static class RemoveFederationInfrastructure
         }
 
         var definition = new PolicyMutableDirectiveDefinition(stringType, policyDenialBehaviorType);
+        schema.DirectiveDefinitions.Remove(WellKnownDirectiveNames.Policy);
         schema.DirectiveDefinitions.Add(definition);
         fusionPolicyDefinition = definition;
         return definition;
