@@ -69,6 +69,21 @@ public static class ShareableTests
     }
 
     [Fact]
+    public static async Task GenericShareableType_Is_Shareable_Fluent_Generic()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query4>()
+                .AddType<GenericShareableType>()
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public static async Task Shareable_On_Type_That_Is_Both_Input_And_Output_Type()
     {
         var schema =
@@ -108,6 +123,26 @@ public static class ShareableTests
     public class Query3
     {
         public SomeConcreteType GetConcreteType() => new();
+    }
+
+    public class Query4
+    {
+        public GenericShareable GetShareable() => new();
+    }
+
+    public class GenericShareable
+    {
+        public string? Field { get; set; }
+    }
+
+    // fluent authoring of the @shareable directive through IObjectTypeDescriptor<T>,
+    // without casting to the non-generic IObjectTypeDescriptor.
+    public class GenericShareableType : ObjectType<GenericShareable>
+    {
+        protected override void Configure(IObjectTypeDescriptor<GenericShareable> descriptor)
+        {
+            descriptor.Shareable();
+        }
     }
 
     [Shareable]

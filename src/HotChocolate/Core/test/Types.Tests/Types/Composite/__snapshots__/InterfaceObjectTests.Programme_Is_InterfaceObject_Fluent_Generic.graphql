@@ -1,0 +1,41 @@
+schema {
+  query: Query
+}
+
+type Query {
+  hello: String!
+}
+
+type GenericProgramme @interfaceObject @key(fields: "id") {
+  id: String!
+}
+
+scalar FieldSelectionSet
+
+"""
+The @interfaceObject directive is used within a source schema to declare an object type that
+acts as a stand-in for an interface defined in another source schema. The stand-in carries the
+same name as the interface and allows a source schema to contribute fields to that interface
+without defining any of its implementing types.
+
+
+
+
+
+type Media @interfaceObject @key(fields: "id") {
+  id: ID!
+  reviews: [Review!]!
+}
+            
+directive @interfaceObject on OBJECT
+"""
+directive @interfaceObject on OBJECT
+
+"""
+The @key directive is used to designate an entity's unique key,
+which identifies how to uniquely reference an instance of
+an entity across different source schemas.
+"""
+directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
+  | OBJECT
+  | INTERFACE
