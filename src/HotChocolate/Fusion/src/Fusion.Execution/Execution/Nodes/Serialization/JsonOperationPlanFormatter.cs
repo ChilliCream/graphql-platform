@@ -5,7 +5,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Types;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -454,6 +453,25 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 WriteConditionMasks(jsonWriter, coordinate.LiveGuardMasks);
                 jsonWriter.WritePropertyName("gateGuardMasks");
                 WriteConditionMasks(jsonWriter, coordinate.GateGuardMasks);
+
+                if (coordinate.Requirements.Length > 0)
+                {
+                    jsonWriter.WritePropertyName("requirements");
+                    jsonWriter.WriteStartArray();
+
+                    foreach (var requirement in coordinate.Requirements)
+                    {
+                        jsonWriter.WriteStartObject();
+                        jsonWriter.WritePropertyName("name");
+                        jsonWriter.WriteStringValue(requirement.PolicyName);
+                        jsonWriter.WritePropertyName("selectionSet");
+                        jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    jsonWriter.WriteEndArray();
+                }
+
                 jsonWriter.WriteEndObject();
             }
 

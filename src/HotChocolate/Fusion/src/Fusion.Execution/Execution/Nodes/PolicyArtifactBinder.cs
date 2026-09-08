@@ -93,8 +93,9 @@ internal static class PolicyArtifactBinder
             operation,
             incrementalPlans,
             policies,
-            policySnapshot);
-        var expected = ReconstructArtifacts(candidates);
+            policySnapshot,
+            TryGetEventStreamRootInfo(allNodes));
+        var expected = ReconstructArtifacts(candidates, policySnapshot);
         ValidateArtifactTables(expressions, slots, expected, allowUnboundOccurrences: true);
         var boundSlots = expected.Slots;
         BindTargets(allNodes, planPart: 0, operation, boundSlots, candidates);
@@ -149,8 +150,9 @@ internal static class PolicyArtifactBinder
             operation,
             incrementalPlans,
             policies,
-            policySnapshot);
-        var expected = ReconstructArtifacts(candidates);
+            policySnapshot,
+            TryGetEventStreamRootInfo(allNodes));
+        var expected = ReconstructArtifacts(candidates, policySnapshot);
         var candidateByReference = candidates.ToDictionary(candidate => candidate.Reference);
         var claimed = new HashSet<PolicyOccurrenceReference>();
 
@@ -1110,7 +1112,8 @@ internal static class PolicyArtifactBinder
     }
 
     private static ReconstructedArtifacts ReconstructArtifacts(
-        ImmutableArray<Candidate> candidates)
+        ImmutableArray<Candidate> candidates,
+        PolicyArtifactPolicySnapshot policySnapshot)
     {
         var expressionBuilder = ImmutableArray.CreateBuilder<PolicyConditionExpression>();
         var expressionOrdinals = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -1250,7 +1253,21 @@ internal static class PolicyArtifactBinder
                         candidate.GuardMask)),
                     GateGuardMasks = CanonicalizeMasks(coordinateCandidates
                         .Where(candidate => candidate.GateEligible)
-                        .Select(candidate => candidate.GuardMask))
+                        .Select(candidate => candidate.GuardMask)),
+                    // A slot-gate candidate's names are filtered to request-cacheable ones,
+                    // except the event-resource case (repo-ctf.11), so a name found here with a
+                    // real requirement unambiguously identifies that coordinate.
+                    Requirements = [.. coordinateCandidates
+                        .SelectMany(candidate => candidate.Policy.Groups)
+                        .SelectMany(group => group)
+                        .Distinct(StringComparer.Ordinal)
+                        .Where(policySnapshot.Requirements.ContainsKey)
+                        .OrderBy(name => name, StringComparer.Ordinal)
+                        .Select(name => new PolicyRequirement
+                        {
+                            PolicyName = name,
+                            SelectionSet = policySnapshot.Requirements[name]
+                        })]
                 });
             }
 
@@ -2305,15 +2322,18 @@ internal static class PolicyArtifactBinder
         Operation operation,
         ImmutableArray<IncrementalPlan> incrementalPlans,
         ImmutableArray<PolicyPlanEntry> policies,
-        PolicyArtifactPolicySnapshot policySnapshot)
+        PolicyArtifactPolicySnapshot policySnapshot,
+        EventStreamRootInfo? eventStreamRootInfo = null)
     {
         var builder = ImmutableArray.CreateBuilder<Candidate>();
         AddOperation(
             operation,
             planPart: 0,
             policySnapshot.RequestCacheability,
+            policySnapshot.Requirements,
             CreateRequirementFeedPaths(operation, policySnapshot.Requirements),
             activeDeliveryGroups: [],
+            eventStreamRootInfo,
             builder: builder);
 
         for (var i = 0; i < incrementalPlans.Length; i++)
@@ -2322,10 +2342,14 @@ internal static class PolicyArtifactBinder
                 incrementalPlans[i].Operation,
                 i + 1,
                 policySnapshot.RequestCacheability,
+                policySnapshot.Requirements,
                 CreateRequirementFeedPaths(
                     incrementalPlans[i].Operation,
                     policySnapshot.Requirements),
                 incrementalPlans[i].DeliveryGroups,
+                // An EventStream root can only ever be the operation's own root node
+                // (6fl); an incremental (@defer) plan part never carries one.
+                eventStreamRootInfo: null,
                 builder: builder);
         }
 
@@ -2507,8 +2531,10 @@ internal static class PolicyArtifactBinder
         Operation operation,
         int planPart,
         IReadOnlyDictionary<string, bool> requestCacheability,
+        IReadOnlyDictionary<string, SelectionSetNode> requirements,
         IReadOnlySet<string> requirementFeedPaths,
         ImmutableArray<DeliveryGroup> activeDeliveryGroups,
+        EventStreamRootInfo? eventStreamRootInfo,
         ImmutableArray<Candidate>.Builder builder)
     {
         var activeDeferFlags = CreateActiveDeferFlags(activeDeliveryGroups);
@@ -2663,12 +2689,37 @@ internal static class PolicyArtifactBinder
             bool gateEligible,
             bool requiresFetchGateWitness)
         {
+            // EventStream can only ever be the operation's own root node, and a GraphQL
+            // subscription has exactly one root selection, so a length-one object coordinate at
+            // plan part 0 is unambiguously the subscription root's own payload type.
+            var isEventStreamRootCoordinate = eventStreamRootInfo is not null
+                && kind is PolicyTargetKind.Object
+                && path.Length == 1;
+
             for (var applicationOrdinal = 0;
                 applicationOrdinal < applications.Length;
                 applicationOrdinal++)
             {
                 var application = applications[applicationOrdinal];
                 var applicationClass = ClassifyApplication(application, requestCacheability);
+
+                // A data-bearing application directly on the subscription root's own payload
+                // type is not routed to a PolicyExecutionNode (EventStream can never be a
+                // producer, provider or dependency of one; see ValidatePolicyTopology below)
+                // when every requirement it needs is already covered by the composed
+                // @eventStream message projection: the per-event slot re-evaluation path
+                // evaluates it directly against the event payload instead (repo-ctf.11).
+                if (isEventStreamRootCoordinate
+                    && applicationClass is not PolicyApplicationClass.S
+                    && IsEventResourceDerivable(application, requirements, eventStreamRootInfo!.Value.Message))
+                {
+                    AddCandidate(
+                        PolicyOccurrenceFacet.SlotGate,
+                        CreateEventResourceApplication(application),
+                        applicationOrdinal,
+                        PolicyApplicationClass.S);
+                    continue;
+                }
 
                 if (applicationClass is PolicyApplicationClass.S or PolicyApplicationClass.M)
                 {
@@ -2937,6 +2988,142 @@ internal static class PolicyArtifactBinder
             OnDenied = application.OnDenied
         };
     }
+
+    /// <summary>
+    /// Identifies the EventStream execution node at the root of a compiled subscription plan,
+    /// if any, and the composed message projection it delivers.
+    /// </summary>
+    private static EventStreamRootInfo? TryGetEventStreamRootInfo(ImmutableArray<ExecutionNode> allNodes)
+    {
+        foreach (var node in allNodes)
+        {
+            if (node is EventStreamExecutionNode eventStream)
+            {
+                return new EventStreamRootInfo(eventStream.EventStreamSource.Message);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets whether every data-bearing policy name in <paramref name="application"/> has a
+    /// requirement selection set that is already covered by the composed event-stream message
+    /// projection. A request-cacheable name has no requirement and is trivially covered.
+    /// </summary>
+    private static bool IsEventResourceDerivable(
+        PolicyApplication application,
+        IReadOnlyDictionary<string, SelectionSetNode> requirements,
+        SelectionSetNode message)
+    {
+        foreach (var group in application.Groups)
+        {
+            foreach (var name in group)
+            {
+                if (requirements.TryGetValue(name, out var requirement)
+                    && !IsRequirementCoveredByEventMessage(requirement, message))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets whether every field a policy requirement selects is already selected by the
+    /// composed <c>@eventStream</c> message projection, recursing into inline fragments matched
+    /// by an exact type condition for type-conditioned paths. Shared by the planner's plan-time
+    /// derivability check and this binder's independent reconstruction of the same decision.
+    /// </summary>
+    internal static bool IsRequirementCoveredByEventMessage(
+        SelectionSetNode requirement,
+        SelectionSetNode message)
+    {
+        foreach (var selection in requirement.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    var responseName = field.Alias?.Value ?? field.Name.Value;
+                    var matched = false;
+
+                    foreach (var candidate in message.Selections)
+                    {
+                        if (candidate is not FieldNode messageField
+                            || !(messageField.Alias?.Value ?? messageField.Name.Value).Equals(
+                                responseName,
+                                StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        if (field.SelectionSet is { } childRequirement)
+                        {
+                            if (messageField.SelectionSet is not { } childMessage
+                                || !IsRequirementCoveredByEventMessage(childRequirement, childMessage))
+                            {
+                                return false;
+                            }
+                        }
+
+                        matched = true;
+                        break;
+                    }
+
+                    if (!matched)
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    var scope = fragment.TypeCondition is null
+                        ? message
+                        : FindEventMessageFragmentScope(message, fragment.TypeCondition.Name.Value);
+
+                    if (scope is null || !IsRequirementCoveredByEventMessage(fragment.SelectionSet, scope))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                default:
+                    // Policy requirement selection sets only ever contain fields and inline
+                    // fragments (see AddRequirementPaths); anything else cannot be matched.
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static SelectionSetNode? FindEventMessageFragmentScope(SelectionSetNode message, string typeName)
+    {
+        foreach (var selection in message.Selections)
+        {
+            if (selection is InlineFragmentNode fragment
+                && fragment.TypeCondition is { } typeCondition
+                && typeCondition.Name.Value.Equals(typeName, StringComparison.Ordinal))
+            {
+                return fragment.SelectionSet;
+            }
+        }
+
+        return null;
+    }
+
+    private static PolicyApplication CreateEventResourceApplication(PolicyApplication application)
+        => new()
+        {
+            Groups = PolicyNameGroups.Canonicalize(application.Groups),
+            OnDenied = application.OnDenied
+        };
+
+    private readonly record struct EventStreamRootInfo(SelectionSetNode Message);
 
     private static PolicyApplicationClass ClassifyApplication(
         PolicyApplication application,

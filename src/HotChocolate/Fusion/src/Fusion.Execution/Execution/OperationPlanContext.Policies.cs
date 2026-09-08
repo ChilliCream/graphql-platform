@@ -133,7 +133,8 @@ public sealed partial class OperationPlanContext
             evaluation = await requestState.EvaluateSlotsAsync(
                 operationPlan,
                 variables,
-                cancellationToken)
+                cancellationToken,
+                eventContext: this)
                 .ConfigureAwait(false);
         }
 

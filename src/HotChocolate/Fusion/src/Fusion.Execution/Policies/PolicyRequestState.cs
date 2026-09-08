@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -5,7 +6,9 @@ using System.Security.Claims;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -123,9 +126,20 @@ internal sealed class PolicyRequestState
     internal ValueTask<PolicyDecision> EvaluatePolicyOnceAsync(
         IPolicy policy,
         ClaimsPrincipal user,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        OperationPlanContext? eventContext = null,
+        string? eventResponseName = null,
+        ITypeDefinition? eventResourceType = null,
+        bool isSlotEvaluation = false)
     {
-        var state = new PolicyEvaluationState(this, user, cancellationToken);
+        var state = new PolicyEvaluationState(
+            this,
+            user,
+            cancellationToken,
+            eventContext,
+            eventResponseName,
+            eventResourceType,
+            isSlotEvaluation);
         var evaluation = _decisions.GetOrAdd(
             policy,
             static (currentPolicy, currentState) => new Lazy<Task<PolicyDecision>>(
@@ -194,10 +208,25 @@ internal sealed class PolicyRequestState
     internal async ValueTask<PolicySlotEvaluationResult> EvaluateSlotsAsync(
         OperationPlan operationPlan,
         IVariableValueCollection variables,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        OperationPlanContext? eventContext = null)
     {
         var includeFlags = operationPlan.Operation.CreateIncludeConditionFlags(variables);
         var user = _requestContext.Features.Get<UserState>()?.User ?? new ClaimsPrincipal();
+
+        // A data-bearing subscription-root policy application is evaluated against the
+        // current event's own root selection data; this is only available once an event has
+        // actually merged its payload into the shared context (the per-event re-evaluation
+        // path), never during the pre-subscribe request-level evaluation (repo-ctf.11).
+        string? eventResponseName = null;
+        ITypeDefinition? eventResourceType = null;
+
+        if (eventContext is not null)
+        {
+            var rootSelection = operationPlan.Operation.RootSelectionSet.Selections[0];
+            eventResponseName = rootSelection.ResponseName;
+            eventResourceType = rootSelection.Field.Type.NamedType();
+        }
 
         var denyFlags = 0UL;
         var fetchGateDenyFlags = 0UL;
@@ -239,7 +268,10 @@ internal sealed class PolicyRequestState
                         await EvaluateExpressionAsync(
                             operationPlan.PolicyExpressions[expressionOrdinal],
                             user,
-                            cancellationToken)
+                            cancellationToken,
+                            eventContext,
+                            eventResponseName,
+                            eventResourceType)
                             .ConfigureAwait(false);
                     _evaluatedExpressions[expressionOrdinal] = true;
                 }
@@ -362,7 +394,40 @@ internal sealed class PolicyRequestState
 
         try
         {
-            _policyContext.ResetForRequest(state.User);
+            // Resource-based per-event evaluation (repo-ctf.11) applies only within the slot
+            // re-evaluation path (EvaluateSlotsAsync/EvaluateExpressionAsync); a direct
+            // EvaluatePolicyOnceAsync/EvaluateRequestPolicyAsync call always keeps the existing
+            // request-constant semantics regardless of the policy's own requirement shape.
+            if (state.IsSlotEvaluation && policy.Requirements.Resource is { } resource)
+            {
+                // A data-bearing subscription-root policy can only be decided once an event has
+                // merged its own payload into the shared context: the pre-subscribe
+                // request-level pass (no eventContext) and an event whose root selection
+                // produced no data leave this policy undecided this pass, so it neither allows
+                // nor denies here. The real per-event pass that follows always starts from
+                // cleared decisions (ClearDecisions), so it is never skipped for the actual
+                // event delivering the resource.
+                if (state.EventContext is not { } eventContext
+                    || state.EventResponseName is not { } responseName
+                    || state.EventResourceType is not { } type
+                    || !TryGetEventResourceEntity(eventContext, responseName, out var entity))
+                {
+                    return default;
+                }
+
+                PolicyExecutionNode.EnsureRequirementsAreAvailable(policy.Name, resource, entity);
+                _policyContext.ResetForResource(
+                    state.User,
+                    type,
+                    selection: null,
+                    eventContext.Variables,
+                    new ReadOnlyMemory<CompositeResultElement>([entity]));
+            }
+            else
+            {
+                _policyContext.ResetForRequest(state.User);
+            }
+
             evaluationStarted = true;
             await policy.EvaluateAsync(_policyContext, state.CancellationToken).ConfigureAwait(false);
             var decision = _policyContext.GetDecision(0);
@@ -392,10 +457,42 @@ internal sealed class PolicyRequestState
         }
     }
 
+    /// <summary>
+    /// Rents the subscription root's own composite result element to use as the resource for a
+    /// data-bearing subscription-root policy. Returns <c>false</c> when the current event has
+    /// not (yet) produced a non-null root result.
+    /// </summary>
+    private static bool TryGetEventResourceEntity(
+        OperationPlanContext context,
+        string responseName,
+        out CompositeResultElement entity)
+    {
+        var elements = context.RentResultElements(SelectionPath.Root.AppendField(responseName), out var count);
+
+        try
+        {
+            if (count != 1 || elements[0].IsNullOrInvalidated)
+            {
+                entity = default;
+                return false;
+            }
+
+            entity = elements[0];
+            return true;
+        }
+        finally
+        {
+            ArrayPool<CompositeResultElement>.Shared.Return(elements, clearArray: true);
+        }
+    }
+
     private async ValueTask<PolicyDecision> EvaluateExpressionAsync(
         PolicyConditionExpression expression,
         ClaimsPrincipal user,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        OperationPlanContext? eventContext,
+        string? eventResponseName,
+        ITypeDefinition? eventResourceType)
     {
         string? reason = null;
 
@@ -408,7 +505,11 @@ internal sealed class PolicyRequestState
                 var decision = await EvaluatePolicyOnceAsync(
                     ResolvePolicy(name),
                     user,
-                    cancellationToken)
+                    cancellationToken,
+                    eventContext,
+                    eventResponseName,
+                    eventResourceType,
+                    isSlotEvaluation: true)
                     .ConfigureAwait(false);
                 if (decision.IsDenied)
                 {
@@ -446,7 +547,11 @@ internal sealed class PolicyRequestState
     private readonly record struct PolicyEvaluationState(
         PolicyRequestState RequestState,
         ClaimsPrincipal User,
-        CancellationToken CancellationToken);
+        CancellationToken CancellationToken,
+        OperationPlanContext? EventContext,
+        string? EventResponseName,
+        ITypeDefinition? EventResourceType,
+        bool IsSlotEvaluation);
 }
 
 internal readonly record struct PolicySlotEvaluationResult(

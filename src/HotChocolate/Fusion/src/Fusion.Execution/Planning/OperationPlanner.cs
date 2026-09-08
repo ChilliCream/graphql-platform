@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -1421,6 +1420,14 @@ public sealed partial class OperationPlanner
         var isEventStreamRoot = workItem.Kind is OperationWorkItemKind.Root
             && current.EventStreamDirective is not null;
 
+        // A data-bearing policy directly on the subscription root's own (concrete) payload
+        // type is evaluated per event against the composed @eventStream message projection
+        // instead of a PolicyExecutionNode (repo-ctf.11); an abstract (interface/union)
+        // payload type keeps the unnarrowed, pre-existing behavior.
+        var eventStreamMessage = isEventStreamRoot
+            ? GetConcreteEventStreamMessage(workItem.SelectionSet, current.EventStreamDirective!)
+            : null;
+
         var input = new SelectionSetPartitionerInput
         {
             SchemaName = current.SchemaName,
@@ -1468,7 +1475,8 @@ public sealed partial class OperationPlanner
             includeSelectionSetObjectPolicy: workItem.SelectionSet.Path.IsRoot,
             selectionSetGateEligible: !index.IsConcreteBranch(workItem.SelectionSet.Id),
             current.PolicySlots,
-            planningSession);
+            planningSession,
+            eventStreamMessage);
         ExecutionNodeCondition[] slotConditions;
 
         (resolvable, unresolvable, fieldsWithRequirements, index, slotConditions) =
@@ -1630,7 +1638,8 @@ public sealed partial class OperationPlanner
         bool includeSelectionSetObjectPolicy,
         bool selectionSetGateEligible,
         PolicySlotRegistry slots,
-        PolicyPlanningSession planningSession)
+        PolicyPlanningSession planningSession,
+        SelectionSetNode? eventStreamMessage = null)
     {
         var coordinates = new List<ConditionalPolicyExecutionTarget>();
 
@@ -1704,9 +1713,40 @@ public sealed partial class OperationPlanner
             var hasResidual = false;
             var rmax = PolicyDenialBehavior.Null;
 
+            var isEventStreamRootCoordinate = eventStreamMessage is not null
+                && coordinate.Kind is PolicyTargetKind.Object
+                && coordinate.Path.Length == 1;
+
             foreach (var application in coordinate.Policies)
             {
-                switch (ClassifyApplication(application, planningSession.Policies))
+                var applicationClass = ClassifyApplication(application, planningSession.Policies);
+
+                // A data-bearing application directly on the subscription root's own payload
+                // type is evaluated per event against the composed @eventStream message
+                // projection instead of a PolicyExecutionNode (EventStream can never be a
+                // producer, provider or dependency of one) when every requirement it needs is
+                // already covered by that projection (repo-ctf.11). Anything else on the
+                // subscription root keeps the unnarrowed, pre-existing rejection.
+                if (isEventStreamRootCoordinate
+                    && applicationClass is not PolicyApplicationClass.S)
+                {
+                    if (!IsEventResourceDerivable(application, planningSession.Policies, eventStreamMessage!))
+                    {
+                        throw HotChocolate.Fusion.Execution.ThrowHelper.InvalidOperationPlan(
+                            $"Policy '{PolicyNameGroups.Format(application.Groups)}' has a requirement "
+                            + "that cannot be derived from the composed event message projection; only "
+                            + "fields selected by the @eventStream message are available as the "
+                            + "per-event resource on a subscription root field.");
+                    }
+
+                    slotApplications.Add(new PolicyGateApplication(
+                        PolicyNameGroups.Canonicalize(application.Groups),
+                        application.OnDenied));
+                    slotApplicationClasses.Add(PolicySlotApplicationClass.SlotOnly);
+                    continue;
+                }
+
+                switch (applicationClass)
                 {
                     case PolicyApplicationClass.S:
                         slotApplications.Add(CreatePolicyGateApplication(
@@ -1773,6 +1813,11 @@ public sealed partial class OperationPlanner
                         LiveGuardMasks = [guardMask],
                         GateGuardMasks = occurrence.GateEligible && targetGateEligible
                             ? [guardMask]
+                            : [],
+                        Requirements = isEventStreamRootCoordinate
+                            ? [.. coordinate.Requirements.OrderBy(
+                                requirement => requirement.PolicyName,
+                                StringComparer.Ordinal)]
                             : []
                     },
                     out slot,

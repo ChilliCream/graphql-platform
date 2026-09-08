@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -166,6 +167,13 @@ public sealed record PolicyConditionCoordinate
     /// </summary>
     public required ImmutableArray<ConditionFlags> GateGuardMasks { get; init; }
 
+    /// <summary>
+    /// Gets the per-event resource requirements a subscription-root coordinate reads from the
+    /// composed <c>@eventStream</c> message projection instead of a residual policy execution
+    /// node. Empty for every other coordinate.
+    /// </summary>
+    public ImmutableArray<PolicyRequirement> Requirements { get; init; } = [];
+
     /// <inheritdoc />
     public bool Equals(PolicyConditionCoordinate? other)
         => ReferenceEquals(this, other)
@@ -177,7 +185,8 @@ public sealed record PolicyConditionCoordinate
                 && ResponseNames.SequenceEqual(other.ResponseNames, StringComparer.Ordinal)
                 && Applications.SequenceEqual(other.Applications)
                 && PolicyGuardMasks.SequenceEqual(LiveGuardMasks, other.LiveGuardMasks)
-                && PolicyGuardMasks.SequenceEqual(GateGuardMasks, other.GateGuardMasks));
+                && PolicyGuardMasks.SequenceEqual(GateGuardMasks, other.GateGuardMasks)
+                && RequirementsEqual(Requirements, other.Requirements));
 
     /// <inheritdoc />
     public override int GetHashCode()
@@ -210,7 +219,34 @@ public sealed record PolicyConditionCoordinate
             PolicyGuardMasks.AddHashCode(ref hash, guardMask);
         }
 
+        foreach (var requirement in Requirements)
+        {
+            hash.Add(requirement.PolicyName, StringComparer.Ordinal);
+            hash.Add(SyntaxComparer.BySyntax.GetHashCode(requirement.SelectionSet));
+        }
+
         return hash.ToHashCode();
+    }
+
+    private static bool RequirementsEqual(
+        ImmutableArray<PolicyRequirement> left,
+        ImmutableArray<PolicyRequirement> right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            if (!left[i].PolicyName.Equals(right[i].PolicyName, StringComparison.Ordinal)
+                || !SyntaxComparer.BySyntax.Equals(left[i].SelectionSet, right[i].SelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

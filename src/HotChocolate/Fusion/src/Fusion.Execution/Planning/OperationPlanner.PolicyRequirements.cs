@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -724,6 +725,66 @@ public sealed partial class OperationPlanner
 
             return true;
         }
+    }
+
+    /// <summary>
+    /// Gets the composed <c>@eventStream</c> message projection for the subscription root work
+    /// item, or <c>null</c> when the subscription root field's return type is not a concrete
+    /// object type (an abstract payload type keeps the unnarrowed, pre-existing behavior).
+    /// </summary>
+    private SelectionSetNode? GetConcreteEventStreamMessage(
+        SelectionSet selectionSet,
+        EventStreamDirective directive)
+    {
+        if (selectionSet.Type is not FusionComplexTypeDefinition subscriptionType)
+        {
+            return null;
+        }
+
+        foreach (var selection in selectionSet.Node.Selections)
+        {
+            if (selection is not FieldNode fieldNode
+                || fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            return subscriptionType.Fields.TryGetField(
+                fieldNode.Name.Value,
+                allowInaccessibleFields: true,
+                out var rootField)
+                && rootField.Type.NamedType() is FusionObjectTypeDefinition
+                ? directive.Message
+                : null;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets whether every data-bearing policy name in <paramref name="application"/> has a
+    /// requirement selection set that is already covered by the composed event-stream message
+    /// projection. A request-cacheable name has no requirement and is trivially covered.
+    /// </summary>
+    private static bool IsEventResourceDerivable(
+        PolicyApplication application,
+        PolicyPlanningState policyState,
+        SelectionSetNode message)
+    {
+        foreach (var group in application.Groups)
+        {
+            foreach (var name in group)
+            {
+                if (policyState.Requirements.TryGetValue(name, out var requirement)
+                    && !HotChocolate.Fusion.Execution.Nodes.PolicyArtifactBinder
+                        .IsRequirementCoveredByEventMessage(requirement, message))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private static void EnsureRequirementFieldHasNoDataBearingPolicy(

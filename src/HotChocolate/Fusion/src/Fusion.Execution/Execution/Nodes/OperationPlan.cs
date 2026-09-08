@@ -1032,6 +1032,10 @@ public sealed record OperationPlan : IOperationPlan
             AddTargetInventory(incrementalPlan.AllNodes, expectedInventory);
         }
 
+        // A subscription-root coordinate's per-event resource requirements (repo-ctf.11) justify
+        // a real requirement fingerprint without a residual policy execution node.
+        AddSlotRequirementInventory(slots, expressions, expectedInventory);
+
         foreach (var expressionName in expressionNames)
         {
             if (!expectedInventory.Any(entry => entry.Name.Equals(expressionName, StringComparison.Ordinal)))
@@ -1043,6 +1047,58 @@ public sealed record OperationPlan : IOperationPlan
         if (!actualInventory.SetEquals(expectedInventory))
         {
             throw ThrowHelper.InvalidOperationPlan("The policy inventory must exactly cover every policy artifact in the operation plan.");
+        }
+
+        static void AddSlotRequirementInventory(
+            ImmutableArray<PolicyConditionSlot> slots,
+            ImmutableArray<PolicyConditionExpression> expressions,
+            HashSet<(string Name, ulong Hash)> inventory)
+        {
+            foreach (var slot in slots)
+            {
+                foreach (var coordinate in slot.Coordinates)
+                {
+                    if (coordinate.Requirements.IsDefaultOrEmpty)
+                    {
+                        continue;
+                    }
+
+                    var coordinateNames = new HashSet<string>(StringComparer.Ordinal);
+                    foreach (var application in coordinate.Applications)
+                    {
+                        if ((uint)application.ExpressionOrdinal >= (uint)expressions.Length)
+                        {
+                            throw ThrowHelper.InvalidOperationPlan(
+                                "A policy gate coordinate application references an undefined expression.");
+                        }
+
+                        foreach (var group in expressions[application.ExpressionOrdinal].Groups)
+                        {
+                            foreach (var name in group)
+                            {
+                                coordinateNames.Add(name);
+                            }
+                        }
+                    }
+
+                    var seenNames = new HashSet<string>(StringComparer.Ordinal);
+                    foreach (var requirement in coordinate.Requirements)
+                    {
+                        if (string.IsNullOrWhiteSpace(requirement.PolicyName)
+                            || requirement.SelectionSet is null
+                            || !coordinateNames.Contains(requirement.PolicyName)
+                            || !seenNames.Add(requirement.PolicyName))
+                        {
+                            throw ThrowHelper.InvalidOperationPlan(
+                                "A policy gate coordinate requirement is malformed.");
+                        }
+
+                        inventory.Add((
+                            requirement.PolicyName,
+                            PolicyPlanEntry.ComputeRequirementHash(requirement.SelectionSet)));
+                    }
+                }
+            }
         }
 
         static void AddTargetInventory(

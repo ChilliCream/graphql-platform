@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -226,6 +225,25 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("isRoot: {0}", coordinate.IsRoot.ToString().ToLowerInvariant());
             writer.WriteLine("liveGuardMasks: [{0}]", FormatConditionMasks(coordinate.LiveGuardMasks));
             writer.WriteLine("gateGuardMasks: [{0}]", FormatConditionMasks(coordinate.GateGuardMasks));
+
+            if (coordinate.Requirements.Length > 0)
+            {
+                writer.WriteLine("requirements:");
+                writer.Indent();
+
+                foreach (var requirement in coordinate.Requirements)
+                {
+                    writer.WriteLine("- name: {0}", requirement.PolicyName);
+                    writer.Indent();
+                    writer.WriteLine(
+                        "selectionSet: {0}",
+                        requirement.SelectionSet.ToString(indented: false));
+                    writer.Unindent();
+                }
+
+                writer.Unindent();
+            }
+
             writer.Unindent();
         }
 

@@ -587,7 +587,12 @@ public sealed class PolicyExecutionNode : ExecutionNode
         }
     }
 
-    private static void EnsureRequirementsAreAvailable(
+    /// <summary>
+    /// Verifies that every field a policy requirement selects is actually present on the
+    /// resolved resource entity. Shared with the per-event subscription-root resource path
+    /// (<see cref="Execution.PolicyRequestState"/>).
+    /// </summary>
+    internal static void EnsureRequirementsAreAvailable(
         string policyName,
         SelectionSetNode requirements,
         CompositeResultElement entity)

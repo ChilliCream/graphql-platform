@@ -259,7 +259,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             {
                 ValidateProperties(
                     coordinateElement,
-                    ["occurrences", "typeName", "fieldName", "responseNames", "applications", "isRoot", "liveGuardMasks", "gateGuardMasks"],
+                    [
+                        "occurrences", "typeName", "fieldName", "responseNames", "applications",
+                        "isRoot", "liveGuardMasks", "gateGuardMasks", "requirements"
+                    ],
                     ["occurrences", "typeName", "responseNames", "applications", "isRoot", "liveGuardMasks", "gateGuardMasks"],
                     "policy gate coordinate");
                 var occurrencesElement = coordinateElement.GetProperty("occurrences");
@@ -290,6 +293,26 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     });
                 }
 
+                var coordinateRequirements = new List<PolicyRequirement>();
+                if (coordinateElement.TryGetProperty("requirements", out var coordinateRequirementsElement))
+                {
+                    RequireArray(coordinateRequirementsElement, "policy gate coordinate requirements");
+                    foreach (var requirementElement in coordinateRequirementsElement.EnumerateArray())
+                    {
+                        ValidateProperties(
+                            requirementElement,
+                            ["name", "selectionSet"],
+                            ["name", "selectionSet"],
+                            "policy gate coordinate requirement");
+                        coordinateRequirements.Add(new PolicyRequirement
+                        {
+                            PolicyName = requirementElement.GetProperty("name").GetString()!,
+                            SelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+                                requirementElement.GetProperty("selectionSet").GetString()!)
+                        });
+                    }
+                }
+
                 coordinateBuilder.Add(new PolicyConditionCoordinate
                 {
                     Occurrences = occurrencesElement
@@ -313,7 +336,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     GateGuardMasks = gateMasksElement
                         .EnumerateArray()
                         .Select(element => ParseConditionMask(element, "policy gate coordinate gate guard mask"))
-                        .ToImmutableArray()
+                        .ToImmutableArray(),
+                    Requirements = [.. coordinateRequirements]
                 });
             }
 
