@@ -91,6 +91,36 @@ public sealed class RegoDataAggregatorTests
     }
 
     [Fact]
+    public void TryBuildMergedData_Should_AttributeFailureToAProvider_When_MultipleProvidersHaveNoLastGoodAndCollide()
+    {
+        // arrange: two providers, neither with a last-good snapshot yet, whose very first
+        // snapshots collide with each other rather than with the (empty) FAR data.
+        var providerA = new InMemoryRegoDataProvider("""{"shared":{"x":1}}""");
+        var providerB = new InMemoryRegoDataProvider("""{"shared":{"x":2}}""");
+        var aggregator = CreateAggregator(
+            [
+                Registration("a", providerA),
+                Registration("b", providerB)
+            ]);
+
+        // act
+        aggregator.Start();
+        RegoDataMergeStatus status = default;
+        Exception? error = null;
+        Spin(() =>
+        {
+            status = aggregator.TryBuildMergedData(s_farData, out _, out error);
+            return status != RegoDataMergeStatus.NotReady;
+        });
+
+        // assert: the failure is attributed to one of the colliding no-last-good providers (F2m),
+        // not surfaced as a bare, unattributed merge exception.
+        Assert.Equal(RegoDataMergeStatus.Failed, status);
+        var providerError = Assert.IsType<RegoDataProviderException>(error);
+        Assert.Contains(providerError.ProviderName, new[] { "a", "b" });
+    }
+
+    [Fact]
     public void TryBuildMergedData_Should_LogSizeWarningWithoutRejecting_When_MergedDataExceedsThreshold()
     {
         // arrange

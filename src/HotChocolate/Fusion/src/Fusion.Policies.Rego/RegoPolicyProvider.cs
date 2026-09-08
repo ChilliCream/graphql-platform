@@ -26,6 +26,13 @@ public sealed class RegoPolicyProvider
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly RegoDataAggregator? _dataAggregator;
 
+    // The real Regorus compiler, or a test-supplied stand-in that lets a test observe every
+    // compile attempt (how many ran, what became of each resulting set) or force a specific
+    // outcome for scenarios the real compiler cannot be made to reproduce on demand (for
+    // example: a candidate whose code compiles against one data document but not another).
+    // Always the real compiler outside tests.
+    private readonly Func<byte[], IReadOnlyList<PolicyModule>, IReadOnlyList<string>, CompiledPolicySet> _compiler;
+
     // The provider keeps only the handle it last published. An earlier handle is dropped on
     // rebuild, not retired into a list: the RegoPolicy instances built from it that are still
     // pinned by an in-flight request keep it reachable for as long as they need it, and the
@@ -81,12 +88,15 @@ public sealed class RegoPolicyProvider
     /// </summary>
     internal RegoPolicyProvider(
         IFusionExecutionDiagnosticEvents diagnosticEvents,
-        RegoDataAggregator? dataAggregator)
+        RegoDataAggregator? dataAggregator,
+        Func<byte[], IReadOnlyList<PolicyModule>, IReadOnlyList<string>, CompiledPolicySet>? compiler = null)
     {
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _diagnosticEvents = diagnosticEvents;
         _dataAggregator = dataAggregator;
+        _compiler = compiler ?? (static (data, modules, entryPoints) =>
+            CompiledPolicySet.Compile(data, modules, entryPoints));
 
         if (_dataAggregator is not null)
         {
@@ -271,14 +281,20 @@ public sealed class RegoPolicyProvider
         // resolve a compile error.
         var precheckData = _lastMergedData ?? data;
 
-        if (!TryCompile(
+        var precheckCompiled = TryCompile(
             contents,
             libraries,
             precheckData,
-            out _,
+            out var precheckSet,
             out var precheckPolicies,
             out _,
-            out var precheckError))
+            out var precheckError);
+
+        // The precheck only needs to know whether the candidate's code compiles at all: the set
+        // it produces is never served, so it is disposed immediately instead of being leaked.
+        using var disposablePrecheckSet = precheckSet;
+
+        if (!precheckCompiled)
         {
             ReportCompileFailure(precheckPolicies, precheckError!);
             _pendingContents = null;
@@ -350,6 +366,19 @@ public sealed class RegoPolicyProvider
                 return;
 
             case RegoDataMergeStatus.Ready:
+                if (!isPendingCandidate
+                    && _lastMergedData is not null
+                    && attempt!.MergedData.AsSpan().SequenceEqual(_lastMergedData))
+                {
+                    // Recompiling the currently served content: if the effective (FAR, providers)
+                    // combination is byte-for-byte the same one already compiled and served (most
+                    // commonly a colliding provider candidate that never promotes, so nothing
+                    // about the served content actually changed), recompiling and republishing an
+                    // identical policy set would be pure waste. A pending candidate is never
+                    // skipped here: it is by definition new content that has not been served yet.
+                    return;
+                }
+
                 if (!TryCompile(
                     contents,
                     libraries,
@@ -391,7 +420,7 @@ public sealed class RegoPolicyProvider
         }
     }
 
-    private static bool TryCompile(
+    private bool TryCompile(
         Dictionary<string, PolicyContent> contents,
         Dictionary<string, PolicyLibraryModule> libraries,
         byte[] compileData,
@@ -444,7 +473,7 @@ public sealed class RegoPolicyProvider
 
         try
         {
-            set = CompiledPolicySet.Compile(compileData, modules, entryPoints);
+            set = _compiler(compileData, modules, entryPoints);
             error = null;
             return true;
         }

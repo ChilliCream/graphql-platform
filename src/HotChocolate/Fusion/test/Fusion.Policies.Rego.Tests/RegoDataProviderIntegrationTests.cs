@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using System.Text;
+using ChilliCream.Regorus;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Text.Json;
@@ -506,9 +508,12 @@ public sealed class RegoDataProviderIntegrationTests
 
         // assert: without a last-good to fall back to, the collision is discovered only once, in
         // the final merge attempt - not once there AND again inside the per-provider reconcile
-        // pass (F3).
+        // pass (F3). It is also attributed to the provider (F1m), not surfaced as a bare,
+        // unattributed merge exception.
         Assert.Null(observer.Current("p1.allow"));
-        Assert.Single(diagnostics.UpdateErrors);
+        var reported = Assert.Single(diagnostics.UpdateErrors);
+        var providerError = Assert.IsType<RegoDataProviderException>(reported);
+        Assert.Equal("feature", providerError.ProviderName);
     }
 
     [Fact]
@@ -557,6 +562,153 @@ public sealed class RegoDataProviderIntegrationTests
         await resolved.EvaluateAsync(context, TestContext.Current.CancellationToken);
         Assert.Empty(context.DeniedIndices);
         Assert.Equal(errorsAfterBroken + 1, diagnostics.UpdateErrors.Count + diagnostics.CompilationErrors.Count);
+    }
+
+    [Fact]
+    public async Task Rebuild_Should_DisposePrecheckCompiledSet_When_ADataAggregatorIsWired()
+    {
+        // arrange: a compiler stand-in that records every CompiledPolicySet it produces, so the
+        // test can prove the precheck's set - which is never served - is disposed rather than
+        // leaked (F3m), while the set that IS served stays usable.
+        var compiled = new List<CompiledPolicySet>();
+
+        CompiledPolicySet CountingCompiler(
+            byte[] data, IReadOnlyList<PolicyModule> modules, IReadOnlyList<string> entryPoints)
+        {
+            var set = CompiledPolicySet.Compile(data, modules, entryPoints);
+            compiled.Add(set);
+            return set;
+        }
+
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":true}}""");
+        var diagnostics = new TestDiagnosticEvents();
+        var aggregator = CreateAggregator(provider, diagnostics);
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator, CountingCompiler);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+
+        // act: with a data aggregator wired up, every FAR publish precheck-compiles the
+        // candidate against the last-good data before ever attempting the merge - producing a
+        // set that is never served.
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+
+        // assert: the precheck compile ran first and its set was disposed - evaluating it now
+        // throws - while the served (second, final) compile stays usable.
+        Assert.Equal(2, compiled.Count);
+        var precheckIndex = compiled[0].GetEntryPointIndex("data.p1.allow");
+        Assert.Throws<ObjectDisposedException>(() => compiled[0].EvalBooleanWithInput(precheckIndex, "{}"u8));
+        var servedIndex = compiled[1].GetEntryPointIndex("data.p1.allow");
+        var servedResult = compiled[1].EvalBooleanWithInput(servedIndex, "{}"u8);
+        Assert.False(servedResult.IsUndefined);
+    }
+
+    [Fact]
+    public async Task Merge_Should_DiscardAttemptAndKeepProviderLastGood_When_CandidateCompilesOnLastGoodButNotMergedData()
+    {
+        // arrange: a compiler stand-in that fails only when given data carrying a "poison" key -
+        // the real Regorus compiler cannot be made to fail based on data content alone, so this
+        // is the only way to exercise the "compiled fine against the last-good data but not the
+        // actual merged data" attempt-discard branch directly (F4m).
+        CompiledPolicySet PoisonSensitiveCompiler(
+            byte[] data, IReadOnlyList<PolicyModule> modules, IReadOnlyList<string> entryPoints)
+        {
+            if (Encoding.UTF8.GetString(data).Contains("poison", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("Simulated compile failure: data is poisoned.");
+            }
+
+            return CompiledPolicySet.Compile(data, modules, entryPoints);
+        }
+
+        const string zGatedPolicy =
+            """
+            package p1
+            import rego.v1
+
+            default allow := false
+            allow if { data.other.z == 1 }
+            """;
+
+        var provider = new InMemoryRegoDataProvider("""{"other":{"z":1}}""");
+        var diagnostics = new TestDiagnosticEvents();
+        var aggregator = CreateAggregator(provider, diagnostics);
+        await using var policyProvider =
+            new RegoPolicyProvider(diagnostics, aggregator, PoisonSensitiveCompiler);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        policyProvider.OnNext(Snapshot(zGatedPolicy));
+        var lastGood = observer.Current("p1.allow")!;
+
+        // act: the provider republishes data that both changes its own value AND introduces the
+        // poison key - its own recompile of the last-good content fails, so the poisoned
+        // candidate is never promoted. A further FAR publish then compiles fine against the
+        // (still unpoisoned) last-good data (the precheck) but the merge attempt - which
+        // reconciles the still-pending poisoned provider snapshot - fails to compile too.
+        provider.Publish("""{"other":{"z":2},"poison":true}""", "v2");
+        var errorsAfterProviderRefresh = diagnostics.UpdateErrors.Count + diagnostics.CompilationErrors.Count;
+        Assert.True(errorsAfterProviderRefresh > 0);
+
+        policyProvider.OnNext(Snapshot(zGatedPolicy, digest: "d2"));
+
+        // assert: neither failed attempt ever committed - the served policy is still the exact
+        // instance compiled against the provider's original (z == 1) data, proving the
+        // provider's last-good snapshot was never overwritten by the poisoned candidate.
+        Assert.Same(lastGood, observer.Current("p1.allow"));
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await lastGood.EvaluateAsync(context, TestContext.Current.CancellationToken);
+        Assert.Empty(context.DeniedIndices);
+        Assert.True(
+            diagnostics.UpdateErrors.Count + diagnostics.CompilationErrors.Count > errorsAfterProviderRefresh);
+
+        // assert (direct, via reflection - RegoDataAggregator exposes no other way to observe a
+        // provider's committed snapshot): the provider's own last-good is still its original "v1"
+        // value, never promoted to the poisoned "v2" candidate by either failed attempt.
+        Assert.Equal("v1", GetProviderSnapshotVersion(aggregator));
+    }
+
+    [Fact]
+    public async Task Merge_Should_NotRecompileOrEmit_When_CollidingProviderRefreshLeavesServedCombinationUnchanged()
+    {
+        // arrange: two providers, each contributing a distinct top-level key.
+        var providerA = new InMemoryRegoDataProvider("""{"a":{"x":1}}""");
+        var providerB = new InMemoryRegoDataProvider("""{"b":{"y":1}}""");
+        var diagnostics = new TestDiagnosticEvents();
+        var aggregator = CreateAggregator(
+            [
+                new RegoDataProviderRegistration("a", _ => providerA, ownsInstance: false),
+                new RegoDataProviderRegistration("b", _ => providerB, ownsInstance: false)
+            ],
+            diagnostics);
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        policyProvider.OnNext(Snapshot(AGatedPolicy));
+        var beforeCollision = observer.Current("p1.allow")!;
+        var updatesBeforeCollision = observer.Updates.Count;
+
+        // act: provider "b" republishes data that collides with provider "a"'s own top-level
+        // key. The candidate is rejected and "b"'s last-good stays in use, so the effective
+        // served combination (FAR + "a" + "b") never actually changes (F5m).
+        providerB.Publish("""{"a":{"conflict":true}}""", "v2");
+
+        // assert: no recompile, no republish - the served set is the exact same instance.
+        Assert.NotEmpty(diagnostics.UpdateErrors);
+        Assert.Equal(updatesBeforeCollision, observer.Updates.Count);
+        Assert.Same(beforeCollision, observer.Current("p1.allow"));
+    }
+
+    // Reflection is the only way to observe a provider's committed snapshot: RegoDataAggregator
+    // deliberately exposes nothing about ProviderState beyond what TryBuildMergedData's own
+    // return value already reveals.
+    private static string GetProviderSnapshotVersion(RegoDataAggregator aggregator)
+    {
+        var providersField = typeof(RegoDataAggregator)
+            .GetField("_providers", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var providerState = ((Array)providersField.GetValue(aggregator)!).GetValue(0)!;
+        var snapshotProperty = providerState.GetType()
+            .GetProperty("Snapshot", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var snapshot = (RegoDataSnapshot)snapshotProperty.GetValue(providerState)!;
+        return snapshot.Version;
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition)

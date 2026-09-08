@@ -120,6 +120,7 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
 
         List<ReadOnlyMemory<byte>> documents;
         List<(ProviderState State, RegoDataSnapshot Snapshot)> promotions;
+        List<ProviderState>? providersWithoutLastGood = null;
 
         lock (_sync)
         {
@@ -147,7 +148,10 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
                 // collided and it has no last-good to fall back to: fail instead of waiting
                 // forever. The failure this produces below is the only diagnostic reported for
                 // this provider's collision (ComputePendingPromotions deliberately did not
-                // report it, to avoid reporting the same collision twice).
+                // report it, to avoid reporting the same collision twice). Tracked so the
+                // failure below can be attributed to a provider instead of surfacing as a bare,
+                // unattributed merge exception.
+                (providersWithoutLastGood ??= []).Add(state);
                 documents.Add(state.PendingSnapshot.Data);
             }
         }
@@ -160,7 +164,16 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
         }
         catch (RegoDataMergeException ex)
         {
-            error = ex;
+            // Attribute the failure to the (first) provider that has no last-good snapshot to
+            // fall back on: that provider's still-pending, still-unvalidated candidate is what
+            // forced this attempt through, whether it is the sole cause of the collision or one
+            // of several no-last-good providers caught in the same one. A failure that involves
+            // only providers with an established last-good (a FAR change colliding with already
+            // committed data) is not attributable to any single provider and stays a bare
+            // RegoDataMergeException.
+            error = providersWithoutLastGood is { Count: > 0 }
+                ? new RegoDataProviderException(providersWithoutLastGood[0].Name, ex)
+                : ex;
             return RegoDataMergeStatus.Failed;
         }
 
@@ -472,19 +485,25 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
         public void Commit() => _owner.CommitPromotions(_promotions);
     }
 
+    // internal (not private): RegoDataMergeAttempt's constructor - called from TryBuildMergedData,
+    // a member of this containing type - takes a List<(ProviderState, RegoDataSnapshot)>, and a
+    // private nested type is not accessible from the containing type's own members, only from
+    // within its own body. internal is therefore the narrowest visibility this design supports;
+    // every member below is internal rather than public for the same reason - nothing outside this
+    // assembly ever needs to see a ProviderState.
     internal sealed class ProviderState(string name, IRegoDataProvider instance, bool ownsInstance)
     {
-        public string Name { get; } = name;
+        internal string Name { get; } = name;
 
-        public IRegoDataProvider Instance { get; } = instance;
+        internal IRegoDataProvider Instance { get; } = instance;
 
-        public bool OwnsInstance { get; } = ownsInstance;
+        internal bool OwnsInstance { get; } = ownsInstance;
 
-        public bool RefreshInFlight;
+        internal bool RefreshInFlight { get; set; }
 
-        public bool RefreshPending;
+        internal bool RefreshPending { get; set; }
 
-        public RegoDataSnapshot? Snapshot;
+        internal RegoDataSnapshot? Snapshot { get; set; }
 
         // A freshly fetched snapshot that has not yet been confirmed to merge cleanly with the
         // current FAR content and every other provider AND to compile. Set by every refresh that
@@ -492,8 +511,8 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
         // newest, and cleared only once RegoDataMergeAttempt.Commit promotes it to Snapshot. It is
         // never overwritten with null on a failed validation or a discarded attempt: it stays here
         // for the next retry.
-        public RegoDataSnapshot? PendingSnapshot;
+        internal RegoDataSnapshot? PendingSnapshot { get; set; }
 
-        public IDisposable? ChangeSubscription;
+        internal IDisposable? ChangeSubscription { get; set; }
     }
 }
