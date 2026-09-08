@@ -1834,34 +1834,56 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_RejectPolicyParentDependencyFallback_When_PolicyFeedIsLiftedForAnotherOperation()
+    public void CreatePlan_Should_ResolvePolicyParentDependencyFallback_When_PolicyFeedIsLiftedForAnotherOperation()
     {
         // arrange
-        // repo-ctf.17 tracks this pre-existing paired-step limitation.
+        // repo-ctf.17 (ruling 691/714): the lift of details.code is recorded
+        // against d's surviving step while the policy step belongs to c; the
+        // borrowing predicate now widens ParentDependencies to the full
+        // immediate-parent provider closure {a, b}. The enclosing "outer"
+        // @defer has no fields of its own, so it never materializes its own
+        // IncrementalPlan and its lifted fetch is hoisted to the root part;
+        // the binder resolves "inner"'s immediate parent scope to that root
+        // part because "outer" is a direct child of the root delivery group
+        // with no IncrementalPlan of its own. This fixture previously
+        // rejected fail-closed (repo-ctf.16 E1 witness); that witness is now
+        // consumed here.
         var schema = CreatePolicyFeedLiftedForAnotherOperationSchema();
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => PlanOperation(
-                schema,
-                """
-                {
-                  product(id: "1") {
-                    name
-                    ... @defer(label: "outer") {
-                      ... @defer(label: "inner") {
-                        reviews
-                        categoryLabel
-                      }
-                    }
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product(id: "1") {
+                name
+                ... @defer(label: "outer") {
+                  ... @defer(label: "inner") {
+                    reviews
+                    categoryLabel
                   }
                 }
-                """));
+              }
+            }
+            """);
+        var (json, parser) = SerializePlan(schema, plan);
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
 
         // assert
+        MatchSnapshot(plan);
         Assert.Equal(
-            "The deferred policy target 'Product.reviews' in nested scope 'inner' cannot be authorized from its immediate parent scope.",
-            exception.Message);
+            new JsonOperationPlanFormatter().Format(plan),
+            new JsonOperationPlanFormatter().Format(parsedPlan));
+
+        var rootProvidersById = plan.RootNodes.OfType<OperationExecutionNode>().ToDictionary(n => n.Id);
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var policyNode = Assert.Single(incrementalPlan.AllNodes.OfType<PolicyExecutionNode>());
+        Assert.Equal(
+            ["a", "b"],
+            policyNode.ParentDependencies.ToArray()
+                .Select(id => rootProvidersById[id].SchemaName!)
+                .Order(StringComparer.Ordinal)
+                .ToArray());
     }
 
     [Theory]
@@ -2350,11 +2372,20 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 break;
 
             case "detached":
+                // Two levels deep: "mid" is itself non-root (its Parent is the
+                // original root-adjacent group), so this stays a known
+                // limitation under the repo-ctf.17 root-scope fallback (ruling
+                // 714), which only resolves to root when the referenced parent
+                // group is itself a direct child of the root delivery group.
+                var mid = parent.DeepClone().AsObject();
+                mid["id"] = parentId + 1;
+                mid["parentId"] = parentId;
+                deliveryGroups.Add(mid);
                 var detached = parent.DeepClone().AsObject();
-                detached["id"] = parentId + 1;
-                detached["parentId"] = parentId;
+                detached["id"] = parentId + 2;
+                detached["parentId"] = parentId + 1;
                 deliveryGroups.Add(detached);
-                incrementalPlan["deliveryGroupIds"] = new JsonArray(parentId + 1);
+                incrementalPlan["deliveryGroupIds"] = new JsonArray(parentId + 2);
                 break;
 
             case "ambiguous":

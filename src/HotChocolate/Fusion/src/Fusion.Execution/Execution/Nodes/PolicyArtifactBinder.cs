@@ -379,6 +379,9 @@ internal static class PolicyArtifactBinder
         }
 
         var parentGroupId = parentGroupIds[0];
+        var parentGroup = incrementalPlan.DeliveryGroups
+            .Select(deliveryGroup => deliveryGroup.Parent)
+            .First(candidate => candidate!.Id == parentGroupId)!;
         var candidatePlans = incrementalPlans
             .Where(candidate => !ReferenceEquals(candidate, incrementalPlan)
                 && candidate.DeliveryGroups.Any(group => group.Id == parentGroupId))
@@ -386,6 +389,23 @@ internal static class PolicyArtifactBinder
 
         if (candidatePlans.Length == 0)
         {
+            // A @defer boundary with no fields of its own never materializes its
+            // own IncrementalPlan: its selections are hoisted straight into the
+            // enclosing part, and it survives only as a DeliveryGroup record used
+            // by its nested children as their parent group id. When that group is
+            // itself a direct child of the root delivery group (Parent is null),
+            // the root part is its immediate parent scope. A group that is nested
+            // deeper (it has its own non-null Parent) and still materialized no
+            // plan remains a known limitation and fails closed below.
+            if (parentGroup.Parent is null)
+            {
+                parentScope = new ParentPlanScope(
+                    [new ParentPlanPiece(0, rootNodes)],
+                    HasImmediateParentScope: true);
+                error = null;
+                return true;
+            }
+
             parentScope = ParentPlanScope.Empty;
             error = "A non-root delivery group must have a matching immediate parent plan scope.";
             return false;

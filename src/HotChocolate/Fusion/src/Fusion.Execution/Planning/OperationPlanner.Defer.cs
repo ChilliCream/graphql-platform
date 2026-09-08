@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
@@ -2155,7 +2154,10 @@ public sealed partial class OperationPlanner
             return broadParentDependencies;
         }
 
-        var pairedStepIds = pairedOperationSteps.Select(step => step.Id).ToHashSet();
+        var survivingStepIds = survivingPlanSteps
+            .OfType<OperationPlanStep>()
+            .Select(step => step.Id)
+            .ToHashSet();
         var parentDependencies = policyStep.ParentDependencies.ToBuilder();
         var visited = new HashSet<(ScopeState Scope, int StepId)>();
 
@@ -2168,10 +2170,24 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            // A lift may serve this policy requirement leaf when its downstream
+            // operation survived in this same rewritten incremental-plan part
+            // (pairing with the policy node is no longer required), the lift was
+            // recorded against the immediate parent scope, the lift's requirement
+            // exactly provides the full response leaf, and the lift's own parent
+            // step is itself an immediate-parent provider of that leaf. This never
+            // crosses a plan-part or scope boundary: DownstreamStepId is checked
+            // against survivors of this incremental plan only, ParentScope must be
+            // reference-identical to immediateParentScope, and ParentStepId is
+            // resolved strictly within immediateParentScope.Steps.
             var hasMatchingLift = lifted.Any(
-                entry => pairedStepIds.Contains(entry.DownstreamStepId)
+                entry => survivingStepIds.Contains(entry.DownstreamStepId)
                     && ReferenceEquals(entry.ParentScope, immediateParentScope)
-                    && RequirementProvidesResponseLeaf(entry.Requirement, policyRequirementLeaf));
+                    && RequirementProvidesResponseLeaf(entry.Requirement, policyRequirementLeaf)
+                    && immediateParentScope.Steps
+                        .OfType<OperationPlanStep>()
+                        .Any(provider => provider.Id == entry.ParentStepId
+                            && StepProvidesResponseLeaf(provider, policyRequirementLeaf)));
             if (!hasMatchingLift)
             {
                 return broadParentDependencies;

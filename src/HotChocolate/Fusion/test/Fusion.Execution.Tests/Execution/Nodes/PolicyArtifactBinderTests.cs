@@ -1,13 +1,10 @@
-using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -464,6 +461,71 @@ public sealed class PolicyArtifactBinderTests : FusionTestBase
         Assert.Equal(Enumerable.Range(1, 10).ToArray(), expectedProviderIds);
         Assert.False(hasGap);
         Assert.Equal((string.Empty, string.Empty), (coordinate, scope));
+    }
+
+    [Fact]
+    public void TryFindNestedParentAuthorityGap_Should_ResolveRootScope_When_EnclosingDeferHasNoOwnPlan()
+    {
+        // arrange
+        // An empty-middle @defer (one with no selections of its own) never
+        // materializes its own IncrementalPlan; its only content is hoisted into
+        // the root part, and it survives solely as a DeliveryGroup id used by its
+        // nested child as a parent group reference (repo-ctf.17, ruling 714).
+        var operation = CreateMatrixOperation();
+        var provider = CreateMatrixOperationNode(1, "query { product { sku } }");
+        var outerGroup = new DeliveryGroup(null, null, DeferConditionIndex: 0) { Id = 0 };
+        var innerGroup = new DeliveryGroup("inner", outerGroup, DeferConditionIndex: 1) { Id = 1 };
+        var policy = CreateMatrixPolicyNode([1]);
+        var incrementalPlan = new IncrementalPlan(
+            operation,
+            [policy],
+            [policy],
+            deliveryGroups: [innerGroup],
+            requirements: []);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [incrementalPlan],
+            [provider],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.False(hasGap);
+        Assert.Equal((string.Empty, string.Empty), (coordinate, scope));
+    }
+
+    [Fact]
+    public void TryFindNestedParentAuthorityGap_Should_RejectMissingScope_When_ParentGroupIsNotRoot()
+    {
+        // arrange
+        // The root-scope fallback only applies when the referenced parent group
+        // is itself a direct child of the root delivery group. A parent group
+        // nested one level deeper that still materialized no plan of its own is
+        // a known limitation and must keep failing closed (repo-ctf.17, ruling 714).
+        var operation = CreateMatrixOperation();
+        var provider = CreateMatrixOperationNode(1, "query { product { sku } }");
+        var outerGroup = new DeliveryGroup(null, null, DeferConditionIndex: 0) { Id = 0 };
+        var midGroup = new DeliveryGroup("mid", outerGroup, DeferConditionIndex: 1) { Id = 1 };
+        var innerGroup = new DeliveryGroup("inner", midGroup, DeferConditionIndex: 2) { Id = 2 };
+        var policy = CreateMatrixPolicyNode([1]);
+        var incrementalPlan = new IncrementalPlan(
+            operation,
+            [policy],
+            [policy],
+            deliveryGroups: [innerGroup],
+            requirements: []);
+
+        // act
+        var hasGap = PolicyArtifactBinder.TryFindNestedParentAuthorityGap(
+            [incrementalPlan],
+            [provider],
+            out var coordinate,
+            out var scope);
+
+        // assert
+        Assert.True(hasGap);
+        Assert.Equal(("Product.secured", "inner"), (coordinate, scope));
     }
 
     private static Operation CreateMatrixOperation()

@@ -1,0 +1,127 @@
+operation:
+  - document: |
+      {
+        product(id: "1") {
+          name
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product(id: "1") {
+          name
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_defer_1($__fusion_1_id: ID!) {
+        productById(id: $__fusion_1_id) {
+          details {
+            code
+          }
+          details {
+            code
+          }
+          id
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+deliveryGroups:
+  - id: 0
+    path: $.product
+    label: outer
+  - id: 1
+    path: $.product
+    label: inner
+    parentId: 0
+incrementalPlans:
+  - deliveryGroupIds:
+      - 1
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+      - name: __fusion_4_details
+        selectionMap: >-
+          details.{
+            code
+          }
+    nodes:
+      - id: 1
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_2($__fusion_2_id: ID!) {
+            productById(id: $__fusion_2_id) {
+              reviews
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+      - id: 2
+        type: Policy
+        targets:
+          - kind: Field
+            path: $.product.reviews
+            typeName: Product
+            policies:
+              - names: [["CanReadReviews"]]
+                onDenied: Null
+            requirements:
+              - name: CanReadReviews
+                selectionSet: { details { code } }
+        dependencies:
+          - id: 1
+          - parentNodeId: 1
+          - parentNodeId: 2
+      - id: 3
+        type: Operation
+        schema: d
+        operation: |
+          query Op_defer_4($__fusion_3_id: ID!, $__fusion_4_details: DetailsInput!) {
+            productById(id: $__fusion_3_id) {
+              categoryLabel(details: $__fusion_4_details)
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+          - name: __fusion_4_details
+            selectionMap: >-
+              details.{
+                code
+              }
+        dependencies:
+          - parentNodeId: 1
+          - parentNodeId: 2
+policies:
+  - name: CanReadReviews
+    requirementHash: 13091404698679336241
