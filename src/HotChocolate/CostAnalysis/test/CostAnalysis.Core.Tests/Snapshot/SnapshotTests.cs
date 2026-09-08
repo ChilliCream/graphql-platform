@@ -320,6 +320,36 @@ public class SnapshotTests
         Assert.Equal(new[] { "edges" }, metadata.SizedFields.ToArray());
     }
 
+    [Fact]
+    public void Create_Should_Throw_When_AssumedSize_Is_Negative()
+    {
+        // arrange
+        const string sdl = """
+            type Query { a: [Int] @listSize(assumedSize: -1) }
+            """;
+
+        // act
+        void Act() => BuildSnapshot(sdl);
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
+    [Fact]
+    public void Create_Should_Throw_When_AssumedSize_Is_A_Float_Literal()
+    {
+        // arrange
+        const string sdl = """
+            type Query { a: [Int] @listSize(assumedSize: 1.5) }
+            """;
+
+        // act
+        void Act() => BuildSnapshot(sdl);
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
     // -- requireOneSlicingArgument (R-REQUIRE-ONE, R-REQUIRE-ONE-DEFAULT) -----------------------
 
     [Fact]

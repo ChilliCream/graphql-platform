@@ -277,7 +277,7 @@ internal static class CostSchemaSnapshotBuilder
         var coordinate = field.Coordinate;
 
         return new ListSizeMetadata(
-            ReadOptionalNumber(directive, DirectiveNames.ListSize.Arguments.AssumedSize, coordinate),
+            ReadAssumedSize(directive, coordinate),
             ReadStringList(directive, DirectiveNames.ListSize.Arguments.SlicingArguments, coordinate),
             ReadOptionalNumber(directive, DirectiveNames.ListSize.Arguments.SlicingArgumentDefaultValue, coordinate),
             ReadStringList(directive, DirectiveNames.ListSize.Arguments.SizedFields, coordinate),
@@ -315,6 +315,27 @@ internal static class CostSchemaSnapshotBuilder
         }
 
         return requireOneDefault;
+    }
+
+    private static double? ReadAssumedSize(IDirective directive, SchemaCoordinate coordinate)
+    {
+        if (!directive.Arguments.TryGetValue(
+                DirectiveNames.ListSize.Arguments.AssumedSize,
+                out var value)
+            || value is NullValueNode)
+        {
+            return null;
+        }
+
+        if (value is not IntValueNode intValue || intValue.ToDouble() < 0)
+        {
+            throw ThrowHelper.InvalidListSizeArgument(
+                coordinate,
+                DirectiveNames.ListSize.Arguments.AssumedSize,
+                value);
+        }
+
+        return intValue.ToDouble();
     }
 
     private static double? ReadOptionalNumber(IDirective directive, string argumentName, SchemaCoordinate coordinate)
