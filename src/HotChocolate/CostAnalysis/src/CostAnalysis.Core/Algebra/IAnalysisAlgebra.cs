@@ -48,4 +48,20 @@ public interface IAnalysisAlgebra<TSummary>
     /// type regions or Boolean-decision branches.
     /// </summary>
     TSummary Join(TSummary left, TSummary right);
+
+    /// <summary>
+    /// Computes an operation's final summary from its root type's own weight
+    /// and its root selection set's combined summary.
+    /// </summary>
+    /// <param name="rootTypeWeight">
+    /// The operation's root type's own weight.
+    /// </param>
+    /// <param name="selection">
+    /// The root selection set's combined summary.
+    /// </param>
+    /// <remarks>
+    /// Applied exactly once per operation, after the root selection has been
+    /// fully combined and joined, never nested inside <see cref="Field"/>.
+    /// </remarks>
+    TSummary Root(double rootTypeWeight, TSummary selection);
 }

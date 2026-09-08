@@ -116,16 +116,21 @@ internal static class CostSchemaSnapshotBuilder
         }
 
         // Pass 4: directive-definition arguments (query-directive pricing; R-DIRECTIVE-ARG-COST).
-        var directiveArgumentWeights = new Dictionary<DirectiveArgumentKey, double>();
+        var directiveArguments = new Dictionary<string, ImmutableArray<DirectiveArgumentDefinition>>();
 
         foreach (var directiveDefinition in schema.DirectiveDefinitions)
         {
+            var builder = ImmutableArray.CreateBuilder<DirectiveArgumentDefinition>(directiveDefinition.Arguments.Count);
+
             foreach (var argument in directiveDefinition.Arguments)
             {
-                directiveArgumentWeights.Add(
-                    new DirectiveArgumentKey(directiveDefinition.Name, argument.Name),
-                    ReadInputValueWeight(argument));
+                builder.Add(new DirectiveArgumentDefinition(
+                    argument.Name,
+                    ReadInputValueWeight(argument),
+                    argument.DefaultValue is not null));
             }
+
+            directiveArguments.Add(directiveDefinition.Name, builder.MoveToImmutable());
         }
 
         return new CostSchemaSnapshot(
@@ -138,7 +143,7 @@ internal static class CostSchemaSnapshotBuilder
             listSizeMetadata.ToFrozenDictionary(),
             argumentWeights.ToFrozenDictionary(),
             inputFieldWeights.ToFrozenDictionary(),
-            directiveArgumentWeights.ToFrozenDictionary());
+            directiveArguments.ToFrozenDictionary());
     }
 
     private static FrozenDictionary<string, int> IndexObjectTypes(

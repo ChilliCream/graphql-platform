@@ -31,4 +31,12 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
         _ = right;
         throw ThrowHelper.NotImplemented();
     }
+
+    /// <inheritdoc />
+    public double Root(double rootTypeWeight, double selection)
+    {
+        _ = rootTypeWeight;
+        _ = selection;
+        throw ThrowHelper.NotImplemented();
+    }
 }

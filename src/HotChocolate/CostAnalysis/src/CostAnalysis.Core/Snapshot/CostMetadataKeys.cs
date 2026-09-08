@@ -12,7 +12,17 @@ internal readonly record struct FieldKey(string TypeName, string FieldName);
 internal readonly record struct ArgumentKey(string TypeName, string FieldName, string ArgumentName);
 
 /// <summary>
-/// Keys one directive definition's argument in the snapshot's
-/// directive-argument-weight index.
+/// One directive definition argument's own weight and whether it declares a
+/// schema default, the shape the snapshot's directive-argument index stores
+/// per directive name.
 /// </summary>
-internal readonly record struct DirectiveArgumentKey(string DirectiveName, string ArgumentName);
+/// <param name="Name">
+/// The argument's name.
+/// </param>
+/// <param name="Weight">
+/// The argument's own weight.
+/// </param>
+/// <param name="HasDefaultValue">
+/// Whether the argument declares a schema default value.
+/// </param>
+internal readonly record struct DirectiveArgumentDefinition(string Name, double Weight, bool HasDefaultValue);

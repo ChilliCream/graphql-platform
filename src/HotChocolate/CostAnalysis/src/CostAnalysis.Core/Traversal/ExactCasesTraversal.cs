@@ -32,13 +32,44 @@ internal static class ExactCasesTraversal
     /// The per-operation case budget, shared across every boundary this
     /// evaluation recurses into.
     /// </param>
+    /// <remarks>
+    /// Applies <see cref="IAnalysisAlgebra{T}.Root"/> exactly once, mapped
+    /// over every leaf of the root selection's decision, after the root
+    /// boundary has been fully combined and joined.
+    /// </remarks>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
         CostSchemaSnapshot snapshot,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget)
-        => EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty);
+    {
+        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty, parentSizeContext: null);
+        var rootTypeName = snapshot.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
+        var rootTypeWeight = snapshot.GetTypeWeight(rootTypeName);
+        return MapRoot(algebra, rootTypeWeight, selection);
+    }
+
+    /// <summary>
+    /// Maps <see cref="IAnalysisAlgebra{T}.Root"/> over every leaf of the
+    /// root selection's possibly-split decision.
+    /// </summary>
+    private static BooleanDecision<TSummary> MapRoot<TSummary>(
+        IAnalysisAlgebra<TSummary> algebra,
+        double rootTypeWeight,
+        BooleanDecision<TSummary> selection)
+    {
+        if (selection is LeafDecision<TSummary> leaf)
+        {
+            return BooleanDecision<TSummary>.Leaf(algebra.Root(rootTypeWeight, leaf.Value));
+        }
+
+        var split = (SplitDecision<TSummary>)selection;
+        return BooleanDecision<TSummary>.Split(
+            split.Variable,
+            MapRoot(algebra, rootTypeWeight, split.WhenFalse),
+            MapRoot(algebra, rootTypeWeight, split.WhenTrue));
+    }
 
     /// <summary>
     /// Evaluates one boundary: joins the result of every type region in its
@@ -51,7 +82,8 @@ internal static class ExactCasesTraversal
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, CollectTypeConditions(tree));
         BooleanDecision<TSummary>? combined = null;
@@ -64,7 +96,7 @@ internal static class ExactCasesTraversal
             }
 
             var representative = FirstIndex(region);
-            var regionResult = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment);
+            var regionResult = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext);
             combined = combined is null
                 ? regionResult
                 : BooleanDecision<TSummary>.ZipWith(combined, regionResult, algebra.Join, algebra.Join, budget);
@@ -87,7 +119,8 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         PossibleTypeSet region,
         int representative,
-        BooleanAssignment assignment)
+        BooleanAssignment assignment,
+        SizedFieldContext? parentSizeContext)
     {
         var visited = new List<int>();
         var visitedSet = new HashSet<int>();
@@ -96,7 +129,7 @@ internal static class ExactCasesTraversal
 
         if (pending.Count == 0)
         {
-            return CollectAndWeigh(snapshot, fragments, tree, algebra, budget, region, assignment, visited);
+            return CollectAndWeigh(snapshot, fragments, tree, algebra, budget, region, assignment, visited, parentSizeContext);
         }
 
         var variable = PickCanonicalVariable(pending);
@@ -111,11 +144,12 @@ internal static class ExactCasesTraversal
                 budget,
                 region,
                 representative,
-                assignment);
+                assignment,
+                parentSizeContext);
         }
 
-        var whenFalse = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false));
-        var whenTrue = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, true));
+        var whenFalse = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false), parentSizeContext);
+        var whenTrue = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, true), parentSizeContext);
         return BooleanDecision<TSummary>.Split(variable, whenFalse, whenTrue);
     }
 
@@ -184,7 +218,8 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         PossibleTypeSet region,
         BooleanAssignment assignment,
-        List<int> visited)
+        List<int> visited,
+        SizedFieldContext? parentSizeContext)
     {
         BooleanDecision<TSummary>? combined = null;
 
@@ -199,24 +234,41 @@ internal static class ExactCasesTraversal
             }
 
             var childSelections = FieldGroupMerger.MergedSelections(fields);
-            var childDecision = childSelections.Count == 0
-                ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
-                : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members, childSelections);
-            var groupDecision = MapField(algebra, responseName, members, childDecision);
+            BooleanDecision<TSummary>? groupDecision = null;
+
+            foreach (var field in fields)
+            {
+                foreach (var member in members)
+                {
+                    var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                    var childDecision = childSelections.Count == 0
+                        ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
+                        : EvaluateChild(snapshot, fragments, algebra, budget, assignment, member, childSelections, childSizeContext);
+                    var pairDecision = MapField(
+                        algebra,
+                        responseName,
+                        field,
+                        member,
+                        InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName),
+                        childDecision);
+
+                    groupDecision = groupDecision is null
+                        ? pairDecision
+                        : BooleanDecision<TSummary>.ZipWith(groupDecision, pairDecision, algebra.Join, algebra.Join, budget);
+                }
+            }
 
             combined = combined is null
-                ? groupDecision
-                : BooleanDecision<TSummary>.ZipWith(combined, groupDecision, algebra.Combine, algebra.Join, budget);
+                ? groupDecision!
+                : BooleanDecision<TSummary>.ZipWith(combined, groupDecision!, algebra.Combine, algebra.Join, budget);
         }
 
         return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
     }
 
     /// <summary>
-    /// Extracts and evaluates one child boundary per distinct named return
-    /// type among <paramref name="members"/>, seeded with the current
-    /// case's assignment, and joins them: a covariant field's runtime types
-    /// each resolve their own child selections independently.
+    /// Evaluates one child boundary for a field occurrence and parent-type
+    /// pair using that pair's return type and list-size context.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateChild<TSummary>(
         CostSchemaSnapshot snapshot,
@@ -224,67 +276,39 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        CollectedFieldGroupMember[] members,
-        IReadOnlyList<ISelectionNode> childSelections)
+        CollectedFieldGroupMember member,
+        IReadOnlyList<ISelectionNode> childSelections,
+        SizedFieldContext? parentSizeContext)
     {
-        BooleanDecision<TSummary>? combined = null;
-
-        foreach (var returnTypeName in DistinctReturnTypeNames(members))
-        {
-            var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-            var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-            var childValue = EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment);
-
-            combined = combined is null
-                ? childValue
-                : BooleanDecision<TSummary>.ZipWith(combined, childValue, algebra.Join, algebra.Join, budget);
-        }
-
-        return combined!;
+        var returnTypeName = member.Field.Type.NamedType().Name;
+        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
+        return EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
     }
 
     /// <summary>
-    /// Gets the distinct named return types across <paramref name="members"/>,
-    /// in first-occurrence order.
-    /// </summary>
-    private static List<string> DistinctReturnTypeNames(CollectedFieldGroupMember[] members)
-    {
-        var names = new List<string>(members.Length);
-
-        foreach (var member in members)
-        {
-            var name = member.Field.Type.NamedType().Name;
-
-            if (!names.Contains(name, StringComparer.Ordinal))
-            {
-                names.Add(name);
-            }
-        }
-
-        return names;
-    }
-
-    /// <summary>
-    /// Maps <see cref="IAnalysisAlgebra{T}.Field"/> over every leaf of a
-    /// possibly-split child decision, producing the group's own decision.
+    /// Maps <see cref="IAnalysisAlgebra{T}.Field"/> over every leaf of one
+    /// occurrence and parent-type pair's child decision.
     /// </summary>
     private static BooleanDecision<TSummary> MapField<TSummary>(
         IAnalysisAlgebra<TSummary> algebra,
         string responseName,
-        CollectedFieldGroupMember[] members,
+        FieldNode field,
+        CollectedFieldGroupMember member,
+        double? inheritedSize,
         BooleanDecision<TSummary> child)
     {
         if (child is LeafDecision<TSummary> leaf)
         {
             return BooleanDecision<TSummary>.Leaf(
-                algebra.Field(new CollectedFieldGroup(responseName, members, listMultiplier: 1.0), leaf.Value));
+                algebra.Field(new CollectedFieldGroup(responseName, field, member, inheritedSize), leaf.Value));
         }
 
         var split = (SplitDecision<TSummary>)child;
         return BooleanDecision<TSummary>.Split(
             split.Variable,
-            MapField(algebra, responseName, members, split.WhenFalse),
-            MapField(algebra, responseName, members, split.WhenTrue));
+            MapField(algebra, responseName, field, member, inheritedSize, split.WhenFalse),
+            MapField(algebra, responseName, field, member, inheritedSize, split.WhenTrue));
     }
 
     /// <summary>
