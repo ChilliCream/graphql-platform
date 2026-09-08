@@ -161,6 +161,42 @@ public sealed partial class PolicySlotGatewayTests
             """);
     }
 
+    // Regression for repo-ctf.24 fix cycle 2 (comment 734, F3): the built-in fusion.scope:<scope>
+    // policy must read whatever claim types FusionOptions.ScopeClaimTypes configures, not just the
+    // default scope/scp pair.
+    [Fact]
+    public async Task ExecuteAsync_Should_Allow_When_ScopePolicyMatchesCustomClaimType()
+    {
+        // arrange
+        var executor = await CreateBuiltInPolicyExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  secret: String @policy(names: "fusion.scope:read:secret", onDenied: ERROR)
+                }
+                """),
+            new RecordingClient("""{"data":{"secret":"classified"}}"""),
+            setup => setup.OptionsModifiers.Add(options => options.ScopeClaimTypes = ["permissions"]));
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ secret }")
+            .SetUser(
+                new ClaimsPrincipal(new ClaimsIdentity([new Claim("permissions", "read:secret")], "test")))
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "secret": "classified"
+              }
+            }
+            """);
+    }
+
     // Ruling repo-ctf.24: a user policy with the same name as a built-in wins.
     [Fact]
     public async Task ExecuteAsync_Should_LetUserPolicyOverrideBuiltIn_When_NamesCollide()
@@ -197,7 +233,8 @@ public sealed partial class PolicySlotGatewayTests
 
     private static async Task<IRequestExecutor> CreateBuiltInPolicyExecutorAsync(
         string schema,
-        RecordingClient client)
+        RecordingClient client,
+        Action<FusionGatewaySetup>? configure = null)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -207,6 +244,12 @@ public sealed partial class PolicySlotGatewayTests
         FusionSetupUtilities.Configure(
             builder,
             setup => setup.ClientConfigurationModifiers.Add(_ => new ClientConfiguration("a")));
+
+        if (configure is not null)
+        {
+            FusionSetupUtilities.Configure(builder, configure);
+        }
+
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
 

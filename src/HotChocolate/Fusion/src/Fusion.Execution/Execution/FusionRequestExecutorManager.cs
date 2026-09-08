@@ -412,7 +412,63 @@ internal sealed class FusionRequestExecutorManager
             configure.Invoke(_applicationServices, schemaServices);
         }
 
+        DecoratePolicyProvider(schemaServices);
+
         return schemaServices.BuildServiceProvider();
+    }
+
+    /// <summary>
+    /// Wraps whatever <see cref="IPolicyProvider"/> the schema services above registered (for
+    /// example <c>AddRegoPolicies</c>'s Rego provider), if any, in a <see cref="CompositePolicyProvider"/>
+    /// and registers that composite as the schema services' own <see cref="IPolicyProvider"/>, so
+    /// every resolution (both the policy content sink this manager resolves and the one
+    /// <c>CompositeSchemaBuilder</c> configures with the schema's built-ins) reaches the same
+    /// instance instead of the composite being a throwaway built only for policy evaluation.
+    /// </summary>
+    private static void DecoratePolicyProvider(IServiceCollection services)
+    {
+        ServiceDescriptor? userProviderDescriptor = null;
+
+        for (var i = services.Count - 1; i >= 0; i--)
+        {
+            if (services[i].ServiceType == typeof(IPolicyProvider))
+            {
+                userProviderDescriptor = services[i];
+                services.RemoveAt(i);
+                break;
+            }
+        }
+
+        services.AddSingleton(new PolicyProviderRegistration { HasUserProvider = userProviderDescriptor is not null });
+
+        services.AddSingleton<IPolicyProvider>(sp =>
+        {
+            var inner = userProviderDescriptor is null
+                ? null
+                : (IPolicyProvider)ResolveUserProvider(userProviderDescriptor, sp);
+
+            // The built-in set is not known yet: the type definitions it is derived from are not
+            // complete until CompositeSchemaBuilder runs, which happens after this composite may
+            // already have been resolved (as the policy content sink, before schema completion).
+            // CompositeSchemaBuilder.CreatePolicies configures the real set on this same instance
+            // once it knows it.
+            return new CompositePolicyProvider(inner, []);
+        });
+    }
+
+    private static object ResolveUserProvider(ServiceDescriptor descriptor, IServiceProvider services)
+    {
+        if (descriptor.ImplementationInstance is not null)
+        {
+            return descriptor.ImplementationInstance;
+        }
+
+        if (descriptor.ImplementationFactory is not null)
+        {
+            return descriptor.ImplementationFactory(services);
+        }
+
+        return ActivatorUtilities.CreateInstance(services, descriptor.ImplementationType!);
     }
 
     private void AddCoreServices(

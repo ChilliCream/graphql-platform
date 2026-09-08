@@ -19,4 +19,11 @@ internal static class BuiltInPolicyNames
     /// the built-in Fusion policy that checks for that scope.
     /// </summary>
     public const string ScopePrefix = "fusion.scope:";
+
+    /// <summary>
+    /// The policy name that always denies. Translated from <c>@requiresScopes(scopes: [])</c>:
+    /// an OR over zero scope alternatives is never satisfied, so this stands in for the
+    /// otherwise-undefined <c>names: []</c>.
+    /// </summary>
+    public const string Deny = "fusion.deny";
 }

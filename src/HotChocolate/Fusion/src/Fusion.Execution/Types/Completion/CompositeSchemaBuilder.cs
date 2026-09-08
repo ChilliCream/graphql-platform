@@ -688,12 +688,18 @@ internal static class CompositeSchemaBuilder
         IServiceProvider services,
         ImmutableArray<IFusionTypeDefinition> typeDefinitions)
     {
-        var provider = services.GetService<IPolicyProvider>();
+        // The gateway's schema services (FusionRequestExecutorManager) register a
+        // PolicyProviderRegistration alongside their CompositePolicyProvider-backed
+        // IPolicyProvider; its absence means the caller built the schema directly (for example a
+        // test), where IPolicyProvider, if registered at all, is still the raw user provider.
+        var registration = services.GetService<PolicyProviderRegistration>();
+        var hasUserProvider = registration?.HasUserProvider
+            ?? services.GetService<IPolicyProvider>() is not null;
         var builtInNames = CollectReferencedBuiltInPolicyNames(typeDefinitions);
 
         // A schema that references no built-in policy name behaves exactly as before built-in
         // policies existed: no user provider means no policies at all.
-        if (provider is null && builtInNames.Count == 0)
+        if (!hasUserProvider && builtInNames.Count == 0)
         {
             return PolicyCollection.Empty;
         }
@@ -701,7 +707,21 @@ internal static class CompositeSchemaBuilder
         var scopeClaimTypes = services.GetService<FusionOptions>()?.ScopeClaimTypes
             ?? BuiltInPolicySet.DefaultScopeClaimTypes;
         var builtIns = BuiltInPolicySet.Create(builtInNames, scopeClaimTypes);
-        var composite = new CompositePolicyProvider(provider, builtIns);
+        CompositePolicyProvider composite;
+
+        if (registration is not null)
+        {
+            // The schema services already registered the composite as the resolved
+            // IPolicyProvider, with an empty built-in set (the policy content sink is resolved
+            // before type completion, when the referenced built-ins are not known yet). Configure
+            // that same instance instead of constructing a second, unregistered one.
+            composite = (CompositePolicyProvider)services.GetRequiredService<IPolicyProvider>();
+            composite.SetBuiltIns(builtIns);
+        }
+        else
+        {
+            composite = new CompositePolicyProvider(services.GetService<IPolicyProvider>(), builtIns);
+        }
 
         var policies = new PolicyCollection(composite);
 
@@ -764,6 +784,7 @@ internal static class CompositeSchemaBuilder
                 foreach (var name in group)
                 {
                     if (name.Equals(BuiltInPolicyNames.Authenticated, StringComparison.Ordinal)
+                        || name.Equals(BuiltInPolicyNames.Deny, StringComparison.Ordinal)
                         || name.StartsWith(BuiltInPolicyNames.ScopePrefix, StringComparison.Ordinal))
                     {
                         (names ??= new HashSet<string>(StringComparer.Ordinal)).Add(name);

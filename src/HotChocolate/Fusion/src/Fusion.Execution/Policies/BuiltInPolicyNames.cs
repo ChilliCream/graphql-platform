@@ -16,4 +16,9 @@ internal static class BuiltInPolicyNames
     /// <c>fusion.scope:read:users</c>.
     /// </summary>
     public const string ScopePrefix = "fusion.scope:";
+
+    /// <summary>
+    /// The built-in policy that always denies.
+    /// </summary>
+    public const string Deny = "fusion.deny";
 }

@@ -16,6 +16,14 @@ namespace HotChocolate.Fusion.Execution;
 /// content to the schema services' <see cref="IPolicyProvider"/> keeps working exactly as it did
 /// before built-in policies existed.
 /// </remarks>
+/// <remarks>
+/// The gateway's schema services register this composite as the resolved <see cref="IPolicyProvider"/>
+/// before the schema's type definitions are complete (the policy content sink is resolved ahead of
+/// type completion), so the built-in set is not always known at construction time. <see cref="SetBuiltIns"/>
+/// lets <c>CompositeSchemaBuilder</c> configure the already-registered instance once it has
+/// determined which built-ins the schema actually references, instead of constructing a second,
+/// unregistered one.
+/// </remarks>
 internal sealed class CompositePolicyProvider : IPolicyProvider, IObserver<PolicyContentSnapshot?>
 {
 #if NET9_0_OR_GREATER
@@ -24,8 +32,9 @@ internal sealed class CompositePolicyProvider : IPolicyProvider, IObserver<Polic
     private readonly object _sync = new();
 #endif
     private readonly IPolicyProvider? _inner;
-    private readonly ImmutableArray<IPolicy> _builtIns;
     private readonly IDisposable? _innerSubscription;
+    private ImmutableArray<IPolicy> _builtIns;
+    private ImmutableArray<IPolicy> _userPolicies = [];
     private ImmutableArray<IPolicy> _current;
     private ImmutableArray<IObserver<ImmutableArray<IPolicy>>> _observers = [];
     private bool _disposed;
@@ -34,7 +43,7 @@ internal sealed class CompositePolicyProvider : IPolicyProvider, IObserver<Polic
     {
         _inner = inner;
         _builtIns = builtIns;
-        _current = Combine([], builtIns);
+        _current = Combine(_userPolicies, builtIns);
 
         // IPolicyProvider.Subscribe synchronously replays the current snapshot, so this call
         // brings _current up to date with the inner provider before the constructor returns.
@@ -43,6 +52,21 @@ internal sealed class CompositePolicyProvider : IPolicyProvider, IObserver<Polic
             _innerSubscription = inner.Subscribe(new InnerObserver(this));
         }
     }
+
+    /// <summary>
+    /// Replaces the built-in policy set and republishes the combined snapshot to current
+    /// subscribers. Called once, by <c>CompositeSchemaBuilder</c>, after this instance was already
+    /// resolved from the schema services with an empty built-in set.
+    /// </summary>
+    internal void SetBuiltIns(ImmutableArray<IPolicy> builtIns) => Republish(() => _builtIns = builtIns);
+
+    /// <summary>
+    /// Gets the wrapped user-registered provider, or <c>null</c> when none was registered. Tests
+    /// that need to drive the user provider directly (for example to emit a new snapshot) resolve
+    /// this composite from the schema services and unwrap it, since the schema services register
+    /// this composite, not the raw user provider, as <see cref="IPolicyProvider"/>.
+    /// </summary>
+    internal IPolicyProvider? Inner => _inner;
 
     public IDisposable Subscribe(IObserver<ImmutableArray<IPolicy>> observer)
     {
@@ -88,6 +112,13 @@ internal sealed class CompositePolicyProvider : IPolicyProvider, IObserver<Polic
     }
 
     private void ApplyInnerSnapshot(ImmutableArray<IPolicy> userPolicies)
+        => Republish(() => _userPolicies = userPolicies);
+
+    /// <summary>
+    /// Applies a mutation to <see cref="_userPolicies"/> or <see cref="_builtIns"/> under the
+    /// lock, recombines the two into the current snapshot, and publishes it to every subscriber.
+    /// </summary>
+    private void Republish(Action apply)
     {
         IObserver<ImmutableArray<IPolicy>>[] observers;
         ImmutableArray<IPolicy> snapshot;
@@ -99,7 +130,8 @@ internal sealed class CompositePolicyProvider : IPolicyProvider, IObserver<Polic
                 return;
             }
 
-            snapshot = Combine(userPolicies, _builtIns);
+            apply();
+            snapshot = Combine(_userPolicies, _builtIns);
             _current = snapshot;
             observers = [.. _observers];
         }

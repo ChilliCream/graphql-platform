@@ -7,6 +7,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -320,6 +321,52 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 SameExecutor: ReferenceEquals(initialExecutor, executorAfterChange),
                 InitialContentDelivered: initialContentDelivered,
                 DeliveredContent: policyContentSink.Current));
+    }
+
+    // Regression for repo-ctf.24 fix cycle 2 (comment 734, F1): the schema services register the
+    // gateway's CompositePolicyProvider as the resolved IPolicyProvider, so the instance this
+    // manager pushes policy content into at :585 is the very same instance CompositeSchemaBuilder
+    // configures with the schema's built-ins, not a throwaway constructed only for evaluation.
+    [Fact]
+    public async Task GetExecutorAsync_Should_DeliverContentToSameProvider_When_BuiltInIsAlsoReferenced()
+    {
+        // arrange
+        var sink = new PolicyContentSink();
+        var content = new PolicyContentSnapshot("rego", new Version(1, 0, 0), [], default, default, dataOwner: null);
+        var configuration = CreateFusionConfiguration(
+            """
+            enum PolicyDenialBehavior { NULL ERROR ABORT }
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior) repeatable on OBJECT | FIELD_DEFINITION
+            type Query {
+              secret: String @policy(names: [["fusion.authenticated"]], onDenied: ERROR)
+            }
+            """) with
+        {
+            Policies = content
+        };
+
+        var configProvider = new TestFusionConfigurationProvider(configuration);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices((_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(sink))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert: the content delivered at creation reached the same registered provider that
+        // also serves the schema's built-in fusion.authenticated policy, not a separate,
+        // unregistered instance.
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        Assert.Same(content, sink.Current);
+        Assert.True(schema.Policies.TryGet(BuiltInPolicyNames.Authenticated, out var policy));
+        Assert.IsType<AuthenticatedPolicy>(policy);
     }
 
     private sealed class PolicyContentSink

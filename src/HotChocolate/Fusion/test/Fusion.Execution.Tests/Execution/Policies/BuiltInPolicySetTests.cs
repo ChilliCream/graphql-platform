@@ -31,6 +31,20 @@ public sealed class BuiltInPolicySetTests
     }
 
     [Fact]
+    public void Create_Should_IncludeDenyPolicy_When_ItsNameIsReferenced()
+    {
+        // arrange
+        var referencedNames = new[] { BuiltInPolicyNames.Deny };
+
+        // act
+        var policies = BuiltInPolicySet.Create(referencedNames, BuiltInPolicySet.DefaultScopeClaimTypes);
+
+        // assert
+        var policy = Assert.Single(policies);
+        Assert.IsType<DenyPolicy>(policy);
+    }
+
+    [Fact]
     public void Create_Should_ReturnEmpty_When_NoBuiltInNameIsReferenced()
     {
         // act

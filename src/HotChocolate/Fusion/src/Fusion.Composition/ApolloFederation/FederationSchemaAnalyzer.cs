@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
@@ -154,12 +155,13 @@ internal static class FederationSchemaAnalyzer
     /// <summary>
     /// Fusion's canonical <c>@policy</c> directive only allows the OBJECT and FIELD_DEFINITION
     /// locations, so an Apollo <c>@authenticated</c> or <c>@requiresScopes</c> application on a
-    /// scalar or enum type cannot be carried over by <see cref="RemoveFederationInfrastructure"/>.
-    /// Reporting that here, before the rewrite runs, turns what would otherwise be a silently
-    /// dropped authorization requirement into a composition error. An application on an interface
-    /// type or field is left untouched here: it is translated like any other location and then
-    /// reported by <c>PolicyOnInterfaceRule</c> once composition reaches the resulting Fusion
-    /// <c>@policy</c> application.
+    /// scalar, enum, or interface type (or a field of an interface type) cannot be carried over
+    /// by <see cref="RemoveFederationInfrastructure"/>. Reporting that here, before the rewrite
+    /// runs, turns what would otherwise be a silently dropped authorization requirement into a
+    /// composition error with the specific unsupported-location code, rather than letting an
+    /// interface application reach the translated <c>@policy</c> and surface as the generic
+    /// location-not-allowed diagnostic (for the interface type) or <c>PolicyOnInterfaceRule</c>'s
+    /// diagnostic (for an interface field), neither of which names the Apollo directive.
     /// </summary>
     private static void ValidateAuthDirectiveLocations(
         MutableSchemaDefinition schema,
@@ -175,24 +177,70 @@ internal static class FederationSchemaAnalyzer
 
         foreach (var type in schema.Types)
         {
-            if (type is not (MutableScalarTypeDefinition or MutableEnumTypeDefinition))
+            if (type is MutableScalarTypeDefinition or MutableEnumTypeDefinition)
+            {
+                ValidateAuthDirectiveLocation(
+                    type, authenticatedLocalName, requiresScopesLocalName, schema, log);
+                continue;
+            }
+
+            if (type is not MutableInterfaceTypeDefinition interfaceType)
             {
                 continue;
             }
 
-            if (authenticatedLocalName is not null && type.Directives.ContainsName(authenticatedLocalName))
-            {
-                log.Write(
-                    FederationAuthDirectiveLocationNotSupported(
-                        type, FederationDirectiveNames.Authenticated, schema));
-            }
+            ValidateAuthDirectiveLocation(
+                interfaceType, authenticatedLocalName, requiresScopesLocalName, schema, log);
 
-            if (requiresScopesLocalName is not null && type.Directives.ContainsName(requiresScopesLocalName))
+            foreach (var field in interfaceType.Fields)
             {
-                log.Write(
-                    FederationAuthDirectiveLocationNotSupported(
-                        type, FederationDirectiveNames.RequiresScopes, schema));
+                ValidateAuthDirectiveLocation(
+                    field, authenticatedLocalName, requiresScopesLocalName, schema, log);
             }
+        }
+    }
+
+    private static void ValidateAuthDirectiveLocation(
+        ITypeDefinition type,
+        string? authenticatedLocalName,
+        string? requiresScopesLocalName,
+        MutableSchemaDefinition schema,
+        ICompositionLog log)
+    {
+        if (authenticatedLocalName is not null && type.Directives.ContainsName(authenticatedLocalName))
+        {
+            log.Write(
+                FederationAuthDirectiveLocationNotSupported(
+                    type, FederationDirectiveNames.Authenticated, schema));
+        }
+
+        if (requiresScopesLocalName is not null && type.Directives.ContainsName(requiresScopesLocalName))
+        {
+            log.Write(
+                FederationAuthDirectiveLocationNotSupported(
+                    type, FederationDirectiveNames.RequiresScopes, schema));
+        }
+    }
+
+    private static void ValidateAuthDirectiveLocation(
+        MutableOutputFieldDefinition field,
+        string? authenticatedLocalName,
+        string? requiresScopesLocalName,
+        MutableSchemaDefinition schema,
+        ICompositionLog log)
+    {
+        if (authenticatedLocalName is not null && field.Directives.ContainsName(authenticatedLocalName))
+        {
+            log.Write(
+                FederationAuthDirectiveLocationNotSupportedOnField(
+                    field, FederationDirectiveNames.Authenticated, schema));
+        }
+
+        if (requiresScopesLocalName is not null && field.Directives.ContainsName(requiresScopesLocalName))
+        {
+            log.Write(
+                FederationAuthDirectiveLocationNotSupportedOnField(
+                    field, FederationDirectiveNames.RequiresScopes, schema));
         }
     }
 }

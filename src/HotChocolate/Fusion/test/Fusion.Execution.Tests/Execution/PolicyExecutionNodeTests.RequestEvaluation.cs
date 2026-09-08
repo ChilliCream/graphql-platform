@@ -2123,8 +2123,12 @@ public sealed partial class PolicyExecutionNodeTests
             diagnosticListener: listener,
             captureRequestServices: services => requestServices = services);
         var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
-        var provider = Assert.IsType<TestPolicyProvider>(
+        // The schema services register the gateway's CompositePolicyProvider as the resolved
+        // IPolicyProvider, wrapping this test's raw provider; unwrap it to drive the raw provider
+        // directly.
+        var composite = Assert.IsType<CompositePolicyProvider>(
             schema.Services.GetRequiredService<IPolicyProvider>());
+        var provider = Assert.IsType<TestPolicyProvider>(composite.Inner);
         var plan = PlanOperation(schema, "{ secret }");
         var requestContextPool = schema.Services.GetRequiredService<ObjectPool<PooledRequestContext>>();
         var requestContext = requestContextPool.Get();
@@ -2212,8 +2216,12 @@ public sealed partial class PolicyExecutionNodeTests
             initialPolicy,
             captureRequestServices: services => requestServices = services);
         var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
-        var provider = Assert.IsType<TestPolicyProvider>(
+        // The schema services register the gateway's CompositePolicyProvider as the resolved
+        // IPolicyProvider, wrapping this test's raw provider; unwrap it to drive the raw provider
+        // directly.
+        var composite = Assert.IsType<CompositePolicyProvider>(
             schema.Services.GetRequiredService<IPolicyProvider>());
+        var provider = Assert.IsType<TestPolicyProvider>(composite.Inner);
         var plan = PlanOperation(schema, "{ secret }");
         var requestContextPool = schema.Services.GetRequiredService<ObjectPool<PooledRequestContext>>();
         var requestContext = requestContextPool.Get();

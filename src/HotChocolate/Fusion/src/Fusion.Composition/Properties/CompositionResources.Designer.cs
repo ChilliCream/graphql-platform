@@ -1061,6 +1061,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{2}&apos; is annotated with the @{1} directive, but it is declared on an interface type. Fusion&apos;s @policy directive does not support interface types or their fields..
+        /// </summary>
+        internal static string LogEntryHelper_FederationAuthDirectiveLocationNotSupportedOnField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FederationAuthDirectiveLocationNotSupportedOnField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; in schema &apos;{1}&apos; is annotated with the @policy directive. Fusion&apos;s @policy directive supports only the OBJECT and FIELD_DEFINITION locations..
         /// </summary>
         internal static string LogEntryHelper_FederationPolicyLocationNotSupported {

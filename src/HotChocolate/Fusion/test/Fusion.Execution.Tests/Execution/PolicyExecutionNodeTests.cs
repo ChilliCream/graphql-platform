@@ -347,8 +347,12 @@ public sealed partial class PolicyExecutionNodeTests : FusionTestBase
             "@policy(names: [[\"CanReadSecret\", \"CanReadSecond\"]], onDenied: NULL)",
             initialPolicy,
             originalSecondPolicy);
-        var provider = Assert.IsType<TestPolicyProvider>(
+        // The schema services register the gateway's CompositePolicyProvider as the resolved
+        // IPolicyProvider, wrapping this test's raw provider; unwrap it to drive the raw provider
+        // directly.
+        var composite = Assert.IsType<CompositePolicyProvider>(
             executor.Schema.Services.GetRequiredService<IPolicyProvider>());
+        var provider = Assert.IsType<TestPolicyProvider>(composite.Inner);
 
         // act
         var execution = executor.ExecuteAsync("{ secret }", TestContext.Current.CancellationToken);

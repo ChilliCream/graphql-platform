@@ -33,6 +33,10 @@ internal static class BuiltInPolicySet
             {
                 builder.Add(new AuthenticatedPolicy());
             }
+            else if (name.Equals(BuiltInPolicyNames.Deny, StringComparison.Ordinal))
+            {
+                builder.Add(new DenyPolicy());
+            }
             else if (name.StartsWith(BuiltInPolicyNames.ScopePrefix, StringComparison.Ordinal))
             {
                 var scope = name[BuiltInPolicyNames.ScopePrefix.Length..];

@@ -220,10 +220,17 @@ internal static class RemoveFederationInfrastructure
     /// <c>fusion.authenticated</c> policy, and <c>@requiresScopes(scopes: [[a, b], [c]])</c>
     /// becomes two cumulative applications, one requiring <c>fusion.authenticated</c> (a scope
     /// check implies authentication) and one requiring the built-in <c>fusion.scope:</c> policy
-    /// for each scope, in the same disjunctive-normal-form shape Apollo declared. Both directives
-    /// deny with an error, matching Apollo's own unauthenticated/unauthorized behavior. Applying
-    /// both directives to the same element produces a redundant but harmless second authentication
-    /// application. Does nothing when the source schema imports neither directive.
+    /// for each scope, in the same disjunctive-normal-form shape Apollo declared. An empty scope
+    /// group (an AND over zero scopes, satisfied by any subject) is dropped from that shape, and
+    /// when every group is empty (including an entirely empty outer list read as an OR over zero
+    /// alternatives, never satisfied) the translation departs from that pass-through: an empty
+    /// outer list becomes a single built-in <c>fusion.deny</c> application instead of an
+    /// undefined <c>names: []</c>, and an outer list whose every group is empty (for example
+    /// <c>[[]]</c>) omits the scope application entirely, since <c>fusion.authenticated</c>
+    /// already covers it. Both directives deny with an error, matching Apollo's own
+    /// unauthenticated/unauthorized behavior. Applying both directives to the same element
+    /// produces a redundant but harmless second authentication application. Does nothing when the
+    /// source schema imports neither directive.
     /// </summary>
     private static void TranslateAuthDirectives(
         MutableSchemaDefinition schema,
@@ -261,10 +268,13 @@ internal static class RemoveFederationInfrastructure
                 directives.Replace(
                     directive,
                     CreateErrorPolicyDirective(definition, authenticatedNames));
-                directives.Add(
-                    CreateErrorPolicyDirective(
-                        definition,
-                        TranslateScopeNames(directive.Arguments[ScopesArgumentName])));
+
+                var scopeNames = TranslateScopeNames(directive.Arguments[ScopesArgumentName]);
+
+                if (scopeNames is not null)
+                {
+                    directives.Add(CreateErrorPolicyDirective(definition, scopeNames));
+                }
             }
         }
 
@@ -332,16 +342,33 @@ internal static class RemoveFederationInfrastructure
     /// <summary>
     /// Rewrites Apollo's <c>scopes: [[a, b], [c]]</c> disjunctive-normal-form value into Fusion's
     /// <c>names:</c> shape, prefixing every scope so that it addresses the built-in Fusion policy
-    /// that checks for that scope.
+    /// that checks for that scope. An empty outer list (OR over zero alternatives, never
+    /// satisfied) translates to a single built-in <c>fusion.deny</c> group instead of an
+    /// undefined <c>names: []</c>. An empty inner group (AND over zero scopes, satisfied by any
+    /// subject) is dropped from the OR; when every group is empty this returns <c>null</c> so no
+    /// scope application is emitted at all, since the accompanying <c>fusion.authenticated</c>
+    /// application already covers it.
     /// </summary>
-    private static IValueNode TranslateScopeNames(IValueNode scopesValue)
+    private static IValueNode? TranslateScopeNames(IValueNode scopesValue)
     {
         var groupsNode = (ListValueNode)scopesValue;
-        var groups = new IValueNode[groupsNode.Items.Count];
 
-        for (var i = 0; i < groupsNode.Items.Count; i++)
+        if (groupsNode.Items.Count == 0)
         {
-            var groupNode = (ListValueNode)groupsNode.Items[i];
+            return new ListValueNode(new ListValueNode(new StringValueNode(BuiltInPolicyNames.Deny)));
+        }
+
+        var groups = new List<IValueNode>(groupsNode.Items.Count);
+
+        foreach (var item in groupsNode.Items)
+        {
+            var groupNode = (ListValueNode)item;
+
+            if (groupNode.Items.Count == 0)
+            {
+                continue;
+            }
+
             var names = new IValueNode[groupNode.Items.Count];
 
             for (var j = 0; j < groupNode.Items.Count; j++)
@@ -350,10 +377,10 @@ internal static class RemoveFederationInfrastructure
                 names[j] = new StringValueNode(BuiltInPolicyNames.ScopePrefix + scopeName.Value);
             }
 
-            groups[i] = new ListValueNode(names);
+            groups.Add(new ListValueNode(names));
         }
 
-        return new ListValueNode(groups);
+        return groups.Count == 0 ? null : new ListValueNode(groups);
     }
 
     /// <summary>
