@@ -667,7 +667,11 @@ public class FusionArchiveRegoPolicyBundleTests
     {
         var stream = ToExpandableStream(source.ToArray());
 
+#if NET10_0_OR_GREATER
         await using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+#endif
         {
             zip.GetEntry(entryName)?.Delete();
             var entry = zip.CreateEntry(entryName);
@@ -696,7 +700,11 @@ public class FusionArchiveRegoPolicyBundleTests
     {
         var stream = ToExpandableStream(source.ToArray());
 
+#if NET10_0_OR_GREATER
         await using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+#endif
         {
             var entry = zip.CreateEntry(entryName);
             await using var entryStream = entry.Open();
@@ -713,7 +721,11 @@ public class FusionArchiveRegoPolicyBundleTests
         JsonObject manifest;
 
         await using (var readStream = ToExpandableStream(buffer))
+#if NET10_0_OR_GREATER
         await using (var zip = new ZipArchive(readStream, ZipArchiveMode.Read, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(readStream, ZipArchiveMode.Read, leaveOpen: true))
+#endif
         {
             var entry = zip.GetEntry("policies/rego/2.0.0/manifest.json")!;
             await using var entryStream = entry.Open();
@@ -737,7 +749,11 @@ public class FusionArchiveRegoPolicyBundleTests
         string manifestText;
 
         await using (var readStream = ToExpandableStream(buffer))
+#if NET10_0_OR_GREATER
         await using (var zip = new ZipArchive(readStream, ZipArchiveMode.Read, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(readStream, ZipArchiveMode.Read, leaveOpen: true))
+#endif
         {
             var entry = zip.GetEntry("policies/rego/2.0.0/manifest.json")!;
             await using var entryStream = entry.Open();
