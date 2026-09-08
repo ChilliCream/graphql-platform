@@ -415,7 +415,9 @@ export function DocumentProtagonist() {
           {CHAPTERS.map((chapter, i) => (
             <div
               key={i}
-              ref={(el) => (refs.current[i] = el)}
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
               className="flex min-h-[75vh] flex-col justify-center py-10 first:pt-0 sm:py-0"
             >
               <RevealOnScroll>
