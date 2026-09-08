@@ -1,3 +1,6 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+
 import { GatewayScene } from "../hero/GatewayScene";
 import { FEDERATION_TERMS } from "../terms";
 import { BuildCheckVisual } from "../visuals/BuildCheckVisual";
@@ -5,11 +8,13 @@ import { EvolutionVisual } from "../visuals/EvolutionVisual";
 import { LookupVisual } from "../visuals/LookupVisual";
 import { RequireVisual } from "../visuals/RequireVisual";
 import { PageSection } from "@/src/components/PageSection";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import {
   Code,
   DEVELOPER_EYEBROW,
   InPractice,
   Intro,
+  LINK_CLASS,
   SceneReveal,
   SubHeading,
   Table,
@@ -66,6 +71,29 @@ const DIRECTIVE_GROUPS: readonly (readonly string[])[] = [
   ],
 ];
 
+interface DeepDiveProps {
+  readonly eyebrow: string;
+  readonly headingId: string;
+  readonly title: ReactNode;
+  readonly children: ReactNode;
+}
+
+/**
+ * A developer deep dive under the section's single H2: a mono kicker, an h3,
+ * and the prose. Same rhythm as `Intro`, one heading level down.
+ */
+function DeepDive({ eyebrow, headingId, title, children }: DeepDiveProps) {
+  return (
+    <div className="max-w-2xl">
+      <Eyebrow color="ink-dim">{eyebrow}</Eyebrow>
+      <div className="mt-3">
+        <SubHeading id={headingId}>{title}</SubHeading>
+      </div>
+      <div className="text-cc-ink mt-5 space-y-4 text-base">{children}</div>
+    </div>
+  );
+}
+
 export function HowItWorksSection() {
   return (
     <section
@@ -75,15 +103,28 @@ export function HowItWorksSection() {
       <PageSection maxWidth="6xl" className="pt-16 sm:pt-24">
         <Intro title="How does GraphQL Federation work?">
           <p>
-            Each team&apos;s service is a subgraph that publishes a source
-            schema. Composition, a build step, validates the source schemas,
-            merges them into one composite schema, and fails the build on
-            conflicts. At runtime a gateway serves the composite schema at one
-            endpoint, and its distributed executor plans each query across the
-            subgraphs. The composite schema is also called the graph: its types
-            link to each other, and a query walks those links. The vocabulary,
-            as the GraphQL Federation specification (an open standard developed
-            at the GraphQL Foundation) defines it:
+            It takes three steps, and the rest of the model follows from them.
+            First, each team keeps its own service, and every service is a
+            subgraph that publishes a source schema: the document naming the
+            types and fields that service owns.
+          </p>
+          <p>
+            Second, composition runs at build time. It validates the source
+            schemas against one another and combines them into a single
+            composite schema. When two of them disagree, composition fails the
+            build, so the conflict is caught before anything deploys.
+          </p>
+          <p>
+            Third, the gateway serves that composite schema at one endpoint.
+            Clients send their queries there, and the gateway&apos;s distributed
+            executor plans each query, fetches from every subgraph the query
+            touches, and assembles one response.
+          </p>
+          <p>
+            The composite schema is also called the graph: its types link to
+            each other, and a query walks those links. The vocabulary, as the
+            GraphQL Federation specification (an open standard developed at the
+            GraphQL Foundation) defines it:
           </p>
         </Intro>
         <div className="mt-10">
@@ -94,8 +135,10 @@ export function HowItWorksSection() {
             minWidth="min-w-[560px]"
           />
         </div>
-        <div className="mt-14">
-          <SubHeading id="benefits">Benefits of GraphQL Federation</SubHeading>
+        <div id="benefits" className="mt-14 scroll-mt-24">
+          <SubHeading id="benefits-heading">
+            Benefits of GraphQL Federation
+          </SubHeading>
         </div>
         <ul className="mt-6 grid gap-6 sm:grid-cols-2">
           {BENEFITS.map((benefit) => (
@@ -115,14 +158,20 @@ export function HowItWorksSection() {
           id="request"
           className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
         >
-          <Intro title="How a GraphQL Federation gateway runs one request.">
+          <DeepDive
+            eyebrow="Step three, in detail"
+            headingId="request-heading"
+            title="How a GraphQL Federation gateway runs one request."
+          >
             <p>
               The gateway is the public entry point. Behind it, a distributed
               executor turns each query into a plan from the composite schema:
               which subgraph answers each field, which calls can run at once,
-              and which must wait for data another subgraph holds. Take the
-              product page query: name, price, delivery. Billing and Catalog
-              answer in parallel, and the executor asks Catalog for the
+              and which must wait for data another subgraph holds.
+            </p>
+            <p>
+              Take the product page query: name, price, delivery. Billing and
+              Catalog answer in parallel, and the executor asks Catalog for the
               product&apos;s weight as well, a field the client never requested,
               because Shipping&apos;s delivery estimate needs it. Shipping runs
               second with the weight passed in as an ordinary argument. The
@@ -130,19 +179,26 @@ export function HowItWorksSection() {
               client asked for and sends one response. Subgraphs never call each
               other. Every call is an ordinary GraphQL query.
             </p>
-          </Intro>
+          </DeepDive>
         </div>
       </PageSection>
       <div className="mt-2 w-full">
         <GatewayScene />
       </div>
       <PageSection maxWidth="6xl" className="pb-16 sm:pb-24">
-        <div
-          id="entities-keys-lookups"
-          className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
-        >
-          <Intro
-            eyebrow={`${DEVELOPER_EYEBROW} · @key and @lookup`}
+        <div className="border-cc-card-border mt-16 border-t pt-10 sm:mt-24">
+          <Eyebrow color="accent">{DEVELOPER_EYEBROW}</Eyebrow>
+          <p className="text-cc-ink mt-3 max-w-2xl text-base">
+            The same three steps in schema terms: how a type gets identity, how
+            a field declares what it needs, what composition checks, and how the
+            graph changes without the client noticing.
+          </p>
+        </div>
+
+        <div id="entities-keys-lookups" className="mt-14 scroll-mt-24 sm:mt-16">
+          <DeepDive
+            eyebrow="@key and @lookup"
+            headingId="entities-keys-lookups-heading"
             title="Entities: a key gives identity, a lookup gives recall."
           >
             <p>
@@ -162,15 +218,12 @@ export function HowItWorksSection() {
               price, with the same query Billing would answer for any client.
               Composition pairs the lookup&apos;s argument with the key field by
               name; when the names differ, <Code>@is</Code> maps them. An entity
-              can have several lookups, in one subgraph or across subgraphs,
-              each fetching it by one of its keys, and a key with no lookup
-              still identifies the entity, for caching or comparison, without
-              being able to fetch it.
+              can have several lookups, each fetching it by one of its keys.
             </p>
             <InPractice href="/docs/fusion/entities-and-lookups">
               declaring entities and lookups
             </InPractice>
-          </Intro>
+          </DeepDive>
           <SceneReveal>
             <LookupVisual />
           </SceneReveal>
@@ -180,8 +233,9 @@ export function HowItWorksSection() {
           id="require"
           className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
         >
-          <Intro
-            eyebrow={`${DEVELOPER_EYEBROW} · @require`}
+          <DeepDive
+            eyebrow="@require"
+            headingId="require-heading"
             title="Requirements: a dependency is an ordinary argument."
           >
             <p>
@@ -204,7 +258,7 @@ export function HowItWorksSection() {
             <InPractice href="/docs/fusion/data-requirements-and-mapping">
               declaring data requirements
             </InPractice>
-          </Intro>
+          </DeepDive>
           <SceneReveal>
             <RequireVisual />
           </SceneReveal>
@@ -214,8 +268,9 @@ export function HowItWorksSection() {
           id="composition"
           className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
         >
-          <Intro
+          <DeepDive
             eyebrow="Composition"
+            headingId="composition-heading"
             title="Composition fails the build, not the client."
           >
             <p>
@@ -233,7 +288,7 @@ export function HowItWorksSection() {
             <InPractice href="/docs/fusion/composition">
               running composition in CI
             </InPractice>
-          </Intro>
+          </DeepDive>
           <SceneReveal>
             <BuildCheckVisual />
           </SceneReveal>
@@ -243,8 +298,9 @@ export function HowItWorksSection() {
           id="evolution"
           className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
         >
-          <Intro
-            eyebrow={`${DEVELOPER_EYEBROW} · @override`}
+          <DeepDive
+            eyebrow="@override"
+            headingId="evolution-heading"
             title="The graph evolves. Clients never notice."
           >
             <p>
@@ -261,7 +317,7 @@ export function HowItWorksSection() {
             <InPractice href="/docs/fusion/schema-exposure-and-evolution">
               evolving a composite schema
             </InPractice>
-          </Intro>
+          </DeepDive>
           <SceneReveal>
             <EvolutionVisual />
           </SceneReveal>
@@ -271,30 +327,34 @@ export function HowItWorksSection() {
           id="any-language"
           className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
         >
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
-              Every GraphQL server, in any language, is already a subgraph.
-            </h2>
-            <div className="text-cc-ink mt-5 space-y-4 text-base">
-              <p>
-                A key is a directive on a type. A lookup is a query field the
-                subgraph would expose anyway, marked <Code>@lookup</Code>. A
-                requirement is an argument. Every call the executor makes is an
-                ordinary GraphQL query. Apollo Federation, the older design,
-                asks a subgraph to implement a hidden <Code>_entities</Code>{" "}
-                field, write reference resolvers, and reason about the
-                representations they carry. Here there is nothing of that kind
-                and no subgraph specification to implement. You declare what
-                your schema means, and the server stays as it is. That is the
-                design rule of the GraphQL Federation specification.
-              </p>
-            </div>
-            <div className="mt-10">
-              <SubHeading id="batching">
-                Does GraphQL Federation cause N+1 requests? Batching is a
-                transport concern.
-              </SubHeading>
-            </div>
+          <DeepDive
+            eyebrow="Any language"
+            headingId="any-language-heading"
+            title="Every GraphQL server, in any language, is already a subgraph."
+          >
+            <p>
+              A key is a directive on a type. A lookup is a query field the
+              subgraph would expose anyway, marked <Code>@lookup</Code>. A
+              requirement is an argument. Every call the executor makes is an
+              ordinary GraphQL query, so there is no subgraph specification to
+              implement and the server stays as it is.
+            </p>
+            <p>
+              Apollo Federation, the older design, instead asks a subgraph to
+              implement a hidden <Code>_entities</Code> field and reference
+              resolvers (
+              <Link className={LINK_CLASS} href="#vs-apollo-federation">
+                the two designs side by side
+              </Link>
+              ).
+            </p>
+          </DeepDive>
+
+          <div id="batching" className="mt-12 max-w-2xl scroll-mt-24">
+            <SubHeading id="batching-heading">
+              Does GraphQL Federation cause N+1 requests? Batching is a
+              transport concern.
+            </SubHeading>
             <div className="text-cc-ink mt-4 space-y-4 text-base">
               <p>
                 The rule that the server stays as it is also covers batching: it
@@ -315,7 +375,11 @@ export function HowItWorksSection() {
           id="directives"
           className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
         >
-          <Intro title="GraphQL Federation directives, grouped by what they do.">
+          <DeepDive
+            eyebrow="Reference"
+            headingId="directives-heading"
+            title="GraphQL Federation directives, grouped by what they do."
+          >
             <p>
               <Code>@key</Code>, <Code>@lookup</Code>, <Code>@require</Code>,
               and <Code>@override</Code> are four of the directives the
@@ -324,7 +388,7 @@ export function HowItWorksSection() {
               and interface directives are refinements for a graph that has
               grown.
             </p>
-          </Intro>
+          </DeepDive>
           <div className="mt-10">
             <Table
               caption="GraphQL Federation directives by group"
