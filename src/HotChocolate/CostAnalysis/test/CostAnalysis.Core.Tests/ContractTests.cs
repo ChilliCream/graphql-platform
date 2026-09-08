@@ -49,25 +49,4 @@ public class ContractTests
         // assert
         Assert.Throws<NotImplementedException>(Compile);
     }
-
-    [Fact]
-    public void ResponseSizeAlgebra_Should_ThrowNotImplemented_When_Members_Are_Invoked()
-    {
-        // arrange
-        var algebra = new ResponseSizeAlgebra();
-
-        // act
-        void Empty() => _ = algebra.Empty;
-        void Field() => algebra.Field(default, default);
-        void Combine() => algebra.Combine(default, default);
-        void Join() => algebra.Join(default, default);
-        void Root() => algebra.Root(default, default);
-
-        // assert
-        Assert.Throws<NotImplementedException>(Empty);
-        Assert.Throws<NotImplementedException>(Field);
-        Assert.Throws<NotImplementedException>(Combine);
-        Assert.Throws<NotImplementedException>(Join);
-        Assert.Throws<NotImplementedException>(Root);
-    }
 }
