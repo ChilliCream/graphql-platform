@@ -14,4 +14,15 @@
     <ProjectReference Include="..\..\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      The six article cases (plus their named-fragment and merged-control twins) are the
+      single fixture source shared by Core, HC and Fusion. ArticleCasesTests reads them
+      from the Core conformance suite's __resources__ instead of duplicating them here.
+    -->
+    <None Include="..\CostAnalysis.Core.Conformance.Tests\__resources__\article\*.json"
+          Link="__resources__\article\%(Filename)%(Extension)"
+          CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
 </Project>

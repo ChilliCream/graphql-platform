@@ -132,6 +132,109 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         result?.RootElement.MatchSnapshot();
     }
 
+    [Fact(Skip = "enabled by hc-e2e-tests")]
+    public async Task Cost_Exceeded_Returns_BadRequest_For_GraphQLResponseJson_Accept_Header()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<CostInterceptor>());
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}",
+                "variables" : { "id" : "1000" }
+            }
+            """;
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Accept", "application/graphql-response+json");
+
+        // act
+        using var httpClient = server.CreateClient();
+        var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert: a request error over the latest transport is a 4xx (R-HTTP-STATUS).
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        result!.RootElement.MatchSnapshot();
+    }
+
+    [Fact(Skip = "enabled by hc-e2e-tests")]
+    public async Task Cost_Exceeded_Returns_Ok_For_Legacy_Json_Accept_Header()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<CostInterceptor>());
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}",
+                "variables" : { "id" : "1000" }
+            }
+            """;
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Accept", "application/json");
+
+        // act
+        using var httpClient = server.CreateClient();
+        var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert: the same HC0047 body, but the legacy transport never uses a 4xx status
+        // for a request error (R-HTTP-STATUS).
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        result!.RootElement.MatchSnapshot();
+    }
+
+    [Fact(Skip = "enabled by hc-e2e-tests")]
+    public async Task Request_Validate_Cost_Header_Without_Variables_Returns_Ok_ExtensionsOnly()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}"
+            }
+            """;
+
+        var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+        content.Headers.Add(HttpHeaderKeys.Cost, HttpHeaderValues.ValidateCost);
+
+        // act
+        using var httpClient = server.CreateClient();
+        var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
+
+        // assert: validate without variables never reaches coercion, so a required
+        // variable that was never supplied does not fail the request (R-VALIDATE-MODE).
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        result!.RootElement.MatchSnapshot();
+    }
+
     public class CostInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
