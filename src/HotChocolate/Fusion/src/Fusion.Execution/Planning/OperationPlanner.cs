@@ -1804,9 +1804,21 @@ public sealed partial class OperationPlanner
                 }
             }
 
-            foreach (var occurrence in policyTarget.Occurrences)
+            for (var occurrenceOrdinal = 0;
+                occurrenceOrdinal < policyTarget.Occurrences.Length;
+                occurrenceOrdinal++)
             {
+                var occurrence = policyTarget.Occurrences[occurrenceOrdinal];
                 var guardMask = planningSession.IncludeConditions.CreateGuardMask(occurrence.Conditions);
+
+                // An action policy's decision depends on its own occurrence, so its gate identity
+                // is disambiguated by where that occurrence sits in the compiled operation
+                // (selection set + coordinate path + ordinal among sibling occurrences), never by
+                // response name or allocation order (both of which can coincide for unrelated
+                // occurrences, or diverge for the very same occurrence across replanning).
+                var occurrencePositionKey = isActionSlot
+                    ? $"{selectionSet.Id}:{coordinate.Path}#{occurrenceOrdinal}"
+                    : null;
 
                 if (!slots.TryGetOrAdd(
                     slotApplications.ToImmutable(),
@@ -1832,6 +1844,7 @@ public sealed partial class OperationPlanner
                             : []
                     },
                     isActionSlot,
+                    occurrencePositionKey,
                     out slot,
                     out var updatedSlots))
                 {
@@ -5110,6 +5123,7 @@ public sealed partial class OperationPlanner
             PolicyDenialBehavior rmax,
             PolicyConditionCoordinate coordinate,
             bool isActionSlot,
+            string? occurrencePositionKey,
             out PolicyConditionSlot slot,
             out PolicySlotRegistry registry)
         {
@@ -5147,8 +5161,12 @@ public sealed partial class OperationPlanner
             // One action slot per compiled selection occurrence: never let this occurrence share a
             // gate identity with another, even when the policy formula and Rmax match, since a
             // shared identity means a shared boolean gate variable for every occurrence it covers.
+            // The disambiguator is the occurrence's position in the compiled operation (selection
+            // set + coordinate path + ordinal), supplied by the caller, never the response name or
+            // this registry's own allocation order (an allocation-order term can never match an
+            // existing entry, which would silently defeat the "same occurrence seen again" merge).
             var occurrenceDisambiguator = isActionSlot
-                ? $"{coordinate.TypeName}.{coordinate.FieldName}#{string.Join(",", coordinate.ResponseNames)}#{_entries.Length}"
+                ? occurrencePositionKey
                 : null;
 
             var canonicalApplications = PolicySlotAllocationWalk.CanonicalizeApplications(applications);
@@ -5178,8 +5196,7 @@ public sealed partial class OperationPlanner
 
                 slot = AddCoordinate(
                     AddGuardMasks(_entries[i], coordinate.LiveGuardMasks),
-                    coordinate,
-                    isActionSlot);
+                    coordinate);
                 var entries = ReferenceEquals(slot, _entries[i])
                     ? _entries
                     : _entries.SetItem(i, slot);
@@ -5256,8 +5273,7 @@ public sealed partial class OperationPlanner
 
         private static PolicyConditionSlot AddCoordinate(
             PolicyConditionSlot slot,
-            PolicyConditionCoordinate coordinate,
-            bool isActionSlot)
+            PolicyConditionCoordinate coordinate)
         {
             for (var i = 0; i < slot.Coordinates.Length; i++)
             {
@@ -5272,14 +5288,12 @@ public sealed partial class OperationPlanner
                 // An action policy's decision depends on its own occurrence's arguments, so two
                 // occurrences that would otherwise share a coordinate (same type, field, and
                 // root-ness) must stay distinct unless they are the very same field occurrence
-                // (matched by response name) seen again, for example under a different guard mask.
-                if (isActionSlot
-                    && !coordinate.ResponseNames.All(
-                        name => current.ResponseNames.Contains(name, StringComparer.Ordinal)))
-                {
-                    continue;
-                }
-
+                // seen again, for example under a different guard mask. Reaching this point for an
+                // action slot already proves that: the caller only lands here after matching this
+                // coordinate's occurrence-position-keyed gate identity (selection set + coordinate
+                // path + occurrence ordinal, see TryGetOrAdd/PolicySlotAllocationWalk.CreateIdentity)
+                // against an existing slot, and that key is unique per occurrence, so no separate
+                // response-name check is needed here.
                 var responseNames = current.ResponseNames;
                 var responseNamesChanged = false;
                 foreach (var responseName in coordinate.ResponseNames)

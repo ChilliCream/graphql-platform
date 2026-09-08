@@ -590,6 +590,95 @@ public sealed partial class PolicySlotGatewayTests
         Assert.Equal(1, policy.EvaluationCount);
     }
 
+    [Fact]
+    public async Task SubscribeAsync_Should_CacheActionAndReevaluateOtherName_When_ExpressionMixesKindsAcrossEvents()
+    {
+        // arrange: F5 - a subscription-root action policy is evaluated once before stream setup
+        // and its decision is cached across every event; a non-action name sharing the same
+        // @policy expression must never ride that cache (the old whole-expression replay in
+        // GetOrEvaluateActionExpressionAsync did exactly that). Here TogglePolicy stands in for a
+        // per-event, state-dependent decision: it must be re-evaluated on every pass so denying
+        // the second event actually nulls that event, not a stale decision from the first pass.
+        var actionPolicy = new CountingActionPolicy("ActionPolicy");
+        var togglePolicy = new TogglePolicy("TogglePolicy");
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            [
+                () => """{"data":{"onMessage":{"secret":"first"}}}""",
+                () =>
+                {
+                    togglePolicy.IsDenied = true;
+                    return """{"data":{"onMessage":{"secret":"second"}}}""";
+                },
+                () =>
+                {
+                    togglePolicy.IsDenied = false;
+                    return """{"data":{"onMessage":{"secret":"third"}}}""";
+                }
+            ]);
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription { onMessage: Message }
+                type Message {
+                  secret: String @policy(names: [["ActionPolicy", "TogglePolicy"]], onDenied: NULL)
+                }
+                """),
+            [actionPolicy, togglePolicy],
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "subscription { onMessage { secret } }",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert: the action name is evaluated exactly once (pre-subscribe pass, cached for all
+        // three events); the non-action name is evaluated once per pass (pre-subscribe + 3
+        // events = 4), so the second event's denial reflects that event, not a stale decision.
+        Assert.Equal(1, actionPolicy.EvaluationCount);
+        Assert.Equal(4, togglePolicy.EvaluationCount);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "secret": "first"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "secret": null
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "secret": "third"
+                }
+              }
+            }
+            """
+        ]);
+    }
+
     private sealed class DenyOnArgumentPolicy(string name, string argumentName, string deniedRawValue) : IPolicy
     {
         public string Name => name;

@@ -308,7 +308,7 @@ internal sealed class PolicyRequestState
                 {
                     var expression = operationPlan.PolicyExpressions[application.ExpressionOrdinal];
                     var expressionDecision = IsActionExpression(expression)
-                        ? await GetOrEvaluateActionExpressionAsync(
+                        ? await EvaluateActionExpressionAsync(
                             operationPlan,
                             expression,
                             coordinate,
@@ -595,15 +595,25 @@ internal sealed class PolicyRequestState
     }
 
     /// <summary>
-    /// Evaluates an action expression for one coordinate, or replays the decision already
-    /// computed during the pre-subscribe request-level pass when this call is a per-event
-    /// subscription re-evaluation: a subscription-root action policy is evaluated once before
-    /// stream setup, independent of the per-event resource re-evaluation (repo-ctf.11). The
-    /// initial (non-event) pass always evaluates fresh and records its decision so a later event
-    /// can replay it; a non-event pass (including every variable-batch item) never reads the
-    /// cache, so variable-batch isolation is unaffected.
+    /// Evaluates an expression that mixes at least one <see cref="PolicyEvaluationKind.ActionOccurrence"/>
+    /// name with, potentially, other kinds for one coordinate's own occurrence. Only the
+    /// action-kind names are evaluated against that occurrence's guarded field name and coerced
+    /// arguments (reconstructed from the compiled operation and the request's coerced variables,
+    /// never read from a serialized plan value); every other name keeps its normal, cached
+    /// evaluation path (request-constant or resource-based, via <see cref="EvaluatePolicyOnceAsync"/>
+    /// on every pass), exactly as it would outside a mixed expression, so a resource-bearing name is
+    /// re-evaluated against every event's own payload.
     /// </summary>
-    private async ValueTask<PolicyDecision> GetOrEvaluateActionExpressionAsync(
+    /// <remarks>
+    /// Each action-kind name caches its own decision, keyed by (slot, coordinate, expression, name):
+    /// a subscription-root action policy is evaluated once before stream setup, independent of the
+    /// per-event resource re-evaluation (repo-ctf.11), so the initial (non-event) pass evaluates it
+    /// fresh and records the decision for a later event to replay. A non-event pass (including every
+    /// variable-batch item) never reads the cache, so variable-batch isolation is unaffected. The
+    /// cache is per action name rather than per whole expression so that a request-constant or
+    /// resource-bearing name sharing the expression is never replayed from this cache.
+    /// </remarks>
+    private async ValueTask<PolicyDecision> EvaluateActionExpressionAsync(
         OperationPlan operationPlan,
         PolicyConditionExpression expression,
         PolicyConditionCoordinate coordinate,
@@ -616,54 +626,6 @@ internal sealed class PolicyRequestState
         string? eventResponseName,
         ITypeDefinition? eventResourceType,
         bool isEventReevaluation,
-        CancellationToken cancellationToken)
-    {
-        var key = new ActionDecisionKey(slotOrdinal, coordinateOrdinal, expressionOrdinal);
-
-        if (isEventReevaluation && _actionDecisions.TryGetValue(key, out var cachedDecision))
-        {
-            return cachedDecision;
-        }
-
-        var decision = await EvaluateActionExpressionAsync(
-            operationPlan,
-            expression,
-            coordinate,
-            variables,
-            user,
-            eventContext,
-            eventResponseName,
-            eventResourceType,
-            cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!isEventReevaluation)
-        {
-            _actionDecisions[key] = decision;
-        }
-
-        return decision;
-    }
-
-    /// <summary>
-    /// Evaluates an expression that mixes at least one <see cref="PolicyEvaluationKind.ActionOccurrence"/>
-    /// name with, potentially, other kinds for one coordinate's own occurrence. Only the
-    /// action-kind names are evaluated against that occurrence's guarded field name and coerced
-    /// arguments (reconstructed from the compiled operation and the request's coerced variables,
-    /// never read from a serialized plan value); every other name keeps its normal, cached
-    /// evaluation path (request-constant or resource-based), exactly as it would outside a mixed
-    /// expression. No action-kind decision is cached, so distinct occurrences (aliases, or the same
-    /// occurrence across a variable batch) never share a decision.
-    /// </summary>
-    private async ValueTask<PolicyDecision> EvaluateActionExpressionAsync(
-        OperationPlan operationPlan,
-        PolicyConditionExpression expression,
-        PolicyConditionCoordinate coordinate,
-        IVariableValueCollection variables,
-        ClaimsPrincipal user,
-        OperationPlanContext? eventContext,
-        string? eventResponseName,
-        ITypeDefinition? eventResourceType,
         CancellationToken cancellationToken)
     {
         if (coordinate.Occurrences.IsDefaultOrEmpty)
@@ -697,23 +659,39 @@ internal sealed class PolicyRequestState
 
                 if (policy.Requirements.Kind == PolicyEvaluationKind.ActionOccurrence)
                 {
-                    action ??= PolicyActionCoercion.BuildAction(
-                        coordinate.TypeName,
-                        coordinate.FieldName,
-                        ResolveOccurrenceSelection(operationPlan, coordinate.Occurrences[0]),
-                        variables);
-                    decision = await EvaluateActionPolicyAsync(
-                        policy,
-                        user,
-                        action,
-                        cancellationToken)
-                        .ConfigureAwait(false);
+                    var key = new ActionDecisionKey(slotOrdinal, coordinateOrdinal, expressionOrdinal, name);
+
+                    if (isEventReevaluation && _actionDecisions.TryGetValue(key, out var cachedDecision))
+                    {
+                        decision = cachedDecision;
+                    }
+                    else
+                    {
+                        action ??= PolicyActionCoercion.BuildAction(
+                            coordinate.TypeName,
+                            coordinate.FieldName,
+                            ResolveOccurrenceSelection(operationPlan, coordinate.Occurrences[0]),
+                            variables);
+                        decision = await EvaluateActionPolicyAsync(
+                            policy,
+                            user,
+                            action,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+
+                        if (!isEventReevaluation)
+                        {
+                            _actionDecisions[key] = decision;
+                        }
+                    }
                 }
                 else
                 {
                     // A request-constant or resource-based name mixed into the same expression as
                     // an action-kind name keeps its own normal, cached evaluation path; it is never
-                    // routed through the per-occurrence action context.
+                    // routed through the per-occurrence action context, and it is evaluated on every
+                    // pass (its own cache, cleared per event by ClearDecisions, decides reuse) so a
+                    // resource-bearing name is never replayed from the action-decision cache.
                     decision = await EvaluatePolicyOnceAsync(
                         policy,
                         user,
@@ -824,7 +802,8 @@ internal sealed class PolicyRequestState
     private readonly record struct ActionDecisionKey(
         int SlotOrdinal,
         int CoordinateOrdinal,
-        int ExpressionOrdinal);
+        int ExpressionOrdinal,
+        string Name);
 
     private readonly record struct PolicyEvaluationState(
         PolicyRequestState RequestState,
