@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text.RegularExpressions;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
@@ -13,7 +14,7 @@ namespace HotChocolate.Fusion.Subscriptions;
 /// Gateway end-to-end coverage for repo-ctf.11: a data-bearing policy on the subscription root's
 /// own EventStream payload type, evaluated per event against the composed message projection.
 /// </summary>
-public sealed class EventStreamPolicyGatewayTests : FusionTestBase
+public sealed partial class EventStreamPolicyGatewayTests : FusionTestBase
 {
     [Fact]
     public void CreatePlan_Should_NotCreatePolicyExecutionNode_When_RootPayloadPolicyIsDerivable()
@@ -160,9 +161,159 @@ public sealed class EventStreamPolicyGatewayTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task Subscribe_Should_ShapeDeniedEventAsFieldError_When_PayloadPolicyDeniesBySecret_AndOnDeniedIsError()
+    {
+        // arrange
+        var topic = CreateTopic();
+        var publisher = new InMemoryEventStreamBrokerHub();
+        var services = CreateServices(topic, publisher, onDenied: "ERROR");
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var events = CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              bookChanged {
+                id
+                title
+              }
+            }
+            """,
+            count: 2,
+            cts.Token);
+
+        await WaitForSubscribersAsync(publisher, topic, count: 1, cts.Token);
+
+        // act
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"1","title":"public book","secret":"public"}"""u8),
+            cts.Token);
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"2","title":"classified book","secret":"classified"}"""u8),
+            cts.Token);
+
+        // assert
+        // ERROR shapes the denied event exactly like a non-root field policy denial (see
+        // PolicySlotGatewayTests.ExecuteAsync_Should_MatchNodeDenial_When_SlotDenialUsesNullOrError):
+        // an error at the denied field's own path with the field nulled. The stream is not
+        // terminated, unlike a root/root-field policy denial: one upstream broker subscription
+        // serves both events.
+        Assert.Equal(1, publisher.GetSubscriberCount(topic));
+        string.Join("\n---\n", (await events).Select(NormalizeReasonId)).MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookChanged": {
+                  "id": "1",
+                  "title": "public book"
+                }
+              }
+            }
+            ---
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "path": [
+                    "bookChanged"
+                  ],
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": {
+                "bookChanged": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_YieldSettledNullResult_When_PayloadPolicyDeniesBySecret_AndOnDeniedIsAbort()
+    {
+        // arrange
+        var topic = CreateTopic();
+        var publisher = new InMemoryEventStreamBrokerHub();
+        var services = CreateServices(topic, publisher, onDenied: "ABORT");
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var events = CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              bookChanged {
+                id
+                title
+              }
+            }
+            """,
+            count: 2,
+            cts.Token);
+
+        await WaitForSubscribersAsync(publisher, topic, count: 1, cts.Token);
+
+        // act
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"1","title":"public book","secret":"public"}"""u8),
+            cts.Token);
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"2","title":"classified book","secret":"classified"}"""u8),
+            cts.Token);
+
+        // assert
+        // ABORT on the per-event resource policy is not a root (IsRoot) denial in this design
+        // (repo-ctf.11 comment 760/761), so it does not go through the subscription-root
+        // short-circuit that ends the stream; it goes through the same policy-denial masking
+        // path a nested ABORT uses in an ordinary request (FetchResultStore.ApplyPolicyDenial),
+        // which settles the whole event's data as null with a path-less error, matching one
+        // final settled result for the denied event rather than stream termination. One
+        // upstream broker subscription serves both events.
+        Assert.Equal(1, publisher.GetSubscriberCount(topic));
+        string.Join("\n---\n", (await events).Select(NormalizeReasonId)).MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookChanged": {
+                  "id": "1",
+                  "title": "public book"
+                }
+              }
+            }
+            ---
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    private static string NormalizeReasonId(string json)
+        => ReasonIdRegex().Replace(json, "00000000-0000-0000-0000-000000000000");
+
+    [GeneratedRegex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")]
+    private static partial Regex ReasonIdRegex();
+
     private static ServiceCollection CreateServices(
         string topic,
-        InMemoryEventStreamBrokerHub publisher)
+        InMemoryEventStreamBrokerHub publisher,
+        string onDenied = "NULL")
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -172,7 +323,7 @@ public sealed class EventStreamPolicyGatewayTests : FusionTestBase
 
         var builder = services
             .AddGraphQLGateway()
-            .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic));
+            .AddInMemoryConfiguration(CreateExecutionSchemaDocument(topic, onDenied));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(
             new ThrowingSourceSchemaClientFactory());
@@ -240,7 +391,7 @@ public sealed class EventStreamPolicyGatewayTests : FusionTestBase
     private static string CreateTopic()
         => "fusion." + Guid.NewGuid().ToString("N");
 
-    private static DocumentNode CreateExecutionSchemaDocument(string topic)
+    private static DocumentNode CreateExecutionSchemaDocument(string topic, string onDenied = "NULL")
         => Utf8GraphQLParser.Parse(
             $$"""
             schema {
@@ -268,7 +419,7 @@ public sealed class EventStreamPolicyGatewayTests : FusionTestBase
 
             type Book
               @fusion__type(schema: EVENTS)
-              @fusion__policy(names: "CanReadBook") {
+              @fusion__policy(names: "CanReadBook", onDenied: {{onDenied}}) {
               id: ID!
                 @fusion__field(schema: EVENTS)
               title: String!
