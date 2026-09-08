@@ -95,7 +95,7 @@ export function WhatIsSection() {
 
       <div
         id="alternatives"
-        className="border-cc-card-border mt-16 border-t pt-16 sm:mt-24 sm:pt-24"
+        className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
       >
         <Intro title="GraphQL Federation vs schema stitching, BFFs, and a single server.">
           <p>
@@ -139,7 +139,7 @@ export function WhatIsSection() {
 
       <div
         id="apollo-federation-vs-graphql-federation"
-        className="border-cc-card-border mt-16 border-t pt-16 sm:mt-24 sm:pt-24"
+        className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
       >
         <Intro title="Apollo Federation vs GraphQL Federation: two vocabularies, one architecture.">
           <p>

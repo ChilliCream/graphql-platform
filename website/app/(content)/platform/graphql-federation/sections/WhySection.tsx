@@ -9,7 +9,7 @@ export function WhySection() {
     <Section id="why">
       <Intro title="Why GraphQL Federation?" />
 
-      <div id="specification" className="mt-10">
+      <div id="specification" className="mt-10 scroll-mt-24">
         <Intro title="The GraphQL Federation specification: one idea, one open standard.">
           <p>
             Apollo Federation has solved this for years, and so have other
