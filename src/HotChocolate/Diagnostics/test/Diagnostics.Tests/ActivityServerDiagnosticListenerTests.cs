@@ -768,7 +768,10 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                             {
                                 o.EnableDefer = true;
                                 o.EnableStream = true;
-                            });
+                            })
+                        // The StarWars types carry no @listSize, so pin the assumed list
+                        // size ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
+                        .ModifyCostOptions(o => o.DefaultListSize = 1);
 
                     configureBuilder?.Invoke(builder);
                 });

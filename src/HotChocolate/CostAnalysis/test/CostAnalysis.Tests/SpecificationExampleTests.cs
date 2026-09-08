@@ -169,6 +169,12 @@ public sealed class SpecificationExampleTests
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
-            .ModifyCostOptions(o => o.DefaultResolverCost = null)
+            .ModifyCostOptions(o =>
+            {
+                o.DefaultResolverCost = null;
+                // The specification examples carry no @listSize, so pin the assumed
+                // list size ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
+                o.DefaultListSize = 1;
+            })
             .UseField(next => next);
 }

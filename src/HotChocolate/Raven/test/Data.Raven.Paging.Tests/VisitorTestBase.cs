@@ -43,6 +43,9 @@ public abstract class VisitorTestBase : IAsyncLifetime
         var builder = new ServiceCollection()
             .AddSingleton(documentStore)
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddRavenFiltering()
             .AddRavenPagingProviders()
             .AddQueryType(
