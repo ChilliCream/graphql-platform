@@ -19,6 +19,8 @@ internal static class FixtureLoader
         foreach (var path in Directory
             .EnumerateFiles(ResourcesDirectoryName, "*.json", SearchOption.AllDirectories)
             .Where(path => System.IO.Path.GetFileName(path) != SchemaFileName)
+            // rust-corpus fixtures are not yet wired into the Fixture shape; hc-3-r5v.3 expands this filter.
+            .Where(path => System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path)) != "rust-corpus")
             .OrderBy(path => path, StringComparer.Ordinal))
         {
             data.Add(path);
