@@ -332,7 +332,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
     {
         // arrange
         var sink = new PolicyContentSink();
-        var content = new PolicyContentSnapshot("rego", new Version(1, 0, 0), [], default, default, dataOwner: null);
+        var content = new PolicyContentSnapshot("rego", new Version(1, 0, 0), [], [], default, default, dataOwner: null);
         var configuration = CreateFusionConfiguration(
             """
             enum PolicyDenialBehavior { NULL ERROR ABORT }
