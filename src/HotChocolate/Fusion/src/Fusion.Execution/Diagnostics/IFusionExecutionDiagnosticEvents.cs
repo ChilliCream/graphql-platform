@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -484,6 +485,17 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// </param>
     void ConfigurationReadError(
         Exception error);
+
+    /// <summary>
+    /// Called when a fusion configuration package archive fails verification and is rejected.
+    /// The previously served configuration continues to be used until a package that passes
+    /// verification is observed.
+    /// </summary>
+    /// <param name="result">
+    /// The verification result describing why the archive was rejected.
+    /// </param>
+    void ConfigurationVerificationFailed(
+        SignatureVerificationResult result);
 
     /// <summary>
     /// Called when a subscription event result has been fully written to the client.

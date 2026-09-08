@@ -1,4 +1,7 @@
+using System.IO.Compression;
 using System.Reactive;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Fusion.Diagnostics;
@@ -114,6 +117,91 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
         Assert.Null(provider.Configuration);
     }
 
+    [Fact]
+    public async Task Provider_Should_RejectPackage_When_ArchiveIsTampered()
+    {
+        // arrange
+        var fileName = IOPath.Combine(_directory, "gateway.far");
+        await CreateValidArchiveAsync(fileName);
+        await TamperGatewaySchemaEntryAsync(fileName);
+        var diagnosticEvents = new RecordingDiagnosticEvents();
+
+        // act
+        await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents);
+        var result = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationVerificationFailures.Reader);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.FilesModified, result);
+        Assert.Null(provider.Configuration);
+    }
+
+    [Fact]
+    public async Task Provider_Should_RejectPackage_When_ArchiveIsUnsignedAndTrustRootIsConfigured()
+    {
+        // arrange
+        var fileName = IOPath.Combine(_directory, "gateway.far");
+        await CreateValidArchiveAsync(fileName);
+        using var trustedCertificate = CreateTestCertificate();
+        var diagnosticEvents = new RecordingDiagnosticEvents();
+        var options = new FileSystemConfigurationOptions
+        {
+            TrustedSigningCertificates = [ToPublicCertificate(trustedCertificate)]
+        };
+
+        // act
+        await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents, options);
+        var result = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationVerificationFailures.Reader);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.NotSigned, result);
+        Assert.Null(provider.Configuration);
+    }
+
+    [Fact]
+    public async Task Provider_Should_ExposeConfiguration_When_ArchiveIsUnsignedAndNoTrustRootIsConfigured()
+    {
+        // arrange
+        var fileName = IOPath.Combine(_directory, "gateway.far");
+        await CreateValidArchiveAsync(fileName);
+        var options = new FileSystemConfigurationOptions();
+
+        await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents: null, options);
+
+        // act
+        var configuration = await WaitForConfigurationAsync(provider);
+
+        // assert
+        var queryType = Assert.IsType<ObjectTypeDefinitionNode>(Assert.Single(configuration.Schema.Definitions));
+        Assert.Equal("Query", queryType.Name.Value);
+    }
+
+    [Fact]
+    public async Task Provider_Should_ExposeConfiguration_When_ArchiveIsSignedByATrustedCertificate()
+    {
+        // arrange
+        var fileName = IOPath.Combine(_directory, "gateway.far");
+        using var signingCertificate = CreateTestCertificate();
+        using var unrelatedCertificate = CreateTestCertificate();
+        await CreateSignedArchiveAsync(fileName, signingCertificate);
+        var options = new FileSystemConfigurationOptions
+        {
+            TrustedSigningCertificates =
+            [
+                ToPublicCertificate(unrelatedCertificate),
+                ToPublicCertificate(signingCertificate)
+            ]
+        };
+
+        await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents: null, options);
+
+        // act
+        var configuration = await WaitForConfigurationAsync(provider);
+
+        // assert
+        var queryType = Assert.IsType<ObjectTypeDefinitionNode>(Assert.Single(configuration.Schema.Definitions));
+        Assert.Equal("Query", queryType.Name.Value);
+    }
+
     private static async Task<FusionConfiguration> WaitForConfigurationAsync(
         FileSystemFusionConfigurationProvider provider)
     {
@@ -133,6 +221,13 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
     }
 
     private static async Task<Exception> ReadWithTimeoutAsync(ChannelReader<Exception> reader)
+    {
+        using var cts = new CancellationTokenSource(s_timeout);
+        return await reader.ReadAsync(cts.Token);
+    }
+
+    private static async Task<SignatureVerificationResult> ReadWithTimeoutAsync(
+        ChannelReader<SignatureVerificationResult> reader)
     {
         using var cts = new CancellationTokenSource(s_timeout);
         return await reader.ReadAsync(cts.Token);
@@ -178,12 +273,68 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
         await archive.CommitAsync();
     }
 
+    private static async Task CreateSignedArchiveAsync(string fileName, X509Certificate2 certificate)
+    {
+        using var archive = FusionArchive.Create(fileName);
+
+        await archive.SetArchiveMetadataAsync(
+            new ArchiveMetadata
+            {
+                SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                SourceSchemas = []
+            });
+
+        await archive.SetGatewayConfigurationAsync(
+            "type Query { hello: String }",
+            JsonDocument.Parse("{ }"),
+            WellKnownVersions.LatestGatewayFormatVersion);
+
+        await archive.SignArchiveAsync(certificate);
+        await archive.CommitAsync();
+    }
+
+    private static async Task TamperGatewaySchemaEntryAsync(string fileName)
+    {
+        // Rewrite a listed entry directly through the zip, bypassing manifest regeneration, so
+        // the file digest recorded in the manifest no longer matches the entry content.
+        var entryName = $"gateway/{WellKnownVersions.LatestGatewayFormatVersion}/gateway.graphqls";
+#if NET10_0_OR_GREATER
+        await using var zip = ZipFile.Open(fileName, ZipArchiveMode.Update);
+#else
+        using var zip = ZipFile.Open(fileName, ZipArchiveMode.Update);
+#endif
+        zip.GetEntry(entryName)!.Delete();
+        var entry = zip.CreateEntry(entryName);
+        await using var entryStream = entry.Open();
+        await entryStream.WriteAsync("type Query { tampered: String }"u8.ToArray());
+    }
+
+    private static X509Certificate2 CreateTestCertificate()
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest("CN=Test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        return request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+    }
+
+    private static X509Certificate2 ToPublicCertificate(X509Certificate2 certificate)
+#if NET9_0_OR_GREATER
+        => X509CertificateLoader.LoadCertificate(certificate.Export(X509ContentType.Cert));
+#else
+        => new(certificate.Export(X509ContentType.Cert));
+#endif
+
     private sealed class RecordingDiagnosticEvents : FusionExecutionDiagnosticEventListener
     {
         public Channel<Exception> ConfigurationReadErrors { get; } = Channel.CreateUnbounded<Exception>();
 
+        public Channel<SignatureVerificationResult> ConfigurationVerificationFailures { get; } =
+            Channel.CreateUnbounded<SignatureVerificationResult>();
+
         public override void ConfigurationReadError(Exception error)
             => ConfigurationReadErrors.Writer.TryWrite(error);
+
+        public override void ConfigurationVerificationFailed(SignatureVerificationResult result)
+            => ConfigurationVerificationFailures.Writer.TryWrite(result);
     }
 
     public void Dispose()

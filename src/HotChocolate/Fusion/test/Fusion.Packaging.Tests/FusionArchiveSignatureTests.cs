@@ -35,6 +35,61 @@ public class FusionArchiveSignatureTests : IDisposable
     }
 
     [Fact]
+    public async Task VerifySignature_Should_ReturnValid_When_SignerIsInATrustedCertificateCollection()
+    {
+        // arrange
+        var stream = CreateStream();
+        using var certificate = CreateTestCertificate();
+        using var unrelatedCertificate = CreateTestCertificate();
+        using var publicCertificate = ToPublicCertificate(certificate);
+        using var unrelatedPublicCertificate = ToPublicCertificate(unrelatedCertificate);
+        var trustedCertificates = new X509Certificate2Collection { unrelatedPublicCertificate, publicCertificate };
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(archive);
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(
+            trustedCertificates, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.Valid, result);
+    }
+
+    [Fact]
+    public async Task VerifySignature_Should_ReturnInvalidSignature_When_SignerIsNotInTheTrustedCertificateCollection()
+    {
+        // arrange
+        var stream = CreateStream();
+        using var certificate = CreateTestCertificate();
+        using var unrelatedCertificate = CreateTestCertificate();
+        using var unrelatedPublicCertificate = ToPublicCertificate(unrelatedCertificate);
+        var trustedCertificates = new X509Certificate2Collection { unrelatedPublicCertificate };
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(archive);
+            await archive.SignArchiveAsync(certificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(
+            trustedCertificates, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.InvalidSignature, result);
+    }
+
+    [Fact]
     public async Task Commit_Should_Throw_When_SignedArchiveIsMutatedBeforeTheSignatureIsRemoved()
     {
         // arrange

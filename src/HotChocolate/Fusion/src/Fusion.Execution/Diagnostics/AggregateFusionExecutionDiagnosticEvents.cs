@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -546,6 +547,14 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].ConfigurationReadError(error);
+        }
+    }
+
+    public void ConfigurationVerificationFailed(SignatureVerificationResult result)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].ConfigurationVerificationFailed(result);
         }
     }
 

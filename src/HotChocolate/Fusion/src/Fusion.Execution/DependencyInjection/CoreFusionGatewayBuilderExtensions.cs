@@ -60,6 +60,24 @@ public static partial class CoreFusionGatewayBuilderExtensions
                     sp.GetService<IFusionExecutionDiagnosticEvents>()));
     }
 
+    public static IFusionGatewayBuilder AddFileSystemConfiguration(
+        this IFusionGatewayBuilder builder,
+        string fileName,
+        FileSystemConfigurationOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(fileName);
+        ArgumentNullException.ThrowIfNull(options);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.DocumentProvider =
+                sp => new FileSystemFusionConfigurationProvider(
+                    fileName,
+                    sp.GetService<IFusionExecutionDiagnosticEvents>(),
+                    options));
+    }
+
     public static IFusionGatewayBuilder AddInMemoryConfiguration(
         this IFusionGatewayBuilder builder,
         DocumentNode schemaDocument,

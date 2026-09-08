@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.IO.Pipelines;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -25,6 +26,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
 #endif
     private readonly string _fileName;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly X509Certificate2Collection? _trustedSigningCertificates;
     private readonly FileSystemWatcher _watcher;
 
     private readonly Channel<bool> _schemaUpdateEvents =
@@ -48,6 +50,14 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
     public FileSystemFusionConfigurationProvider(
         string fileName,
         IFusionExecutionDiagnosticEvents? diagnosticEvents)
+        : this(fileName, diagnosticEvents, options: null)
+    {
+    }
+
+    public FileSystemFusionConfigurationProvider(
+        string fileName,
+        IFusionExecutionDiagnosticEvents? diagnosticEvents,
+        FileSystemConfigurationOptions? options)
     {
         ArgumentException.ThrowIfNullOrEmpty(fileName);
 
@@ -56,6 +66,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
 
         _fileName = fullPath;
         _diagnosticEvents = diagnosticEvents ?? NoopFusionExecutionDiagnosticEvents.Instance;
+        _trustedSigningCertificates = options?.TrustedSigningCertificates;
 
         if (directory is null)
         {
@@ -171,6 +182,21 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     }
 
                     using var archive = FusionArchive.Open(_fileName);
+
+                    var trustRootConfigured = _trustedSigningCertificates is { Count: > 0 };
+                    var verificationResult = trustRootConfigured
+                        ? await archive.VerifySignatureAsync(_trustedSigningCertificates!, ct)
+                        : await archive.VerifyIntegrityAsync(ct);
+
+                    if (!IsAccepted(verificationResult, trustRootConfigured))
+                    {
+                        // The package is rejected. It is not committed to _packageHash so that
+                        // the same bytes are re-checked if they reappear, and the previously
+                        // served configuration continues to be used.
+                        _diagnosticEvents.ConfigurationVerificationFailed(verificationResult);
+                        continue;
+                    }
+
                     using var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion, ct);
 
                     if (config is null)
@@ -260,6 +286,20 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         var document = Utf8GraphQLParser.Parse(buffer.WrittenSpan);
         return (document, hash);
     }
+
+    /// <summary>
+    /// Determines whether a package archive verification result is acceptable. With a trust
+    /// root configured, the archive must carry a valid signature produced by a trusted
+    /// certificate. Without one, the archive is not required to be signed, but its manifest, when
+    /// present, must still pass its integrity check; a missing manifest is tolerated.
+    /// </summary>
+    private static bool IsAccepted(SignatureVerificationResult result, bool trustRootConfigured)
+        => trustRootConfigured
+            ? result is SignatureVerificationResult.Valid
+            : result
+                is SignatureVerificationResult.Valid
+                or SignatureVerificationResult.NotSigned
+                or SignatureVerificationResult.ManifestMissing;
 
     private static ulong ComputePolicyContentHash(PolicyContentSnapshot? policyContent)
     {

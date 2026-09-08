@@ -1278,10 +1278,24 @@ public sealed class FusionArchive : IDisposable
     /// <param name="publicKey">The certificate containing the public key for verification.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The result of the verification process.</returns>
-    public async Task<SignatureVerificationResult> VerifySignatureAsync(
+    public Task<SignatureVerificationResult> VerifySignatureAsync(
         X509Certificate2 publicKey,
         CancellationToken cancellationToken = default)
+        => VerifySignatureAsync(new X509Certificate2Collection(publicKey), cancellationToken);
+
+    /// <summary>
+    /// Verifies the archive against its content manifest and detached signature, accepting the
+    /// signature if it was produced by any certificate in the provided collection.
+    /// </summary>
+    /// <param name="trustedCertificates">The certificates trusted as signers.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The result of the verification process.</returns>
+    public async Task<SignatureVerificationResult> VerifySignatureAsync(
+        X509Certificate2Collection trustedCertificates,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(trustedCertificates);
+
         var integrityResult = await VerifyIntegrityAsync(cancellationToken);
         if (integrityResult is not SignatureVerificationResult.Valid)
         {
@@ -1314,9 +1328,24 @@ public sealed class FusionArchive : IDisposable
             var contentInfo = new ContentInfo(manifestBytes);
             var signedCms = new SignedCms(contentInfo, detached: true);
             signedCms.Decode(buffer.WrittenSpan.ToArray());
+
+            // CheckSignature only proves that the signature is cryptographically valid for
+            // whichever certificate the message carries; the CMS embeds its signer's certificate
+            // by default, so this alone does not prove that certificate is one we trust. The
+            // trusted-collection membership must be checked explicitly against the certificate
+            // the signature actually resolved to.
             signedCms.CheckSignature(
-                new X509Certificate2Collection(publicKey),
+                trustedCertificates,
                 verifySignatureOnly: true);
+
+            var signerCertificate = signedCms.SignerInfos.Count > 0
+                ? signedCms.SignerInfos[0].Certificate
+                : null;
+
+            if (signerCertificate is null || !trustedCertificates.Contains(signerCertificate))
+            {
+                return SignatureVerificationResult.InvalidSignature;
+            }
 
             return SignatureVerificationResult.Valid;
         }

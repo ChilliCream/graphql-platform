@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -271,6 +272,9 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
 
     /// <inheritdoc />
     public virtual void ConfigurationReadError(Exception error) { }
+
+    /// <inheritdoc />
+    public virtual void ConfigurationVerificationFailed(SignatureVerificationResult result) { }
 
     private sealed class EmptyActivityScope : IDisposable
     {
