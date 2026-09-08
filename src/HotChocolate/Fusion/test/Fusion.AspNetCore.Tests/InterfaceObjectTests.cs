@@ -554,12 +554,8 @@ public class InterfaceObjectTests : FusionTestBase
         {
             protected override void Configure(IObjectTypeDescriptor<Media> descriptor)
             {
-                // InterfaceObject()/EntityKey() are declared on the non-generic IObjectTypeDescriptor;
-                // the concrete descriptor implements both interfaces, so the cast reaches the same
-                // fluent extension methods used by the non-generic AddObjectType(d => ...) form.
-                var d = (IObjectTypeDescriptor)descriptor;
-                d.InterfaceObject();
-                d.EntityKey("id");
+                descriptor.InterfaceObject();
+                descriptor.EntityKey("id");
                 descriptor.Field(f => f.Id).Type<NonNullType<IdType>>();
             }
         }
