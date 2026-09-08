@@ -60,6 +60,12 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
         return new PossibleTypeSet(words, count, ComputeFingerprint(words));
     }
 
+    /// <summary>
+    /// Returns an enumerator over the object-type indices this set contains,
+    /// in ascending order.
+    /// </summary>
+    public Enumerator GetEnumerator() => new(_words);
+
     /// <inheritdoc />
     public bool Equals(PossibleTypeSet other)
         => Fingerprint == other.Fingerprint && _words.AsSpan().SequenceEqual(other._words);
@@ -112,5 +118,50 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
         }
 
         return hash;
+    }
+
+    /// <summary>
+    /// A non-allocating, forward-only enumerator over the object-type
+    /// indices a <see cref="PossibleTypeSet"/> contains.
+    /// </summary>
+    public struct Enumerator
+    {
+        private readonly ulong[] _words;
+        private int _wordIndex;
+        private ulong _remainingBits;
+
+        internal Enumerator(ulong[] words)
+        {
+            _words = words;
+            _wordIndex = -1;
+            _remainingBits = 0;
+        }
+
+        /// <summary>
+        /// Gets the object-type index the enumerator currently points at.
+        /// </summary>
+        public int Current { get; private set; }
+
+        /// <summary>
+        /// Advances to the next set object-type index.
+        /// </summary>
+        public bool MoveNext()
+        {
+            while (_remainingBits == 0)
+            {
+                _wordIndex++;
+
+                if (_wordIndex >= _words.Length)
+                {
+                    return false;
+                }
+
+                _remainingBits = _words[_wordIndex];
+            }
+
+            Current = (_wordIndex << 6) + BitOperations.TrailingZeroCount(_remainingBits);
+            _remainingBits &= _remainingBits - 1;
+            return true;
+        }
     }
 }
