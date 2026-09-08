@@ -1,6 +1,9 @@
 using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
+using HotChocolate.Types.Composite;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
@@ -283,5 +286,73 @@ public class InterfaceObjectTests : FusionTestBase
                     media => Assert.Equal(123, media.GetProperty("views").GetInt32()),
                     media => Assert.Equal(123, media.GetProperty("views").GetInt32()));
             });
+    }
+
+    [Fact]
+    public async Task CodeFirst_StandIn_Declared_With_InterfaceObjectAttribute_Resolves()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema("A", SchemaA);
+        using var serverB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddQueryType<CodeFirstMediaStandIn.Query>()
+                .AddType<CodeFirstMediaStandIn.Media>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        // Schema B declares its Media stand-in solely through [InterfaceObject]; no [ObjectType]
+        // is applied to the class, exercising the attribute's self-sufficiency.
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              trendingMedia {
+                id
+                views
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    public static class CodeFirstMediaStandIn
+    {
+        public class Query
+        {
+            public IEnumerable<Media> GetTrendingMedia()
+                =>
+                [
+                    new("1", 123),
+                    new("2", 123)
+                ];
+
+            [Lookup]
+            [Internal]
+            public Media? GetMediaByKey(string id) => new(id, 123);
+        }
+
+        [InterfaceObject]
+        [EntityKey("id")]
+        public class Media(string id, int views)
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public string Id { get; } = id;
+
+            public int Views { get; } = views;
+        }
     }
 }
