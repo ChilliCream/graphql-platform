@@ -156,7 +156,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                         result = OperationResult.FromError(error);
                         session.DiagnosticEvents.HttpRequestError(
                             context,
-                            ErrorHelper.RequestBatchingDisabled());
+                            session.Handle(ErrorHelper.RequestBatchingDisabled()));
                     }
                     else if (string.IsNullOrEmpty(operationNames)
                         || !TryParseOperations(operationNames, out var ops))
@@ -199,7 +199,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                         result = OperationResult.FromError(error);
                         session.DiagnosticEvents.HttpRequestError(
                             context,
-                            ErrorHelper.RequestBatchingDisabled());
+                            session.Handle(ErrorHelper.RequestBatchingDisabled()));
                     }
                     break;
             }
