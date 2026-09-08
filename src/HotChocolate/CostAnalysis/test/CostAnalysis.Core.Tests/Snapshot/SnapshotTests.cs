@@ -299,6 +299,27 @@ public class SnapshotTests
         Assert.Empty(metadata.SizedFields);
     }
 
+    [Fact]
+    public void GetListSizeMetadata_Should_Accept_A_Bare_String_As_A_Single_Element_List()
+    {
+        // arrange
+        var snapshot = BuildSnapshot(
+            """
+            type Query {
+              books(first: Int): [Book] @listSize(sizedFields: "edges", slicingArguments: "first")
+            }
+            type Book { title: String }
+            """);
+
+        // act
+        var metadata = snapshot.GetListSizeMetadata("Query", "books");
+
+        // assert
+        Assert.NotNull(metadata);
+        Assert.Equal(new[] { "first" }, metadata.SlicingArguments.ToArray());
+        Assert.Equal(new[] { "edges" }, metadata.SizedFields.ToArray());
+    }
+
     // -- requireOneSlicingArgument (R-REQUIRE-ONE, R-REQUIRE-ONE-DEFAULT) -----------------------
 
     [Fact]
@@ -470,6 +491,23 @@ public class SnapshotTests
 
         // assert
         Assert.Equal(-3.0, weight);
+    }
+
+    [Fact]
+    public void GetTypeWeight_Should_Be_One_When_An_Interface_Has_No_Possible_Types()
+    {
+        // arrange
+        var snapshot = BuildSnapshot(
+            """
+            type Query { p: Publication }
+            interface Publication { title: String }
+            """);
+
+        // act
+        var weight = snapshot.GetTypeWeight("Publication");
+
+        // assert
+        Assert.Equal(1.0, weight);
     }
 
     // -- Possible-type sets: object -> [self], interface/union -> members (R-POSSIBLE-TYPES) ----

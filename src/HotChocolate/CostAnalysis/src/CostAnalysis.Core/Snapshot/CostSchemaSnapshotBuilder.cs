@@ -76,7 +76,7 @@ internal static class CostSchemaSnapshotBuilder
                 hasMember = true;
             }
 
-            typeWeights.Add(type.Name, hasMember ? maxWeight : 0.0);
+            typeWeights.Add(type.Name, hasMember ? maxWeight : 1.0);
             possibleTypes.Add(
                 type.Name,
                 PossibleTypeSet.Create(objectTypeCount, CollectionsMarshal.AsSpan(memberIndices)));
@@ -340,6 +340,11 @@ internal static class CostSchemaSnapshotBuilder
         if (!directive.Arguments.TryGetValue(argumentName, out var value) || value is NullValueNode)
         {
             return [];
+        }
+
+        if (value is StringValueNode single)
+        {
+            return [single.Value];
         }
 
         if (value is not ListValueNode listValue)
