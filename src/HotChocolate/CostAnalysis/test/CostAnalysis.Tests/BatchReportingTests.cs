@@ -83,8 +83,10 @@ public sealed class BatchReportingTests
 
         // act
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
 
         // assert
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, result.Errors[0].Code);
         await snapshot
             .Add(response, "Response")
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);

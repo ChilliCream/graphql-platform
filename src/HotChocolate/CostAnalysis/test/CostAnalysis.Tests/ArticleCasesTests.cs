@@ -51,9 +51,11 @@ public sealed class ArticleCasesTests
 
         // act
         var result = await requestExecutor.ExecuteAsync(requestBuilder.Build(), TestContext.Current.CancellationToken);
-        var operationCost = result.ExpectOperationResult().Extensions["operationCost"];
+        var operationCost = (IReadOnlyDictionary<string, object?>)result.ExpectOperationResult().Extensions["operationCost"]!;
 
         // assert
+        Assert.Equal(fixture.Expected.TypeCost, Convert.ToDouble(operationCost["typeCost"]));
+        Assert.Equal(fixture.Expected.FieldCost, Convert.ToDouble(operationCost["fieldCost"]));
         await snapshot
             .Add(fixture.Operation, "Operation")
             .Add(fixture.Expected, "Expected")
