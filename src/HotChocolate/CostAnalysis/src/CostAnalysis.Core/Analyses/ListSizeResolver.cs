@@ -143,8 +143,13 @@ internal static class ListSizeResolver
     /// <param name="variableValues">
     /// Resolves a slicing argument's coerced variable value, or
     /// <see langword="null"/> for the static bound, where a variable-bound
-    /// slicing argument reads <see cref="ListSizeMetadata.AssumedSize"/> and
-    /// is treated as absent when it has none.
+    /// slicing argument reads <see cref="ListSizeMetadata.AssumedSize"/> then
+    /// <paramref name="defaultListSize"/>, matching <see cref="Resolve"/>.
+    /// </param>
+    /// <param name="defaultListSize">
+    /// The engine's fallback list size, read by a variable-bound slicing
+    /// argument on the static path when <see cref="ListSizeMetadata.AssumedSize"/>
+    /// is absent, same as <see cref="Resolve"/>.
     /// </param>
     /// <param name="size">
     /// The resolved size, clamped to 0 when negative. Undefined when this
@@ -160,6 +165,7 @@ internal static class ListSizeResolver
         ListSizeMetadata? metadata,
         IReadOnlyDictionary<string, SlicingArgumentValue> slicingArguments,
         ICostVariableValues? variableValues,
+        double defaultListSize,
         out double size)
     {
         if (metadata is null || metadata.SizedFields.Length == 0)
@@ -168,11 +174,13 @@ internal static class ListSizeResolver
             return false;
         }
 
+        var staticFallback = metadata.AssumedSize ?? defaultListSize;
+
         if (TryResolveSlicingArgumentValue(
                 metadata.SlicingArguments,
                 slicingArguments,
                 variableValues,
-                metadata.AssumedSize,
+                staticFallback,
                 out var slicingValue))
         {
             size = Clamp0(slicingValue);
@@ -270,22 +278,21 @@ internal static class ListSizeResolver
         return TryReadNumber(effective, out value);
     }
 
+    /// <summary>
+    /// Reads a slicing value, integers only, as the oracle: a
+    /// <see cref="FloatValueNode"/> or any other non-Int value is not a
+    /// slicing value and falls through the priority chain.
+    /// </summary>
     private static bool TryReadNumber(IValueNode? value, out double result)
     {
-        switch (value)
+        if (value is IntValueNode intValue)
         {
-            case IntValueNode intValue:
-                result = intValue.ToDouble();
-                return true;
-
-            case FloatValueNode floatValue:
-                result = floatValue.ToDouble();
-                return true;
-
-            default:
-                result = 0.0;
-                return false;
+            result = intValue.ToDouble();
+            return true;
         }
+
+        result = 0.0;
+        return false;
     }
 
     private static double Clamp0(double value) => value < 0.0 ? 0.0 : value;
