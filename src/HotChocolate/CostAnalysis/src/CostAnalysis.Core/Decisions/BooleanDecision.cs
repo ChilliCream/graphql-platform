@@ -54,12 +54,11 @@ internal abstract class BooleanDecision<T>
 
     /// <summary>
     /// Combines two decisions pointwise with <paramref name="op"/>, an
-    /// ordered BDD apply that keeps each side's independent variable
-    /// support factored. Charges one case per split it materializes against
+    /// ordered BDD apply over the engine's single canonical (ordinal)
+    /// variable order that pairs every occurrence of one variable with
+    /// itself. Charges one case per split it materializes against
     /// <paramref name="budget"/> and collapses both sides with
-    /// <paramref name="join"/> into a leaf once the budget is exhausted. A
-    /// side not split on the pivot variable broadcasts unchanged into both
-    /// of the pivot's branches.
+    /// <paramref name="join"/> into a leaf once the budget is exhausted.
     /// </summary>
     public static BooleanDecision<T> ZipWith(BooleanDecision<T> left, BooleanDecision<T> right, Func<T, T, T> op, Func<T, T, T> join, CaseBudget budget)
     {
@@ -91,10 +90,22 @@ internal abstract class BooleanDecision<T>
         return ((SplitDecision<T>)right).Variable;
     }
 
+    /// <summary>
+    /// Restricts <paramref name="node"/> to <paramref name="variable"/>'s
+    /// false and true branches, eliminating every split on that variable
+    /// anywhere in the subtree rather than only at its top.
+    /// </summary>
     private static (BooleanDecision<T> WhenFalse, BooleanDecision<T> WhenTrue) Branches(BooleanDecision<T> node, string variable)
-        => node is SplitDecision<T> split && split.Variable == variable
-            ? (split.WhenFalse, split.WhenTrue)
-            : (node, node);
+        => (Restrict(node, variable, false), Restrict(node, variable, true));
+
+    private static BooleanDecision<T> Restrict(BooleanDecision<T> node, string variable, bool value)
+        => node switch
+        {
+            LeafDecision<T> => node,
+            SplitDecision<T> split when split.Variable == variable => value ? split.WhenTrue : split.WhenFalse,
+            SplitDecision<T> split => Split(split.Variable, Restrict(split.WhenFalse, variable, value), Restrict(split.WhenTrue, variable, value)),
+            _ => throw new NotSupportedException()
+        };
 }
 
 /// <summary>

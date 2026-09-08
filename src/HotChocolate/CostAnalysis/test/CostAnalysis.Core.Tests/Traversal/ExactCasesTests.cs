@@ -113,6 +113,37 @@ public class ExactCasesTests
     }
 
     [Fact]
+    public void Evaluate_Should_Correlate_A_Variable_Used_In_Two_Differently_Nested_Boundaries()
+    {
+        // arrange: `$x` gates `m` one level under `p`, and gates `s` two levels under `q`
+        // behind `$y`; the two boundaries discover `$x` at different depths, so a fold
+        // that decorrelates its two occurrences overestimates the static bound to 104
+        const string sdl =
+            """
+            type Query { p: P q: Q }
+            type P { m: M }
+            type M { n: Int @cost(weight: "100") }
+            type Q { r: R }
+            type R { s: Int @cost(weight: "100") }
+            """;
+        const string operation =
+            """
+            query($x: Boolean!, $y: Boolean!) {
+              p { m @include(if: $x) { n @skip(if: $y) } }
+              q { r @include(if: $y) { s @skip(if: $x) } }
+            }
+            """;
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
+        var folded = decision.FoldWithJoin((a, b) => (Math.Max(a.TypeCost, b.TypeCost), Math.Max(a.FieldCost, b.FieldCost)));
+
+        // assert: the true static bound is the max over the 4 real assignments (103),
+        // never the decorrelated 104 that lets $x read false for `p` and true for `q`
+        Assert.Equal((4.0, 103.0), folded);
+    }
+
+    [Fact]
     public void Evaluate_Should_Take_The_Max_Over_Members_When_A_Field_Is_Selected_Through_An_Interface()
     {
         // arrange: an interface field priced through each possible object type's own definition
