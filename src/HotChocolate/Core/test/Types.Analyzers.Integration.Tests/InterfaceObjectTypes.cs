@@ -37,9 +37,7 @@ public sealed class Programme2
 
 /// <summary>
 /// Contributes the covering lookup for <see cref="Programme"/> to the shared Query type through
-/// a by-name object type extension, rather than a direct partial of the generator-owned Query
-/// root type, so this probe does not flip every other test that builds this assembly's module
-/// into source-schema mode (that switch is assembly-wide once a [QueryType] root sees a lookup).
+/// a by-name object type extension, kept separate from the generator-owned Query root partials.
 /// </summary>
 [ExtendObjectType(OperationTypeNames.Query)]
 public sealed class ProgrammeLookupType
