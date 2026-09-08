@@ -183,7 +183,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
 
                     using var archive = FusionArchive.Open(_fileName);
 
-                    var trustRootConfigured = _trustedSigningCertificates is { Count: > 0 };
+                    var trustRootConfigured = _trustedSigningCertificates is not null;
                     var verificationResult = trustRootConfigured
                         ? await archive.VerifySignatureAsync(_trustedSigningCertificates!, ct)
                         : await archive.VerifyIntegrityAsync(ct);

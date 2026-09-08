@@ -158,6 +158,27 @@ public sealed class FileSystemFusionConfigurationProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task Provider_Should_RejectPackage_When_TrustedSigningCertificatesIsEmpty()
+    {
+        // arrange
+        var fileName = IOPath.Combine(_directory, "gateway.far");
+        await CreateValidArchiveAsync(fileName);
+        var diagnosticEvents = new RecordingDiagnosticEvents();
+        var options = new FileSystemConfigurationOptions
+        {
+            TrustedSigningCertificates = new X509Certificate2Collection()
+        };
+
+        // act
+        await using var provider = new FileSystemFusionConfigurationProvider(fileName, diagnosticEvents, options);
+        var result = await ReadWithTimeoutAsync(diagnosticEvents.ConfigurationVerificationFailures.Reader);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.NotSigned, result);
+        Assert.Null(provider.Configuration);
+    }
+
+    [Fact]
     public async Task Provider_Should_ExposeConfiguration_When_ArchiveIsUnsignedAndNoTrustRootIsConfigured()
     {
         // arrange

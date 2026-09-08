@@ -90,6 +90,33 @@ public class FusionArchiveSignatureTests : IDisposable
     }
 
     [Fact]
+    public async Task VerifySignature_Should_ReturnInvalidSignature_When_SignerOnlySharesSubjectAndSerialWithATrustedCertificate()
+    {
+        // arrange
+        var stream = CreateStream();
+        using var trustedCertificate = CreateTestCertificate();
+        using var trustedPublicCertificate = ToPublicCertificate(trustedCertificate);
+        using var forgedCertificate = CreateForgedCertificate(trustedCertificate);
+        var trustedCertificates = new X509Certificate2Collection { trustedPublicCertificate };
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await BuildGatewayAsync(archive);
+            await archive.SignArchiveAsync(forgedCertificate, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var result = await readArchive.VerifySignatureAsync(
+            trustedCertificates, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(SignatureVerificationResult.InvalidSignature, result);
+    }
+
+    [Fact]
     public async Task Commit_Should_Throw_When_SignedArchiveIsMutatedBeforeTheSignatureIsRemoved()
     {
         // arrange
@@ -687,6 +714,33 @@ public class FusionArchiveSignatureTests : IDisposable
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest("CN=Test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+        _certificatesToDispose.Add(certificate);
+        return certificate;
+    }
+
+    // Builds a self-issued certificate with the same subject and serial number as
+    // the given trusted certificate but its own key pair, to prove that trust-collection
+    // membership cannot be established from the subject and serial number alone.
+    private X509Certificate2 CreateForgedCertificate(X509Certificate2 trusted)
+    {
+        var rsa = RSA.Create(2048);
+        var subjectName = new X500DistinguishedName("CN=Test");
+        var request = new CertificateRequest(subjectName, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var generator = X509SignatureGenerator.CreateForRSA(rsa, RSASignaturePadding.Pkcs1);
+
+        var serialNumber = trusted.GetSerialNumber();
+        Array.Reverse(serialNumber);
+
+        var publicOnlyCertificate = request.Create(
+            subjectName,
+            generator,
+            DateTimeOffset.Now,
+            DateTimeOffset.Now.AddYears(1),
+            serialNumber);
+
+        var certificate = publicOnlyCertificate.CopyWithPrivateKey(rsa);
+        publicOnlyCertificate.Dispose();
+        rsa.Dispose();
         _certificatesToDispose.Add(certificate);
         return certificate;
     }

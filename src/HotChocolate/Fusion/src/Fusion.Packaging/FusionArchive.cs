@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.IO.Compression;
 using System.IO.Pipelines;
@@ -1333,18 +1333,42 @@ public sealed class FusionArchive : IDisposable
             // whichever certificate the message carries; the CMS embeds its signer's certificate
             // by default, so this alone does not prove that certificate is one we trust. The
             // trusted-collection membership must be checked explicitly against the certificate
-            // the signature actually resolved to.
+            // the signature actually resolved to, comparing raw bytes: X509Certificate2Collection.Contains
+            // compares only the issuer distinguished name and serial number, both of which an
+            // attacker can copy onto a forged certificate carrying its own key pair.
             signedCms.CheckSignature(
                 trustedCertificates,
                 verifySignatureOnly: true);
 
-            var signerCertificate = signedCms.SignerInfos.Count > 0
-                ? signedCms.SignerInfos[0].Certificate
-                : null;
-
-            if (signerCertificate is null || !trustedCertificates.Contains(signerCertificate))
+            if (signedCms.SignerInfos.Count == 0)
             {
                 return SignatureVerificationResult.InvalidSignature;
+            }
+
+            foreach (var signerInfo in signedCms.SignerInfos)
+            {
+                var signerCertificate = signerInfo.Certificate;
+
+                if (signerCertificate is null)
+                {
+                    return SignatureVerificationResult.InvalidSignature;
+                }
+
+                var isTrusted = false;
+
+                foreach (var trustedCertificate in trustedCertificates)
+                {
+                    if (signerCertificate.RawData.AsSpan().SequenceEqual(trustedCertificate.RawData))
+                    {
+                        isTrusted = true;
+                        break;
+                    }
+                }
+
+                if (!isTrusted)
+                {
+                    return SignatureVerificationResult.InvalidSignature;
+                }
             }
 
             return SignatureVerificationResult.Valid;
