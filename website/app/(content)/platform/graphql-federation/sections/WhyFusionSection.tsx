@@ -60,9 +60,11 @@ export function WhyFusionSection() {
             an ordinary GraphQL server: it declares its keys and lookups in its
             own schema, the gateway calls it with ordinary GraphQL queries, and
             there is no distributed-runtime package or vendor protocol layer to
-            install alongside it. Spring for GraphQL, GraphQL Yoga, gqlgen,
-            Strawberry, async-graphql, graphql-ruby and Hot Chocolate all
-            qualify on the same terms.
+            install alongside it. The servers{" "}
+            <Link className={LINK_CLASS} href="#specification">
+              named above
+            </Link>{" "}
+            qualify on the same terms, and so does any other GraphQL server.
           </p>
           <p>
             The one build step you add is composition. It validates the source
