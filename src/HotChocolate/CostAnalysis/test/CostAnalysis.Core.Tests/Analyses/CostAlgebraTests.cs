@@ -277,7 +277,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("value", members, inheritedSizes: default, [field]),
+            new CollectedFieldGroup("value", field, members[0], inheritedSize: null),
             algebra.Empty);
 
         // assert: 5 (field weight) - 1 (tolerance's own weight, charged once) = 4
@@ -312,7 +312,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("items", members, inheritedSizes: default, [field]),
+            new CollectedFieldGroup("items", field, members[0], inheritedSize: null),
             valueField);
 
         // assert
@@ -328,7 +328,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("names", members, inheritedSizes: default, [field]),
+            new CollectedFieldGroup("names", field, members[0], inheritedSize: null),
             algebra.Empty);
 
         // assert
@@ -349,7 +349,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("items", members, inheritedSizes: default, [field]),
+            new CollectedFieldGroup("items", field, members[0], inheritedSize: null),
             valueField);
 
         // assert: n = 4, items' own weight 1 (default) + 4 * value's fieldCost 3
@@ -371,7 +371,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("nodes", members, [10.0], [field]),
+            new CollectedFieldGroup("nodes", field, members[0], inheritedSize: 10.0),
             algebra.Empty);
 
         // assert: n = 10 (inherited from the parent's first: 10), typeCost = 10 * Node's own weight 1
@@ -393,7 +393,7 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("value", members, inheritedSizes: default, [field]),
+            new CollectedFieldGroup("value", field, members[0], inheritedSize: null),
             algebra.Empty);
 
         // assert: 5 (field weight) - 1 (tolerance's own weight, charged from its declared default) = 4
@@ -427,8 +427,12 @@ public class CostAlgebraTests
 
         // act
         var estimate = algebra.Field(
-            new CollectedFieldGroup("value", members, inheritedSizes: default, [field]),
+            new CollectedFieldGroup("value", field, members[0], inheritedSize: null),
             algebra.Empty);
+        var estimateForB = algebra.Field(
+            new CollectedFieldGroup("value", field, members[1], inheritedSize: null),
+            algebra.Empty);
+        estimate = algebra.Join(estimate, estimateForB);
 
         // assert
         Assert.Equal(new CostEstimate(1.0, 0.0, null), estimate);

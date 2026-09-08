@@ -251,4 +251,27 @@ public class ExactCasesTests
         // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 1
         Assert.Equal((2.0, 1.0), decision.Resolve(_ => false));
     }
+
+    [Fact]
+    public void Evaluate_Should_JoinPairOutputs_When_ImplementersCrossListSizesAndFieldWeights()
+    {
+        // arrange
+        const string sdl =
+            """
+            interface Node { edges: [Edge] }
+            type A implements Node { edges: [Edge] @cost(weight: "100") @listSize(assumedSize: 1) }
+            type B implements Node { edges: [Edge] @cost(weight: "1") @listSize(assumedSize: 100) }
+            type Edge { value: Int @cost(weight: "1") }
+            type Container { node: Node }
+            type Query { container: Container }
+            """;
+        const string operation = "{ container { node { edges { value } } } }";
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
+
+        // assert
+        Assert.Equal(new CostEstimate(103.0, 103.0, null), decision.Resolve(_ => false));
+    }
 }

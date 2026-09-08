@@ -28,7 +28,7 @@ internal static class CaseBudgetFallback
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
         => BooleanDecision<TSummary>.Leaf(
             EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext));
 
@@ -46,7 +46,7 @@ internal static class CaseBudgetFallback
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
         var visited = new List<int>();
         var visitedSet = new HashSet<int>();
@@ -65,7 +65,7 @@ internal static class CaseBudgetFallback
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, ExactCasesTraversal.CollectTypeConditions(tree));
         TSummary? combined = default;
@@ -96,7 +96,7 @@ internal static class CaseBudgetFallback
         BooleanAssignment assignment,
         ConditionTree tree,
         List<int> visited,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
         TSummary? combined = default;
         var hasCombined = false;
@@ -111,17 +111,32 @@ internal static class CaseBudgetFallback
                 continue;
             }
 
-            var inheritedSizes = InheritedListSizes.InheritedSizesFor(parentSizeContext, fieldName);
-            var childSizeContext = InheritedListSizes.Resolve(snapshot, members, fields[0].Arguments);
             var childSelections = FieldGroupMerger.MergedSelections(fields);
-            var childValue = childSelections.Count == 0
-                ? algebra.Empty
-                : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, members, childSelections, childSizeContext);
-            var groupValue = algebra.Field(
-                new CollectedFieldGroup(responseName, members, inheritedSizes, fields),
-                childValue);
+            TSummary? groupValue = default;
+            var hasGroupValue = false;
 
-            combined = hasCombined ? algebra.Combine(combined!, groupValue) : groupValue;
+            foreach (var field in fields)
+            {
+                foreach (var member in members)
+                {
+                    var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                    var childValue = childSelections.Count == 0
+                        ? algebra.Empty
+                        : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, member, childSelections, childSizeContext);
+                    var pairValue = algebra.Field(
+                        new CollectedFieldGroup(
+                            responseName,
+                            field,
+                            member,
+                            InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName)),
+                        childValue);
+
+                    groupValue = hasGroupValue ? algebra.Join(groupValue!, pairValue) : pairValue;
+                    hasGroupValue = true;
+                }
+            }
+
+            combined = hasCombined ? algebra.Combine(combined!, groupValue!) : groupValue;
             hasCombined = true;
         }
 
@@ -129,8 +144,8 @@ internal static class CaseBudgetFallback
     }
 
     /// <summary>
-    /// Evaluates one child boundary per distinct named return type among
-    /// <paramref name="members"/> in envelope mode and joins them.
+    /// Evaluates one child boundary for a field occurrence and parent-type
+    /// pair in envelope mode.
     /// </summary>
     private static TSummary EvaluateChildEnvelope<TSummary>(
         CostSchemaSnapshot snapshot,
@@ -138,44 +153,14 @@ internal static class CaseBudgetFallback
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        CollectedFieldGroupMember[] members,
+        CollectedFieldGroupMember member,
         IReadOnlyList<ISelectionNode> childSelections,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
-        TSummary? combined = default;
-        var hasCombined = false;
-
-        foreach (var returnTypeName in DistinctReturnTypeNames(members))
-        {
-            var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-            var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-            var childValue = EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
-            combined = hasCombined ? algebra.Join(combined!, childValue) : childValue;
-            hasCombined = true;
-        }
-
-        return combined!;
-    }
-
-    /// <summary>
-    /// Gets the distinct named return types across <paramref name="members"/>,
-    /// in first-occurrence order.
-    /// </summary>
-    private static List<string> DistinctReturnTypeNames(CollectedFieldGroupMember[] members)
-    {
-        var names = new List<string>(members.Length);
-
-        foreach (var member in members)
-        {
-            var name = member.Field.Type.NamedType().Name;
-
-            if (!names.Contains(name, StringComparer.Ordinal))
-            {
-                names.Add(name);
-            }
-        }
-
-        return names;
+        var returnTypeName = member.Field.Type.NamedType().Name;
+        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
+        return EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
     }
 
     /// <summary>

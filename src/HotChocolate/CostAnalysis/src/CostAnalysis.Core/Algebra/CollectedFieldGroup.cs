@@ -5,10 +5,8 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One response-name group of collected fields at a selection-set boundary:
-/// the parent-type/field-definition pair for every possible type the group
-/// applies to, the sizes inherited from a parent's <c>@listSize(sizedFields:)</c>,
-/// and every field occurrence merged into this group.
+/// One collected field occurrence and possible parent-type pair at a
+/// selection-set boundary.
 /// </summary>
 [Experimental(CostExperiments.AnalysisAlgebra)]
 public readonly ref struct CollectedFieldGroup
@@ -17,52 +15,48 @@ public readonly ref struct CollectedFieldGroup
     /// Initializes a new instance of <see cref="CollectedFieldGroup"/>.
     /// </summary>
     /// <param name="responseName">
-    /// The response name every field in <paramref name="members"/> shares.
+    /// The response name of <paramref name="field"/>.
     /// </param>
-    /// <param name="members">
-    /// The parent-type/field-definition pairs of this group, one per
-    /// possible type the group applies to.
+    /// <param name="field">
+    /// The field occurrence.
     /// </param>
-    /// <param name="inheritedSizes">
-    /// The sizes inherited from every possible parent whose
-    /// <c>@listSize(sizedFields:)</c> names this field, empty when none do.
+    /// <param name="member">
+    /// The parent-type/field-definition pair for this occurrence.
     /// </param>
-    /// <param name="fields">
-    /// The field occurrences merged into this response-name group.
+    /// <param name="inheritedSize">
+    /// The size inherited from the immediate parent, if applicable.
     /// </param>
     public CollectedFieldGroup(
         string responseName,
-        ReadOnlySpan<CollectedFieldGroupMember> members,
-        ReadOnlySpan<double> inheritedSizes,
-        IReadOnlyList<FieldNode> fields)
+        FieldNode? field,
+        CollectedFieldGroupMember member,
+        double? inheritedSize)
     {
         ResponseName = responseName;
-        Members = members;
-        InheritedSizes = inheritedSizes;
-        Fields = fields;
+        Field = field;
+        Member = member;
+        InheritedSize = inheritedSize;
     }
 
     /// <summary>
-    /// Gets the response name every field in <see cref="Members"/> shares.
+    /// Gets the response name of <see cref="Field"/>.
     /// </summary>
     public string ResponseName { get; }
 
     /// <summary>
-    /// Gets the parent-type/field-definition pairs of this group, one per
-    /// possible type the group applies to.
+    /// Gets the parent-type/field-definition pair for this occurrence.
     /// </summary>
-    public ReadOnlySpan<CollectedFieldGroupMember> Members { get; }
+    public CollectedFieldGroupMember Member { get; }
 
     /// <summary>
-    /// Gets the sizes inherited from every possible parent whose
-    /// <c>@listSize(sizedFields:)</c> names this field, empty when none do.
+    /// Gets the size inherited from the immediate parent, if applicable.
     /// </summary>
-    public ReadOnlySpan<double> InheritedSizes { get; }
+    public double? InheritedSize { get; }
 
     /// <summary>
-    /// Gets every field occurrence merged into this response-name group.
+    /// Gets the field occurrence.
     /// </summary>
-    public IReadOnlyList<FieldNode> Fields { get; }
+    public FieldNode? Field { get; }
 }
 
 /// <summary>

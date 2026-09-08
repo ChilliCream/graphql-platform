@@ -54,6 +54,29 @@ public class CaseBudgetFallbackTests
         Assert.True(budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
     }
 
+    [Fact]
+    public void Evaluate_Should_JoinPairOutputs_When_CaseBudgetIsExhausted()
+    {
+        // arrange
+        const string sdl =
+            """
+            interface Node { edges: [Edge] }
+            type A implements Node { edges: [Edge] @cost(weight: "100") @listSize(assumedSize: 1) }
+            type B implements Node { edges: [Edge] @cost(weight: "1") @listSize(assumedSize: 100) }
+            type Edge { value: Int @cost(weight: "1") }
+            type Container { node: Node }
+            type Query { container: Container }
+            """;
+        const string operation = "query($include: Boolean!) { container { node { edges @include(if: $include) { value } } } }";
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra, caseBudget: 0);
+
+        // assert
+        Assert.Equal(new CostEstimate(103.0, 103.0, null), decision.Resolve(_ => false));
+    }
+
     /// <summary>
     /// Counts every node of a <see cref="BooleanDecision{T}"/>, splits and
     /// leaves alike.

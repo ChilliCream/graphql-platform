@@ -39,37 +39,22 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     /// <inheritdoc />
     public CostEstimate Field(in CollectedFieldGroup group, CostEstimate child)
     {
-        if (group.Members.IsEmpty || group.Fields is not { Count: > 0 })
+        if (group.Field is not { } field || group.Member.ParentType is null || group.Member.Field is null)
         {
             return Empty;
         }
 
-        var estimate = Empty;
-
-        foreach (var field in group.Fields)
-        {
-            var occurrenceEstimate = Empty;
-
-            foreach (var member in group.Members)
-            {
-                var typeName = member.ParentType.Name;
-                var fieldName = member.Field.Name;
-                var returnTypeName = member.Field.Type.NamedType().Name;
-                var memberEstimate = CostFieldRule.Field(
-                    ResolveListMultiplier(typeName, fieldName, member.Field, field.Arguments, group.InheritedSizes),
-                    _snapshot.GetFieldWeight(typeName, fieldName),
-                    ComputeArgumentsCost(typeName, member.Field, field.Arguments),
-                    ComputeDirectiveArgumentsCost(field.Directives),
-                    _snapshot.GetTypeWeight(returnTypeName),
-                    child);
-
-                occurrenceEstimate = CostFieldRule.Join(occurrenceEstimate, memberEstimate);
-            }
-
-            estimate = CostFieldRule.Join(estimate, occurrenceEstimate);
-        }
-
-        return estimate;
+        var member = group.Member;
+        var typeName = member.ParentType.Name;
+        var fieldName = member.Field.Name;
+        var returnTypeName = member.Field.Type.NamedType().Name;
+        return CostFieldRule.Field(
+            ResolveListMultiplier(typeName, fieldName, member.Field, field.Arguments, group.InheritedSize),
+            _snapshot.GetFieldWeight(typeName, fieldName),
+            ComputeArgumentsCost(typeName, member.Field, field.Arguments),
+            ComputeDirectiveArgumentsCost(field.Directives),
+            _snapshot.GetTypeWeight(returnTypeName),
+            child);
     }
 
     /// <inheritdoc />
@@ -91,11 +76,13 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
         string fieldName,
         IOutputFieldDefinition field,
         IReadOnlyList<ArgumentNode> arguments,
-        ReadOnlySpan<double> inheritedSizes)
+        double? inheritedSize)
     {
         var isListField = field.Type.IsListType();
         var metadata = _snapshot.GetListSizeMetadata(typeName, fieldName);
         var slicingArguments = SlicingArgumentValues.Build(metadata, field, arguments);
+
+        ReadOnlySpan<double> inheritedSizes = inheritedSize is { } size ? [size] : [];
 
         return ListSizeResolver.Resolve(
             isListField,

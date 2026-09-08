@@ -44,7 +44,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget)
     {
-        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty, InheritedListSizes.None);
+        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty, parentSizeContext: null);
         var rootTypeName = snapshot.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
         var rootTypeWeight = snapshot.GetTypeWeight(rootTypeName);
         return MapRoot(algebra, rootTypeWeight, selection);
@@ -83,7 +83,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, CollectTypeConditions(tree));
         BooleanDecision<TSummary>? combined = null;
@@ -120,7 +120,7 @@ internal static class ExactCasesTraversal
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
         var visited = new List<int>();
         var visitedSet = new HashSet<int>();
@@ -219,7 +219,7 @@ internal static class ExactCasesTraversal
         PossibleTypeSet region,
         BooleanAssignment assignment,
         List<int> visited,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
         BooleanDecision<TSummary>? combined = null;
 
@@ -233,27 +233,42 @@ internal static class ExactCasesTraversal
                 continue;
             }
 
-            var inheritedSizes = InheritedListSizes.InheritedSizesFor(parentSizeContext, fieldName);
-            var childSizeContext = InheritedListSizes.Resolve(snapshot, members, fields[0].Arguments);
             var childSelections = FieldGroupMerger.MergedSelections(fields);
-            var childDecision = childSelections.Count == 0
-                ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
-                : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members, childSelections, childSizeContext);
-            var groupDecision = MapField(algebra, responseName, members, inheritedSizes, fields, childDecision);
+            BooleanDecision<TSummary>? groupDecision = null;
+
+            foreach (var field in fields)
+            {
+                foreach (var member in members)
+                {
+                    var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                    var childDecision = childSelections.Count == 0
+                        ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
+                        : EvaluateChild(snapshot, fragments, algebra, budget, assignment, member, childSelections, childSizeContext);
+                    var pairDecision = MapField(
+                        algebra,
+                        responseName,
+                        field,
+                        member,
+                        InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName),
+                        childDecision);
+
+                    groupDecision = groupDecision is null
+                        ? pairDecision
+                        : BooleanDecision<TSummary>.ZipWith(groupDecision, pairDecision, algebra.Join, algebra.Join, budget);
+                }
+            }
 
             combined = combined is null
-                ? groupDecision
-                : BooleanDecision<TSummary>.ZipWith(combined, groupDecision, algebra.Combine, algebra.Join, budget);
+                ? groupDecision!
+                : BooleanDecision<TSummary>.ZipWith(combined, groupDecision!, algebra.Combine, algebra.Join, budget);
         }
 
         return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
     }
 
     /// <summary>
-    /// Extracts and evaluates one child boundary per distinct named return
-    /// type among <paramref name="members"/>, seeded with the current
-    /// case's assignment, and joins them: a covariant field's runtime types
-    /// each resolve their own child selections independently.
+    /// Evaluates one child boundary for a field occurrence and parent-type
+    /// pair using that pair's return type and list-size context.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateChild<TSummary>(
         CostSchemaSnapshot snapshot,
@@ -261,72 +276,39 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        CollectedFieldGroupMember[] members,
+        CollectedFieldGroupMember member,
         IReadOnlyList<ISelectionNode> childSelections,
-        IReadOnlyList<SizedFieldContext> parentSizeContext)
+        SizedFieldContext? parentSizeContext)
     {
-        BooleanDecision<TSummary>? combined = null;
-
-        foreach (var returnTypeName in DistinctReturnTypeNames(members))
-        {
-            var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-            var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-            var childValue = EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
-
-            combined = combined is null
-                ? childValue
-                : BooleanDecision<TSummary>.ZipWith(combined, childValue, algebra.Join, algebra.Join, budget);
-        }
-
-        return combined!;
+        var returnTypeName = member.Field.Type.NamedType().Name;
+        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
+        return EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
     }
 
     /// <summary>
-    /// Gets the distinct named return types across <paramref name="members"/>,
-    /// in first-occurrence order.
-    /// </summary>
-    private static List<string> DistinctReturnTypeNames(CollectedFieldGroupMember[] members)
-    {
-        var names = new List<string>(members.Length);
-
-        foreach (var member in members)
-        {
-            var name = member.Field.Type.NamedType().Name;
-
-            if (!names.Contains(name, StringComparer.Ordinal))
-            {
-                names.Add(name);
-            }
-        }
-
-        return names;
-    }
-
-    /// <summary>
-    /// Maps <see cref="IAnalysisAlgebra{T}.Field"/> over every leaf of a
-    /// possibly-split child decision, producing the group's own decision.
+    /// Maps <see cref="IAnalysisAlgebra{T}.Field"/> over every leaf of one
+    /// occurrence and parent-type pair's child decision.
     /// </summary>
     private static BooleanDecision<TSummary> MapField<TSummary>(
         IAnalysisAlgebra<TSummary> algebra,
         string responseName,
-        CollectedFieldGroupMember[] members,
-        double[] inheritedSizes,
-        IReadOnlyList<FieldNode> fields,
+        FieldNode field,
+        CollectedFieldGroupMember member,
+        double? inheritedSize,
         BooleanDecision<TSummary> child)
     {
         if (child is LeafDecision<TSummary> leaf)
         {
             return BooleanDecision<TSummary>.Leaf(
-                algebra.Field(
-                    new CollectedFieldGroup(responseName, members, inheritedSizes, fields),
-                    leaf.Value));
+                algebra.Field(new CollectedFieldGroup(responseName, field, member, inheritedSize), leaf.Value));
         }
 
         var split = (SplitDecision<TSummary>)child;
         return BooleanDecision<TSummary>.Split(
             split.Variable,
-            MapField(algebra, responseName, members, inheritedSizes, fields, split.WhenFalse),
-            MapField(algebra, responseName, members, inheritedSizes, fields, split.WhenTrue));
+            MapField(algebra, responseName, field, member, inheritedSize, split.WhenFalse),
+            MapField(algebra, responseName, field, member, inheritedSize, split.WhenTrue));
     }
 
     /// <summary>
