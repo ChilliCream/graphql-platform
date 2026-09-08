@@ -218,7 +218,10 @@ export function HowItWorksSection() {
               price, with the same query Billing would answer for any client.
               Composition pairs the lookup&apos;s argument with the key field by
               name; when the names differ, <Code>@is</Code> maps them. An entity
-              can have several lookups, each fetching it by one of its keys.
+              can have several lookups, in one subgraph or across subgraphs,
+              each fetching it by one of its keys, and a key with no lookup
+              still identifies the entity, for caching or comparison, without
+              being able to fetch it.
             </p>
             <InPractice href="/docs/fusion/entities-and-lookups">
               declaring entities and lookups
