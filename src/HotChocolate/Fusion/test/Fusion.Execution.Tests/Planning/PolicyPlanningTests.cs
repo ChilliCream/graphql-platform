@@ -332,6 +332,36 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_RealizeApolloBatchFetchGate_When_RequestCacheableFieldIsSkipped()
+    {
+        // arrange
+        var schema = CreateApolloDeferredBatchedRequestCacheableMixedFetchPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query($skipRating: Boolean!) {
+              first {
+                id
+                rating @skip(if: $skipRating)
+                reviewCount
+              }
+              second {
+                id
+                rating @skip(if: $skipRating)
+                reviewCount
+              }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.PolicySlots);
+        Assert.Single(plan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        Assert.Empty(plan.AllNodes.OfType<PolicyExecutionNode>());
+    }
+
+    [Fact]
     public void CreatePlan_Should_PlanNonApolloPolicy_When_EntityBatchIsNotDeferred()
     {
         // arrange
@@ -5032,6 +5062,94 @@ public sealed class PolicyPlanningTests : FusionTestBase
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
 
     private static FusionSchemaDefinition CreateApolloDeferredBatchedPolicySchema()
+        => CreateApolloDeferredBatchedPolicySchema(
+            new TestPolicy(
+                "CanReadRating",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+
+    private static FusionSchemaDefinition CreateApolloDeferredBatchedRequestCacheableMixedFetchPolicySchema()
+    {
+        const string sourceSchemaA =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Query {
+              first: Product
+              second: Product
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+
+            type _Service { sdl: String! }
+            union _Entity = Product
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        const string sourceSchemaB =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+              repeatable on OBJECT | FIELD_DEFINITION
+
+            type Query {
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              rating: Int! @policy(names: "CanReadRating")
+              reviewCount: Int!
+            }
+
+            type _Service { sdl: String! }
+            union _Entity = Product
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        var sourceTexts = new[]
+        {
+            new SourceSchemaText("a", sourceSchemaA),
+            new SourceSchemaText("b", sourceSchemaB)
+        };
+        var composerOptions = new SchemaComposerOptions();
+
+        foreach (var sourceText in sourceTexts)
+        {
+            composerOptions.SourceSchemas[sourceText.Name] = new SourceSchemaOptions
+            {
+                Preprocessor = new SourceSchemaPreprocessorOptions
+                {
+                    InferKeysFromLookups = false
+                }
+            };
+        }
+
+        var result = new SchemaComposer(sourceTexts, composerOptions, new CompositionLog()).Compose();
+
+        Assert.True(result.IsSuccess, string.Join(Environment.NewLine, result.Errors.Select(error => error.Message)));
+
+        return CreateSchema(result.Value.ToSyntaxNode(), new TestPolicy("CanReadRating"));
+    }
+
+    private static FusionSchemaDefinition CreateApolloDeferredBatchedPolicySchema(TestPolicy policy)
     {
         const string sourceSchemaA =
             """
@@ -5110,11 +5228,7 @@ public sealed class PolicyPlanningTests : FusionTestBase
 
         Assert.True(result.IsSuccess, string.Join(Environment.NewLine, result.Errors.Select(error => error.Message)));
 
-        return CreateSchema(
-            result.Value.ToSyntaxNode(),
-            new TestPolicy(
-                "CanReadRating",
-                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ id }")));
+        return CreateSchema(result.Value.ToSyntaxNode(), policy);
     }
 
     private static FusionSchemaDefinition CreateDeferredSiblingPolicyRequirementSchema()

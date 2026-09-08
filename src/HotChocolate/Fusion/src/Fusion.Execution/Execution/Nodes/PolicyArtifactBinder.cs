@@ -1828,13 +1828,24 @@ internal static class PolicyArtifactBinder
                     break;
 
                 case ApolloOperationBatchExecutionNode batch:
-                    foreach (var definition in batch.Operations)
+                    for (var i = 0; i < batch.Operations.Length; i++)
                     {
-                        if (DefinitionGatesCandidate(
-                            definition,
+                        var definition = batch.Operations[i];
+
+                        // The definition's own SourceText is the pre-rewrite lookup
+                        // query. The batch node executes the rewritten entity lookup
+                        // instead, so the gate witness must inspect the rewritten
+                        // source held by the paired lookup, matching CreateOperationArtifact.
+                        if (OperationGatesCandidate(
+                            definition.Target,
+                            definition.Source,
+                            batch.Lookups[i].Operation.Value,
+                            definition.ResultSelectionSet,
+                            definition.ForwardedVariables,
+                            definition.Conditions,
+                            includeConditions,
                             candidate,
-                            variableName,
-                            includeConditions))
+                            variableName))
                         {
                             return true;
                         }
