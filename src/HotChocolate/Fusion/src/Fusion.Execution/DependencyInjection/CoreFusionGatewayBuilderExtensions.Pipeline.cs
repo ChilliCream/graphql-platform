@@ -31,6 +31,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.UseRequest(CommonMiddleware.DocumentValidation);
     }
 
+    public static IFusionGatewayBuilder UseDocumentNormalization(
+        this IFusionGatewayBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(FusionMiddleware.DocumentNormalization);
+    }
+
     public static IFusionGatewayBuilder UseExceptions(
         this IFusionGatewayBuilder builder)
     {
@@ -182,6 +190,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseDocumentNormalization()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
@@ -207,6 +216,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseDocumentNormalization()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
@@ -232,6 +242,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseDocumentNormalization()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()

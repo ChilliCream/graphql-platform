@@ -14,6 +14,9 @@ public static class WellKnownRequestMiddleware
     /// <summary>Gets the key for the DocumentValidationMiddleware.</summary>
     public const string DocumentValidationMiddleware = "DocumentValidationMiddleware";
 
+    /// <summary>Gets the key for the DocumentNormalizationMiddleware.</summary>
+    public const string DocumentNormalizationMiddleware = "DocumentNormalizationMiddleware";
+
     /// <summary>Gets the key for the ExceptionMiddleware.</summary>
     public const string ExceptionMiddleware = "ExceptionMiddleware";
 
