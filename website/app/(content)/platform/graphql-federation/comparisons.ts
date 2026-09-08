@@ -51,6 +51,8 @@ export const COMPARISONS: readonly FederationComparison[] = [
     title: "GraphQL Federation vs Apollo Federation",
     summary:
       "Apollo Federation wins where a team is already invested in its router and its subgraph libraries; GraphQL Federation wins where the goal is an open standard, under the GraphQL Foundation, that any GraphQL server can join with nothing beyond its schema.",
-    href: "#vs-apollo-federation",
+    href: "/platform/graphql-federation/vs-apollo-federation",
+    metaDescription:
+      "Apollo Federation and the GraphQL Federation specification describe one architecture in two vocabularies. What differs, and how one gateway runs both.",
   },
 ];

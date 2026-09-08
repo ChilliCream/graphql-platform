@@ -1,9 +1,18 @@
+import Link from "next/link";
+
 import { CardGrid } from "@/src/components/CardGrid";
 import { Card } from "@/src/design-system/Card";
 
 import { COMPARISONS } from "../comparisons";
 import { FEDERATION_DEFINITION } from "../terms";
-import { Intro, InPractice, Section, SubHeading, Table } from "./shared";
+import {
+  Intro,
+  InPractice,
+  LINK_CLASS,
+  Section,
+  SubHeading,
+  Table,
+} from "./shared";
 
 const ALTERNATIVES: readonly (readonly string[])[] = [
   [
@@ -41,54 +50,6 @@ const ALTERNATIVES: readonly (readonly string[])[] = [
     "One deployable exposes one schema; modules keep code ownership internal.",
     "One team, or several teams that ship together. Often the right start.",
     "One deploy train; coupling creeps back as teams multiply.",
-  ],
-];
-
-const GLOSSARY: readonly (readonly string[])[] = [
-  ["The service behind the gateway", "Subgraph", "Subgraph"],
-  [
-    "The schema document a subgraph publishes",
-    "Subgraph schema",
-    "Source schema",
-  ],
-  [
-    "The build step that validates and merges the schemas",
-    "Composition",
-    "Composition",
-  ],
-  ["The single client-facing schema", "Supergraph", "Composite schema"],
-  ["The public entry point that receives queries", "Router", "Gateway"],
-  [
-    "The part that plans a query and assembles one response",
-    "Router (query planner and executor)",
-    "Distributed executor",
-  ],
-  ["A type with a stable key, referenced across subgraphs", "Entity", "Entity"],
-  ["The fields that identify an entity", "@key", "@key"],
-  [
-    "Fetching an entity by one of its keys",
-    "_entities(representations:) with a reference resolver",
-    "An ordinary query field marked @lookup",
-  ],
-  [
-    "A field that needs data from another subgraph",
-    "@requires (on the field)",
-    "@require (on an argument)",
-  ],
-  [
-    "Moving a field to another subgraph",
-    "@override(from:)",
-    "@override(from:)",
-  ],
-  [
-    "What a server implements to join",
-    "The Apollo subgraph specification: _entities, _service, reference resolvers",
-    "Nothing beyond its schema; any GraphQL server",
-  ],
-  [
-    "Fetching many entities at once",
-    "A list of representations passed to _entities",
-    "Variable batching, being added to GraphQL over HTTP",
   ],
 ];
 
@@ -288,39 +249,33 @@ export function WhatIsSection() {
 
       <div
         id="apollo-federation-vs-graphql-federation"
-        className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
+        className="border-cc-card-border mt-16 max-w-2xl scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
       >
-        <div id="vs-apollo-federation" className="max-w-2xl scroll-mt-24">
+        <div id="vs-apollo-federation" className="scroll-mt-24">
           <SubHeading id="vs-apollo-federation-heading">
-            GraphQL Federation vs Apollo Federation: two vocabularies, one
-            architecture
+            GraphQL Federation vs Apollo Federation
           </SubHeading>
           <div className="text-cc-ink mt-4 space-y-4 text-base">
             <p>
-              Apollo Federation is widely deployed, so you will meet its words
-              as often as the specification&apos;s. Both describe the same
-              architecture; they differ in what a server has to implement to
-              join. Apollo Federation asks a subgraph to implement its subgraph
-              specification. GraphQL Federation asks for nothing beyond the
-              schema a server already publishes.
+              Apollo Federation describes the same architecture in a different
+              vocabulary: where it says supergraph and router, the specification
+              says composite schema and gateway. The two differ in what a server
+              has to implement to join &mdash; Apollo Federation asks a subgraph
+              to implement its subgraph specification, while the GraphQL
+              Federation specification asks for nothing beyond the schema a
+              server already publishes.
             </p>
-            <InPractice href="/docs/fusion/migration/coming-from-apollo-federation">
-              composing Apollo Federation subgraphs alongside GraphQL Federation
-              subgraphs
-            </InPractice>
+            <p className="text-cc-ink-dim text-sm">
+              <Link
+                className={LINK_CLASS}
+                href="/platform/graphql-federation/vs-apollo-federation"
+              >
+                The full comparison: the vocabulary table, the design difference
+                and how one gateway composes both
+              </Link>
+              .
+            </p>
           </div>
-        </div>
-        <div className="mt-10">
-          <Table
-            caption="Apollo Federation terms next to GraphQL Federation terms"
-            columns={[
-              { header: "Concept" },
-              { header: "Apollo Federation", mono: true },
-              { header: "GraphQL Federation", mono: true },
-            ]}
-            rows={GLOSSARY}
-            minWidth="min-w-[720px]"
-          />
         </div>
       </div>
     </Section>
