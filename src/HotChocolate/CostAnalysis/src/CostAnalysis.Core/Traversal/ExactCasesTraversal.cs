@@ -111,8 +111,7 @@ internal static class ExactCasesTraversal
                 budget,
                 region,
                 representative,
-                assignment,
-                DistinctVariables(pending));
+                assignment);
         }
 
         var whenFalse = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false));
@@ -192,11 +191,17 @@ internal static class ExactCasesTraversal
         foreach (var (responseName, fields) in FieldGroupMerger.Merge(tree, visited))
         {
             var fieldName = fields[0].Name.Value;
-            var members = BuildMembers(snapshot, region, fieldName);
+            var members = TraversalMembers.Build(snapshot, region, fieldName);
+
+            if (members.Length == 0)
+            {
+                continue;
+            }
+
             var childSelections = FieldGroupMerger.MergedSelections(fields);
             var childDecision = childSelections.Count == 0
                 ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
-                : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members[0].Field, childSelections);
+                : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members, childSelections);
             var groupDecision = MapField(algebra, responseName, members, childDecision);
 
             combined = combined is null
@@ -208,8 +213,10 @@ internal static class ExactCasesTraversal
     }
 
     /// <summary>
-    /// Extracts and evaluates a field's nested boundary, seeded with the
-    /// current case's assignment.
+    /// Extracts and evaluates one child boundary per distinct named return
+    /// type among <paramref name="members"/>, seeded with the current
+    /// case's assignment, and joins them: a covariant field's runtime types
+    /// each resolve their own child selections independently.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateChild<TSummary>(
         CostSchemaSnapshot snapshot,
@@ -217,13 +224,44 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        IOutputFieldDefinition field,
+        CollectedFieldGroupMember[] members,
         IReadOnlyList<ISelectionNode> childSelections)
     {
-        var returnTypeName = field.Type.NamedType().Name;
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-        return EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment);
+        BooleanDecision<TSummary>? combined = null;
+
+        foreach (var returnTypeName in DistinctReturnTypeNames(members))
+        {
+            var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+            var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
+            var childValue = EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment);
+
+            combined = combined is null
+                ? childValue
+                : BooleanDecision<TSummary>.ZipWith(combined, childValue, algebra.Join);
+        }
+
+        return combined!;
+    }
+
+    /// <summary>
+    /// Gets the distinct named return types across <paramref name="members"/>,
+    /// in first-occurrence order.
+    /// </summary>
+    private static List<string> DistinctReturnTypeNames(CollectedFieldGroupMember[] members)
+    {
+        var names = new List<string>(members.Length);
+
+        foreach (var member in members)
+        {
+            var name = member.Field.Type.NamedType().Name;
+
+            if (!names.Contains(name, StringComparer.Ordinal))
+            {
+                names.Add(name);
+            }
+        }
+
+        return names;
     }
 
     /// <summary>
@@ -247,26 +285,6 @@ internal static class ExactCasesTraversal
             split.Variable,
             MapField(algebra, responseName, members, split.WhenFalse),
             MapField(algebra, responseName, members, split.WhenTrue));
-    }
-
-    /// <summary>
-    /// Builds one <see cref="CollectedFieldGroupMember"/> per possible type
-    /// in <paramref name="region"/>, each resolving <paramref name="fieldName"/>
-    /// through its own field definition.
-    /// </summary>
-    private static CollectedFieldGroupMember[] BuildMembers(CostSchemaSnapshot snapshot, PossibleTypeSet region, string fieldName)
-    {
-        var members = new CollectedFieldGroupMember[region.Count];
-        var i = 0;
-
-        foreach (var typeIndex in region)
-        {
-            members[i++] = new CollectedFieldGroupMember(
-                snapshot.GetObjectTypeDefinition(typeIndex),
-                snapshot.GetFieldDefinition(typeIndex, fieldName));
-        }
-
-        return members;
     }
 
     /// <summary>
@@ -317,21 +335,5 @@ internal static class ExactCasesTraversal
         }
 
         return best;
-    }
-
-    /// <summary>
-    /// Gets the distinct variable names among a set of pending literals, in
-    /// canonical order.
-    /// </summary>
-    internal static List<string> DistinctVariables(List<BooleanLiteral> pending)
-    {
-        var names = new SortedSet<string>(StringComparer.Ordinal);
-
-        foreach (var literal in pending)
-        {
-            names.Add(literal.VariableName);
-        }
-
-        return [.. names];
     }
 }

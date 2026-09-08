@@ -46,7 +46,11 @@ public class CaseBudgetSoundnessTests
     /// interface, signed weights in [-8, 8]) and an operation with 1-4
     /// correlated Boolean variables: each type selects, per variable, one
     /// field gated by <c>@include</c> and one by <c>@skip</c> on that same
-    /// variable, so resolving it decides two fields at once.
+    /// variable, so resolving it decides two fields at once. Each variable's
+    /// field returns its own object type carrying a random signed
+    /// <c>@cost</c> type weight over a cheap scalar child (the c5 shape),
+    /// so collect-then-weigh combines a signed type weight with a signed
+    /// field weight inside the fallback envelope.
     /// </summary>
     private static (string Sdl, string Operation, string[] VariableNames) GenerateOperation(Random random)
     {
@@ -60,13 +64,18 @@ public class CaseBudgetSoundnessTests
         }
 
         var sdl = new StringBuilder();
-        sdl.AppendLine("type Leaf { x: Int }");
+
+        for (var j = 0; j < variableCount; j++)
+        {
+            var typeWeight = random.Next(-8, 9).ToString(CultureInfo.InvariantCulture);
+            sdl.Append("type Leaf").Append(j).Append(" @cost(weight: \"").Append(typeWeight).Append("\") { x: Int }").AppendLine();
+        }
 
         var interfaceFields = new StringBuilder();
 
         for (var j = 0; j < variableCount; j++)
         {
-            interfaceFields.Append(" v").Append(j).Append(": Leaf");
+            interfaceFields.Append(" v").Append(j).Append(": Leaf").Append(j);
         }
 
         sdl.Append("interface Node {").Append(interfaceFields).AppendLine(" }");
@@ -78,7 +87,7 @@ public class CaseBudgetSoundnessTests
             for (var j = 0; j < variableCount; j++)
             {
                 var weight = random.Next(-8, 9).ToString(CultureInfo.InvariantCulture);
-                fields.Append(" v").Append(j).Append(": Leaf @cost(weight: \"").Append(weight).Append("\")");
+                fields.Append(" v").Append(j).Append(": Leaf").Append(j).Append(" @cost(weight: \"").Append(weight).Append("\")");
             }
 
             sdl.Append("type T").Append(i).Append(" implements Node {").Append(fields).AppendLine(" }");

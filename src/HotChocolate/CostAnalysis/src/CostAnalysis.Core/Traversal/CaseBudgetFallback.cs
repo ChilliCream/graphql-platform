@@ -5,15 +5,19 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// The conservative bound <see cref="ExactCasesTraversal"/> falls back to
-/// once the <see cref="CaseBudget"/> is exhausted: joins each remaining
-/// variable's false and true cases independently of every other remaining
-/// variable, rather than splitting on all of them jointly.
+/// once the <see cref="CaseBudget"/> is exhausted: every Boolean edge still
+/// unresolved is followed unconditionally into one envelope summary.
+/// Sound for algebras whose <see cref="IAnalysisAlgebra{T}.Field"/> is
+/// monotone in the collected field set and the child summary, a property
+/// both built-in algebras (<c>CostAlgebra</c>, <c>ResponseSizeAlgebra</c>)
+/// satisfy.
 /// </summary>
 internal static class CaseBudgetFallback
 {
     /// <summary>
-    /// Evaluates the remaining pending variables of one exact case
-    /// independently and joins their results.
+    /// Evaluates one region's boundary in envelope mode and returns it as a
+    /// resolved leaf, leaving every still-pending Boolean variable
+    /// unresolved in the envelope rather than split on.
     /// </summary>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
         CostSchemaSnapshot snapshot,
@@ -23,29 +27,9 @@ internal static class CaseBudgetFallback
         CaseBudget budget,
         PossibleTypeSet region,
         int representative,
-        BooleanAssignment assignment,
-        List<string> pendingVariables)
-    {
-        BooleanDecision<TSummary>? combined = null;
-
-        foreach (var variable in pendingVariables)
-        {
-            var whenFalse = EvaluateCaseEnvelope(
-                snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false));
-            var whenTrue = EvaluateCaseEnvelope(
-                snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, true));
-            var branch = BooleanDecision<TSummary>.Split(
-                variable,
-                BooleanDecision<TSummary>.Leaf(whenFalse),
-                BooleanDecision<TSummary>.Leaf(whenTrue));
-
-            combined = combined is null
-                ? branch
-                : BooleanDecision<TSummary>.ZipWith(combined, branch, algebra.Join);
-        }
-
-        return combined!;
-    }
+        BooleanAssignment assignment)
+        => BooleanDecision<TSummary>.Leaf(
+            EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment));
 
     /// <summary>
     /// Evaluates one region's boundary in envelope mode: every Boolean edge
@@ -116,11 +100,17 @@ internal static class CaseBudgetFallback
         foreach (var (responseName, fields) in FieldGroupMerger.Merge(tree, visited))
         {
             var fieldName = fields[0].Name.Value;
-            var members = BuildMembers(snapshot, region, fieldName);
+            var members = TraversalMembers.Build(snapshot, region, fieldName);
+
+            if (members.Length == 0)
+            {
+                continue;
+            }
+
             var childSelections = FieldGroupMerger.MergedSelections(fields);
             var childValue = childSelections.Count == 0
                 ? algebra.Empty
-                : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, members[0].Field, childSelections);
+                : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, members, childSelections);
             var groupValue = algebra.Field(new CollectedFieldGroup(responseName, members, listMultiplier: 1.0), childValue);
 
             combined = hasCombined ? algebra.Combine(combined!, groupValue) : groupValue;
@@ -130,19 +120,53 @@ internal static class CaseBudgetFallback
         return hasCombined ? combined! : algebra.Empty;
     }
 
+    /// <summary>
+    /// Evaluates one child boundary per distinct named return type among
+    /// <paramref name="members"/> in envelope mode and joins them.
+    /// </summary>
     private static TSummary EvaluateChildEnvelope<TSummary>(
         CostSchemaSnapshot snapshot,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
-        IOutputFieldDefinition field,
+        CollectedFieldGroupMember[] members,
         IReadOnlyList<ISelectionNode> childSelections)
     {
-        var returnTypeName = field.Type.NamedType().Name;
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-        return EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment);
+        TSummary? combined = default;
+        var hasCombined = false;
+
+        foreach (var returnTypeName in DistinctReturnTypeNames(members))
+        {
+            var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+            var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
+            var childValue = EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment);
+            combined = hasCombined ? algebra.Join(combined!, childValue) : childValue;
+            hasCombined = true;
+        }
+
+        return combined!;
+    }
+
+    /// <summary>
+    /// Gets the distinct named return types across <paramref name="members"/>,
+    /// in first-occurrence order.
+    /// </summary>
+    private static List<string> DistinctReturnTypeNames(CollectedFieldGroupMember[] members)
+    {
+        var names = new List<string>(members.Length);
+
+        foreach (var member in members)
+        {
+            var name = member.Field.Type.NamedType().Name;
+
+            if (!names.Contains(name, StringComparer.Ordinal))
+            {
+                names.Add(name);
+            }
+        }
+
+        return names;
     }
 
     /// <summary>
@@ -186,20 +210,5 @@ internal static class CaseBudgetFallback
 
             CollectReachableWildcard(tree, representative, assignment, branch.TargetNodeId, visited, visitedSet);
         }
-    }
-
-    private static CollectedFieldGroupMember[] BuildMembers(CostSchemaSnapshot snapshot, PossibleTypeSet region, string fieldName)
-    {
-        var members = new CollectedFieldGroupMember[region.Count];
-        var i = 0;
-
-        foreach (var typeIndex in region)
-        {
-            members[i++] = new CollectedFieldGroupMember(
-                snapshot.GetObjectTypeDefinition(typeIndex),
-                snapshot.GetFieldDefinition(typeIndex, fieldName));
-        }
-
-        return members;
     }
 }
