@@ -24,7 +24,9 @@ export const COMPARISONS: readonly FederationComparison[] = [
     title: "GraphQL Federation vs BFF (backend for frontend)",
     summary:
       "A backend for frontend wins while one client has needs no other client shares; GraphQL Federation wins once several clients need the same data assembled and nobody wants a separate backend per client.",
-    href: "#vs-bff",
+    href: "/platform/graphql-federation/vs-bff",
+    metaDescription:
+      "A backend for frontend hand-aggregates services for one client. GraphQL Federation composes one schema for all of them. When each is the better buy.",
   },
   {
     slug: "vs-individual-apis",
