@@ -33,7 +33,9 @@ export const COMPARISONS: readonly FederationComparison[] = [
     title: "GraphQL Federation vs individual APIs",
     summary:
       "Calling each service directly wins while a screen needs one or two of them; GraphQL Federation wins once a screen needs several and every client would otherwise assemble the pieces again.",
-    href: "#vs-individual-apis",
+    href: "/platform/graphql-federation/vs-individual-apis",
+    metaDescription:
+      "Calling each service directly works until one screen needs four. How GraphQL Federation moves the joins behind one gateway, and when to keep direct calls.",
   },
   {
     slug: "vs-graphql-monolith",
