@@ -19,6 +19,9 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
         await using var services = new ServiceCollection()
             .AddDbContext<ExpressionPersonContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<ExpressionPersonType>()
             .AddProjections()
