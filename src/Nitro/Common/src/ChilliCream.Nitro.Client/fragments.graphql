@@ -920,3 +920,19 @@ fragment InvalidMcpFeatureCollectionArchiveError on InvalidMcpFeatureCollectionA
 fragment McpFeatureCollectionValidationArchiveError on McpFeatureCollectionValidationArchiveError {
   message
 }
+
+fragment ClientVersionProtectedError on ClientVersionProtectedError {
+  __typename
+  message
+  tag
+  protectedBy
+  ...Error
+}
+
+fragment ClientRecentTrafficProtectionNotEvaluableError on ClientRecentTrafficProtectionNotEvaluableError {
+  __typename
+  message
+  tag
+  clientTrafficRequiredWithin
+  ...Error
+}

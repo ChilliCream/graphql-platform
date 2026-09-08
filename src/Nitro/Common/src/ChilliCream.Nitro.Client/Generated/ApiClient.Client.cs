@@ -11325,6 +11325,169 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class UnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError : global::System.IEquatable<UnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError>, IUnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError
+    {
+        public UnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError(global::System.String __typename, global::System.String message, global::System.String tag, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind> protectedBy)
+        {
+            this.__typename = __typename;
+            Message = message;
+            Tag = tag;
+            ProtectedBy = protectedBy;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+        public global::System.String Tag { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind> ProtectedBy { get; }
+
+        public virtual global::System.Boolean Equals(UnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message) && Tag.Equals(other.Tag) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(ProtectedBy, other.ProtectedBy);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                hash ^= 397 * Tag.GetHashCode();
+                foreach (var ProtectedBy_elm in ProtectedBy)
+                {
+                    hash ^= 397 * ProtectedBy_elm.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+    /// The version's recent-traffic protection cannot be evaluated: the client had no traffic
+    /// of any version within the required window, no traffic data is available, or the
+    /// lifecycle's traffic rules look further back than the traffic history that can be relied
+    /// on, so the rule can neither keep nor release the version. A forced unpublish goes
+    /// through regardless.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError : global::System.IEquatable<UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError>, IUnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError
+    {
+        public UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError(global::System.String __typename, global::System.String message, global::System.String tag, global::System.TimeSpan clientTrafficRequiredWithin)
+        {
+            this.__typename = __typename;
+            Message = message;
+            Tag = tag;
+            ClientTrafficRequiredWithin = clientTrafficRequiredWithin;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+        public global::System.String Tag { get; }
+        /// <summary>
+        /// How recently the client must have had traffic of any version on the stage for the
+        /// rule to be applied.
+        /// </summary>
+        public global::System.TimeSpan ClientTrafficRequiredWithin { get; }
+
+        public virtual global::System.Boolean Equals(UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message) && Tag.Equals(other.Tag) && ClientTrafficRequiredWithin.Equals(other.ClientTrafficRequiredWithin);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
+                hash ^= 397 * Tag.GetHashCode();
+                hash ^= 397 * ClientTrafficRequiredWithin.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class UnpublishClient_UnpublishClient_ClientVersion_Client_Client : global::System.IEquatable<UnpublishClient_UnpublishClient_ClientVersion_Client_Client>, IUnpublishClient_UnpublishClient_ClientVersion_Client_Client
     {
         public UnpublishClient_UnpublishClient_ClientVersion_Client_Client(global::System.String name)
@@ -11489,6 +11652,60 @@ namespace ChilliCream.Nitro.Client
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IUnpublishClient_UnpublishClient_Errors_ConcurrentOperationError : IUnpublishClient_UnpublishClient_Errors, IConcurrentOperationError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IClientVersionProtectedError : IError
+    {
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Tag { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind> ProtectedBy { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IUnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError : IUnpublishClient_UnpublishClient_Errors, IClientVersionProtectedError
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The version's recent-traffic protection cannot be evaluated: the client had no traffic
+    /// of any version within the required window, no traffic data is available, or the
+    /// lifecycle's traffic rules look further back than the traffic history that can be relied
+    /// on, so the rule can neither keep nor release the version. A forced unpublish goes
+    /// through regardless.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IClientRecentTrafficProtectionNotEvaluableError : IError
+    {
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Tag { get; }
+        /// <summary>
+        /// How recently the client must have had traffic of any version on the stage for the
+        /// rule to be applied.
+        /// </summary>
+        public global::System.TimeSpan ClientTrafficRequiredWithin { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The version's recent-traffic protection cannot be evaluated: the client had no traffic
+    /// of any version within the required window, no traffic data is available, or the
+    /// lifecycle's traffic rules look further back than the traffic history that can be relied
+    /// on, so the rule can neither keep nor release the version. A forced unpublish goes
+    /// through regardless.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IUnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError : IUnpublishClient_UnpublishClient_Errors, IClientRecentTrafficProtectionNotEvaluableError
     {
     }
 
@@ -26184,6 +26401,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1>, IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4>, IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4
     {
         public OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -29866,6 +30148,12 @@ namespace ChilliCream.Nitro.Client
     public partial interface IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
     {
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
+    {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -54033,6 +54321,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1
+    {
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DescriptionChanged_4>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DescriptionChanged_4
     {
         public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -58097,6 +58450,71 @@ namespace ChilliCream.Nitro.Client
                 hash ^= 397 * __typename.GetHashCode();
                 hash ^= 397 * Severity.GetHashCode();
                 hash ^= 397 * TypeName.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
         }
@@ -63397,6 +63815,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DescriptionChanged_4>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DescriptionChanged_4
     {
         public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -64909,6 +65392,12 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DeprecatedChange_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_4
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_DescriptionChanged_4 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes_Changes_4, IDescriptionChanged
     {
     }
@@ -65352,6 +65841,12 @@ namespace ChilliCream.Nitro.Client
     public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_4
     {
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_DeprecatedChange_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_4
+    {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -65917,6 +66412,12 @@ namespace ChilliCream.Nitro.Client
     public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_4
     {
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Deployment_Errors_Changes_Changes_4
+    {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -97360,6 +97861,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1>, IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4>, IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4
     {
         public PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -100442,6 +101008,12 @@ namespace ChilliCream.Nitro.Client
     public partial interface IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
     {
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
+    {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -113488,6 +114060,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1>, IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4>, IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4
     {
         public PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -116570,6 +117207,12 @@ namespace ChilliCream.Nitro.Client
     public partial interface IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
     {
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
+    {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -130969,6 +131612,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1>, IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DescriptionChanged_4>, IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DescriptionChanged_4
     {
         public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -136031,6 +136739,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1>, IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4>, IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4
     {
         public OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -137851,6 +138624,12 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DeprecatedChange_1 : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_4
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_DescriptionChanged_4 : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors_Changes_Changes_4, IDescriptionChanged
     {
     }
@@ -138387,6 +139166,12 @@ namespace ChilliCream.Nitro.Client
     public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
     {
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1 : IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4
+    {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -144339,6 +145124,71 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1>, IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1
+    {
+        public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DescriptionChanged_4 : global::System.IEquatable<OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DescriptionChanged_4>, IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DescriptionChanged_4
     {
         public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DescriptionChanged_4(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity severity, global::System.String? old, global::System.String? @new)
@@ -147346,6 +148196,71 @@ namespace ChilliCream.Nitro.Client
                 hash ^= 397 * __typename.GetHashCode();
                 hash ^= 397 * Severity.GetHashCode();
                 hash ^= 397 * TypeName.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1 : global::System.IEquatable<OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1>, IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1
+    {
+        public OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1(global::System.String __typename)
+        {
+            this.__typename = __typename;
+        }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+
+        public virtual global::System.Boolean Equals(OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
         }
@@ -150400,6 +151315,12 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DeprecatedChange_1 : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_4
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_DescriptionChanged_4 : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Changes_Changes_4, IDescriptionChanged
     {
     }
@@ -150727,6 +151648,12 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DeprecatedChange_1 : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_4
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_DescriptionChanged_4 : IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors_Changes_Changes_4, IDescriptionChanged
     {
     }
@@ -151016,12 +151943,14 @@ namespace ChilliCream.Nitro.Client
     public partial class UnpublishClientInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter = default !;
+        private global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "UnpublishClientInput";
 
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
+            _booleanFormatter = serializerResolver.GetInputValueFormatter("Boolean");
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
@@ -151045,6 +151974,11 @@ namespace ChilliCream.Nitro.Client
                 fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("clientId", FormatClientId(input.ClientId)));
             }
 
+            if (inputInfo.IsForceSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("force", FormatForce(input.Force)));
+            }
+
             if (inputInfo.IsStageSet)
             {
                 fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("stage", FormatStage(input.Stage)));
@@ -151066,6 +152000,18 @@ namespace ChilliCream.Nitro.Client
             }
 
             return _iDFormatter.Format(input);
+        }
+
+        private global::System.Object? FormatForce(global::System.Boolean? input)
+        {
+            if (input is null)
+            {
+                return input;
+            }
+            else
+            {
+                return _booleanFormatter.Format(input);
+            }
         }
 
         private global::System.Object? FormatStage(global::System.String input)
@@ -151110,7 +152056,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (ClientId.Equals(other.ClientId)) && Stage.Equals(other.Stage) && Tag.Equals(other.Tag);
+            return (ClientId.Equals(other.ClientId)) && global::System.Object.Equals(Force, other.Force) && Stage.Equals(other.Stage) && Tag.Equals(other.Tag);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -151119,6 +152065,11 @@ namespace ChilliCream.Nitro.Client
             {
                 int hash = 5;
                 hash ^= 397 * ClientId.GetHashCode();
+                if (Force != null)
+                {
+                    hash ^= 397 * Force.GetHashCode();
+                }
+
                 hash ^= 397 * Stage.GetHashCode();
                 hash ^= 397 * Tag.GetHashCode();
                 return hash;
@@ -151127,6 +152078,8 @@ namespace ChilliCream.Nitro.Client
 
         private global::System.String _value_clientId = default !;
         private global::System.Boolean _set_clientId;
+        private global::System.Boolean? _value_force;
+        private global::System.Boolean _set_force;
         private global::System.String _value_stage = default !;
         private global::System.Boolean _set_stage;
         private global::System.String _value_tag = default !;
@@ -151142,6 +152095,18 @@ namespace ChilliCream.Nitro.Client
         }
 
         global::System.Boolean global::ChilliCream.Nitro.Client.State.IUnpublishClientInputInfo.IsClientIdSet => _set_clientId;
+
+        public global::System.Boolean? Force
+        {
+            get => _value_force;
+            init
+            {
+                _set_force = true;
+                _value_force = value;
+            }
+        }
+
+        global::System.Boolean global::ChilliCream.Nitro.Client.State.IUnpublishClientInputInfo.IsForceSet => _set_force;
 
         public global::System.String Stage
         {
@@ -158321,6 +159286,42 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum ClientUnpublishProtectionRuleKind
+    {
+        MinAge,
+        NewestVersions,
+        RecentTraffic
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ClientUnpublishProtectionRuleKindSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, ClientUnpublishProtectionRuleKind>
+    {
+        public global::System.String TypeName => "ClientUnpublishProtectionRuleKind";
+
+        public ClientUnpublishProtectionRuleKind Parse(global::System.String serializedValue)
+        {
+            return serializedValue switch
+            {
+                "MIN_AGE" => ClientUnpublishProtectionRuleKind.MinAge,
+                "NEWEST_VERSIONS" => ClientUnpublishProtectionRuleKind.NewestVersions,
+                "RECENT_TRAFFIC" => ClientUnpublishProtectionRuleKind.RecentTraffic,
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum ClientUnpublishProtectionRuleKind")};
+        }
+
+        public global::System.Object Format(global::System.Object? runtimeValue)
+        {
+            return runtimeValue switch
+            {
+                ClientUnpublishProtectionRuleKind.MinAge => "MIN_AGE",
+                ClientUnpublishProtectionRuleKind.NewestVersions => "NEWEST_VERSIONS",
+                ClientUnpublishProtectionRuleKind.RecentTraffic => "RECENT_TRAFFIC",
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum ClientUnpublishProtectionRuleKind value '{runtimeValue}' can't be converted to string")};
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum ProcessingState
     {
         Approved,
@@ -160764,6 +161765,8 @@ namespace ChilliCream.Nitro.Client
     ///       ...ClientVersionNotFoundError
     ///       ...UnauthorizedOperation
     ///       ...ClientNotFoundError
+    ///       ...ClientVersionProtectedError
+    ///       ...ClientRecentTrafficProtectionNotEvaluableError
     ///       ...Error
     ///     }
     ///   }
@@ -160804,6 +161807,22 @@ namespace ChilliCream.Nitro.Client
     ///   clientId
     ///   ...Error
     /// }
+    /// 
+    /// fragment ClientVersionProtectedError on ClientVersionProtectedError {
+    ///   __typename
+    ///   message
+    ///   tag
+    ///   protectedBy
+    ///   ...Error
+    /// }
+    /// 
+    /// fragment ClientRecentTrafficProtectionNotEvaluableError on ClientRecentTrafficProtectionNotEvaluableError {
+    ///   __typename
+    ///   message
+    ///   tag
+    ///   clientTrafficRequiredWithin
+    ///   ...Error
+    /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
@@ -160816,7 +161835,7 @@ namespace ChilliCream.Nitro.Client
         public static UnpublishClientMutationDocument Instance { get; } = new UnpublishClientMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "46f17a4290cafa294558f9d2f6ad368e");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "91dbd7509fb020d1d5e586597b25c711");
 
         public override global::System.String ToString()
         {
@@ -160850,6 +161869,8 @@ namespace ChilliCream.Nitro.Client
     ///       ...ClientVersionNotFoundError
     ///       ...UnauthorizedOperation
     ///       ...ClientNotFoundError
+    ///       ...ClientVersionProtectedError
+    ///       ...ClientRecentTrafficProtectionNotEvaluableError
     ///       ...Error
     ///     }
     ///   }
@@ -160888,6 +161909,22 @@ namespace ChilliCream.Nitro.Client
     /// fragment ClientNotFoundError on ClientNotFoundError {
     ///   message
     ///   clientId
+    ///   ...Error
+    /// }
+    /// 
+    /// fragment ClientVersionProtectedError on ClientVersionProtectedError {
+    ///   __typename
+    ///   message
+    ///   tag
+    ///   protectedBy
+    ///   ...Error
+    /// }
+    /// 
+    /// fragment ClientRecentTrafficProtectionNotEvaluableError on ClientRecentTrafficProtectionNotEvaluableError {
+    ///   __typename
+    ///   message
+    ///   tag
+    ///   clientTrafficRequiredWithin
     ///   ...Error
     /// }
     /// </code>
@@ -160995,6 +162032,8 @@ namespace ChilliCream.Nitro.Client
     ///       ...ClientVersionNotFoundError
     ///       ...UnauthorizedOperation
     ///       ...ClientNotFoundError
+    ///       ...ClientVersionProtectedError
+    ///       ...ClientRecentTrafficProtectionNotEvaluableError
     ///       ...Error
     ///     }
     ///   }
@@ -161033,6 +162072,22 @@ namespace ChilliCream.Nitro.Client
     /// fragment ClientNotFoundError on ClientNotFoundError {
     ///   message
     ///   clientId
+    ///   ...Error
+    /// }
+    /// 
+    /// fragment ClientVersionProtectedError on ClientVersionProtectedError {
+    ///   __typename
+    ///   message
+    ///   tag
+    ///   protectedBy
+    ///   ...Error
+    /// }
+    /// 
+    /// fragment ClientRecentTrafficProtectionNotEvaluableError on ClientRecentTrafficProtectionNotEvaluableError {
+    ///   __typename
+    ///   message
+    ///   tag
+    ///   clientTrafficRequiredWithin
     ///   ...Error
     /// }
     /// </code>
@@ -191042,6 +192097,19 @@ namespace ChilliCream.Nitro.Client.State
             {
                 returnValue = new global::ChilliCream.Nitro.Client.UnpublishClient_UnpublishClient_Errors_ConcurrentOperationError(concurrentOperationError.__typename ?? throw new global::System.ArgumentNullException(), concurrentOperationError.Message ?? throw new global::System.ArgumentNullException());
             }
+            else if (data is global::ChilliCream.Nitro.Client.State.ClientVersionProtectedErrorData clientVersionProtectedError)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.UnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError(clientVersionProtectedError.__typename ?? throw new global::System.ArgumentNullException(), clientVersionProtectedError.Message ?? throw new global::System.ArgumentNullException(), clientVersionProtectedError.Tag ?? throw new global::System.ArgumentNullException(), clientVersionProtectedError.ProtectedBy ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.ClientRecentTrafficProtectionNotEvaluableErrorData clientRecentTrafficProtectionNotEvaluableError)
+            {
+                if (!clientRecentTrafficProtectionNotEvaluableError.ClientTrafficRequiredWithin.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
+                returnValue = new global::ChilliCream.Nitro.Client.UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError(clientRecentTrafficProtectionNotEvaluableError.__typename ?? throw new global::System.ArgumentNullException(), clientRecentTrafficProtectionNotEvaluableError.Message ?? throw new global::System.ArgumentNullException(), clientRecentTrafficProtectionNotEvaluableError.Tag ?? throw new global::System.ArgumentNullException(), clientRecentTrafficProtectionNotEvaluableError.ClientTrafficRequiredWithin!.Value);
+            }
             else
             {
                 throw new global::System.NotSupportedException();
@@ -193983,7 +195051,11 @@ namespace ChilliCream.Nitro.Client.State
         private global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4 MapNonNullableIOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4(global::ChilliCream.Nitro.Client.State.IObjectChangeData data)
         {
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4? returnValue;
-            if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
+            if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
                 if (!descriptionChanged.Severity.HasValue)
                 {
@@ -198426,7 +199498,11 @@ namespace ChilliCream.Nitro.Client.State
         private global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4 MapNonNullableIOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4(global::ChilliCream.Nitro.Client.State.IObjectChangeData data)
         {
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4? returnValue;
-            if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
+            if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
                 if (!descriptionChanged.Severity.HasValue)
                 {
@@ -204406,7 +205482,11 @@ namespace ChilliCream.Nitro.Client.State
         private global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4 MapNonNullableIOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4(global::ChilliCream.Nitro.Client.State.IObjectChangeData data)
         {
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4? returnValue;
-            if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
+            if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
                 if (!descriptionChanged.Severity.HasValue)
                 {
@@ -207224,7 +208304,11 @@ namespace ChilliCream.Nitro.Client.State
         private global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4 MapNonNullableIOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4(global::ChilliCream.Nitro.Client.State.IObjectChangeData data)
         {
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4? returnValue;
-            if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
+            if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
                 if (!descriptionChanged.Severity.HasValue)
                 {
@@ -210320,7 +211404,11 @@ namespace ChilliCream.Nitro.Client.State
         private global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4 MapNonNullableIOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4(global::ChilliCream.Nitro.Client.State.IObjectChangeData data)
         {
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4? returnValue;
-            if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
+            if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
                 if (!descriptionChanged.Severity.HasValue)
                 {
@@ -212386,7 +213474,11 @@ namespace ChilliCream.Nitro.Client.State
         private global::ChilliCream.Nitro.Client.IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4 MapNonNullableIOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4(global::ChilliCream.Nitro.Client.State.IObjectChangeData data)
         {
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4? returnValue;
-            if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
+            if (data is global::ChilliCream.Nitro.Client.State.DeprecatedChangeData deprecatedChange)
+            {
+                returnValue = new global::ChilliCream.Nitro.Client.OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_DeprecatedChange_1(deprecatedChange.__typename ?? throw new global::System.ArgumentNullException());
+            }
+            else if (data is global::ChilliCream.Nitro.Client.State.DescriptionChangedData descriptionChanged)
             {
                 if (!descriptionChanged.Severity.HasValue)
                 {
@@ -212685,6 +213777,8 @@ namespace ChilliCream.Nitro.Client.State
     internal interface IUnpublishClientInputInfo
     {
         global::System.Boolean IsClientIdSet { get; }
+
+        global::System.Boolean IsForceSet { get; }
 
         global::System.Boolean IsStageSet { get; }
 
@@ -215261,13 +216355,19 @@ namespace ChilliCream.Nitro.Client.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class UnpublishClientBuilder : global::StrawberryShake.OperationResultBuilder<global::ChilliCream.Nitro.Client.IUnpublishClientResult>
     {
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind> _clientUnpublishProtectionRuleKindParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.TimeSpan> _durationParser;
         public UnpublishClientBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUnpublishClientResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _clientUnpublishProtectionRuleKindParser = serializerResolver.GetLeafValueParser<global::System.String, global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind>("ClientUnpublishProtectionRuleKind") ?? throw new global::System.ArgumentException("No serializer for type `ClientUnpublishProtectionRuleKind` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _durationParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.TimeSpan>("Duration") ?? throw new global::System.ArgumentException("No serializer for type `Duration` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUnpublishClientResult> ResultDataFactory { get; }
@@ -215414,7 +216514,68 @@ namespace ChilliCream.Nitro.Client.State
                 return new global::ChilliCream.Nitro.Client.State.ConcurrentOperationErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
             }
 
+            if (typename?.Equals("ClientVersionProtectedError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ClientVersionProtectedErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")), tag: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tag")), protectedBy: Deserialize_NonNullableClientUnpublishProtectionRuleKindNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "protectedBy")));
+            }
+
+            if (typename?.Equals("ClientRecentTrafficProtectionNotEvaluableError", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.ClientRecentTrafficProtectionNotEvaluableErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")), tag: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tag")), clientTrafficRequiredWithin: Deserialize_NonNullableTimeSpan(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "clientTrafficRequiredWithin")));
+            }
+
             throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind> Deserialize_NonNullableClientUnpublishProtectionRuleKindNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var clientUnpublishProtectionRuleKinds = new global::System.Collections.Generic.List<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                clientUnpublishProtectionRuleKinds.Add(Deserialize_NonNullableClientUnpublishProtectionRuleKind(child));
+            }
+
+            return clientUnpublishProtectionRuleKinds;
+        }
+
+        private global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind Deserialize_NonNullableClientUnpublishProtectionRuleKind(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _clientUnpublishProtectionRuleKindParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.TimeSpan Deserialize_NonNullableTimeSpan(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _durationParser.Parse(obj.Value.GetString()!);
         }
     }
 
@@ -219049,6 +220210,11 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+            }
+
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Client.State.DescriptionChangedData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), old: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "old")), @new: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "new")));
@@ -224492,6 +225658,11 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+            }
+
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Client.State.DescriptionChangedData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), old: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "old")), @new: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "new")));
@@ -231290,6 +232461,11 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+            }
+
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Client.State.DescriptionChangedData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), old: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "old")), @new: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "new")));
@@ -234597,6 +235773,11 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+            }
+
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Client.State.DescriptionChangedData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), old: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "old")), @new: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "new")));
@@ -238192,6 +239373,11 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+            }
+
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Client.State.DescriptionChangedData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), old: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "old")), @new: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "new")));
@@ -240354,6 +241540,11 @@ namespace ChilliCream.Nitro.Client.State
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
+            if (typename?.Equals("DeprecatedChange", global::System.StringComparison.Ordinal) ?? false)
+            {
+                return new global::ChilliCream.Nitro.Client.State.DeprecatedChangeData(typename);
+            }
+
             if (typename?.Equals("DescriptionChanged", global::System.StringComparison.Ordinal) ?? false)
             {
                 return new global::ChilliCream.Nitro.Client.State.DescriptionChangedData(typename, severity: Deserialize_NonNullableSchemaChangeSeverity(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "severity")), old: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "old")), @new: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "new")));
@@ -240875,6 +242066,13 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface IUpdateClientVersionLifecycleErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateFeatureFlagsErrorData
     {
         global::System.String __typename { get; }
@@ -240952,7 +242150,7 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record UnauthorizedOperationData : IApproveDeploymentErrorData, IBeginFusionConfigurationPublishErrorData, ICancelDeploymentErrorData, ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, ICreateAccountErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IDeleteApiByIdErrorData, IDeleteApiKeyErrorData, IDeleteClientByIdErrorData, IDeleteMcpFeatureCollectionByIdErrorData, IDeleteMockSchemaByIdErrorData, IDeleteOpenApiCollectionByIdErrorData, IEnsureTunnelSessionErrorData, IForceDeleteStageByApiIdErrorData, IPollClientVersionPublishRequestErrorData, IPollClientVersionValidationRequestErrorData, IPollSchemaVersionPublishRequestErrorData, IPollSchemaVersionValidationRequestErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IPushDocumentChangesErrorData, IPushWorkspaceChangesErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IRevokePersonalAccessTokenErrorData, ISetActiveWorkspaceErrorData, IStartFusionConfigurationCompositionErrorData, IUnpublishClientErrorData, IUpdateApiSettingsErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateThemeSettingsErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateFusionConfigurationCompositionErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
+    public partial record UnauthorizedOperationData : IApproveDeploymentErrorData, IBeginFusionConfigurationPublishErrorData, ICancelDeploymentErrorData, ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, ICreateAccountErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IDeleteApiByIdErrorData, IDeleteApiKeyErrorData, IDeleteClientByIdErrorData, IDeleteMcpFeatureCollectionByIdErrorData, IDeleteMockSchemaByIdErrorData, IDeleteOpenApiCollectionByIdErrorData, IEnsureTunnelSessionErrorData, IForceDeleteStageByApiIdErrorData, IPollClientVersionPublishRequestErrorData, IPollClientVersionValidationRequestErrorData, IPollSchemaVersionPublishRequestErrorData, IPollSchemaVersionValidationRequestErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IPushDocumentChangesErrorData, IPushWorkspaceChangesErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IRevokePersonalAccessTokenErrorData, ISetActiveWorkspaceErrorData, IStartFusionConfigurationCompositionErrorData, IUnpublishClientErrorData, IUpdateApiSettingsErrorData, IUpdateClientVersionLifecycleErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateThemeSettingsErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateFusionConfigurationCompositionErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
     {
         public UnauthorizedOperationData(global::System.String __typename, global::System.String? message = default !)
         {
@@ -240966,7 +242164,7 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record ValidationErrorData : ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateMockSchemaErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateThemeSettingsErrorData, IErrorData
+    public partial record ValidationErrorData : ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateMockSchemaErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IUpdateClientVersionLifecycleErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateThemeSettingsErrorData, IErrorData
     {
         public ValidationErrorData(global::System.String __typename, global::System.String? message = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.State.ValidationErrorPropertyData>? errors = default !)
         {
@@ -242014,7 +243212,7 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record ClientNotFoundErrorData : IDeleteClientByIdErrorData, IPublishClientErrorData, IUnpublishClientErrorData, IUploadClientErrorData, IValidateClientErrorData, IErrorData
+    public partial record ClientNotFoundErrorData : IDeleteClientByIdErrorData, IPublishClientErrorData, IUnpublishClientErrorData, IUpdateClientVersionLifecycleErrorData, IUploadClientErrorData, IValidateClientErrorData, IErrorData
     {
         public ClientNotFoundErrorData(global::System.String __typename, global::System.String? message = default !, global::System.String? clientId = default !)
         {
@@ -242090,7 +243288,7 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record ConcurrentOperationErrorData : IUnpublishClientErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData, ISchemaVersionPublishErrorData, IClientVersionPublishErrorData, IFusionConfigurationPublishingErrorData, IOpenApiCollectionVersionPublishErrorData, IMcpFeatureCollectionVersionPublishErrorData, IProcessingErrorData
+    public partial record ConcurrentOperationErrorData : IUnpublishClientErrorData, IUpdateClientVersionLifecycleErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData, ISchemaVersionPublishErrorData, IClientVersionPublishErrorData, IFusionConfigurationPublishingErrorData, IOpenApiCollectionVersionPublishErrorData, IMcpFeatureCollectionVersionPublishErrorData, IProcessingErrorData
     {
         public ConcurrentOperationErrorData(global::System.String __typename, global::System.String? message = default !)
         {
@@ -242100,6 +243298,44 @@ namespace ChilliCream.Nitro.Client.State
 
         public global::System.String __typename { get; init; }
         public global::System.String? Message { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial record ClientVersionProtectedErrorData : IUnpublishClientErrorData, IErrorData
+    {
+        public ClientVersionProtectedErrorData(global::System.String __typename, global::System.String? message = default !, global::System.String? tag = default !, global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind>? protectedBy = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+            Tag = tag;
+            ProtectedBy = protectedBy;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+        public global::System.String? Tag { get; init; }
+        public global::System.Collections.Generic.IReadOnlyList<global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKind>? ProtectedBy { get; init; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    ///<summary>The version's recent-traffic protection cannot be evaluated: the client had no trafficof any version within the required window, no traffic data is available, or thelifecycle's traffic rules look further back than the traffic history that can be reliedon, so the rule can neither keep nor release the version. A forced unpublish goesthrough regardless.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial record ClientRecentTrafficProtectionNotEvaluableErrorData : IUnpublishClientErrorData, IErrorData
+    {
+        public ClientRecentTrafficProtectionNotEvaluableErrorData(global::System.String __typename, global::System.String? message = default !, global::System.String? tag = default !, global::System.TimeSpan? clientTrafficRequiredWithin = default !)
+        {
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            Message = message;
+            Tag = tag;
+            ClientTrafficRequiredWithin = clientTrafficRequiredWithin;
+        }
+
+        public global::System.String __typename { get; init; }
+        public global::System.String? Message { get; init; }
+        public global::System.String? Tag { get; init; }
+        ///<summary>How recently the client must have had traffic of any version on the stage for therule to be applied.</summary>
+        public global::System.TimeSpan? ClientTrafficRequiredWithin { get; init; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
@@ -243168,7 +244404,14 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record DeprecatedChangeData : IArgumentChangeData, IDirectiveChangeData, IEnumValueChangeData, IFieldChangeData, IInputFieldChangeData, IOutputFieldChangeData, ISchemaMemberChangeData, ISchemaChangeData
+    public partial interface IObjectChangeData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial record DeprecatedChangeData : IArgumentChangeData, IDirectiveChangeData, IEnumValueChangeData, IFieldChangeData, IInputFieldChangeData, IObjectChangeData, IOutputFieldChangeData, ISchemaMemberChangeData, ISchemaChangeData
     {
         public DeprecatedChangeData(global::System.String __typename, global::ChilliCream.Nitro.Client.SchemaChangeSeverity? severity = default !, global::System.String? deprecationReason = default !)
         {
@@ -243199,13 +244442,6 @@ namespace ChilliCream.Nitro.Client.State
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IInterfaceChangeData
-    {
-        global::System.String __typename { get; }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial interface IObjectChangeData
     {
         global::System.String __typename { get; }
     }
@@ -245488,6 +246724,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("ApiClient"));
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UploadSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.ClientUnpublishProtectionRuleKindSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.ProcessingStateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.SchemaChangeSeveritySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::ChilliCream.Nitro.Client.DirectiveLocationSerializer>(services);

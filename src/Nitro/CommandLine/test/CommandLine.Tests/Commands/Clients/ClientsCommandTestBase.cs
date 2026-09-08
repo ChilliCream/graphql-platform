@@ -270,17 +270,18 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     protected void SetupUnpublishClientMutation(
         string tag = Tag,
+        bool force = false,
         params IUnpublishClient_UnpublishClient_Errors[] errors)
     {
         ClientsClientMock.Setup(x => x.UnpublishClientVersionAsync(
-                ClientId, Stage, tag, It.IsAny<CancellationToken>()))
+                ClientId, Stage, tag, force, It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateUnpublishClientPayload(errors));
     }
 
     protected void SetupUnpublishClientMutationException()
     {
         ClientsClientMock.Setup(x => x.UnpublishClientVersionAsync(
-                ClientId, Stage, Tag, It.IsAny<CancellationToken>()))
+                ClientId, Stage, Tag, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
@@ -293,7 +294,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
             .Returns((IReadOnlyList<IUnpublishClient_UnpublishClient_Errors>?)null);
 
         ClientsClientMock.Setup(x => x.UnpublishClientVersionAsync(
-                ClientId, Stage, Tag, It.IsAny<CancellationToken>()))
+                ClientId, Stage, Tag, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
     }
 
@@ -787,6 +788,34 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var mock = new Mock<IUnpublishClient_UnpublishClient_Errors_ClientVersionNotFoundError>(MockBehavior.Strict);
         mock.SetupGet(x => x.Message).Returns("Client version not found.");
+        return mock.Object;
+    }
+
+    protected static IUnpublishClient_UnpublishClient_Errors
+        CreateUnpublishClientVersionProtectedError(
+            string tag = Tag,
+            params ClientUnpublishProtectionRuleKind[] protectedBy)
+    {
+        var mock = new Mock<IUnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message)
+            .Returns($"Client version '{tag}' is protected and cannot be unpublished.");
+        mock.SetupGet(x => x.Tag).Returns(tag);
+        mock.SetupGet(x => x.ProtectedBy).Returns(protectedBy);
+        return mock.Object;
+    }
+
+    protected static IUnpublishClient_UnpublishClient_Errors
+        CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(
+            TimeSpan? clientTrafficRequiredWithin = null,
+            string tag = Tag)
+    {
+        var mock = new Mock<IUnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError>(
+            MockBehavior.Strict);
+        mock.SetupGet(x => x.Message)
+            .Returns($"The protection rule of client version '{tag}' could not be evaluated.");
+        mock.SetupGet(x => x.Tag).Returns(tag);
+        mock.SetupGet(x => x.ClientTrafficRequiredWithin)
+            .Returns(clientTrafficRequiredWithin ?? TimeSpan.FromDays(7));
         return mock.Object;
     }
 

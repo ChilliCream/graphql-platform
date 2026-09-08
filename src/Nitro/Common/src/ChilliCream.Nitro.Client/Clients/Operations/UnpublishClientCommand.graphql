@@ -12,6 +12,8 @@ mutation unpublishClient($input: UnpublishClientInput!) {
       ...ClientVersionNotFoundError
       ...UnauthorizedOperation
       ...ClientNotFoundError
+      ...ClientVersionProtectedError
+      ...ClientRecentTrafficProtectionNotEvaluableError
       ...Error
     }
   }
