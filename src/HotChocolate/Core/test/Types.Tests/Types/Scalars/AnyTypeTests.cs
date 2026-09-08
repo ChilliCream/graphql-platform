@@ -1505,13 +1505,25 @@ public class AnyTypeTests
 
             type QueryJsonElement {
               someJson: Any!
-              manyJson: [Any!]!
+              manyJson: [Any!]! @cost(weight: "1")
               inputJson(input: Any!): Any!
               jsonFromString: Any!
             }
 
             "The `Any` scalar type represents any valid GraphQL value."
             scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
+
+            "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+            directive @cost(
+              "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
+              weight: String!
+            ) on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
             """);
     }
 
