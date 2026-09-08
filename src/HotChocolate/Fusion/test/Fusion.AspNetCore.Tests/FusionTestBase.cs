@@ -173,6 +173,12 @@ public abstract partial class FusionTestBase : IDisposable
             o.AllowErrorHandlingModeOverride = true;
             o.AllowOperationPlanRequests = true;
         });
+        // The composed test schemas carry no @listSize (source schemas disable
+        // default security), so the harness pins the assumed list size to keep
+        // existing snapshots valid once the cost stage enforces the product
+        // default (double.PositiveInfinity) elsewhere. Tests that deliberately
+        // exercise the product default override this via configureGatewayBuilder.
+        gatewayBuilder.ModifyCostOptions(o => o.DefaultListSize = 1);
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
         configureApplication ??=
