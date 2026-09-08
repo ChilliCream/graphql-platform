@@ -132,7 +132,7 @@ export function VsBffComparison({ title }: { readonly title: string }) {
               </p>
               <p>
                 A backend for frontend can also become a subgraph. When it has
-                grown data or behaviour that other clients want, it publishes a
+                grown data or behavior that other clients want, it publishes a
                 source schema like any other service and its types join the
                 composite schema, which is usually the shortest way out of a
                 client backend that quietly turned into a second product

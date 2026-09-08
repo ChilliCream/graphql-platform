@@ -50,7 +50,7 @@ const GLOSSARY: readonly (readonly string[])[] = [
   [
     "Fetching many entities at once",
     "A list of representations passed to _entities",
-    "Variable batching, being added to GraphQL over HTTP",
+    "Variable batching for GraphQL over HTTP: one query with a list of variable sets",
   ],
 ];
 

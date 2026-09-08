@@ -14,8 +14,7 @@ export interface FederationComparison {
 
 /**
  * The comparison link list shown in the "What is GraphQL Federation?" section.
- * Each `href` points at an in-page anchor for now; the comparison-page tasks
- * (epic graphql-platform-7ok) will repoint each one to its own route at
+ * Each `href` points at the entry's standalone comparison route at
  * `/platform/graphql-federation/<slug>`.
  */
 export const COMPARISONS: readonly FederationComparison[] = [

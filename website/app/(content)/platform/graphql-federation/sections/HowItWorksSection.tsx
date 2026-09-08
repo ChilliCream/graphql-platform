@@ -346,7 +346,10 @@ export function HowItWorksSection() {
               Apollo Federation, the older design, instead asks a subgraph to
               implement a hidden <Code>_entities</Code> field and reference
               resolvers (
-              <Link className={LINK_CLASS} href="#vs-apollo-federation">
+              <Link
+                className={LINK_CLASS}
+                href="/platform/graphql-federation/vs-apollo-federation"
+              >
                 the two designs side by side
               </Link>
               ).
