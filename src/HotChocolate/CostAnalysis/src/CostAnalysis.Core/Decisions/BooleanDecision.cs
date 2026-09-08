@@ -55,21 +55,29 @@ internal abstract class BooleanDecision<T>
     /// <summary>
     /// Combines two decisions pointwise with <paramref name="op"/>, an
     /// ordered BDD apply that keeps each side's independent variable
-    /// support factored. A side not split on the pivot variable broadcasts
-    /// unchanged into both of the pivot's branches.
+    /// support factored. Charges one case per split it materializes against
+    /// <paramref name="budget"/> and collapses both sides with
+    /// <paramref name="join"/> into a leaf once the budget is exhausted. A
+    /// side not split on the pivot variable broadcasts unchanged into both
+    /// of the pivot's branches.
     /// </summary>
-    public static BooleanDecision<T> ZipWith(BooleanDecision<T> left, BooleanDecision<T> right, Func<T, T, T> op)
+    public static BooleanDecision<T> ZipWith(BooleanDecision<T> left, BooleanDecision<T> right, Func<T, T, T> op, Func<T, T, T> join, CaseBudget budget)
     {
         if (left is LeafDecision<T> leftLeaf && right is LeafDecision<T> rightLeaf)
         {
             return Leaf(op(leftLeaf.Value, rightLeaf.Value));
         }
 
+        if (!budget.TrySpend())
+        {
+            return Leaf(op(left.FoldWithJoin(join), right.FoldWithJoin(join)));
+        }
+
         var pivot = PickPivot(left, right);
         var (leftFalse, leftTrue) = Branches(left, pivot);
         var (rightFalse, rightTrue) = Branches(right, pivot);
 
-        return Split(pivot, ZipWith(leftFalse, rightFalse, op), ZipWith(leftTrue, rightTrue, op));
+        return Split(pivot, ZipWith(leftFalse, rightFalse, op, join, budget), ZipWith(leftTrue, rightTrue, op, join, budget));
     }
 
     private static string PickPivot(BooleanDecision<T> left, BooleanDecision<T> right)

@@ -1,9 +1,11 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Tracks the number of exact cases spent while compiling one operation and
-/// reports when the case budget is exhausted. One instance is shared across
-/// every boundary of a single compile.
+/// Tracks the number of split nodes the operation's decision structure
+/// materializes (exact-case splits and zipped products alike) while
+/// compiling one operation, and reports when the case budget is exhausted;
+/// the structure holds at most <c>2 * limit + 1</c> nodes. One instance is
+/// shared across every boundary of a single compile.
 /// </summary>
 internal sealed class CaseBudget(int limit)
 {

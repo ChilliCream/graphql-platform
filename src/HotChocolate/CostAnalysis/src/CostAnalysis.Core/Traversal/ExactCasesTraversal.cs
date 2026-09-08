@@ -67,7 +67,7 @@ internal static class ExactCasesTraversal
             var regionResult = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment);
             combined = combined is null
                 ? regionResult
-                : BooleanDecision<TSummary>.ZipWith(combined, regionResult, algebra.Join);
+                : BooleanDecision<TSummary>.ZipWith(combined, regionResult, algebra.Join, algebra.Join, budget);
         }
 
         return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
@@ -206,7 +206,7 @@ internal static class ExactCasesTraversal
 
             combined = combined is null
                 ? groupDecision
-                : BooleanDecision<TSummary>.ZipWith(combined, groupDecision, algebra.Combine);
+                : BooleanDecision<TSummary>.ZipWith(combined, groupDecision, algebra.Combine, algebra.Join, budget);
         }
 
         return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
@@ -237,7 +237,7 @@ internal static class ExactCasesTraversal
 
             combined = combined is null
                 ? childValue
-                : BooleanDecision<TSummary>.ZipWith(combined, childValue, algebra.Join);
+                : BooleanDecision<TSummary>.ZipWith(combined, childValue, algebra.Join, algebra.Join, budget);
         }
 
         return combined!;
