@@ -50,7 +50,7 @@ export const FEDERATION_FAQ_ITEMS: readonly FederationFaqItem[] = [
   {
     question: "Is GraphQL Federation overkill for a small team?",
     answer:
-      "Usually. One team on one service is better served by a single GraphQL server. Because every GraphQL server is already a valid subgraph under the GraphQL Federation specification, you can start with one server and federate later by declaring keys and lookups in its schema, without changing its clients.",
+      'Usually. One team on one service is better served by a single GraphQL server. Because every GraphQL server is already a valid subgraph under the GraphQL Federation specification, you can start with one server and federate later by declaring keys and lookups in its schema, without changing its clients. The "Why GraphQL Federation?" section above weighs what federation costs against what it buys, and says when it is not worth it.',
   },
   {
     question: "What is the difference between a subgraph and a source schema?",
@@ -71,6 +71,6 @@ export const FEDERATION_FAQ_ITEMS: readonly FederationFaqItem[] = [
   {
     question: "What happened to the Composite Schemas Specification?",
     answer:
-      "It is being renamed. In 2023 Apollo, ChilliCream, and The Guild formed the Composite Schemas Working Group at the GraphQL Foundation to write a vendor-neutral standard for federated GraphQL schemas. That specification is becoming the GraphQL Federation Specification: the same document and the same working group.",
+      "It was renamed. In 2023 Apollo, ChilliCream, and The Guild formed the Composite Schemas Working Group at the GraphQL Foundation to write a vendor-neutral standard for federated GraphQL schemas. The specification that came out of that work is the GraphQL Federation specification, an open standard under the GraphQL Foundation: the same document and the same working group under a new name.",
   },
 ];
