@@ -644,8 +644,8 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
-            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseSkipWarmupExecution()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
@@ -667,8 +667,8 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentValidation()
             .UseOperationCache()
             .UseOperationResolver()
-            .UseSkipWarmupExecution()
             .UseOperationVariableCoercion()
+            .UseSkipWarmupExecution()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
@@ -683,8 +683,8 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(CommonMiddleware.DocumentValidation);
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
-        pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(CommonMiddleware.ConcurrencyGate);
         pipeline.Add(OperationExecutionMiddleware.Create());
     }

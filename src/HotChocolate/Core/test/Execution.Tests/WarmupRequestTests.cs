@@ -89,6 +89,32 @@ public class WarmupRequestTests
         Assert.Equal(1, operationCache.Count);
     }
 
+    [Fact]
+    public async Task Cost_Validation_Request_Without_Variables_Skips_Coercion()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // a required variable is declared but no value is supplied, which would normally
+        // make coercion throw; here it must be skipped because the request only validates cost.
+        var request = OperationRequestBuilder.New()
+            .SetDocument("query test($name: String!) { greeting(name: $name) }")
+            .AddGlobalState(ExecutionContextData.ValidateCost, true)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Equal(
+            "Either no compiled operation was found or the variables have not been coerced.",
+            Assert.Single(operationResult.Errors!).Message);
+    }
+
     public class Query
     {
         public string Greeting(string name) => $"Hello {name}";

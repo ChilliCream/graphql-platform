@@ -1,3 +1,5 @@
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
@@ -28,11 +30,14 @@ internal sealed class OperationVariableCoercionMiddleware
     {
         if (context.TryGetOperation(out var operation))
         {
-            CoerceVariables(
-                context,
-                _coercionHelper,
-                operation.Definition.VariableDefinitions,
-                _diagnosticEvents);
+            if (!context.IsWarmupRequest() && !IsCostValidationWithoutVariables(context))
+            {
+                CoerceVariables(
+                    context,
+                    _coercionHelper,
+                    operation.Definition.VariableDefinitions,
+                    _diagnosticEvents);
+            }
 
             await _next(context).ConfigureAwait(false);
         }
@@ -40,6 +45,25 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();
         }
+    }
+
+    // A GraphQL-Cost: validate request that supplies no variables is analyzed with the
+    // static-bound path, so variable coercion is skipped and the operation's variable
+    // definitions are evaluated instead of coerced values.
+    private static bool IsCostValidationWithoutVariables(RequestContext context)
+        => context.Request is OperationRequest operationRequest
+            && context.ContextData.ContainsKey(ExecutionContextData.ValidateCost)
+            && HasNoVariableValues(operationRequest.VariableValues);
+
+    private static bool HasNoVariableValues(JsonDocumentOwner? variableValues)
+    {
+        if (variableValues is null)
+        {
+            return true;
+        }
+
+        var root = variableValues.Document.RootElement;
+        return root.ValueKind is not JsonValueKind.Object || root.GetPropertyCount() == 0;
     }
 
     public static RequestMiddlewareConfiguration Create()
