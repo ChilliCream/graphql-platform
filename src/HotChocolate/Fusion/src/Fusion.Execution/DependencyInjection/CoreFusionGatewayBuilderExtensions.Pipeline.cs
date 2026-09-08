@@ -191,10 +191,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseDocumentNormalization()
+            .UseOperationVariableCoercion()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
-            .UseOperationVariableCoercion()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
@@ -217,10 +217,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseDocumentNormalization()
+            .UseOperationVariableCoercion()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
-            .UseOperationVariableCoercion()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
@@ -243,10 +243,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseDocumentNormalization()
+            .UseOperationVariableCoercion()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
-            .UseOperationVariableCoercion()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
