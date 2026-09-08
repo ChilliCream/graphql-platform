@@ -1011,6 +1011,28 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
+    public async Task OperationBatch_Should_ExecuteEachOperation_When_BatchingIsEnabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var results = await server.PostOperationAsync(
+            new ClientQueryRequest
+            {
+                Query =
+                    """
+                    query a { hero(episode: NEW_HOPE) { name } }
+                    query b { hero(episode: EMPIRE) { name } }
+                    """
+            },
+            "a,b");
+
+        // assert
+        results.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task OperationBatch_Should_ReportGenericError_When_OperationNamesAreInvalid()
     {
         // arrange
